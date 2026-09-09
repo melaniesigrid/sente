@@ -23,7 +23,7 @@ describe("gameStore", () => {
     rec = play(rec, 4, 4); rec = play(rec, 2, 2); rec = pass(rec);
     expect(saveGame({ record: rec, mode: { kind: "bot", personaId: "hoshi" } }, s)).toBe(true);
     const back = loadGame(s);
-    expect(back.mode).toEqual({ kind: "bot", personaId: "hoshi" });
+    expect(back.mode).toEqual({ kind: "bot", personaId: "hoshi", rank: null });
     expect(back.record).toEqual(rec);
     expect(typeof back.savedAt).toBe("number");
     expect(warn).not.toHaveBeenCalled();
@@ -76,5 +76,16 @@ describe("gameStore", () => {
     expect(saveGame({ record: createGame({ size: 9 }), mode: { kind: "local" } }, bad)).toBe(false);
     expect(loadGame(bad)).toBeNull();
     expect(warn).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("saved rank", () => {
+  it("round-trips the rank the bot game was played at", async () => {
+    const { saveGame, loadGame } = await import("./gameStore.js");
+    const { createGame } = await import("../engine/index.js");
+    const s = new Map();
+    const store = { getItem: (k) => s.get(k) ?? null, setItem: (k, v) => s.set(k, v), removeItem: (k) => s.delete(k) };
+    saveGame({ record: createGame({ size: 9 }), mode: { kind: "bot", personaId: "yuki", rank: "7k" } }, store);
+    expect(loadGame(store).mode.rank).toBe("7k");
   });
 });
