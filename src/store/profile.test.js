@@ -7,7 +7,7 @@ afterEach(() => { warn.mockRestore(); });
 
 describe("sanitizeProfile", () => {
   it("keeps a well-formed profile intact and copies its arrays", () => {
-    const good = { ...defaultProfile, name: "Ada", tint: "coral", rating: 1234, wins: 3, losses: 1, streak: 2, bestStreak: 2, lessonsDone: ["ko"], problemsDone: ["p1", "p2"], sound: true, kataDate: "2026-09-09", kataStreak: 3, kataBest: 5 };
+    const good = { ...defaultProfile, name: "Ada", tint: "coral", rating: 1234, wins: 3, losses: 1, streak: 2, bestStreak: 2, lessonsDone: ["ko"], problemsDone: ["p1", "p2"], tierPassed: [1, 2], sound: true, kataDate: "2026-09-09", kataStreak: 3, kataBest: 5 };
     const out = sanitizeProfile(good);
     expect(out).toEqual(good);
     expect(out.lessonsDone).not.toBe(good.lessonsDone);
@@ -43,6 +43,14 @@ describe("sanitizeProfile", () => {
   it("resets a non-boolean sound flag", () => {
     expect(sanitizeProfile({ ...defaultProfile, sound: "yes" }).sound).toBe(false);
     expect(warn.mock.calls[0][0]).toMatch(/sound/);
+  });
+  it("tierPassed must be an array of integer tier ids", () => {
+    expect(sanitizeProfile({ ...defaultProfile, tierPassed: [1, 3] }).tierPassed).toEqual([1, 3]);
+    expect(sanitizeProfile({ ...defaultProfile, tierPassed: ["1"] }).tierPassed).toEqual([]);
+    expect(sanitizeProfile({ ...defaultProfile, tierPassed: [1.5] }).tierPassed).toEqual([]);
+    expect(sanitizeProfile({ ...defaultProfile, tierPassed: null }).tierPassed).toEqual([]);
+    expect(warn).toHaveBeenCalledTimes(3);
+    expect(warn.mock.calls[0][0]).toMatch(/tierPassed/);
   });
   it("drops unknown keys", () => {
     expect(sanitizeProfile({ ...defaultProfile, admin: true })).not.toHaveProperty("admin");

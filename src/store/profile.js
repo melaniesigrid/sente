@@ -9,13 +9,20 @@ export const defaultProfile = {
   name: "Player", tint: "eucalyptus", rating: 1000,
   wins: 0, losses: 0, streak: 0, bestStreak: 0,
   lessonsDone: [], problemsDone: [],
+  tierPassed: [],                            // library tier ids whose exit test was passed
   sound: false,                              // stone click + haptic, opt-in
   kataDate: "", kataStreak: 0, kataBest: 0,  // kata of the day attendance
 };
 
+// Element type for each array field; anything else in an array is a corrupt profile.
+const ARRAY_OF = { lessonsDone: "string", problemsDone: "string", tierPassed: "number" };
+
 const validField = (key, value) => {
   const def = defaultProfile[key];
-  if (Array.isArray(def)) return Array.isArray(value) && value.every(v => typeof v === "string");
+  if (Array.isArray(def)) {
+    const t = ARRAY_OF[key];
+    return Array.isArray(value) && value.every(v => typeof v === t && (t !== "number" || Number.isInteger(v)));
+  }
   if (typeof def === "number") return typeof value === "number" && Number.isFinite(value);
   if (typeof def === "boolean") return typeof value === "boolean";
   if (key === "tint") return typeof value === "string" && Object.hasOwn(TINTS, value);
