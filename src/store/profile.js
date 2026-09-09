@@ -12,6 +12,8 @@ export const defaultProfile = {
   tierPassed: [],                            // library tier ids whose exit test was passed
   sound: false,                              // stone click + haptic, opt-in
   kataDate: "", kataStreak: 0, kataBest: 0,  // kata of the day attendance
+  duelStarted: "", duelDate: "", duelResult: "", duelMoves: 0,  // daily duel: day started, day finished, code ("B+3.5")
+  duelPlayed: 0, duelWins: 0, duelStreak: 0, duelBestStreak: 0,
 };
 
 // Element type for each array field; anything else in an array is a corrupt profile.

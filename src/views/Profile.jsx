@@ -125,6 +125,10 @@ export function ProfileView({ profile, setProfile }) {
           <div className="stat-num">{streak}<em>{streak === 1 ? " day" : " days"}{profile.kataBest > streak ? ` · best ${profile.kataBest}` : ""}</em></div>
         </Card>
         <Card>
+          <div className="stat-head"><Swords size={16} /><span>Daily duels</span></div>
+          <div className="stat-num">{profile.duelPlayed}<em>{profile.duelPlayed ? ` · ${profile.duelWins} won` : ""}{profile.duelBestStreak > 1 ? ` · best streak ${profile.duelBestStreak}` : ""}</em></div>
+        </Card>
+        <Card>
           <div className="stat-head"><GraduationCap size={16} /><span>Lessons</span></div>
           <div className="stat-num">{profile.lessonsDone.length}<em>/{LESSONS.length}</em></div>
         </Card>

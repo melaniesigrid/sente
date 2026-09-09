@@ -7,7 +7,7 @@ afterEach(() => { warn.mockRestore(); });
 
 describe("sanitizeProfile", () => {
   it("keeps a well-formed profile intact and copies its arrays", () => {
-    const good = { ...defaultProfile, name: "Ada", tint: "coral", rating: 1234, wins: 3, losses: 1, streak: 2, bestStreak: 2, lessonsDone: ["ko"], problemsDone: ["p1", "p2"], tierPassed: [1, 2], sound: true, kataDate: "2026-09-09", kataStreak: 3, kataBest: 5 };
+    const good = { ...defaultProfile, name: "Ada", tint: "coral", rating: 1234, wins: 3, losses: 1, streak: 2, bestStreak: 2, lessonsDone: ["ko"], problemsDone: ["p1", "p2"], tierPassed: [1, 2], sound: true, kataDate: "2026-09-09", kataStreak: 3, kataBest: 5, duelStarted: "2026-09-09", duelDate: "2026-09-09", duelResult: "B+3.5", duelMoves: 40, duelPlayed: 2, duelWins: 1, duelStreak: 1, duelBestStreak: 1 };
     const out = sanitizeProfile(good);
     expect(out).toEqual(good);
     expect(out.lessonsDone).not.toBe(good.lessonsDone);

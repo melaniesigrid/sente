@@ -1,7 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Play, Users, Handshake } from "lucide-react";
 import { Avatar, RankBadge } from "../components/ui.jsx";
+import { DuelCard } from "../components/DuelCard.jsx";
 import { PERSONAS } from "../content/personas.js";
+import { duelMode } from "../content/duel.js";
+import { dayKey } from "../content/kata.js";
+import { loadSession } from "./session.js";
 import { Game } from "./Game.jsx";
 
 /* ----------------------- PLAY (lobby) -----------------------
@@ -10,6 +14,9 @@ import { Game } from "./Game.jsx";
 export function PlayView({ profile, setProfile, notify, resume }) {
   // session: null | { mode: {kind:'bot', persona} | {kind:'local'}, record? }
   const [session, setSession] = useState(() => resume || null);
+  const today = dayKey();
+  // The saved table is re-read whenever the lobby shows, so leaving a duel mid-game is reflected.
+  const saved = useMemo(() => (session ? null : loadSession(undefined, today)), [session, today]);
   if (!session) {
     return (
       <div className="stack">
@@ -19,6 +26,8 @@ export function PlayView({ profile, setProfile, notify, resume }) {
           or hand the device across the table for a face-to-face game. Networked
           matchmaking joins the same seat when the server lands.
         </p>
+        <DuelCard profile={profile} today={today} mode={duelMode(PERSONAS, today)}
+          saved={saved && saved.mode.kind === "duel" ? saved : null} onPlay={setSession} />
         <div className="grid3">
           {PERSONAS.map(p => (
             <button key={p.id} className="neu-card persona-card" onClick={() => setSession({ mode: { kind: "bot", persona: p } })}>

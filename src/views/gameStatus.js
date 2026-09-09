@@ -38,9 +38,9 @@ export function resignLabel(confirming) {
   return confirming ? "Confirm resign?" : "Resign";
 }
 
-/** Fine print under the capture counts. */
-export function captionText({ komi, rated }) {
-  return `Area scoring · komi ${komi} · superko${rated ? " · rated" : " · unrated"}`;
+/** Fine print under the capture counts. A daily duel is unrated and says so by name. */
+export function captionText({ komi, rated, duel = false }) {
+  return `Area scoring · komi ${komi} · superko${duel ? " · daily duel, unrated" : rated ? " · rated" : " · unrated"}`;
 }
 
 /* ----- the result card -----

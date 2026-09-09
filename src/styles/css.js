@@ -379,6 +379,15 @@ export const CSS = `
 .kata-streak { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 16px; box-shadow: var(--sink-sm); color: var(--danger); }
 .kata-streak .stat-num { margin-top: 0; font-size: 26px; color: var(--ink); }
 .kata-card.done .kata-streak { color: var(--accent); }
+.duel-card { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.duel-card .avatar { flex: 0 0 auto; }
+.duel-copy { flex: 1 1 240px; display: flex; flex-direction: column; gap: 4px; }
+.duel-title { font-family: 'Fraunces', serif; font-weight: 560; font-size: 20px; }
+.duel-result { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 16px; box-shadow: var(--sink-sm); color: var(--ink); }
+.duel-result .stat-num { margin-top: 0; font-size: 22px; }
+.duel-card.won .duel-result { color: var(--accent); }
+.duel-card.lost .duel-result { color: var(--danger); }
+.duel-lobby { max-width: 560px; }
 .prob-tab.kata { box-shadow: var(--raise-sm), 0 0 0 2px var(--accent-soft); }
 .kata-chip { display: inline-flex; align-items: center; gap: 5px; color: var(--accent); }
 

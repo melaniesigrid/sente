@@ -20,3 +20,4 @@ export {
   pointFromSgf, pointToSgf, resultToSgf,
 } from "./sgf.js";
 export { aiChooseMove, aiChooseMoveForRecord } from "./ai.js";
+export { createRng, hashString, positionSeed } from "./rng.js";
