@@ -135,6 +135,29 @@ Decisions:
 - Sound is a profile field (opt-in, default off). Moku's off switch is a device
   preference in localStorage, like Pip's in ZipQuarry.
 
+## House players (done 2026-09-09, branch `feat/kata-bots`)
+
+The heuristic bots played one-ply captures and felt random. House players now run
+KataGo's human-style network (`b18c384nbt-humanv0`, MIT) in the browser and each one
+imitates a rank: Hoshi 20k, Tetsu 15k, Yuki 10k, Ren 5k, Sora 1k, Kaede 2d, Tatsuo 5d.
+
+- [x] `src/engine/kata/`: KataGo board port (chains, ladders, Benson), v7 input features
+      checked plane-for-plane against KataGo's Python, metadata row for rank profiles,
+      policy picker with temperature and a pass rule, ONNX Runtime Web loader.
+- [x] `tools/kata/export_human.py` exports the checkpoint to ONNX with fp16 weights and
+      fp32 compute (53 MB, in `public/models/`). `gen_fixtures.py` regenerates fixtures.
+- [x] Game preloads the network when a bot game opens, shows download progress in the
+      status pill, and falls back to the heuristic player if the network cannot load.
+- [ ] Calibrate: bot-vs-bot ladder and real-game win rates; adjust `profile.temperature`
+      or nudge a persona's rank if it plays a stone stronger or weaker than its badge.
+- [ ] WebGPU backend (needs the jsep runtime, 28 MB) for 19x19 speed; WASM is single
+      threaded on Pages (no cross-origin isolation headers).
+- [ ] Human opponent rank is passed as the network's "opponent" profile; use the real
+      rating once ratings are server-side.
+- [ ] Dan bots with a small search (KataGo blends human policy with its own value) once
+      there is a server; the raw policy is a few stones weaker than the rank it imitates
+      at dan level, which the bios do not yet say.
+
 ## Phase 4 — Multiplayer (server)
 
 - [ ] Backend: auth, persistent profiles, game service over WebSocket. The `GameRecord`

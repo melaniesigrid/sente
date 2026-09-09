@@ -57,9 +57,12 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const sound = !!profile.sound;
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, [chat]);
-  useEffect(() => () => {
-    alive.current = false;
-    clearTimeout(thinkTimer.current); clearTimeout(resignTimer.current); clearTimeout(momentTimer.current);
+  useEffect(() => {
+    alive.current = true;   // StrictMode mounts twice; the cleanup below must not stick
+    return () => {
+      alive.current = false;
+      clearTimeout(thinkTimer.current); clearTimeout(resignTimer.current); clearTimeout(momentTimer.current);
+    };
   }, []);
 
   /* The house player's brain (KataGo's human-style network) downloads once per
