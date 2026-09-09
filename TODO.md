@@ -75,6 +75,18 @@ Decisions made in Phase 2:
 - `src/store/` is a fourth folder for localStorage because both Game and Home need the
   game slot; views still reach the engine only through `src/engine/index.js`.
 
+Browser QA on the split (eight flows, all passed) surfaced three pre-existing findings,
+each fixed in its own commit:
+- `Game.conclude` ran `saveProfile` and `notify` inside the `setProfile` updater, which
+  StrictMode double-invokes. Now computed from the current profile prop, saved and
+  toasted once, and only on the transition into `ended`.
+- No way to resign a bot game (a bot move always resets the pass count). Added a Resign
+  button with a two-step confirm ("Confirm resign?" for 3 s), recorded through the
+  record's `resign` and rated as a loss. Checked off under Phase 3.
+- `loadProfile` merged stored JSON over the defaults untyped, so a null array crashed
+  Home permanently. `sanitizeProfile` validates per field against the default's type
+  (known tints included), falls back per field and warns once naming what it reset.
+
 ## Phase 3 — Play like a real server
 
 - [ ] Lobby: choose 9/13/19, handicap, komi, clock preset; house players available on all.
