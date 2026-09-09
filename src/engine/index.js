@@ -25,3 +25,9 @@ export { choosePolicyMove } from "./kata/policy.js";
 export { loadModel, onModelProgress, modelReady, MODEL_BYTES } from "./kata/net.js";
 export { kataChooseMoveForRecord, clampRank, profileForRank } from "./kata/bot.js";
 export { createRng, hashString, positionSeed } from "./rng.js";
+export {
+  TRANSFORMS, transformPoint, inverseTransform, transformBoard, canonical, bookKey, fromCanonical,
+} from "./style/symmetries.js";
+export {
+  AXES, PRIOR_AXES, moveFeatures, gameFeatures, meanStyle, spreadStyle, styleDistance,
+} from "./style/features.js";

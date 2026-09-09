@@ -229,8 +229,10 @@ and one rule: the number on the card is measured, never claimed.
 - [ ] Corpus tool (`tools/masters/`): fetch the public-domain collections (Shusaku 470,
       Jowa 293 for v1), parse through the engine, keep even 19x19 games, tag handicap, komi,
       colour and year, drop what does not replay and count it in `index.json`.
-- [ ] `engine/style/`: features (definitions fixed in the plan), symmetries with a canonical
-      key per position, a bounded prior applied to the sampler's kept candidates only.
+- [x] `engine/style/features.js` (per-move and per-game axes as the plan fixes them, means,
+      spread, z-distance) and `symmetries.js` (eight transforms, canonical hash, book key,
+      inverse for the tie case), both tested (`feat/masters-pr1`, 2026-09-09).
+- [ ] `engine/style/prior.js`: a bounded prior applied to the sampler's kept candidates only (PR 2).
 - [ ] Eval offline in CI: Python dumps `proyear` logits for held-out positions; `eval.mjs`
       scores arms (baseline, plus book, plus prior) and commits `eval.json`. The prior ships
       only if it beats the book alone on top-1 agreement and style distance.
