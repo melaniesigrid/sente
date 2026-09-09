@@ -56,6 +56,8 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const [delta, setDelta] = useState(null);        // rating change of the finished game
   const [ceremony, setCeremony] = useState(null);  // belt just earned, until dismissed
   const [loading, setLoading] = useState(null);    // {loaded, total} while the network downloads
+  const [hostLost, setHostLost] = useState(false); // duel only: the network could not answer
+  const resumed = useRef(false);                   // the resume effect runs once, StrictMode or not
   const alive = useRef(true);
   const chatEndRef = useRef(null);
   const thinkTimer = useRef(null);
@@ -95,16 +97,17 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     else saveGame({ record: rec, mode: { kind: mode.kind, personaId: persona ? persona.id : null, rank: botRank, key: duel ? duel.key : null } });
   }, [rec, mode.kind, persona, botRank, duel]);
 
-  // Sitting down is the attempt: the day is written to the profile before the first stone.
-  useEffect(() => {
+  /* The first stone is the attempt: the day is written to the profile as Black's
+     first move lands, so a misclick on the card or a reload while the network
+     downloads costs nothing, while leaving the table afterwards is not a reroll. */
+  const spendAttempt = useCallback(() => {
     if (!duel) return;
     const patch = startDuel(profile, duel.key);
     if (Object.keys(patch).length === 0) return;
     const np = { ...profile, ...patch };
     setProfile(np);
     saveProfile(np);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [duel, profile, setProfile]);
 
   const say = useCallback((text) => setChat(c => [...c, { who: "bot", text }]), []);
 
@@ -151,7 +154,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       if (sound) playBell();
       if (duel) {
         const outcome = duelOutcome(next);
-        say(pick(outcome.won ? persona.chat.loss : persona.chat.win));
+        say(pick(outcome.won === null ? persona.chat.reply : outcome.won ? persona.chat.loss : persona.chat.win));
         const np = { ...profile, ...recordDuel(profile, duel.key, outcome) };
         setProfile(np);
         saveProfile(np);
@@ -206,18 +209,23 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     /* A daily duel must give everyone the same reply: the network is asked at the
        day's fixed rank, told the opponent is that same rank (the human model
        conditions on both), and sampled with a generator seeded by (day, position).
-       The heuristic fallback is seeded the same way. */
-    const fallback = () => aiChooseMoveForRecord(r, persona.weights, duel ? { seed: duel.seed } : {});
+       It never falls back to the heuristic player, because that would be a
+       different game under the same result code; if the network cannot answer,
+       the table says so and waits. */
+    const fallback = () => aiChooseMoveForRecord(r, persona.weights);
     const ask = duel
       ? { ...profileForRank(duel.rank, persona.profile.temperature), oppRank: duel.rank, seed: duel.seed }
       : { ...profileForRank(botRank, persona.profile.temperature), oppRank: rankOf(profile.rating) };
+    const unreachable = () => { if (!alive.current) return; setThinking(false); setHostLost(true); };
     kataChooseMoveForRecord(r, ask)
-      .then((res) => settle(res ? res.move : fallback()))
-      .catch(() => settle(fallback()));
+      .then((res) => { if (res) settle(res.move); else if (duel) unreachable(); else settle(fallback()); })
+      .catch(() => { if (duel) unreachable(); else settle(fallback()); });
   }, [persona, duel, botRank, profile.rating, say, conclude, afterMove]);
 
   // A resumed game may be waiting on the house player.
   useEffect(() => {
+    if (resumed.current) return;
+    resumed.current = true;
     if (persona && rec.phase === "playing" && rec.toPlay === "w" && !thinking) botTurn(rec);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -240,6 +248,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       }
       throw e;
     }
+    if (rec.moves.length === 0) spendAttempt();
     setRec(next);
     afterMove(next, turn);
     if (persona) {
@@ -251,6 +260,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const onPass = () => {
     if (over || thinking || scoring) return;
     if (persona && turn !== "b") return;
+    if (rec.moves.length === 0) spendAttempt();
     const next = conclude(pass(rec), rec);
     setRec(next);
     if (persona && next.phase === "playing") botTurn(next);
@@ -411,6 +421,13 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
                 <Btn icon={Download} small onClick={downloadSgf}>SGF</Btn>
                 {duel && <Btn icon={ChevronLeft} small onClick={onExit}>Lobby</Btn>}
               </div>
+            </Card>
+          )}
+          {duel && hostLost && !over && (
+            <Card inset className="caps">
+              <div className="stat-head"><Bot size={15} /><span>Host unreachable</span></div>
+              <p className="fine">{persona.name} plays through the human network and it could not answer just now. Nothing was decided and nothing is lost; ask again when you are back online.</p>
+              <div className="row"><Btn small primary icon={RefreshCw} onClick={() => { setHostLost(false); botTurn(rec); }}>Ask again</Btn></div>
             </Card>
           )}
           {scoring && preview && (

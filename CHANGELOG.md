@@ -11,8 +11,9 @@ carries the npm-valid three-part form. This file starts at the first versioned r
   rank it plays at (inside that persona's home range) and the seed. KataGo's human-style
   network is asked at that rank, told the opponent is the same rank, and sampled with a
   generator seeded by the day and the position, so every device gets the same reply to the
-  same move. One attempt a day, spent on sitting down; unrated; the result is a line of
-  text to share. Card on Home and in the lobby; duel stats on Profile.
+  same move. One attempt a day, spent on the first stone; unrated; the result is a line of
+  text to share. Card on Home and in the lobby; duel stats on Profile. A duel never falls
+  back to the heuristic player: if the network cannot answer, the table says so and waits.
 - The saved-game slot remembers both the rank a bot game was played at and the day of a
   duel; a duel from another day is dropped on resume.
 - Seeded randomness in the engine (`rng.js`): mulberry32 and FNV-1a, folded with the

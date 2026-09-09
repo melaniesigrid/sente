@@ -64,12 +64,13 @@ export function duelOutcome(rec) {
 }
 
 /** Profile patch after finishing today's duel. Idempotent within a day.
- *  The streak counts consecutive days won; a missed day or a loss ends it. */
+ *  The streak counts consecutive days won; a missed day or a loss ends it, and a
+ *  drawn game (jigo) carries it unchanged. */
 export function recordDuel(profile, key, outcome) {
   if (profile.duelDate === key) return {};
-  const won = outcome.won === true;
-  const carried = won && profile.duelDate === previousDay(key) ? profile.duelStreak : 0;
-  const duelStreak = won ? carried + 1 : 0;
+  const won = outcome.won === true, drawn = outcome.won === null;
+  const carried = profile.duelDate === previousDay(key) ? profile.duelStreak : 0;
+  const duelStreak = won ? carried + 1 : drawn ? carried : 0;
   return {
     duelStarted: key,
     duelDate: key,

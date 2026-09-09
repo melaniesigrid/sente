@@ -233,8 +233,9 @@ Free, because the engine already does the hard part:
       and seeds its noise; the engine makes each reply a pure function of (seed, position),
       so everyone who plays the same moves sees the same game and results compare with no
       server. One attempt a day, unrated, no undo, no rematch; the result copies as text.
-      Decisions: sitting down spends the attempt (`duelStarted` is written before the
-      first stone, so leaving the table is not a reroll); the seed is folded with the
+      Decisions: the first stone spends the attempt (`duelStarted` is written as Black's
+      first move lands, so a misclick or a reload during the model download costs
+      nothing and leaving the table afterwards is not a reroll); the seed is folded with the
       Zobrist hash per move rather than a running stream, so undo could never reroll a
       reply either; the streak counts consecutive days won; the share text is the day,
       the host, the go-notation result and the page URL, nothing personal.
@@ -242,7 +243,11 @@ Free, because the engine already does the hard part:
       also fixes the rank the host plays at, inside its home range, and the human network
       is told the opponent is that rank too, because its reply depends on both. Sampling
       uses a generator seeded by (day, position hash); the heuristic fallback is seeded
-      the same way. Verified with two fresh browsers playing identical moves.
+      the same way. Verified with two fresh browsers playing identical moves. A duel never
+      falls back to the heuristic player: if the network cannot answer, the table says
+      "host unreachable" and offers to ask again. A jigo carries the streak. The duel
+      depends on the single-threaded WASM provider (see `net.js`); a WebGPU upgrade must
+      keep a deterministic path for it.
 - [ ] Games as URLs: compress the `GameRecord` into the URL fragment. Correspondence go,
       "look at this position" links and puzzle sharing with no backend. Phase 4 later
       upgrades the link into a room.

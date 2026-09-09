@@ -69,8 +69,10 @@ describe("daily duel", () => {
     p = { ...p, ...recordDuel(p, "2026-09-12", { won: true, code: "B+0.5" }) };
     expect(p.duelStreak).toBe(1);
     p = { ...p, ...recordDuel(p, "2026-09-13", { won: null, code: "Jigo" }) };
-    expect(p.duelStreak).toBe(0);
+    expect(p.duelStreak).toBe(1);   // a draw carries the streak
     expect(p.duelWins).toBe(4);
+    p = { ...p, ...recordDuel(p, "2026-09-15", { won: null, code: "Jigo" }) };
+    expect(p.duelStreak).toBe(0);   // but a missed day still ends it
   });
   it("formats the share text and the card line", () => {
     expect(duelShareText({ key: "2026-09-09", personaName: "Tetsu", code: "B+12.5", moves: 41, url: "https://x/" }))
