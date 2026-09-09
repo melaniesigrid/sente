@@ -15,3 +15,39 @@ export const TINTS = {
   eucalyptus: "#5f8c7e", coral: "#d98873", sun: "#d9b36a",
   mint: "#8fb7a3", sky: "#7d9db8", grape: "#9c86ad",
 };
+
+/* ----------------------- BELTS (the dojo) -----------------------
+   Go's kyu/dan grades are the same ladder karate uses, so we wear them the same
+   way: five coloured belts across the kyu ranks, black at dan. A belt is derived
+   from the rank, never stored, so it can never disagree with the rating.
+   Colours are the existing palette; nothing new is introduced. */
+export const BELTS = [
+  { id: "white",  label: "White belt",  color: "#f2ede3", kyuMax: 25, kyuMin: 21 },
+  { id: "yellow", label: "Yellow belt", color: TINTS.sun, kyuMax: 20, kyuMin: 16 },
+  { id: "orange", label: "Orange belt", color: TINTS.coral, kyuMax: 15, kyuMin: 11 },
+  { id: "green",  label: "Green belt",  color: TINTS.eucalyptus, kyuMax: 10, kyuMin: 6 },
+  { id: "blue",   label: "Blue belt",   color: TINTS.sky, kyuMax: 5, kyuMin: 1 },
+  { id: "black",  label: "Black belt",  color: "#4b463c", kyuMax: 0, kyuMin: 0 },
+];
+
+/** Lowest rating that `rankOf` still reads as `k` kyu (round-half-up boundary). */
+export const kyuFloor = (k) => 2951 - 100 * k;
+
+export function beltOf(rating) {
+  const label = rankOf(rating);
+  if (label.endsWith("d")) return BELTS[BELTS.length - 1];
+  const k = parseInt(label, 10);
+  return BELTS.find(b => k <= b.kyuMax && k >= b.kyuMin) || BELTS[0];
+}
+
+/** The belt after the current one and the rating that earns it, or null at black. */
+export function nextBelt(rating) {
+  const cur = beltOf(rating);
+  const i = BELTS.indexOf(cur);
+  if (i >= BELTS.length - 1) return null;
+  const nxt = BELTS[i + 1];
+  return { belt: nxt, at: nxt.id === "black" ? 3000 : kyuFloor(nxt.kyuMax) };
+}
+
+/** Atari hints are training wheels: white and yellow belts get them, orange and up read for themselves. */
+export const hintsForBelt = (belt) => belt.id === "white" || belt.id === "yellow";

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { tryPlay, legalMoves } from "./rules.js";
+import { tryPlay, legalMoves, chainsInAtari } from "./rules.js";
 import { createBoard, idx, boardFromRows, boardToRows, withStone } from "./board.js";
 import { hashBoard } from "./zobrist.js";
 
@@ -157,5 +157,35 @@ describe("legalMoves", () => {
     const moves = legalMoves(r.board, "b", { koPoint: r.ko });
     expect(moves.some(([c, rr]) => c === 2 && rr === 1)).toBe(false);
     expect(boardToRows(r.board)[1]).toBe("XO.O.....");
+  });
+});
+
+describe("chainsInAtari", () => {
+  it("finds nothing on an empty or safe board", () => {
+    expect(chainsInAtari(createBoard(9), "b")).toEqual([]);
+    expect(chainsInAtari(withStone(createBoard(9), 4, 4, "b"), "b")).toEqual([]);
+  });
+  it("reports each one-liberty chain once with its last liberty", () => {
+    // White at (4,4) hemmed on three sides; black pair (0,0)-(1,0) hemmed except (1,1).
+    const b = boardFromRows(pad9([
+      "XXO......",
+      "O........",
+      ".........",
+      "....X....",
+      "...XOX...",
+    ]));
+    const w = chainsInAtari(b, "w");
+    expect(w).toHaveLength(1);
+    expect(w[0].stones).toEqual([[4, 4]]);
+    expect(w[0].liberty).toBe(idx(9, 4, 5));
+    const blk = chainsInAtari(b, "b");
+    expect(blk).toHaveLength(1);
+    expect(blk[0].stones.length).toBe(2);
+    expect(blk[0].liberty).toBe(idx(9, 1, 1));
+  });
+  it("ignores the other colour and chains with two liberties", () => {
+    const b = boardFromRows(pad9(["XO......."]));
+    expect(chainsInAtari(b, "b")).toHaveLength(1);
+    expect(chainsInAtari(b, "w")).toEqual([]);
   });
 });

@@ -7,7 +7,7 @@ afterEach(() => { warn.mockRestore(); });
 
 describe("sanitizeProfile", () => {
   it("keeps a well-formed profile intact and copies its arrays", () => {
-    const good = { name: "Ada", tint: "coral", rating: 1234, wins: 3, losses: 1, streak: 2, bestStreak: 2, lessonsDone: ["ko"], problemsDone: ["p1", "p2"] };
+    const good = { ...defaultProfile, name: "Ada", tint: "coral", rating: 1234, wins: 3, losses: 1, streak: 2, bestStreak: 2, lessonsDone: ["ko"], problemsDone: ["p1", "p2"], sound: true, kataDate: "2026-09-09", kataStreak: 3, kataBest: 5 };
     const out = sanitizeProfile(good);
     expect(out).toEqual(good);
     expect(out.lessonsDone).not.toBe(good.lessonsDone);
@@ -39,6 +39,10 @@ describe("sanitizeProfile", () => {
   });
   it("rejects arrays holding non-strings", () => {
     expect(sanitizeProfile({ ...defaultProfile, problemsDone: ["p1", 7] }).problemsDone).toEqual([]);
+  });
+  it("resets a non-boolean sound flag", () => {
+    expect(sanitizeProfile({ ...defaultProfile, sound: "yes" }).sound).toBe(false);
+    expect(warn.mock.calls[0][0]).toMatch(/sound/);
   });
   it("drops unknown keys", () => {
     expect(sanitizeProfile({ ...defaultProfile, admin: true })).not.toHaveProperty("admin");

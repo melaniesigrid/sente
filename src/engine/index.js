@@ -7,7 +7,7 @@ export {
   boardFromRows, boardToRows,
 } from "./board.js";
 export { zobristTable, xorStone, hashBoard } from "./zobrist.js";
-export { REASONS, opponent, tryPlay, legalMoves } from "./rules.js";
+export { REASONS, opponent, tryPlay, legalMoves, chainsInAtari } from "./rules.js";
 export { removeDead, territoryMap, scoreBoard, estimateScore } from "./score.js";
 export {
   PHASES, GameError, IllegalTransitionError, IllegalMoveError,

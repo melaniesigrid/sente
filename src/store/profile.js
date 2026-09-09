@@ -9,12 +9,15 @@ export const defaultProfile = {
   name: "Player", tint: "eucalyptus", rating: 1000,
   wins: 0, losses: 0, streak: 0, bestStreak: 0,
   lessonsDone: [], problemsDone: [],
+  sound: false,                              // stone click + haptic, opt-in
+  kataDate: "", kataStreak: 0, kataBest: 0,  // kata of the day attendance
 };
 
 const validField = (key, value) => {
   const def = defaultProfile[key];
   if (Array.isArray(def)) return Array.isArray(value) && value.every(v => typeof v === "string");
   if (typeof def === "number") return typeof value === "number" && Number.isFinite(value);
+  if (typeof def === "boolean") return typeof value === "boolean";
   if (key === "tint") return typeof value === "string" && Object.hasOwn(TINTS, value);
   if (typeof def === "string") return typeof value === "string";
   return false;

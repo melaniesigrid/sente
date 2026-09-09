@@ -76,3 +76,18 @@ export function legalMoves(board, color, opts = {}) {
   }
   return out;
 }
+
+/** Every chain of `color` with exactly one liberty: `[{ stones: [[c,r]], liberty: index }]`.
+ *  Read-only board fact the UI uses for atari hints; the rules never act on it. */
+export function chainsInAtari(board, color) {
+  const { size, cells } = board;
+  const seen = new Uint8Array(size * size);
+  const out = [];
+  for (let i = 0; i < cells.length; i++) {
+    if (cells[i] !== color || seen[i]) continue;
+    const ch = chainAt(board, i % size, Math.floor(i / size));
+    for (const [x, y] of ch.stones) seen[idx(size, x, y)] = 1;
+    if (ch.libs.size === 1) out.push({ stones: ch.stones, liberty: [...ch.libs][0] });
+  }
+  return out;
+}

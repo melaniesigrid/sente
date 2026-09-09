@@ -24,8 +24,9 @@ export function resultLine(result) {
 }
 
 /** The status pill. `personaName` is null for pass-and-play. */
-export function statusText({ result, thinking, personaName, turn }) {
+export function statusText({ result, thinking, personaName, turn, phase }) {
   if (result) return resultLine(result);
+  if (phase === "scoring") return "Mark dead stones, then accept";
   if (thinking) return `${personaName} is thinking…`;
   if (personaName) return turn === "b" ? "Your move" : `${personaName} to move`;
   return turn === "b" ? "Black to move" : "White to move";
@@ -40,4 +41,33 @@ export function resignLabel(confirming) {
 /** Fine print under the capture counts. */
 export function captionText({ komi, rated }) {
   return `Area scoring · komi ${komi} · superko${rated ? " · rated" : " · unrated"}`;
+}
+
+/* ----- the result card -----
+   Honest arithmetic, every term visible: "41 stones + 3 territory = 44" against
+   "35 stones + 4 territory + 7.5 komi = 46.5". Resignations have no rows. */
+const plural = (n, word) => `${n} ${word}${n === 1 || word === "territory" ? "" : "s"}`;
+
+export function resultCard(result) {
+  if (!result) return null;
+  if (result.method === "resign") {
+    return { headline: `${side(result.winner)} wins`, sub: "by resignation", rows: [] };
+  }
+  const s = result.score;
+  const bParts = [plural(s.black.stones, "stone"), plural(s.black.territory, "territory")];
+  const wParts = [plural(s.white.stones, "stone"), plural(s.white.territory, "territory")];
+  if (s.white.komi) wParts.push(`${s.white.komi} komi`);
+  if (s.white.handicapBonus) wParts.push(`${s.white.handicapBonus} handicap`);
+  const rows = [
+    { side: "Black", detail: bParts.join(" + "), total: s.totals.b, winner: result.winner === "b" },
+    { side: "White", detail: wParts.join(" + "), total: s.totals.w, winner: result.winner === "w" },
+  ];
+  if (result.winner === null) return { headline: "Jigo", sub: "a drawn game", rows };
+  return { headline: `${side(result.winner)} wins`, sub: `by ${result.margin}`, rows };
+}
+
+/** Text for the rating line under the result, or null for an unrated game. */
+export function ratingLine(delta) {
+  if (delta === null || delta === undefined) return null;
+  return `${delta >= 0 ? "+" : ""}${delta} rating`;
 }
