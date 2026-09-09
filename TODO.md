@@ -238,6 +238,11 @@ Free, because the engine already does the hard part:
       Zobrist hash per move rather than a running stream, so undo could never reroll a
       reply either; the streak counts consecutive days won; the share text is the day,
       the host, the go-notation result and the page URL, nothing personal.
+      Merged onto the KataGo house players 2026-09-09 (`feat/daily-duel-kata`): the day
+      also fixes the rank the host plays at, inside its home range, and the human network
+      is told the opponent is that rank too, because its reply depends on both. Sampling
+      uses a generator seeded by (day, position hash); the heuristic fallback is seeded
+      the same way. Verified with two fresh browsers playing identical moves.
 - [ ] Games as URLs: compress the `GameRecord` into the URL fragment. Correspondence go,
       "look at this position" links and puzzle sharing with no backend. Phase 4 later
       upgrades the link into a room.
