@@ -252,6 +252,12 @@ and one rule: the number on the card is measured, never claimed.
 - [ ] Star Player: Ke Jie anonymised (decided 2026-09-09 after the lawyer check). Card says
       "a top pro of 2017", his name nowhere in code, data or UI; corpus from a source with
       stated terms; same eval and gate as the Edo masters, `proyear_2017` as the control.
+      OPEN (needs the user and counsel): the only source found that states open terms is
+      BadukMovies' pro-game zip ("This collection is in the public domain, use it however
+      you want to"), which now survives only in the Internet Archive (the domain is hijacked);
+      the 2023 capture holds 164 Ke Jie games. Waltheri, gokifu, GoMagic state no reuse
+      terms; go4go and GoGoD forbid bulk reuse without a licence; Fox and Tygem are excluded.
+      Until decided, Star Player is not in `tools/masters/manifest.json`.
 - [ ] Deferred: Dosaku and Shusai after the eval; Go Seigen, Takagawa and living players by
       name after a name-and-likeness check (the 1950 rule does not clear the first two); Moku quoting the Classic and a belt mark per book;
       fine-tune adapters per master after Phase 4, measured by the same eval; your own
