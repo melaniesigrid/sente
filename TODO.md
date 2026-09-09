@@ -216,6 +216,39 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
 - [ ] Spaced repetition: finished quiz steps enter a recall queue; "Review five" card on Home.
 - [ ] Joseki and opening library for 9×9 and 19×19.
 
+## Phase 6 — Masters and books
+
+Plan: `docs/designs/masters-and-books.md` (CEO review plus adversarial spec review,
+2026-09-09). Two asks on one foundation: a corpus of public-domain master games, measured,
+and one rule: the number on the card is measured, never claimed.
+
+- [ ] `proyear` profile: `encodeMeta({ pro, year })` with KataGo's historical-pro meta row
+      (source GoGoD, date = year) and a bit-for-bit fixture. An honest "strong player of
+      1846" bot on its own, and the control arm of every eval below.
+- [ ] Corpus tool (`tools/masters/`): fetch the public-domain collections (Shusaku 470,
+      Jowa 293 for v1), parse through the engine, keep even 19x19 games, tag handicap, komi,
+      colour and year, drop what does not replay and count it in `index.json`.
+- [ ] `engine/style/`: features (definitions fixed in the plan), symmetries with a canonical
+      key per position, a bounded prior applied to the sampler's kept candidates only.
+- [ ] Eval offline in CI: Python dumps `proyear` logits for held-out positions; `eval.mjs`
+      scores arms (baseline, plus book, plus prior) and commits `eval.json`. The prior ships
+      only if it beats the book alone on top-1 agreement and style distance.
+- [ ] Bot seam: `profile.master` = book override in the opening, then `proyear` with the
+      prior; `StyleDataError` (missing JSON, non-19x19) falls back to `proyear` in rated
+      games and to "host unreachable" in a duel. Masters row in the lobby, 19x19 only,
+      hidden without the index, style match read from `eval.json`.
+- [ ] Step types `replay` (embedded moves and stops; scoring is data: the master's move,
+      precomputed dan top three for partial credit; lazy display-only "at your level" panel)
+      and `maxim` (a public-domain line, its analogy, one verified position). Book lessons
+      live in `LIBRARY` with a `book` key; `bookProgress` in the profile.
+- [ ] Shelf v1: ten proverbs with the karate framing, two game studies (Shusaku vs Gennan
+      Inseki 1846, Jowa vs Akaboshi Intetsu 1835). Then the Classic of Weiqi in Thirteen
+      Chapters, thirteen lessons. Reading room names modern books, quotes nothing.
+- [ ] Deferred: Dosaku and Shusai after the eval; Go Seigen, Takagawa and living players
+      after a name-and-likeness check; Moku quoting the Classic and a belt mark per book;
+      fine-tune adapters per master after Phase 4, measured by the same eval; your own
+      games on the style axes once the telemetry ring exists.
+
 ## Design and polish (schedule after a design review)
 
 - [ ] Mobile layout pass: board sizing, nav collapse, touch targets.
