@@ -218,6 +218,9 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
 
 ## Phase 6 — Masters and books
 
+Handoff for whoever continues: `docs/handoff/masters-2026-09-09.md` (state of PRs #4, #5, #6,
+the running logit dump, what is unfinished, gotchas).
+
 Plan: `docs/designs/masters-and-books.md` (CEO review plus adversarial spec review,
 2026-09-09). Two asks on one foundation: a corpus of public-domain master games, measured,
 and one rule: the number on the card is measured, never claimed.
