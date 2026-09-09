@@ -7,6 +7,7 @@
 import { humanPolicy } from "./net.js";
 import { choosePolicyMove } from "./policy.js";
 import { RANKS } from "./features.js";
+import { createRng, positionSeed } from "../rng.js";
 
 /** The network profile for any ladder rank. The network stops at 20k; players
  *  weaker than that get the 20k policy sampled more loosely, one notch of
@@ -30,13 +31,18 @@ export function clampRank(label) {
 }
 
 /** @param {object} rec       GameRecord in the "playing" phase
- *  @param {object} profile   { rank, oppRank?, preAZ?, temperature? }
+ *  @param {object} profile   { rank, oppRank?, preAZ?, temperature?, seed? }
+ *  With `seed`, the sample is drawn from a generator seeded by (seed, position hash), so
+ *  the same seed and position give the same move on every device: a shared daily game.
  *  @returns {Promise<{move: [number,number]|null, prob: number, top: object[], value: number[]} | null>} */
 export async function kataChooseMoveForRecord(rec, profile) {
   if (rec.phase !== "playing") return null;
   const oppRank = clampRank(profile.oppRank) ?? profile.rank;
   const res = await humanPolicy(rec, { ...profile, oppRank });
   if (!res) return null;
-  const pick = choosePolicyMove(res.logits, rec, { temperature: profile.temperature ?? 0.8, floor: profile.floor ?? 0.02 });
+  const rng = profile.seed !== undefined
+    ? createRng(positionSeed(profile.seed, rec.hashes ? rec.hashes[rec.hashes.length - 1] : 0))
+    : undefined;
+  const pick = choosePolicyMove(res.logits, rec, { temperature: profile.temperature ?? 0.8, floor: profile.floor ?? 0.02, rng });
   return { ...pick, value: res.value };
 }

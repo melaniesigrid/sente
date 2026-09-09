@@ -23,10 +23,17 @@ describe("gameStore", () => {
     rec = play(rec, 4, 4); rec = play(rec, 2, 2); rec = pass(rec);
     expect(saveGame({ record: rec, mode: { kind: "bot", personaId: "hoshi" } }, s)).toBe(true);
     const back = loadGame(s);
-    expect(back.mode).toEqual({ kind: "bot", personaId: "hoshi", rank: null });
+    expect(back.mode).toEqual({ kind: "bot", personaId: "hoshi", rank: null, key: null });
     expect(back.record).toEqual(rec);
     expect(typeof back.savedAt).toBe("number");
     expect(warn).not.toHaveBeenCalled();
+  });
+  it("keeps a daily duel's day key and drops a non-string one", () => {
+    const s = memStorage();
+    saveGame({ record: createGame({ size: 9 }), mode: { kind: "duel", personaId: "tetsu", key: "2026-09-09" } }, s);
+    expect(loadGame(s).mode).toEqual({ kind: "duel", personaId: "tetsu", rank: null, key: "2026-09-09" });
+    saveGame({ record: createGame({ size: 9 }), mode: { kind: "duel", personaId: "tetsu", key: 7 } }, s);
+    expect(loadGame(s).mode.key).toBeNull();
   });
   it("returns null when nothing is stored, without warning", () => {
     expect(loadGame(memStorage())).toBeNull();
