@@ -424,7 +424,8 @@ charge" style; the spec review then trimmed v1. Change any row by editing this t
 | 4 | Style prior on the keep set | 3 d / 30 m | ACCEPTED, gated | ships only if the eval says it helps |
 | 5 | v1 roster: Shusaku and Jowa | 2 d / 20 m | ACCEPTED | same era, both pass the rights rule |
 | 6 | Dosaku and Shusai | 2 d / 20 m | DEFERRED | after the eval proves the layer moves the number |
-| 7 | Go Seigen, Takagawa, living players | 1 d / 10 m each | DEFERRED | lawyer check on name and likeness |
+| 7 | Star Player (Ke Jie, anonymised) | 2 d / 20 m | ACCEPTED (2026-09-09) | ships without his name; see the rights check |
+| 7b | Go Seigen, Takagawa, other living players | 1 d / 10 m each | DEFERRED | lawyer check on name and likeness |
 | 8 | `replay` and `maxim` step types with precomputed partial credit | 1 wk / 1 h | ACCEPTED | scoring stays data and offline |
 | 9 | Ten proverbs with the karate framing | 4 d / 40 m | ACCEPTED | the analogies the user asked for |
 | 10 | Two game studies (Shusaku 1846, Jowa 1835) | 4 d / 40 m | ACCEPTED | the masters' games as lessons |
@@ -607,6 +608,18 @@ Questions for a real lawyer before a living or post-1950 master goes to stranger
 the descriptive form survives PRC articles 1014, 1017 and 1020; whether 3344.1 is enforceable
 against a Canadian publisher for Go Seigen and Takagawa; whether a bulk fetch from an
 EU-hosted collection is a database extraction.
+
+Decision (user, 2026-09-09): Ke Jie ships anonymised as **Star Player**. The persona is
+named "Star Player", the card reads "a top pro of 2017" with the corpus count and the
+not-affiliated line, and his name appears nowhere: not in `personas.js`, the masters JSON,
+`index.json`, the SGF metadata the UI surfaces, or the tagline. The build tool strips `PB`,
+`PW` and event fields from the emitted record. The corpus is fetched only from a source that
+states its terms, recorded per game in `index.json`; his games are not in the aeb collection,
+so the source is chosen in task 3 and the manifest names it. Star Player joins the roster in
+PR 1 alongside Shusaku and Jowa on the same eval and the same gate: the year profile
+`proyear_2017` is the control arm, and the lean ships only if the eval beats the book alone.
+Star Player is the one master whose replay lessons and game studies do not exist; the shelf
+stays with the public-domain masters.
 
 ## GSTACK REVIEW REPORT
 
