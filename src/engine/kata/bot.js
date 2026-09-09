@@ -31,7 +31,9 @@ export function clampRank(label) {
 }
 
 /** @param {object} rec       GameRecord in the "playing" phase
- *  @param {object} profile   { rank, oppRank?, preAZ?, temperature?, seed? }
+ *  @param {object} profile   { rank, oppRank?, preAZ?, temperature?, seed? } or, for a
+ *                            master, { pro: true, year, temperature?, seed? }; `pro` wins
+ *                            over the rank the lobby spreads in
  *  With `seed`, the sample is drawn from a generator seeded by (seed, position hash), so
  *  the same seed and position give the same move on every device: a shared daily game.
  *  @returns {Promise<{move: [number,number]|null, prob: number, top: object[], value: number[]} | null>} */
