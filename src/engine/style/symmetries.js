@@ -46,17 +46,36 @@ export function transformBoard(board, t) {
   return { size, cells: out };
 }
 
-/** Smallest hash over the eight orientations and the transform that produced it.
- *  A symmetric position ties between transforms; the lowest `t` wins, and because
- *  every tying transform maps the position onto itself, undoing any of them lands
- *  the book's move on a point that is equivalent under the symmetry. */
+/** Smallest hash over the eight orientations, the transform that produced it, and
+ *  every transform that ties with it. A symmetric position ties; the lowest `t` is
+ *  `t`, and because every tying transform maps the position onto the same canonical
+ *  board, undoing any of them lands a book move on a point equivalent under the
+ *  symmetry. */
 export function canonical(board) {
   let best = null;
+  const ties = [];
   for (const t of TRANSFORMS) {
     const hash = hashBoard(transformBoard(board, t));
-    if (best === null || hash < best.hash) best = { hash, t };
+    if (best === null || hash < best.hash) { best = { hash, t }; ties.length = 0; ties.push(t); }
+    else if (hash === best.hash) ties.push(t);
   }
-  return best;
+  return { ...best, ties };
+}
+
+/** A move on `board` in canonical form: the book key for `color` to move and the
+ *  smallest index the move takes under any tying transform. Two moves that are
+ *  mirror images on a symmetric position get the same index, so the book counts
+ *  Shusaku's 3-4 opening once, not eight times, and the eval scores a mirrored
+ *  reply as agreement. */
+export function canonicalMove(board, c, r, color, can = canonical(board)) {
+  const N = board.size;
+  let idx = Infinity;
+  for (const t of can.ties) {
+    const [tc, tr] = transformPoint(t, c, r, N);
+    const i = tr * N + tc;
+    if (i < idx) idx = i;
+  }
+  return { key: bookKey(can.hash, color), idx, t: can.t };
 }
 
 /** Book key for a position: the canonical hash plus the side to move. */

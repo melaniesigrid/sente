@@ -85,6 +85,7 @@ describe("buildBook", () => {
     expect(empty).toBeDefined();
     const counts = Object.values(book.entries[empty]);
     expect(counts.reduce((s, n) => s + n, 0)).toBe(4);
+    expect(counts).toEqual([4]);                           // qd and dq are the same 3-4 opening
     for (const e of Object.values(book.entries)) {
       expect(Object.values(e).reduce((s, n) => s + n, 0)).toBeGreaterThanOrEqual(BOOK_MIN_GAMES);
     }

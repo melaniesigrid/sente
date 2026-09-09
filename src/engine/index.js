@@ -22,11 +22,11 @@ export {
 export { aiChooseMove, aiChooseMoveForRecord } from "./ai.js";
 export { RANKS, inverseRank, encodeInputs } from "./kata/features.js";
 export { choosePolicyMove } from "./kata/policy.js";
-export { loadModel, onModelProgress, modelReady, MODEL_BYTES } from "./kata/net.js";
+export { loadModel, onModelProgress, modelReady, MODEL_BYTES, MODEL_FILE } from "./kata/net.js";
 export { kataChooseMoveForRecord, clampRank, profileForRank } from "./kata/bot.js";
 export { createRng, hashString, positionSeed } from "./rng.js";
 export {
-  TRANSFORMS, transformPoint, inverseTransform, transformBoard, canonical, bookKey, fromCanonical,
+  TRANSFORMS, transformPoint, inverseTransform, transformBoard, canonical, canonicalMove, bookKey, fromCanonical,
 } from "./style/symmetries.js";
 export {
   AXES, PRIOR_AXES, moveFeatures, gameFeatures, meanStyle, spreadStyle, styleDistance,

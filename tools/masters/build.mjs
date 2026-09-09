@@ -22,7 +22,7 @@ import { fileURLToPath } from "node:url";
 import {
   parseSgf, recordFromSgf, SgfParseError, createGame, play,
   gameFeatures, meanStyle, spreadStyle, AXES,
-  canonical, bookKey, transformPoint, createRng, hashString,
+  canonicalMove, createRng, hashString,
 } from "../../src/engine/index.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -70,7 +70,7 @@ export function splitFiles(id, names) {
 }
 
 /** Opening book over `games` (`{ rec, masterColor }`): canonical position with the master
- *  to move, first BOOK_MOVES moves, counting games per (position, move). */
+ *  to move, first BOOK_MOVES moves, counting games per (position, canonical move). */
 export function buildBook(games) {
   const counts = new Map();
   for (const { rec, masterColor } of games) {
@@ -81,10 +81,7 @@ export function buildBook(games) {
       const m = rec.moves[k];
       if (m.type !== "play") break;
       if (m.color === masterColor) {
-        const { hash, t } = canonical(pos.board);
-        const key = bookKey(hash, m.color);
-        const [c, r] = transformPoint(t, m.c, m.r, rec.size);
-        const mv = r * rec.size + c;
+        const { key, idx: mv } = canonicalMove(pos.board, m.c, m.r, m.color);
         const gameKey = `${key}:${mv}`;
         if (!seenInGame.has(gameKey)) {
           seenInGame.add(gameKey);

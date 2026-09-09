@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { createBoard, withStone, idx } from "../board.js";
 import { hashBoard } from "../zobrist.js";
 import {
-  TRANSFORMS, transformPoint, inverseTransform, transformBoard, canonical, bookKey, fromCanonical,
+  TRANSFORMS, transformPoint, inverseTransform, transformBoard, canonical, canonicalMove, bookKey, fromCanonical,
 } from "./symmetries.js";
 
 const N = 19;
@@ -44,9 +44,24 @@ describe("transformBoard and canonical", () => {
     for (const t of TRANSFORMS) expect(canonical(transformBoard(board, t)).hash).toBe(hash);
   });
 
-  it("returns the transform that reaches the canonical orientation", () => {
-    const { hash, t } = canonical(board);
+  it("returns the transform that reaches the canonical orientation and its ties", () => {
+    const { hash, t, ties } = canonical(board);
     expect(hashBoard(transformBoard(board, t))).toBe(hash);
+    expect(ties).toEqual([t]);                       // an asymmetric position has one
+    expect(canonical(createBoard(N)).ties).toEqual(TRANSFORMS);
+  });
+
+  it("gives mirror-image moves on a symmetric position one canonical index", () => {
+    const empty = createBoard(N);
+    const a = canonicalMove(empty, 16, 3, "b"), b = canonicalMove(empty, 2, 15, "b"), c = canonicalMove(empty, 3, 2, "b");
+    expect(a.idx).toBe(b.idx);
+    expect(a.idx).toBe(c.idx);
+    expect(a.key).toBe(b.key);
+    expect(canonicalMove(empty, 3, 3, "b").idx).not.toBe(a.idx);   // a 4-4 is a different move
+    // On an asymmetric position the index is just the move under `t`.
+    const { t } = canonical(board);
+    const [tc, tr] = transformPoint(t, 15, 15, N);
+    expect(canonicalMove(board, 15, 15, "w").idx).toBe(tr * N + tc);
   });
 
   it("carries the book move back to the real board through the inverse", () => {
@@ -75,7 +90,7 @@ describe("transformBoard and canonical", () => {
   });
 
   it("empty board is its own canonical form", () => {
-    expect(canonical(createBoard(9))).toEqual({ hash: 0, t: 0 });
+    expect(canonical(createBoard(9))).toMatchObject({ hash: 0, t: 0 });
   });
 });
 
