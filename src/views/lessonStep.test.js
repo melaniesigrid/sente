@@ -39,6 +39,7 @@ describe("quiz", () => {
     const cleared = stepReducer(lesson, step, s, s.pending.action);
     expect(cleared.status).toBe("open");
     expect(cleared.wrong).toBeNull();
+    expect(cleared.message).toBeNull();
   });
   it("treats an illegal point as wrong without touching the board", () => {
     const s = run(lesson, step, [{ type: "play", c: 0, r: 1 }]); // occupied
@@ -94,12 +95,17 @@ describe("sequence", () => {
     expect(at(s3, 3, 2)).toBeNull(); // the capture happened
     expect(s3.flash).toEqual([[3, 2]]);
   });
-  it("a wrong move shows the hint and does not advance", () => {
+  it("a wrong move marks the point, shows the wrong text, and does not advance", () => {
     const s = run(lesson, step, [{ type: "play", c: 0, r: 0 }]);
     expect(s.status).toBe("wrong");
-    expect(s.message).toBe(step.hint);
+    expect(s.wrong).toEqual({ c: 0, r: 0 });
+    expect(s.message).toBe(wrongTextFor(step));
     expect(s.moveIdx).toBe(0);
     expect(at(s, 0, 0)).toBeNull();
+    const cleared = stepReducer(lesson, step, s, { type: "clearWrong" });
+    expect(cleared.wrong).toBeNull();
+    expect(cleared.message).toBeNull();
+    expect(cleared.status).toBe("open");
   });
   it("ends solved when the scripted reply is the last move", () => {
     const ko = lessonById("ko");
@@ -157,7 +163,9 @@ describe("count", () => {
     expect(s.status).toBe("wrong");
     expect(s.message).toBe(wrongTextFor(step));
     expect(run(lesson, step, [{ type: "answer", value: "" }]).status).toBe("wrong");
-    expect(stepReducer(lesson, step, s, { type: "clearWrong" }).status).toBe("open");
+    const cleared = stepReducer(lesson, step, s, { type: "clearWrong" });
+    expect(cleared.status).toBe("open");
+    expect(cleared.message).toBeNull();
   });
   it("honours tolerance", () => {
     const loose = { ...step, tolerance: 1 };

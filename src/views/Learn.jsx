@@ -51,6 +51,7 @@ function LessonPlayer({ lesson, onDone, onExit }) {
           board={state.board}
           onPlay={(c, r) => dispatch({ type: "play", c, r })}
           marks={marksFor(step)}
+          wrong={state.wrong}
           lastMove={state.lastMove}
           disabled={boardLocked(step, state)}
           flash={state.flash} captured={state.flash} captureKey={stepIdx * 100 + state.moveIdx + (solved ? 50 : 0)}

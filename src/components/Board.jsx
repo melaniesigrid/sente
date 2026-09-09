@@ -12,10 +12,11 @@ import { idx, starPoints } from "../engine/index.js";
      captured   [c, r] pairs lifted on the last move; drawn as fading ghosts.
                 `captureKey` must change per move so the animation replays.
      territory  owner map from the engine ("b" | "w" | "neutral") while scoring
-     dead       indices of stones marked dead while scoring */
+     dead       indices of stones marked dead while scoring
+     wrong      one {c, r} to cross out briefly after a wrong lesson move */
 export function Board({
   board, onPlay, lastMove, marks = [], disabled, sizePx = 460, flash = [],
-  atari = [], captured = [], captureKey = 0, territory = null, dead = [],
+  atari = [], captured = [], captureKey = 0, territory = null, dead = [], wrong = null,
 }) {
   const N = board.size;
   const cell = 44, m = 34;
@@ -65,6 +66,12 @@ export function Board({
         {marks.map((p, i) => (
           <circle key={"mk" + i} cx={x(p.c)} cy={y(p.r)} r={13} className="mark-ring" />
         ))}
+        {wrong && (
+          <g className="wrong-x" aria-hidden="true">
+            <line x1={x(wrong.c) - 9} y1={y(wrong.r) - 9} x2={x(wrong.c) + 9} y2={y(wrong.r) + 9} />
+            <line x1={x(wrong.c) + 9} y1={y(wrong.r) - 9} x2={x(wrong.c) - 9} y2={y(wrong.r) + 9} />
+          </g>
+        )}
         {hover && !disabled && !scoring && board.cells[idx(N, hover.c, hover.r)] === null && (
           <circle cx={x(hover.c)} cy={y(hover.r)} r={17} className="ghost" />
         )}

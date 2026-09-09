@@ -60,7 +60,7 @@ export function stepReducer(lesson, step, state, action) {
   switch (action.type) {
     case "reset": return initStep(lesson, step);
     case "clearWrong":
-      return state.status === "wrong" ? { ...state, status: "open", wrong: null, pending: null } : state;
+      return state.status === "wrong" ? { ...state, status: "open", wrong: null, message: null, tone: null, pending: null } : state;
     case "play": return play(step, state, action.c, action.r);
     case "answer": return answer(step, state, action.value);
     case "reply": return reply(step, state);

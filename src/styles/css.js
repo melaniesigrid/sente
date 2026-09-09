@@ -170,6 +170,7 @@ export const CSS = `
 .star-pt { fill: var(--ink); fill-opacity: .45; }
 .ghost { fill: var(--accent); opacity: .28; }
 .mark-ring { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 4 4; opacity: .85; }
+.wrong-x line { stroke: var(--danger); stroke-width: 3; stroke-linecap: round; opacity: .9; animation: pop .18s ease; }
 .last-dot { fill: var(--accent); opacity: .9; }
 .stone-b { filter: drop-shadow(2.5px 2.5px 3px rgba(75,70,60,.45)) drop-shadow(-1.5px -1.5px 2px rgba(251,248,242,.5)); }
 .stone-w { filter: drop-shadow(2.5px 2.5px 3px rgba(75,70,60,.35)) drop-shadow(-1.5px -1.5px 2px rgba(251,248,242,.9)); }
