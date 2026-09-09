@@ -33,6 +33,20 @@ describe("aiChooseMove", () => {
     b.cells[idx(9, 0, 0)] = null; b.cells[idx(9, 8, 8)] = null;
     expect(aiChooseMove(b, "b", null, 60, { noise: 0 })).toBeNull();
   });
+  it("passes late in the game even with a noisy persona", () => {
+    const b = createBoard(9);
+    b.cells.fill("b");
+    b.cells[idx(9, 0, 0)] = null; b.cells[idx(9, 8, 8)] = null;
+    for (let i = 0; i < 20; i++) expect(aiChooseMove(b, "b", null, 60, { noise: 6 })).toBeNull();
+  });
+  it("does not fill its own one-point eye while another move exists", () => {
+    // Black wall down column 4; (0,0) is a black eye, the right half is open.
+    const b = createBoard(9);
+    for (let r = 0; r < 9; r++) b.cells[idx(9, 4, r)] = "b";
+    for (let r = 0; r < 9; r++) for (let c = 0; c < 4; c++) b.cells[idx(9, c, r)] = "b";
+    b.cells[idx(9, 0, 0)] = null;
+    for (let i = 0; i < 20; i++) expect(aiChooseMove(b, "b", null, 40, { noise: 6 })).not.toEqual([0, 0]);
+  });
   it.each([13, 19])("plays a legal opening move on %ix%i, preferring the 3rd/4th line", (size) => {
     const b = createBoard(size);
     const m = aiChooseMove(b, "b", null, 0, { noise: 0 });

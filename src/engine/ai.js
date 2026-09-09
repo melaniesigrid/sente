@@ -12,13 +12,13 @@ import { hashBoard } from "./zobrist.js";
    so 3rd/4th-line preferences carry over; the pass threshold scales
    with the board area (34 moves on 9x9, as before). */
 export function aiChooseMove(board, color, koPoint, moveNum, W = {}, opts = {}) {
-  const w = { capture: 12, rescue: 9, atari: 3, selfAtari: -15, libs: 0.7,
+  const w = { capture: 12, rescue: 9, atari: 3, selfAtari: -15, eyeFill: -20, libs: 0.7,
     edge: 1, noise: 1.5, near: 0.6, ...W };
   const { size } = board;
   const opp = color === "b" ? "w" : "b";
   const hash = opts.hash ?? hashBoard(board);
   const playOpts = { koPoint, history: opts.history ?? null, hash };
-  let best = null, bestScore = -Infinity;
+  let best = null, bestScore = -Infinity, bestBase = -Infinity;
   for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) {
     const res = tryPlay(board, c, r, color, playOpts);
     if (!res.ok) continue;
@@ -37,6 +37,14 @@ export function aiChooseMove(board, color, koPoint, moveNum, W = {}, opts = {}) 
       }
     }
     if (mine.libs.size === 1 && res.captured.length === 0) s += w.selfAtari;
+    // Filling a one-point eye of our own (every neighbour ours or the edge) only ever
+    // loses an eye; without this the bot fills its own territory rather than pass.
+    let ownEye = res.captured.length === 0;
+    for (const [dx, dy] of NBRS) {
+      const nx = c + dx, ny = r + dy;
+      if (inB(size, nx, ny) && board.cells[idx(size, nx, ny)] !== color) { ownEye = false; break; }
+    }
+    if (ownEye) s += w.eyeFill;
     s += Math.min(mine.libs.size, 4) * w.libs;
     const dEdge = Math.min(c, r, size - 1 - c, size - 1 - r);
     s += (dEdge === 2 ? 2.2 : dEdge === 3 ? 1.6 : dEdge === 1 ? 0.8 : dEdge === 0 ? -1.5 : 1.0) * w.edge;
@@ -48,11 +56,14 @@ export function aiChooseMove(board, color, koPoint, moveNum, W = {}, opts = {}) 
       if (inB(size, nx, ny) && board.cells[idx(size, nx, ny)] !== null) near++;
     }
     s += (moveNum > 6 ? Math.min(near, 3) * w.near : near === 0 ? 0.5 : near * 0.3);
+    const base = s;
     s += Math.random() * w.noise;
-    if (s > bestScore) { bestScore = s; best = [c, r]; }
+    if (s > bestScore) { bestScore = s; bestBase = base; best = [c, r]; }
   }
+  // Pass when nothing worthwhile is left. Judged on the noise-free score so a noisy
+  // persona (Hoshi, noise 6) cannot talk itself into playing forever.
   const lateGame = Math.round(size * size * 0.42); // 34 on 9x9
-  if (moveNum > lateGame && bestScore < 3) return null; // pass when nothing worthwhile
+  if (moveNum > lateGame && bestBase < 3) return null;
   return best;
 }
 
