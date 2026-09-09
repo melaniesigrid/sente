@@ -2,6 +2,7 @@
   {
     "id": "jowa",
     "name": "Jowa",
+    "year": 1835,
     "years": [
       1806,
       1847
@@ -15,7 +16,7 @@
     "book": {
       "entries": 36
     },
-    "bytes": 4218,
+    "bytes": 4230,
     "source": {
       "page": "https://homepages.cwi.nl/~aeb/go/games/",
       "terms": "I do not claim any rights on this collection. The games here are in the public domain."
@@ -24,6 +25,7 @@
   {
     "id": "shusaku",
     "name": "Shusaku",
+    "year": 1846,
     "years": [
       1837,
       1862
@@ -37,7 +39,7 @@
     "book": {
       "entries": 47
     },
-    "bytes": 4660,
+    "bytes": 4672,
     "source": {
       "page": "https://homepages.cwi.nl/~aeb/go/games/",
       "terms": "I do not claim any rights on this collection. The games here are in the public domain."

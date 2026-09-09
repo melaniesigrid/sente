@@ -1,9 +1,10 @@
 {
-  "$comment": "Every corpus the build reads. `terms` quotes the source's own statement of rights; a master without one does not build. `aliases` are the player-name spellings the SGF headers use. `anonymous` masters ship with the manifest `name` only and no player name reaches any emitted file.",
+  "$comment": "Every corpus the build reads. `terms` quotes the source's own statement of rights; a master without one does not build. `aliases` are the player-name spellings the SGF headers use. `anonymous` masters ship with the manifest `name` only and no player name reaches any emitted file. `year` is the proyear profile the master's bot plays as when out of book.",
   "masters": [
     {
       "id": "shusaku",
       "name": "Shusaku",
+      "year": 1846,
       "years": [
         1837,
         1862
@@ -23,6 +24,7 @@
     {
       "id": "jowa",
       "name": "Jowa",
+      "year": 1835,
       "years": [
         1806,
         1847
