@@ -8,7 +8,7 @@ import { acceptScore, pass, createGame, play, replay } from "./record.js";
 import { idx } from "./board.js";
 
 const fixture = (name) => readFileSync(new URL(`./fixtures/${name}`, import.meta.url), "utf8");
-const strip = (moves) => moves.map(({ offset, ...m }) => m);
+const strip = (moves) => moves.map(({ offset: _offset, ...m }) => m);
 
 describe("parseSgfTree", () => {
   it("parses nodes, multi-valued properties and offsets", () => {

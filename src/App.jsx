@@ -15,8 +15,7 @@ import {
    Fraunces display · Hanken Grotesk body · Lucide icons only
    Neumorphism via two shadows: cream top-left, clay bottom-right.
    ================================================================ */
-import { N, idx, emptyBoard, tryPlay, estimateScore } from "./engine/go.js";
-import { aiChooseMove } from "./engine/ai.js";
+import { idx, createBoard, starPoints, tryPlay, estimateScore, aiChooseMove } from "./engine/index.js";
 
 /* ----------------------- HOUSE PLAYERS ----------------------- */
 const PERSONAS = [
@@ -293,13 +292,12 @@ async function saveProfile(p) {
 }
 
 /* ----------------------- BOARD (SVG) ----------------------- */
-const STARS = [pt(2, 2), pt(6, 2), pt(4, 4), pt(2, 6), pt(6, 6)];
-
 function Board({ board, onPlay, lastMove, marks = [], disabled, sizePx = 460, flash = [] }) {
+  const N = board.size;
   const cell = 44, m = 34;
   const S = (N - 1) * cell + m * 2;
   const [hover, setHover] = useState(null);
-  const flashSet = useMemo(() => new Set(flash.map(p => idx(p[0] ?? p.c, p[1] ?? p.r))), [flash]);
+  const flashSet = useMemo(() => new Set(flash.map(p => idx(N, p[0] ?? p.c, p[1] ?? p.r))), [flash, N]);
   return (
     <div className="board-well" style={{ maxWidth: sizePx }}>
       <svg
@@ -307,7 +305,7 @@ function Board({ board, onPlay, lastMove, marks = [], disabled, sizePx = 460, fl
         className="goban"
         onMouseLeave={() => setHover(null)}
         role="grid"
-        aria-label="Go board, 9 by 9"
+        aria-label={`Go board, ${N} by ${N}`}
       >
         <defs>
           <radialGradient id="stB" cx="0.36" cy="0.34" r="0.85">
@@ -327,16 +325,16 @@ function Board({ board, onPlay, lastMove, marks = [], disabled, sizePx = 460, fl
             <line x1={m + i * cell} y1={m} x2={m + i * cell} y2={m + (N - 1) * cell} className="grid-line" />
           </g>
         ))}
-        {STARS.map((p, i) => (
+        {starPoints(N).map((p, i) => (
           <circle key={i} cx={m + p.c * cell} cy={m + p.r * cell} r={4} className="star-pt" />
         ))}
         {marks.map((p, i) => (
           <circle key={"mk" + i} cx={m + p.c * cell} cy={m + p.r * cell} r={13} className="mark-ring" />
         ))}
-        {hover && !disabled && board[idx(hover.c, hover.r)] === null && (
+        {hover && !disabled && board.cells[idx(N, hover.c, hover.r)] === null && (
           <circle cx={m + hover.c * cell} cy={m + hover.r * cell} r={17} className="ghost" />
         )}
-        {board.map((v, i) => {
+        {board.cells.map((v, i) => {
           if (v === null) return null;
           const c = i % N, r = Math.floor(i / N);
           const isLast = lastMove === i;
@@ -357,7 +355,7 @@ function Board({ board, onPlay, lastMove, marks = [], disabled, sizePx = 460, fl
               width={cell} height={cell} fill="transparent"
               style={{ cursor: disabled ? "default" : "pointer" }}
               role="gridcell"
-              aria-label={`${String.fromCharCode(65 + c)}${N - r}${board[i] ? (board[i] === "b" ? ", black stone" : ", white stone") : ""}`}
+              aria-label={`${String.fromCharCode(65 + c)}${N - r}${board.cells[i] ? (board.cells[i] === "b" ? ", black stone" : ", white stone") : ""}`}
               tabIndex={disabled ? -1 : 0}
               onKeyDown={(e) => { if ((e.key === "Enter" || e.key === " ") && !disabled) { e.preventDefault(); onPlay?.(c, r); } }}
               onMouseEnter={() => setHover({ c, r })}
@@ -406,9 +404,9 @@ const RankBadge = ({ rating, size = "md" }) => {
 };
 
 function setupToBoard(setup) {
-  const b = emptyBoard();
-  (setup.b || []).forEach(p => { b[idx(p.c, p.r)] = "b"; });
-  (setup.w || []).forEach(p => { b[idx(p.c, p.r)] = "w"; });
+  const b = createBoard(setup.size || 9);
+  (setup.b || []).forEach(p => { b.cells[idx(b.size, p.c, p.r)] = "b"; });
+  (setup.w || []).forEach(p => { b.cells[idx(b.size, p.c, p.r)] = "w"; });
   return b;
 }
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
@@ -472,21 +470,21 @@ function Home({ profile, go }) {
 
 /* Self-playing mini board for the hero — the demo is the real engine. */
 function MiniSelfPlay() {
-  const [board, setBoard] = useState(emptyBoard);
-  const stateRef = useRef({ board: emptyBoard(), ko: null, turn: "b", n: 0, passes: 0 });
+  const [board, setBoard] = useState(() => createBoard(9));
+  const stateRef = useRef({ board: createBoard(9), ko: null, turn: "b", n: 0, passes: 0 });
   useEffect(() => {
     const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const tick = () => {
       const s = stateRef.current;
       if (s.passes >= 2 || s.n > 60) {
-        stateRef.current = { board: emptyBoard(), ko: null, turn: "b", n: 0, passes: 0 };
+        stateRef.current = { board: createBoard(9), ko: null, turn: "b", n: 0, passes: 0 };
         setBoard(stateRef.current.board);
         return;
       }
       const mv = aiChooseMove(s.board, s.turn, s.ko, s.n);
       if (!mv) { s.passes++; s.turn = s.turn === "b" ? "w" : "b"; return; }
-      const res = tryPlay(s.board, mv[0], mv[1], s.turn, s.ko);
-      if (!res) { s.passes++; return; }
+      const res = tryPlay(s.board, mv[0], mv[1], s.turn, { koPoint: s.ko });
+      if (!res.ok) { s.passes++; return; }
       stateRef.current = { board: res.board, ko: res.ko, turn: s.turn === "b" ? "w" : "b", n: s.n + 1, passes: 0 };
       setBoard(res.board);
     };
@@ -543,7 +541,7 @@ function PlayView({ profile, setProfile, notify }) {
 
 function Game({ mode, onExit, profile, setProfile, notify }) {
   const persona = mode.kind === "bot" ? mode.persona : null;
-  const [hist, setHist] = useState([{ board: emptyBoard(), ko: null }]);
+  const [hist, setHist] = useState([{ board: createBoard(9), ko: null }]);
   const [turn, setTurn] = useState("b");
   const [passes, setPasses] = useState(0);
   const [caps, setCaps] = useState({ b: 0, w: 0 });
@@ -598,14 +596,14 @@ function Game({ mode, onExit, profile, setProfile, notify }) {
         else { setPasses(nPasses + 1); setTurn("b"); }
         return;
       }
-      const res = tryPlay(board, mv[0], mv[1], "w", ko);
+      const res = tryPlay(board, mv[0], mv[1], "w", { koPoint: ko });
       setThinking(false);
-      if (!res) { setPasses(nPasses + 1); setTurn("b"); return; }
+      if (!res.ok) { setPasses(nPasses + 1); setTurn("b"); return; }
       if (res.captured.length >= 2 || (res.captured.length === 1 && Math.random() < 0.4)) {
         say(pick(persona.chat.botCapture));
       }
       setCaps(c => ({ ...c, w: c.w + res.captured.length }));
-      setHist(h => [...h, { board: res.board, ko: res.ko, last: idx(mv[0], mv[1]) }]);
+      setHist(h => [...h, { board: res.board, ko: res.ko, last: idx(res.board.size, mv[0], mv[1]) }]);
       setPasses(0);
       setTurn("b");
     }, 380 + Math.random() * 500);
@@ -614,10 +612,10 @@ function Game({ mode, onExit, profile, setProfile, notify }) {
   const onPlay = (c, r) => {
     if (over || thinking) return;
     if (persona && turn !== "b") return;
-    const res = tryPlay(cur.board, c, r, turn, cur.ko);
-    if (!res) return;
+    const res = tryPlay(cur.board, c, r, turn, { koPoint: cur.ko });
+    if (!res.ok) return;
     setCaps(cc => ({ ...cc, [turn]: cc[turn] + res.captured.length }));
-    setHist(h => [...h, { board: res.board, ko: res.ko, last: idx(c, r) }]);
+    setHist(h => [...h, { board: res.board, ko: res.ko, last: idx(res.board.size, c, r) }]);
     setPasses(0);
     if (persona) {
       if (res.captured.length >= 2) say(pick(persona.chat.userCapture));
@@ -647,7 +645,7 @@ function Game({ mode, onExit, profile, setProfile, notify }) {
   };
 
   const reset = () => {
-    setHist([{ board: emptyBoard(), ko: null }]);
+    setHist([{ board: createBoard(9), ko: null }]);
     setTurn("b"); setPasses(0); setCaps({ b: 0, w: 0 }); setOver(null);
     if (persona) setChat([{ who: "bot", text: pick(persona.chat.greet) }]);
   };
@@ -870,8 +868,8 @@ function LessonPlayer({ lesson, onDone, onExit }) {
   const onPlay = (c, r) => {
     if (step.type !== "quiz" || state.solved) return;
     const ok = step.answers.some(p => p.c === c && p.r === r);
-    const res = tryPlay(state.board, c, r, step.toPlay, null);
-    if (ok && res) {
+    const res = tryPlay(state.board, c, r, step.toPlay);
+    if (ok && res.ok) {
       setState({ board: res.board, solved: true, wrong: null, flash: res.captured });
     } else {
       setState(s => ({ ...s, wrong: { c, r } }));
@@ -980,8 +978,8 @@ function ProblemsView({ profile, setProfile }) {
   const onPlay = (c, r) => {
     if (state.status === "solved") return;
     const ok = prob.answers.some(p => p.c === c && p.r === r);
-    const res = tryPlay(state.board, c, r, prob.toPlay, null);
-    if (ok && res) {
+    const res = tryPlay(state.board, c, r, prob.toPlay);
+    if (ok && res.ok) {
       setState({ board: res.board, status: "solved", flash: res.captured });
       setProfile(pr => {
         const np = { ...pr, problemsDone: [...new Set([...pr.problemsDone, prob.id])] };
