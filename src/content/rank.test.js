@@ -35,3 +35,18 @@ describe("belts", () => {
     expect(hintsForBelt(beltOf(3000))).toBe(false);
   });
 });
+
+describe("rank ladder", () => {
+  it("ratingOfRank inverts rankOf across the whole ladder", async () => {
+    const { RANK_LADDER, ratingOfRank, rankOf, stepRank, rankInRange } = await import("./rank.js");
+    for (const label of RANK_LADDER) expect(rankOf(ratingOfRank(label))).toBe(label);
+    expect(RANK_LADDER[0]).toBe("25k");
+    expect(RANK_LADDER[RANK_LADDER.length - 1]).toBe("9d");
+    expect(stepRank("1k", 1)).toBe("1d");
+    expect(stepRank("1d", -1)).toBe("1k");
+    expect(stepRank("25k", -3)).toBe("25k");
+    expect(stepRank("9d", 2)).toBe("9d");
+    expect(rankInRange("12k", ["15k", "5k"])).toBe(true);
+    expect(rankInRange("3d", ["15k", "5k"])).toBe(false);
+  });
+});

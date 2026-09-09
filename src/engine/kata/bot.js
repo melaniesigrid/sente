@@ -8,6 +8,18 @@ import { humanPolicy } from "./net.js";
 import { choosePolicyMove } from "./policy.js";
 import { RANKS } from "./features.js";
 
+/** The network profile for any ladder rank. The network stops at 20k; players
+ *  weaker than that get the 20k policy sampled more loosely, one notch of
+ *  temperature per rank, so 25k really is softer than 20k. */
+export function profileForRank(label, temperature = 0.8) {
+  const m = /^(\d+)([kd])$/.exec(label ?? "");
+  if (m && m[2] === "k" && parseInt(m[1], 10) > 20) {
+    const below = parseInt(m[1], 10) - 20;
+    return { rank: "20k", temperature: Math.min(2, temperature + 0.25 * below), floor: 0.005 };
+  }
+  return { rank: clampRank(label) ?? "20k", temperature };
+}
+
 /** Snap a rank label like "23k" or "9d" onto the range the network was trained on. */
 export function clampRank(label) {
   if (!label) return undefined;
@@ -25,6 +37,6 @@ export async function kataChooseMoveForRecord(rec, profile) {
   const oppRank = clampRank(profile.oppRank) ?? profile.rank;
   const res = await humanPolicy(rec, { ...profile, oppRank });
   if (!res) return null;
-  const pick = choosePolicyMove(res.logits, rec, { temperature: profile.temperature ?? 0.8 });
+  const pick = choosePolicyMove(res.logits, rec, { temperature: profile.temperature ?? 0.8, floor: profile.floor ?? 0.02 });
   return { ...pick, value: res.value };
 }

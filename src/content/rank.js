@@ -6,6 +6,33 @@ export function rankOf(rating) {
   return `${clamp(Math.floor((rating - 3000) / 100) + 1, 1, 9)}d`;
 }
 
+/** Inverse of `rankOf`: the rating at the centre of a rank label ("12k", "3d"). */
+export function ratingOfRank(label) {
+  const m = /^(\d+)([kd])$/.exec(label);
+  if (!m) throw new RangeError(`bad rank ${label}`);
+  const n = parseInt(m[1], 10);
+  return m[2] === "k" ? 3000 - 100 * n : 3000 + 100 * (n - 1);
+}
+
+/** Every rank a game can be played at, weakest first: 25k .. 1k, 1d .. 9d. */
+export const RANK_LADDER = [
+  ...Array.from({ length: 25 }, (_, i) => `${25 - i}k`),
+  ...Array.from({ length: 9 }, (_, i) => `${i + 1}d`),
+];
+
+/** The rank `delta` steps stronger (positive) or weaker (negative), clamped to the ladder. */
+export function stepRank(label, delta) {
+  const i = RANK_LADDER.indexOf(label);
+  if (i < 0) throw new RangeError(`bad rank ${label}`);
+  return RANK_LADDER[clamp(i + delta, 0, RANK_LADDER.length - 1)];
+}
+
+/** Is `label` inside the inclusive range `[weak, strong]`? */
+export function rankInRange(label, [weak, strong]) {
+  const i = RANK_LADDER.indexOf(label);
+  return i >= RANK_LADDER.indexOf(weak) && i <= RANK_LADDER.indexOf(strong);
+}
+
 export function eloDelta(userR, oppR, result) {
   const expected = 1 / (1 + Math.pow(10, (oppR - userR) / 400));
   return Math.round(32 * (result - expected));
