@@ -306,6 +306,24 @@ export const CSS = `
 }
 @keyframes rise { from { transform: translate(-50%, 14px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
 
+/* ---- learn: library ---- */
+.library { display: flex; gap: clamp(16px, 2.5vw, 26px); align-items: flex-start; flex-wrap: wrap; }
+.tier-rail { display: flex; flex-direction: column; gap: 8px; flex: 0 0 200px; padding: 8px; border-radius: 18px; box-shadow: var(--sink-sm); }
+.tier-btn { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; border: 0; background: transparent; color: var(--ink); cursor: pointer; text-align: left; padding: 10px 12px; border-radius: 13px; transition: box-shadow .18s ease, color .18s ease; }
+.tier-btn .tier-name { font: 700 12px 'Hanken Grotesk', sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+.tier-btn .tier-sub { font-size: 11.5px; opacity: .6; }
+.tier-btn.active { box-shadow: var(--raise-sm); color: var(--accent); }
+.tier-body { flex: 1 1 420px; min-width: 0; }
+.tier-head .prob-title { margin-bottom: 4px; }
+.track-head { justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.track-trains { text-transform: none; letter-spacing: 0; font-weight: 500; opacity: .55; }
+.lesson-chips { display: flex; align-items: center; gap: 5px; margin-top: 5px !important; font-size: 12px !important; }
+.lesson-card .lesson-num { font-style: normal; font-size: 15px; opacity: .55; min-width: 34px; color: var(--accent); }
+.search-row { align-items: center; gap: 8px; flex: 0 1 300px; }
+.search-icon { flex: none; opacity: .5; }
+.count-row { margin-top: 12px; }
+@media (max-width: 760px) { .tier-rail { flex-direction: row; flex-wrap: wrap; flex-basis: 100%; } }
+
 /* ---- shell: resume + error cards ---- */
 .resume-card { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .resume-card .resume-copy { flex: 1 1 240px; display: flex; flex-direction: column; gap: 4px; }

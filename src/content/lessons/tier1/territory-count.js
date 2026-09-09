@@ -3,8 +3,8 @@ import { pt } from "../../positions.js";
 /* ----------------------- 22k · judgement · Counting Territory ----------------------- */
 // A finished 9x9: a black wall on column 2, a white wall on column 5, and
 // two dame columns between them that belong to nobody.
-const col = (c, color) => Array.from({ length: 9 }, (_, r) => pt(c, r));
-const finished = { b: col(2, "b"), w: col(5, "w") };
+const col = (c) => Array.from({ length: 9 }, (_, r) => pt(c, r));
+const finished = { b: col(2), w: col(5) };
 
 export default {
   id: "territory-count",
