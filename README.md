@@ -27,6 +27,7 @@ npm install
 npm run dev      # http://localhost:5173
 npm run build    # production build in dist/
 npm run lint     # oxlint
+npm test         # vitest engine tests
 ```
 
 Requires Node 20+.
@@ -36,7 +37,10 @@ Requires Node 20+.
 ```
 index.html        HTML shell, fonts, favicon
 src/main.jsx      React entry
-src/App.jsx       Engine, house-player AI, content, views, styles (single file for now)
+src/engine/go.js  Rules engine: chains, liberties, capture, ko, suicide, area scoring
+src/engine/ai.js  House-player move picker (weighted heuristic)
+src/engine/*.test.js  Vitest suites for the above
+src/App.jsx       Content, components, views, styles (single file for now)
 TODO.md           Roadmap
 ```
 

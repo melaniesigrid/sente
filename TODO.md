@@ -4,10 +4,11 @@ Priority order. Check items off as they land.
 
 ## Now (foundation)
 
-- [ ] Split `src/App.jsx` into modules: `engine/`, `ai/`, `content/`, `components/`, `views/`, `styles/`
-- [ ] Add Vitest and unit-test the engine: capture, suicide, ko, multi-group capture, scoring
-- [ ] Add a lint config and fix the `no-unused-expressions` warning at `Board`
-- [ ] Add GitHub Actions CI: install, lint, test, build
+- [x] Extract the pure engine and AI into `src/engine/` (go.js, ai.js)
+- [ ] Split the rest of `src/App.jsx`: `content/`, `components/`, `views/`, `styles/`
+- [x] Add Vitest and unit-test the engine: capture, suicide, ko, multi-group capture, scoring (21 tests)
+- [x] Fix the `no-unused-expressions` warning at `Board`
+- [x] Add GitHub Actions CI: install, lint, test, build
 - [ ] Deploy preview (Vercel or GitHub Pages)
 
 ## Next (make it a real go server)
