@@ -12,13 +12,13 @@ Lucide icons. No backend yet; profile persists in localStorage.
 
 ## Conventions
 
-- Engine code (`chainAt`, `tryPlay`, `estimateScore`, `aiChooseMove`) is pure and must stay
+- Engine code (`tryPlay`, `GameRecord`, `scoreBoard`, `aiChooseMove`, ...) is pure and must stay
   framework-free so it can move to a server. Do not import React into engine modules.
 - Design system is fixed: the stone palette and the two-shadow neumorphism in `CSS`. Lucide
   icons only. Fraunces display, Hanken Grotesk body. Don't introduce another UI library.
 - House players are labeled honestly as bots in the UI. Keep that.
-- Engine lives in `src/engine/` (go.js rules + scoring, ai.js house-player picker) with tests
-  beside it. Everything else is still in `src/App.jsx`; the next structural task is splitting
+- Engine lives in `src/engine/` (board, zobrist, rules, score, record, clock, sgf, ai) with
+  tests beside each module and `index.js` as the only import surface for views. Everything else is still in `src/App.jsx`; the next structural task is splitting
   that (see TODO.md). Keep the section banners so the file stays navigable.
 - Roadmap lives in `TODO.md`. Update it when you finish or add work.
 

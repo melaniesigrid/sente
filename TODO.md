@@ -14,30 +14,41 @@ are ordered too.
 - [x] Fix the `no-unused-expressions` warning at `Board`
 - [x] GitHub Actions CI: install, lint, test, build
 
-## Phase 1 — Rules kernel (the engine becomes a real go server core)
+## Phase 1 — Rules kernel (done, branch `feat/rules-kernel`)
 
 Everything downstream stands on this. Pure modules only; no React. Views import through
 `src/engine/index.js`, never internals.
 
-- [ ] Size-parametric board: `createBoard(size)`, `idx/inB` take size, star points computed
+- [x] Size-parametric board: `createBoard(size)`, `idx/inB` take size, star points computed
       per size (9, 13, 19). Remove the exported `N` constant and every caller of it.
-- [ ] `tryPlay` returns a reason on failure (`occupied`, `ko`, `superko`, `suicide`) instead
+- [x] `tryPlay` returns a reason on failure (`occupied`, `ko`, `superko`, `suicide`) instead
       of `null`, so the UI can say why a move was refused.
-- [ ] Positional superko via Zobrist hashing; history of hashes lives on the record.
-- [ ] `GameRecord`: immutable move list + state machine (`playing → scoring → ended`, with
+- [x] Positional superko via Zobrist hashing; history of hashes lives on the record.
+- [x] `GameRecord`: immutable move list + state machine (`playing → scoring → ended`, with
       `play / pass / resign / markDead / accept / undo`). Illegal transitions throw named
       errors. JSON-serialisable and replayable; this is the future socket protocol.
-- [ ] Dead-stone marking and final area scoring with komi and handicap; territory map for
+- [x] Dead-stone marking and final area scoring with komi and handicap; territory map for
       the overlay.
-- [ ] Handicap placement for 9/13/19 (2 to 9 stones) with fixed komi rules.
-- [ ] Clock module (pure): absolute, byo-yomi, Fischer. `tick(ms)` returns a new state and
+- [x] Handicap placement for 9/13/19 (2 to 9 stones) with fixed komi rules.
+- [x] Clock module (pure): absolute, byo-yomi, Fischer. `tick(ms)` returns a new state and
       a named `expired` event; no timers inside the engine.
-- [ ] SGF import/export (`sgf.js`): FF[4] subset (SZ, KM, HA, AB/AW, B/W, C, variations).
+- [x] SGF import/export (`sgf.js`): FF[4] subset (SZ, KM, HA, AB/AW, B/W, C, variations).
       Named `SgfParseError` with offset. Input capped at 256 KB; never eval.
-- [ ] House-player AI works on any size and can read a `GameRecord`.
-- [ ] Tests: superko cycle, 13x13 and 19x19 capture/scoring, every record transition
+- [x] House-player AI works on any size and can read a `GameRecord`.
+- [x] Tests: superko cycle, 13x13 and 19x19 capture/scoring, every record transition
       (legal and illegal), SGF round-trip on real games, byo-yomi period consumption,
-      dead-stone scoring against known positions. Target 80+ engine tests.
+      dead-stone scoring against known positions. 139 engine tests.
+
+Decisions made in Phase 1 (change deliberately, not by accident):
+- Board is `{ size, cells }`; `cells` is flat row-major. `go.js` is gone.
+- Komi defaults to 7.5, or 0.5 with a handicap. Area scoring gives white one point per
+  handicap stone after the first (AGA convention).
+- `undo` is allowed from `playing` and `scoring` (scoring undo returns to playing and
+  clears dead marks); never from `ended`.
+- SGF variations are parsed and kept on `parseSgf(...).tree` but the record only holds
+  the main line; `toSgf` writes the main line. Variation trees are Phase 3 review work.
+- `RE[B+R]`/`W+R` on import becomes a resignation; a scored `RE` is not applied because
+  the dead stones are unknown. The game is left in whatever phase the moves reached.
 
 ## Phase 2 — Split the app
 
@@ -45,6 +56,7 @@ Everything downstream stands on this. Pure modules only; no React. Views import 
       (Board, Card, Btn, Pill, Avatar, RankBadge), `views/` (Home, Play, Game, Rankings,
       Profile, Learn, Problems), `styles/` (CSS). Keep section banners.
 - [ ] `Game` becomes a thin adapter over `GameRecord`; no rules logic left in views.
+      (`Game` still keeps its own `hist` of boards and calls `tryPlay` directly.)
 - [ ] Persist the in-progress record to localStorage on every move; Home shows a
       "Resume last game" card.
 - [ ] Error boundary around views.
