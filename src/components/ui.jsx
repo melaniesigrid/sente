@@ -1,5 +1,5 @@
 import { Bot, Crown, Shield, Star } from "lucide-react";
-import { TINTS, rankOf } from "../content/rank.js";
+import { TINTS, rankOf, beltOf } from "../content/rank.js";
 
 /* ----------------------- SHARED UI ----------------------- */
 export const Card = ({ children, className = "", inset }) => (
@@ -21,21 +21,43 @@ export const Pill = ({ icon: Icon, children, tone }) => (
   </div>
 );
 
-export const Avatar = ({ name, tint, size = 44, bot }) => (
-  <div className="avatar" style={{ width: size, height: size, color: TINTS[tint] || TINTS.eucalyptus }}>
+export const Avatar = ({ name, tint, size = 44, bot, className = "" }) => (
+  <div className={`avatar ${className}`} style={{ width: size, height: size, color: TINTS[tint] || TINTS.eucalyptus }}>
     <span style={{ fontSize: size * 0.4 }}>{(name || "?").slice(0, 1).toUpperCase()}</span>
     {bot && <span className="avatar-bot"><Bot size={11} strokeWidth={2.4} /></span>}
   </div>
 );
 
+/* The badge carries the belt as a thin stripe under the rank, so the dojo
+   colour travels everywhere a rank is shown without any extra chrome. */
 export const RankBadge = ({ rating, size = "md" }) => {
   const label = rankOf(rating);
+  const belt = beltOf(rating);
   const dan = label.endsWith("d");
   const Icon = dan ? Crown : parseInt(label) <= 10 ? Star : Shield;
   return (
-    <div className={`rank-badge ${size}`} title={`Rating ${rating}`}>
+    <div className={`rank-badge ${size}`} title={`Rating ${rating} · ${belt.label}`}>
       <Icon size={size === "lg" ? 18 : 14} strokeWidth={2.2} />
       <span>{label}</span>
+      <span className="belt-stripe" style={{ background: belt.color }} aria-hidden="true" />
     </div>
   );
 };
+
+/** A tied belt: the band plus a knot. `belt` is an entry from BELTS. */
+export const BeltRibbon = ({ belt, className = "" }) => (
+  <div className={`belt-ribbon ${className}`} style={{ "--belt": belt.color }} role="img" aria-label={belt.label}>
+    <span className="belt-band" />
+    <span className="belt-knot" />
+    <span className="belt-tail belt-tail-l" />
+    <span className="belt-tail belt-tail-r" />
+  </div>
+);
+
+/** A neumorphic on/off switch. */
+export const Toggle = ({ on, onChange, label }) => (
+  <button className={`toggle ${on ? "on" : ""}`} role="switch" aria-checked={on} aria-label={label}
+    onClick={() => onChange(!on)}>
+    <span className="toggle-knob" />
+  </button>
+);

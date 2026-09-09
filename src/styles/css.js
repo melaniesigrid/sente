@@ -313,6 +313,136 @@ export const CSS = `
 .error-card { display: flex; flex-direction: column; gap: 12px; max-width: 560px; }
 .error-detail { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; opacity: .55; word-break: break-word; }
 
+/* ---- board overlays: atari, captures, scoring ---- */
+@keyframes stone-pop { 0% { transform: scale(1); } 40% { transform: scale(1.14); } 100% { transform: scale(1); } }
+.stone-pop { animation: stone-pop .5s ease; transform-origin: center; transform-box: fill-box; }
+.stone-out { fill: var(--ink); opacity: .45; animation: lift .7s ease forwards; transform-origin: center; transform-box: fill-box; pointer-events: none; }
+@keyframes lift { 0% { transform: scale(1); opacity: .45; } 100% { transform: scale(1.7); opacity: 0; } }
+.atari-ring { fill: none; stroke: var(--danger); stroke-width: 2; opacity: .55; animation: breathe 1.6s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+@keyframes breathe { 0%, 100% { opacity: .35; transform: scale(.96); } 50% { opacity: .8; transform: scale(1.04); } }
+.terr { opacity: .55; animation: fade-in .4s ease; }
+.terr-b { fill: var(--ink); }
+.terr-w { fill: var(--cream); stroke: var(--dark); stroke-width: 1; }
+@keyframes fade-in { from { opacity: 0; } }
+.stone-dead { opacity: .4; }
+.dead-x { fill: none; stroke-width: 2.4; stroke-linecap: round; }
+.dead-x.on-b { stroke: var(--cream); }
+.dead-x.on-w { stroke: var(--ink); }
+.fine-inline { font-size: 12px; opacity: .6; }
+.goban rect[role="gridcell"]:focus:not(:focus-visible) { outline: none; }
+
+/* ---- belts (the dojo) ---- */
+.rank-badge { position: relative; overflow: hidden; }
+.belt-stripe { position: absolute; left: 10px; right: 10px; bottom: 0; height: 3px; border-radius: 3px 3px 0 0; opacity: .9; }
+.rank-badge.sm .belt-stripe { left: 7px; right: 7px; height: 2px; }
+.belt-ribbon { position: relative; height: 26px; margin: 14px 0 6px; }
+.belt-band { position: absolute; inset: 6px 0; border-radius: 6px; background: var(--belt); box-shadow: inset 2px 2px 5px rgba(75,70,60,.28), inset -2px -2px 4px rgba(251,248,242,.35); }
+.belt-knot { position: absolute; left: 50%; top: 2px; width: 30px; height: 22px; margin-left: -15px; border-radius: 8px; background: var(--belt); box-shadow: 3px 3px 7px var(--dark), -2px -2px 5px var(--light), inset 1px 1px 3px rgba(251,248,242,.35); }
+.belt-tail { position: absolute; top: 14px; width: 9px; height: 26px; border-radius: 0 0 5px 5px; background: var(--belt); box-shadow: 2px 3px 6px var(--dark); }
+.belt-tail-l { left: calc(50% - 15px); transform: rotate(14deg); transform-origin: top center; }
+.belt-tail-r { left: calc(50% + 6px); transform: rotate(-14deg); transform-origin: top center; }
+.belt-card .belt-meta { display: flex; flex-direction: column; gap: 3px; margin-top: 22px; }
+.belt-card .belt-meta strong { font-family: 'Fraunces', serif; font-weight: 560; font-size: 20px; }
+
+/* ---- settings ---- */
+.settings { display: flex; flex-direction: column; gap: 14px; margin-top: 14px; }
+.setting-row { display: flex; align-items: center; gap: 14px; }
+.setting-row > svg { flex: none; color: var(--accent); }
+.setting-copy { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.setting-copy strong { font-size: 14px; }
+.toggle { flex: none; width: 48px; height: 28px; border: 0; border-radius: 14px; background: var(--ground); box-shadow: var(--sink-sm); cursor: pointer; position: relative; transition: box-shadow .2s ease; }
+.toggle-knob { position: absolute; top: 4px; left: 4px; width: 20px; height: 20px; border-radius: 50%; background: var(--ground); box-shadow: var(--raise-sm); transition: transform .2s ease, background .2s ease; }
+.toggle.on .toggle-knob { transform: translateX(20px); background: var(--accent); }
+
+/* ---- kata of the day ---- */
+.kata-card { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.kata-copy { flex: 1 1 240px; display: flex; flex-direction: column; gap: 4px; }
+.kata-title { font-family: 'Fraunces', serif; font-weight: 560; font-size: 20px; }
+.kata-streak { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 16px; box-shadow: var(--sink-sm); color: var(--danger); }
+.kata-streak .stat-num { margin-top: 0; font-size: 26px; color: var(--ink); }
+.kata-card.done .kata-streak { color: var(--accent); }
+.prob-tab.kata { box-shadow: var(--raise-sm), 0 0 0 2px var(--accent-soft); }
+.kata-chip { display: inline-flex; align-items: center; gap: 5px; color: var(--accent); }
+
+/* ---- result card and the bow ---- */
+.result-card { display: flex; flex-direction: column; gap: 12px; animation: rise .4s ease; }
+.result-card.win .result-headline { color: var(--accent); }
+.result-card.loss .result-headline { color: var(--danger); }
+.bow-row { display: flex; align-items: center; justify-content: center; gap: 18px; padding: 6px 0 2px; }
+.bow-word { font-family: 'Fraunces', serif; font-style: italic; opacity: .5; font-size: 14px; letter-spacing: .04em; }
+.bow { animation: bow 1.6s ease .3s 1; transform-origin: bottom center; }
+.bow-late { animation-delay: .55s; }
+@keyframes bow { 0%, 100% { transform: rotate(0) translateY(0); } 35%, 65% { transform: rotate(12deg) translateY(3px); } }
+.result-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.result-headline { font-family: 'Fraunces', serif; font-weight: 560; font-size: 28px; margin: 0; line-height: 1.05; }
+.result-sub { font-family: 'Fraunces', serif; font-style: italic; font-size: 16px; opacity: .65; }
+.result-rows { display: flex; flex-direction: column; gap: 6px; }
+.result-row { display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 13px; font-size: 13.5px; }
+.result-row .dot { margin-right: 0; }
+.result-row.winner { box-shadow: var(--sink-sm); }
+.result-side { font-weight: 700; }
+.result-detail { opacity: .65; font-size: 12.5px; }
+.result-total { font-family: 'Fraunces', serif; font-weight: 560; font-size: 19px; }
+
+/* ---- promotion ceremony ---- */
+.ceremony { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 20px; background: rgba(232,228,219,.72); backdrop-filter: blur(6px); animation: fade-in .3s ease; }
+.ceremony-card { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; max-width: 380px; width: 100%; animation: rise .45s ease; }
+.ceremony-card .eyebrow { display: inline-flex; align-items: center; gap: 6px; margin: 6px 0 0; }
+.ceremony-card .result-headline { font-size: 34px; }
+.ceremony-belt { width: 100%; max-width: 260px; margin: 6px 0 16px; }
+.ceremony-card .lesson-text { font-size: 14px; opacity: .8; }
+
+/* ---- Moku ---- */
+.moku-dock { position: fixed; left: clamp(12px, 2vw, 24px); bottom: clamp(12px, 2vw, 24px); z-index: 40; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; pointer-events: none; }
+.moku-dock > * { pointer-events: auto; }
+.moku-bubble {
+  max-width: 220px; padding: 9px 13px; border-radius: 14px 14px 14px 4px;
+  background: var(--ground); box-shadow: var(--raise-sm);
+  font-family: 'Fraunces', serif; font-style: italic; font-size: 13.5px; line-height: 1.4; color: var(--ink);
+  animation: rise-l .35s ease;
+}
+@keyframes rise-l { from { transform: translateY(6px); opacity: 0; } to { transform: none; opacity: 1; } }
+.moku-seat { position: relative; margin-left: 2px; }
+.moku-off { position: absolute; top: -2px; right: -8px; width: 20px; height: 20px; border: 0; border-radius: 50%; background: var(--ground); color: var(--ink); box-shadow: var(--raise-sm); display: grid; place-items: center; cursor: pointer; opacity: 0; transition: opacity .18s ease; }
+.moku-seat:hover .moku-off, .moku-off:focus-visible { opacity: .85; }
+@media (max-width: 760px) { .moku-bubble { max-width: 160px; font-size: 12.5px; } .moku-off { opacity: .6; } }
+
+.moku .moku-stone { filter: drop-shadow(3px 3px 4px rgba(75,70,60,.45)) drop-shadow(-2px -2px 3px rgba(251,248,242,.55)); }
+.moku .moku-body, .moku .moku-eyes, .moku .moku-pupils, .moku .moku-brow, .moku .moku-ko { transform-origin: center; transform-box: fill-box; }
+.moku .moku-eyes { animation: moku-blink 5.5s ease-in-out infinite; }
+@keyframes moku-blink { 0%, 90%, 100% { transform: scaleY(1); } 93%, 96% { transform: scaleY(.08); } }
+.moku .moku-brow { fill: none; stroke: #f2ede3; stroke-width: 2.2; stroke-linecap: round; opacity: 0; transition: opacity .2s ease, transform .2s ease; }
+.moku .moku-ko { fill: none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 4 5; opacity: 0; transition: opacity .2s ease; }
+
+.moku[data-state="idle"] .moku-body, .moku[data-state="home"] .moku-body, .moku[data-state="lobby"] .moku-body,
+.moku[data-state="learn"] .moku-body, .moku[data-state="tsumego"] .moku-body, .moku[data-state="ladder"] .moku-body,
+.moku[data-state="profile"] .moku-body { animation: moku-bob 4s ease-in-out infinite; }
+@keyframes moku-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.6px); } }
+
+.moku[data-state="watching"] .moku-pupils { animation: moku-look 2.6s ease-in-out infinite; }
+@keyframes moku-look { 0%, 100% { transform: translate(-1.6px, .4px); } 50% { transform: translate(1.8px, -.6px); } }
+
+.moku[data-state="atari"] .moku-brow, .moku[data-state="captured"] .moku-brow, .moku[data-state="loss"] .moku-brow { opacity: 1; transform: scaleY(-1); }
+.moku[data-state="atari"] .moku-body { animation: moku-tremble .5s linear infinite; }
+@keyframes moku-tremble { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-.8px); } 75% { transform: translateX(.8px); } }
+
+.moku[data-state="hunting"] .moku-brow { opacity: 1; }
+.moku[data-state="hunting"] .moku-body { transform: rotate(-7deg) translateX(1.5px); }
+.moku[data-state="hunting"] .moku-eyes { animation: none; transform: scaleY(.72); }
+
+.moku[data-state="ko"] .moku-ko { opacity: .9; animation: moku-turn 3s linear infinite; }
+.moku[data-state="ko"] .moku-body { animation: moku-wobble 1.4s ease-in-out infinite; }
+@keyframes moku-turn { to { transform: rotate(360deg); } }
+@keyframes moku-wobble { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+
+.moku[data-state="capture"] .moku-body, .moku[data-state="win"] .moku-body { animation: moku-hop .55s ease 2; }
+.moku[data-state="promoted"] .moku-body { animation: moku-hop .7s ease infinite; }
+@keyframes moku-hop { 0%, 100% { transform: translateY(0) scale(1, 1); } 30% { transform: translateY(-6px) scale(.96, 1.05); } 60% { transform: translateY(0) scale(1.04, .95); } }
+
+.moku[data-state="captured"] .moku-body, .moku[data-state="loss"] .moku-body { transform: translateY(3px) scale(1.02, .95); transition: transform .35s ease; }
+.moku[data-state="scoring"] .moku-body { transform: rotate(9deg); transition: transform .35s ease; }
+.moku[data-state="jigo"] .moku-body { animation: moku-wobble 2.2s ease-in-out infinite; }
+
 @media (prefers-reduced-motion: reduce) {
   .sente-root *, .sente-root *::before, .sente-root *::after {
     animation: none !important; transition: none !important;
