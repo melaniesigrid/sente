@@ -6,11 +6,11 @@ export const Card = ({ children, className = "", inset }) => (
   <div className={`neu-card ${inset ? "neu-inset" : ""} ${className}`}>{children}</div>
 );
 
-export const Btn = ({ icon: Icon, children, onClick, primary, disabled, small }) => (
-  <button className={`btn ${primary ? "btn-accent" : ""} ${small ? "btn-sm" : ""}`}
-    onClick={onClick} disabled={disabled}>
+export const Btn = ({ icon: Icon, children, onClick, primary, disabled, small, label }) => (
+  <button className={`btn ${primary ? "btn-accent" : ""} ${small ? "btn-sm" : ""} ${children ? "" : "btn-icon"}`}
+    onClick={onClick} disabled={disabled} aria-label={label} title={label}>
     {Icon && <Icon size={small ? 14 : 16} strokeWidth={2.2} />}
-    <span>{children}</span>
+    {children && <span>{children}</span>}
   </button>
 );
 

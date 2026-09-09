@@ -193,6 +193,11 @@ export const CSS = `
 .persona-cta { display: inline-flex; align-items: center; gap: 6px; font: 700 11px 'Hanken Grotesk', sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
 .local-card { max-width: 560px; }
 
+.rank-picker { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 18px; flex-wrap: wrap; }
+.rank-picker-label { display: flex; flex-direction: column; gap: 2px; }
+.rank-picker-label strong { font-family: 'Fraunces', serif; font-weight: 560; font-size: 17px; }
+.rank-picker-controls { display: flex; align-items: center; gap: 10px; }
+.btn-icon { padding-left: 10px; padding-right: 10px; }
 .vs-strip { display: flex; align-items: center; gap: 12px; padding: 8px 14px; border-radius: 16px; box-shadow: var(--sink-sm); flex-wrap: wrap; }
 .vs-side { display: flex; align-items: center; gap: 9px; }
 .vs-meta { display: flex; flex-direction: column; line-height: 1.15; }

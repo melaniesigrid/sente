@@ -2,12 +2,13 @@ import { useMemo } from "react";
 import { Crown, Flame } from "lucide-react";
 import { Card, Avatar, RankBadge } from "../components/ui.jsx";
 import { PERSONAS } from "../content/personas.js";
+import { ratingOfRank } from "../content/rank.js";
 
 /* ----------------------- RANKINGS ----------------------- */
 export function RankingsView({ profile }) {
   const rows = useMemo(() => {
     const all = [
-      ...PERSONAS.map(p => ({ ...p, bot: true })),
+      ...PERSONAS.map(p => ({ ...p, bot: true, rating: ratingOfRank(p.range[1]) })),
       { id: "you", name: profile.name, tint: profile.tint, rating: profile.rating, bot: false },
     ];
     return all.sort((a, b) => b.rating - a.rating);
@@ -16,9 +17,10 @@ export function RankingsView({ profile }) {
     <div className="stack">
       <h2 className="section-title">Ladder</h2>
       <p className="lede">
-        The house ladder — you against the residents. Ratings move Elo-style after
-        every rated game; roughly a hundred points to a rank, in the tradition of a
-        one-stone gap. The global ladder opens with networked play.
+        The house ladder — you against the residents. House players adapt to the
+        level you choose; each is listed at the top of the range it calls home. Ratings
+        move Elo-style after every rated game; roughly a hundred points to a rank, in
+        the tradition of a one-stone gap. The global ladder opens with networked play.
       </p>
       <Card className="ladder">
         {rows.map((r, i) => (
@@ -27,9 +29,9 @@ export function RankingsView({ profile }) {
             <Avatar name={r.name} tint={r.tint} size={38} bot={r.bot} />
             <div className="ladder-name">
               <strong>{r.name}</strong>
-              {r.bot ? <span className="fine">house player</span> : <span className="fine">that's you</span>}
+              {r.bot ? <span className="fine">house player · adapts to your level</span> : <span className="fine">that's you</span>}
             </div>
-            <div className="ladder-rating">{r.rating}</div>
+            <div className="ladder-rating">{r.bot ? `${r.range[0]}–${r.range[1]}` : r.rating}</div>
             <RankBadge rating={r.rating} />
           </div>
         ))}

@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import {
   createGame, play, pass, resign, undo, markDead, acceptScore, scoreBoard, chainsInAtari, idx,
-  lastMoveIndex, aiChooseMoveForRecord, kataChooseMoveForRecord, loadModel, onModelProgress, modelReady,
+  lastMoveIndex, aiChooseMoveForRecord, kataChooseMoveForRecord, profileForRank, loadModel, onModelProgress, modelReady,
   toSgf, IllegalMoveError,
 } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
@@ -13,7 +13,7 @@ import { Card, Btn, Pill, Avatar, RankBadge, BeltRibbon } from "../components/ui
 import { MokuMark } from "../components/Moku.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
 import { playStone, playCapture, playBell, haptic } from "../components/sound.js";
-import { rankOf, eloDelta, beltOf, hintsForBelt } from "../content/rank.js";
+import { rankOf, ratingOfRank, eloDelta, beltOf, hintsForBelt } from "../content/rank.js";
 import { saveProfile } from "../store/profile.js";
 import { saveGame, clearGame } from "../store/gameStore.js";
 import {
@@ -35,6 +35,9 @@ const MOMENT_MS = 2600;
    bow. House players have no opinion on life and death and the card says so. */
 export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const persona = mode.kind === "bot" ? mode.persona : null;
+  // The rank this game is played at; house players adapt to it. Defaults to the player's own.
+  const botRank = persona ? (mode.rank ?? rankOf(profile.rating)) : null;
+  const botRating = persona ? ratingOfRank(botRank) : null;
   const [rec, setRec] = useState(() => initial || createGame({ size: BOARD_SIZE }));
   const [thinking, setThinking] = useState(false);
   const [chat, setChat] = useState(() =>
@@ -81,8 +84,8 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   // Persist the table on every change; an ended or empty game clears the slot.
   useEffect(() => {
     if (rec.phase === "ended" || rec.moves.length === 0) clearGame();
-    else saveGame({ record: rec, mode: { kind: mode.kind, personaId: persona ? persona.id : null } });
-  }, [rec, mode.kind, persona]);
+    else saveGame({ record: rec, mode: { kind: mode.kind, personaId: persona ? persona.id : null, rank: botRank } });
+  }, [rec, mode.kind, persona, botRank]);
 
   const say = useCallback((text) => setChat(c => [...c, { who: "bot", text }]), []);
 
@@ -131,7 +134,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
         const oldRank = rankOf(profile.rating), oldBelt = beltOf(profile.rating);
-        const d = eloDelta(profile.rating, persona.rating, won ? 1 : 0);
+        const d = eloDelta(profile.rating, botRating, won ? 1 : 0);
         const rating = Math.max(400, profile.rating + d);
         const streak = won ? profile.streak + 1 : 0;
         const np = {
@@ -149,7 +152,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       }
     }
     return next;
-  }, [persona, profile, say, setProfile, notify, sound]);
+  }, [persona, botRating, profile, say, setProfile, notify, sound]);
 
   /* Ask the human network what a player of the persona's rank would do; if it is
      unavailable (offline, old browser) the heuristic house player answers instead.
@@ -175,10 +178,10 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       }, wait);
     };
     const fallback = () => aiChooseMoveForRecord(r, persona.weights);
-    kataChooseMoveForRecord(r, { ...persona.profile, oppRank: rankOf(profile.rating) })
+    kataChooseMoveForRecord(r, { ...profileForRank(botRank, persona.profile.temperature), oppRank: rankOf(profile.rating) })
       .then((res) => settle(res ? res.move : fallback()))
       .catch(() => settle(fallback()));
-  }, [persona, profile.rating, say, conclude, afterMove]);
+  }, [persona, botRank, profile.rating, say, conclude, afterMove]);
 
   // A resumed game may be waiting on the house player.
   useEffect(() => {
@@ -306,7 +309,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
           <span className="vs-x">vs</span>
           <div className="vs-side">
             {persona
-              ? <><div className="vs-meta right"><strong>{persona.name}</strong><RankBadge rating={persona.rating} size="sm" /></div><Avatar name={persona.name} tint={persona.tint} size={34} bot /></>
+              ? <><div className="vs-meta right"><strong>{persona.name}</strong><RankBadge rating={botRating} size="sm" /></div><Avatar name={persona.name} tint={persona.tint} size={34} bot /></>
               : <><div className="vs-meta right"><strong>White</strong></div><div className="avatar duo sm"><User size={15} /></div></>}
           </div>
         </div>

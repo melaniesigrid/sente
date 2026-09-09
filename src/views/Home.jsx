@@ -19,7 +19,7 @@ export function Home({ profile, go, onResume }) {
   const lessonPct = Math.round((lessonsDone / LESSONS.length) * 100);
   const probPct = Math.round((profile.problemsDone.length / PROBLEMS.length) * 100);
   const games = profile.wins + profile.losses;
-  const [saved, setSaved] = useState(() => loadSession());
+  const [saved, setSaved] = useState(() => loadSession(profile));
   const discard = () => { clearGame(); setSaved(null); };
   const today = dayKey();
   const kata = dailyProblem(PROBLEMS, today);
@@ -107,13 +107,14 @@ export function Home({ profile, go, onResume }) {
 }
 
 /** Saved game resolved against current content; unresolvable or finished games are dropped. */
-function loadSession() {
+function loadSession(profile) {
   const saved = loadGame();
   if (!saved || saved.record.phase === "ended") { if (saved) clearGame(); return null; }
   if (saved.mode.kind === "bot") {
     const persona = personaById(saved.mode.personaId);
     if (!persona) { clearGame(); return null; }
-    return { record: saved.record, mode: { kind: "bot", persona }, opponent: persona.name };
+    const rank = saved.mode.rank ?? rankOf(profile.rating);
+    return { record: saved.record, mode: { kind: "bot", persona, rank }, opponent: persona.name };
   }
   return { record: saved.record, mode: { kind: "local" }, opponent: "Pass & play" };
 }
