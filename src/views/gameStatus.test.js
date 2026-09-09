@@ -60,6 +60,7 @@ describe("captionText", () => {
   it("states the rules honestly", () => {
     expect(captionText({ komi: 7.5, rated: true })).toBe("Area scoring · komi 7.5 · superko · rated");
     expect(captionText({ komi: 7.5, rated: false })).toBe("Area scoring · komi 7.5 · superko · unrated");
+    expect(captionText({ komi: 7.5, rated: false, duel: true })).toBe("Area scoring · komi 7.5 · superko · daily duel, unrated");
   });
 });
 

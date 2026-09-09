@@ -3,21 +3,16 @@
    library by hashing the date. Solving it is "attendance"; consecutive days
    build a streak. Pure functions; the date is a "YYYY-MM-DD" key so the logic
    is testable and free of time zones. */
+import { hashString } from "../engine/index.js";
 
 export function dayKey(d = new Date()) {
   const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, "0"), day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
 
-const hashKey = (key) => {
-  let h = 2166136261;
-  for (let i = 0; i < key.length; i++) { h ^= key.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
-  return h;
-};
-
 export function dailyProblem(problems, key) {
   if (!problems.length) return null;
-  return problems[hashKey(key) % problems.length];
+  return problems[hashString(key) % problems.length];
 }
 
 /** The key for the day before `key`, computed in UTC so DST cannot skip a day. */

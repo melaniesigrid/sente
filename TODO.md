@@ -223,6 +223,61 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
 - [x] Sound and haptic feedback on stone placement (opt-in, synthesised, no assets).
 - [ ] Self-host fonts instead of the Google Fonts `@import`.
 
+## Parking lot — wild ideas (brainstorm 2026-09-09)
+
+Every one of these leans on something already built. Not scheduled; pull one into a phase
+when it earns its place. Ordered by cost.
+
+Free, because the engine already does the hard part:
+- [x] **Daily Duel** (done 2026-09-09, branch `feat/daily-duel`): the date picks the host
+      and seeds its noise; the engine makes each reply a pure function of (seed, position),
+      so everyone who plays the same moves sees the same game and results compare with no
+      server. One attempt a day, unrated, no undo, no rematch; the result copies as text.
+      Decisions: the first stone spends the attempt (`duelStarted` is written as Black's
+      first move lands, so a misclick or a reload during the model download costs
+      nothing and leaving the table afterwards is not a reroll); the seed is folded with the
+      Zobrist hash per move rather than a running stream, so undo could never reroll a
+      reply either; the streak counts consecutive days won; the share text is the day,
+      the host, the go-notation result and the page URL, nothing personal.
+      Merged onto the KataGo house players 2026-09-09 (`feat/daily-duel-kata`): the day
+      also fixes the rank the host plays at, inside its home range, and the human network
+      is told the opponent is that rank too, because its reply depends on both. Sampling
+      uses a generator seeded by (day, position hash); the heuristic fallback is seeded
+      the same way. Verified with two fresh browsers playing identical moves. A duel never
+      falls back to the heuristic player: if the network cannot answer, the table says
+      "host unreachable" and offers to ask again. A jigo carries the streak. The duel
+      depends on the single-threaded WASM provider (see `net.js`); a WebGPU upgrade must
+      keep a deterministic path for it.
+- [ ] Games as URLs: compress the `GameRecord` into the URL fragment. Correspondence go,
+      "look at this position" links and puzzle sharing with no backend. Phase 4 later
+      upgrades the link into a room.
+- [ ] Bots that show their work: after each house move, show the top three candidates
+      and their weighted scores ("Tetsu: capture 16, atari 6, played here"). Only a
+      heuristic bot can be this honest.
+- [ ] Every house player has a tell: make Moku's lobby line literal. Hoshi really forgets
+      ladders; a mirror-go persona copies you through tengen until you take tengen.
+      Exploit a tell to unlock the scouting report.
+
+A weekend each:
+- [ ] Tsumego mined from your own games: scan a finished record for positions where a
+      group of yours sat in atari with a rescue available, or an enemy group could be
+      taken (the AI's capture/rescue evaluators find these). Feeds spaced repetition.
+- [ ] Déjà vu: keep every Zobrist hash you have ever seen locally; the board whispers
+      "you have been here before, and lost". A personal opening book with no engine.
+- [ ] Rengo with the bots: pair go, you and Hoshi against Tetsu and Yuki, alternating
+      seats. `GameRecord` does not care who chose a move; it is a seat rotation in Game.
+- [ ] One-colour go: render every stone the same colour, rules untouched, one Board prop.
+      A real pro training method.
+
+Bigger swings:
+- [ ] Play your past self: fit persona weights to your own move distribution from the
+      telemetry ring buffer. A house player with your name, at your rating, labelled a
+      bot. The ghost race for go.
+- [ ] The board as an instrument: pitch by distance from tengen, captures a chord, ko a
+      repeating figure, byo-yomi a tightening pulse. A game becomes a piece.
+- [ ] Capture Go onboarding: first capture wins on 7x7 against Hoshi, a two-line rule
+      variant on the record, replacing the ten-move guided demo with a real game.
+
 ## Principles (do not trade away)
 
 - Rules live in the engine, never in a view.

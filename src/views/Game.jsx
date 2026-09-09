@@ -14,6 +14,8 @@ import { MokuMark } from "../components/Moku.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
 import { playStone, playCapture, playBell, haptic } from "../components/sound.js";
 import { rankOf, ratingOfRank, eloDelta, beltOf, hintsForBelt } from "../content/rank.js";
+import { startDuel, duelOutcome, recordDuel, duelResultText, duelShareText, duelShareUrl } from "../content/duel.js";
+import { ShareDuelButton } from "../components/DuelCard.jsx";
 import { saveProfile } from "../store/profile.js";
 import { saveGame, clearGame } from "../store/gameStore.js";
 import {
@@ -32,11 +34,17 @@ const MOMENT_MS = 2600;
 
    The end of a game is a ceremony, not a toast: two passes open scoring, dead
    stones are tapped off, the count is shown term by term, and both players
-   bow. House players have no opinion on life and death and the card says so. */
+   bow. House players have no opinion on life and death and the card says so.
+
+   A daily duel (`mode.kind === "duel"`) is a bot game whose replies are seeded
+   by the day: no undo, no rematch, unrated, and starting it spends the day's
+   one attempt. */
 export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
-  const persona = mode.kind === "bot" ? mode.persona : null;
-  // The rank this game is played at; house players adapt to it. Defaults to the player's own.
-  const botRank = persona ? (mode.rank ?? rankOf(profile.rating)) : null;
+  const duel = mode.kind === "duel" ? mode : null;
+  const persona = mode.kind === "bot" || duel ? mode.persona : null;
+  // The rank this game is played at; house players adapt to it. A duel fixes it by the
+  // day so everyone meets the same opponent; otherwise it defaults to the player's own.
+  const botRank = persona ? (duel ? duel.rank : (mode.rank ?? rankOf(profile.rating))) : null;
   const botRating = persona ? ratingOfRank(botRank) : null;
   const [rec, setRec] = useState(() => initial || createGame({ size: BOARD_SIZE }));
   const [thinking, setThinking] = useState(false);
@@ -48,6 +56,8 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const [delta, setDelta] = useState(null);        // rating change of the finished game
   const [ceremony, setCeremony] = useState(null);  // belt just earned, until dismissed
   const [loading, setLoading] = useState(null);    // {loaded, total} while the network downloads
+  const [hostLost, setHostLost] = useState(false); // duel only: the network could not answer
+  const resumed = useRef(false);                   // the resume effect runs once, StrictMode or not
   const alive = useRef(true);
   const chatEndRef = useRef(null);
   const thinkTimer = useRef(null);
@@ -84,8 +94,20 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   // Persist the table on every change; an ended or empty game clears the slot.
   useEffect(() => {
     if (rec.phase === "ended" || rec.moves.length === 0) clearGame();
-    else saveGame({ record: rec, mode: { kind: mode.kind, personaId: persona ? persona.id : null, rank: botRank } });
-  }, [rec, mode.kind, persona, botRank]);
+    else saveGame({ record: rec, mode: { kind: mode.kind, personaId: persona ? persona.id : null, rank: botRank, key: duel ? duel.key : null } });
+  }, [rec, mode.kind, persona, botRank, duel]);
+
+  /* The first stone is the attempt: the day is written to the profile as Black's
+     first move lands, so a misclick on the card or a reload while the network
+     downloads costs nothing, while leaving the table afterwards is not a reroll. */
+  const spendAttempt = useCallback(() => {
+    if (!duel) return;
+    const patch = startDuel(profile, duel.key);
+    if (Object.keys(patch).length === 0) return;
+    const np = { ...profile, ...patch };
+    setProfile(np);
+    saveProfile(np);
+  }, [duel, profile, setProfile]);
 
   const say = useCallback((text) => setChat(c => [...c, { who: "bot", text }]), []);
 
@@ -130,7 +152,14 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const conclude = useCallback((next, prev) => {
     if (next.phase === "ended" && prev.phase !== "ended") {
       if (sound) playBell();
-      if (persona) {
+      if (duel) {
+        const outcome = duelOutcome(next);
+        say(pick(outcome.won === null ? persona.chat.reply : outcome.won ? persona.chat.loss : persona.chat.win));
+        const np = { ...profile, ...recordDuel(profile, duel.key, outcome) };
+        setProfile(np);
+        saveProfile(np);
+        notify({ icon: outcome.won ? "trophy" : "flag", text: `Daily duel · ${duelResultText(outcome.code)}` });
+      } else if (persona) {
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
         const oldRank = rankOf(profile.rating), oldBelt = beltOf(profile.rating);
@@ -152,7 +181,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       }
     }
     return next;
-  }, [persona, botRating, profile, say, setProfile, notify, sound]);
+  }, [persona, duel, botRating, profile, say, setProfile, notify, sound]);
 
   /* Ask the human network what a player of the persona's rank would do; if it is
      unavailable (offline, old browser) the heuristic house player answers instead.
@@ -177,14 +206,26 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         setRec(conclude(next, r));
       }, wait);
     };
+    /* A daily duel must give everyone the same reply: the network is asked at the
+       day's fixed rank, told the opponent is that same rank (the human model
+       conditions on both), and sampled with a generator seeded by (day, position).
+       It never falls back to the heuristic player, because that would be a
+       different game under the same result code; if the network cannot answer,
+       the table says so and waits. */
     const fallback = () => aiChooseMoveForRecord(r, persona.weights);
-    kataChooseMoveForRecord(r, { ...profileForRank(botRank, persona.profile.temperature), oppRank: rankOf(profile.rating) })
-      .then((res) => settle(res ? res.move : fallback()))
-      .catch(() => settle(fallback()));
-  }, [persona, botRank, profile.rating, say, conclude, afterMove]);
+    const ask = duel
+      ? { ...profileForRank(duel.rank, persona.profile.temperature), oppRank: duel.rank, seed: duel.seed }
+      : { ...profileForRank(botRank, persona.profile.temperature), oppRank: rankOf(profile.rating) };
+    const unreachable = () => { if (!alive.current) return; setThinking(false); setHostLost(true); };
+    kataChooseMoveForRecord(r, ask)
+      .then((res) => { if (res) settle(res.move); else if (duel) unreachable(); else settle(fallback()); })
+      .catch(() => { if (duel) unreachable(); else settle(fallback()); });
+  }, [persona, duel, botRank, profile.rating, say, conclude, afterMove]);
 
   // A resumed game may be waiting on the house player.
   useEffect(() => {
+    if (resumed.current) return;
+    resumed.current = true;
     if (persona && rec.phase === "playing" && rec.toPlay === "w" && !thinking) botTurn(rec);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -207,6 +248,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       }
       throw e;
     }
+    if (rec.moves.length === 0) spendAttempt();
     setRec(next);
     afterMove(next, turn);
     if (persona) {
@@ -218,6 +260,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const onPass = () => {
     if (over || thinking || scoring) return;
     if (persona && turn !== "b") return;
+    if (rec.moves.length === 0) spendAttempt();
     const next = conclude(pass(rec), rec);
     setRec(next);
     if (persona && next.phase === "playing") botTurn(next);
@@ -241,7 +284,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   };
 
   const undoDepth = persona ? 2 : 1;
-  const canUndo = !over && !thinking && !scoring && rec.moves.length >= undoDepth;
+  const canUndo = !over && !thinking && !scoring && !duel && rec.moves.length >= undoDepth;
   const onUndo = () => {
     if (!canUndo) return;
     let r = rec;
@@ -336,7 +379,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
               <Btn icon={Flag} small onClick={onPass} disabled={!!over}>Pass</Btn>
               <Btn icon={RotateCcw} small onClick={onUndo} disabled={!canUndo}>Undo</Btn>
               <Btn icon={Handshake} small onClick={onResign} disabled={!canResign}>{resignLabel(confirmResign)}</Btn>
-              <Btn icon={RefreshCw} small onClick={reset}>New game</Btn>
+              {!duel && <Btn icon={RefreshCw} small onClick={reset}>New game</Btn>}
             </div>
           )}
         </div>
@@ -367,13 +410,24 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
                 </div>
               )}
               <p className="fine">
-                {persona ? ratingLine(delta) ?? "Rated against a house player." : "Unrated. Thank you both for the game."}
+                {duel ? "Daily duel, unrated. Everyone met this host on this board today; one attempt each."
+                  : persona ? ratingLine(delta) ?? "Rated against a house player." : "Unrated. Thank you both for the game."}
                 {over.method === "score" && rec.dead.length > 0 && ` · ${rec.dead.length} dead ${rec.dead.length === 1 ? "stone" : "stones"} removed`}
               </p>
               <div className="row">
-                <Btn icon={RefreshCw} small primary onClick={reset}>Rematch</Btn>
+                {duel
+                  ? <ShareDuelButton small text={duelShareText({ key: duel.key, personaName: persona.name, code: duelOutcome(rec).code, moves: duelOutcome(rec).moves, url: duelShareUrl(window.location) })} />
+                  : <Btn icon={RefreshCw} small primary onClick={reset}>Rematch</Btn>}
                 <Btn icon={Download} small onClick={downloadSgf}>SGF</Btn>
+                {duel && <Btn icon={ChevronLeft} small onClick={onExit}>Lobby</Btn>}
               </div>
+            </Card>
+          )}
+          {duel && hostLost && !over && (
+            <Card inset className="caps">
+              <div className="stat-head"><Bot size={15} /><span>Host unreachable</span></div>
+              <p className="fine">{persona.name} plays through the human network and it could not answer just now. Nothing was decided and nothing is lost; ask again when you are back online.</p>
+              <div className="row"><Btn small primary icon={RefreshCw} onClick={() => { setHostLost(false); botTurn(rec); }}>Ask again</Btn></div>
             </Card>
           )}
           {scoring && preview && (
@@ -388,12 +442,12 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
             <Card inset className="caps">
               <div><span className="dot dot-b" /> Black captures: {rec.captures.b}</div>
               <div><span className="dot dot-w" /> White captures: {rec.captures.w}</div>
-              <div className="fine">{captionText({ komi: rec.komi, rated: !!persona })}{hints ? " · atari hints on" : ""}</div>
+              <div className="fine">{captionText({ komi: rec.komi, rated: !!persona && !duel, duel: !!duel })}{hints ? " · atari hints on" : ""}</div>
             </Card>
           )}
           {persona ? (
             <Card className="chat-card">
-              <div className="chat-head"><MessageCircle size={15} /><span>Table talk</span><span className="bot-chip"><Bot size={11} /> house player</span></div>
+              <div className="chat-head"><MessageCircle size={15} /><span>Table talk</span><span className="bot-chip"><Bot size={11} /> {duel ? "today's host" : "house player"}</span></div>
               <div className="chat-log" aria-live="polite">
                 {chat.map((m, i) => (
                   <div key={i} className={`bubble ${m.who === "you" ? "mine" : ""}`}>{m.text}</div>

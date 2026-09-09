@@ -94,3 +94,35 @@ describe("aiChooseMoveForRecord", () => {
     expect(aiChooseMoveForRecord(g)).toBeNull();
   });
 });
+
+describe("seeded house player", () => {
+  const position = () => {
+    let rec = createGame({ size: 9 });
+    rec = play(rec, 4, 4); rec = play(rec, 2, 2); rec = play(rec, 6, 2);
+    return rec;
+  };
+  it("gives the same reply for the same seed and position, on a noisy persona", () => {
+    const a = aiChooseMoveForRecord(position(), { noise: 6 }, { seed: 12345 });
+    const b = aiChooseMoveForRecord(position(), { noise: 6 }, { seed: 12345 });
+    expect(a).toEqual(b);
+  });
+  it("does not depend on the path taken to the position", () => {
+    let other = createGame({ size: 9 });
+    other = play(other, 6, 2); other = play(other, 2, 2); other = play(other, 4, 4);
+    expect(aiChooseMoveForRecord(other, { noise: 6 }, { seed: 12345 }))
+      .toEqual(aiChooseMoveForRecord(position(), { noise: 6 }, { seed: 12345 }));
+  });
+  it("varies with the seed", () => {
+    const seen = new Set();
+    for (let s = 0; s < 40; s++) seen.add(String(aiChooseMoveForRecord(position(), { noise: 6 }, { seed: s })));
+    expect(seen.size).toBeGreaterThan(1);
+  });
+  it("accepts an explicit rng and never touches Math.random when seeded", () => {
+    const orig = Math.random;
+    Math.random = () => { throw new Error("Math.random must not be used"); };
+    try {
+      expect(aiChooseMove(createBoard(9), "b", null, 0, {}, { rng: () => 0.5 })).not.toBeNull();
+      expect(aiChooseMoveForRecord(position(), {}, { seed: 1 })).not.toBeNull();
+    } finally { Math.random = orig; }
+  });
+});

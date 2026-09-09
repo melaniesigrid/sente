@@ -2,7 +2,10 @@
    Loads KataGo's human-style network once and answers policy queries. This is the
    one engine module that touches I/O: it fetches the ONNX file and runs it with
    ONNX Runtime Web on the WebAssembly backend, which works in every current
-   browser. WebGPU is a later upgrade; it needs a different runtime file.
+   browser. WebGPU is a later upgrade; it needs a different runtime file, and it
+   must keep the daily duel in mind: the duel's "same reply for everyone" rests on
+   single-threaded WASM producing bit-identical logits on every device. A GPU
+   backend would drift in the low bits and flip sampled moves at the margins.
 
    Nothing here knows about React. Views call `humanPolicy(rec, profile)` and get
    logits back, or `null` if the network is unavailable, in which case the caller
