@@ -50,17 +50,30 @@ Decisions made in Phase 1 (change deliberately, not by accident):
 - `RE[B+R]`/`W+R` on import becomes a resignation; a scored `RE` is not applied because
   the dead stones are unknown. The game is left in whatever phase the moves reached.
 
-## Phase 2 — Split the app
+## Phase 2 — Split the app (done, branch `feat/rules-kernel`)
 
-- [ ] Split `src/App.jsx` into `content/` (personas, lessons, problems), `components/`
+- [x] Split `src/App.jsx` into `content/` (personas, lessons, problems), `components/`
       (Board, Card, Btn, Pill, Avatar, RankBadge), `views/` (Home, Play, Game, Rankings,
       Profile, Learn, Problems), `styles/` (CSS). Keep section banners.
-- [ ] `Game` becomes a thin adapter over `GameRecord`; no rules logic left in views.
-      (`Game` still keeps its own `hist` of boards and calls `tryPlay` directly.)
-- [ ] Persist the in-progress record to localStorage on every move; Home shows a
+- [x] `Game` becomes a thin adapter over `GameRecord`; no rules logic left in views.
+- [x] Persist the in-progress record to localStorage on every move; Home shows a
       "Resume last game" card.
-- [ ] Error boundary around views.
-- [ ] Deploy preview on GitHub Pages via Actions.
+- [x] Error boundary around views.
+- [x] Deploy preview on GitHub Pages via Actions.
+
+Decisions made in Phase 2:
+- Two passes put the record in `scoring` and `Game` accepts the score immediately with
+  no dead stones, through `acceptScore`. Phase 3 inserts the ceremony at that seam.
+- Komi in play is the record default, 7.5 (was 5.5 in the old view). Rated results
+  against house players therefore shift slightly toward White compared to before.
+- Undo is disabled once a game has ended. The old view let you undo after the result
+  had already been applied to your rating, which was dishonest.
+- Refused moves toast once (ko, superko, suicide); occupied points stay silent.
+- The saved game is one slot, `sente-game`, versioned; loading replays the log through
+  the engine and discards anything that does not replay. Ended games are never stored.
+- `Game` still hard-codes 9x9 (`BOARD_SIZE`); the lobby chooses sizes in Phase 3.
+- `src/store/` is a fourth folder for localStorage because both Game and Home need the
+  game slot; views still reach the engine only through `src/engine/index.js`.
 
 ## Phase 3 — Play like a real server
 

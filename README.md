@@ -6,8 +6,9 @@ problems, climb a rating ladder, and keep a persistent profile.
 
 ## Features
 
-- **Play** — 9×9 go with a rules engine that enforces suicide, simple ko, and captures.
-  Area (Chinese-style) scoring. Six house players with tuned heuristic weights.
+- **Play** — 9×9 go with a rules engine that enforces suicide, ko and positional superko.
+  Area scoring with komi 7.5. Three house players with tuned heuristic weights, labeled
+  as bots. The game on the table is saved locally and can be resumed from Home.
 - **Learn** — interactive lessons that walk through liberties, capture, atari, ko,
   life and death, and opening principles on a live board.
 - **Tsumego** — life-and-death and tesuji problems with hints and progress tracking.
@@ -35,17 +36,35 @@ Requires Node 20+.
 ## Project layout
 
 ```
-index.html        HTML shell, fonts, favicon
-src/main.jsx      React entry
-src/engine/go.js  Rules engine: chains, liberties, capture, ko, suicide, area scoring
-src/engine/ai.js  House-player move picker (weighted heuristic)
-src/engine/*.test.js  Vitest suites for the above
-src/App.jsx       Content, components, views, styles (single file for now)
-TODO.md           Roadmap
+index.html          HTML shell, fonts, favicon
+src/main.jsx        React entry
+src/App.jsx         Shell: nav, routing state, profile store, toasts, error boundaries
+src/engine/         Pure rules kernel, one module per concern, tests beside each:
+  board.js          {size, cells} boards, star points, chains
+  rules.js          tryPlay with named reasons; positional superko (zobrist.js)
+  record.js         GameRecord: playing -> scoring -> ended, handicap, replay
+  score.js          Area scoring, dead stones, komi, territory map
+  clock.js          Absolute / byo-yomi / Fischer, no timers
+  sgf.js            SGF FF[4] subset in and out
+  ai.js             House-player move picker (weighted heuristic)
+  index.js          The only import surface for views
+src/content/        Personas, lessons, problems, rank helpers
+src/components/     Board (SVG), UI primitives, Toast, ErrorBoundary
+src/views/          Home, Play, Game, Learn, Problems, Rankings, Profile
+src/store/          localStorage: profile, in-progress game
+src/styles/css.js   The stylesheet, injected by the shell
+TODO.md             Roadmap
 ```
 
-The engine (`chainAt`, `tryPlay`, `estimateScore`) is pure and framework-free, so it
-can be lifted straight into a server or a test suite.
+The engine is pure and framework-free, so it can be lifted straight into a server or a
+test suite. `src/engine/index.js` is the only thing views import from it.
+
+## Deploying
+
+`.github/workflows/deploy.yml` builds on every push to `main` and publishes `dist/` to
+GitHub Pages (enable Pages with source "GitHub Actions" once in the repo settings). Vite's
+`base` comes from the `BASE_PATH` env var, which the workflow sets to `/<repo>/`; unset
+locally, so `npm run dev` is unaffected.
 
 ## Roadmap
 
