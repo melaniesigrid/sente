@@ -10,11 +10,13 @@
      { type: "clearWrong" }     timer: drop the wrong-move marker
 
    A state may carry `pending: { ms, action }`; the player runs that action
-   after `ms`. Nothing here touches React or timers. */
+   after `ms`. A refutation or a non-best verdict ends in status "review":
+   the text stays until the learner clicks the board or Try again, which
+   resets the step. Nothing here touches React or timers. */
 import { tryPlay, idx, opponent } from "../engine/index.js";
 import { setupToBoard } from "../content/positions.js";
 
-export const TIMINGS = { reply: 400, refuteHold: 1400, wrongHold: 900, verdictHold: 1600 };
+export const TIMINGS = { reply: 400, wrongHold: 900 };
 
 export const VERDICT_LABELS = { best: "Best", fine: "Playable", poor: "Not this" };
 
@@ -24,10 +26,12 @@ export const DEFAULT_WRONG = "Not there. Look again.";
 /** What to say after a wrong move: the step's own line, else its hint, else neutral. */
 export const wrongTextFor = (step) => step.wrongText || step.hint || DEFAULT_WRONG;
 
+const lessonOf = (state) => ({ size: state.board.size });
+
 export function initStep(lesson, step) {
   return {
     board: setupToBoard(step.setup, lesson.size),
-    status: step.type === "info" ? "solved" : "open", // open | wrong | busy | solved
+    status: step.type === "info" ? "solved" : "open", // open | wrong | busy | review | solved
     flash: [], lastMove: null, wrong: null,
     message: null, tone: null,                        // tone: "success" | "hint" | "verdict"
     moveIdx: 0, verdict: null, pending: null,
@@ -45,7 +49,7 @@ export function marksFor(step) {
 }
 
 export const boardLocked = (step, state) =>
-  state.status !== "open" || step.type === "info" || step.type === "count";
+  (state.status !== "open" && state.status !== "review") || step.type === "info" || step.type === "count";
 
 const placed = (state, res, c, r, extra = {}) => ({
   ...state, board: res.board, flash: res.captured, lastMove: idx(res.board.size, c, r), wrong: null, ...extra,
@@ -70,6 +74,7 @@ export function stepReducer(lesson, step, state, action) {
 }
 
 function play(step, state, c, r) {
+  if (state.status === "review") return initStep(lessonOf(state), step);
   if (state.status !== "open") return state;
   if (step.type === "quiz") {
     const res = tryPlay(state.board, c, r, step.toPlay);
@@ -104,8 +109,8 @@ function play(step, state, c, r) {
     if (!res.ok) return state;
     const best = opt.verdict === "best";
     return placed(state, res, c, r, {
-      status: best ? "solved" : "busy", verdict: opt.verdict, message: opt.text, tone: best ? "success" : "verdict",
-      pending: best ? null : { ms: TIMINGS.verdictHold, action: { type: "reset" } },
+      status: best ? "solved" : "review", verdict: opt.verdict, message: opt.text, tone: best ? "success" : "verdict",
+      pending: null,
     });
   }
   return state;
@@ -130,7 +135,7 @@ function refute(step, state) {
   if (!rf || state.status !== "busy") return state;
   const res = tryPlay(state.board, rf.reply.c, rf.reply.r, opponent(step.toPlay));
   const next = res.ok ? placed(state, res, rf.reply.c, rf.reply.r) : state;
-  return { ...next, message: rf.text, tone: "hint", pending: { ms: TIMINGS.refuteHold, action: { type: "reset" } } };
+  return { ...next, status: "review", message: rf.text, tone: "hint", pending: null };
 }
 
 function answer(step, state, value) {

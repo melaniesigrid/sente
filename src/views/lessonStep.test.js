@@ -45,7 +45,7 @@ describe("quiz", () => {
     const s = run(lesson, step, [{ type: "play", c: 0, r: 1 }]); // occupied
     expect(s.status).toBe("wrong");
   });
-  it("plays a refutation: move, then reply with text, then reset", () => {
+  it("plays a refutation: move, then reply with text, then waits for the learner", () => {
     const s1 = run(lesson, step, [{ type: "play", c: 0, r: 0 }]);
     expect(s1.status).toBe("busy");
     expect(at(s1, 0, 0)).toBe("b");
@@ -53,9 +53,12 @@ describe("quiz", () => {
     const s2 = stepReducer(lesson, step, s1, s1.pending.action);
     expect(at(s2, 1, 0)).toBe("w");
     expect(s2.message).toMatch(/only one eye/);
-    expect(s2.pending).toEqual({ ms: TIMINGS.refuteHold, action: { type: "reset" } });
-    const s3 = stepReducer(lesson, step, s2, s2.pending.action);
-    expect(s3).toEqual(initStep(lesson, step));
+    expect(s2.status).toBe("review");
+    expect(s2.pending).toBeNull();
+    expect(boardLocked(step, s2)).toBe(false);
+    // The next click anywhere resets; so does an explicit reset.
+    expect(stepReducer(lesson, step, s2, { type: "play", c: 4, r: 4 })).toEqual(initStep(lesson, step));
+    expect(stepReducer(lesson, step, s2, { type: "reset" })).toEqual(initStep(lesson, step));
   });
   it("ignores clicks while busy or solved", () => {
     const solved = run(lesson, step, [{ type: "play", c: 1, r: 0 }]);
@@ -136,14 +139,14 @@ describe("choice", () => {
     expect(s.verdict).toBe("best");
     expect(s.message).toMatch(/Tengen/);
   });
-  it("another option shows its verdict, then resets", () => {
+  it("another option shows its verdict and waits for the learner's next click", () => {
     const s = run(lesson, step, [{ type: "play", c: 0, r: 0 }]);
-    expect(s.status).toBe("busy");
+    expect(s.status).toBe("review");
     expect(s.verdict).toBe("poor");
     expect(s.tone).toBe("verdict");
     expect(at(s, 0, 0)).toBe("b");
-    expect(s.pending).toEqual({ ms: TIMINGS.verdictHold, action: { type: "reset" } });
-    expect(stepReducer(lesson, step, s, s.pending.action)).toEqual(initStep(lesson, step));
+    expect(s.pending).toBeNull();
+    expect(stepReducer(lesson, step, s, { type: "play", c: 2, r: 2 })).toEqual(initStep(lesson, step));
   });
 });
 

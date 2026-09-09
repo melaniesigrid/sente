@@ -87,6 +87,9 @@ function LessonPlayer({ lesson, onDone, onExit }) {
             )}
           </Card>
           <div className="row">
+            {state.status === "review" && (
+              <Btn icon={RotateCcw} small primary onClick={() => dispatch({ type: "reset" })}>Try again</Btn>
+            )}
             {!solved && step.type !== "info"
               ? <Btn icon={RotateCcw} small onClick={() => loadStep(stepIdx)}>Reset position</Btn>
               : <Btn icon={isLast ? Check : ChevronRight} primary onClick={next}>
