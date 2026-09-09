@@ -10,6 +10,7 @@ import { Board } from "../components/Board.jsx";
 import { Card, Btn, Pill, Avatar, RankBadge } from "../components/ui.jsx";
 import { rankOf, eloDelta } from "../content/rank.js";
 import { saveProfile } from "../store/profile.js";
+import { saveGame, clearGame } from "../store/gameStore.js";
 import { statusText, refusalText, captionText } from "./gameStatus.js";
 
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
@@ -33,6 +34,12 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, [chat]);
   useEffect(() => () => clearTimeout(thinkTimer.current), []);
+
+  // Persist the table on every change; an ended or empty game clears the slot.
+  useEffect(() => {
+    if (rec.phase === "ended" || rec.moves.length === 0) clearGame();
+    else saveGame({ record: rec, mode: { kind: mode.kind, personaId: persona ? persona.id : null } });
+  }, [rec, mode.kind, persona]);
 
   const say = useCallback((text) => setChat(c => [...c, { who: "bot", text }]), []);
 

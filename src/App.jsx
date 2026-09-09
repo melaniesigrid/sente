@@ -38,6 +38,7 @@ export default function SenteApp() {
   const [view, setView] = useState("home");
   const [profile, setProfile] = useState(defaultProfile);
   const [toast, setToast] = useState(null);
+  const [resume, setResume] = useState(null); // { mode, record } handed to PlayView once
   const toastTimer = useRef(null);
   useEffect(() => { loadProfile().then(setProfile); }, []);
 
@@ -47,7 +48,8 @@ export default function SenteApp() {
     toastTimer.current = setTimeout(() => setToast(null), 3400);
   }, []);
 
-  const go = useCallback((v) => setView(v), []);
+  const go = useCallback((v) => { setResume(null); setView(v); }, []);
+  const resumeGame = useCallback((session) => { setResume(session); setView("play"); }, []);
 
   return (
     <div className="sente-root">
@@ -77,8 +79,8 @@ export default function SenteApp() {
         </button>
       </header>
       <main className="content">
-        {view === "home" && <Home profile={profile} go={go} />}
-        {view === "play" && <PlayView profile={profile} setProfile={setProfile} notify={notify} />}
+        {view === "home" && <Home profile={profile} go={go} onResume={resumeGame} />}
+        {view === "play" && <PlayView profile={profile} setProfile={setProfile} notify={notify} resume={resume} />}
         {view === "learn" && <LearnView profile={profile} setProfile={setProfile} />}
         {view === "tsumego" && <ProblemsView profile={profile} setProfile={setProfile} />}
         {view === "ladder" && <RankingsView profile={profile} />}
