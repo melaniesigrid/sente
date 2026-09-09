@@ -1,14 +1,18 @@
+import { RANK_LADDER } from "./rank.js";
+
 /* ----------------------- HOUSE PLAYERS -----------------------
-   Labeled honestly as bots everywhere they appear. Each one is a rank profile for
-   KataGo's human-style network (`profile.rank` is the player it imitates,
-   `profile.temperature` how faithfully the move is sampled). `rating` is the
-   Sente rating that reads as that rank, so the ladder and the badge agree.
-   `weights` feed the heuristic fallback used when the network cannot load.
-   Chat lines are picked at random per event. */
+   Labeled honestly as bots everywhere they appear. A persona is a personality,
+   not a strength: every house player adapts to whatever rank the game is played
+   at (KataGo's human-style network imitates any rank from 20k to 9d, and the
+   picker softens it further down to 25k). `range` is where the character feels
+   at home, used to suggest opponents and on the ladder; `profile.temperature`
+   is how faithfully the sampled move follows the imitated player. `weights`
+   feed the heuristic fallback used when the network cannot load. Chat lines
+   are picked at random per event. */
 export const PERSONAS = [
   {
-    id: "hoshi", name: "Hoshi", rating: 1000, tint: "mint", profile: { rank: "20k", temperature: 1.0 },
-    tagline: "Gentle & curious", bio: "Learns alongside you. Forgets about ladders. Loves the star points, obviously. Plays like a 20-kyu.",
+    id: "hoshi", name: "Hoshi", tint: "mint", range: ["25k", "12k"], profile: { temperature: 1.0 },
+    tagline: "Gentle & curious", bio: "Learns alongside you. Forgets about ladders. Loves the star points, obviously. Happiest between 25k and 12k.",
     weights: { noise: 6, capture: 7, selfAtari: -6, rescue: 4 },
     chat: {
       greet: ["Hello! I'm still learning too — let's have a good one.", "A fresh board. My favorite thing."],
@@ -20,8 +24,8 @@ export const PERSONAS = [
     },
   },
   {
-    id: "tetsu", name: "Tetsu", rating: 1500, tint: "coral", profile: { rank: "15k", temperature: 0.9 },
-    tagline: "Fights everything", bio: "Believes the shortest path to strength runs straight through the middle of your position. Plays like a 15-kyu.",
+    id: "tetsu", name: "Tetsu", tint: "coral", range: ["20k", "6k"], profile: { temperature: 0.9 },
+    tagline: "Fights everything", bio: "Believes the shortest path to strength runs straight through the middle of your position. At home from 20k to 6k.",
     weights: { capture: 16, atari: 6, noise: 3, edge: 0.7, selfAtari: -10 },
     chat: {
       greet: ["No prisoners. Well — many prisoners, actually.", "Let's skip the quiet part."],
@@ -33,8 +37,8 @@ export const PERSONAS = [
     },
   },
   {
-    id: "yuki", name: "Yuki", rating: 2000, tint: "sky", profile: { rank: "10k", temperature: 0.7 },
-    tagline: "Patient & territorial", bio: "Takes the corners, builds the walls, and lets you discover the center is smaller than it looks. Plays like a 10-kyu.",
+    id: "yuki", name: "Yuki", tint: "sky", range: ["15k", "1k"], profile: { temperature: 0.7 },
+    tagline: "Patient & territorial", bio: "Takes the corners, builds the walls, and lets you discover the center is smaller than it looks. At home from 15k to 1k.",
     weights: { capture: 13, rescue: 11, atari: 5, selfAtari: -16, noise: 0.6, edge: 1.1, libs: 0.8, near: 0.8 }, // benchmarked: 25/30 vs default
     chat: {
       greet: ["I'll take the corners. You can have the middle.", "Quiet moves first. Loud ones later."],
@@ -46,8 +50,8 @@ export const PERSONAS = [
     },
   },
   {
-    id: "ren", name: "Ren", rating: 2500, tint: "eucalyptus", profile: { rank: "5k", temperature: 0.7 },
-    tagline: "Steady club player", bio: "Knows the joseki, counts the endgame, and still misreads one ladder a month. Plays like a 5-kyu.",
+    id: "ren", name: "Ren", tint: "eucalyptus", range: ["10k", "1d"], profile: { temperature: 0.7 },
+    tagline: "Steady club player", bio: "Knows the joseki, counts the endgame, and still misreads one ladder a month. At home from 10k to 1d.",
     weights: { capture: 14, rescue: 12, atari: 5, selfAtari: -18, noise: 0.4, edge: 1.2, libs: 0.9, near: 0.9 },
     chat: {
       greet: ["Even game? Let's see how it goes.", "I brought tea. Take your time."],
@@ -59,8 +63,8 @@ export const PERSONAS = [
     },
   },
   {
-    id: "sora", name: "Sora", rating: 2900, tint: "sun", profile: { rank: "1k", temperature: 0.6 },
-    tagline: "Almost dan", bio: "Reads fast, fights with a plan, and hates losing the last big endgame move. Plays like a 1-kyu.",
+    id: "sora", name: "Sora", tint: "sun", range: ["5k", "3d"], profile: { temperature: 0.6 },
+    tagline: "Almost dan", bio: "Reads fast, fights with a plan, and hates losing the last big endgame move. At home from 5k to 3d.",
     weights: { capture: 14, rescue: 12, atari: 6, selfAtari: -18, noise: 0.3, edge: 1.2, libs: 1.0, near: 1.0 },
     chat: {
       greet: ["Let's play a real game.", "No handicap needed? Bold."],
@@ -72,8 +76,8 @@ export const PERSONAS = [
     },
   },
   {
-    id: "kaede", name: "Kaede", rating: 3100, tint: "grape", profile: { rank: "2d", temperature: 0.5 },
-    tagline: "Quiet & thick", bio: "Never overplays, never panics, and turns your small mistakes into a comfortable win. Plays like a 2-dan.",
+    id: "kaede", name: "Kaede", tint: "grape", range: ["1k", "6d"], profile: { temperature: 0.5 },
+    tagline: "Quiet & thick", bio: "Never overplays, never panics, and turns your small mistakes into a comfortable win. At home from 1k to 6d.",
     weights: { capture: 15, rescue: 13, atari: 6, selfAtari: -20, noise: 0.2, edge: 1.3, libs: 1.0, near: 1.0 },
     chat: {
       greet: ["Onegaishimasu.", "Let's have a good game."],
@@ -85,8 +89,8 @@ export const PERSONAS = [
     },
   },
   {
-    id: "tatsuo", name: "Tatsuo", rating: 3400, tint: "coral", profile: { rank: "5d", temperature: 0.4 },
-    tagline: "Tournament strength", bio: "Plays the moves a strong amateur plays, sharp and unforgiving. Ask for a handicap. Plays like a 5-dan.",
+    id: "tatsuo", name: "Tatsuo", tint: "coral", range: ["3d", "9d"], profile: { temperature: 0.4 },
+    tagline: "Tournament strength", bio: "Plays the moves a strong amateur plays, sharp and unforgiving. Ask for a handicap. At home from 3d to 9d.",
     weights: { capture: 16, rescue: 14, atari: 7, selfAtari: -22, noise: 0.1, edge: 1.3, libs: 1.0, near: 1.0 },
     chat: {
       greet: ["Let's see what you've got.", "Take the corners. I'll take the rest."],
@@ -100,3 +104,13 @@ export const PERSONAS = [
 ];
 
 export const personaById = (id) => PERSONAS.find(p => p.id === id) || null;
+
+/** All personas, the ones at home at `rank` first, then by distance from their range. */
+export function personasFor(rank) {
+  const i = RANK_LADDER.indexOf(rank);
+  const dist = (p) => {
+    const lo = RANK_LADDER.indexOf(p.range[0]), hi = RANK_LADDER.indexOf(p.range[1]);
+    return i < lo ? lo - i : i > hi ? i - hi : 0;
+  };
+  return [...PERSONAS].sort((a, b) => dist(a) - dist(b));
+}

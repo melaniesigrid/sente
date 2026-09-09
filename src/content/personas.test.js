@@ -1,21 +1,25 @@
 import { describe, it, expect } from "vitest";
-import { PERSONAS, personaById } from "./personas.js";
-import { RANKS } from "../engine/index.js";
-import { rankOf } from "./rank.js";
+import { PERSONAS, personaById, personasFor } from "./personas.js";
+import { RANK_LADDER, rankInRange } from "./rank.js";
 
 describe("house players", () => {
-  it("each imitates a rank the human model knows, and the badge agrees", () => {
+  it("each has a home range on the ladder and a sampling temperature", () => {
     for (const p of PERSONAS) {
-      expect(RANKS).toContain(p.profile.rank);
-      expect(rankOf(p.rating)).toBe(p.profile.rank);
+      expect(RANK_LADDER).toContain(p.range[0]);
+      expect(RANK_LADDER).toContain(p.range[1]);
+      expect(RANK_LADDER.indexOf(p.range[0])).toBeLessThan(RANK_LADDER.indexOf(p.range[1]));
       expect(p.profile.temperature).toBeGreaterThan(0);
+      expect(p.profile.rank).toBeUndefined();
     }
   });
 
-  it("covers the ladder from double-digit kyu to dan", () => {
-    const ranks = PERSONAS.map((p) => p.profile.rank);
-    expect(ranks).toContain("20k");
-    expect(ranks.some((r) => r.endsWith("d"))).toBe(true);
+  it("every rank on the ladder has at least one persona at home", () => {
+    for (const rank of RANK_LADDER) {
+      expect(PERSONAS.some((p) => rankInRange(rank, p.range)), rank).toBe(true);
+      const ordered = personasFor(rank);
+      expect(ordered.length).toBe(PERSONAS.length);
+      expect(rankInRange(rank, ordered[0].range)).toBe(true);
+    }
     expect(new Set(PERSONAS.map((p) => p.id)).size).toBe(PERSONAS.length);
     expect(personaById("hoshi").name).toBe("Hoshi");
   });
