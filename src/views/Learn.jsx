@@ -72,9 +72,6 @@ function LessonPlayer({ lesson, onDone, onExit }) {
                 <button className="chat-send" onClick={() => dispatch({ type: "answer", value: countDraft })} aria-label="Check"><Check size={15} /></button>
               </div>
             )}
-            {state.wrong && step.type === "quiz" && (
-              <p className="fine wrong-row"><X size={14} /> Not there — read the liberties again.</p>
-            )}
             {state.message && state.tone === "success" && (
               <p className="lesson-text success-row"><Check size={16} /> {state.message}</p>
             )}

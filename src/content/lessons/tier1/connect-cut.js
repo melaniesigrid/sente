@@ -31,6 +31,7 @@ export default {
       text: "White to play. Cut the two black stones apart.",
       success: "Cut. Each black stone must now live on its own, and White has a stone on either side of the fight.",
       hint: "The same point that connects Black is the point that cuts Black.",
+      wrongText: "That leaves the two black stones touching through the gap. Play into the gap itself.",
     },
     {
       type: "sequence",

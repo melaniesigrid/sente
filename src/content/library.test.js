@@ -112,7 +112,7 @@ describe.each(LIBRARY.map(l => [l.id, l]))("lesson %s", (id, lesson) => {
   it("speaks in the house voice: no exclamation marks", () => {
     const texts = [];
     for (const s of lesson.steps) {
-      for (const k of ["text", "hint", "success", "question"]) if (s[k]) texts.push(s[k]);
+      for (const k of ["text", "hint", "success", "question", "wrongText"]) if (s[k]) texts.push(s[k]);
       for (const c of s.commentary || []) texts.push(c);
       for (const r of s.refutations || []) texts.push(r.text);
       for (const o of s.options || []) texts.push(o.text);
@@ -131,6 +131,10 @@ describe.each(LIBRARY.map(l => [l.id, l]))("lesson %s", (id, lesson) => {
         expect(SIZES).toContain(step.setup.size);
       }
       if (step.type !== "count") expect(step.text).toBeTruthy();
+      if (step.wrongText !== undefined) {
+        expect(["quiz", "sequence", "count"]).toContain(step.type);
+        expect(typeof step.wrongText === "string" && step.wrongText.length > 0).toBe(true);
+      }
     });
 
     if (step.type === "quiz") {

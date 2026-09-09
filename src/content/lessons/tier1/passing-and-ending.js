@@ -28,6 +28,7 @@ export default {
       text: "You do not have to capture a dead stone; it comes off at the end anyway. But if you are unsure whether it is dead, capturing costs you nothing inside your own territory. Black to play: capture it.",
       success: "Gone. Inside your own area the capture costs nothing, because under area scoring the point you filled is still yours.",
       hint: "The stone has exactly one liberty.",
+      wrongText: "Not a capture. The dead stone has one liberty; fill that one.",
     },
     {
       type: "count",

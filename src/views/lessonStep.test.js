@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { initStep, stepReducer, marksFor, boardLocked, sideToMove, TIMINGS } from "./lessonStep.js";
+import { initStep, stepReducer, marksFor, boardLocked, sideToMove, wrongTextFor, DEFAULT_WRONG, TIMINGS } from "./lessonStep.js";
 import { lessonById } from "../content/library.js";
 import { idx } from "../engine/index.js";
 
@@ -28,10 +28,12 @@ describe("quiz", () => {
     expect(at(s, 1, 0)).toBe("b");
     expect(s.pending).toBeNull();
   });
-  it("marks a wrong point and clears it after a hold", () => {
+  it("marks a wrong point with the step's wrong text and clears it after a hold", () => {
     const s = run(lesson, step, [{ type: "play", c: 5, r: 5 }]);
     expect(s.status).toBe("wrong");
     expect(s.wrong).toEqual({ c: 5, r: 5 });
+    expect(s.message).toBe(wrongTextFor(step));
+    expect(s.tone).toBe("hint");
     expect(s.pending).toEqual({ ms: TIMINGS.wrongHold, action: { type: "clearWrong" } });
     expect(at(s, 5, 5)).toBeNull();
     const cleared = stepReducer(lesson, step, s, s.pending.action);
@@ -57,6 +59,16 @@ describe("quiz", () => {
   it("ignores clicks while busy or solved", () => {
     const solved = run(lesson, step, [{ type: "play", c: 1, r: 0 }]);
     expect(stepReducer(lesson, step, solved, { type: "play", c: 5, r: 5 })).toBe(solved);
+  });
+});
+
+describe("wrongTextFor", () => {
+  it("prefers wrongText, then hint, then the neutral default", () => {
+    expect(wrongTextFor({ wrongText: "Nope.", hint: "Hint." })).toBe("Nope.");
+    expect(wrongTextFor({ hint: "Hint." })).toBe("Hint.");
+    expect(wrongTextFor({})).toBe(DEFAULT_WRONG);
+    const opening = lessonById("first-9x9-opening");
+    expect(wrongTextFor(opening.steps[4])).toBe(opening.steps[4].wrongText);
   });
 });
 
@@ -143,7 +155,7 @@ describe("count", () => {
   it("rejects a wrong or empty answer with the hint, then reopens", () => {
     const s = run(lesson, step, [{ type: "answer", value: "17" }]);
     expect(s.status).toBe("wrong");
-    expect(s.message).toBe(step.hint);
+    expect(s.message).toBe(wrongTextFor(step));
     expect(run(lesson, step, [{ type: "answer", value: "" }]).status).toBe("wrong");
     expect(stepReducer(lesson, step, s, { type: "clearWrong" }).status).toBe("open");
   });

@@ -20,6 +20,10 @@ export const VERDICT_LABELS = { best: "Best", fine: "Playable", poor: "Not this"
 
 const same = (p, c, r) => p.c === c && p.r === r;
 
+export const DEFAULT_WRONG = "Not there. Look again.";
+/** What to say after a wrong move: the step's own line, else its hint, else neutral. */
+export const wrongTextFor = (step) => step.wrongText || step.hint || DEFAULT_WRONG;
+
 export function initStep(lesson, step) {
   return {
     board: setupToBoard(step.setup, lesson.size),
@@ -47,8 +51,8 @@ const placed = (state, res, c, r, extra = {}) => ({
   ...state, board: res.board, flash: res.captured, lastMove: idx(res.board.size, c, r), wrong: null, ...extra,
 });
 
-const wrong = (state, c, r, message = null) => ({
-  ...state, status: "wrong", wrong: { c, r }, message, tone: message ? "hint" : state.tone,
+const wrong = (step, state, c, r) => ({
+  ...state, status: "wrong", wrong: { c, r }, message: wrongTextFor(step), tone: "hint",
   pending: { ms: TIMINGS.wrongHold, action: { type: "clearWrong" } },
 });
 
@@ -79,12 +83,12 @@ function play(step, state, c, r) {
         pending: { ms: TIMINGS.reply, action: { type: "refute" } },
       });
     }
-    return wrong(state, c, r);
+    return wrong(step, state, c, r);
   }
   if (step.type === "sequence") {
     const expected = step.moves[state.moveIdx];
     const res = expected && same(expected, c, r) ? tryPlay(state.board, c, r, sideToMove(step, state)) : { ok: false };
-    if (!res.ok) return wrong(state, c, r, step.hint);
+    if (!res.ok) return wrong(step, state, c, r);
     const moveIdx = state.moveIdx + 1;
     const done = moveIdx >= step.moves.length;
     return placed(state, res, c, r, {
@@ -136,6 +140,6 @@ function answer(step, state, value) {
   if (Number.isFinite(n) && Math.abs(n - step.answer) <= tol) {
     return { ...state, status: "solved", message: step.success, tone: "success", wrong: null, pending: null };
   }
-  return { ...state, status: "wrong", message: step.hint || "Not quite. Count again.", tone: "hint", wrong: null,
+  return { ...state, status: "wrong", message: wrongTextFor(step), tone: "hint", wrong: null,
     pending: { ms: TIMINGS.wrongHold, action: { type: "clearWrong" } } };
 }

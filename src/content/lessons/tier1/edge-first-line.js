@@ -30,6 +30,7 @@ export default {
       text: "Black to play. The white stone on the edge has one liberty left. Capture it.",
       success: "Captured with only three stones. In the centre this would have taken four.",
       hint: "Which empty point still touches the white stone?",
+      wrongText: "The white stone still breathes. Its last liberty is along the edge.",
     },
     {
       type: "quiz",

@@ -59,6 +59,7 @@ export default {
       text: "Empty board, Black to play. Take a big point.",
       success: "Good. Efficiency first: claim the cheap territory before contact fighting starts. The full joseki module — canonical 4-4 and 3-4 sequences with deviations and punishments, engine-verified — is next on the curriculum roadmap.",
       hint: "Corners are worth more than the middle of a side.",
+      wrongText: "Not a big point. Corners and the centre come first on an empty board.",
     },
   ],
 };

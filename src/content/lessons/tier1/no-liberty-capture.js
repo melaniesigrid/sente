@@ -39,6 +39,7 @@ export default {
       text: "Same shape, one difference: White has an outside liberty now. Playing inside would be real suicide, so take the outside liberty first.",
       success: "Now White has exactly one liberty, the inside point, and it is Black's move next time. Outside liberties before inside ones.",
       hint: "The inside point is refused by the rules. Where is White's other liberty?",
+      wrongText: "The rules refuse the inside point while White has another liberty. Take that one.",
     },
   ],
 };
