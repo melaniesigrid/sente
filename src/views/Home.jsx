@@ -4,6 +4,7 @@ import { createBoard, tryPlay, aiChooseMove } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
 import { Card, Btn } from "../components/ui.jsx";
 import { LESSONS } from "../content/lessons.js";
+import { lessonById } from "../content/library.js";
 import { PROBLEMS } from "../content/problems.js";
 import { rankOf } from "../content/rank.js";
 import { personaById } from "../content/personas.js";
@@ -13,7 +14,9 @@ import { dayKey, dailyProblem, liveStreak } from "../content/kata.js";
 
 /* ----------------------- HOME ----------------------- */
 export function Home({ profile, go, onResume }) {
-  const lessonPct = Math.round((profile.lessonsDone.length / LESSONS.length) * 100);
+  // Count only ids that still exist in the library, so a renamed lesson does not inflate progress.
+  const lessonsDone = profile.lessonsDone.filter(id => lessonById(id)).length;
+  const lessonPct = Math.round((lessonsDone / LESSONS.length) * 100);
   const probPct = Math.round((profile.problemsDone.length / PROBLEMS.length) * 100);
   const games = profile.wins + profile.losses;
   const [saved, setSaved] = useState(() => loadSession());
@@ -74,7 +77,7 @@ export function Home({ profile, go, onResume }) {
       <div className="grid3">
         <button className="neu-card tile" onClick={() => go("learn")}>
           <div className="stat-head"><GraduationCap size={17} /><span>Lessons</span></div>
-          <div className="stat-num">{profile.lessonsDone.length}<em>/{LESSONS.length}</em></div>
+          <div className="stat-num">{lessonsDone}<em>/{LESSONS.length}</em></div>
           <div className="meter"><div className="meter-fill" style={{ width: `${lessonPct}%` }} /></div>
         </button>
         <button className="neu-card tile" onClick={() => go("tsumego")}>

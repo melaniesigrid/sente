@@ -216,7 +216,7 @@ export function LearnView({ profile, setProfile }) {
             </div>
           )}
           {grouped.length === 0 && (
-            <Card inset><p className="fine">{searching ? "Nothing matches that. Try a title or a track, like life or endgame." : "This tier is not authored yet. The syllabus is in the design doc; lessons land tier by tier."}</p></Card>
+            <Card inset><p className="fine">{searching ? "Nothing matches that. Try a title or a track, like capture or life." : "This tier is not authored yet. The syllabus is in the design doc; lessons land tier by tier."}</p></Card>
           )}
           {grouped.map(g => (
             <div key={g.track.key} className="stack-sm">
