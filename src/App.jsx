@@ -16,6 +16,7 @@ import { Swords, GraduationCap, Target, LayoutDashboard, Medal } from "lucide-re
 import { CSS } from "./styles/css.js";
 import { Avatar } from "./components/ui.jsx";
 import { Toast } from "./components/Toast.jsx";
+import { ErrorBoundary } from "./components/ErrorBoundary.jsx";
 import { rankOf } from "./content/rank.js";
 import { defaultProfile, loadProfile } from "./store/profile.js";
 import { Home } from "./views/Home.jsx";
@@ -50,6 +51,7 @@ export default function SenteApp() {
 
   const go = useCallback((v) => { setResume(null); setView(v); }, []);
   const resumeGame = useCallback((session) => { setResume(session); setView("play"); }, []);
+  const home = useCallback(() => go("home"), [go]);
 
   return (
     <div className="sente-root">
@@ -79,12 +81,14 @@ export default function SenteApp() {
         </button>
       </header>
       <main className="content">
-        {view === "home" && <Home profile={profile} go={go} onResume={resumeGame} />}
-        {view === "play" && <PlayView profile={profile} setProfile={setProfile} notify={notify} resume={resume} />}
-        {view === "learn" && <LearnView profile={profile} setProfile={setProfile} />}
-        {view === "tsumego" && <ProblemsView profile={profile} setProfile={setProfile} />}
-        {view === "ladder" && <RankingsView profile={profile} />}
-        {view === "profile" && <ProfileView profile={profile} setProfile={setProfile} />}
+        <ErrorBoundary key={view} onHome={home}>
+          {view === "home" && <Home profile={profile} go={go} onResume={resumeGame} />}
+          {view === "play" && <PlayView profile={profile} setProfile={setProfile} notify={notify} resume={resume} />}
+          {view === "learn" && <LearnView profile={profile} setProfile={setProfile} />}
+          {view === "tsumego" && <ProblemsView profile={profile} setProfile={setProfile} />}
+          {view === "ladder" && <RankingsView profile={profile} />}
+          {view === "profile" && <ProfileView profile={profile} setProfile={setProfile} />}
+        </ErrorBoundary>
       </main>
       <Toast toast={toast} />
       <footer className="foot">
