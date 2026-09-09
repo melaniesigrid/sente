@@ -44,31 +44,32 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const say = useCallback((text) => setChat(c => [...c, { who: "bot", text }]), []);
 
   /* Two passes put the record in `scoring`. Until the end-game ceremony lands
-     (Phase 3) we accept the score straight away with no dead stones. */
-  const conclude = useCallback((next) => {
+     (Phase 3) we accept the score straight away with no dead stones. A rated game
+     settles exactly once: only on the transition into `ended`, and the new profile
+     is computed from the current prop so a double-invoked updater (StrictMode)
+     cannot save or toast twice. */
+  const conclude = useCallback((next, prev) => {
     if (next.phase === "scoring") next = acceptScore(next);
-    if (next.phase === "ended" && persona) {
+    if (next.phase === "ended" && prev.phase !== "ended" && persona) {
       const won = next.result.winner === "b";
       say(pick(won ? persona.chat.loss : persona.chat.win));
-      setProfile(p => {
-        const oldRank = rankOf(p.rating);
-        const delta = eloDelta(p.rating, persona.rating, won ? 1 : 0);
-        const rating = Math.max(400, p.rating + delta);
-        const streak = won ? p.streak + 1 : 0;
-        const np = {
-          ...p, rating,
-          wins: p.wins + (won ? 1 : 0), losses: p.losses + (won ? 0 : 1),
-          streak, bestStreak: Math.max(p.bestStreak, streak),
-        };
-        saveProfile(np);
-        const newRank = rankOf(rating);
-        if (won && newRank !== oldRank) notify({ icon: "medal", text: `Promoted to ${newRank}` });
-        else notify({ icon: won ? "trophy" : "flag", text: `${won ? "Victory" : "Defeat"} · ${delta >= 0 ? "+" : ""}${delta} rating` });
-        return np;
-      });
+      const oldRank = rankOf(profile.rating);
+      const delta = eloDelta(profile.rating, persona.rating, won ? 1 : 0);
+      const rating = Math.max(400, profile.rating + delta);
+      const streak = won ? profile.streak + 1 : 0;
+      const np = {
+        ...profile, rating,
+        wins: profile.wins + (won ? 1 : 0), losses: profile.losses + (won ? 0 : 1),
+        streak, bestStreak: Math.max(profile.bestStreak, streak),
+      };
+      setProfile(np);
+      saveProfile(np);
+      const newRank = rankOf(rating);
+      if (won && newRank !== oldRank) notify({ icon: "medal", text: `Promoted to ${newRank}` });
+      else notify({ icon: won ? "trophy" : "flag", text: `${won ? "Victory" : "Defeat"} · ${delta >= 0 ? "+" : ""}${delta} rating` });
     }
     return next;
-  }, [persona, say, setProfile, notify]);
+  }, [persona, profile, say, setProfile, notify]);
 
   const botTurn = useCallback((r) => {
     setThinking(true);
@@ -83,7 +84,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       } else {
         next = pass(r);
       }
-      setRec(conclude(next));
+      setRec(conclude(next, r));
     }, 380 + Math.random() * 500);
   }, [persona, say, conclude]);
 
@@ -117,7 +118,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const onPass = () => {
     if (over || thinking) return;
     if (persona && turn !== "b") return;
-    const next = conclude(pass(rec));
+    const next = conclude(pass(rec), rec);
     setRec(next);
     if (persona && next.phase === "playing") botTurn(next);
   };
