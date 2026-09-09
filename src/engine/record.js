@@ -203,13 +203,23 @@ export function replay(rec, moves = rec.moves) {
     size: rec.size, komi: rec.komi, handicap: rec.handicap, clock: rec.clock,
     players: rec.players, setup: rec.setup, toPlay: rec.firstToPlay,
   });
+  if (rec.comment) out = { ...out, comment: rec.comment };
   for (const mv of moves) {
     if (mv.type === "play") out = play(out, mv.c, mv.r, mv.color);
     else if (mv.type === "pass") out = pass(out, mv.color);
     else if (mv.type === "resign") out = resign(out, mv.color);
     else throw new IllegalMoveError("unknown-move", { move: mv });
+    if (mv.comment) out = withMoveComment(out, mv.comment);
   }
   return out;
+}
+
+/** Attach a comment (SGF `C`) to the most recent move. */
+export function withMoveComment(rec, comment) {
+  if (!rec.moves.length) return { ...rec, comment };
+  const moves = rec.moves.slice();
+  moves[moves.length - 1] = { ...moves[moves.length - 1], comment };
+  return { ...rec, moves };
 }
 
 /** Board index of the last stone played, or null (pass, resign, no moves). */

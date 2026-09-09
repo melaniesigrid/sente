@@ -1,0 +1,13 @@
+(;FF[4]GM[1]CA[UTF-8]AP[sente]SZ[9]KM[7.5]PB[Ada]PW[Kingfisher]RE[B+R]
+C[A short 9x9 game. Black takes the centre, white builds on the left, and two white
+groups die trying to cut through the top and bottom right.]
+;B[ee];W[ce];B[gc];W[cc];B[gf];W[cg];B[eg];W[dc];B[ec];W[dd]
+;B[ed];W[dg];B[dh];W[ch];B[eh];W[df];B[ef];W[de];B[db];W[cb]
+;B[eb];W[ci];B[di]
+;W[fd]C[White cuts at the top. It does not work.]
+;B[fe];W[fc];B[gd];W[fb];B[gb];W[fa];B[ea];W[ga]
+;B[ha]C[Five stones captured.]
+;W[fh];B[fg];W[gh];B[gg];W[hg];B[hf];W[fi];B[ei];W[gi];B[ig];W[hh];B[ih];W[ii]
+;B[hi]C[Seven more. White resigns here \[in the game\]: 2\:0 for Black.]
+(;W[bb]C[Main line: white fills before resigning.])
+(;W[be];B[bf]C[A variation nobody played.]))

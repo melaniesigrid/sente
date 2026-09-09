@@ -26,6 +26,26 @@ describe("tryPlay reasons", () => {
     expect(r.ok).toBe(true);
     expect(r.captured).toEqual([[2, 1]]);
   });
+  it("removes a multi-stone group", () => {
+    const b = boardFromRows(pad9(["OO.......", "XX......."]));
+    const r = tryPlay(b, 2, 0, "b");
+    expect(r.captured).toHaveLength(2);
+    expect(r.board.cells[idx(9, 0, 0)]).toBeNull();
+    expect(r.board.cells[idx(9, 1, 0)]).toBeNull();
+  });
+  it("captures two separate groups at once", () => {
+    // (1,0) is the last liberty of both white stones.
+    const b = boardFromRows(pad9(["O.OX.....", "XXX......"]));
+    const r = tryPlay(b, 1, 0, "b");
+    expect(r.captured).toHaveLength(2);
+    expect(r.ko).toBeNull();
+  });
+  it("does not flag ko when the capturing stone has more than one liberty", () => {
+    const b = boardFromRows(pad9([".X.......", "XOX......", "........."]));
+    const r = tryPlay(b, 1, 2, "b");
+    expect(r.captured).toEqual([[1, 1]]);
+    expect(r.ko).toBeNull();
+  });
   it("ko", () => {
     const b = boardFromRows(pad9([".XO......", "X.XO.....", ".XO......"]));
     const r = tryPlay(b, 1, 1, "w");

@@ -1,0 +1,11 @@
+(;FF[4]GM[1]CA[UTF-8]AP[sente]SZ[19]KM[0.5]HA[2]AB[pd][dp]PB[Ada]PW[Heron]
+C[Two-stone handicap game, unfinished. Hoshi openings, a 3-3 invasion in the top left
+and a fight on the right side.]
+;W[pq];B[dd];W[fc];B[cf];W[db];B[cc];W[ic];B[qo];W[np];B[qk]
+;W[cn];B[fq];W[bp];B[cq];W[ck];B[nc];W[qf];B[qh];W[of];B[nd]
+;W[rd];B[qc];W[qi];B[pi];W[ri];B[qj];W[rh];B[rg];W[rj];B[rk]
+;W[qg];B[pg];W[pf];B[og];W[oe];B[pe];W[qe];B[qd];W[re];B[rc]
+;W[sc];B[rb];W[sd];B[jq];W[lq];B[jo];W[pn];B[qm];W[oo];B[pp]
+;W[qq];B[qp];W[rp];B[ro];W[rq];B[op];W[oq];B[po]
+(;W[sp];B[so])
+(;W[so]C[Alternative: white pushes first.];B[sp]))
