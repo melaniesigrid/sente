@@ -226,9 +226,11 @@ and one rule: the number on the card is measured, never claimed.
       (source GoGoD, June 1 of the year; Go4Go from 2021) and a meta-row fixture for 1846
       and 2017 generated from KataGo's Python (branch `feat/masters-pr1`, 2026-09-09).
 - [ ] "Strong player of <year>" as an honest persona in the Masters row (waits on the row).
-- [ ] Corpus tool (`tools/masters/`): fetch the public-domain collections (Shusaku 470,
-      Jowa 293 for v1), parse through the engine, keep even 19x19 games, tag handicap, komi,
-      colour and year, drop what does not replay and count it in `index.json`.
+- [x] Corpus tool (`tools/masters/`): `fetch.mjs` (manifest with quoted terms, ustar reader,
+      raw dir ignored) and `build.mjs` (engine parser, even 19x19 games, tags, seeded 60/20/20
+      split, style vector and spread, book, drop log and counts) emit `public/masters/<id>.json`
+      and `src/content/masters.json`. Shusaku 349 even games, Jowa 201; book entries 47 and 36,
+      far below the plan's 500 to 2,000 guess at three games per entry (2026-09-09).
 - [x] `engine/style/features.js` (per-move and per-game axes as the plan fixes them, means,
       spread, z-distance) and `symmetries.js` (eight transforms, canonical hash, book key,
       inverse for the tie case), both tested (`feat/masters-pr1`, 2026-09-09).
