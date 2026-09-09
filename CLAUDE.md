@@ -16,7 +16,11 @@ Lucide icons. No backend yet; profile persists in localStorage.
   framework-free so it can move to a server. Do not import React into engine modules.
 - Design system is fixed: the stone palette and the two-shadow neumorphism in `CSS`. Lucide
   icons only. Fraunces display, Hanken Grotesk body. Don't introduce another UI library.
-- House players are labeled honestly as bots in the UI. Keep that.
+- House players are labeled honestly as bots in the UI. Keep that. They play with
+  KataGo's human-style network (`src/engine/kata/`, model in `public/models/`, export and
+  fixture scripts in `tools/kata/`); each persona is a rank profile. `src/engine/kata/net.js`
+  is the only engine module that does I/O. Fixtures are generated from KataGo's Python,
+  never edited by hand.
 - Engine lives in `src/engine/` (board, zobrist, rules, score, record, clock, sgf, ai) with
   tests beside each module and `index.js` as the only import surface for views.
 - The app is split: `src/content/` (personas, problems, rank, the lesson library under

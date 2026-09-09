@@ -23,13 +23,21 @@ export function resultLine(result) {
   return result.winner === "b" ? `Black wins — ${b} : ${w}` : `White wins — ${w} : ${b}`;
 }
 
-/** The status pill. `personaName` is null for pass-and-play. */
-export function statusText({ result, thinking, personaName, turn, phase }) {
+/** The status pill. `personaName` is null for pass-and-play. `loading` is the
+ *  human network's download progress `{loaded, total}` while it is still arriving. */
+export function statusText({ result, thinking, personaName, turn, phase, loading }) {
   if (result) return resultLine(result);
   if (phase === "scoring") return "Mark dead stones, then accept";
+  if (thinking && loading) return `${personaName} is warming up… ${loadingText(loading)}`;
   if (thinking) return `${personaName} is thinking…`;
   if (personaName) return turn === "b" ? "Your move" : `${personaName} to move`;
   return turn === "b" ? "Black to move" : "White to move";
+}
+
+/** "12 / 53 MB" for the model download. */
+export function loadingText({ loaded, total }) {
+  const mb = (n) => Math.round(n / 1e6);
+  return `${mb(loaded)} / ${mb(total)} MB`;
 }
 
 /** Two-step resign button: first click arms it, second click resigns. */
