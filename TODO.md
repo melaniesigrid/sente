@@ -244,8 +244,11 @@ and one rule: the number on the card is measured, never claimed.
 - [ ] Shelf v1: ten proverbs with the karate framing, two game studies (Shusaku vs Gennan
       Inseki 1846, Jowa vs Akaboshi Intetsu 1835). Then the Classic of Weiqi in Thirteen
       Chapters, thirteen lessons. Reading room names modern books, quotes nothing.
-- [ ] Deferred: Dosaku and Shusai after the eval; Go Seigen, Takagawa and living players
-      after a name-and-likeness check; Moku quoting the Classic and a belt mark per book;
+- [ ] Star Player: Ke Jie anonymised (decided 2026-09-09 after the lawyer check). Card says
+      "a top pro of 2017", his name nowhere in code, data or UI; corpus from a source with
+      stated terms; same eval and gate as the Edo masters, `proyear_2017` as the control.
+- [ ] Deferred: Dosaku and Shusai after the eval; Go Seigen, Takagawa and living players by
+      name after a name-and-likeness check (the 1950 rule does not clear the first two); Moku quoting the Classic and a belt mark per book;
       fine-tune adapters per master after Phase 4, measured by the same eval; your own
       games on the style axes once the telemetry ring exists.
 

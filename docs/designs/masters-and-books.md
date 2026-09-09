@@ -424,7 +424,8 @@ charge" style; the spec review then trimmed v1. Change any row by editing this t
 | 4 | Style prior on the keep set | 3 d / 30 m | ACCEPTED, gated | ships only if the eval says it helps |
 | 5 | v1 roster: Shusaku and Jowa | 2 d / 20 m | ACCEPTED | same era, both pass the rights rule |
 | 6 | Dosaku and Shusai | 2 d / 20 m | DEFERRED | after the eval proves the layer moves the number |
-| 7 | Go Seigen, Takagawa, living players | 1 d / 10 m each | DEFERRED | lawyer check on name and likeness |
+| 7 | Star Player (Ke Jie, anonymised) | 2 d / 20 m | ACCEPTED (2026-09-09) | ships without his name; see the rights check |
+| 7b | Go Seigen, Takagawa, other living players | 1 d / 10 m each | DEFERRED | lawyer check on name and likeness |
 | 8 | `replay` and `maxim` step types with precomputed partial credit | 1 wk / 1 h | ACCEPTED | scoring stays data and offline |
 | 9 | Ten proverbs with the karate framing | 4 d / 40 m | ACCEPTED | the analogies the user asked for |
 | 10 | Two game studies (Shusaku 1846, Jowa 1835) | 4 d / 40 m | ACCEPTED | the masters' games as lessons |
@@ -515,6 +516,111 @@ games stay in, the full `proyear` meta row, per-move prior axes, keep-set covera
 cached logits, replay pacing and progress persistence, no phantom `StepShapeError`).
 Verdict from the reviewer: ready for eng review and tasks 1 to 4.
 
+## Engineering review
+
+Staff-engineer pass on 2026-09-09 against origin/main. Verdict: ready with changes. Tasks 1
+to 4 fit the code as it is; four claims in the plan are not what the code or model delivers,
+and the eval as written can put a misleading number on the card. Each item below is a plan
+amendment that PR 1 follows.
+
+Blocking before PR 1:
+
+1. The held-out split is not held out from the network. `makeHistoricalProProfile` is source
+   GoGoD, and GoGoD is a training source of humanv0 that contains essentially every extant
+   Shusaku and Jowa game, so arm (a) has already seen the test games. Amendments: the card
+   always shows arm (a) beside the chosen arm ("agrees with his move 61%; a strong player of
+   1846: 55%"), never a bare number; the eval adds a cross-master control (Shusaku's book and
+   prior scored on Jowa's test games, and the reverse), and if the delta matches, the layer
+   measures the era, not the man, and the "small lean his way" copy is false; agreement is
+   reported split by move 30 and under versus over 30, so the book is not averaged away.
+2. "Bit for bit" is not what the fixtures assert. `fixtures.test.js` checks planes, globals
+   and the meta row only; `top5k` is stored and never asserted. `gen_fixtures.py` dumps fp32
+   ONNX while the browser runs `humanv0.fp16w.onnx` on WASM. Amendments: the `proyear_1846`
+   fixture asserts the 192-float meta row; `dump_logits.py` runs the shipped fp16w file.
+3. The fixture harness and encoder assume `rank`. `fixtures.test.js` iterates `pos.meta`
+   keys through `encodeMeta({ rank })`, which would throw on a `proyear` key at
+   `inverseRank`. Amendments: dump pro rows under a separate `metaPro: { "1846": [...] }`
+   key and branch the test; in `encodeMeta`, `pro` wins over `rank` and `oppRank`, because
+   `kataChooseMoveForRecord` always spreads both into the profile.
+4. `sgf.js` does not parse `DT`. The corpus tool tags `year` and the eval is keyed on it.
+   Amendment: `parseSgf` gains `date` in game info with one test; `build.mjs` never reads
+   the raw tree.
+
+Should change before PR 1:
+
+5. Runtime I/O for masters JSON has no home. `net.js` gains `loadMaster(id)` (cached, throws
+   `StyleDataError`) and `profile.master` is the loaded object. `index.json` is not fetched:
+   `build.mjs` emits `src/content/masters.json`, which is imported; the row exists iff the
+   file is committed, and the "hides itself when absent" path goes away.
+6. `fetch.mjs` needs a tar reader for `shusaku.tgz` and `jowa.tgz`. Node has gunzip but no
+   tar. Decision: a small ustar reader in the tool, no dependency.
+7. Pre-1800 years are unsupported by the model, not only the CLI. KataGo's parser accepts
+   1800 to 2020 and GoGoD pre-1800 data is a few hundred games. The Dosaku claim is struck;
+   it is a deferred-roster question for the eval.
+
+Answers recorded:
+
+- `bias(i)` fits `policy.js` without restructuring: after the keep set is built, weights
+  become `pow(full[k], 1/T) * exp(bias(cands[k]) / T)`. The `temperature <= 0` branch must
+  use `log full[k] + bias` for its argmax, and `top` and `prob` must report biased values.
+  Split out `keepSet(logits, rec, floor)` so `eval.mjs` and the sampler share it.
+- Bundle: per-master JSON lives in `public/` outside the bundle, fetched on challenge. The
+  30 KB figure becomes a `build.mjs` assertion, not prose.
+- There is no pro flag in the meta row; a pro is inverse-rank 1 on both sides, GoGoD source,
+  tcUnknown, rated, date June 1. The bot therefore believes its opponent is a pro and will
+  not play the rank profiles' punishing moves. The card does not claim otherwise.
+- Ordering: tasks 1 to 4 do not touch anything in the feat/board-sizes diff. PR 1 does not
+  wait for that merge; only task 6 does, for `sit({ size: 19 })` in `Play.jsx`. The
+  in-progress merge on that branch predates the seeded sampler at origin/main; the seeded
+  book draw depends on it surviving the merge.
+- Label: top-1 agreement is not "style match". The card calls it agreement.
+- Masters extend `personas.js` `profile` (`{ master, year, temperature }`) rather than a
+  parallel `content/masters.js` list; `personasFor` already sorts by range.
+
+## Rights check: Ke Jie
+
+The user asked for Ke Jie (b. 1997, living). The lawyer agent's name-and-likeness check ran
+on 2026-09-09 (issue-spotting, not legal advice). Ruling applied to the plan:
+
+- A bot named "Ke Jie" does not ship without a written licence from him or his agency. The
+  exposure is BC Privacy Act s.3 and the Ontario appropriation tort in Canada, California
+  Civil Code 3344 in the US, and PRC Civil Code articles 1012 to 1017 in China, and it
+  sharpens the moment anything is sold. A bot that loses at 5k under his name adds a
+  false-light claim on top.
+- "Style derived from Ke Jie's public games" is arguable in Canada and the US as truthful
+  reference to a public figure, and not safe in China. Not the v1 route.
+- An anonymised card is defensible everywhere: seal tint, "a top pro of 2017", the corpus
+  count, and no name in the UI, the JSON `name` field, or surfaced SGF metadata. This is
+  how a living player ships, if the eval justifies it. His games are not in the aeb
+  collection; the source must state its terms, and `index.json` records source and terms
+  per game. Fox and Tygem records are server logs under ToS and are not used.
+- Any card carries: "House bot. Not affiliated with or endorsed by <name>. Opening book and
+  style lean computed from N public game records; plays as KataGo's human-style network
+  otherwise."
+- The "died before 1950" rule holds for Shusaku, Jowa, Dosaku and Shusai. It does not clear
+  Go Seigen (d. 2014) or Takagawa (d. 1986): California Civil Code 3344.1 runs 70 years after
+  death and reaches non-Californian decedents. Both stay deferred behind the same lawyer
+  question as Ke Jie.
+- Game records themselves are facts in Canada and the US; the collection is the exposure
+  under the EU database right. Other jurisdictions could not be confirmed.
+
+Questions for a real lawyer before a living or post-1950 master goes to strangers: whether
+the descriptive form survives PRC articles 1014, 1017 and 1020; whether 3344.1 is enforceable
+against a Canadian publisher for Go Seigen and Takagawa; whether a bulk fetch from an
+EU-hosted collection is a database extraction.
+
+Decision (user, 2026-09-09): Ke Jie ships anonymised as **Star Player**. The persona is
+named "Star Player", the card reads "a top pro of 2017" with the corpus count and the
+not-affiliated line, and his name appears nowhere: not in `personas.js`, the masters JSON,
+`index.json`, the SGF metadata the UI surfaces, or the tagline. The build tool strips `PB`,
+`PW` and event fields from the emitted record. The corpus is fetched only from a source that
+states its terms, recorded per game in `index.json`; his games are not in the aeb collection,
+so the source is chosen in task 3 and the manifest names it. Star Player joins the roster in
+PR 1 alongside Shusaku and Jowa on the same eval and the same gate: the year profile
+`proyear_2017` is the control arm, and the lean ships only if the eval beats the book alone.
+Star Player is the one master whose replay lessons and game studies do not exist; the shelf
+stays with the public-domain masters.
+
 ## GSTACK REVIEW REPORT
 
 | Review | Trigger | Why | Runs | Status | Findings |
@@ -522,9 +628,9 @@ Verdict from the reviewer: ready for eng review and tasks 1 to 4.
 | CEO Review | `/plan-ceo-review` | Scope and strategy | 1 | CLEAR | 19 proposals: 12 accepted (1 gated), 5 deferred, 2 skipped |
 | Spec Review | adversarial subagent | Completeness, consistency, clarity, scope, feasibility | 2 | CLEAR (8/10) | round 1: 28 issues; round 2: 9 issues; all addressed |
 | Outside Voice | `/codex` | Independent challenge | 0 | NOT RUN | codex unavailable in this session |
-| Eng Review | `/plan-eng-review` | Architecture and tests (required before task 5) | 0 | NOT RUN | none |
+| Eng Review | staff-engineer subagent | Architecture and tests (required before task 5) | 1 | CLEAR (with changes) | 4 blocking, 3 should-change, all folded into the plan above |
 | Design Review | `/plan-design-review` | Shelf and Masters row UI | 0 | NOT RUN | flagged DESIGN_SCOPE |
 
-- **VERDICT:** CEO CLEARED (approach C chosen by the user; expansions auto-decided at the recommended option, then trimmed by spec review); eng review required before task 5.
+- **VERDICT:** CEO CLEARED (approach C chosen by the user; expansions auto-decided at the recommended option, then trimmed by spec review); eng review CLEARED 2026-09-09 with amendments; Ke Jie rights check recorded, anonymised card only.
 
 NO UNRESOLVED DECISIONS
