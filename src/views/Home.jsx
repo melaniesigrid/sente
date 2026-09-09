@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Swords, GraduationCap, Target, Trophy, Route, Sparkles, Play, Trash2 } from "lucide-react";
+import { Swords, GraduationCap, Target, Trophy, Route, Sparkles, Play, Trash2, CalendarCheck, Flame } from "lucide-react";
 import { createBoard, tryPlay, aiChooseMove } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
 import { Card, Btn } from "../components/ui.jsx";
@@ -8,6 +8,8 @@ import { PROBLEMS } from "../content/problems.js";
 import { rankOf } from "../content/rank.js";
 import { personaById } from "../content/personas.js";
 import { loadGame, clearGame } from "../store/gameStore.js";
+import { useMokuFacts } from "../components/mokuStore.js";
+import { dayKey, dailyProblem, liveStreak } from "../content/kata.js";
 
 /* ----------------------- HOME ----------------------- */
 export function Home({ profile, go, onResume }) {
@@ -16,6 +18,11 @@ export function Home({ profile, go, onResume }) {
   const games = profile.wins + profile.losses;
   const [saved, setSaved] = useState(() => loadSession());
   const discard = () => { clearGame(); setSaved(null); };
+  const today = dayKey();
+  const kata = dailyProblem(PROBLEMS, today);
+  const kataDone = profile.kataDate === today;
+  const streak = liveStreak(profile, today);
+  useMokuFacts({ view: "home", seed: games });
   return (
     <div className="stack">
       <Card className="hero">
@@ -48,6 +55,20 @@ export function Home({ profile, go, onResume }) {
             <Btn icon={Trash2} small onClick={discard}>Discard</Btn>
           </div>
         </Card>
+      )}
+
+      {kata && (
+        <button className={`neu-card tile kata-card ${kataDone ? "done" : ""}`} onClick={() => go("tsumego", { problemId: kata.id })}>
+          <div className="kata-copy">
+            <div className="stat-head"><CalendarCheck size={16} /><span>Kata of the day</span></div>
+            <strong className="kata-title">{kata.title}</strong>
+            <span className="fine">{kata.rank} · {kata.theme} · {kataDone ? "attended today" : "one problem, every day"}</span>
+          </div>
+          <div className="kata-streak">
+            <Flame size={16} />
+            <span className="stat-num">{streak}<em>{streak === 1 ? "day" : "days"}</em></span>
+          </div>
+        </button>
       )}
 
       <div className="grid3">

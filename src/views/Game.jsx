@@ -1,25 +1,37 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
-  ChevronLeft, Flag, RotateCcw, RefreshCw, Trophy, Timer, CircleDot,
-  MessageCircle, Bot, Send, User, Handshake,
+  ChevronLeft, Flag, RotateCcw, RefreshCw, Trophy, Timer, CircleDot, Scale,
+  MessageCircle, Bot, Send, User, Handshake, Check, Download, Undo2, Award,
 } from "lucide-react";
 import {
-  createGame, play, pass, resign, undo, acceptScore, lastMoveIndex, aiChooseMoveForRecord, IllegalMoveError,
+  createGame, play, pass, resign, undo, markDead, acceptScore, scoreBoard, chainsInAtari, idx,
+  lastMoveIndex, aiChooseMoveForRecord, toSgf, IllegalMoveError,
 } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
-import { Card, Btn, Pill, Avatar, RankBadge } from "../components/ui.jsx";
-import { rankOf, eloDelta } from "../content/rank.js";
+import { Card, Btn, Pill, Avatar, RankBadge, BeltRibbon } from "../components/ui.jsx";
+import { MokuMark } from "../components/Moku.jsx";
+import { useMokuFacts } from "../components/mokuStore.js";
+import { playStone, playCapture, playBell, haptic } from "../components/sound.js";
+import { rankOf, eloDelta, beltOf, hintsForBelt } from "../content/rank.js";
 import { saveProfile } from "../store/profile.js";
 import { saveGame, clearGame } from "../store/gameStore.js";
-import { statusText, refusalText, captionText, resignLabel, RESIGN_CONFIRM_MS } from "./gameStatus.js";
+import {
+  statusText, refusalText, captionText, resignLabel, resultCard, ratingLine, RESIGN_CONFIRM_MS,
+} from "./gameStatus.js";
 
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const BOARD_SIZE = 9;
+const MOMENT_MS = 2600;
 
 /* ----------------------- GAME -----------------------
    A thin adapter over the engine's GameRecord. The only state here is the
-   record itself plus UI-only bits (thinking, chat, draft). Rules, captures,
-   pass counting and scoring all come from the record. */
+   record itself plus UI-only bits (thinking, chat, draft, the current "moment"
+   Moku reacts to, and the promotion ceremony). Rules, captures, pass counting,
+   dead-stone marking and scoring all come from the record.
+
+   The end of a game is a ceremony, not a toast: two passes open scoring, dead
+   stones are tapped off, the count is shown term by term, and both players
+   bow. House players have no opinion on life and death and the card says so. */
 export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const persona = mode.kind === "bot" ? mode.persona : null;
   const [rec, setRec] = useState(() => initial || createGame({ size: BOARD_SIZE }));
@@ -28,14 +40,23 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     persona ? [{ who: "bot", text: pick(persona.chat.greet) }] : []);
   const [draft, setDraft] = useState("");
   const [confirmResign, setConfirmResign] = useState(false);
+  const [moment, setMoment] = useState(null);      // "capture" | "captured", expires
+  const [delta, setDelta] = useState(null);        // rating change of the finished game
+  const [ceremony, setCeremony] = useState(null);  // belt just earned, until dismissed
   const chatEndRef = useRef(null);
   const thinkTimer = useRef(null);
   const resignTimer = useRef(null);
+  const momentTimer = useRef(null);
   const over = rec.phase === "ended" ? rec.result : null;
+  const scoring = rec.phase === "scoring";
   const turn = rec.toPlay;
+  const mySide = persona ? "b" : turn;
+  const sound = !!profile.sound;
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, [chat]);
-  useEffect(() => () => { clearTimeout(thinkTimer.current); clearTimeout(resignTimer.current); }, []);
+  useEffect(() => () => {
+    clearTimeout(thinkTimer.current); clearTimeout(resignTimer.current); clearTimeout(momentTimer.current);
+  }, []);
 
   // Persist the table on every change; an ended or empty game clears the slot.
   useEffect(() => {
@@ -45,33 +66,70 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
 
   const say = useCallback((text) => setChat(c => [...c, { who: "bot", text }]), []);
 
-  /* Two passes put the record in `scoring`. Until the end-game ceremony lands
-     (Phase 3) we accept the score straight away with no dead stones. A rated game
-     settles exactly once: only on the transition into `ended`, and the new profile
-     is computed from the current prop so a double-invoked updater (StrictMode)
-     cannot save or toast twice. */
+  /* ----- board facts (read-only, from the engine) ----- */
+  const myAtari = useMemo(() => rec.phase === "playing" ? chainsInAtari(rec.board, mySide) : [], [rec.board, rec.phase, mySide]);
+  const oppAtari = useMemo(() => rec.phase === "playing" ? chainsInAtari(rec.board, mySide === "b" ? "w" : "b") : [], [rec.board, rec.phase, mySide]);
+  const belt = beltOf(profile.rating);
+  const hints = hintsForBelt(belt);
+  const atariIdx = useMemo(
+    () => (hints ? myAtari.flatMap(ch => ch.stones.map(([c, r]) => idx(rec.size, c, r))) : []),
+    [hints, myAtari, rec.size],
+  );
+  const preview = useMemo(
+    () => (scoring ? scoreBoard(rec.board, { dead: rec.dead, komi: rec.komi, handicap: rec.handicap }) : null),
+    [scoring, rec.board, rec.dead, rec.komi, rec.handicap],
+  );
+  const resultKind = over ? (over.winner === null ? "jigo" : persona ? (over.winner === "b" ? "win" : "loss") : "win") : null;
+
+  useMokuFacts({
+    view: "game", phase: rec.phase, thinking,
+    myAtari: myAtari.length, oppAtari: oppAtari.length, ko: rec.koPoint !== null,
+    moment, result: resultKind, promoted: ceremony ? ceremony.label : null, seed: rec.moves.length,
+  });
+
+  /* A move landed: sound, haptic, and the moment Moku reacts to. `mover` is the
+     colour that played; in pass-and-play every capture is "yours". */
+  const afterMove = useCallback((next, mover) => {
+    const caps = next.lastCaptured ? next.lastCaptured.length : 0;
+    if (sound) { playStone(); if (caps) playCapture(caps); }
+    haptic(caps ? [10, 30, 14] : 8);
+    if (caps) {
+      setMoment(persona && mover !== "b" ? "captured" : "capture");
+      clearTimeout(momentTimer.current);
+      momentTimer.current = setTimeout(() => setMoment(null), MOMENT_MS);
+    }
+  }, [sound, persona]);
+
+  /* A rated game settles exactly once: only on the transition into `ended`, and
+     the new profile is computed from the current prop so a double-invoked updater
+     (StrictMode) cannot save or toast twice. A belt change is a ceremony; a rank
+     change inside the same belt is a toast. */
   const conclude = useCallback((next, prev) => {
-    if (next.phase === "scoring") next = acceptScore(next);
-    if (next.phase === "ended" && prev.phase !== "ended" && persona) {
-      const won = next.result.winner === "b";
-      say(pick(won ? persona.chat.loss : persona.chat.win));
-      const oldRank = rankOf(profile.rating);
-      const delta = eloDelta(profile.rating, persona.rating, won ? 1 : 0);
-      const rating = Math.max(400, profile.rating + delta);
-      const streak = won ? profile.streak + 1 : 0;
-      const np = {
-        ...profile, rating,
-        wins: profile.wins + (won ? 1 : 0), losses: profile.losses + (won ? 0 : 1),
-        streak, bestStreak: Math.max(profile.bestStreak, streak),
-      };
-      setProfile(np);
-      saveProfile(np);
-      const newRank = rankOf(rating);
-      if (won && newRank !== oldRank) notify({ icon: "medal", text: `Promoted to ${newRank}` });
-      else notify({ icon: won ? "trophy" : "flag", text: `${won ? "Victory" : "Defeat"} · ${delta >= 0 ? "+" : ""}${delta} rating` });
+    if (next.phase === "ended" && prev.phase !== "ended") {
+      if (sound) playBell();
+      if (persona) {
+        const won = next.result.winner === "b";
+        say(pick(won ? persona.chat.loss : persona.chat.win));
+        const oldRank = rankOf(profile.rating), oldBelt = beltOf(profile.rating);
+        const d = eloDelta(profile.rating, persona.rating, won ? 1 : 0);
+        const rating = Math.max(400, profile.rating + d);
+        const streak = won ? profile.streak + 1 : 0;
+        const np = {
+          ...profile, rating,
+          wins: profile.wins + (won ? 1 : 0), losses: profile.losses + (won ? 0 : 1),
+          streak, bestStreak: Math.max(profile.bestStreak, streak),
+        };
+        setProfile(np);
+        saveProfile(np);
+        setDelta(d);
+        const newRank = rankOf(rating), newBelt = beltOf(rating);
+        if (won && newBelt !== oldBelt) setCeremony(newBelt);
+        else if (won && newRank !== oldRank) notify({ icon: "medal", text: `Promoted to ${newRank}` });
+        else notify({ icon: won ? "trophy" : "flag", text: `${won ? "Victory" : "Defeat"} · ${d >= 0 ? "+" : ""}${d} rating` });
+      }
     }
     return next;
-  }, [persona, profile, say, setProfile, notify]);
+  }, [persona, profile, say, setProfile, notify, sound]);
 
   const botTurn = useCallback((r) => {
     setThinking(true);
@@ -83,12 +141,13 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         try { next = play(r, mv[0], mv[1]); } catch { next = pass(r); }
         const caps = next.lastCaptured.length;
         if (caps >= 2 || (caps === 1 && Math.random() < 0.4)) say(pick(persona.chat.botCapture));
+        afterMove(next, "w");
       } else {
         next = pass(r);
       }
       setRec(conclude(next, r));
     }, 380 + Math.random() * 500);
-  }, [persona, say, conclude]);
+  }, [persona, say, conclude, afterMove]);
 
   // A resumed game may be waiting on the house player.
   useEffect(() => {
@@ -98,6 +157,10 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
 
   const onPlay = (c, r) => {
     if (over || thinking) return;
+    if (scoring) {
+      try { setRec(markDead(rec, c, r)); } catch (e) { if (!(e instanceof IllegalMoveError)) throw e; }
+      return;
+    }
     if (persona && turn !== "b") return;
     let next;
     try {
@@ -111,6 +174,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       throw e;
     }
     setRec(next);
+    afterMove(next, turn);
     if (persona) {
       if (next.lastCaptured.length >= 2) say(pick(persona.chat.userCapture));
       botTurn(next);
@@ -118,7 +182,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   };
 
   const onPass = () => {
-    if (over || thinking) return;
+    if (over || thinking || scoring) return;
     if (persona && turn !== "b") return;
     const next = conclude(pass(rec), rec);
     setRec(next);
@@ -127,8 +191,8 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
 
   /* Two clicks to resign, no modal: the button reads "Confirm resign?" for a few
      seconds and then quietly goes back. Against a house player only Black resigns;
-     in pass-and-play whoever is to move does. */
-  const canResign = !over && !thinking && (!persona || turn === "b");
+     in pass-and-play whoever is to move does. Allowed while scoring too. */
+  const canResign = !over && !thinking && (!persona || turn === "b" || scoring);
   const onResign = () => {
     if (!canResign) return;
     if (!confirmResign) {
@@ -139,11 +203,11 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     }
     clearTimeout(resignTimer.current);
     setConfirmResign(false);
-    setRec(conclude(resign(rec, turn), rec));
+    setRec(conclude(resign(rec, mySide), rec));
   };
 
   const undoDepth = persona ? 2 : 1;
-  const canUndo = !over && !thinking && rec.moves.length >= undoDepth;
+  const canUndo = !over && !thinking && !scoring && rec.moves.length >= undoDepth;
   const onUndo = () => {
     if (!canUndo) return;
     let r = rec;
@@ -151,13 +215,40 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     setRec(r);
   };
 
+  /* ----- the ceremony ----- */
+  const onAccept = () => { if (scoring) setRec(conclude(acceptScore(rec), rec)); };
+  /* Take back both passes and keep playing. If that leaves the house player to
+     move (it passed first), it moves again. */
+  const onResumePlay = () => {
+    if (!scoring) return;
+    let r = rec;
+    for (let i = 0; i < undoDepth && r.moves.length; i++) r = undo(r);
+    setRec(r);
+    if (persona && r.phase === "playing" && r.toPlay === "w") botTurn(r);
+  };
+
   const reset = () => {
     clearTimeout(thinkTimer.current);
     clearTimeout(resignTimer.current);
     setThinking(false);
     setConfirmResign(false);
+    setDelta(null);
+    setMoment(null);
     setRec(createGame({ size: BOARD_SIZE }));
     if (persona) setChat([{ who: "bot", text: pick(persona.chat.greet) }]);
+  };
+
+  const downloadSgf = () => {
+    const players = persona
+      ? { b: profile.name, w: `${persona.name} (house bot)` }
+      : { b: "Black", w: "White" };
+    const blob = new Blob([toSgf({ ...rec, players })], { type: "application/x-go-sgf" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `sente-${new Date().toISOString().slice(0, 10)}.sgf`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
   };
 
   const sendChat = () => {
@@ -168,7 +259,9 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     setTimeout(() => say(pick(persona.chat.reply)), 700 + Math.random() * 900);
   };
 
-  const status = statusText({ result: over, thinking, personaName: persona ? persona.name : null, turn });
+  const status = statusText({ result: over, thinking, personaName: persona ? persona.name : null, turn, phase: rec.phase });
+  const card = over ? resultCard(over) : null;
+  const boardDisabled = !!over || thinking || (!scoring && persona && turn !== "b");
 
   return (
     <div className="stack">
@@ -189,25 +282,81 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       </div>
       <div className="play-wrap">
         <div className="board-col stack-sm">
-          <Pill icon={over ? Trophy : thinking ? Timer : CircleDot}
+          <Pill icon={over ? Trophy : scoring ? Scale : thinking ? Timer : CircleDot}
             tone={over ? (persona ? (over.winner === "b" ? "win" : "loss") : "") : ""}>
             {status}
           </Pill>
           <Board board={rec.board} onPlay={onPlay} lastMove={lastMoveIndex(rec)}
-            disabled={!!over || (persona && turn !== "b") || thinking} />
-          <div className="row">
-            <Btn icon={Flag} small onClick={onPass} disabled={!!over}>Pass</Btn>
-            <Btn icon={RotateCcw} small onClick={onUndo} disabled={!canUndo}>Undo</Btn>
-            <Btn icon={Handshake} small onClick={onResign} disabled={!canResign}>{resignLabel(confirmResign)}</Btn>
-            <Btn icon={RefreshCw} small onClick={reset}>New game</Btn>
-          </div>
+            disabled={boardDisabled}
+            atari={atariIdx}
+            captured={rec.lastCaptured || []} captureKey={rec.moves.length}
+            territory={preview ? preview.territory : null} dead={rec.dead} />
+          {scoring ? (
+            <div className="row">
+              <Btn icon={Check} small primary onClick={onAccept}>Accept score</Btn>
+              <Btn icon={Undo2} small onClick={onResumePlay}>Keep playing</Btn>
+              <Btn icon={Handshake} small onClick={onResign} disabled={!canResign}>{resignLabel(confirmResign)}</Btn>
+            </div>
+          ) : (
+            <div className="row">
+              <Btn icon={Flag} small onClick={onPass} disabled={!!over}>Pass</Btn>
+              <Btn icon={RotateCcw} small onClick={onUndo} disabled={!canUndo}>Undo</Btn>
+              <Btn icon={Handshake} small onClick={onResign} disabled={!canResign}>{resignLabel(confirmResign)}</Btn>
+              <Btn icon={RefreshCw} small onClick={reset}>New game</Btn>
+            </div>
+          )}
         </div>
         <div className="side stack-sm">
-          <Card inset className="caps">
-            <div><span className="dot dot-b" /> Black captures: {rec.captures.b}</div>
-            <div><span className="dot dot-w" /> White captures: {rec.captures.w}</div>
-            <div className="fine">{captionText({ komi: rec.komi, rated: !!persona })}</div>
-          </Card>
+          {card && (
+            <Card className={`result-card ${persona ? (over.winner === "b" ? "win" : over.winner === "w" ? "loss" : "") : ""}`}>
+              <div className="bow-row" aria-hidden="true">
+                <Avatar name={persona ? profile.name : "B"} tint={profile.tint} size={44} className="bow" />
+                <span className="bow-word">rei</span>
+                {persona
+                  ? <Avatar name={persona.name} tint={persona.tint} size={44} bot className="bow bow-late" />
+                  : <div className="avatar duo sm bow bow-late"><User size={15} /></div>}
+              </div>
+              <div className="result-head">
+                <h3 className="result-headline">{card.headline}</h3>
+                <span className="result-sub">{card.sub}</span>
+              </div>
+              {card.rows.length > 0 && (
+                <div className="result-rows">
+                  {card.rows.map(r => (
+                    <div key={r.side} className={`result-row ${r.winner ? "winner" : ""}`}>
+                      <span className={`dot ${r.side === "Black" ? "dot-b" : "dot-w"}`} />
+                      <span className="result-side">{r.side}</span>
+                      <span className="result-detail">{r.detail}</span>
+                      <span className="result-total">{r.total}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="fine">
+                {persona ? ratingLine(delta) ?? "Rated against a house player." : "Unrated. Thank you both for the game."}
+                {over.method === "score" && rec.dead.length > 0 && ` · ${rec.dead.length} dead ${rec.dead.length === 1 ? "stone" : "stones"} removed`}
+              </p>
+              <div className="row">
+                <Btn icon={RefreshCw} small primary onClick={reset}>Rematch</Btn>
+                <Btn icon={Download} small onClick={downloadSgf}>SGF</Btn>
+              </div>
+            </Card>
+          )}
+          {scoring && preview && (
+            <Card inset className="caps">
+              <div className="stat-head"><Scale size={15} /><span>Counting</span></div>
+              <div><span className="dot dot-b" /> Black {preview.totals.b} <span className="fine-inline">({preview.black.stones} stones + {preview.black.territory} territory)</span></div>
+              <div><span className="dot dot-w" /> White {preview.totals.w} <span className="fine-inline">({preview.white.stones} + {preview.white.territory} + {preview.white.komi} komi{preview.white.handicapBonus ? ` + ${preview.white.handicapBonus}` : ""})</span></div>
+              <p className="fine">Tap a stone to mark its whole group dead; tap again to revive it. {persona ? `${persona.name} is a bot with no opinion on life and death, so your marking stands.` : "Agree across the table before accepting."}</p>
+            </Card>
+          )}
+          {!over && !scoring && (
+            <Card inset className="caps">
+              <div><span className="dot dot-b" /> Black captures: {rec.captures.b}</div>
+              <div><span className="dot dot-w" /> White captures: {rec.captures.w}</div>
+              <div className="fine">{captionText({ komi: rec.komi, rated: !!persona })}{hints ? " · atari hints on" : ""}</div>
+            </Card>
+          )}
           {persona ? (
             <Card className="chat-card">
               <div className="chat-head"><MessageCircle size={15} /><span>Table talk</span><span className="bot-chip"><Bot size={11} /> house player</span></div>
@@ -234,6 +383,19 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
           )}
         </div>
       </div>
+
+      {ceremony && (
+        <div className="ceremony" role="dialog" aria-modal="true" aria-label={`Promoted to ${ceremony.label}`}>
+          <Card className="ceremony-card">
+            <MokuMark state="promoted" sash={ceremony.color} size={96} />
+            <p className="eyebrow"><Award size={13} /> Promotion</p>
+            <h3 className="result-headline">{ceremony.label}</h3>
+            <BeltRibbon belt={ceremony} className="ceremony-belt" />
+            <p className="lesson-text">Now {rankOf(profile.rating)}. {hintsForBelt(ceremony) ? "Atari hints stay on for one more belt." : "Atari hints come off from here: you read your own liberties now."}</p>
+            <Btn primary onClick={() => setCeremony(null)}>Tie it tight</Btn>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

@@ -90,17 +90,50 @@ each fixed in its own commit:
 ## Phase 3 — Play like a real server
 
 - [ ] Lobby: choose 9/13/19, handicap, komi, clock preset; house players available on all.
-- [ ] Game-end ceremony: after two passes enter scoring, tap groups to toggle dead, territory
-      overlay, honest result card ("Black wins by 3.5: 41 area + 2 captures vs 37 + 5.5 komi").
+- [x] Game-end ceremony: after two passes enter scoring, tap groups to toggle dead, territory
+      overlay, honest result card with every term ("41 stones + 3 territory = 44" vs
+      "35 + 4 + 7.5 komi = 46.5"), a bow, and "Keep playing" to take both passes back.
 - [x] Resign with confirmation; result recorded honestly.
 - [ ] Clock UI: pressure states (low time colour shift, byo-yomi period pips), no chrome.
 - [ ] Review mode: scrub with arrows, move numbers overlay, variation tree, jump to capture.
-- [ ] SGF export button on every finished game; SGF import into review mode.
+- [x] SGF export button on every finished game (result card). SGF import into review mode
+      is still open.
 - [ ] Coordinates toggle (A–T minus I / 1–19) and last-move marker preference.
 - [ ] Onboarding for a first-time visitor: name and tint, then a 10-move guided demo.
 - [ ] Keyboard: arrows scrub, P pass, U undo; screen-reader labels already on the board.
 - [ ] Local-only telemetry ring buffer (last 50 games: size, result, bot, move count) to
       tune house-player weights. Never leaves the device.
+
+## Delight (done 2026-09-09, branch `feat/rules-kernel`)
+
+Small moments that make the table feel alive, all built on engine facts:
+
+- [x] Moku, the mascot: a black stone with two eyes (one eye is dead). Every expression is a
+      board fact resolved in `content/moku.js` (pure, tested): atari, ko, a capture, a loss,
+      scoring, a promotion. Dismissable from the dock, remembered per device, restorable
+      from Profile. Motion is CSS keyed on `data-state` and honours reduced motion.
+- [x] Belts (the dojo): kyu bands wear white, yellow, orange, green and blue; dan wears
+      black. Derived from the rating (`beltOf`), never stored. Rank badges carry a belt
+      stripe; Profile shows the tied belt and the rating to the next one.
+- [x] Promotion ceremony: winning into a new belt opens a card with the belt, Moku in a sash
+      and what changes at that belt. A rank change inside a belt stays a toast.
+- [x] Atari training wheels: white and yellow belts see a soft ring on their own groups
+      with one liberty (`chainsInAtari` in the engine). Orange belt and up read for
+      themselves. The caption on the table says when hints are on.
+- [x] Capture moments: lifted stones dissolve on the board; Moku hops or sinks; an
+      opt-in synthesised click per stone, a soft note per capture, a bell at the end.
+- [x] Kata of the day: one tsumego per calendar day for everyone (`content/kata.js`),
+      a Home card that opens it, attendance streak with a best, shown on Profile.
+
+Decisions:
+- Belt boundaries follow `rankOf` exactly (`kyuFloor`), so a belt can never disagree
+  with the rank on the badge.
+- House players have no opinion on life and death. While scoring, the card says the
+  player's marking stands; in pass-and-play it asks both players to agree first.
+- Moku speaks one line at a time, never blocks anything, and has no mood: if nothing
+  on the board changed, it says nothing new.
+- Sound is a profile field (opt-in, default off). Moku's off switch is a device
+  preference in localStorage, like Pip's in ZipQuarry.
 
 ## Phase 4 — Multiplayer (server)
 
@@ -113,18 +146,31 @@ each fixed in its own commit:
 - [ ] Rankings ladder backed by real players.
 - [ ] Analysis: KataGo (or GnuGo) via the backend, or a WASM engine in the browser.
 
-## Phase 5 — Content and learning
+## Phase 5 — Lesson library (30 kyu to dan)
 
-- [ ] Lessons past the basics: shape, connection, cutting, ladders, nets, seki.
-- [ ] Tsumego graded 30k → 5k with categories and a daily set.
-- [ ] Spaced repetition for problems the user missed.
+Full design: `docs/designs/lesson-library.md`. Six tiers, seven tracks, about 60 lessons,
+every position verified by the engine in CI.
+
+- [ ] Library infrastructure: content model (tier, rank, track, size, prereqs), `library.js`
+      index, verifier test over every lesson, new step types (`sequence`, `choice`, `count`,
+      quiz `refutations`) in the lesson player. Migrate the four existing lessons.
+- [ ] Learn view becomes the library: tier rail, lessons grouped by track, search, Continue
+      card, soft prerequisites, done marks. No new chrome.
+- [ ] Tier 1 Foundations authored (10 lessons, 9x9).
+- [ ] Tier exit tests as lobby presets, recorded in the profile.
+- [ ] Tier 2 Apprentice and Tier 3 Journeyman authored (20 lessons, 9/13/19).
+- [ ] SGF authoring pipeline: build-time script turns SGF with comments into steps.
+- [ ] Tier 4 Craftsman and Tier 5 Master authored (20 lessons, 19x19).
+- [ ] Tier 6 Dan authored (8 lessons; the last needs Phase 4 analysis).
+- [ ] Tsumego graded 30k → 5k with categories and a daily set (reuses the verifier).
+- [ ] Spaced repetition: finished quiz steps enter a recall queue; "Review five" card on Home.
 - [ ] Joseki and opening library for 9×9 and 19×19.
 
 ## Design and polish (schedule after a design review)
 
 - [ ] Mobile layout pass: board sizing, nav collapse, touch targets.
 - [ ] Dark variant of the stone palette.
-- [ ] Sound and haptic feedback on stone placement (opt-in).
+- [x] Sound and haptic feedback on stone placement (opt-in, synthesised, no assets).
 - [ ] Self-host fonts instead of the Google Fonts `@import`.
 
 ## Principles (do not trade away)

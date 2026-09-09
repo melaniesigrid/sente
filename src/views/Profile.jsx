@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { Check, Pencil, Trophy, Flame, Sparkles, Swords, GraduationCap, Target } from "lucide-react";
-import { Card, Pill, Avatar, RankBadge } from "../components/ui.jsx";
-import { TINTS } from "../content/rank.js";
+import { Check, Pencil, Trophy, Flame, Sparkles, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck } from "lucide-react";
+import { Card, Pill, Avatar, RankBadge, BeltRibbon, Toggle } from "../components/ui.jsx";
+import { MokuMark } from "../components/Moku.jsx";
+import { useMoku, useMokuFacts } from "../components/mokuStore.js";
+import { TINTS, rankOf, beltOf, nextBelt, hintsForBelt, kyuFloor } from "../content/rank.js";
 import { LESSONS } from "../content/lessons.js";
 import { PROBLEMS } from "../content/problems.js";
+import { dayKey, liveStreak } from "../content/kata.js";
 import { saveProfile } from "../store/profile.js";
 
 /* ----------------------- PROFILE ----------------------- */
@@ -11,12 +14,21 @@ export function ProfileView({ profile, setProfile }) {
   const [editing, setEditing] = useState(false);
   const [nameDraft, setNameDraft] = useState(profile.name);
   const games = profile.wins + profile.losses;
+  const moku = useMoku();
+  useMokuFacts({ view: "profile", seed: profile.wins + profile.losses });
   const commit = (patch) => setProfile(p => { const np = { ...p, ...patch }; saveProfile(np); return np; });
   const saveName = () => {
     const v = nameDraft.trim().slice(0, 18);
     if (v) commit({ name: v });
     setEditing(false);
   };
+
+  const belt = beltOf(profile.rating);
+  const next = nextBelt(profile.rating);
+  const floor = belt.id === "black" ? 3000 : kyuFloor(belt.kyuMax);
+  const pct = next ? Math.max(0, Math.min(100, ((profile.rating - floor) / (next.at - floor)) * 100)) : 100;
+  const streak = liveStreak(profile, dayKey());
+
   return (
     <div className="stack">
       <Card className="profile-hero">
@@ -45,19 +57,61 @@ export function ProfileView({ profile, setProfile }) {
         </div>
       </Card>
 
+      <div className="grid2">
+        <Card className="belt-card">
+          <div className="stat-head"><Award size={16} /><span>Your belt</span></div>
+          <BeltRibbon belt={belt} />
+          <div className="belt-meta">
+            <strong>{belt.label}</strong>
+            <span className="fine">
+              {belt.id === "black"
+                ? `${rankOf(profile.rating)}. The belt is a fact, not a trophy.`
+                : `${rankOf(profile.rating)} · ${next.at - profile.rating} rating to ${next.belt.label.toLowerCase()} (${rankOf(next.at)})`}
+            </span>
+          </div>
+          <div className="meter"><div className="meter-fill" style={{ width: `${pct}%`, background: next ? next.belt.color : belt.color }} /></div>
+          <p className="fine" style={{ marginTop: 12 }}>
+            {hintsForBelt(belt)
+              ? "Training wheels: groups of yours in atari are ringed on the board. They come off at orange belt."
+              : "No training wheels at this belt. You read your own liberties."}
+          </p>
+        </Card>
+        <Card>
+          <div className="stat-head"><Sparkles size={16} /><span>Seal color</span></div>
+          <p className="fine" style={{ marginTop: 6 }}>Your mark on the ladder, the lobby, and — one day — across the network.</p>
+          <div className="tint-row">
+            {Object.entries(TINTS).map(([key, hex]) => (
+              <button key={key}
+                className={`tint-dot ${profile.tint === key ? "active" : ""}`}
+                style={{ color: hex }}
+                onClick={() => commit({ tint: key })}
+                aria-label={`Seal color ${key}`}
+                aria-pressed={profile.tint === key}
+              />
+            ))}
+          </div>
+        </Card>
+      </div>
+
       <Card>
-        <div className="stat-head"><Sparkles size={16} /><span>Seal color</span></div>
-        <p className="fine" style={{ marginTop: 6 }}>Your mark on the ladder, the lobby, and — one day — across the network.</p>
-        <div className="tint-row">
-          {Object.entries(TINTS).map(([key, hex]) => (
-            <button key={key}
-              className={`tint-dot ${profile.tint === key ? "active" : ""}`}
-              style={{ color: hex }}
-              onClick={() => commit({ tint: key })}
-              aria-label={`Seal color ${key}`}
-              aria-pressed={profile.tint === key}
-            />
-          ))}
+        <div className="stat-head"><Eye size={16} /><span>At the table</span></div>
+        <div className="settings">
+          <div className="setting-row">
+            <Volume2 size={16} />
+            <div className="setting-copy">
+              <strong>Stone sound</strong>
+              <span className="fine">A synthesised click on every stone, a soft note per capture, and a small haptic on phones. Nothing is downloaded.</span>
+            </div>
+            <Toggle on={profile.sound} onChange={v => commit({ sound: v })} label="Stone sound" />
+          </div>
+          <div className="setting-row">
+            <MokuMark size={22} state={moku && moku.off ? "idle" : "watching"} />
+            <div className="setting-copy">
+              <strong>Moku at the table</strong>
+              <span className="fine">The stone with two eyes. Every face it makes is a fact about the board: atari, ko, a capture. Never a mood.</span>
+            </div>
+            {moku && <Toggle on={!moku.off} onChange={v => moku.setOff(!v)} label="Show Moku" />}
+          </div>
         </div>
       </Card>
 
@@ -65,6 +119,10 @@ export function ProfileView({ profile, setProfile }) {
         <Card>
           <div className="stat-head"><Swords size={16} /><span>Rated games</span></div>
           <div className="stat-num">{games}<em>{games ? ` · ${Math.round((profile.wins / games) * 100)}%` : ""}</em></div>
+        </Card>
+        <Card>
+          <div className="stat-head"><CalendarCheck size={16} /><span>Kata attendance</span></div>
+          <div className="stat-num">{streak}<em>{streak === 1 ? " day" : " days"}{profile.kataBest > streak ? ` · best ${profile.kataBest}` : ""}</em></div>
         </Card>
         <Card>
           <div className="stat-head"><GraduationCap size={16} /><span>Lessons</span></div>

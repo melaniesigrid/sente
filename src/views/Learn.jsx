@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Check, X, Lightbulb, BookOpen, RotateCcw, Pl
 import { tryPlay } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
 import { Card, Btn, Pill } from "../components/ui.jsx";
+import { useMokuFacts } from "../components/mokuStore.js";
 import { LESSONS } from "../content/lessons.js";
 import { setupToBoard } from "../content/positions.js";
 import { saveProfile } from "../store/profile.js";
@@ -45,7 +46,7 @@ function LessonPlayer({ lesson, onDone, onExit }) {
           onPlay={onPlay}
           marks={step.marks || []}
           disabled={step.type !== "quiz" || state.solved}
-          flash={state.flash}
+          flash={state.flash} captured={state.flash} captureKey={stepIdx + (state.solved ? 100 : 0)}
         />
         <div className="side stack-sm">
           <Card>
@@ -76,6 +77,7 @@ function LessonPlayer({ lesson, onDone, onExit }) {
 /* ----------------------- LEARN ----------------------- */
 export function LearnView({ profile, setProfile }) {
   const [active, setActive] = useState(null);
+  useMokuFacts({ view: "learn", seed: profile.lessonsDone.length });
   if (active) {
     const lesson = LESSONS.find(l => l.id === active);
     return (

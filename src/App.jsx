@@ -17,6 +17,7 @@ import { CSS } from "./styles/css.js";
 import { Avatar } from "./components/ui.jsx";
 import { Toast } from "./components/Toast.jsx";
 import { ErrorBoundary } from "./components/ErrorBoundary.jsx";
+import { MokuProvider, MokuDock } from "./components/Moku.jsx";
 import { rankOf } from "./content/rank.js";
 import { defaultProfile, loadProfile } from "./store/profile.js";
 import { Home } from "./views/Home.jsx";
@@ -40,6 +41,7 @@ export default function SenteApp() {
   const [profile, setProfile] = useState(defaultProfile);
   const [toast, setToast] = useState(null);
   const [resume, setResume] = useState(null); // { mode, record } handed to PlayView once
+  const [params, setParams] = useState(null); // one-shot navigation params, e.g. { problemId }
   const toastTimer = useRef(null);
   useEffect(() => { loadProfile().then(setProfile); }, []);
 
@@ -49,11 +51,12 @@ export default function SenteApp() {
     toastTimer.current = setTimeout(() => setToast(null), 3400);
   }, []);
 
-  const go = useCallback((v) => { setResume(null); setView(v); }, []);
+  const go = useCallback((v, p = null) => { setResume(null); setParams(p); setView(v); }, []);
   const resumeGame = useCallback((session) => { setResume(session); setView("play"); }, []);
   const home = useCallback(() => go("home"), [go]);
 
   return (
+    <MokuProvider view={view}>
     <div className="sente-root">
       <style>{CSS}</style>
       <header className="topbar">
@@ -85,16 +88,18 @@ export default function SenteApp() {
           {view === "home" && <Home profile={profile} go={go} onResume={resumeGame} />}
           {view === "play" && <PlayView profile={profile} setProfile={setProfile} notify={notify} resume={resume} />}
           {view === "learn" && <LearnView profile={profile} setProfile={setProfile} />}
-          {view === "tsumego" && <ProblemsView profile={profile} setProfile={setProfile} />}
+          {view === "tsumego" && <ProblemsView profile={profile} setProfile={setProfile} initialId={params ? params.problemId : null} />}
           {view === "ladder" && <RankingsView profile={profile} />}
           {view === "profile" && <ProfileView profile={profile} setProfile={setProfile} />}
         </ErrorBoundary>
       </main>
       <Toast toast={toast} />
+      <MokuDock />
       <footer className="foot">
         <span>Sente · play go, beautifully</span>
         <span>the oldest game, softly lit</span>
       </footer>
     </div>
+    </MokuProvider>
   );
 }
