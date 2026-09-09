@@ -20,3 +20,7 @@ export {
   pointFromSgf, pointToSgf, resultToSgf,
 } from "./sgf.js";
 export { aiChooseMove, aiChooseMoveForRecord } from "./ai.js";
+export { RANKS, inverseRank, encodeInputs } from "./kata/features.js";
+export { choosePolicyMove } from "./kata/policy.js";
+export { loadModel, onModelProgress, modelReady, MODEL_BYTES } from "./kata/net.js";
+export { kataChooseMoveForRecord, clampRank } from "./kata/bot.js";
