@@ -151,12 +151,33 @@ Decisions:
 Full design: `docs/designs/lesson-library.md`. Six tiers, seven tracks, about 60 lessons,
 every position verified by the engine in CI.
 
-- [ ] Library infrastructure: content model (tier, rank, track, size, prereqs), `library.js`
+- [x] Library infrastructure: content model (tier, rank, track, size, prereqs), `library.js`
       index, verifier test over every lesson, new step types (`sequence`, `choice`, `count`,
       quiz `refutations`) in the lesson player. Migrate the four existing lessons.
-- [ ] Learn view becomes the library: tier rail, lessons grouped by track, search, Continue
+- [x] Learn view becomes the library: tier rail, lessons grouped by track, search, Continue
       card, soft prerequisites, done marks. No new chrome.
-- [ ] Tier 1 Foundations authored (10 lessons, 9x9).
+- [x] Tier 1 Foundations authored (10 lessons, 9x9).
+
+Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
+- One file per lesson under `src/content/lessons/tier<N>/`, gathered by each tier's
+  `index.js`; tiers 2 to 6 have empty indexes so authoring is a drop-in. `LESSONS` is an
+  alias of `LIBRARY`.
+- Ranks sort as numbers via `rankToNumber` (30k = -30, 1d = 1). Lessons sort by tier, then
+  rank, then authoring order.
+- The design doc marks `two-eyes` as existing; it did not. It is authored new. The old
+  `opening` lesson became `first-9x9-opening` (uses `choice`), so a profile that had
+  `opening` in `lessonsDone` will show it unfinished once. Accepted.
+- Step behaviour is a pure reducer (`src/views/lessonStep.js`); timers are a `pending`
+  action the player schedules. Timings: reply 400 ms, refutation hold 1.4 s, wrong-move
+  hold 0.9 s, non-best verdict hold 1.6 s.
+- `choice` options carry `verdict: "best" | "fine" | "poor"`; exactly one best per step.
+  Non-best verdicts show their text and reset so the learner can choose again.
+- The verifier also enforces the house voice (no exclamation marks in any lesson text),
+  three to six steps per lesson, a hint and success text on every quiz, and that
+  `setup.size` overrides appear only on `info` steps.
+- Tier exit tests are shown as text in the tier header; the lobby preset link waits for
+  the "exit tests as lobby presets" item. `tierPassed` is on the profile but unused.
+- Learner's current tier = lowest tier not passed and not fully finished.
 - [ ] Tier exit tests as lobby presets, recorded in the profile.
 - [ ] Tier 2 Apprentice and Tier 3 Journeyman authored (20 lessons, 9/13/19).
 - [ ] SGF authoring pipeline: build-time script turns SGF with comments into steps.

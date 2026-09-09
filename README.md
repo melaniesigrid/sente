@@ -48,7 +48,7 @@ src/engine/         Pure rules kernel, one module per concern, tests beside each
   sgf.js            SGF FF[4] subset in and out
   ai.js             House-player move picker (weighted heuristic)
   index.js          The only import surface for views
-src/content/        Personas, lessons, problems, rank helpers
+src/content/        Personas, problems, rank helpers, library.js + lessons/tier<N>/ (one file per lesson)
 src/components/     Board (SVG), UI primitives, Toast, ErrorBoundary
 src/views/          Home, Play, Game, Learn, Problems, Rankings, Profile
 src/store/          localStorage: profile, in-progress game
