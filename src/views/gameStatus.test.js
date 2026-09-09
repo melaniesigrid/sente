@@ -97,3 +97,14 @@ describe("resultCard", () => {
     expect(ratingLine(null)).toBeNull();
   });
 });
+
+describe("model loading status", () => {
+  it("reports download progress while the house player thinks", async () => {
+    const { statusText, loadingText } = await import("./gameStatus.js");
+    expect(loadingText({ loaded: 12_400_000, total: 53_784_796 })).toBe("12 / 54 MB");
+    expect(statusText({ result: null, thinking: true, personaName: "Yuki", turn: "w", phase: "playing",
+      loading: { loaded: 0, total: 53_784_796 } })).toBe("Yuki is warming up… 0 / 54 MB");
+    expect(statusText({ result: null, thinking: true, personaName: "Yuki", turn: "w", phase: "playing", loading: null }))
+      .toBe("Yuki is thinking…");
+  });
+});

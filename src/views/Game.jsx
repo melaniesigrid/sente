@@ -5,7 +5,8 @@ import {
 } from "lucide-react";
 import {
   createGame, play, pass, resign, undo, markDead, acceptScore, scoreBoard, chainsInAtari, idx,
-  lastMoveIndex, aiChooseMoveForRecord, toSgf, IllegalMoveError,
+  lastMoveIndex, aiChooseMoveForRecord, kataChooseMoveForRecord, loadModel, onModelProgress, modelReady,
+  toSgf, IllegalMoveError,
 } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
 import { Card, Btn, Pill, Avatar, RankBadge, BeltRibbon } from "../components/ui.jsx";
@@ -43,6 +44,8 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const [moment, setMoment] = useState(null);      // "capture" | "captured", expires
   const [delta, setDelta] = useState(null);        // rating change of the finished game
   const [ceremony, setCeremony] = useState(null);  // belt just earned, until dismissed
+  const [loading, setLoading] = useState(null);    // {loaded, total} while the network downloads
+  const alive = useRef(true);
   const chatEndRef = useRef(null);
   const thinkTimer = useRef(null);
   const resignTimer = useRef(null);
@@ -55,8 +58,22 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, [chat]);
   useEffect(() => () => {
+    alive.current = false;
     clearTimeout(thinkTimer.current); clearTimeout(resignTimer.current); clearTimeout(momentTimer.current);
   }, []);
+
+  /* The house player's brain (KataGo's human-style network) downloads once per
+     visit. Start it as soon as a bot game opens so the first move is not the one
+     that waits; the pill reports progress while it arrives. */
+  useEffect(() => {
+    if (!persona) return undefined;
+    const off = onModelProgress((e) => {
+      if (!alive.current) return;
+      setLoading(e.phase === "download" || e.phase === "compile" ? { loaded: e.loaded, total: e.total } : null);
+    });
+    if (!modelReady()) loadModel().catch(() => {});
+    return off;
+  }, [persona]);
 
   // Persist the table on every change; an ended or empty game clears the slot.
   useEffect(() => {
@@ -131,23 +148,34 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     return next;
   }, [persona, profile, say, setProfile, notify, sound]);
 
+  /* Ask the human network what a player of the persona's rank would do; if it is
+     unavailable (offline, old browser) the heuristic house player answers instead.
+     A short minimum delay keeps the reply from feeling instant. */
   const botTurn = useCallback((r) => {
     setThinking(true);
-    thinkTimer.current = setTimeout(() => {
-      setThinking(false);
-      const mv = aiChooseMoveForRecord(r, persona.weights);
-      let next;
-      if (mv) {
-        try { next = play(r, mv[0], mv[1]); } catch { next = pass(r); }
-        const caps = next.lastCaptured.length;
-        if (caps >= 2 || (caps === 1 && Math.random() < 0.4)) say(pick(persona.chat.botCapture));
-        afterMove(next, "w");
-      } else {
-        next = pass(r);
-      }
-      setRec(conclude(next, r));
-    }, 380 + Math.random() * 500);
-  }, [persona, say, conclude, afterMove]);
+    const started = Date.now();
+    const settle = (mv) => {
+      const wait = Math.max(0, 380 + Math.random() * 500 - (Date.now() - started));
+      thinkTimer.current = setTimeout(() => {
+        if (!alive.current) return;
+        setThinking(false);
+        let next;
+        if (mv) {
+          try { next = play(r, mv[0], mv[1]); } catch { next = pass(r); }
+          const caps = next.lastCaptured.length;
+          if (caps >= 2 || (caps === 1 && Math.random() < 0.4)) say(pick(persona.chat.botCapture));
+          afterMove(next, "w");
+        } else {
+          next = pass(r);
+        }
+        setRec(conclude(next, r));
+      }, wait);
+    };
+    const fallback = () => aiChooseMoveForRecord(r, persona.weights);
+    kataChooseMoveForRecord(r, { ...persona.profile, oppRank: rankOf(profile.rating) })
+      .then((res) => settle(res ? res.move : fallback()))
+      .catch(() => settle(fallback()));
+  }, [persona, profile.rating, say, conclude, afterMove]);
 
   // A resumed game may be waiting on the house player.
   useEffect(() => {
@@ -259,7 +287,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     setTimeout(() => say(pick(persona.chat.reply)), 700 + Math.random() * 900);
   };
 
-  const status = statusText({ result: over, thinking, personaName: persona ? persona.name : null, turn, phase: rec.phase });
+  const status = statusText({ result: over, thinking, personaName: persona ? persona.name : null, turn, phase: rec.phase, loading });
   const card = over ? resultCard(over) : null;
   const boardDisabled = !!over || thinking || (!scoring && persona && turn !== "b");
 
