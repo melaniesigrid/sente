@@ -152,8 +152,14 @@ imitates a rank: Hoshi 20k, Tetsu 15k, Yuki 10k, Ren 5k, Sora 1k, Kaede 2d, Tats
       or nudge a persona's rank if it plays a stone stronger or weaker than its badge.
 - [ ] WebGPU backend (needs the jsep runtime, 28 MB) for 19x19 speed; WASM is single
       threaded on Pages (no cross-origin isolation headers).
+- [x] Every house player adapts to any level: the lobby's rank picker (25k to 9d,
+      defaulting to your own rank) sets the rank the network imitates; personas are
+      personalities with a home range, ordered by fit. Ranks below 20k soften the 20k
+      policy one temperature notch per rank.
 - [ ] Human opponent rank is passed as the network's "opponent" profile; use the real
       rating once ratings are server-side.
+- [ ] Remember the last chosen level per player, and suggest a level after a few wins
+      or losses in a row.
 - [ ] Dan bots with a small search (KataGo blends human policy with its own value) once
       there is a server; the raw policy is a few stones weaker than the rank it imitates
       at dan level, which the bios do not yet say.
