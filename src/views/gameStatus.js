@@ -31,6 +31,12 @@ export function statusText({ result, thinking, personaName, turn }) {
   return turn === "b" ? "Black to move" : "White to move";
 }
 
+/** Two-step resign button: first click arms it, second click resigns. */
+export const RESIGN_CONFIRM_MS = 3000;
+export function resignLabel(confirming) {
+  return confirming ? "Confirm resign?" : "Resign";
+}
+
 /** Fine print under the capture counts. */
 export function captionText({ komi, rated }) {
   return `Area scoring · komi ${komi} · superko${rated ? " · rated" : " · unrated"}`;

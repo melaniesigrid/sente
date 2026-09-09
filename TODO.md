@@ -80,7 +80,7 @@ Decisions made in Phase 2:
 - [ ] Lobby: choose 9/13/19, handicap, komi, clock preset; house players available on all.
 - [ ] Game-end ceremony: after two passes enter scoring, tap groups to toggle dead, territory
       overlay, honest result card ("Black wins by 3.5: 41 area + 2 captures vs 37 + 5.5 komi").
-- [ ] Resign with confirmation; result recorded honestly.
+- [x] Resign with confirmation; result recorded honestly.
 - [ ] Clock UI: pressure states (low time colour shift, byo-yomi period pips), no chrome.
 - [ ] Review mode: scrub with arrows, move numbers overlay, variation tree, jump to capture.
 - [ ] SGF export button on every finished game; SGF import into review mode.

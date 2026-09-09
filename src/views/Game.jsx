@@ -1,17 +1,17 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
   ChevronLeft, Flag, RotateCcw, RefreshCw, Trophy, Timer, CircleDot,
-  MessageCircle, Bot, Send, User,
+  MessageCircle, Bot, Send, User, Handshake,
 } from "lucide-react";
 import {
-  createGame, play, pass, undo, acceptScore, lastMoveIndex, aiChooseMoveForRecord, IllegalMoveError,
+  createGame, play, pass, resign, undo, acceptScore, lastMoveIndex, aiChooseMoveForRecord, IllegalMoveError,
 } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
 import { Card, Btn, Pill, Avatar, RankBadge } from "../components/ui.jsx";
 import { rankOf, eloDelta } from "../content/rank.js";
 import { saveProfile } from "../store/profile.js";
 import { saveGame, clearGame } from "../store/gameStore.js";
-import { statusText, refusalText, captionText } from "./gameStatus.js";
+import { statusText, refusalText, captionText, resignLabel, RESIGN_CONFIRM_MS } from "./gameStatus.js";
 
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const BOARD_SIZE = 9;
@@ -27,13 +27,15 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const [chat, setChat] = useState(() =>
     persona ? [{ who: "bot", text: pick(persona.chat.greet) }] : []);
   const [draft, setDraft] = useState("");
+  const [confirmResign, setConfirmResign] = useState(false);
   const chatEndRef = useRef(null);
   const thinkTimer = useRef(null);
+  const resignTimer = useRef(null);
   const over = rec.phase === "ended" ? rec.result : null;
   const turn = rec.toPlay;
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, [chat]);
-  useEffect(() => () => clearTimeout(thinkTimer.current), []);
+  useEffect(() => () => { clearTimeout(thinkTimer.current); clearTimeout(resignTimer.current); }, []);
 
   // Persist the table on every change; an ended or empty game clears the slot.
   useEffect(() => {
@@ -123,6 +125,23 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     if (persona && next.phase === "playing") botTurn(next);
   };
 
+  /* Two clicks to resign, no modal: the button reads "Confirm resign?" for a few
+     seconds and then quietly goes back. Against a house player only Black resigns;
+     in pass-and-play whoever is to move does. */
+  const canResign = !over && !thinking && (!persona || turn === "b");
+  const onResign = () => {
+    if (!canResign) return;
+    if (!confirmResign) {
+      setConfirmResign(true);
+      clearTimeout(resignTimer.current);
+      resignTimer.current = setTimeout(() => setConfirmResign(false), RESIGN_CONFIRM_MS);
+      return;
+    }
+    clearTimeout(resignTimer.current);
+    setConfirmResign(false);
+    setRec(conclude(resign(rec, turn), rec));
+  };
+
   const undoDepth = persona ? 2 : 1;
   const canUndo = !over && !thinking && rec.moves.length >= undoDepth;
   const onUndo = () => {
@@ -134,7 +153,9 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
 
   const reset = () => {
     clearTimeout(thinkTimer.current);
+    clearTimeout(resignTimer.current);
     setThinking(false);
+    setConfirmResign(false);
     setRec(createGame({ size: BOARD_SIZE }));
     if (persona) setChat([{ who: "bot", text: pick(persona.chat.greet) }]);
   };
@@ -177,6 +198,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
           <div className="row">
             <Btn icon={Flag} small onClick={onPass} disabled={!!over}>Pass</Btn>
             <Btn icon={RotateCcw} small onClick={onUndo} disabled={!canUndo}>Undo</Btn>
+            <Btn icon={Handshake} small onClick={onResign} disabled={!canResign}>{resignLabel(confirmResign)}</Btn>
             <Btn icon={RefreshCw} small onClick={reset}>New game</Btn>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { refusalText, resultLine, statusText, captionText } from "./gameStatus.js";
+import { refusalText, resultLine, statusText, captionText, resignLabel, RESIGN_CONFIRM_MS } from "./gameStatus.js";
 import { createGame, pass, acceptScore, resign } from "../engine/index.js";
 
 describe("refusalText", () => {
@@ -40,6 +40,19 @@ describe("statusText", () => {
     expect(statusText({ result: null, thinking: false, personaName: "Yuki", turn: "w" })).toBe("Yuki to move");
     expect(statusText({ result: null, thinking: false, personaName: null, turn: "b" })).toBe("Black to move");
     expect(statusText({ result: null, thinking: false, personaName: null, turn: "w" })).toBe("White to move");
+  });
+  it("reads a resignation from either side", () => {
+    const g = createGame({ size: 9 });
+    expect(statusText({ result: resign(g, "b").result, thinking: false, personaName: "Yuki", turn: "w" })).toBe("White wins by resignation");
+    expect(statusText({ result: resign(g, "w").result, thinking: false, personaName: null, turn: "b" })).toBe("Black wins by resignation");
+  });
+});
+
+describe("resignLabel", () => {
+  it("arms on the first click and names the confirmation window", () => {
+    expect(resignLabel(false)).toBe("Resign");
+    expect(resignLabel(true)).toBe("Confirm resign?");
+    expect(RESIGN_CONFIRM_MS).toBeGreaterThanOrEqual(2000);
   });
 });
 
