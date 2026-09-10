@@ -18,11 +18,12 @@ describe("publicPlayer", () => {
   it("never carries the token hash or the volatility, and rounds the numbers", () => {
     const out = publicPlayer({
       id: "p_1", name: "Ada", tint: "coral", tokenHash: "secret",
-      rating: 1512.7, rd: 190.2, vol: 0.06, wins: 1, losses: 2, draws: 0,
+      rating: 1512.7, rd: 190.2, vol: 0.06, wins: 1, losses: 2, draws: 0, claimedFrom: "1.2.3.4",
       createdAt: 1, lastSeen: 2,
     });
     expect(out.tokenHash).toBeUndefined();
     expect(out.vol).toBeUndefined();
+    expect(out.claimedFrom).toBeUndefined();
     expect(out).toMatchObject({ id: "p_1", name: "Ada", rating: 1513, rd: 190, wins: 1, losses: 2, draws: 0 });
   });
   it("treats a missing draw count as zero", () => {
