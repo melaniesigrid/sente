@@ -15,6 +15,7 @@ import { DurableObject } from "cloudflare:workers";
 import { newRating, rateGame } from "./rating.js";
 import { randomHex, sha256, cleanName, cleanTint } from "./http.js";
 import { cleanKey, publicPlayer, hasPlayed } from "./players.js";
+import { hit, REGISTER_LIMIT, REGISTER_WINDOW_MS } from "./ratelimit.js";
 import { SIZES } from "./room.js";
 
 const KEEP_GAMES = 24;
@@ -29,9 +30,22 @@ export class Registry extends DurableObject {
 
   /* ----- accounts ----- */
 
-  async register(rawName, rawTint) {
+  /** Claim a handle. `ip` is the caller's address when the platform gave us one;
+   *  each address may claim a few accounts an hour, which is plenty for a
+   *  household and no use to a script filling the store. */
+  async register(rawName, rawTint, ip = null) {
     const name = cleanName(rawName);
     if (!name) throw new Error("bad-name");
+    if (ip) {
+      const key = `rate:reg:${ip}`;
+      const r = hit(await this.ctx.storage.get(key), Date.now(), REGISTER_LIMIT, REGISTER_WINDOW_MS);
+      await this.ctx.storage.put(key, r.bucket);
+      if (!r.allowed) {
+        const e = new Error("too-many-handles");
+        e.retryAfterMs = r.retryAfterMs;
+        throw e;
+      }
+    }
     const id = "p_" + randomHex(8);
     const token = randomHex(32);
     const player = {
@@ -136,6 +150,15 @@ export class Registry extends DurableObject {
       .slice(0, LADDER_SIZE);
     this.ladderCache = { at: Date.now(), rows };
     return rows;
+  }
+
+  /** Forget one address's handle-claiming count. For the operator, when a real
+   *  room of people shares an address and runs into the limit. */
+  async unblock(ip) {
+    const key = `rate:reg:${ip}`;
+    const had = (await this.ctx.storage.get(key)) !== undefined;
+    await this.ctx.storage.delete(key);
+    return had;
   }
 
   /** Every account, for the operator. */

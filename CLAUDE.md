@@ -42,6 +42,10 @@ in `server/` (Durable Objects), deployed separately.
   the browser-only KataGo runtime). Durable Objects only parse, apply, store, broadcast.
   Protocol changes start in `room.js` and its tests; `tools/server/smoke.mjs` must still
   pass against `npm run dev:server`.
+- A deployed Durable Object keeps running the previous code until its instance restarts, so
+  a change to `registry.js` or `roomObject.js` may not be live in the seconds after
+  `npm run deploy:server`. Verify against a fresh instance, and do not conclude a change
+  failed from one test run straight after a deploy. Worker code in `index.js` updates at once.
 - Rules never live in a view. If a view needs a rule, add it to the engine first.
 - Lessons are data. A new lesson is one file in `src/content/lessons/tier<N>/`, added to that
   tier's index; `npm test` verifies every position. No exclamation marks in lesson text.

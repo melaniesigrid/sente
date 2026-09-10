@@ -71,9 +71,17 @@ test suite. `src/engine/index.js` is the only thing views import from it.
 **Server.** `server/` is a Cloudflare Worker with two Durable Object classes; config in
 `wrangler.jsonc`. `npm run dev:server` runs it on port 8787, `npm run deploy:server`
 publishes it (needs `npx wrangler login` once). `npx wrangler secret put ADMIN_TOKEN`
-sets the key for the operator routes (`GET /api/admin/players`,
-`DELETE /api/admin/players/:id`). `node tools/server/smoke.mjs [url]`
-plays a whole game through the API and fails loudly if anything is off.
+sets the key for the operator routes: `GET /api/admin/players`,
+`DELETE /api/admin/players/:id`, `DELETE /api/admin/ratelimit/:ip` and
+`GET /api/admin/whoami` (what the edge says about a caller).
+
+Claiming a handle is limited to eight an hour from one address. Note that a Durable Object
+keeps running the previous code until its instance restarts, so a change to the Registry or
+a Room can take a moment to take effect after a deploy. `node tools/server/smoke.mjs [url]`
+plays a whole game through the API and fails loudly if anything is off;
+`node tools/server/qa.mjs [url]` is the wider pass (19x19, an unrated game, a spectator, a
+player who leaves and returns, counting with dead stones, bad ids). Both remove the accounts
+they make.
 `.github/workflows/deploy-server.yml` does the same on push to `main` once the repo has
 a `CLOUDFLARE_API_TOKEN` secret.
 

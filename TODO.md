@@ -207,8 +207,10 @@ two Durable Object classes, deployed at https://sente-server.melaniesigrid.worke
       players with a finished rated game stand on the ladder. `DELETE
       /api/admin/players/:id` and `GET /api/admin/players` are the operator routes,
       behind an `ADMIN_TOKEN` secret.
-- [ ] Account hygiene: rate-limit `/api/register`, and a way to move a handle to
-      another device (show the key once).
+- [x] Rate-limited `/api/register`: eight handles an hour from one address, answered with
+      a 429 and a `retry-after`. `DELETE /api/admin/ratelimit/:ip` clears one, for when a
+      real room of people shares an address.
+- [ ] A way to move a handle to another device (show the key once, scan it on the other).
 - [ ] CI deploy for the Worker: `.github/workflows/deploy-server.yml` is written and
       needs a `CLOUDFLARE_API_TOKEN` repository secret (Workers Scripts: Edit) to run.
 - [ ] Analysis: KataGo (or GnuGo) via the backend, or a WASM engine in the browser.
