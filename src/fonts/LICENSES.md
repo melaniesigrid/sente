@@ -11,9 +11,29 @@ of them is a **demo or personal-use cut**. They are here so the typeface
 pairings in `src/content/typeface.js` can be tried on the real UI; they are not
 cleared for a public deployment of Sente.
 
+## What the build actually loads
+
+Two of them, and the signature. `src/styles/fontfaces.js` declares a face for
+these and for nothing else, so nothing else is imported and nothing else is
+bundled.
+
+| File | Family | Vendor | Terms | Worn by |
+| --- | --- | --- | --- | --- |
+| Welorac-Regular.otf | Welorac | Ermedia Studio | Demo. Personal use only. | `kaya`, headings |
+| Qliesya-Regular.otf | Qliesya | Ermedia Studio | Demo. Personal use only. | `vitrine`, headings |
+| Daenerys-Regular.otf | Daenerys | Faptype | Demo. Personal use only. No commercial use. | the signature |
+
+Both display cuts are headings only. No pairing puts a borrowed face into running
+text any more, and no pairing uses a script anywhere — the set that did was cut
+back to `house`, `kaya` and `vitrine`.
+
+## Still in the folder, worn by nothing
+
+Left here rather than deleted, because a pairing may want one again. Nothing
+imports them, so they cost the build nothing where they sit.
+
 | File | Family | Vendor | Terms |
 | --- | --- | --- | --- |
-| Welorac-Regular.otf | Welorac | Ermedia Studio | Demo. Personal use only. |
 | Bellique-Regular.otf | Bellique | Shanaf Studio | Personal use (check vendor). |
 | MaisonGalliard-Serif.otf | Maison Galliard | Creacy Studio Co. | Demo. Personal use only. |
 | MaisonGalliard-Script.otf | Maison Galliard | Creacy Studio Co. | Demo. Personal use only. |
@@ -24,16 +44,10 @@ cleared for a public deployment of Sente.
 | Further-Regular.otf | Further | Pian45 Studio | Personal use (check vendor). |
 | CocogoosePro-Thin.ttf | Cocogoose Pro | Zetafonts | Trial. Personal use only. |
 | CocogoosePro-LightItalic.ttf | Cocogoose Pro | Zetafonts | Trial. Personal use only. |
-| Qliesya-Regular.otf | Qliesya | Ermedia Studio | Demo. Personal use only. |
-| Daenerys-Regular.otf | Daenerys | Faptype | Demo. Personal use only. No commercial use. |
 
-Before Sente ships publicly, each pairing you want to keep needs either a
+Before Sente ships publicly, the three faces in the first table need either a
 purchased desktop-plus-web licence from the vendor above, or a substitute under
-the OFL. The `house` pairing (Fraunces, Hanken Grotesk) and the body faces used
-by the other pairings (Instrument Sans, Newsreader) are all OFL already, so the
-default build is clear as it stands.
-
-`galliard` is the exception on the body side: it sets its body and caption text
-in Maison Galliard Sans, so that pairing puts a personal-use cut into running
-text and not only into headings. It is also a single weight — the browser
-synthesises its bold.
+the OFL. `house` (Fraunces, Hanken Grotesk) and every Google body family the set
+uses (Instrument Sans, Newsreader, Courier Prime) are OFL already, so the default
+build — and every pairing's body text — is clear as it stands. Daenerys is the
+urgent one: its demo forbids commercial use outright, and it signs every page.
