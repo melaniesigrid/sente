@@ -11,6 +11,8 @@ import { duelMode } from "../content/duel.js";
 import { dayKey } from "../content/kata.js";
 import { loadSession } from "./session.js";
 import { Game } from "./Game.jsx";
+import { OnlineCard } from "./OnlineLobby.jsx";
+import { OnlineGame } from "./OnlineGame.jsx";
 
 /* ----------------------- PLAY (lobby) -----------------------
    `resume` is `{ mode, record }` from the Home card; it seeds the first
@@ -18,10 +20,26 @@ import { Game } from "./Game.jsx";
 
    The table (board size, handicap) is set once here and rides on the session
    mode; the record is built from it in Game. Komi is never typed in: it is
-   the engine's default for the handicap, shown so nobody is surprised. */
+   the engine's default for the handicap, shown so nobody is surprised. The
+   same board size is what the online card seeks with.
+
+   A `?game=` in the address opens that online table directly (a shared link). */
+const GAME_ID = /^g_[0-9a-f]{12}$/;
+function linkedGame() {
+  try {
+    const id = new URLSearchParams(window.location.search).get("game");
+    if (id && GAME_ID.test(id)) {
+      window.history.replaceState(null, "", window.location.pathname);
+      return { mode: { kind: "online", gameId: id } };
+    }
+  } catch { /* no window */ }
+  return null;
+}
+
 export function PlayView({ profile, setProfile, notify, resume }) {
-  // session: null | { mode: {kind:'bot', persona, rank, size, handicap} | {kind:'local', size, handicap} | duel, record? }
-  const [session, setSession] = useState(() => resume || null);
+  // session: null | { mode: {kind:'bot', persona, rank, size, handicap} | {kind:'local', size, handicap}
+  //                  | {kind:'online', gameId} | duel, record? }
+  const [session, setSession] = useState(() => resume || linkedGame());
   // The level the next game is played at. Starts at the player's own rank; every house
   // player adapts to it, so nobody has to "graduate" to an opponent.
   const myRank = rankOf(profile.rating);
@@ -41,12 +59,13 @@ export function PlayView({ profile, setProfile, notify, resume }) {
       <div className="stack">
         <h2 className="section-title">Find a game</h2>
         <p className="lede">
-          Play a house opponent — each with their own style and table talk — or hand the
-          device across the table for a face-to-face game. House players adapt to the level
-          you pick, from 25 kyu to 9 dan, and play any board. Networked matchmaking joins
-          the same seat when the server lands.
+          Sit down against another person over the network, play a house opponent — each
+          with their own style and table talk — or hand the device across the table for a
+          face-to-face game. House players adapt to the level you pick, from 25 kyu to 9
+          dan, and play any board.
         </p>
         <Passage context="play" />
+        <OnlineCard profile={profile} notify={notify} onPlay={setSession} size={table.size} />
         <DuelCard profile={profile} today={today} mode={duelMode(PERSONAS, today)}
           saved={saved && saved.mode.kind === "duel" ? saved : null} onPlay={setSession} />
         <div className="rank-picker neu-card" role="group" aria-label="Level to play at">
@@ -113,6 +132,9 @@ export function PlayView({ profile, setProfile, notify, resume }) {
         </button>
       </div>
     );
+  }
+  if (session.mode.kind === "online") {
+    return <OnlineGame gameId={session.mode.gameId} onExit={() => setSession(null)} profile={profile} notify={notify} />;
   }
   return (
     <Game mode={session.mode} initial={session.record} onExit={() => setSession(null)}

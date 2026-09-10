@@ -1,0 +1,120 @@
+/* ----------------------- ROOM (Durable Object) -----------------------
+   One instance per game, named by the game id. It holds the room object from
+   room.js in storage, accepts hibernating WebSockets tagged with the player id
+   (or "spectator"), and does nothing a test cannot already cover: parse frame,
+   `applyMessage`, store, broadcast. When a game ends it reports the outcome to
+   the Registry once and pins the rating changes on the room. */
+
+import { DurableObject } from "cloudflare:workers";
+import { createRoom, applyMessage, seatOf, reviveRoom, outcome } from "./room.js";
+
+export class Room extends DurableObject {
+  constructor(ctx, env) {
+    super(ctx, env);
+    this.room = null;
+  }
+
+  async load() {
+    if (this.room) return this.room;
+    const raw = await this.ctx.storage.get("room");
+    this.room = raw ? reviveRoom(raw) : null;
+    return this.room;
+  }
+
+  async save(room) {
+    this.room = room;
+    await this.ctx.storage.put("room", room);
+  }
+
+  /* ----- RPC from the Worker and the Registry ----- */
+
+  async create(params) {
+    if (await this.load()) throw new Error("exists");
+    const room = createRoom(params);
+    await this.save(room);
+    await this.registry().noteGame(summary(room));
+    return room;
+  }
+
+  async get() {
+    return this.load();
+  }
+
+  /* ----- sockets ----- */
+
+  async fetch(req) {
+    const room = await this.load();
+    if (!room) return new Response("no such game", { status: 404 });
+    const header = req.headers.get("x-sente-player");
+    const player = header ? JSON.parse(header) : null;
+    const seat = player ? seatOf(room, player.id) : null;
+    const tag = seat ? player.id : "spectator";
+    const pair = new WebSocketPair();
+    const [client, server] = Object.values(pair);
+    this.ctx.acceptWebSocket(server, [tag, seat ? "seated" : "watching"]);
+    server.serializeAttachment({ seat, player: player ? { id: player.id, name: player.name } : null });
+    send(server, { t: "state", room });
+    send(server, { t: "seat", seat, watching: this.ctx.getWebSockets("watching").length });
+    return new Response(null, { status: 101, webSocket: client });
+  }
+
+  async webSocketMessage(ws, raw) {
+    let msg;
+    try { msg = JSON.parse(raw); } catch { return send(ws, { t: "error", reason: "bad-frame" }); }
+    if (msg && msg.t === "ping") return send(ws, { t: "pong" });
+    const { seat, player } = ws.deserializeAttachment();
+    const room = await this.load();
+    if (!room) return send(ws, { t: "error", reason: "no-room" });
+    if (!seat) {
+      if (!player) return send(ws, { t: "error", reason: "sign-in-to-chat" });
+      msg = { ...msg, from: player };
+    }
+    const { room: next, events } = applyMessage(room, seat, msg);
+    if (next !== room) await this.save(next);
+    for (const ev of events) this.emit(ev, ws, next);
+    await this.maybeSettle(next);
+  }
+
+  async webSocketClose() {}
+  async webSocketError() {}
+
+  emit(ev, sender, room) {
+    const frame = JSON.stringify(ev.frame);
+    if (ev.to === "seat") return sendRaw(sender, frame);
+    if (ev.to === "all") { for (const ws of this.ctx.getWebSockets()) sendRaw(ws, frame); return; }
+    for (const ws of this.ctx.getWebSockets(room.seats[ev.to].id)) sendRaw(ws, frame);
+  }
+
+  /** Report a finished game to the ladder once; broadcast the rating changes. */
+  async maybeSettle(room) {
+    const out = outcome(room);
+    if (!out || room.settled) return;
+    let settled;
+    try { settled = await this.registry().settle(out); } catch (e) { settled = { rated: false, error: e.message }; }
+    const next = { ...room, settled };
+    await this.save(next);
+    await this.registry().noteGame(summary(next));
+    const frame = JSON.stringify({ t: "state", room: next });
+    for (const ws of this.ctx.getWebSockets()) sendRaw(ws, frame);
+  }
+
+  registry() {
+    return this.env.REGISTRY.get(this.env.REGISTRY.idFromName("main"));
+  }
+}
+
+/** The lobby's view of a game. */
+function summary(room) {
+  return {
+    id: room.id, size: room.size, rated: room.rated,
+    black: { id: room.seats.b.id, name: room.seats.b.name, tint: room.seats.b.tint },
+    white: { id: room.seats.w.id, name: room.seats.w.name, tint: room.seats.w.tint },
+    phase: room.record.phase, moves: room.record.moves.length, toPlay: room.record.toPlay,
+    result: room.record.result, createdAt: room.createdAt, endedAt: room.endedAt, updatedAt: Date.now(),
+  };
+}
+
+const send = (ws, frame) => sendRaw(ws, JSON.stringify(frame));
+function sendRaw(ws, text) {
+  try { ws.send(text); } catch { /* closed */ }
+}

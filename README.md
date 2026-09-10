@@ -1,11 +1,14 @@
 # Sente — play go, beautifully
 
-A full-featured go (baduk) server with a design-first UI. Play 9×9 games against
-house players with distinct personalities, work through guided lessons and tsumego
-problems, climb a rating ladder, and keep a persistent profile.
+A full-featured go (baduk) server with a design-first UI. Play people over the network
+or house players with distinct personalities, work through guided lessons and tsumego
+problems, climb a Glicko-2 ladder, and keep a persistent profile.
 
 ## Features
 
+- **Play people** — claim a handle, pick 9×9, 13×13 or 19×19 and find an opponent. The
+  server checks every move with the same engine, keeps the game while you are away,
+  and rates it with Glicko-2. Spectate any table from its link, chat, ask for an undo.
 - **Play** — 9×9 go with a rules engine that enforces suicide, ko and positional superko.
   Area scoring with komi 7.5. Three house players with tuned heuristic weights, labeled
   as bots. The game on the table is saved locally and can be resumed from Home.
@@ -51,7 +54,11 @@ src/engine/         Pure rules kernel, one module per concern, tests beside each
 src/content/        Personas, problems, rank helpers, library.js + lessons/tier<N>/ (one file per lesson)
 src/components/     Board (SVG), UI primitives, Toast, ErrorBoundary
 src/views/          Home, Play, Game, Learn, Problems, Rankings, Profile
-src/store/          localStorage: profile, in-progress game
+src/store/          localStorage: profile, in-progress game, online account
+src/net/api.js      The one module that knows the server URL and routes
+server/             Cloudflare Worker: router, Registry and Room Durable Objects,
+                    pure room reducer and Glicko-2 with tests beside them
+tools/server/       smoke.mjs drives a full game against a running server
 src/styles/css.js   The stylesheet, injected by the shell
 TODO.md             Roadmap
 ```
@@ -61,7 +68,16 @@ test suite. `src/engine/index.js` is the only thing views import from it.
 
 ## Deploying
 
-`.github/workflows/deploy.yml` builds on every push to `main` and publishes `dist/` to
+**Server.** `server/` is a Cloudflare Worker with two Durable Object classes; config in
+`wrangler.jsonc`. `npm run dev:server` runs it on port 8787, `npm run deploy:server`
+publishes it (needs `npx wrangler login` once). `npx wrangler secret put ADMIN_TOKEN`
+sets the key for the operator routes (`GET /api/admin/players`,
+`DELETE /api/admin/players/:id`). `node tools/server/smoke.mjs [url]`
+plays a whole game through the API and fails loudly if anything is off.
+`.github/workflows/deploy-server.yml` does the same on push to `main` once the repo has
+a `CLOUDFLARE_API_TOKEN` secret.
+
+**App.** `.github/workflows/deploy.yml` builds on every push to `main` and publishes `dist/` to
 GitHub Pages (enable Pages with source "GitHub Actions" once in the repo settings). Vite's
 `base` comes from the `BASE_PATH` env var, which the workflow sets to `/<repo>/`; unset
 locally, so `npm run dev` is unaffected.

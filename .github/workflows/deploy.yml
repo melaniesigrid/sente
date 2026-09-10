@@ -27,6 +27,8 @@ jobs:
         env:
           # Project pages are served under /<repo>/; local dev keeps "/".
           BASE_PATH: /${{ github.event.repository.name }}/
+          # The game server; set to "" to build without online play.
+          VITE_SENTE_SERVER: https://sente-server.melaniesigrid.workers.dev
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
