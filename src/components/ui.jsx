@@ -1,5 +1,6 @@
 import { Bot, Crown, Shield, Star } from "lucide-react";
-import { TINTS, rankOf, beltOf } from "../content/rank.js";
+import { TINTS, rankOf, preciseRankOf, beltOf } from "../content/rank.js";
+import { isProvisional } from "../engine/index.js";
 
 /* ----------------------- SHARED UI ----------------------- */
 export const Card = ({ children, className = "", inset, ...rest }) => (
@@ -30,15 +31,23 @@ export const Avatar = ({ name, tint, size = 44, bot, className = "" }) => (
 
 /* The badge carries the belt as a thin stripe under the rank, so the dojo
    colour travels everywhere a rank is shown without any extra chrome. */
-export const RankBadge = ({ rating, size = "md" }) => {
-  const label = rankOf(rating);
+/* `precise` shows the rank to a tenth - the player's own rank, where a game
+   that moved them a fraction should be visible. A house player is shown at the
+   whole rank it was asked to play, because that is all it was asked. `rd` is the
+   rating deviation: while it is wide the rank is still a guess, and the badge
+   says so with a question mark rather than pretending otherwise. */
+export const RankBadge = ({ rating, size = "md", precise = false, rd }) => {
+  const whole = rankOf(rating);
+  const label = precise ? preciseRankOf(rating) : whole;
   const belt = beltOf(rating);
-  const dan = label.endsWith("d");
-  const Icon = dan ? Crown : parseInt(label) <= 10 ? Star : Shield;
+  const dan = whole.endsWith("d");
+  const unsure = rd !== undefined && isProvisional(rd);
+  const Icon = dan ? Crown : parseInt(whole) <= 10 ? Star : Shield;
+  const title = `Rating ${Math.round(rating)} · ${belt.label}${unsure ? " · still settling" : ""}`;
   return (
-    <div className={`rank-badge ${size}`} title={`Rating ${rating} · ${belt.label}`}>
+    <div className={`rank-badge ${size}`} title={title}>
       <Icon size={size === "lg" ? 18 : 14} strokeWidth={2.2} />
-      <span>{label}</span>
+      <span>{label}{unsure ? "?" : ""}</span>
       <span className="belt-stripe" style={{ background: belt.color }} aria-hidden="true" />
     </div>
   );
@@ -60,4 +69,18 @@ export const Toggle = ({ on, onChange, label }) => (
     onClick={() => onChange(!on)}>
     <span className="toggle-knob" />
   </button>
+);
+
+/* ----------------------- A PULL QUOTE -----------------------
+   One condensed idea lifted out of the prose and set large between the
+   paragraphs, the way a magazine pulls a line into the margin. Where a
+   `Passage` is Zhang Ni's voice, this is ours: the same idea in ordinary
+   modern words, labelled as a gloss so it is never taken for a quotation of
+   the text beside it. `label` names the register; the default suits the book.
+   `size` is "sm" for a card corner, default for a page. */
+export const PullQuote = ({ children, label = "In plain words", size = "" }) => (
+  <aside className={`pull-quote ${size}`.trim()}>
+    <p className="pull-line">{children}</p>
+    <span className="pull-label">{label}</span>
+  </aside>
 );

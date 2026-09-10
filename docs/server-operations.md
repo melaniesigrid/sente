@@ -66,11 +66,17 @@ the **Edit Cloudflare Workers** template, or build a custom token with one permi
 | Permissions | Workers Scripts |
 | Access | Edit |
 
-That row covers uploading the Worker, its Durable Object migrations and its secrets, which
-is everything this deploy does. Under Account Resources, include the account that owns
-`sente-server` rather than all accounts. Leave Client IP Filtering empty, because the
-runners GitHub gives you do not have stable addresses. TTL is your call; an empty one never
-expires.
+One row is the whole requirement. There is no separate Durable Objects permission, because
+Durable Object namespaces and migrations are managed through the Workers Scripts API and
+ride along in the same upload as the script. Nothing else applies here either: this Worker
+uses no KV and no R2, Workers Tail is only for streaming logs with `wrangler tail`, no Zone
+permission is needed because the server runs on `workers.dev` rather than a custom domain,
+and Account Settings: Read is unnecessary because `CLOUDFLARE_ACCOUNT_ID` tells the deploy
+which account to use instead of making it look one up.
+
+Under Account Resources, include the account that owns `sente-server` rather than all
+accounts. Leave Client IP Filtering empty, because the runners GitHub gives you do not have
+stable addresses. TTL is your call; an empty one never expires.
 
 Cloudflare shows the token once. Put it in the repository:
 
@@ -86,15 +92,32 @@ without changing anything, run the workflow by hand:
 gh workflow run "Deploy server" --repo melaniesigrid/sente
 ```
 
-**If the run says the token is missing when you know you added it,** the secret exists but
-its value is empty, which is easy to do by saving the form before pasting. You can tell
-from the run log without seeing any secret: GitHub masks a non-empty secret as `***`, so a
-line reading `TOKEN:` with nothing after it means empty. Set it again, piping the value in
-so nothing is stored in your shell history:
+### When the deploy will not authenticate
+
+The workflow asks Cloudflare to verify the token before spending a deploy on it, and prints
+Cloudflare's own words along with the token's length. Two failures look alike from the
+outside and are worth telling apart.
+
+**"missing or empty" when you know you added it.** The secret exists with no value, which
+is easy to do by saving the form before pasting. You can confirm it from the run log
+without seeing any secret: GitHub masks a non-empty secret as `***`, so a line reading
+`TOKEN:` with nothing after it means empty.
+
+**A 32-character value.** An API token is 40 characters. Thirty-two hex characters is
+either the token **ID** from the token list or your **account ID**, both of which sit right
+next to the real thing in the dashboard and neither of which authenticates anything. The
+token value itself is shown exactly once, on the screen straight after you create it. If
+you did not copy it then, you cannot read it back: open the token in the dashboard and use
+**Roll** to issue a fresh value, which is shown once in the same way.
+
+Either way, set it again:
 
 ```bash
-gh secret set CLOUDFLARE_API_TOKEN --repo melaniesigrid/sente   # then paste, then Ctrl-Z Enter on Windows
+gh secret set CLOUDFLARE_API_TOKEN --repo melaniesigrid/sente   # paste, then Ctrl-Z Enter on Windows
 ```
+
+Whitespace around a pasted value is handled for you: the workflow strips it before use, so
+a trailing newline cannot break a deploy.
 
 ### 2. `ADMIN_TOKEN`, for the operator routes
 

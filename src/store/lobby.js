@@ -1,14 +1,24 @@
 /* ----------------------- LOBBY PREFERENCES -----------------------
-   The table the player last set up: board size, handicap and clock. A device
-   preference, not part of the profile, so it never travels with a rating.
-   Stored JSON is untrusted and falls back per field. 19x19 is the default
-   because it is the board most of the world plays on. */
-import { SIZES } from "../engine/index.js";
+   The table the player last set up: rules, board size, handicap, komi and clock.
+   A device preference, not part of the profile, so it never travels with a
+   rating. Stored JSON is untrusted and falls back per field. 19x19 is the
+   default because it is the board most of the world plays on.
+
+   `komi` is null until the player touches it, meaning "whatever this table is
+   owed" - the engine's default for the ruleset, board and handicap. Setting it
+   is a deliberate act and survives a change of board or ruleset, because a
+   player who has chosen 4.5 has chosen it for a reason. */
+import { SIZES, isRulesId, DEFAULT_RULES } from "../engine/index.js";
 import { CLOCK_PRESETS } from "../content/clockFace.js";
 
 export const LOBBY_KEY = "sente-lobby";
 export const HANDICAPS = [0, 2, 3, 4, 5, 6, 7, 8, 9];
-export const defaultLobby = { size: 19, handicap: 0, clock: "none" };
+/** Every komi the stepper can reach: half points, and the whole numbers that
+ *  New Zealand rules use, where a drawn game is allowed. */
+export const KOMI_STEPS = Array.from({ length: 20 }, (_, i) => i / 2);
+export const defaultLobby = {
+  rules: DEFAULT_RULES, size: 19, handicap: 0, komi: null, clock: "none",
+};
 
 const defaultStorage = () => {
   try { return globalThis.localStorage || null; } catch { return null; }
@@ -21,6 +31,8 @@ export function sanitizeLobby(raw) {
   if (SIZES.includes(raw.size)) out.size = raw.size;
   if (HANDICAPS.includes(raw.handicap)) out.handicap = raw.handicap;
   if (CLOCK_PRESETS.some((p) => p.id === raw.clock)) out.clock = raw.clock;
+  if (isRulesId(raw.rules)) out.rules = raw.rules;
+  if (KOMI_STEPS.includes(raw.komi)) out.komi = raw.komi;
   return out;
 }
 

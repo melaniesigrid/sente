@@ -28,24 +28,57 @@ jobs:
       # CLOUDFLARE_API_TOKEN (an account token with Workers Scripts: Edit). Without
       # the token the tests above still run and the job stays green; deploy by hand
       # with `npm run deploy:server`. See docs/server-operations.md.
+      # Whitespace around a pasted secret is invisible in the settings page but
+      # breaks the Authorization header, so the token is trimmed before use and
+      # checked for shape. Neither the token nor its length is ever printed when
+      # it looks right.
       - id: gate
         env:
-          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          RAW: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
+          TOKEN="$(printf '%s' "$RAW" | tr -d '[:space:]')"
           if [ -z "$TOKEN" ]; then
             echo "ok=false" >> "$GITHUB_OUTPUT"
             echo "::notice::CLOUDFLARE_API_TOKEN is missing or empty, so the deploy was skipped. If the secret is listed but empty, set its value again: gh secret set CLOUDFLARE_API_TOKEN --repo melaniesigrid/sente. Steps for making the token are in docs/server-operations.md."
-          elif [ -z "$ACCOUNT" ]; then
+            exit 0
+          fi
+          if [ -z "$ACCOUNT" ]; then
             echo "ok=false" >> "$GITHUB_OUTPUT"
             echo "::warning::CLOUDFLARE_API_TOKEN is set but CLOUDFLARE_ACCOUNT_ID is missing; skipping the deploy."
-          else
-            echo "ok=true" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+          if ! printf '%s' "$TOKEN" | grep -qE '^[A-Za-z0-9_-]{30,80}$'; then
+            echo "::error::CLOUDFLARE_API_TOKEN does not look like a Cloudflare API token. After trimming whitespace it is ${#TOKEN} characters; a token is about 40 characters of letters, digits, hyphen and underscore. Check you copied the token value Cloudflare showed once, rather than its name, its ID from the token list, or a Global API Key."
+            exit 1
+          fi
+          # Mask the trimmed value before passing it on: trimming can make it
+          # differ from the registered secret, which would leave it unmasked.
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+          echo "ok=true" >> "$GITHUB_OUTPUT"
+      # Ask Cloudflare what it makes of the token before spending a deploy on it.
+      # The response carries no secret, only a verdict, and it distinguishes a
+      # wrong value from a token that is merely missing a permission.
+      - if: steps.gate.outputs.ok == 'true'
+        env:
+          TOKEN: ${{ steps.gate.outputs.token }}
+        run: |
+          BODY="$(curl -sS -H "Authorization: Bearer $TOKEN" \
+            https://api.cloudflare.com/client/v4/user/tokens/verify)"
+          if printf '%s' "$BODY" | grep -q '"success":true'; then
+            echo "Cloudflare accepts the token."
+            exit 0
+          fi
+          echo "::error::Cloudflare rejected the token. It is ${#TOKEN} characters after trimming; an API token is 40. A 32-character value is usually the token ID copied from the token list rather than the secret Cloudflare shows once on creation. Cloudflare said: $BODY"
+          exit 1
+      # The trimmed token has to go through the action's own input: wrangler-action
+      # sets CLOUDFLARE_API_TOKEN from it, so leaving the input out blanks whatever
+      # the environment already held.
       - if: steps.gate.outputs.ok == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          apiToken: ${{ steps.gate.outputs.token }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       # A Durable Object keeps running the previous code until its instance restarts,
       # so give it a moment before asking production whether the new code is live.

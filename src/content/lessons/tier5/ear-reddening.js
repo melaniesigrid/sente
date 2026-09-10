@@ -49,6 +49,7 @@ export default {
   id: "ear-reddening",
   title: "The Ear-Reddening Game",
   subtitle: "Shusaku against Gennan Inseki, 1846",
+  plain: "Replaying a famous game move by move is the cheapest lesson a strong player ever gives. You guess, the record answers, and the gap between your move and Shusaku's is exactly what you have left to learn.",
   tier: 5, rank: "1k", track: "judgement", size: 19, prereqs: [], minutes: 15,
   book: "masters",
   author: "Sente", sources: ["Game record: public domain (homepages.cwi.nl/~aeb/go/games)"],

@@ -27,6 +27,7 @@ export default {
   id: "guanzi-first-line-hane",
   title: "The Hane on the First Line",
   subtitle: "The endgame: the commonest move on the board, and what it is worth",
+  plain: "The endgame is arithmetic you can do at the board. The hane on the first line is the commonest move in the game, and knowing it is worth a point more than the plain block is how close games are won.",
   tier: 4, rank: "9k", track: "endgame", size: 9,
   prereqs: ["guanzi-gote-alternates"], minutes: 7,
   author: "Sente", sources: [GUANZI_SOURCE], book: "guanzi",

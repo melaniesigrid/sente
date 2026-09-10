@@ -4,6 +4,7 @@ import { saveGame, loadGame } from "../store/gameStore.js";
 import { createGame, play, resign } from "../engine/index.js";
 import { PERSONAS } from "../content/personas.js";
 import { duelPersona } from "../content/duel.js";
+import { ratingOfRank } from "../content/rank.js";
 
 const memStorage = () => {
   const m = new Map();
@@ -33,9 +34,9 @@ describe("loadSession", () => {
     expect(out.mode.rank).toBeUndefined();
     expect(out.opponent).toBe("Tetsu");
     saveGame({ record: started(), mode: { kind: "bot", personaId: "tetsu", rank: "7k" } }, s);
-    expect(loadSession({ storage: s, today: TODAY, profile: { rating: 1000 } }).mode.rank).toBe("7k");
+    expect(loadSession({ storage: s, today: TODAY, profile: { rating: ratingOfRank("20k") } }).mode.rank).toBe("7k");
     saveGame({ record: started(), mode: { kind: "bot", personaId: "tetsu" } }, s);
-    expect(loadSession({ storage: s, today: TODAY, profile: { rating: 1000 } }).mode.rank).toBe("20k");
+    expect(loadSession({ storage: s, today: TODAY, profile: { rating: ratingOfRank("20k") } }).mode.rank).toBe("20k");
     saveGame({ record: started(), mode: { kind: "bot", personaId: "nobody" } }, s);
     expect(loadSession({ storage: s, today: TODAY })).toBeNull();
     expect(loadGame(s)).toBeNull();

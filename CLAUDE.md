@@ -19,12 +19,20 @@ in `server/` (Durable Objects), deployed separately.
 - The two-shadow neumorphism is fixed: every raised thing is one light shadow from the top
   left and one dark from the bottom right, every sunken thing those two turned inward.
   Lucide icons only. Don't introduce another UI library.
-- Palette is themed the way type is. A theme (ground, the two lights, ink, cream, accent) is
-  data in `src/content/theme.js`; the stylesheet names no colour outside its default block,
-  only tokens (`--ground`, `--light`, `--dark`, `--ink`, `--cream`, `--accent`, `--sh-ink`,
-  `--sh-lite`, `--wash-a/b`, `--scrim`, `--grid`, `--stone-b-1..3`, `--stone-w-1..3`), which
-  the shell sets from `profile.theme`. `house` is the default and the reference. A new theme
-  is one entry in that file; `npm test` checks its contrast and its shadow closeness.
+- Palette is themed the way type is, and lives in `src/theme/` with `index.js` as the only
+  import surface, like the engine. `tokens.js` is the contract (every custom property, every
+  contrast rule); `palettes.js` is the named rooms as data; `derive.js` turns four authored
+  colours into the whole token set; `color.js` is the only place that knows how a colour is
+  spelled. The stylesheet names no colour outside its house-default block, only tokens, which
+  the shell sets from `profile.theme` (and `profile.dojo` for a palette the player built).
+- A new palette is four colours — ground, ink, mark, shell — in `palettes.js`. Everything
+  else derives. `npm test` holds it to the same rules `auditPalette` shows live in the dojo;
+  there is one implementation of those rules so the panel and CI cannot disagree.
+- `house` is the reference room and the fallback; `system` is what a profile ships set to,
+  and `resolveTheme(id, prefersDark)` turns it into a real room. The theme package is pure:
+  `usePrefersDark` in `src/components/` is the only thing that reads the media query.
+- The type scale floor is 12px. Nothing below that carries meaning at arm's length, and the
+  wordmark is display-sized: it is the brand, not a card heading.
 - Type is the one themed part. A pairing (display face, italic voice, body face) is data in
   `src/content/typeface.js`; the stylesheet names no family directly, only the tokens
   `--font-display`, `--font-display-italic`, `--font-body` and their weight/tracking/leading
@@ -58,6 +66,16 @@ in `server/` (Durable Objects), deployed separately.
   `npm run deploy:server`. Verify against a fresh instance, and do not conclude a change
   failed from one test run straight after a deploy. Worker code in `index.js` updates at once.
 - Rules never live in a view. If a view needs a rule, add it to the engine first.
+- A ruleset is data, not a branch: `src/engine/rulesets.js` holds the count (area or
+  territory), the komi by board size, what White is owed for handicap stones and whether
+  suicide is legal. A new set is one entry. AGA is the default and what the lessons count
+  in. Komi is what the board is owed under those rules, never one number for every board.
+- The rating scale is OGS's, number for number: `rank = ln(rating / 525) * 23.15`, rank 30
+  is 1 dan (`src/content/rank.js`). A rank is shown to a tenth, truncated so it always
+  sits inside the whole rank. Rating moves by Glicko-2 in `src/engine/glicko.js` — and the
+  server imports that same module rather than keeping a second copy, because a rating that
+  means one thing offline and another online is not a rating. See
+  `docs/designs/the-table.md`.
 - Lessons are data. A new lesson is one file in `src/content/lessons/tier<N>/`, added to that
   tier's index; `npm test` verifies every position. No exclamation marks in lesson text.
 - Run vitest from PowerShell (`C:...`), not Git Bash: the forks pool loads two copies of

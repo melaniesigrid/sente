@@ -21,9 +21,10 @@ import { Avatar } from "./components/ui.jsx";
 import { Toast } from "./components/Toast.jsx";
 import { ErrorBoundary } from "./components/ErrorBoundary.jsx";
 import { MokuProvider, MokuDock } from "./components/Moku.jsx";
-import { rankOf } from "./content/rank.js";
+import { preciseRankOf } from "./content/rank.js";
 import { typefaceVars } from "./content/typeface.js";
-import { themeVars } from "./content/theme.js";
+import { themeVars, resolveTheme } from "./theme/index.js";
+import { usePrefersDark } from "./components/prefersDark.js";
 import { defaultProfile, loadProfile, needsOnboarding } from "./store/profile.js";
 import { Home } from "./views/Home.jsx";
 import { Welcome } from "./views/Welcome.jsx";
@@ -32,6 +33,7 @@ import { LearnView } from "./views/Learn.jsx";
 import { ProblemsView } from "./views/Problems.jsx";
 import { RankingsView } from "./views/Rankings.jsx";
 import { ProfileView } from "./views/Profile.jsx";
+import { DojoView } from "./views/Dojo.jsx";
 
 /* ----------------------- APP SHELL ----------------------- */
 const NAV = [
@@ -45,6 +47,9 @@ const NAV = [
 export default function SenteApp() {
   const [view, setView] = useState("home");
   const [profile, setProfile] = useState(defaultProfile);
+  // `system` is a pointer at two rooms; the device says which one, here and nowhere else.
+  const prefersDark = usePrefersDark();
+  const room = resolveTheme(profile.theme, prefersDark);
   const [toast, setToast] = useState(null);
   // A different line from the Classic in the footer on every load.
   const [footSaying] = useState(() => sayingBySeed(Math.floor(Math.random() * 1e6)));
@@ -73,7 +78,7 @@ export default function SenteApp() {
 
   return (
     <MokuProvider view={view}>
-    <div className="sente-root" style={{ ...themeVars(profile.theme), ...typefaceVars(profile.typeface) }}>
+    <div className="sente-root" style={{ ...themeVars(room, profile.dojo), ...typefaceVars(profile.typeface) }}>
       <style>{CSS}</style>
       <header className="topbar">
         <div className="brand">
@@ -95,7 +100,7 @@ export default function SenteApp() {
           <Avatar name={profile.name} tint={profile.tint} size={34} />
           <div className="chip-meta">
             <strong>{profile.name}</strong>
-            <span>{rankOf(profile.rating)}</span>
+            <span>{preciseRankOf(profile.rating)}</span>
           </div>
         </button>
       </header>
@@ -110,7 +115,8 @@ export default function SenteApp() {
           {view === "learn" && <LearnView profile={profile} setProfile={setProfile} />}
           {view === "tsumego" && <ProblemsView profile={profile} setProfile={setProfile} initialId={params ? params.problemId : null} />}
           {view === "ladder" && <RankingsView profile={profile} />}
-          {view === "profile" && <ProfileView profile={profile} setProfile={setProfile} />}
+          {view === "profile" && <ProfileView profile={profile} setProfile={setProfile} go={go} room={room} />}
+          {view === "dojo" && <DojoView profile={profile} setProfile={setProfile} notify={notify} go={go} room={room} />}
           </>)}
         </ErrorBoundary>
       </main>

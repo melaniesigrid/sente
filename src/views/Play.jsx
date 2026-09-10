@@ -1,12 +1,13 @@
 import { useState, useMemo } from "react";
 import { Play, Users, Handshake, Minus, Plus, Home } from "lucide-react";
-import { Avatar, RankBadge, Btn } from "../components/ui.jsx";
+import { Avatar, RankBadge, Btn, PullQuote } from "../components/ui.jsx";
+import { plainFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { DuelCard } from "../components/DuelCard.jsx";
 import { personasFor, PERSONAS } from "../content/personas.js";
 import { rankOf, ratingOfRank, stepRank, rankInRange, rankWithHandicap, RANK_LADDER } from "../content/rank.js";
-import { SIZES, defaultKomi } from "../engine/index.js";
-import { loadLobby, saveLobby, HANDICAPS } from "../store/lobby.js";
+import { SIZES, defaultKomi, RULESET_IDS, rulesetOf } from "../engine/index.js";
+import { loadLobby, saveLobby, HANDICAPS, KOMI_STEPS } from "../store/lobby.js";
 import { duelMode } from "../content/duel.js";
 import { dayKey } from "../content/kata.js";
 import { CLOCK_PRESETS, presetById, presetText } from "../content/clockFace.js";
@@ -54,10 +55,18 @@ export function PlayView({ profile, setProfile, notify, resume }) {
   if (!session) {
     const first = RANK_LADDER[0], last = RANK_LADDER[RANK_LADDER.length - 1];
     const hi = HANDICAPS.indexOf(table.handicap);
-    const komi = defaultKomi(table.handicap);
+    const set = rulesetOf(table.rules);
+    const ri = RULESET_IDS.indexOf(set.id);
+    // Komi is what the board is owed under these rules, unless the player has
+    // said otherwise; a chosen komi survives a change of board or ruleset.
+    const owed = defaultKomi(table.handicap, table.size, table.rules);
+    const komi = table.komi ?? owed;
+    const ki = KOMI_STEPS.indexOf(komi);
     const ratedAs = rankWithHandicap(rank, table.handicap);
     const clock = presetById(table.clock).preset;
-    const sit = (mode) => setSession({ mode: { ...mode, size: table.size, handicap: table.handicap, clock } });
+    const sit = (mode) => setSession({
+      mode: { ...mode, size: table.size, handicap: table.handicap, rules: table.rules, komi, clock },
+    });
     return (
       <div className="stack">
         <h2 className="section-title">Find a game</h2>
@@ -67,6 +76,7 @@ export function PlayView({ profile, setProfile, notify, resume }) {
           face-to-face game. House players adapt to the level you pick, from 25 kyu to 9
           dan, and play any board.
         </p>
+        <PullQuote>{plainFor("play")}</PullQuote>
         <Passage context="play" />
         <OnlineCard profile={profile} notify={notify} onPlay={setSession} size={table.size} />
         <DuelCard profile={profile} today={today} mode={duelMode(PERSONAS, today)}
@@ -87,11 +97,19 @@ export function PlayView({ profile, setProfile, notify, resume }) {
           <div className="rank-picker-label">
             <strong>The table</strong>
             <span className="fine">
-              komi {komi}{table.handicap ? ` · White plays first · rated as ${ratedAs}` : ""}
+              {set.name} {set.scoring} · komi {komi}{table.komi === null ? "" : ", your own"}
+              {table.handicap ? ` · White plays first · rated as ${ratedAs}` : ""}
               {clock ? ` · ${presetText(clock)}` : ""}
             </span>
           </div>
           <div className="rank-picker-controls">
+            <div className="rank-picker-controls" role="group" aria-label="Rules">
+              <Btn icon={Minus} small label="Previous ruleset" disabled={ri <= 0}
+                onClick={() => setTable({ rules: RULESET_IDS[ri - 1] })} />
+              <span className="handicap-num" aria-live="polite" title={set.blurb}>{set.name}</span>
+              <Btn icon={Plus} small label="Next ruleset" disabled={ri >= RULESET_IDS.length - 1}
+                onClick={() => setTable({ rules: RULESET_IDS[ri + 1] })} />
+            </div>
             <div className="seg" role="radiogroup" aria-label="Board size">
               {SIZES.map(n => (
                 <button key={n} type="button" role="radio" aria-checked={table.size === n}
@@ -99,6 +117,15 @@ export function PlayView({ profile, setProfile, notify, resume }) {
                   {n}×{n}
                 </button>
               ))}
+            </div>
+            <div className="rank-picker-controls" role="group" aria-label="Komi">
+              <Btn icon={Minus} small label="Less komi" disabled={ki <= 0}
+                onClick={() => setTable({ komi: KOMI_STEPS[ki - 1] })} />
+              <span className="handicap-num" aria-live="polite">{komi} komi</span>
+              <Btn icon={Plus} small label="More komi" disabled={ki >= KOMI_STEPS.length - 1}
+                onClick={() => setTable({ komi: KOMI_STEPS[ki + 1] })} />
+              {table.komi !== null && komi !== owed
+                && <Btn icon={Home} small onClick={() => setTable({ komi: null })}>Default</Btn>}
             </div>
             <div className="rank-picker-controls" role="group" aria-label="Handicap stones">
               <Btn icon={Minus} small label="Fewer handicap stones" disabled={hi <= 0} onClick={() => setTable({ handicap: HANDICAPS[hi - 1] })} />

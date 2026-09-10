@@ -6,6 +6,7 @@ export default {
   id: "classic-board",
   title: "The Board and the Stones",
   subtitle: "Chapter one: why no game repeats",
+  plain: "Three hundred and sixty-one points, and no memory. No game has ever repeated itself, so nothing on this board can be learned by heart; every position has to be read out again from the beginning.",
   tier: 2, rank: "20k", track: "opening", size: 9, prereqs: ["first-9x9-opening"], minutes: 4,
   author: "Sente", sources: [CLASSIC_SOURCE], series: "classic", chapter: 1,
   steps: [

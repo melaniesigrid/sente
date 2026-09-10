@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { sanitizeProfile, defaultProfile } from "./profile.js";
 import { DEFAULT_TYPEFACE } from "../content/typeface.js";
+import { SYSTEM_THEME, HOUSE_THEME, DOJO_THEME } from "../theme/index.js";
 
 let warn;
 beforeEach(() => { warn = vi.spyOn(console, "warn").mockImplementation(() => {}); });
@@ -36,7 +37,7 @@ describe("sanitizeProfile", () => {
   });
   it("resets non-finite or non-numeric numbers", () => {
     const out = sanitizeProfile({ ...defaultProfile, rating: "1200", wins: NaN, losses: Infinity });
-    expect(out.rating).toBe(1000);
+    expect(out.rating).toBe(defaultProfile.rating);
     expect(out.wins).toBe(0);
     expect(out.losses).toBe(0);
     expect(warn.mock.calls[0][0]).toMatch(/rating, wins, losses/);
@@ -78,5 +79,45 @@ describe("sanitizeProfile", () => {
       expect(sanitizeProfile(raw)).toEqual(defaultProfile);
     }
     expect(warn).toHaveBeenCalledTimes(4);
+  });
+});
+
+describe("the stored palette", () => {
+  const MINE = { ground: "#101014", ink: "#e6e6ea", accent: "#b98cff", cream: "#f2f2f6" };
+
+  // Someone opening Sente at night on a dark machine should not be handed
+  // full-brightness cream and left to go find the setting.
+  it("ships following the device", () => {
+    expect(defaultProfile.theme).toBe(SYSTEM_THEME);
+    expect(defaultProfile.dojo).toBeNull();
+    expect(sanitizeProfile({}).theme).toBe(SYSTEM_THEME);
+  });
+
+  it("keeps a named room, and resets one it does not know", () => {
+    expect(sanitizeProfile({ ...defaultProfile, theme: "lacquer" }).theme).toBe("lacquer");
+    expect(sanitizeProfile({ ...defaultProfile, theme: HOUSE_THEME }).theme).toBe(HOUSE_THEME);
+    for (const bad of ["nope", "", 7, null, {}]) {
+      expect(sanitizeProfile({ ...defaultProfile, theme: bad }).theme, String(bad)).toBe(SYSTEM_THEME);
+    }
+  });
+
+  it("keeps a dojo palette, and the theme that points at it", () => {
+    const out = sanitizeProfile({ ...defaultProfile, theme: DOJO_THEME, dojo: MINE });
+    expect(out.theme).toBe(DOJO_THEME);
+    expect(out.dojo.ground).toBe("#101014");
+  });
+
+  it("refuses to wear a dojo room that is not there", () => {
+    const out = sanitizeProfile({ ...defaultProfile, theme: DOJO_THEME, dojo: { ground: "red" } });
+    expect(out.theme).toBe(SYSTEM_THEME);
+    expect(out.dojo).toBeNull();
+    expect(warn.mock.calls[0][0]).toMatch(/theme|dojo/);
+  });
+
+  it("does not let a stored palette alias the profile it came from", () => {
+    const stored = { ...defaultProfile, theme: DOJO_THEME, dojo: { ...MINE, evil: "x" } };
+    const out = sanitizeProfile(stored);
+    expect(out.dojo).not.toBe(stored.dojo);
+    expect(out.dojo).not.toHaveProperty("evil");
   });
 });

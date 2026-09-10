@@ -19,6 +19,7 @@ export default {
   id: "classic-know-yourself",
   title: "On Knowing Oneself",
   subtitle: "Chapter six: your weak point is where they will come",
+  plain: "Find your own weakest group before you go hunting. That is where your opponent is already aiming, and mending it first is usually worth more than the attack you had in mind.",
   tier: 2, rank: "17k", track: "tactics", size: 9, prereqs: ["connect-cut", "atari-escape"], minutes: 5,
   author: "Sente", sources: [CLASSIC_SOURCE], series: "classic", chapter: 6,
   steps: [

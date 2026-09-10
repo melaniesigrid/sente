@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createClock, tick, onMove, remainingMs } from "./clock.js";
+import { createClock, tick, onMove, remainingMs, CLOCK_TYPES } from "./clock.js";
 
 describe("createClock", () => {
   it("rejects unknown presets", () => {
@@ -128,5 +128,90 @@ describe("fischer", () => {
     const c = createClock(preset);
     expect(tick(c, "b", 0).clock).toBe(c);
     expect(tick(c, "b", -5).clock).toBe(c);
+  });
+});
+
+describe("canadian overtime", () => {
+  const preset = { type: "canadian", mainMs: 60_000, periodMs: 300_000, stones: 20 };
+
+  it("spends main time first, then opens a block", () => {
+    let t = tick(createClock(preset), "b", 30_000);
+    expect(t.event).toBeNull();
+    expect(t.clock.b.mainMs).toBe(30_000);
+    expect(t.clock.b.inByoyomi).toBe(false);
+    t = tick(t.clock, "b", 30_000);
+    expect(t.event).toBe("byoyomi");
+    expect(t.clock.b.mainMs).toBe(0);
+    expect(t.clock.b.periodMs).toBe(300_000);
+    expect(t.clock.b.stonesLeft).toBe(20);
+  });
+
+  it("does not renew the block by running down, only by playing the stones", () => {
+    let c = tick(createClock(preset), "b", 60_000).clock;
+    c = tick(c, "b", 299_000).clock;
+    expect(c.b.periodMs).toBe(1_000);
+    expect(c.expired).toBeNull();
+    const out = tick(c, "b", 1_000);
+    expect(out.expired).toBe(true);
+    expect(out.event).toBe("expired");
+  });
+
+  it("renews the block, in full, on the last stone of the quota", () => {
+    let c = tick(createClock({ ...preset, stones: 3 }), "b", 60_000).clock;
+    c = tick(c, "b", 200_000).clock;               // 100s left of the block
+    c = onMove(c, "b");
+    expect(c.b.stonesLeft).toBe(2);
+    expect(c.b.periodMs).toBe(100_000);            // spent time stays spent
+    c = onMove(c, "b");
+    expect(c.b.stonesLeft).toBe(1);
+    c = onMove(c, "b");                            // the quota is met
+    expect(c.b.stonesLeft).toBe(3);
+    expect(c.b.periodMs).toBe(300_000);            // and the block is whole again
+  });
+
+  it("counts nothing off the quota while main time is still running", () => {
+    const c = onMove(createClock(preset), "b");
+    expect(c.b.stonesLeft).toBe(20);
+    expect(c.b.mainMs).toBe(60_000);
+  });
+
+  it("reports what is left as main time plus one whole block", () => {
+    expect(remainingMs(createClock(preset), "b")).toBe(60_000 + 300_000);
+    const over = tick(createClock(preset), "b", 60_000).clock;
+    expect(remainingMs(over, "b")).toBe(300_000);
+  });
+});
+
+describe("simple (per-move) time", () => {
+  const preset = { type: "simple", perMoveMs: 10_000 };
+
+  it("starts every side with the allowance", () => {
+    const c = createClock(preset);
+    expect(c.b.mainMs).toBe(10_000);
+    expect(c.w.mainMs).toBe(10_000);
+    expect(remainingMs(c, "b")).toBe(10_000);
+  });
+
+  it("gives the whole allowance back after each move, spent or not", () => {
+    let c = tick(createClock(preset), "b", 7_000).clock;
+    expect(c.b.mainMs).toBe(3_000);
+    c = onMove(c, "b");
+    expect(c.b.mainMs).toBe(10_000);
+    expect(c.w.mainMs).toBe(10_000);
+  });
+
+  it("flags when a single move runs over, however many have been made", () => {
+    let c = createClock(preset);
+    for (let i = 0; i < 30; i++) c = onMove(tick(c, "b", 9_000).clock, "b");
+    const out = tick(c, "b", 10_000);
+    expect(out.expired).toBe(true);
+    expect(out.clock.expired).toBe("b");
+  });
+});
+
+describe("the clock systems", () => {
+  it("are the five a server is expected to offer, and every one can be built", () => {
+    expect(CLOCK_TYPES).toEqual(["absolute", "byoyomi", "canadian", "fischer", "simple"]);
+    expect(() => createClock({ type: "hourglass", mainMs: 1 })).toThrow(RangeError);
   });
 });

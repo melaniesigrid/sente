@@ -12,6 +12,7 @@ export default {
   id: "classic-emptiness",
   title: "On Emptiness and Fullness",
   subtitle: "Chapter five: avoid what is full, flow into the void",
+  plain: "Do not lean on your opponent's strong stones: contact makes them stronger and leaves you no thicker. Play where they are thin, and change the plan the moment the board changes.",
   tier: 3, rank: "13k", track: "middle", size: 13, prereqs: ["classic-territory"], minutes: 5,
   author: "Sente", sources: [CLASSIC_SOURCE], series: "classic", chapter: 5,
   steps: [

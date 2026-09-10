@@ -1,10 +1,11 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Fragment } from "react";
 import {
   ChevronLeft, ChevronRight, Check, X, Lightbulb, BookOpen, RotateCcw, Play, Search, Clock, Lock, Quote, FastForward,
   CornerDownRight, Eye,
 } from "lucide-react";
 import { Board } from "../components/Board.jsx";
-import { Card, Btn, Pill } from "../components/ui.jsx";
+import { Card, Btn, Pill, PullQuote } from "../components/ui.jsx";
+import { plainFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
 import {
@@ -160,6 +161,7 @@ export function LessonPlayer({ lesson, nextLesson, onDone, onExit, onOpenNext, r
                 <span className="theme-chip">{trackByKey(lesson.track)?.name}</span>
               </div>
               <h3 className="lesson-head">{lesson.title}</h3>
+              {lesson.plain && <PullQuote size="sm">{lesson.plain}</PullQuote>}
               <p className="fine">What this taught you</p>
               <ul className="recap">
                 {learned.map((l, i) => (
@@ -378,6 +380,19 @@ function NamesTable() {
 }
 
 /* One chapter of the book: the prose, and the lessons that teach it. */
+/* A passage with one idea pulled out of it: the paragraphs as the chapter
+   gives them, and the plain-words line set large after the first, where a
+   magazine would put it. Prose with no gloss is just paragraphs. */
+function Prose({ text, plain }) {
+  const at = Math.min(1, text.length - 1);
+  return text.map((t, i) => (
+    <Fragment key={i}>
+      <p className="lesson-text">{t}</p>
+      {plain && i === at && <PullQuote>{plain}</PullQuote>}
+    </Fragment>
+  ));
+}
+
 function ChapterRow({ chapter, lessons, done, onOpen }) {
   const [open, setOpen] = useState(false);
   return (
@@ -392,7 +407,7 @@ function ChapterRow({ chapter, lessons, done, onOpen }) {
       </button>
       {open && (
         <div className="chapter-body">
-          {chapter.text.map((t, i) => <p key={i} className="lesson-text">{t}</p>)}
+          <Prose text={chapter.text} plain={chapter.plain} />
           {chapter.n === 11 && <NamesTable />}
           {lessons.map(l => <LessonCard key={l.id} lesson={l} done={done(l.id)} onOpen={onOpen} />)}
         </div>
@@ -408,6 +423,7 @@ function ClassicCard({ done, onOpen }) {
   return (
     <Card inset className="stack-sm">
       <div className="stat-head"><Quote size={15} /><span>{CLASSIC.title}</span></div>
+      <PullQuote>{plainFor("learn")}</PullQuote>
       <Passage context="learn" />
       <div className="row spread">
         <span className="fine">{finished}/{lessons.length} chapters read</span>
@@ -422,7 +438,7 @@ function ClassicCard({ done, onOpen }) {
             <div className="chapter-row">
               <div className="chapter-body preface">
                 <strong className="chapter-title">{PREFACE.title}</strong>
-                {PREFACE.text.map((t, i) => <p key={i} className="lesson-text">{t}</p>)}
+                <Prose text={PREFACE.text} plain={PREFACE.plain} />
               </div>
             </div>
             {CHAPTERS.map(ch => (

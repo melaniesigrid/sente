@@ -49,6 +49,7 @@ export default {
   id: "jowa-intetsu",
   title: "Jowa Against Intetsu",
   subtitle: "Honinbo Jowa, White, 1835",
+  plain: "Sitting behind Jowa's stones shows where a game turns: the few moves where his choice and a strong contemporary's part company. Guess first, then see what he saw.",
   tier: 5, rank: "1k", track: "middle", size: 19, prereqs: [], minutes: 15,
   book: "masters",
   author: "Sente", sources: ["Game record: public domain (homepages.cwi.nl/~aeb/go/games)"],
