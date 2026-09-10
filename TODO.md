@@ -122,6 +122,12 @@ each fixed in its own commit:
 - [x] Onboarding for a first-time visitor (2026-09-10, branch `feat/onboarding`): four
       beats — what go is, name and tint, a four-step demo ending in a capture, and a
       way into a first game, the lessons or a look around.
+- [x] A front door (2026-09-10, branch `feat/landing-page`): the landing is its own
+      screen (`views/Landing.jsx`) and Home is the dashboard behind it. A visitor who
+      has not been onboarded opens on the front door; Enter hands them to the welcome
+      flow, and the footer keeps an "About Sente" link back. Section labels and the
+      saying are typed as they are scrolled to (`components/Typed.jsx`), the hero
+      arrives a beat at a time, and the roadmap moved off the dashboard onto it.
 - [x] Keyboard (2026-09-10, branch `feat/table-keys`): P passes and U takes back at the
       table, both through the same handlers the buttons use so every guard holds; the
       caption says so. In review: left and right walk a move, up and down jump ten,
