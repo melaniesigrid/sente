@@ -390,7 +390,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
      two boards on one screen would invite a click on the wrong one. */
   if (reviewing) {
     return (
-      <Review record={rec} onExit={() => setReviewing(false)}
+      <Review record={rec} profile={profile} onExit={() => setReviewing(false)}
         onRematch={duel ? null : () => { setReviewing(false); reset(); }} />
     );
   }
@@ -423,7 +423,8 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
             disabled={boardDisabled}
             atari={atariIdx}
             captured={rec.lastCaptured || []} captureKey={rec.moves.length}
-            territory={preview ? preview.territory : null} dead={rec.dead} />
+            territory={preview ? preview.territory : null} dead={rec.dead}
+            coordinates={profile.coordinates} mark={profile.lastMoveMark} />
           {scoring ? (
             <div className="row">
               <Btn icon={Check} small primary onClick={onAccept}>Accept score</Btn>

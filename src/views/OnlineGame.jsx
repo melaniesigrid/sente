@@ -179,7 +179,8 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
           {room ? (
             <Board board={rec.board} onPlay={onPlay} lastMove={lastMoveIndex(rec)} disabled={boardDisabled}
               atari={atariIdx} captured={rec.lastCaptured || []} captureKey={rec.moves.length}
-              territory={preview ? preview.territory : null} dead={rec.dead} />
+              territory={preview ? preview.territory : null} dead={rec.dead}
+            coordinates={profile.coordinates} mark={profile.lastMoveMark} />
           ) : (
             <div className="board-well board-placeholder" aria-hidden="true" />
           )}

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   createBoard, idx, inB, colRow, starPoints, chainAt, withStone, boardFromRows, boardToRows,
+  COLUMN_LETTERS, colLabel, rowLabel, pointLabel,
 } from "./board.js";
 
 describe("createBoard", () => {
@@ -109,5 +110,29 @@ describe("rows helpers", () => {
     const b = withStone(a, 4, 4, "b");
     expect(a.cells[idx(9, 4, 4)]).toBeNull();
     expect(b.cells[idx(9, 4, 4)]).toBe("b");
+  });
+});
+
+describe("coordinates", () => {
+  it("skips the letter I, as every go book does", () => {
+    expect(COLUMN_LETTERS).not.toContain("I");
+    expect(colLabel(0)).toBe("A");
+    expect(colLabel(7)).toBe("H");
+    expect(colLabel(8)).toBe("J");
+    expect(colLabel(18)).toBe("T");
+  });
+  it("numbers rows from the bottom", () => {
+    expect(rowLabel(19, 0)).toBe(19);
+    expect(rowLabel(19, 18)).toBe(1);
+    expect(rowLabel(9, 0)).toBe(9);
+  });
+  it("names a point the way a book would", () => {
+    expect(pointLabel(19, 3, 3)).toBe("D16");
+    expect(pointLabel(19, 15, 15)).toBe("Q4");
+    expect(pointLabel(9, 4, 4)).toBe("E5");
+    expect(pointLabel(19, 8, 10)).toBe("J9");
+  });
+  it("has a letter for every column of the biggest board", () => {
+    for (let c = 0; c < 19; c++) expect(colLabel(c)).toMatch(/^[A-HJ-T]$/);
   });
 });
