@@ -40,7 +40,7 @@ async function route(req, env) {
   const path = url.pathname.replace(/\/+$/, "") || "/";
   const reg = registry(env);
 
-  if (path === "/" || path === "/api") return json({ name: "sente-server", ok: true });
+  if (path === "/" || path === "/api/health") return json({ name: "sente-server", ok: true });
 
   if (path === "/api/register" && req.method === "POST") {
     const body = await readJson(req);
