@@ -2,8 +2,8 @@ import { Bot, Crown, Shield, Star } from "lucide-react";
 import { TINTS, rankOf, beltOf } from "../content/rank.js";
 
 /* ----------------------- SHARED UI ----------------------- */
-export const Card = ({ children, className = "", inset }) => (
-  <div className={`neu-card ${inset ? "neu-inset" : ""} ${className}`}>{children}</div>
+export const Card = ({ children, className = "", inset, ...rest }) => (
+  <div className={`neu-card ${inset ? "neu-inset" : ""} ${className}`} {...rest}>{children}</div>
 );
 
 export const Btn = ({ icon: Icon, children, onClick, primary, disabled, small, label }) => (

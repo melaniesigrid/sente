@@ -82,14 +82,9 @@ export function loadModel() {
   if (loading) return loading;
   loading = (async () => {
     try {
-      const ort = await import("onnxruntime-web/wasm");
-      // GitHub Pages sends no cross-origin isolation headers, so threads are off.
-      ort.env.wasm.numThreads = 1;
       const bytes = await fetchModel(base() + MODEL_FILE);
       emit({ phase: "compile", loaded: bytes.length, total: bytes.length });
-      const s = await ort.InferenceSession.create(bytes, { executionProviders: ["wasm"] });
-      session = s;
-      session.ort = ort;
+      session = await startWorker(bytes) || await startHere(bytes);
       emit({ phase: "ready", loaded: bytes.length, total: bytes.length });
       return session;
     } catch (e) {
@@ -99,6 +94,80 @@ export function loadModel() {
     }
   })();
   return loading;
+}
+
+/** The worker resolves nothing relative to the page, so the prefix must be absolute.
+ *  tools/copy-ort-runtime.mjs puts the runtime's own two files under public/ort. */
+const wasmPrefix = () => new URL(base() + "ort/", location.href).href;
+
+/* Two ways to hold the network, both running the same single-threaded build with the
+   same arithmetic in the same order, so which one answers never changes the move.
+   The worker is the one we want: a run is a single uninterruptible call, over a second
+   of it on 19x19, and on the main thread that is a frozen table. */
+
+/** The network in its own thread. Returns null if the browser will not give us one,
+   which is a reason to say so out loud: it is the difference between a smooth 19x19
+   game and a stuttering one. */
+async function startWorker(bytes) {
+  let worker;
+  try {
+    worker = new Worker(new URL("./session.worker.js", import.meta.url), { type: "module" });
+  } catch (e) {
+    console.warn(`sente: no worker for the network (${e.message}); it will run on the main thread and 19x19 moves will stutter`);
+    return null;
+  }
+  const pending = new Map();
+  let next = 1;
+  worker.onmessage = (e) => {
+    const { id, ok, error, logits, value } = e.data || {};
+    const slot = pending.get(id);
+    if (!slot) return;
+    pending.delete(id);
+    if (ok) slot.resolve({ logits, value });
+    else slot.reject(new Error(error));
+  };
+  const ask = (type, payload, transfer) => new Promise((resolve, reject) => {
+    const id = next++;
+    pending.set(id, { resolve, reject });
+    worker.postMessage({ id, type, payload }, transfer || []);
+  });
+  // A worker that cannot start the runtime is worse than none: it would answer
+  // nothing at all. Fail here and let the main thread take over.
+  try {
+    await ask("load", { bytes, wasmPrefix: wasmPrefix() }, [bytes.buffer]);
+  } catch (e) {
+    console.warn(`sente: the network could not start in its own thread (${e.message}); running it on the main thread, so 19x19 moves will stutter`);
+    worker.terminate();
+    return null;
+  }
+  return {
+    run: async (bin, global, meta, size) => {
+      const res = await ask("run", {
+        bin, global, meta, size,
+        binFeatures: NUM_BIN_FEATURES, globalFeatures: NUM_GLOBAL_FEATURES, metaFeatures: NUM_META_FEATURES,
+      }, [bin.buffer, global.buffer, meta.buffer]);
+      return { logits: res.logits, value: Array.from(res.value) };
+    },
+  };
+}
+
+/** The network on the main thread: correct, and what the table used to do. */
+async function startHere(bytes) {
+  const ort = await import("onnxruntime-web/wasm");
+  ort.env.wasm.numThreads = 1;
+  ort.env.wasm.proxy = false;
+  ort.env.wasm.wasmPaths = wasmPrefix();
+  const s = await ort.InferenceSession.create(bytes, { executionProviders: ["wasm"] });
+  return {
+    run: async (bin, global, meta, size) => {
+      const out = await s.run({
+        bin: new ort.Tensor("float32", bin, [1, NUM_BIN_FEATURES, size, size]),
+        global: new ort.Tensor("float32", global, [1, NUM_GLOBAL_FEATURES]),
+        meta: new ort.Tensor("float32", meta, [1, NUM_META_FEATURES]),
+      });
+      return { logits: out.policy.data, value: Array.from(out.value.data) };
+    },
+  };
 }
 
 /** The masters eval (public/masters/eval.json), fetched once. The lobby needs it to
@@ -145,13 +214,6 @@ export function loadMaster(id) {
 export async function humanPolicy(rec, profile) {
   let s;
   try { s = await loadModel(); } catch { return null; }
-  const { ort } = s;
   const { bin, global, meta, size } = encodeInputs(rec, profile);
-  const feeds = {
-    bin: new ort.Tensor("float32", bin, [1, NUM_BIN_FEATURES, size, size]),
-    global: new ort.Tensor("float32", global, [1, NUM_GLOBAL_FEATURES]),
-    meta: new ort.Tensor("float32", meta, [1, NUM_META_FEATURES]),
-  };
-  const out = await s.run(feeds);
-  return { logits: out.policy.data, value: Array.from(out.value.data) };
+  return s.run(bin, global, meta, size);
 }

@@ -97,12 +97,20 @@ each fixed in its own commit:
       "35 + 4 + 7.5 komi = 46.5"), a bow, and "Keep playing" to take both passes back.
 - [x] Resign with confirmation; result recorded honestly.
 - [x] Clock UI (2026-09-10, branch `feat/clock`): pressure states, byo-yomi pips, no chrome.
-- [ ] Review mode: scrub with arrows, move numbers overlay, variation tree, jump to capture.
-- [x] SGF export button on every finished game (result card). SGF import into review mode
-      is still open.
+- [x] Review mode (2026-09-10, branch `feat/review-mode`): scrub with arrows, move number
+      overlay, jump to capture, SGF out. The variation tree is NOT done and is not faked:
+      branching needs the record to hold more than one line. See the item below.
+- [ ] Variation tree in review: the record holds a main line only. Branching needs a
+      record that can carry alternatives (`parseSgf(...).tree` already parses them), and
+      that is a rules-kernel change before it is a view.
+- [x] SGF export button on every finished game (result card), and SGF import into
+      review from Home (2026-09-10, branch `feat/sgf-import`): drop a file or choose
+      one; it never leaves the device.
 - [ ] Coordinates toggle (A–T minus I / 1–19) and last-move marker preference.
 - [ ] Onboarding for a first-time visitor: name and tint, then a 10-move guided demo.
-- [ ] Keyboard: arrows scrub, P pass, U undo; screen-reader labels already on the board.
+- [ ] Keyboard at the table: P pass, U undo. Arrows scrub in review already (2026-09-10:
+      left and right walk a move, up and down jump ten, Home and End go to the ends,
+      N toggles numbers); screen-reader labels already on the board.
 - [ ] Local-only telemetry ring buffer (last 50 games: size, result, bot, move count) to
       tune house-player weights. Never leaves the device.
 
@@ -115,6 +123,25 @@ Decisions made in Phase 3, lobby slice (branch `feat/board-sizes`):
   learn a new field and a rematch is always played on the board in front of you.
 - The daily duel stays 9x9 (`DUEL_SIZE`): results only compare on one board.
 - The board is drawn at 460, 560 or 680 px for 9, 13, 19; the stone scale never changes.
+
+Decisions made in Phase 3, review slice (branch `feat/review-mode`):
+- An SGF from the wild is untrusted input, so every judgment about one lives in
+  `views/sgfImport.js` where it is tested, and the file input only fetches text.
+  Every refusal is named: which byte, which move, which board size. Nothing says
+  "invalid file".
+- A file that parses but claims an illegal move is told apart from a malformed one
+  structurally — parse first, then replay — rather than by reading the wording of
+  the engine's error. The two deserve different sentences.
+- Every reviewed position is `replay`ed from the record's own log by `engine/review.js`,
+  never reconstructed a second way, so review shows the position that was really there
+  and a tampered log is refused rather than drawn.
+- Review takes over the whole view instead of sitting beside the table: a review board
+  shows a position that is no longer live, and two boards on one screen invite a click
+  on the wrong one.
+- A captured stone carries no move number, because it is not on the board to carry one;
+  a point played twice shows the move of the stone standing there now.
+- The variation tree is deliberately absent rather than approximated. Faking a branch
+  the record cannot hold would be the first dishonest thing in the app.
 
 Decisions made in Phase 3, clock slice (branch `feat/clock`):
 - Losing on time is a rule, so it is an engine transition (`timeout`) and not something
@@ -187,8 +214,21 @@ imitates a rank: Hoshi 20k, Tetsu 15k, Yuki 10k, Ren 5k, Sora 1k, Kaede 2d, Tats
       status pill, and falls back to the heuristic player if the network cannot load.
 - [ ] Calibrate: bot-vs-bot ladder and real-game win rates; adjust `profile.temperature`
       or nudge a persona's rank if it plays a stone stronger or weaker than its badge.
-- [ ] WebGPU backend (needs the jsep runtime, 28 MB) for 19x19 speed; WASM is single
-      threaded on Pages (no cross-origin isolation headers).
+- [x] The network runs in its own thread (`src/engine/kata/session.worker.js`,
+      2026-09-10). It is the same single-threaded build doing the same arithmetic in the
+      same order, so the logits stay bit-identical and the duel is untouched; what changed
+      is that a move no longer holds the main thread. Measured on a production build of a
+      19x19 game, the longest main-thread stall during a house-player move fell from
+      2473 ms to 60 ms. The runtime's own `proxy` flag does not work here: it builds its
+      worker out of whatever chunk the bundler put the runtime in, and when that fails it
+      falls back silently, so the house players quietly become the heuristic player. Our
+      own worker file is named, so the bundler emits it; if the browser refuses to make
+      one, `startHere` runs the network on the main thread and says so.
+- [ ] WebGPU backend (needs the jsep runtime, 28 MB) for 19x19 speed. Inference itself is
+      unchanged, about 1.2 s per move on 19x19 against 290 ms on 9x9; the worker takes it
+      off the main thread rather than shortening it. Threads are not the answer: Pages
+      sends no cross-origin isolation headers, and more than one thread changes the order
+      the sums are added up in, which would break the duel.
 - [x] Every house player adapts to any level: the lobby's rank picker (25k to 9d,
       defaulting to your own rank) sets the rank the network imitates; personas are
       personalities with a home range, ordered by fit. Ranks below 20k soften the 20k
@@ -355,7 +395,20 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
 - [ ] More of the endgame book: the monkey jump, sente before gote, and double sente. The
       monkey jump was drafted and dropped — its continuations are open-ended and the engine
       has no endgame solver, so the best line could not be verified, only guessed.
-- [ ] The Proverbs is still an empty shelf. Candidate sources for the rest of the library,
+- [x] The Proverbs, opened (2026-09-10): the `maxim` step type was fully built — verifier
+      rule, reducer, styles, rendering — and no lesson used it, so the shelf said the book
+      was not on it. Two lessons in tier 2 now use it: `proverb-ladder` (19k, tactics) and
+      `proverb-bamboo-joint` (17k, shape). The library promised ladders in the tactics track
+      and had no ladder lesson at all until this one.
+      Decisions: `proverbs.test.js` runs a small ladder solver — Black ataris, White extends
+      to its one liberty — so the lesson's claims are checked, not asserted. It confirms the
+      capture at move eleven, that the sequence step is the opening of that same ladder, and
+      that a stone at (7,7), (6,7) or (7,6) breaks it while one at (8,8) does not. The bamboo
+      joint is checked the same way: either peep leaves Black one chain of nine with six
+      liberties and the peeping stone with one.
+- [ ] More proverbs: hane at the head of two stones, death in the hane, the ponnuki. Each
+      needs a position the engine can settle before it is worth authoring.
+- [ ] Other shelves are still empty. Candidate sources for the rest of the library,
       all public domain: Xuanxuan Qijing (Yan Defu and Yan Tianzhang, 1349 — its first
       volume is the Classic Sente already ships), Gokyo Shumyo (Hayashi Genbi, 1812, 520
       tesuji), Igo Hatsuyoron (Inoue Dosetsu Inseki, 1713, 183 hard problems).

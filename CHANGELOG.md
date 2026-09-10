@@ -3,6 +3,22 @@
 Sente keeps a four-part version (`MAJOR.MINOR.PATCH.MICRO`) in `VERSION`; `package.json`
 carries the npm-valid three-part form. This file starts at the first versioned release.
 
+## v0.3.1.0 (2026-09-10)
+
+### Changed
+
+- The house player now thinks in its own thread, so a move on a big board no longer
+  freezes the table. Making 19x19 the default had put the cost in front of everyone: one
+  move on a 19x19 board held the main thread for nearly two and a half seconds, long
+  enough that nothing on the page could move, not even the thinking pill. Measured the
+  same way afterwards, the longest stall is 60 ms.
+- The move itself is unchanged. The network does the same arithmetic in the same order, so
+  it returns the same stone it would have before, and the daily duel still gives everyone
+  the same reply.
+- Thinking takes as long as it did; the difference is that the rest of the page keeps
+  working while it happens. A house player still takes about a second longer to answer on
+  19x19 than on 9x9.
+
 ## v0.3.0.0 (2026-09-10)
 
 ### Added
