@@ -312,6 +312,23 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       that lives in the open and dies in the corner.
 - [ ] Restore the Chinese characters for chapter eleven's thirty-two names from the original,
       and revisit the sixteen marked uncertain.
+- [x] The endgame book (2026-09-10): the endgame track had no lessons at all, so the
+      classical collection of the closing moves supplies it. `content/guanzi.js` carries
+      Guanzi Pu (Guo Bailing, printed 1660, expanded by Tao Shiyu and others 1689) as a
+      book on the shelf, with two lessons in tier 4: `guanzi-gote-alternates` (10k) and
+      `guanzi-first-line-hane` (9k).
+      Decisions: the book supplies the subject, not the diagrams. Sente builds its own
+      positions and the engine settles them, and `guanzi.test.js` scores every total a
+      lesson states — the library verifier only checks that a `count` answer is a number,
+      not that it is right, so the book checks its own. The shelf gained `note` so the
+      Classic row can point at its reader instead of claiming it is not on the shelf yet.
+- [ ] More of the endgame book: the monkey jump, sente before gote, and double sente. The
+      monkey jump was drafted and dropped — its continuations are open-ended and the engine
+      has no endgame solver, so the best line could not be verified, only guessed.
+- [ ] The Proverbs is still an empty shelf. Candidate sources for the rest of the library,
+      all public domain: Xuanxuan Qijing (Yan Defu and Yan Tianzhang, 1349 — its first
+      volume is the Classic Sente already ships), Gokyo Shumyo (Hayashi Genbi, 1812, 520
+      tesuji), Igo Hatsuyoron (Inoue Dosetsu Inseki, 1713, 183 hard problems).
 - [ ] Tsumego graded 30k → 5k with categories and a daily set (reuses the verifier).
 - [ ] Spaced repetition: finished quiz steps enter a recall queue; "Review five" card on Home.
 - [ ] Joseki and opening library for 9×9 and 19×19.
