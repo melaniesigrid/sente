@@ -806,7 +806,8 @@ Google-hosted text families, because the Typecase text cuts have no weight axis.
 - [x] 2026-09-10 Two avant garde pairings, Hoshi (Cocogoose Pro Thin) and Vitrine
       (Qliesya didone over Instrument Sans). Eight pairings now.
 - [x] 2026-09-10 The footer is signed: Melanie Baratto in Daenerys, outside the
-      pairing system, drawn on once at load.
+      pairing system, drawn on once at load. Replaced 2026-09-10 by a plain studio
+      credit; the signature and Daenerys are gone.
 - [x] 2026-09-10 No local cut is slanted by the browser any more; only the Google
       faces, which ship a real italic, are asked for one.
 
@@ -820,10 +821,9 @@ Google-hosted text families, because the Typecase text cuts have no weight axis.
       running text any more — `galliard` was the one that did.
 
 Open:
-- [ ] Licensing: the three borrowed cuts still shipping are Welorac, Qliesya and Daenerys,
-      all demo/personal-use (`src/fonts/LICENSES.md`). Buy them or swap for OFL faces before
-      a public deploy. Daenerys is the urgent one — no commercial use at all, and it signs
-      every page. Everything else in the set is OFL today.
+- [ ] Licensing: the two borrowed cuts still shipping are Welorac and Qliesya, both
+      demo/personal-use (`src/fonts/LICENSES.md`). Buy them or swap for OFL faces before
+      a public deploy. Everything else in the set is OFL today.
 - [ ] Convert the two remaining display cuts to woff2; Welorac is 46 KB and Qliesya 16 KB
       as OTF, and woff2 would roughly halve each.
 - [ ] A pairing is a device preference stored in the profile; when accounts arrive,

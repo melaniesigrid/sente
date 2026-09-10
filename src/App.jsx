@@ -164,11 +164,7 @@ export default function JosekiApp() {
         <span className="foot-line">Joseki · play go, beautifully</span>
         <span className="foot-line">{footSaying.text}</span>
         <button className="foot-link" onClick={() => setView("landing")}>About Joseki</button>
-        <span className="foot-line studio">built by Northbound Software Studio</span>
-        <span className="signed">
-          <span className="signed-by">made by</span>
-          <span className="signature">Melanie Baratto</span>
-        </span>
+        <span className="foot-line studio">built with ♥ by Northbound Software Studio</span>
       </footer>
       </>}
     </div>

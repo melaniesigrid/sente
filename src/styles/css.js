@@ -6,12 +6,11 @@
    the shell from the chosen pairing (src/content/typeface.js), and the block
    below carries the house pairing as the default. */
 import { GOOGLE_IMPORT } from "../content/typeface.js";
-import { FONT_FACES, SIGNATURE_FACE } from "./fontfaces.js";
+import { FONT_FACES } from "./fontfaces.js";
 
 export const CSS = `
 ${GOOGLE_IMPORT}
 ${FONT_FACES}
-${SIGNATURE_FACE}
 
 .sente-root {
   --ground: #e8e4db;
@@ -121,23 +120,6 @@ ${SIGNATURE_FACE}
   align-items: center;
 }
 .foot-line { color: var(--ink-2); font-family: var(--font-caption); font-style: var(--caption-style); }
-
-/* The signature. One name, one hand, one size: it does not follow the pairing,
-   and it draws itself on once when the page arrives, left to right, the way a
-   pen would. */
-.signed { display: inline-flex; align-items: baseline; gap: 12px; padding-right: 12px; }
-.signed-by { color: var(--ink-2); font-size: 12px; letter-spacing: .2em; text-transform: uppercase; }
-.signature {
-  font-family: 'sente-signature', cursive; font-size: 42px; line-height: 1; padding: 2px 0;
-  letter-spacing: .01em; color: var(--ink); opacity: 1;
-  display: inline-block; transform: rotate(-2deg); transform-origin: left bottom;
-  animation: sign 1.5s cubic-bezier(.25,.7,.3,1) .45s both;
-}
-@keyframes sign {
-  from { clip-path: inset(-20% 100% -40% 0); opacity: 0; }
-  25%  { opacity: 1; }
-  to   { clip-path: inset(-20% -14% -40% 0); opacity: 1; }
-}
 
 /* passages from the Classic: the pairing's italic voice, a hairline, a quiet citation */
 .passage { margin: 0; padding: 4px 0 4px clamp(16px, 2.4vw, 26px); border-left: 1px solid color-mix(in srgb, var(--accent) 55%, transparent); cursor: pointer; max-width: 64ch; }
