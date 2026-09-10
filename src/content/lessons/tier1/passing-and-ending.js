@@ -11,6 +11,7 @@ export default {
   id: "passing-and-ending",
   title: "Passing and Ending",
   subtitle: "When the game is over, and what happens to dead stones",
+  plain: "The game ends when neither side can gain by playing, so both pass. Stones that could never escape come off as dead, and when the two of you disagree about which those are, the honest way to settle it is to play it out.",
   tier: 1, rank: "21k", track: "judgement", size: 9, prereqs: ["territory-count"], minutes: 4,
   author: "Sente", sources: [],
   steps: [

@@ -6,6 +6,7 @@ export default {
   id: "classic-territory",
   title: "On Holding Territory",
   subtitle: "Chapter three: corners first, then measured extensions",
+  plain: "Take the corners first, where two edges do half the walling for you, then extend by as much as the stones behind you can hold. Stretch further than that and the gap you leave becomes a door.",
   tier: 3, rank: "15k", track: "opening", size: 13, prereqs: ["first-9x9-opening", "classic-board"], minutes: 6,
   author: "Sente", sources: [CLASSIC_SOURCE], series: "classic", chapter: 3,
   steps: [

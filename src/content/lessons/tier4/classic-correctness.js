@@ -6,6 +6,7 @@ export default {
   id: "classic-correctness",
   title: "On Correctness",
   subtitle: "Chapter nine: take the point before they think of it",
+  plain: "Strength is reading, not theatre. The good move comes from thinking further ahead than the position seems to ask for, never from hoping your opponent slips.",
   tier: 4, rank: "7k", track: "middle", size: 13, prereqs: ["classic-feelings"], minutes: 5,
   author: "Sente", sources: [CLASSIC_SOURCE], series: "classic", chapter: 9,
   steps: [

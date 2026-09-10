@@ -61,3 +61,17 @@ export const Toggle = ({ on, onChange, label }) => (
     <span className="toggle-knob" />
   </button>
 );
+
+/* ----------------------- A PULL QUOTE -----------------------
+   One condensed idea lifted out of the prose and set large between the
+   paragraphs, the way a magazine pulls a line into the margin. Where a
+   `Passage` is Zhang Ni's voice, this is ours: the same idea in ordinary
+   modern words, labelled as a gloss so it is never taken for a quotation of
+   the text beside it. `label` names the register; the default suits the book.
+   `size` is "sm" for a card corner, default for a page. */
+export const PullQuote = ({ children, label = "In plain words", size = "" }) => (
+  <aside className={`pull-quote ${size}`.trim()}>
+    <p className="pull-line">{children}</p>
+    <span className="pull-label">{label}</span>
+  </aside>
+);

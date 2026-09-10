@@ -22,6 +22,23 @@ describe("the Classic", () => {
     }
   });
 
+  // The pull quote a view sets between the paragraphs. It is ours, not Zhang
+  // Ni's, so it has to read as plain modern prose: a couple of sentences in the
+  // house voice, never a restatement of the one-line theme, and never a line
+  // the reader has already met as a saying.
+  it("says every chapter again in plain words, long enough to be a gloss and short enough to pull", () => {
+    for (const source of [PREFACE, ...CHAPTERS]) {
+      const where = source.title;
+      expect(source.plain, where).toBeTruthy();
+      expect(source.plain.length, where).toBeGreaterThan(90);
+      expect(source.plain.length, where).toBeLessThan(340);
+      expect(source.plain, where).not.toMatch(/!/);
+      expect(source.plain, where).not.toMatch(/["\u201c\u201d]/);
+      expect(source.plain, where).not.toBe(source.theme);
+      expect(SAYINGS.some(s => s.text === source.plain), where).toBe(false);
+    }
+  });
+
   it("carries the preface and Huan Tan's three kinds of player", () => {
     expect(PREFACE.text.length).toBeGreaterThanOrEqual(2);
     expect(KINDS.map(k => k.key)).toEqual(["inexpert", "average", "skillful"]);

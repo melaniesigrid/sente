@@ -120,6 +120,18 @@ describe.each(LIBRARY.map(l => [l.id, l]))("lesson %s", (id, lesson) => {
     walk(lesson, [lesson.id]);
   });
 
+  // The line the recap sets large: the whole lesson in ordinary modern words,
+  // for a reader who wants the idea before the vocabulary. It is a gloss, not a
+  // second subtitle, so it has to be longer than one and say something on its own.
+  it("says what it taught in plain words", () => {
+    expect(lesson.plain, lesson.id).toBeTruthy();
+    expect(lesson.plain.length, lesson.id).toBeGreaterThan(90);
+    expect(lesson.plain.length, lesson.id).toBeLessThan(340);
+    expect(lesson.plain, lesson.id).not.toMatch(/!/);
+    expect(lesson.plain, lesson.id).not.toBe(lesson.subtitle);
+    expect(lesson.plain, lesson.id).not.toBe(lesson.title);
+  });
+
   it("speaks in the house voice: no exclamation marks", () => {
     const texts = [];
     for (const s of lesson.steps) {
