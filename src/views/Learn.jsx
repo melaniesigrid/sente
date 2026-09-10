@@ -7,7 +7,7 @@ import { Card, Btn, Pill } from "../components/ui.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
 import {
   TIERS, TRACKS, BOOKS, lessonById, prereqsMissing, nextLessonFor, currentTierFor, searchLibrary,
-  lessonsInTier, lessonsInBook, lessonsInSeries, bookProgressFor, trackByKey, isDone,
+  lessonsInTier, lessonsInBook, lessonsInSeries, lessonAfter, bookProgressFor, trackByKey, isDone,
 } from "../content/library.js";
 import { CLASSIC, sayingOfTheDay } from "../content/classic.js";
 import { dayKey } from "../content/kata.js";
@@ -19,7 +19,7 @@ import { initStep, stepReducer, marksFor, boardLocked, recordAtStop, coordLabel,
 /* ----------------------- LESSON PLAYER -----------------------
    Thin: all step behaviour lives in lessonStep.js. This component draws the
    state and runs whatever `pending` timer the reducer asks for. */
-function LessonPlayer({ lesson, onDone, onExit, rank, onProgress }) {
+function LessonPlayer({ lesson, nextLesson, onDone, onExit, rank, onProgress }) {
   const [stepIdx, setStepIdx] = useState(0);
   const step = lesson.steps[stepIdx];
   const [state, setState] = useState(() => initStep(lesson, step));
@@ -133,9 +133,12 @@ function LessonPlayer({ lesson, onDone, onExit, rank, onProgress }) {
             {!solved && step.type !== "info" && step.type !== "maxim" && !replay
               && <Btn icon={RotateCcw} small onClick={() => loadStep(stepIdx)}>Reset position</Btn>}
             {(solved || step.type === "info" || step.type === "maxim")
-              && <Btn icon={isLast ? Check : ChevronRight} primary onClick={next}>
-                {isLast ? "Complete lesson" : "Continue"}
+              && <Btn icon={isLast && !nextLesson ? Check : ChevronRight} primary onClick={next}>
+                {!isLast ? "Continue" : nextLesson ? `Next: ${nextLesson.title}` : "Complete lesson"}
               </Btn>}
+            {solved && isLast && nextLesson && (
+              <Btn icon={Check} small onClick={() => onDone({ stay: false })}>Finish and stop</Btn>
+            )}
           </div>
         </div>
       </div>
@@ -234,13 +237,15 @@ export function LearnView({ profile, setProfile }) {
     if (missing.length) setPending({ lesson, missing });
     else { setPending(null); setActive(lesson.id); }
   };
-  const finish = (lesson) => {
+  // Finishing records the lesson and, unless asked to stop, opens the next one.
+  const finish = (lesson, { stay = true } = {}) => {
     setProfile(p => {
       const np = { ...p, lessonsDone: [...new Set([...p.lessonsDone, lesson.id])] };
       saveProfile(np);
       return np;
     });
-    setActive(null);
+    const after = stay ? lessonAfter(lesson) : null;
+    setActive(after ? after.id : null);
   };
   /** A scored replay stop: keep the best run of this lesson so far. */
   const progress = (lesson, { stops, score, total }) => {
@@ -264,7 +269,11 @@ export function LearnView({ profile, setProfile }) {
 
   if (active) {
     const lesson = lessonById(active);
-    return <LessonPlayer key={active} lesson={lesson} rank={rankOf(profile.rating)} onProgress={progress} onExit={() => setActive(null)} onDone={() => finish(lesson)} />;
+    return (
+      <LessonPlayer key={active} lesson={lesson} nextLesson={lessonAfter(lesson)}
+        rank={rankOf(profile.rating)} onProgress={progress}
+        onExit={() => setActive(null)} onDone={(opts) => finish(lesson, opts)} />
+    );
   }
 
   return (

@@ -102,6 +102,19 @@ export function bookProgressFor(profile, bookId) {
 export const lessonsInSeries = (key) =>
   LIBRARY.filter(l => l.series === key).sort((a, b) => (a.chapter || 0) - (b.chapter || 0));
 
+/** The lesson to open when this one is finished: the next chapter of its series,
+ *  else the next lesson in library order. Null at the end. */
+export function lessonAfter(lesson) {
+  if (!lesson) return null;
+  if (lesson.series) {
+    const run = lessonsInSeries(lesson.series);
+    const i = run.findIndex(l => l.id === lesson.id);
+    return i >= 0 ? run[i + 1] || null : null;
+  }
+  const i = LIBRARY.findIndex(l => l.id === lesson.id);
+  return i >= 0 ? LIBRARY[i + 1] || null : null;
+}
+
 /** The learner's tier: the lowest tier they have neither passed nor finished every
  *  lesson of. Falls back to the lowest unpassed tier, then the last tier. */
 export function currentTierFor(profile) {
