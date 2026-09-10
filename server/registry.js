@@ -15,7 +15,7 @@ import { DurableObject } from "cloudflare:workers";
 import { newRating, rateGame } from "./rating.js";
 import { randomHex, sha256, cleanName, cleanTint } from "./http.js";
 import { cleanKey, publicPlayer, hasPlayed } from "./players.js";
-import { hit, REGISTER_LIMIT, REGISTER_WINDOW_MS } from "./ratelimit.js";
+import { hit, refund, REGISTER_LIMIT, REGISTER_WINDOW_MS } from "./ratelimit.js";
 import { SIZES } from "./room.js";
 
 const KEEP_GAMES = 24;
@@ -30,9 +30,9 @@ export class Registry extends DurableObject {
 
   /* ----- accounts ----- */
 
-  /** Claim a handle. `ip` is the caller's address when the platform gave us one;
-   *  each address may claim a few accounts an hour, which is plenty for a
-   *  household and no use to a script filling the store. */
+  /** Claim a handle. `ip` is the caller's address when the platform gave us one.
+   *  One address may claim twenty an hour; leaving gives the claim back, so a
+   *  person who changes their mind never runs into it and a script still does. */
   async register(rawName, rawTint, ip = null) {
     const name = cleanName(rawName);
     if (!name) throw new Error("bad-name");
@@ -52,6 +52,7 @@ export class Registry extends DurableObject {
       id, name, tint: cleanTint(rawTint), tokenHash: await sha256(token),
       ...newRating(), wins: 0, losses: 0, draws: 0,
       createdAt: Date.now(), lastSeen: Date.now(),
+      claimedFrom: ip,      // so leaving can give the claim back; never shown to anyone
     };
     await this.ctx.storage.put({ [`player:${id}`]: player, [`tok:${player.tokenHash}`]: id });
     return { token, player: publicPlayer(player) };
@@ -88,6 +89,12 @@ export class Registry extends DurableObject {
     const p = await this.ctx.storage.get(`player:${id}`);
     if (!p) return false;
     await this.ctx.storage.delete([`player:${id}`, `tok:${p.tokenHash}`, `games:${id}`, `seek:${id}`]);
+    if (p.claimedFrom) {
+      const key = `rate:reg:${p.claimedFrom}`;
+      const back = refund(await this.ctx.storage.get(key), Date.now(), REGISTER_WINDOW_MS);
+      if (back) await this.ctx.storage.put(key, back);
+      else await this.ctx.storage.delete(key);
+    }
     for (const ws of this.ctx.getWebSockets(id)) ws.close(4000, "removed");
     this.ladderCache = null;
     return true;

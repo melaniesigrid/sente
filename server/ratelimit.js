@@ -24,9 +24,19 @@ export function hit(bucket, now, limit, windowMs) {
   };
 }
 
-/** How many accounts one address may claim, and over how long. Generous for a
- *  household or a classroom on one address; mean to a script. */
-export const REGISTER_LIMIT = 8;
+/** Give one back, for a handle that has been removed again. The limit exists to
+ *  keep the account store from being filled; an account that no longer exists is
+ *  not filling it, so leaving refunds what claiming spent. Never goes below zero. */
+export function refund(bucket, now, windowMs) {
+  if (!bucket || typeof bucket.at !== "number" || now - bucket.at >= windowMs) return null;
+  const n = Math.max(0, bucket.n - 1);
+  return n === 0 ? null : { at: bucket.at, n };
+}
+
+/** How many accounts one address may claim in an hour. Generous for a household
+ *  or a classroom sharing an address, and no use to a script filling the store.
+ *  Claiming and then leaving costs nothing, so ordinary churn never runs into it. */
+export const REGISTER_LIMIT = 20;
 export const REGISTER_WINDOW_MS = 60 * 60 * 1000;
 
 /** The caller's address, or null when the platform did not give us one

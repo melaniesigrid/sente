@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { hit, callerIp, REGISTER_LIMIT, REGISTER_WINDOW_MS } from "./ratelimit.js";
+import { hit, refund, callerIp, REGISTER_LIMIT, REGISTER_WINDOW_MS } from "./ratelimit.js";
 
 const W = 1000;
 
@@ -48,6 +48,35 @@ describe("fixed-window counter", () => {
   it("ships a policy that is generous to people and mean to scripts", () => {
     expect(REGISTER_LIMIT).toBeGreaterThanOrEqual(5);
     expect(REGISTER_WINDOW_MS).toBe(3600000);
+  });
+});
+
+describe("refund", () => {
+  it("gives one back inside the window", () => {
+    let r = hit(null, 0, 3, W);
+    r = hit(r.bucket, 1, 3, W);
+    expect(r.bucket.n).toBe(2);
+    expect(refund(r.bucket, 2, W)).toEqual({ at: 0, n: 1 });
+  });
+  it("clears the bucket rather than leaving a zero behind", () => {
+    const r = hit(null, 0, 3, W);
+    expect(refund(r.bucket, 1, W)).toBeNull();
+  });
+  it("never goes below zero", () => {
+    expect(refund({ at: 0, n: 0 }, 1, W)).toBeNull();
+  });
+  it("ignores a bucket from an expired or malformed window", () => {
+    expect(refund({ at: 0, n: 5 }, W + 1, W)).toBeNull();
+    expect(refund(null, 1, W)).toBeNull();
+    expect(refund({ at: "x", n: 5 }, 1, W)).toBeNull();
+  });
+  it("claim then leave, repeated, never runs into the limit", () => {
+    let bucket = null;
+    for (let i = 0; i < 100; i++) {
+      const r = hit(bucket, 10, 3, W);
+      expect(r.allowed).toBe(true);
+      bucket = refund(r.bucket, 10, W);
+    }
   });
 });
 

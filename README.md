@@ -75,7 +75,8 @@ sets the key for the operator routes: `GET /api/admin/players`,
 `DELETE /api/admin/players/:id`, `DELETE /api/admin/ratelimit/:ip` and
 `GET /api/admin/whoami` (what the edge says about a caller).
 
-Claiming a handle is limited to eight an hour from one address. Note that a Durable Object
+Claiming a handle is limited to twenty an hour from one address; leaving gives the claim
+back, so ordinary churn never runs into it. Note that a Durable Object
 keeps running the previous code until its instance restarts, so a change to the Registry or
 a Room can take a moment to take effect after a deploy. `node tools/server/smoke.mjs [url]`
 plays a whole game through the API and fails loudly if anything is off;
