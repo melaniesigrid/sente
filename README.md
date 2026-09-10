@@ -86,6 +86,10 @@ they make.
 `.github/workflows/deploy-server.yml` does the same on push to `main` once the repo has
 a `CLOUDFLARE_API_TOKEN` secret.
 
+Running it costs nothing: Durable Objects with the SQLite backend are on Cloudflare's
+free plan, which is a set of daily ceilings rather than a bill. `docs/server-operations.md`
+has the numbers, the operator routes, and the two secrets a human has to set.
+
 **App.** `.github/workflows/deploy.yml` builds on every push to `main` and publishes `dist/` to
 GitHub Pages (enable Pages with source "GitHub Actions" once in the repo settings). Vite's
 `base` comes from the `BASE_PATH` env var, which the workflow sets to `/<repo>/`; unset

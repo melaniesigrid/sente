@@ -162,4 +162,38 @@ describe("persistence", () => {
     expect(reviveRoom(bad)).toBeNull();
     expect(reviveRoom({ version: 2 })).toBeNull();
   });
+
+  it("rebuilds from the log when the stored board disagrees with it", () => {
+    let r = step(room9(), "b", { t: "play", c: 2, r: 2 });
+    r = step(r, "w", { t: "play", c: 6, r: 6 });
+    const bad = JSON.parse(JSON.stringify(r));
+    bad.record.board.cells[0] = "b";            // a stone nobody played
+    const back = reviveRoom(bad);
+    expect(back.record.board.cells[0]).toBeNull();
+    expect(back.record.board).toEqual(r.record.board);
+  });
+
+  it("notices a truncated or padded hash list", () => {
+    const r = step(room9(), "b", { t: "play", c: 2, r: 2 });
+    const short = JSON.parse(JSON.stringify(r));
+    short.record.hashes.pop();
+    expect(reviveRoom(short).record.hashes).toHaveLength(2);
+    const wrongBoard = JSON.parse(JSON.stringify(r));
+    wrongBoard.record.board.cells = [];
+    expect(reviveRoom(wrongBoard).record.board.cells).toHaveLength(81);
+  });
+
+  it("loads a long game without replaying it", () => {
+    // A record whose board and hashes agree is handed back as it stands, so the
+    // cost of loading does not grow with the length of the game.
+    let r = room9();
+    for (let i = 0; i < 20; i++) {
+      const seat = r.record.toPlay;
+      r = step(r, seat, { t: "play", c: i % 9, r: Math.floor(i / 9) });
+    }
+    const blob = JSON.parse(JSON.stringify(r));
+    const back = reviveRoom(blob);
+    expect(back).toBe(blob);                    // same object: no rebuild happened
+    expect(back.record.moves).toHaveLength(20);
+  });
 });

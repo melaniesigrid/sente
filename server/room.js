@@ -29,6 +29,7 @@ import {
   createGame, play, pass, resign, markDead, acceptScore, undo, replay,
   IllegalMoveError, IllegalTransitionError,
 } from "../src/engine/record.js";
+import { hashBoard } from "../src/engine/zobrist.js";
 
 export const SIZES = [9, 13, 19];
 export const MAX_CHAT = 240;
@@ -156,9 +157,26 @@ export function applyMessage(room, seatColor, msg, now = Date.now()) {
   }
 }
 
-/** Rebuild the record from its move log: a stored room is untrusted until it replays. */
+/** Does the stored board agree with the stored move log? Two constant-ish checks:
+ *  the board must hash to the head of the hash list, and the hash list must be
+ *  exactly one longer than the number of stones played (passes and resignations
+ *  add no position). Cheap enough to run on every load, unlike a full replay,
+ *  whose cost grows with the length of the game. */
+function consistent(rec) {
+  if (!Array.isArray(rec.hashes) || !rec.hashes.length || !rec.board || !Array.isArray(rec.board.cells)) return false;
+  if (rec.board.cells.length !== rec.size * rec.size) return false;
+  let plays = 0;
+  for (const mv of rec.moves) if (mv && mv.type === "play") plays += 1;
+  if (rec.hashes.length !== plays + 1) return false;
+  return hashBoard(rec.board) === rec.hashes[rec.hashes.length - 1];
+}
+
+/** Read a stored room back. The board is trusted only once it agrees with the
+ *  move log; if it does not, the log is the source of truth and the record is
+ *  rebuilt from it. A log that will not replay is discarded. */
 export function reviveRoom(raw) {
   if (!raw || raw.version !== 1 || !raw.record || !Array.isArray(raw.record.moves)) return null;
+  if (consistent(raw.record)) return raw;
   try {
     const record = replay(raw.record);
     // Replay does not carry the scoring-phase marks or the result; restore them.

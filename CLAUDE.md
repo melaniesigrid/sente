@@ -42,6 +42,10 @@ in `server/` (Durable Objects), deployed separately.
   the browser-only KataGo runtime). Durable Objects only parse, apply, store, broadcast.
   Protocol changes start in `room.js` and its tests; `tools/server/smoke.mjs` must still
   pass against `npm run dev:server`.
+- The server runs on Cloudflare's free plan and must keep doing so: sockets hibernate,
+  and loading a stored room is a hash check rather than a replay, because the free plan
+  allows 10 ms of CPU per invocation. `node tools/server/bench.mjs` fails if a room load
+  ever costs more than a millisecond. Operator notes: `docs/server-operations.md`.
 - A deployed Durable Object keeps running the previous code until its instance restarts, so
   a change to `registry.js` or `roomObject.js` may not be live in the seconds after
   `npm run deploy:server`. Verify against a fresh instance, and do not conclude a change

@@ -1,0 +1,111 @@
+# Running the Sente server
+
+The multiplayer server is a Cloudflare Worker (`server/`) with two Durable Object classes,
+deployed to https://sente-server.melaniesigrid.workers.dev. This is the operator's page:
+what it costs, what to do when something is wrong, and the two things a human has to set up.
+
+## What it costs
+
+**Nothing, on Cloudflare's free plan.** Durable Objects used to require a paid plan; the
+SQLite-backed kind are on the free plan now, and `wrangler.jsonc` declares
+`new_sqlite_classes`, which is the free-eligible kind. Cloudflare states plainly that
+developers on the Workers free plan are not charged for Durable Object storage.
+
+The free plan is a set of daily ceilings rather than a bill. Exceeding one makes further
+operations of that kind fail for the rest of the day; nothing starts charging silently.
+Limits reset at 00:00 UTC.
+
+| Free plan, per day | Ceiling |
+| --- | --- |
+| Worker requests | 100,000 |
+| Durable Object requests | 100,000 |
+| Durable Object compute duration | 13,000 GB-seconds |
+| SQLite rows read | 5,000,000 |
+| SQLite rows written | 100,000 |
+| SQLite stored data | 5 GB total |
+| CPU per invocation | 10 ms |
+
+What that buys, roughly. A move is one WebSocket message in and a broadcast out, and one
+row written to store the game. A 200-move game is therefore a few hundred requests and
+about 200 rows written. The 100,000 rows written per day is the first ceiling you would
+meet, and it is somewhere around four hundred complete games a day. Nobody is going to hit
+that by accident.
+
+Two things keep the duration number small, and both are deliberate:
+
+- Sockets use the **WebSocket Hibernation API** (`ctx.acceptWebSocket`), so a room sitting
+  idle between moves is evicted from memory and bills nothing. A player who leaves a game
+  open overnight costs approximately zero.
+- Loading a stored game is a **hash check, not a replay**. `reviveRoom` confirms the stored
+  board hashes to the head of the hash list and that the list length matches the number of
+  stones played. Replaying every move instead made a long 19x19 game cost about 4.5 ms of
+  the 10 ms CPU budget, and it grew with the length of the game. `node tools/server/bench.mjs`
+  guards this and fails if a load ever costs more than a millisecond.
+
+If the app ever outgrows the free plan, the Workers paid plan starts at $5 a month, and
+that $5 covers far more than this would use.
+
+## The two things a human has to set up
+
+### 1. `CLOUDFLARE_API_TOKEN`, so CI can deploy the server
+
+Until this exists, `.github/workflows/deploy-server.yml` runs the server tests and then
+skips the deploy with a notice, staying green. Deploy by hand with `npm run deploy:server`
+in the meantime.
+
+Creating it needs the Cloudflare dashboard, which no script can do for you:
+
+1. Go to https://dash.cloudflare.com/profile/api-tokens and choose **Create Token**.
+2. Use the **Edit Cloudflare Workers** template.
+3. Under Account Resources pick the account that owns `sente-server`; under Zone Resources
+   leave the default.
+4. Create the token and copy it. Cloudflare shows it once.
+5. Put it in the repository:
+
+```bash
+gh secret set CLOUDFLARE_API_TOKEN --repo melaniesigrid/sente
+```
+
+The next push that touches `server/`, `src/engine/` or `wrangler.jsonc` will deploy and then
+smoke-test itself.
+
+### 2. `ADMIN_TOKEN`, for the operator routes
+
+Set with `npx wrangler secret put ADMIN_TOKEN` and known only to you. A rotated value is in
+`~/sente-admin-token.txt`, outside the repository; rotate it again whenever you like, and
+the routes below start refusing the old one within a minute.
+
+## Operator routes
+
+All four need `Authorization: Bearer $ADMIN_TOKEN`.
+
+| Route | What it does |
+| --- | --- |
+| `GET /api/admin/players` | Every account, newest first |
+| `DELETE /api/admin/players/:id` | Remove one account for good |
+| `DELETE /api/admin/ratelimit/:ip` | Forget one address's handle-claiming count |
+| `GET /api/admin/whoami` | What the edge says about the caller, for checking addresses arrive |
+
+Claiming a handle is limited to twenty an hour from one address. Leaving refunds the claim,
+so a person who changes their mind never meets the limit while a script hoarding accounts
+does.
+
+## Checking a deployment
+
+Three scripts, each of which cleans up the accounts it makes:
+
+```bash
+node tools/server/smoke.mjs https://sente-server.melaniesigrid.workers.dev   # one whole game
+node tools/server/qa.mjs    https://sente-server.melaniesigrid.workers.dev   # the wider pass
+node tools/server/churn.mjs https://sente-server.melaniesigrid.workers.dev   # the rate limit
+node tools/server/bench.mjs                                                  # room load cost
+```
+
+## One thing that will confuse you
+
+A deployed Durable Object keeps running the **previous** code until its instance restarts,
+while the Worker entry in `server/index.js` updates at once. A change to `registry.js` or
+`roomObject.js` can therefore look like it did nothing for the first minute after a deploy.
+This cost an hour once already: a rate limit appeared to be completely ignored in production
+while a diagnostic route added in the very same deploy answered correctly. Give it a moment
+before concluding a change failed.
