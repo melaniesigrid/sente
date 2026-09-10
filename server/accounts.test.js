@@ -50,11 +50,19 @@ describe("passwordProblem", () => {
 
 describe("privateFields", () => {
   it("says whether there is a way back in", () => {
-    expect(privateFields({ email: "a@b.co", pw: { salt: "s", hash: "h" }, sessions: ["x", "y"] }))
-      .toEqual({ email: "a@b.co", hasPassword: true, sessions: 2 });
+    expect(privateFields({ email: "a@b.co", pw: { salt: "s", hash: "h" }, sessions: ["x", "y"], emailVerifiedAt: 1 }))
+      .toEqual({ email: "a@b.co", hasPassword: true, emailVerified: true, sessions: 2 });
   });
   it("is honest about a handle with no account behind it", () => {
-    expect(privateFields({})).toEqual({ email: null, hasPassword: false, sessions: 0 });
+    expect(privateFields({}))
+      .toEqual({ email: null, hasPassword: false, emailVerified: false, sessions: 0 });
+  });
+  it("separates an address that has been typed from one that has answered", () => {
+    // Every account made before confirming existed has no stamp, and unproved
+    // is the right thing to say about all of them.
+    const typed = { email: "a@b.co", pw: { salt: "s", hash: "h" } };
+    expect(privateFields(typed).emailVerified).toBe(false);
+    expect(privateFields({ ...typed, emailVerifiedAt: Date.now() }).emailVerified).toBe(true);
   });
   it("never carries the stored hash or salt", () => {
     const out = privateFields({ email: "a@b.co", pw: { salt: "s", hash: "h" } });

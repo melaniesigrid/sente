@@ -30,7 +30,9 @@ import { randomHex, sha256, cleanName, cleanTint, sameDigest } from "./http.js";
 import { cleanKey, publicPlayer, hasPlayed } from "./players.js";
 import { cleanEmail, cleanKey as cleanDerivedKey, privateFields, KDF } from "./accounts.js";
 import { cleanBio, cleanFacts, avatarProblem, profileOf } from "./profile.js";
-import { hit, refund, REGISTER_LIMIT, REGISTER_WINDOW_MS, SIGNIN_LIMIT, SIGNIN_WINDOW_MS } from "./ratelimit.js";
+import { hit, refund, REGISTER_LIMIT, REGISTER_WINDOW_MS, SIGNIN_LIMIT, SIGNIN_WINDOW_MS,
+  FORGOT_LIMIT, FORGOT_WINDOW_MS, VERIFY_LIMIT, VERIFY_WINDOW_MS } from "./ratelimit.js";
+import { VERIFY_TTL_MS, RESET_TTL_MS } from "./mail.js";
 import { SIZES } from "./room.js";
 
 const KEEP_GAMES = 24;
@@ -109,7 +111,7 @@ export class Registry extends DurableObject {
       ...newRating(), wins: 0, losses: 0, draws: 0,
       createdAt: Date.now(), lastSeen: Date.now(),
       claimedFrom: ip,      // so leaving can give the claim back; never shown to anyone
-      email: null, pw: null, sessions: [],
+      email: null, emailVerifiedAt: null, pw: null, sessions: [],
     };
     player.sessions = [player.tokenHash];
     await this.ctx.storage.put({ [`player:${id}`]: player, [`tok:${player.tokenHash}`]: id });
@@ -157,7 +159,7 @@ export class Registry extends DurableObject {
     const key = cleanDerivedKey(rawKey);
     if (!key) throw new Error("bad-key");
     if (await this.ctx.storage.get(`email:${email}`)) throw new Error("email-taken");
-    const next = { ...p, email, emailAt: Date.now(), pw: await this.#stash(key), lastSeen: Date.now() };
+    const next = { ...p, email, emailAt: Date.now(), emailVerifiedAt: null, pw: await this.#stash(key), lastSeen: Date.now() };
     await this.ctx.storage.put({ [`player:${id}`]: next, [`email:${email}`]: id });
     return this.#self(next);
   }
@@ -209,6 +211,159 @@ export class Registry extends DurableObject {
     const next = { ...p, pw: await this.#stash(key), lastSeen: Date.now() };
     await this.ctx.storage.put(`player:${id}`, next);
     return this.#self(next);
+  }
+
+  /* ----- two letters, and the links in them -----
+     Verifying an address and getting back in after forgetting a password are
+     the same mechanism seen from two sides: mint a single-use token, mail the
+     person a link carrying it, and act when the link comes back. The token is
+     stored the way a session token is — hashed, never in the clear — so the
+     store cannot be read for a way into somebody's account.
+
+     One token of each kind per player at a time. Minting a second forgets the
+     first, so asking twice because the first letter was slow does not leave
+     two live keys to the same account lying in two inboxes. The hashes live on
+     the player record under `mail` so that leaving takes them with it.
+
+     WHY A RESET ENDS EVERY OTHER SESSION AND A PASSWORD CHANGE DOES NOT
+     Changing a password requires the old one, so the account was never out of
+     its owner's hands and the devices already signed in are theirs. A reset
+     requires no such proof — only the mailbox — and the usual reason to want
+     one is that a device or a password is somewhere it should not be. So a
+     reset signs out everything and hands back one fresh session for the
+     browser that did it. */
+
+  /** Spend one unit of a rate-limit budget, or refuse. */
+  async #spend(key, limit, windowMs, reason) {
+    const r = hit(await this.ctx.storage.get(key), Date.now(), limit, windowMs);
+    await this.ctx.storage.put(key, r.bucket);
+    if (r.allowed) return;
+    const e = new Error(reason);
+    e.retryAfterMs = r.retryAfterMs;
+    throw e;
+  }
+
+  /** Mint a link token for a player, forgetting any earlier one of its kind.
+   *  Returns what the router needs to write the letter — never stored. */
+  async #mintMail(p, kind, ttlMs) {
+    const token = randomHex(32);
+    const hash = await sha256(token);
+    const older = p.mail?.[kind];
+    const next = { ...p, mail: { ...(p.mail ?? {}), [kind]: hash } };
+    await this.ctx.storage.put({
+      [`player:${p.id}`]: next,
+      // The address is recorded beside the token so a link mailed to one
+      // address cannot be spent after the account has moved to another.
+      [`mail:${hash}`]: { id: p.id, kind, email: p.email, exp: Date.now() + ttlMs },
+    });
+    if (older && older !== hash) await this.ctx.storage.delete(`mail:${older}`);
+    return { token, kind, ttlMs, email: p.email, name: p.name };
+  }
+
+  /** Look a link token up without spending it. Throws the same `bad-token` for
+   *  every way of being wrong — unknown, wrong kind, or for an address the
+   *  account no longer has — so the endpoint cannot be used to sort guesses. */
+  async #findMail(token, kind) {
+    if (typeof token !== "string" || token.length !== 64) throw new Error("bad-token");
+    const hash = await sha256(token);
+    const row = await this.ctx.storage.get(`mail:${hash}`);
+    if (!row || row.kind !== kind) throw new Error("bad-token");
+    const p = row.id ? await this.ctx.storage.get(`player:${row.id}`) : null;
+    if (!p || p.email !== row.email) {
+      await this.ctx.storage.delete(`mail:${hash}`);
+      throw new Error("bad-token");
+    }
+    if (row.exp < Date.now()) {
+      await this.ctx.storage.delete(`mail:${hash}`);
+      throw new Error("token-expired");
+    }
+    return { hash, p };
+  }
+
+  /** The player record's link tokens without the one just spent. */
+  static #withoutMail(p, kind) {
+    const mail = { ...(p.mail ?? {}) };
+    delete mail[kind];
+    return mail;
+  }
+
+  /** Ask for a letter confirming the address. The caller holds a session, so
+   *  this says plainly when there is nothing to do rather than sending a
+   *  letter that would confirm what is already confirmed. */
+  async startVerify(id) {
+    const p = await this.ctx.storage.get(`player:${id}`);
+    if (!p) throw new Error("no-player");
+    if (!p.email) throw new Error("no-email");
+    if (p.emailVerifiedAt) throw new Error("already-verified");
+    await this.#spend(`rate:vfy:${id}`, VERIFY_LIMIT, VERIFY_WINDOW_MS, "too-many-letters");
+    return this.#mintMail(p, "verify", VERIFY_TTL_MS);
+  }
+
+  /** Open the link in that letter. No session is needed: the link arrives in a
+   *  mail client, which may not be the browser the account is signed in on. */
+  async confirmVerify(token) {
+    const { hash, p } = await this.#findMail(token, "verify");
+    const next = {
+      ...p,
+      emailVerifiedAt: p.emailVerifiedAt ?? Date.now(),
+      mail: Registry.#withoutMail(p, "verify"),
+      lastSeen: Date.now(),
+    };
+    await this.ctx.storage.put(`player:${p.id}`, next);
+    await this.ctx.storage.delete(`mail:${hash}`);
+    return { ok: true, name: next.name, email: next.email };
+  }
+
+  /** Ask for a way back in. Returns what to mail, or null when there is
+   *  nothing at that address — and the router answers the same either way, so
+   *  this endpoint cannot be asked whether somebody has an account here. The
+   *  budget is spent on the address as well as on the caller, so it also
+   *  cannot be used to fill one person's inbox. */
+  async startReset(rawEmail, ip = null) {
+    if (ip) await this.#spend(`rate:fgt:${ip}`, FORGOT_LIMIT, FORGOT_WINDOW_MS, "too-many-attempts");
+    const email = cleanEmail(rawEmail);
+    if (!email) return null;
+    await this.#spend(`rate:fgt:${email}`, FORGOT_LIMIT, FORGOT_WINDOW_MS, "too-many-attempts");
+    const id = await this.ctx.storage.get(`email:${email}`);
+    const p = id ? await this.ctx.storage.get(`player:${id}`) : null;
+    if (!p || !p.email) return null;
+    return this.#mintMail(p, "reset", RESET_TTL_MS);
+  }
+
+  /** What the reset page needs before it can ask for a new password: the
+   *  address, because the browser salts its key derivation with it and cannot
+   *  derive without it. Telling the holder of the token the address it was
+   *  mailed to gives away nothing — that token is already a way into the
+   *  account — and the alternative is putting the address in the link, where
+   *  browser history and referrers would carry it further. */
+  async resetTarget(token) {
+    const { p } = await this.#findMail(token, "reset");
+    return { email: p.email, name: p.name };
+  }
+
+  /** Spend the token and set the password. Everything else is signed out and
+   *  the browser doing this gets one fresh session. Opening a mailed link is
+   *  proof of the address, so an account that arrives this way is confirmed on
+   *  the way through: somebody who has just read their mail here should not
+   *  then be asked to prove they can read their mail here. */
+  async finishReset(token, rawKey) {
+    const { hash, p } = await this.#findMail(token, "reset");
+    const key = cleanDerivedKey(rawKey);
+    if (!key) throw new Error("bad-key");
+    const gone = (p.sessions ?? []).filter(Boolean);
+    const next = {
+      ...p,
+      pw: await this.#stash(key),
+      sessions: [],
+      emailVerifiedAt: p.emailVerifiedAt ?? Date.now(),
+      mail: Registry.#withoutMail(p, "reset"),
+      lastSeen: Date.now(),
+    };
+    await this.ctx.storage.put(`player:${p.id}`, next);
+    await this.ctx.storage.delete([`mail:${hash}`, ...gone.map(h => `tok:${h}`)]);
+    for (const ws of this.ctx.getWebSockets(p.id)) ws.close(4000, "signed-out");
+    const minted = await this.#newSession(next);
+    return { token: minted.token, player: this.#self(minted.player) };
   }
 
   /** End one session, or every session. Ending them all is the answer to "I
@@ -269,6 +424,7 @@ export class Registry extends DurableObject {
     await this.ctx.storage.delete([
       `player:${id}`, `tok:${p.tokenHash}`, ...sessions, `games:${id}`, `seek:${id}`, `avatar:${id}`,
       ...(p.email ? [`email:${p.email}`] : []),
+      ...Object.values(p.mail ?? {}).filter(Boolean).map(h => `mail:${h}`),
     ]);
     if (p.claimedFrom) {
       const key = `rate:reg:${p.claimedFrom}`;

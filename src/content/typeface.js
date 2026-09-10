@@ -16,13 +16,13 @@
      caption   the footer, the small labels       --font-caption
      ornament  the lesson numeral, the vs mark    --font-display-italic
 
-   A script is a display face and nothing else. It cannot carry a quotation and it
-   cannot carry a caption: at 13px it is decoration standing where a word should
-   be. So the scripts here are the ornament voice only, the quote voice is always
-   a serif — its own where the pairing has one, Fraunces' or Newsreader's italic
-   where it does not — and the captions fall to the body face. The exceptions are
-   the two pairings marked `serifless`, Signal and Hoshi, whose whole idea is that
-   there is no serif anywhere in them; they quote in their own italic instead.
+   No script stands anywhere in the set. A script is a display face and nothing
+   else: it cannot carry a quotation and it cannot carry a caption, because at
+   13px it is decoration standing where a word should be — and the ornament voice
+   is read mid-sentence, at reading size. So the quote voice is always a serif —
+   its own where the pairing has one, Fraunces' or Newsreader's italic where it
+   does not — and the captions follow the italic when that italic is real and the
+   body face when it is not.
 
    Nothing here is ever slanted by the browser. The Typecase cuts are single-style,
    and a faux oblique on a hairline didone or on a script is the tell of a page
@@ -64,77 +64,19 @@ export const TYPEFACES = [
   {
     id: "kaya",
     name: "Kaya",
-    note: "A low-waisted serif with long ascenders, and a steady logo script for the asides. Airy, like a fresh board.",
+    note: "A low-waisted serif with long ascenders, and Fraunces' italic for the asides. Airy, like a fresh board.",
     display: "'sente-welorac', 'Fraunces', serif",
-    italic: "'sente-bellique', 'Fraunces', serif",
-    italicStyle: "normal",
+    // The ornament voice carries the emphasised word in the landing hero and the
+    // lesson numerals: mid-sentence, at reading size. A logo script stood here and
+    // could not do that job — at 13px it was decoration where a word should be.
+    // Fraunces' real italic is legible, and it gives Welorac's roman something to
+    // contrast with, which the display face set against itself could not.
+    italic: "'Fraunces', serif",
+    italicStyle: "italic",
     body: HANKEN,
     quote: "'Fraunces', serif", quoteStyle: "italic",
     weight: 400, strong: 400, tracking: "0.005em", leading: 1.18,
-    credit: "Welorac and Bellique via Typecase (demo cuts, personal use)",
-  },
-  {
-    id: "galliard",
-    name: "Galliard House",
-    note: "The one three-part family we have, doing all three jobs: high-contrast serif for the headings, its script for the whisper, its own sans for the facts.",
-    display: "'sente-galliard-serif', 'Fraunces', serif",
-    italic: "'sente-galliard-script', 'Fraunces', serif",
-    italicStyle: "normal",
-    body: "'sente-galliard-sans', 'Hanken Grotesk', sans-serif",
-    caption: "'sente-galliard-sans', 'Hanken Grotesk', sans-serif",
-    quote: "'sente-galliard-serif', 'Fraunces', serif", quoteStyle: "normal",
-    weight: 400, strong: 400, tracking: "0em", leading: 1.06,
-    credit: "Maison Galliard, serif and script and sans, via Typecase (demo cuts, personal use)",
-  },
-  {
-    id: "wedge",
-    name: "Wedge",
-    note: "Wedge serifs, a narrow stance, and no script anywhere. The most matter-of-fact of them all.",
-    display: "'sente-kuigaf', 'Fraunces', serif",
-    italic: "'sente-kuigaf', 'Fraunces', serif",
-    italicStyle: "normal",
-    body: HANKEN,
-    quote: "'sente-kuigaf', 'Fraunces', serif", quoteStyle: "normal",
-    weight: 400, strong: 400, tracking: "0em", leading: 1.06,
-    credit: "Kuigaf via Typecase (demo cut, personal use) · Hanken Grotesk (OFL)",
-  },
-  {
-    id: "clubhouse",
-    name: "Clubhouse",
-    note: "Spurred Victorian capitals over a newsprint serif, with a signature script for the asides. A go club with a painted window.",
-    display: "'sente-raventhorn', 'Fraunces', serif",
-    italic: "'sente-ronalltie', 'Fraunces', serif",
-    italicStyle: "normal",
-    body: "'Newsreader', Georgia, serif",
-    quote: "'Newsreader', Georgia, serif", quoteStyle: "italic",
-    weight: 400, strong: 400, tracking: "0.01em", leading: 1.1,
-    credit: "Raventhorn and Ronalltie via Typecase (demo cuts, personal use) · Newsreader (Production Type, OFL)",
-  },
-  {
-    id: "signal",
-    name: "Signal",
-    note: "No serifs at all: a tall condensed sans for the headings against a plain grotesk. The loudest and the flattest.",
-    display: "'sente-further', 'Hanken Grotesk', sans-serif",
-    italic: "'sente-further', 'Hanken Grotesk', sans-serif",
-    italicStyle: "normal",
-    body: "'Instrument Sans', sans-serif",
-    quote: "'Instrument Sans', sans-serif", quoteStyle: "italic",
-    serifless: true,
-    weight: 400, strong: 400, tracking: "0.015em", leading: 1.06,
-    credit: "Further via Typecase (demo cut, personal use) · Instrument Sans (OFL)",
-  },
-  {
-    id: "hoshi",
-    name: "Hoshi",
-    note: "Geometric to the bone, and set the way the modernists set a poster: perfect circles at hairline weight, tracked wide, nothing decorative anywhere. Named for the star points it is drawn from.",
-    display: "'sente-cocogoose', 'Hanken Grotesk', sans-serif",
-    italic: "'sente-cocogoose-italic', 'Hanken Grotesk', sans-serif",
-    italicStyle: "normal",
-    body: HANKEN,
-    quote: "'sente-cocogoose-italic', 'Hanken Grotesk', sans-serif", quoteStyle: "normal",
-    serifless: true,
-    weight: 400, strong: 400, tracking: "0.06em", leading: 1.14,
-    credit: "Cocogoose Pro, Thin and Light Italic (Zetafonts, trial, personal use) · Hanken Grotesk (OFL)",
+    credit: "Welorac via Typecase (demo cut, personal use) · Fraunces (Undercase, OFL) · Hanken Grotesk (OFL)",
   },
   {
     id: "vitrine",

@@ -47,8 +47,8 @@ export const REQUIRED_TONES = TONES.filter(t => t.required).map(t => t.key);
  *  may name no colour outside its house-default block, so this list is also
  *  the list of things the stylesheet is allowed to ask for. */
 export const TOKEN_NAMES = [
-  "--ground", "--light", "--dark", "--ink", "--cream",
-  "--accent-rgb", "--accent-soft", "--accent-ring", "--accent-ink", "--danger",
+  "--ground", "--light", "--dark", "--ink", "--ink-2", "--ink-3", "--cream",
+  "--accent-rgb", "--accent-soft", "--accent-ring", "--accent-ink", "--danger", "--danger-ink",
   "--sh-ink", "--sh-lite",
   "--wash-a", "--wash-b", "--scrim",
   "--grid", "--hairline",
@@ -65,6 +65,11 @@ export const TOKEN_NAMES = [
 /** The floor for anything set at reading size. WCAG AA for body text, and the
  *  reason `--accent-ink` exists: a marked word is text, whatever else it is. */
 export const READING = 4.5;
+
+/** The floor for text set large — 24px and up, or 19px bold. WCAG AA grants it
+ *  3:1, which is the same floor a mark is held to, and it is the whole licence
+ *  `--ink-3` runs on. Nothing small is allowed to spend it. */
+export const LARGE = 3;
 
 export const RULES = [
   { id: "ink", label: "Ink on ground", a: "ink", b: "ground", min: READING,

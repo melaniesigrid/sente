@@ -61,6 +61,18 @@ export const api = {
       body: { oldKey: await key(email, oldPassword), key: await key(email, password) },
     }),
 
+  /* The two letters. `forgot` answers the same way whether or not there is an
+     account at that address, so nothing a caller does with it can be read as
+     an answer to "does this person play here". The reset page asks the server
+     which address its token was sent to before it can do anything: the key is
+     derived with the address as its salt, so it cannot be derived without it. */
+  sendConfirmation: (token) => call("/api/me/verify", { method: "POST", token }),
+  confirmEmail: (link) => call("/api/verify", { method: "POST", body: { token: link } }),
+  forgot: (email) => call("/api/forgot", { method: "POST", body: { email: fold(email) } }),
+  resetTarget: (link) => call(`/api/reset/${encodeURIComponent(link)}`),
+  resetPassword: async (link, email, password) =>
+    call("/api/reset", { method: "POST", body: { token: link, key: await key(email, password) } }),
+
   me: (token) => call("/api/me", { token }),
   update: (token, patch) => call("/api/me", { method: "PATCH", token, body: patch }),
   leave: (token) => call("/api/me", { method: "DELETE", token }),

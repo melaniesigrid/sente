@@ -23,15 +23,27 @@ export const ACCOUNT_ERRORS = {
   "no-email": "Add an address before setting a password",
   "too-many-handles": "That is a lot of handles from one place today. Try again in an hour.",
   "too-many-attempts": "Too many sign-in attempts from here. Try again in an hour.",
+  "too-many-letters": "That is several letters already. Look in your spam folder, then try again in an hour.",
+  "bad-token": "That link does not work. Check you copied the whole of it.",
+  "token-expired": "That link has been used, or it is too old. Ask for another.",
+  "already-verified": "That address is already confirmed",
+  "mail-failed": "The letter could not be sent. That is ours to fix, not yours.",
 };
 
 export const errorText = (reason) => ACCOUNT_ERRORS[reason] ?? `Something went wrong (${reason})`;
 
 /** The problem with a form, or null when it may be submitted. `mode` is
- *  "signup" | "signin" | "attach" | "password". Order matters: a person is
- *  told about the first field they have not finished, top to bottom. */
+ *  "signup" | "signin" | "attach" | "password" | "forgot" | "reset". Order
+ *  matters: a person is told about the first field they have not finished, top
+ *  to bottom.
+ *
+ *  "forgot" asks for an address and nothing else. "reset" asks for a password
+ *  and nothing else — its address comes back from the server with the link,
+ *  because the browser needs it to derive the key and the person following a
+ *  link from their own inbox should not have to type it again. */
 export function formProblem(mode, fields) {
   const { name = "", email = "", password = "", confirm = "", oldPassword = "" } = fields;
+  if (mode === "forgot") return cleanEmail(email) ? null : "That does not look like an address";
   if (mode === "signup" && name.trim().length < 2) return "A handle is two to eighteen characters";
   if (mode !== "password" && !cleanEmail(email)) return "That does not look like an address";
   if (mode === "password" && !oldPassword) return "Your current password, first";
