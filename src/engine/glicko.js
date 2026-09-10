@@ -103,8 +103,13 @@ export function updateGlicko(player, games, tau = GLICKO.tau) {
 
 const clampRd = (rd) => Math.min(Math.max(rd, GLICKO.minRd), GLICKO.maxRd);
 
-/** One finished game, the shape the app actually plays: the player against a
- *  single opponent of known strength. `score` is 1, 0, or 0.5. */
-export function rateGame(player, opponent, score) {
+/** One finished game from one player's side: them against a single opponent of
+ *  known strength. `score` is 1, 0, or 0.5.
+ *
+ *  Named for what it does to one player, not to a game, because the server has a
+ *  `rateGame(black, white, winner)` that settles both sides at once. Two
+ *  functions with one name and different arguments would fail silently rather
+ *  than loudly, and a rating that is quietly wrong is worse than one that throws. */
+export function rateAgainst(player, opponent, score) {
   return updateGlicko(player, [{ rating: opponent.rating, rd: opponent.rd ?? GLICKO.minRd, score }]);
 }

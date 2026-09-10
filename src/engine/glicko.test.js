@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { GLICKO, updateGlicko, rateGame, isProvisional } from "./glicko.js";
+import { GLICKO, updateGlicko, rateAgainst, isProvisional } from "./glicko.js";
 /* The engine does not import the app, so the scale is restated here rather than
    borrowed from `src/content/rank.js`: a rank is a factor of e^(1/23.15) in
    rating, which is the OGS scale the app puts on top of these numbers. */
@@ -36,8 +36,8 @@ describe("glicko-2", () => {
 
   it("moves a newcomer faster than a settled player", () => {
     const opp = { rating: ratingOfRank("20k"), rd: GLICKO.minRd };
-    const newcomer = rateGame({ rating: opp.rating, rd: GLICKO.rd, vol: GLICKO.vol }, opp, 1);
-    const settled = rateGame({ rating: opp.rating, rd: 50, vol: GLICKO.vol }, opp, 1);
+    const newcomer = rateAgainst({ rating: opp.rating, rd: GLICKO.rd, vol: GLICKO.vol }, opp, 1);
+    const settled = rateAgainst({ rating: opp.rating, rd: 50, vol: GLICKO.vol }, opp, 1);
     expect(rankGain(opp.rating, newcomer.rating)).toBeGreaterThan(rankGain(opp.rating, settled.rating));
     expect(rankGain(opp.rating, settled.rating)).toBeGreaterThan(0);
     // A settled player crosses a fraction of a rank on one win; a newcomer, more than one.
@@ -49,7 +49,7 @@ describe("glicko-2", () => {
     let p = { rating: ratingOfRank("20k"), rd: GLICKO.rd, vol: GLICKO.vol };
     const opp = { rating: ratingOfRank("20k"), rd: GLICKO.minRd };
     const rds = [];
-    for (let i = 0; i < 60; i++) { p = rateGame(p, opp, i % 2); rds.push(p.rd); }
+    for (let i = 0; i < 60; i++) { p = rateAgainst(p, opp, i % 2); rds.push(p.rd); }
     expect(rds[5]).toBeLessThan(GLICKO.rd);
     expect(rds[59]).toBeLessThan(rds[5]);
     expect(rds[59]).toBeGreaterThanOrEqual(GLICKO.minRd);
@@ -58,7 +58,7 @@ describe("glicko-2", () => {
   it("finds a newcomer's real strength in an evening", () => {
     // Someone who is really about 10k, seeded at 20k, beating 20k opponents.
     let p = { rating: ratingOfRank("20k"), rd: GLICKO.rd, vol: GLICKO.vol };
-    for (let i = 0; i < 8; i++) p = rateGame(p, { rating: ratingOfRank("20k"), rd: GLICKO.minRd }, 1);
+    for (let i = 0; i < 8; i++) p = rateAgainst(p, { rating: ratingOfRank("20k"), rd: GLICKO.minRd }, 1);
     expect(rankGain(ratingOfRank("20k"), p.rating)).toBeGreaterThan(4);
     expect(isProvisional(p.rd)).toBe(false);
   });
@@ -72,17 +72,17 @@ describe("glicko-2", () => {
 
   it("scores a jigo as half a game, moving nobody far", () => {
     const p = { rating: ratingOfRank("8k"), rd: 60, vol: GLICKO.vol };
-    const drawn = rateGame(p, { rating: p.rating, rd: GLICKO.minRd }, 0.5);
+    const drawn = rateAgainst(p, { rating: p.rating, rd: GLICKO.minRd }, 0.5);
     expect(Math.abs(rankGain(p.rating, drawn.rating))).toBeLessThan(0.01);
   });
 
   it("rewards beating a stronger player more than beating a weaker one", () => {
     const p = { rating: ratingOfRank("10k"), rd: 60, vol: GLICKO.vol };
-    const overStronger = rateGame(p, { rating: ratingOfRank("5k"), rd: GLICKO.minRd }, 1);
-    const overWeaker = rateGame(p, { rating: ratingOfRank("15k"), rd: GLICKO.minRd }, 1);
+    const overStronger = rateAgainst(p, { rating: ratingOfRank("5k"), rd: GLICKO.minRd }, 1);
+    const overWeaker = rateAgainst(p, { rating: ratingOfRank("15k"), rd: GLICKO.minRd }, 1);
     expect(overStronger.rating).toBeGreaterThan(overWeaker.rating);
-    const lostToWeaker = rateGame(p, { rating: ratingOfRank("15k"), rd: GLICKO.minRd }, 0);
-    const lostToStronger = rateGame(p, { rating: ratingOfRank("5k"), rd: GLICKO.minRd }, 0);
+    const lostToWeaker = rateAgainst(p, { rating: ratingOfRank("15k"), rd: GLICKO.minRd }, 0);
+    const lostToStronger = rateAgainst(p, { rating: ratingOfRank("5k"), rd: GLICKO.minRd }, 0);
     expect(lostToWeaker.rating).toBeLessThan(lostToStronger.rating);
   });
 
@@ -90,7 +90,7 @@ describe("glicko-2", () => {
     // Ten straight losses to an even opponent, from a settled rating.
     let p = { rating: ratingOfRank("8k"), rd: 50, vol: GLICKO.vol };
     const start = p.rating;
-    for (let i = 0; i < 10; i++) p = rateGame(p, { rating: ratingOfRank("8k"), rd: GLICKO.minRd }, 0);
+    for (let i = 0; i < 10; i++) p = rateAgainst(p, { rating: ratingOfRank("8k"), rd: GLICKO.minRd }, 0);
     expect(rankGain(start, p.rating)).toBeGreaterThan(-4);
     expect(rankGain(start, p.rating)).toBeLessThan(-1);
   });

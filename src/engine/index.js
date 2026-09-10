@@ -16,7 +16,7 @@ export {
   replay, withMoveComment, lastMoveIndex, resultText,
 } from "./record.js";
 export { CLOCK_TYPES, createClock, tick, onMove, remainingMs } from "./clock.js";
-export { GLICKO, updateGlicko, rateGame, isProvisional } from "./glicko.js";
+export { GLICKO, updateGlicko, rateAgainst, isProvisional } from "./glicko.js";
 export {
   RULESETS, RULESET_IDS, DEFAULT_RULES, rulesetOf, isRulesId, defaultKomi, handicapBonus,
 } from "./rulesets.js";
