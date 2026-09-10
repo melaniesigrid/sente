@@ -438,9 +438,13 @@ Open:
 - [x] Type scale floor raised from 9.5px to 12px across the stylesheet; the wordmark went
       from clamp(20, 26) to clamp(28, 38) and the brand mark from 15px to 19px.
 
+- [x] `system` is the profile default and the first option in the picker: house when the
+      device asks for light, sumi when it asks for dark. `resolveTheme` is pure and takes the
+      answer as an argument; `usePrefersDark` in `src/components/prefersDark.js` is the only
+      thing in the app that reads the media query, and it keeps listening, so switching a
+      laptop to dark mode moves the room without a reload.
+
 Open:
-- [ ] `prefers-color-scheme` is not consulted. A first visit lands on house whatever the
-      OS says. Decide between an explicit choice only, or a `system` option that follows.
 - [ ] The seal tints in `rank.js` are still absolute values chosen against paper. The belts
       have a contour now; the tints only colour an avatar, so they hold, but they are the
       last absolute colours in the app.

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
-  PALETTES, DEFAULT_THEME, DOJO_THEME,
-  themeOf, themeVars, isDark, isThemeId, sanitizePalette, paletteFrom, auditPalette,
+  PALETTES, HOUSE_THEME, DOJO_THEME, SYSTEM_THEME, SYSTEM_PAIR,
+  themeOf, themeVars, isDark, isThemeId, resolveTheme, sanitizePalette, paletteFrom, auditPalette,
 } from "./index.js";
 import { TOKEN_NAMES, TONE_KEYS, REQUIRED_TONES } from "./tokens.js";
 import { completeTones, deriveLights, deriveStoneB } from "./derive.js";
@@ -10,15 +10,16 @@ import { contrast, isHex, luminance } from "./color.js";
 const MINE = { ground: "#101014", ink: "#e6e6ea", accent: "#b98cff", cream: "#f2f2f6" };
 
 describe("the named rooms", () => {
-  it("has house first and as the default", () => {
-    expect(PALETTES[0].id).toBe(DEFAULT_THEME);
-    expect(DEFAULT_THEME).toBe("house");
+  it("has house first, as the reference room", () => {
+    expect(PALETTES[0].id).toBe(HOUSE_THEME);
+    expect(HOUSE_THEME).toBe("house");
   });
 
   it("gives every room a unique id, a name, a mood and a note", () => {
     const ids = PALETTES.map(p => p.id);
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids).not.toContain(DOJO_THEME);
+    expect(ids, "system is a pointer at two rooms, not a room").not.toContain(SYSTEM_THEME);
     for (const p of PALETTES) {
       expect(p.name, p.id).toBeTruthy();
       expect(p.note, p.id).toBeTruthy();
@@ -94,6 +95,41 @@ describe("resolving a theme id", () => {
   it("works out a built room's mood from its ground", () => {
     expect(themeOf(DOJO_THEME, MINE).mood).toBe("Dark");
     expect(themeOf(DOJO_THEME, { ...MINE, ground: "#f3f1ec", ink: "#333029" }).mood).toBe("Light");
+  });
+});
+
+describe("following the device", () => {
+  it("points at house in the light and sumi in the dark", () => {
+    expect(resolveTheme(SYSTEM_THEME, false)).toBe("house");
+    expect(resolveTheme(SYSTEM_THEME, true)).toBe("sumi");
+    expect(SYSTEM_PAIR.light).toBe(HOUSE_THEME);
+  });
+
+  it("points at two rooms that actually exist", () => {
+    for (const id of Object.values(SYSTEM_PAIR)) {
+      expect(PALETTES.some(p => p.id === id), id).toBe(true);
+    }
+    expect(isDark(themeOf(SYSTEM_PAIR.dark))).toBe(true);
+    expect(isDark(themeOf(SYSTEM_PAIR.light))).toBe(false);
+  });
+
+  it("leaves every other id alone, whatever the device says", () => {
+    for (const id of [...PALETTES.map(p => p.id), DOJO_THEME, "nonsense"]) {
+      expect(resolveTheme(id, true), id).toBe(id);
+      expect(resolveTheme(id, false), id).toBe(id);
+    }
+  });
+
+  // The profile ships set to "system", so this is the one id that must be legal
+  // before a player has chosen anything or built anything.
+  it("is a legal profile value with nothing else stored", () => {
+    expect(isThemeId(SYSTEM_THEME)).toBe(true);
+    expect(isThemeId(SYSTEM_THEME, null)).toBe(true);
+  });
+
+  it("draws as house if it somehow reaches themeOf unresolved, rather than throwing", () => {
+    expect(themeOf(SYSTEM_THEME).id).toBe("house");
+    expect(() => themeVars(SYSTEM_THEME)).not.toThrow();
   });
 });
 

@@ -5,7 +5,7 @@ import { MokuMark } from "../components/Moku.jsx";
 import { useMoku, useMokuFacts } from "../components/mokuStore.js";
 import { TINTS, rankOf, preciseRankOf, beltOf, nextBelt, hintsForBelt, beltFloor } from "../content/rank.js";
 import { TYPEFACES, typefaceOf } from "../content/typeface.js";
-import { PALETTES, themeOf, themeVars, DOJO_THEME } from "../theme/index.js";
+import { PALETTES, themeOf, themeVars, DOJO_THEME, SYSTEM_THEME } from "../theme/index.js";
 import { CLASSIC, LEVELS, BELOW_THE_LEVELS, levelForRank, chapterByNumber } from "../content/classic.js";
 import { LESSONS } from "../content/lessons.js";
 import { PROBLEMS } from "../content/problems.js";
@@ -51,11 +51,20 @@ const ordinal = (n) => ORDINALS[n - 1] || `${n}th`;
 const l0 = (s) => s.charAt(0).toLowerCase() + s.slice(1);
 
 /* ----------------------- PROFILE ----------------------- */
-/** The named rooms, plus the one this device built if there is one. */
-const roomsFor = (dojo) => (dojo ? [...PALETTES, { ...dojo, id: DOJO_THEME, name: dojo.name || "Your dojo", mood: "Yours" }] : PALETTES);
+/** What the picker offers, in the order it offers them: follow the device
+ *  first, then the named rooms, then the one this device built if there is one.
+ *
+ *  The System swatch is drawn in whichever room it currently resolves to, so it
+ *  is not a grey placeholder among eight coloured plates — it shows you the
+ *  answer it is giving right now. */
+const roomsFor = (dojo, room) => [
+  { id: SYSTEM_THEME, name: "System", mood: "Automatic", drawAs: room },
+  ...PALETTES,
+  ...(dojo ? [{ ...dojo, id: DOJO_THEME, name: dojo.name || "Your dojo", mood: "Yours" }] : []),
+];
 
-export function ProfileView({ profile, setProfile, go }) {
-  const rooms = roomsFor(profile.dojo);
+export function ProfileView({ profile, setProfile, go, room }) {
+  const rooms = roomsFor(profile.dojo, room);
   const [editing, setEditing] = useState(false);
   const [nameDraft, setNameDraft] = useState(profile.name);
   const games = profile.wins + profile.losses;
@@ -143,14 +152,14 @@ export function ProfileView({ profile, setProfile, go }) {
       <Card>
         <div className="stat-head"><Palette size={16} /><span>Palette</span></div>
         <p className="fine" style={{ marginTop: 6 }}>
-          Eight rooms for the same board, and one you can build yourself. A palette sets the
-          ground, the two lights every shadow is cut from, and the one colour that means here;
-          the shapes and the spacing never move.
+          Eight rooms for the same board, one that follows your device, and one you can build
+          yourself. A palette sets the ground, the two lights every shadow is cut from, and the
+          one colour that means here; the shapes and the spacing never move.
         </p>
         <div className="theme-row">
           {rooms.map(t => (
             <button key={t.id}
-              style={themeVars(t.id, profile.dojo)}
+              style={themeVars(t.drawAs || t.id, profile.dojo)}
               className={`theme-btn ${profile.theme === t.id ? "active" : ""}`}
               onClick={() => commit({ theme: t.id })}
               aria-pressed={profile.theme === t.id}
@@ -169,8 +178,10 @@ export function ProfileView({ profile, setProfile, go }) {
           ))}
         </div>
         <p className="fine type-note">
-          {themeOf(profile.theme, profile.dojo).note
-            || "A room you built yourself. Open the dojo to keep working on it."}
+          {profile.theme === SYSTEM_THEME
+            ? `Following your device, which is asking for ${themeOf(room).name} right now. Change the device and the room changes with it.`
+            : themeOf(profile.theme, profile.dojo).note
+              || "A room you built yourself. Open the dojo to keep working on it."}
         </p>
         <div className="row" style={{ marginTop: 14 }}>
           <button className="btn btn-accent" onClick={() => go("dojo")}>

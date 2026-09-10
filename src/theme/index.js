@@ -3,8 +3,10 @@
    same way they import the engine from src/engine/index.js.
 
      PALETTES        the named rooms, as data
-     DEFAULT_THEME   "house" — the design system as drawn
+     HOUSE_THEME     "house" — the design system as drawn, and the fallback
+     SYSTEM_THEME    "system" — follow the device; a pointer, not a palette
      DOJO_THEME      "dojo" — the one a player built themselves
+     resolveTheme    a stored id + prefers-dark -> the id to actually draw
      themeOf         id (+ the player's dojo palette) -> a palette
      themeVars       the custom properties .sente-root needs
      isDark          does this palette put the app in a dark room
@@ -14,8 +16,8 @@
      TONES           what a palette is authored from, in editing order
 */
 export {
-  PALETTES, DEFAULT_THEME, DOJO_THEME, TONES, TONE_KEYS, REQUIRED_TONES,
-  themeOf, themeVars, isDark, isThemeId, sanitizePalette, paletteFrom, auditPalette,
+  PALETTES, HOUSE_THEME, SYSTEM_THEME, SYSTEM_PAIR, DOJO_THEME, TONES, TONE_KEYS, REQUIRED_TONES,
+  themeOf, themeVars, isDark, isThemeId, resolveTheme, sanitizePalette, paletteFrom, auditPalette,
 } from "./theme.js";
 export { contrast, luminance, grade, isHex, isDarkColor, toTriple } from "./color.js";
 export { RULES, CLOSENESS, TOKEN_NAMES } from "./tokens.js";

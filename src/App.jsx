@@ -21,7 +21,8 @@ import { ErrorBoundary } from "./components/ErrorBoundary.jsx";
 import { MokuProvider, MokuDock } from "./components/Moku.jsx";
 import { preciseRankOf } from "./content/rank.js";
 import { typefaceVars } from "./content/typeface.js";
-import { themeVars } from "./theme/index.js";
+import { themeVars, resolveTheme } from "./theme/index.js";
+import { usePrefersDark } from "./components/prefersDark.js";
 import { defaultProfile, loadProfile } from "./store/profile.js";
 import { Home } from "./views/Home.jsx";
 import { PlayView } from "./views/Play.jsx";
@@ -47,6 +48,9 @@ export default function SenteApp() {
   const [resume, setResume] = useState(null); // { mode, record } handed to PlayView once
   const [params, setParams] = useState(null); // one-shot navigation params, e.g. { problemId }
   const toastTimer = useRef(null);
+  // `system` is a pointer at two rooms; the device says which one, here and nowhere else.
+  const prefersDark = usePrefersDark();
+  const room = resolveTheme(profile.theme, prefersDark);
   useEffect(() => { loadProfile().then(setProfile); }, []);
 
   const notify = useCallback((t) => {
@@ -61,7 +65,7 @@ export default function SenteApp() {
 
   return (
     <MokuProvider view={view}>
-    <div className="sente-root" style={{ ...themeVars(profile.theme, profile.dojo), ...typefaceVars(profile.typeface) }}>
+    <div className="sente-root" style={{ ...themeVars(room, profile.dojo), ...typefaceVars(profile.typeface) }}>
       <style>{CSS}</style>
       <header className="topbar">
         <div className="brand">
@@ -94,8 +98,8 @@ export default function SenteApp() {
           {view === "learn" && <LearnView profile={profile} setProfile={setProfile} />}
           {view === "tsumego" && <ProblemsView profile={profile} setProfile={setProfile} initialId={params ? params.problemId : null} />}
           {view === "ladder" && <RankingsView profile={profile} />}
-          {view === "profile" && <ProfileView profile={profile} setProfile={setProfile} go={go} />}
-          {view === "dojo" && <DojoView profile={profile} setProfile={setProfile} notify={notify} go={go} />}
+          {view === "profile" && <ProfileView profile={profile} setProfile={setProfile} go={go} room={room} />}
+          {view === "dojo" && <DojoView profile={profile} setProfile={setProfile} notify={notify} go={go} room={room} />}
         </ErrorBoundary>
       </main>
       <Toast toast={toast} />

@@ -2,10 +2,20 @@
    Resolving an id to a palette, a palette to custom properties, and untrusted
    stored data to a palette that cannot break the app. Nothing here knows about
    React; the shell spreads what `themeVars` returns onto one element. */
-import { PALETTES, DEFAULT_THEME, DOJO_THEME } from "./palettes.js";
+import { PALETTES, HOUSE_THEME, DOJO_THEME, SYSTEM_THEME, SYSTEM_PAIR } from "./palettes.js";
 import { tokensFor, completeTones, deriveStoneB } from "./derive.js";
 import { TONES, TONE_KEYS, REQUIRED_TONES, RULES, CLOSENESS, STONE_RULE } from "./tokens.js";
 import { isHex, contrast, grade, isDarkColor } from "./color.js";
+
+/** What the profile's stored id means on this device right now. `system` is a
+ *  pointer at two rooms rather than a room, so it has to be resolved before
+ *  anything can be drawn; every other id resolves to itself.
+ *
+ *  Pure on purpose: the caller reads the media query and hands the answer in, so
+ *  this module still knows nothing about a browser. */
+export function resolveTheme(id, prefersDark) {
+  return id === SYSTEM_THEME ? (prefersDark ? SYSTEM_PAIR.dark : SYSTEM_PAIR.light) : id;
+}
 
 /** The palette with this id, or the house palette. Never throws.
  *  `custom` is the profile's dojo palette, offered when the id asks for it. */
@@ -27,9 +37,12 @@ export function themeVars(id, custom = null) {
   return tokensFor(themeOf(id, custom));
 }
 
-/** Every id the profile may legally hold. */
+/** Every id the profile may legally hold: a named room, `system`, or `dojo`
+ *  once there is a palette for it to mean. */
 export function isThemeId(id, custom = null) {
-  return id === DOJO_THEME ? !!custom : PALETTES.some(p => p.id === id);
+  if (id === SYSTEM_THEME) return true;
+  if (id === DOJO_THEME) return !!custom;
+  return PALETTES.some(p => p.id === id);
 }
 
 /** Stored JSON is untrusted. A dojo palette survives only if every required
@@ -85,4 +98,4 @@ export function auditPalette(palette) {
   return rows.sort((a, b) => Number(a.pass) - Number(b.pass));
 }
 
-export { PALETTES, DEFAULT_THEME, DOJO_THEME, TONES, TONE_KEYS, REQUIRED_TONES };
+export { PALETTES, HOUSE_THEME, DOJO_THEME, SYSTEM_THEME, SYSTEM_PAIR, TONES, TONE_KEYS, REQUIRED_TONES };

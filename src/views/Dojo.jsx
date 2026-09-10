@@ -4,7 +4,7 @@ import { boardFromRows, tryPlay } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
 import { Card } from "../components/ui.jsx";
 import {
-  PALETTES, TONES, DOJO_THEME, DEFAULT_THEME,
+  PALETTES, TONES, DOJO_THEME, HOUSE_THEME,
   themeVars, paletteFrom, auditPalette, completeTones, deriveLights, isHex, isDark,
 } from "../theme/index.js";
 
@@ -37,10 +37,10 @@ const ROWS = [
 
 const PARTIAL_HEX = /^#[0-9a-f]{0,6}$/i;
 
-export function DojoView({ profile, setProfile, notify, go }) {
+export function DojoView({ profile, setProfile, notify, go, room }) {
   const saved = profile.dojo;
   const [draft, setDraft] = useState(
-    () => saved || paletteFrom(profile.theme === DOJO_THEME ? DEFAULT_THEME : profile.theme),
+    () => saved || paletteFrom(room === DOJO_THEME ? HOUSE_THEME : room),
   );
   const [autoLights, setAutoLights] = useState(!saved);
   const [board, setBoard] = useState(() => boardFromRows(ROWS));
@@ -76,9 +76,9 @@ export function DojoView({ profile, setProfile, notify, go }) {
     setProfile(p => ({ ...p, dojo: palette, theme: DOJO_THEME }));
     notify({ kind: "good", text: live ? "Dojo updated." : "Your dojo is live. Every screen wears it now." });
   };
-  const startOver = () => { setDraft(paletteFrom(DEFAULT_THEME)); setAutoLights(true); };
+  const startOver = () => { setDraft(paletteFrom(HOUSE_THEME)); setAutoLights(true); };
   const clear = () => {
-    setProfile(p => ({ ...p, dojo: null, theme: DEFAULT_THEME }));
+    setProfile(p => ({ ...p, dojo: null, theme: HOUSE_THEME }));
     notify({ kind: "info", text: "Dojo cleared. Back to house." });
   };
 

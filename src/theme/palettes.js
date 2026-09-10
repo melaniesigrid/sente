@@ -81,9 +81,22 @@ export const PALETTES = [
   },
 ];
 
-export const DEFAULT_THEME = "house";
+/** The room the design system was drawn in. Every rule's floor is measured
+ *  against it, and it is what anything unrecognised falls back to. */
+export const HOUSE_THEME = "house";
 
 /** The id a palette built in the dojo answers to. It is not in PALETTES: it
  *  lives in the profile, one per device, and only exists once someone has made
  *  one. */
 export const DOJO_THEME = "dojo";
+
+/** Follow the device. This is what a profile ships set to, because someone
+ *  opening Sente at night on a dark machine should not be handed full-brightness
+ *  cream and left to go find the setting.
+ *
+ *  It is not a palette and never appears in PALETTES — it is a pointer at two of
+ *  them, resolved at render time by resolveTheme(). Sumi rather than Lacquer for
+ *  the dark half: Lacquer is a formal room you choose, Sumi is house after dark,
+ *  and the automatic answer should be the quiet one. */
+export const SYSTEM_THEME = "system";
+export const SYSTEM_PAIR = { light: HOUSE_THEME, dark: "sumi" };

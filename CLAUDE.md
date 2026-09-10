@@ -23,7 +23,10 @@ Lucide icons. No backend yet; profile persists in localStorage.
   authored colours into the whole token set; `color.js` is the only place that knows how a
   colour is spelled. The stylesheet names no colour outside its house-default block, only
   tokens, which the shell sets from `profile.theme` (and `profile.dojo` for a palette the
-  player built). `house` is the default and the reference.
+  player built). `house` is the reference room and the fallback; `system` is what a profile
+  ships set to, and `resolveTheme(id, prefersDark)` turns it into a real room. The theme
+  package is pure: `usePrefersDark` in `src/components/` is the only thing that reads the
+  media query.
 - A new palette is four colours — ground, ink, mark, shell — in `palettes.js`. Everything
   else derives. `npm test` holds it to the same rules `auditPalette` shows live in the dojo;
   there is one implementation of those rules so the panel and CI cannot disagree.
