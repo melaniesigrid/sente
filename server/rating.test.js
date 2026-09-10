@@ -65,16 +65,24 @@ describe("glicko-2", () => {
   });
 });
 
-describe("which rateGame the server uses", () => {
-  /* Two functions are called rateGame and both take three positional arguments:
-     this one, `(black, white, winner)`, and the engine's `(player, opponent,
-     score)` which the browser uses for house games. Confusing them would not
-     throw; it would quietly produce ratings that disagree with the ones players
-     are given. The server must therefore reach for its own, never the engine's
-     public surface, and that is cheap to assert rather than to remember. */
+describe("what the server imports", () => {
+  /* The server reaches into the engine for individual modules and never through
+     `src/engine/index.js`. Two reasons, and the second one does not expire:
+
+     The index re-exports `kata/net.js`, the one engine module that does I/O: it
+     fetches a 53 MB network and runs it through ONNX Runtime Web, which expects
+     a browser. Its runtime is a dynamic import, so it is not eagerly bundled,
+     but nothing about it belongs in a Worker and the server should not be one
+     import away from it.
+
+     It also keeps the two ratings apart. They were briefly both called
+     `rateGame` with three positional arguments, so swapping them would not have
+     thrown, only produced ratings disagreeing with the ones players were given.
+     The engine's is `rateAgainst(player, opponent, score)` now and the collision
+     is gone, but the separation is worth holding on to rather than re-deriving. */
   const serverSources = ["registry.js", "roomObject.js", "room.js", "index.js", "rating.js"];
 
-  it("never imports a rating from the engine's public index", () => {
+  it("never reaches the engine through its public index", () => {
     for (const file of serverSources) {
       const src = readFileSync(new URL(file, import.meta.url), "utf8");
       const fromIndex = /from\s+["'][^"']*engine\/index\.js["']/.test(src);
@@ -87,7 +95,7 @@ describe("which rateGame the server uses", () => {
     const wWins = rateGame({ rating: 1400, rd: 80, vol: 0.06 }, { rating: 1400, rd: 80, vol: 0.06 }, "w");
     expect(bWins.b.delta).toBeGreaterThan(0);
     expect(wWins.b.delta).toBeLessThan(0);
-    // A jigo between equals moves neither, which a score-shaped call could not express.
+    // A jigo between equals moves neither. A score-shaped third argument could not say this.
     expect(rateGame({ rating: 1400, rd: 80, vol: 0.06 }, { rating: 1400, rd: 80, vol: 0.06 }, null).b.delta).toBe(0);
   });
 });
