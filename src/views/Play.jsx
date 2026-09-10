@@ -109,6 +109,14 @@ export function PlayView({ profile, setProfile, notify, resume }) {
           <p className="persona-bio">The original multiplayer. Black and White share the device; the ladder sits this one out.</p>
           <span className="persona-cta"><Handshake size={13} /> Sit down</span>
         </button>
+        {/* Chapter nine of the Classic answers the charge that a game of
+            invasion and killing must be a false Way. It is the oldest
+            statement of the reason every player here is labeled honestly. */}
+        <p className="fine lobby-creed">
+          Every player above is a bot, and says so. The classic settled the
+          question nine centuries ago: a small Way, but the same Way as war,
+          and its rule for players was to be honest and not incorrect.
+        </p>
       </div>
     );
   }

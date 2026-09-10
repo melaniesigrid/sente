@@ -3,7 +3,7 @@
    this is the authoring safety net from docs/designs/lesson-library.md. */
 import { describe, it, expect } from "vitest";
 import { tryPlay, chainAt, idx, opponent } from "../engine/index.js";
-import { LIBRARY, TIERS, TRACKS, rankToNumber, lessonById, prereqsMissing, nextLessonFor, currentTierFor, searchLibrary, lessonsInTier } from "./library.js";
+import { LIBRARY, TIERS, TRACKS, SERIES, rankToNumber, lessonById, prereqsMissing, nextLessonFor, currentTierFor, searchLibrary, lessonsInTier, lessonsInSeries } from "./library.js";
 import { LESSONS } from "./lessons.js";
 import { setupToBoard } from "./positions.js";
 
@@ -90,6 +90,11 @@ describe.each(LIBRARY.map(l => [l.id, l]))("lesson %s", (id, lesson) => {
     expect(Array.isArray(lesson.prereqs)).toBe(true);
     expect(lesson.steps.length).toBeGreaterThanOrEqual(3);
     expect(lesson.steps.length).toBeLessThanOrEqual(6);
+    if (lesson.series !== undefined) {
+      expect(SERIES.some(s => s.key === lesson.series)).toBe(true);
+      expect(Number.isInteger(lesson.chapter) && lesson.chapter > 0).toBe(true);
+      expect(lesson.sources.length).toBeGreaterThan(0);
+    }
   });
 
   it("prerequisites exist, sit in the same or a lower tier, and form no cycle", () => {
@@ -204,18 +209,25 @@ describe("library helpers", () => {
     expect(nextLessonFor(fresh).id).toBe("liberties");
     expect(nextLessonFor({ lessonsDone: ["liberties"] }).id).toBe("no-liberty-capture");
     const allTier1 = lessonsInTier(1).map(l => l.id);
-    expect(nextLessonFor({ lessonsDone: allTier1, tierPassed: [] })).toBeNull(); // nothing authored beyond Tier 1 yet
+    expect(nextLessonFor({ lessonsDone: allTier1, tierPassed: [] }).id).toBe("classic-board"); // first of Tier 2
   });
   it("currentTierFor follows finished tiers and passed exit tests", () => {
     expect(currentTierFor(fresh)).toBe(1);
     expect(currentTierFor({ lessonsDone: [], tierPassed: [1] })).toBe(2);
     const allTier1 = lessonsInTier(1).map(l => l.id);
-    expect(currentTierFor({ lessonsDone: allTier1, tierPassed: [] })).toBe(1);
+    expect(currentTierFor({ lessonsDone: allTier1, tierPassed: [] })).toBe(2);
+  });
+  it("lessonsInSeries returns chapters in order, and a chapter may hold more than one lesson", () => {
+    const cs = lessonsInSeries("classic").map(l => l.chapter);
+    expect(cs).toEqual([...cs].sort((a, b) => a - b));
+    expect(cs.length).toBeGreaterThanOrEqual(new Set(cs).size);
+    expect(lessonsInSeries("nope")).toEqual([]);
   });
   it("searchLibrary matches title and track, case-insensitively", () => {
     expect(searchLibrary("")).toBe(LIBRARY);
     expect(searchLibrary("KO").some(l => l.id === "ko")).toBe(true);
-    expect(searchLibrary("judgement").map(l => l.id)).toEqual(["territory-count", "passing-and-ending"]);
+    expect(searchLibrary("judgement").every(l => l.track === "judgement")).toBe(true);
+    expect(searchLibrary("judgement").map(l => l.id)).toEqual(expect.arrayContaining(["territory-count", "passing-and-ending"]));
     expect(searchLibrary("Life and death").every(l => l.track === "life")).toBe(true);
     expect(searchLibrary("zzz")).toEqual([]);
   });

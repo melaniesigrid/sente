@@ -416,6 +416,43 @@ ${SIGNATURE_FACE}
 .belt-card .belt-meta { display: flex; flex-direction: column; gap: 3px; margin-top: 22px; }
 .belt-card .belt-meta strong { font-family: var(--font-display); font-weight: var(--w-display); font-size: 20px; }
 
+/* ---- the Classic: saying block and the thirteen chapters ---- */
+.saying-card .saying-line { font-family: var(--font-display-italic); font-style: italic; }
+.chapter-list { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.chapter-row { border-radius: 12px; }
+.chapter-head { width: 100%; display: grid; grid-template-columns: 30px minmax(0, 1fr) 18px; align-items: center; gap: 12px; padding: 11px 12px; border: 0; border-radius: 12px; background: transparent; cursor: pointer; text-align: left; color: inherit; }
+.chapter-head:hover { background: var(--ground); box-shadow: inset 2px 2px 5px var(--dark), inset -2px -2px 5px var(--light); }
+.chapter-n { font-family: var(--font-display); font-weight: var(--w-display); font-size: 15px; opacity: .5; }
+.chapter-title { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.chapter-title strong { font-family: var(--font-display); font-weight: var(--w-display); font-size: 16px; }
+.chapter-caret { flex: none; opacity: .5; transition: transform .18s ease; }
+.chapter-caret.open { transform: rotate(90deg); }
+.chapter-body { display: flex; flex-direction: column; gap: 12px; padding: 4px 12px 16px 42px; }
+.chapter-body.preface { padding-top: 12px; }
+.chapter-body .lesson-text { opacity: .88; }
+@media (max-width: 620px) { .chapter-body { padding-left: 12px; } }
+
+.lobby-creed { max-width: 62ch; margin: 2px auto 0; text-align: center; font-family: var(--font-display-italic); font-style: italic; font-size: 13.5px; line-height: 1.6; opacity: .72; }
+
+/* ---- the thirty-two names (Classic, ch. 11) ---- */
+.names-block { display: flex; flex-direction: column; gap: 12px; }
+.names-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
+.name-cell { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 11px; box-shadow: var(--sink-sm); }
+.name-cell.unsure { opacity: .6; }
+.name-word { font-family: var(--font-display-italic); font-style: italic; font-size: 15px; }
+.name-modern { font-size: 12px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--accent); }
+.name-cell.unsure .name-modern { color: inherit; text-transform: none; letter-spacing: 0; font-weight: 600; opacity: .8; }
+.name-gloss { line-height: 1.5; }
+
+/* ---- the nine levels (Classic, ch. 12) ---- */
+.level-list { list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.level-row { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 2px 12px; padding: 8px 10px; border-radius: 9px; align-items: baseline; }
+.level-row .level-rank { font-family: var(--font-display); font-weight: var(--w-display); font-size: 13px; opacity: .55; }
+.level-row .level-name { font-family: var(--font-display-italic); font-style: italic; font-size: 15px; }
+.level-row .level-text { grid-column: 2; opacity: .72; }
+.level-row.here { background: var(--ground); box-shadow: inset 2px 2px 5px var(--dark), inset -2px -2px 5px var(--light); }
+.level-row.here .level-rank { opacity: 1; color: var(--accent); }
+
 /* ---- settings ---- */
 .settings { display: flex; flex-direction: column; gap: 14px; margin-top: 14px; }
 .setting-row { display: flex; align-items: center; gap: 14px; }
@@ -466,6 +503,10 @@ ${SIGNATURE_FACE}
 .result-card { display: flex; flex-direction: column; gap: 12px; animation: rise .4s ease; }
 .result-card.win .result-headline { color: var(--accent); }
 .result-card.loss .result-headline { color: var(--danger); }
+/* the classic's closing word on a finished game */
+.closing-saying { margin: 0; padding: 0 0 0 14px; border-left: 2px solid var(--dark); display: flex; flex-direction: column; gap: 4px; }
+.closing-saying p { margin: 0; font-family: var(--font-display-italic); font-style: italic; font-size: 15px; line-height: 1.55; }
+.closing-saying cite { font-style: normal; opacity: .7; }
 .bow-row { display: flex; align-items: center; justify-content: center; gap: 18px; padding: 6px 0 2px; }
 .bow-word { font-family: var(--font-caption); font-style: var(--caption-style); opacity: .5; font-size: 14px; letter-spacing: .04em; }
 .bow { animation: bow 1.6s ease .3s 1; transform-origin: bottom center; }

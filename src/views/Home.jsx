@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Swords, GraduationCap, Target, Trophy, Route, Sparkles, Play, Trash2, CalendarCheck, Flame } from "lucide-react";
+import { Swords, GraduationCap, Target, Trophy, Route, Sparkles, Play, Trash2, CalendarCheck, Flame, BookOpen } from "lucide-react";
 import { createBoard, tryPlay, aiChooseMove } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
 import { Card, Btn } from "../components/ui.jsx";
@@ -12,7 +12,9 @@ import { duelMode } from "../content/duel.js";
 import { clearGame } from "../store/gameStore.js";
 import { useMokuFacts } from "../components/mokuStore.js";
 import { DuelCard } from "../components/DuelCard.jsx";
+import { SayingCard } from "../components/Saying.jsx";
 import { dayKey, dailyProblem, liveStreak } from "../content/kata.js";
+import { sayingOfTheDay } from "../content/classic.js";
 import { loadSession } from "./session.js";
 
 /* ----------------------- HOME ----------------------- */
@@ -98,6 +100,12 @@ export function Home({ profile, go, onResume }) {
           <div className="meter"><div className="meter-fill" style={{ width: `${games ? (profile.wins / games) * 100 : 0}%` }} /></div>
         </button>
       </div>
+
+      <SayingCard saying={sayingOfTheDay(today)}>
+        <div className="row">
+          <Btn icon={BookOpen} small onClick={() => go("learn")}>Read the thirteen chapters</Btn>
+        </div>
+      </SayingCard>
 
       <Card inset className="roadmap">
         <div className="stat-head"><Route size={17} /><span>Where this is going</span></div>

@@ -7,8 +7,11 @@ import { Card, Btn, Pill } from "../components/ui.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
 import {
   TIERS, TRACKS, lessonById, prereqsMissing, nextLessonFor, currentTierFor, searchLibrary,
-  lessonsInTier, trackByKey, isDone,
+  lessonsInTier, trackByKey, isDone, lessonsInSeries,
 } from "../content/library.js";
+import { CLASSIC, CHAPTERS, PREFACE, NAMES, sayingOfTheDay, lessonIdsForChapter } from "../content/classic.js";
+import { SayingCard } from "../components/Saying.jsx";
+import { dayKey } from "../content/kata.js";
 import { saveProfile } from "../store/profile.js";
 import { initStep, stepReducer, marksFor, boardLocked, VERDICT_LABELS } from "./lessonStep.js";
 
@@ -119,6 +122,96 @@ function LessonCard({ lesson, done, onOpen }) {
   );
 }
 
+/* ----------------------- THE CLASSIC (series card) -----------------------
+   The saying of the day, then the book itself: thirteen chapters, each one
+   readable straight through in Sente's own rendering, with the lesson that
+   teaches it underneath. The prose and the sayings both come from
+   content/classic.js; nothing about the text lives in this view. */
+/* Chapter eleven lists thirty-two names and no definitions. We show the list
+   as the chapter gives it, and say plainly which ones we cannot match to a
+   modern term rather than inventing one. See NAMES in content/classic.js. */
+function NamesTable() {
+  const known = NAMES.filter(n => n.sure).length;
+  return (
+    <div className="names-block">
+      <div className="names-grid">
+        {NAMES.map(n => (
+          <div key={n.n} className={`name-cell ${n.sure ? "" : "unsure"}`}>
+            <span className="name-word">{n.name}</span>
+            <span className="name-modern">
+              {n.sure ? n.modern : n.modern ? `${n.modern} · uncertain` : "not identified"}
+            </span>
+            <span className="fine name-gloss">{n.text}</span>
+          </div>
+        ))}
+      </div>
+      <p className="fine">
+        {known} of the thirty-two match a term the game still uses. The rest are
+        listed as the chapter lists them. The names arrive without their characters
+        and without tone marks, so some readings are uncertain, and a chapter that
+        argues names must be set right is the wrong place to guess.
+      </p>
+    </div>
+  );
+}
+
+function ChapterRow({ chapter, lessons, done, onOpen }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="chapter-row">
+      <button className="chapter-head" onClick={() => setOpen(o => !o)} aria-expanded={open}>
+        <span className="chapter-n">{chapter.n}</span>
+        <span className="chapter-title">
+          <strong>{chapter.title}</strong>
+          <span className="fine">{chapter.theme}</span>
+        </span>
+        <ChevronRight size={15} className={`chapter-caret ${open ? "open" : ""}`} />
+      </button>
+      {open && (
+        <div className="chapter-body">
+          {chapter.text.map((p, i) => <p key={i} className="lesson-text">{p}</p>)}
+          {chapter.n === 11 && <NamesTable />}
+          {lessons.map(l => <LessonCard key={l.id} lesson={l} done={done(l.id)} onOpen={onOpen} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ClassicCard({ done, onOpen }) {
+  const [openList, setOpenList] = useState(false);
+  const lessons = lessonsInSeries(CLASSIC.key);
+  const finished = lessons.filter(l => done(l.id)).length;
+  return (
+    <SayingCard saying={sayingOfTheDay(dayKey())}>
+      <div className="row spread">
+        <span className="fine">{finished}/{lessons.length} chapters read</span>
+        <Btn icon={openList ? ChevronLeft : BookOpen} small onClick={() => setOpenList(o => !o)}>
+          {openList ? "Close the book" : "Read the thirteen chapters"}
+        </Btn>
+      </div>
+      {openList && (
+        <div className="stack-sm">
+          <p className="fine">{CLASSIC.blurb} {CLASSIC.credit}</p>
+          <div className="chapter-list">
+            <div className="chapter-row">
+              <div className="chapter-body preface">
+                <strong className="chapter-title">{PREFACE.title}</strong>
+                {PREFACE.text.map((p, i) => <p key={i} className="lesson-text">{p}</p>)}
+              </div>
+            </div>
+            {CHAPTERS.map(ch => (
+              <ChapterRow key={ch.n} chapter={ch}
+                lessons={lessonIdsForChapter(ch).map(lessonById).filter(Boolean)}
+                done={done} onOpen={onOpen} />
+            ))}
+          </div>
+        </div>
+      )}
+    </SayingCard>
+  );
+}
+
 /* ----------------------- LEARN (the library) ----------------------- */
 export function LearnView({ profile, setProfile }) {
   const [active, setActive] = useState(null);      // lesson id being played
@@ -191,6 +284,8 @@ export function LearnView({ profile, setProfile }) {
           <Btn icon={Play} primary small onClick={() => open(continueLesson)}>Start</Btn>
         </Card>
       )}
+
+      {!searching && <ClassicCard done={done} onOpen={open} />}
 
       <div className="library">
         {!searching && (

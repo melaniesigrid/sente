@@ -223,6 +223,35 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
 - [ ] SGF authoring pipeline: build-time script turns SGF with comments into steps.
 - [ ] Tier 4 Craftsman and Tier 5 Master authored (20 lessons, 19x19).
 - [ ] Tier 6 Dan authored (8 lessons; the last needs Phase 4 analysis).
+- [x] The Classic in Thirteen Chapters (2026-09-10): Zhang Ni's eleventh-century treatise as a
+      lesson series, one engine-verified lesson per chapter spread over tiers 2 to 5
+      (`series`/`chapter` fields, `lessonsInSeries`), plus `content/classic.js` with the
+      chapters and Sente's own renderings of its sayings: a saying of the day on Learn and
+      a few new lines for Moku. Tiers 2 to 5 now each hold their Classic lessons; the rest
+      of their syllabus is still open.
+- [x] Surface the saying of the day on Home (2026-09-10): `ClassicCard`'s saying block is
+      lifted to `components/Saying.jsx` (`Saying`, `SayingCard`); Home and Learn both use it.
+- [x] The Classic, second pass (2026-09-10): the book itself, threaded through the app.
+      `content/classic.js` now carries the preface (Huan Tan's three kinds of player), all
+      thirteen chapters as readable prose in Sente's rendering, chapter twelve's nine levels
+      and chapter eleven's thirty-two names. Learn's series card is a reader: preface, then
+      thirteen expandable chapters, each with its lesson under it and the names glossary
+      inside chapter eleven. Profile gains a nine-levels card, the game result card closes
+      with a saying chosen for the outcome (`sayingForResult`), the lobby carries chapter
+      nine's creed under the bot list, and Moku gained eleven classical lines.
+      New lesson: `classic-corner-shapes` (tier 5, 3k, life), chapter thirteen's named
+      corner shapes, both verdicts replayed against the engine by the verifier.
+      Decisions: the nine levels map one-to-one onto the nine dan grades and kyu players
+      get none, because chapter twelve refuses to number anything below the ninth — the
+      Profile card says so instead of inventing a title. Chapter eleven's names carry
+      `sure`, and only 16 of the 32 claim a modern term; the rest are shown as unidentified
+      rather than guessed, since the chapter's own argument is that names must be set right.
+      A chapter may now hold more than one lesson (`alsoLessonIds`, `lessonIdsForChapter`),
+      so the series can grow past thirteen files.
+- [ ] The remaining named shapes of chapter thirteen as lessons: the five-point flower, and
+      the two-by-three that lives in the open and dies in the corner.
+- [ ] Restore the Chinese characters for chapter eleven's thirty-two names from the original
+      text, and revisit the sixteen marked uncertain.
 - [ ] Tsumego graded 30k → 5k with categories and a daily set (reuses the verifier).
 - [ ] Spaced repetition: finished quiz steps enter a recall queue; "Review five" card on Home.
 - [ ] Joseki and opening library for 9×9 and 19×19.

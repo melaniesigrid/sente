@@ -15,6 +15,7 @@ import { useMokuFacts } from "../components/mokuStore.js";
 import { playStone, playCapture, playBell, haptic } from "../components/sound.js";
 import { rankOf, ratingOfRank, rankWithHandicap, eloDelta, beltOf, hintsForBelt } from "../content/rank.js";
 import { startDuel, duelOutcome, recordDuel, duelResultText, duelShareText, duelShareUrl } from "../content/duel.js";
+import { sayingForResult } from "../content/classic.js";
 import { ShareDuelButton } from "../components/DuelCard.jsx";
 import { saveProfile } from "../store/profile.js";
 import { saveGame, clearGame } from "../store/gameStore.js";
@@ -334,6 +335,11 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
 
   const status = statusText({ result: over, thinking, personaName: persona ? persona.name : null, turn, phase: rec.phase, loading });
   const card = over ? resultCard(over) : null;
+  /* The classic's closing word. A game against a house player has a "you" to
+     address; two people at one board do not, so they get the shared lines. */
+  const closing = over
+    ? sayingForResult(over.winner === null ? "jigo" : persona ? (over.winner === "b" ? "win" : "loss") : "shared", rec.moves.length)
+    : null;
   const boardDisabled = !!over || thinking || (!scoring && persona && turn !== "b");
 
   return (
@@ -411,6 +417,12 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
                   : persona ? ratingLine(delta) ?? "Rated against a house player." : "Unrated. Thank you both for the game."}
                 {over.method === "score" && rec.dead.length > 0 && ` · ${rec.dead.length} dead ${rec.dead.length === 1 ? "stone" : "stones"} removed`}
               </p>
+              {closing && (
+                <blockquote className="closing-saying">
+                  <p>{closing.text}</p>
+                  <cite className="fine">The Classic, chapter {closing.chapter}: {closing.title}</cite>
+                </blockquote>
+              )}
               <div className="row">
                 {duel
                   ? <ShareDuelButton small text={duelShareText({ key: duel.key, personaName: persona.name, code: duelOutcome(rec).code, moves: duelOutcome(rec).moves, url: duelShareUrl(window.location) })} />

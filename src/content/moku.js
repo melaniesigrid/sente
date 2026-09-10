@@ -6,7 +6,8 @@
    about the board, never a mood. Moku frowns because a group of yours is in
    atari, spins because there is a ko, and is quiet when nothing has changed.
    This file resolves facts into `{ state, line }` and is pure so the mapping
-   is unit-tested; the drawing and the motion live in components/Moku.jsx. */
+   is unit-tested; the drawing and the motion live in components/Moku.jsx.
+   A few lines are Sente's renderings of Zhang Ni's Classic (content/classic.js). */
 
 export const MOKU_STATES = [
   "idle", "watching", "atari", "hunting", "ko", "capture", "captured",
@@ -14,22 +15,22 @@ export const MOKU_STATES = [
 ];
 
 const LINES = {
-  home: ["Two eyes. That's the whole secret.", "A fresh board is a promise.", "Corners, then sides, then the middle."],
+  home: ["Two eyes. That's the whole secret.", "A fresh board is a promise.", "Corners, then sides, then the middle.", "The board is square and still. The stones are round and move.", "No two games have ever been the same. Every day is new."],
   lobby: ["Pick a rival. They're bots, but they're honest ones.", "Every house player has a tell. Find it."],
-  learn: ["Read the liberties before you play.", "Slow is smooth. Smooth is strong."],
-  tsumego: ["Vital point first. Always.", "If it looks like suicide, count again."],
-  ladder: ["A hundred points is one stone of strength.", "Ranks are borrowed, never owned."],
-  profile: ["Wear the belt you earned.", "The belt is a fact, not a trophy."],
-  idle: ["Your move.", "Take your time. The stones wait.", "Big point or urgent point?"],
-  watching: ["Reading…", "Let them think.", "Hm."],
-  atari: ["One breath left on a group of yours.", "Atari. Extend or accept it.", "That group is gasping."],
+  learn: ["Read the liberties before you play.", "Slow is smooth. Smooth is strong.", "Whoever calculates most wins.", "Know your own weak point first.", "Set the names right, and the shapes can be seen."],
+  tsumego: ["Vital point first. Always.", "If it looks like suicide, count again.", "A big eye beats a small eye. A straight line beats a diagonal."],
+  ladder: ["A hundred points is one stone of strength.", "Ranks are borrowed, never owned.", "The wise study before difficulty comes. The rest study after."],
+  profile: ["Wear the belt you earned.", "The belt is a fact, not a trophy.", "Whoever knows themselves is enlightened."],
+  idle: ["Your move.", "Take your time. The stones wait.", "Big point or urgent point?", "Before you strike left, look right.", "Avoid what is already full. Flow into the void."],
+  watching: ["Reading…", "Let them think.", "Hm.", "Rest, and let the other side wear itself out."],
+  atari: ["One breath left on a group of yours.", "Atari. Extend or accept it.", "That group is gasping.", "Nurse it, or let it go and take new ground."],
   hunting: ["I smell a capture.", "Their group has one liberty. Yours to take.", "Sniff. Something's short of breath."],
-  ko: ["Ko. You need a threat first.", "Can't retake yet. Play elsewhere."],
+  ko: ["Ko. You need a threat first.", "Can't retake yet. Play elsewhere.", "Fight a ko only when it costs your other groups nothing."],
   capture: ["Off the board!", "Clean.", "Those stones are prisoners now."],
-  captured: ["Ouch. Count liberties next time.", "Stones lost. Points, not pride.", "That stings. Breathe."],
-  scoring: ["Tap any stone that couldn't survive. Then accept.", "Dead stones off, then we count."],
-  win: ["Well played. Bow.", "Victory, softly lit.", "You read deeper today."],
-  loss: ["A loss is a lesson with a scorecard.", "Bow anyway. Then rematch.", "Every dan player lost a thousand games first."],
+  captured: ["Ouch. Count liberties next time.", "Stones lost. Points, not pride.", "That stings. Breathe.", "Losing stones is bearable. Losing the initiative is not."],
+  scoring: ["Tap any stone that couldn't survive. Then accept.", "Dead stones off, then we count.", "If you knew who was ahead before this, you counted well."],
+  win: ["Well played. Bow.", "Victory, softly lit.", "You read deeper today.", "Do not boast of a win. Bow."],
+  loss: ["A loss is a lesson with a scorecard.", "Bow anyway. Then rematch.", "Every dan player lost a thousand games first.", "Look for the reason in yourself. Blame no one else."],
   jigo: ["Jigo. Perfectly balanced.", "A draw. Rare and honest."],
   promoted: ["New belt. Tie it tight.", "Promoted. The board just got bigger."],
 };
