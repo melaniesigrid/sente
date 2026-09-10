@@ -101,6 +101,12 @@ describe("parseSgf", () => {
     ]);
     expect(g.tree.children).toHaveLength(2);
   });
+  it("reads the date and its year, and leaves both null when absent", () => {
+    expect(parseSgf("(;DT[1846-07-21])")).toMatchObject({ date: "1846-07-21", year: 1846 });
+    expect(parseSgf("(;DT[c. 1670])").year).toBe(1670);
+    expect(parseSgf("(;DT[unknown])")).toMatchObject({ date: "unknown", year: null });
+    expect(parseSgf("(;FF[4])")).toMatchObject({ date: null, year: null });
+  });
   it("defaults size 19 and komi by handicap", () => {
     expect(parseSgf("(;FF[4])").size).toBe(19);
     expect(parseSgf("(;FF[4])").komi).toBe(7.5);

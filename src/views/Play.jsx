@@ -1,8 +1,13 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Play, Users, Handshake, Minus, Plus, Home } from "lucide-react";
 import { Avatar, RankBadge, Btn } from "../components/ui.jsx";
-import { personasFor } from "../content/personas.js";
+import { Passage } from "../components/Passage.jsx";
+import { DuelCard } from "../components/DuelCard.jsx";
+import { personasFor, PERSONAS } from "../content/personas.js";
 import { rankOf, ratingOfRank, stepRank, rankInRange, RANK_LADDER } from "../content/rank.js";
+import { duelMode } from "../content/duel.js";
+import { dayKey } from "../content/kata.js";
+import { loadSession } from "./session.js";
 import { Game } from "./Game.jsx";
 import { OnlineCard } from "./OnlineLobby.jsx";
 import { OnlineGame } from "./OnlineGame.jsx";
@@ -30,6 +35,9 @@ export function PlayView({ profile, setProfile, notify, resume }) {
   // player adapts to it, so nobody has to "graduate" to an opponent.
   const myRank = rankOf(profile.rating);
   const [rank, setRank] = useState(myRank);
+  const today = dayKey();
+  // The saved table is re-read whenever the lobby shows, so leaving a duel mid-game is reflected.
+  const saved = useMemo(() => (session ? null : loadSession({ today, profile })), [session, today, profile]);
   if (!session) {
     const first = RANK_LADDER[0], last = RANK_LADDER[RANK_LADDER.length - 1];
     return (
@@ -40,7 +48,10 @@ export function PlayView({ profile, setProfile, notify, resume }) {
           with their own style and table talk — or hand the device across the table for a
           face-to-face game. House players adapt to the level you pick, from 25 kyu to 9 dan.
         </p>
+        <Passage context="play" />
         <OnlineCard profile={profile} notify={notify} onPlay={setSession} />
+        <DuelCard profile={profile} today={today} mode={duelMode(PERSONAS, today)}
+          saved={saved && saved.mode.kind === "duel" ? saved : null} onPlay={setSession} />
         <div className="rank-picker neu-card" role="group" aria-label="Level to play at">
           <div className="rank-picker-label">
             <strong>Play at</strong>

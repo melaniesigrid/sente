@@ -2,13 +2,17 @@
    Loads KataGo's human-style network once and answers policy queries. This is the
    one engine module that touches I/O: it fetches the ONNX file and runs it with
    ONNX Runtime Web on the WebAssembly backend, which works in every current
-   browser. WebGPU is a later upgrade; it needs a different runtime file.
+   browser. WebGPU is a later upgrade; it needs a different runtime file, and it
+   must keep the daily duel in mind: the duel's "same reply for everyone" rests on
+   single-threaded WASM producing bit-identical logits on every device. A GPU
+   backend would drift in the low bits and flip sampled moves at the margins.
 
    Nothing here knows about React. Views call `humanPolicy(rec, profile)` and get
    logits back, or `null` if the network is unavailable, in which case the caller
    falls back to the heuristic house player. */
 
 import { encodeInputs, NUM_BIN_FEATURES, NUM_GLOBAL_FEATURES, NUM_META_FEATURES } from "./features.js";
+import { StyleDataError, validateMaster } from "../style/master.js";
 
 export const MODEL_FILE = "models/humanv0.fp16w.onnx";
 export const MODEL_BYTES = 53784796;
@@ -95,6 +99,28 @@ export function loadModel() {
     }
   })();
   return loading;
+}
+
+const masters = new Map();
+
+/** A master's data (public/masters/<id>.json), fetched once and shape-checked.
+ *  Missing or malformed data is a `StyleDataError` naming the file. */
+export function loadMaster(id) {
+  if (!/^[a-z0-9-]+$/.test(id)) return Promise.reject(new StyleDataError(`bad master id ${id}`));
+  let p = masters.get(id);
+  if (p) return p;
+  const file = `masters/${id}.json`;
+  p = (async () => {
+    let res;
+    try { res = await fetch(base() + file); } catch (e) { throw new StyleDataError(`fetch failed: ${e.message}`, file); }
+    if (!res.ok) throw new StyleDataError(`${res.status} ${res.statusText}`, file);
+    let json;
+    try { json = await res.json(); } catch { throw new StyleDataError("not JSON", file); }
+    return validateMaster(json, file);
+  })();
+  p.catch(() => masters.delete(id));
+  masters.set(id, p);
+  return p;
 }
 
 /** Policy logits (N*N+1) and value for the side to move, or null when the

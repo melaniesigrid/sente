@@ -249,9 +249,77 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
 - [ ] SGF authoring pipeline: build-time script turns SGF with comments into steps.
 - [ ] Tier 4 Craftsman and Tier 5 Master authored (20 lessons, 19x19).
 - [ ] Tier 6 Dan authored (8 lessons; the last needs Phase 4 analysis).
+- [x] The Classic in Thirteen Chapters (2026-09-10): Zhang Ni's eleventh-century treatise as a
+      lesson series, one engine-verified lesson per chapter spread over tiers 2 to 5
+      (`series`/`chapter` fields, `lessonsInSeries`), plus `content/classic.js` with the
+      chapters and Sente's own renderings of its sayings: a saying of the day on Learn and
+      a few new lines for Moku. Tiers 2 to 5 now each hold their Classic lessons; the rest
+      of their syllabus is still open.
+- [ ] Surface the saying of the day on Home (the card is built in `Learn.jsx` as
+      `ClassicCard`; lift it to a shared component).
 - [ ] Tsumego graded 30k → 5k with categories and a daily set (reuses the verifier).
 - [ ] Spaced repetition: finished quiz steps enter a recall queue; "Review five" card on Home.
 - [ ] Joseki and opening library for 9×9 and 19×19.
+
+## Phase 6 — Masters and books
+
+Handoff for whoever continues: `docs/handoff/masters-2026-09-09.md` (state of PRs #4, #5, #6,
+the running logit dump, what is unfinished, gotchas).
+
+Plan: `docs/designs/masters-and-books.md` (CEO review plus adversarial spec review,
+2026-09-09). Two asks on one foundation: a corpus of public-domain master games, measured,
+and one rule: the number on the card is measured, never claimed.
+
+- [x] `proyear` profile: `encodeMeta({ pro, year })` with KataGo's historical-pro meta row
+      (source GoGoD, June 1 of the year; Go4Go from 2021) and a meta-row fixture for 1846
+      and 2017 generated from KataGo's Python (branch `feat/masters-pr1`, 2026-09-09).
+- [ ] "Strong player of <year>" as an honest persona in the Masters row (waits on the row).
+- [x] Corpus tool (`tools/masters/`): `fetch.mjs` (manifest with quoted terms, ustar reader,
+      raw dir ignored) and `build.mjs` (engine parser, even 19x19 games, tags, seeded 60/20/20
+      split, style vector and spread, book, drop log and counts) emit `public/masters/<id>.json`
+      and `src/content/masters.json`. Shusaku 349 even games, Jowa 201; book entries 47 and 36,
+      far below the plan's 500 to 2,000 guess at three games per entry (2026-09-09).
+- [x] `engine/style/features.js` (per-move and per-game axes as the plan fixes them, means,
+      spread, z-distance) and `symmetries.js` (eight transforms, canonical hash, book key,
+      inverse for the tie case), both tested (`feat/masters-pr1`, 2026-09-09).
+- [ ] `engine/style/prior.js`: a bounded prior applied to the sampler's kept candidates only (PR 2).
+- [ ] Eval offline in CI: Python dumps `proyear` logits for held-out positions; `eval.mjs`
+      scores arms (baseline, plus book, plus prior) and commits `eval.json`. The prior ships
+      only if it beats the book alone on top-1 agreement and style distance.
+- [ ] Bot seam: `profile.master` = book override in the opening, then `proyear` with the
+      prior; `StyleDataError` (missing JSON, non-19x19) falls back to `proyear` in rated
+      games and to "host unreachable" in a duel. Masters row in the lobby, 19x19 only,
+      hidden without the index, style match read from `eval.json`.
+- [x] Step types `replay` (embedded moves and stops; scoring is data: the master's move for
+      full credit, precomputed `strong` moves for partial, refutations played out; `scored`
+      status so a stop is never scored twice; Try again returns to the stop) and `maxim` in
+      `lessonStep.js`, the verifier branches, the "at your level" line when the network is
+      already loaded, and `bookProgress` in the profile with its sanitiser (`feat/masters-pr3`,
+      2026-09-09). Content is the next item.
+- [ ] Shelf v1: ten proverbs with the karate framing, two game studies (Shusaku vs Gennan
+      Inseki 1846, Jowa vs Akaboshi Intetsu 1835). Then the Classic of Weiqi in Thirteen
+      Chapters, thirteen lessons. Reading room names modern books, quotes nothing.
+- [ ] Star Player: Ke Jie anonymised (decided 2026-09-09 after the lawyer check). Card says
+      "a top pro of 2017", his name nowhere in code, data or UI; corpus from a source with
+      stated terms; same eval and gate as the Edo masters, `proyear_2017` as the control.
+      Source (2026-09-10): BadukMovies' whole pro-game zip as the Internet Archive holds it
+      (capture 2023-11-05, 69,169 SGFs, terms quoted in the manifest: "This collection is
+      in the public domain, use it however you want to"). `fetch.mjs` reads the zip and,
+      for an anonymised master, keeps only his games under content-hash names: 164 even
+      games, 2009 to 2017, 40 book entries, split 98/33/33. In the manifest as
+      `star-player` (`anonymous`, `year` 2017, the name only as `aliasHashes`, SHA-256 of
+      `nameKey`); the dump uses the manifest year (`data.year`) so the eval scores
+      `proyear_2017`, the profile that ships. `tools/masters/import.mjs` remains for
+      records saved by hand from a source that states its own terms; go4go (login-walled,
+      "All Rights Reserved", bulk download against its terms) is not used. Branch
+      `feat/masters-star-player`, PR #7, stacked on #5. Eval (test, 3,592 positions): top-1 61.6% year profile / 61.9% with
+      book / 61.8% Shusaku's book as control; opening 62.4% to 64.6%; the lean does not ship
+      (no lambda beat the book on dev). The control moves the number as much as his own
+      book, so the card claims agreement with the 2017 profile, not a style match.
+- [ ] Deferred: Dosaku and Shusai after the eval; Go Seigen, Takagawa and living players by
+      name after a name-and-likeness check (the 1950 rule does not clear the first two); Moku quoting the Classic and a belt mark per book;
+      fine-tune adapters per master after Phase 4, measured by the same eval; your own
+      games on the style axes once the telemetry ring exists.
 
 ## Design and polish (schedule after a design review)
 
@@ -259,6 +327,95 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
 - [ ] Dark variant of the stone palette.
 - [x] Sound and haptic feedback on stone placement (opt-in, synthesised, no assets).
 - [ ] Self-host fonts instead of the Google Fonts `@import`.
+
+## Parking lot — wild ideas (brainstorm 2026-09-09)
+
+Every one of these leans on something already built. Not scheduled; pull one into a phase
+when it earns its place. Ordered by cost.
+
+Free, because the engine already does the hard part:
+- [x] **Daily Duel** (done 2026-09-09, branch `feat/daily-duel`): the date picks the host
+      and seeds its noise; the engine makes each reply a pure function of (seed, position),
+      so everyone who plays the same moves sees the same game and results compare with no
+      server. One attempt a day, unrated, no undo, no rematch; the result copies as text.
+      Decisions: the first stone spends the attempt (`duelStarted` is written as Black's
+      first move lands, so a misclick or a reload during the model download costs
+      nothing and leaving the table afterwards is not a reroll); the seed is folded with the
+      Zobrist hash per move rather than a running stream, so undo could never reroll a
+      reply either; the streak counts consecutive days won; the share text is the day,
+      the host, the go-notation result and the page URL, nothing personal.
+      Merged onto the KataGo house players 2026-09-09 (`feat/daily-duel-kata`): the day
+      also fixes the rank the host plays at, inside its home range, and the human network
+      is told the opponent is that rank too, because its reply depends on both. Sampling
+      uses a generator seeded by (day, position hash); the heuristic fallback is seeded
+      the same way. Verified with two fresh browsers playing identical moves. A duel never
+      falls back to the heuristic player: if the network cannot answer, the table says
+      "host unreachable" and offers to ask again. A jigo carries the streak. The duel
+      depends on the single-threaded WASM provider (see `net.js`); a WebGPU upgrade must
+      keep a deterministic path for it.
+- [ ] Games as URLs: compress the `GameRecord` into the URL fragment. Correspondence go,
+      "look at this position" links and puzzle sharing with no backend. Phase 4 later
+      upgrades the link into a room.
+- [ ] Bots that show their work: after each house move, show the top three candidates
+      and their weighted scores ("Tetsu: capture 16, atari 6, played here"). Only a
+      heuristic bot can be this honest.
+- [ ] Every house player has a tell: make Moku's lobby line literal. Hoshi really forgets
+      ladders; a mirror-go persona copies you through tengen until you take tengen.
+      Exploit a tell to unlock the scouting report.
+
+A weekend each:
+- [ ] Tsumego mined from your own games: scan a finished record for positions where a
+      group of yours sat in atari with a rescue available, or an enemy group could be
+      taken (the AI's capture/rescue evaluators find these). Feeds spaced repetition.
+- [ ] Déjà vu: keep every Zobrist hash you have ever seen locally; the board whispers
+      "you have been here before, and lost". A personal opening book with no engine.
+- [ ] Rengo with the bots: pair go, you and Hoshi against Tetsu and Yuki, alternating
+      seats. `GameRecord` does not care who chose a move; it is a seat rotation in Game.
+- [ ] One-colour go: render every stone the same colour, rules untouched, one Board prop.
+      A real pro training method.
+
+Bigger swings:
+- [ ] Play your past self: fit persona weights to your own move distribution from the
+      telemetry ring buffer. A house player with your name, at your rating, labelled a
+      bot. The ghost race for go.
+- [ ] The board as an instrument: pitch by distance from tengen, captures a chord, ko a
+      repeating figure, byo-yomi a tightening pulse. A game becomes a piece.
+- [ ] Capture Go onboarding: first capture wins on 7x7 against Hoshi, a two-line rule
+      variant on the record, replacing the ten-move guided demo with a real game.
+
+## Typefaces (done 2026-09-10, branch `feat/typefaces`)
+
+Eight pairings of the same design system, chosen in Profile and stored on the profile.
+Display faces are borrowed from the Typecase library next door; body faces stay
+Google-hosted text families, because the Typecase text cuts have no weight axis.
+
+- [x] Type tokens in `CSS`: no family, weight, tracking or hero leading is named
+      directly any more; `src/App.jsx` sets them from `profile.typeface`.
+- [x] Pairings as data in `src/content/typeface.js`, house first and default.
+- [x] Local faces in `src/styles/fontfaces.js`, each with a measured `size-adjust`
+      onto Fraunces' optical size so a pairing changes voice, not layout.
+- [x] Picker in Profile, each option previewing its own display face with digits.
+- [x] 2026-09-10 Four voices, not one italic: `--font-quote` (passages, maxims,
+      Moku, the result line) is always a serif, `--font-caption` (the footer, the
+      bow words) takes the body face, and the scripts keep the ornament voice at
+      26px. A script cannot carry a quotation at 15px.
+- [x] 2026-09-10 Galliard is the whole Maison Galliard trio: serif headings, its
+      own sans for body and captions, its script for the whisper.
+- [x] 2026-09-10 Two avant garde pairings, Hoshi (Cocogoose Pro Thin) and Vitrine
+      (Qliesya didone over Instrument Sans). Eight pairings now.
+- [x] 2026-09-10 The footer is signed: Melanie Baratto in Daenerys, outside the
+      pairing system, drawn on once at load.
+- [x] 2026-09-10 No local cut is slanted by the browser any more; only the Google
+      faces, which ship a real italic, are asked for one.
+
+Open:
+- [ ] Licensing: every borrowed face is a demo/personal-use cut (`src/fonts/LICENSES.md`).
+      Before a public deploy, buy the pairings worth keeping or swap them for OFL faces.
+      Only `house` and the three Google body families are clear today.
+- [ ] Convert the borrowed faces to woff2; the OTFs are 16-207 KB each and lazy, but
+      Kuigaf alone is 207 KB the first time Wedge is chosen.
+- [ ] A pairing is a device preference stored in the profile; when accounts arrive,
+      decide whether it syncs or stays local like the Moku toggle.
 
 ## Principles (do not trade away)
 

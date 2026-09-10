@@ -2,6 +2,7 @@
    Stored JSON is untrusted: every field is checked against the default's
    type and falls back per field, with one console.warn naming what was reset. */
 import { TINTS } from "../content/rank.js";
+import { DEFAULT_TYPEFACE, typefaceOf } from "../content/typeface.js";
 
 export const STORE_KEY = "sente-profile-v2";
 
@@ -11,8 +12,26 @@ export const defaultProfile = {
   lessonsDone: [], problemsDone: [],
   tierPassed: [],                            // library tier ids whose exit test was passed
   sound: false,                              // stone click + haptic, opt-in
+  typeface: DEFAULT_TYPEFACE,                // font pairing id, src/content/typeface.js
   kataDate: "", kataStreak: 0, kataBest: 0,  // kata of the day attendance
+  duelStarted: "", duelDate: "", duelResult: "", duelMoves: 0,  // daily duel: day started, day finished, code ("B+3.5")
+  duelPlayed: 0, duelWins: 0, duelStreak: 0, duelBestStreak: 0,
+  bookProgress: {},                          // { [lessonId]: { stops, score, total } } from replay lessons
 };
+
+const isCount = (n) => Number.isInteger(n) && n >= 0;
+/** A bookProgress map, keeping only entries of the right shape (unknown ids are
+ *  harmless: the library ignores them). Returns null when the value itself is wrong. */
+function sanitizeBookProgress(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const out = {};
+  for (const [id, p] of Object.entries(value)) {
+    if (typeof id === "string" && p && typeof p === "object" && isCount(p.stops) && isCount(p.score) && isCount(p.total)) {
+      out[id] = { stops: p.stops, score: p.score, total: p.total };
+    }
+  }
+  return out;
+}
 
 // Element type for each array field; anything else in an array is a corrupt profile.
 const ARRAY_OF = { lessonsDone: "string", problemsDone: "string", tierPassed: "number" };
@@ -26,7 +45,9 @@ const validField = (key, value) => {
   if (typeof def === "number") return typeof value === "number" && Number.isFinite(value);
   if (typeof def === "boolean") return typeof value === "boolean";
   if (key === "tint") return typeof value === "string" && Object.hasOwn(TINTS, value);
+  if (key === "typeface") return typeof value === "string" && typefaceOf(value).id === value;
   if (typeof def === "string") return typeof value === "string";
+  if (key === "bookProgress") return sanitizeBookProgress(value) !== null;
   return false;
 };
 
@@ -41,8 +62,9 @@ export function sanitizeProfile(raw) {
   const bad = [];
   for (const key of Object.keys(defaultProfile)) {
     if (!(key in raw)) continue;
-    if (validField(key, raw[key])) out[key] = Array.isArray(raw[key]) ? raw[key].slice() : raw[key];
-    else bad.push(key);
+    if (!validField(key, raw[key])) { bad.push(key); continue; }
+    if (key === "bookProgress") out[key] = sanitizeBookProgress(raw[key]);
+    else out[key] = Array.isArray(raw[key]) ? raw[key].slice() : raw[key];
   }
   if (bad.length) console.warn(`sente: profile field(s) reset to default: ${bad.join(", ")}`);
   return out;

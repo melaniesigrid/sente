@@ -1,13 +1,24 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { sanitizeProfile, defaultProfile } from "./profile.js";
+import { DEFAULT_TYPEFACE } from "../content/typeface.js";
 
 let warn;
 beforeEach(() => { warn = vi.spyOn(console, "warn").mockImplementation(() => {}); });
 afterEach(() => { warn.mockRestore(); });
 
+describe("sanitizeProfile bookProgress", () => {
+  it("keeps well-shaped entries, drops malformed ones, resets a wrong value", () => {
+    const out = sanitizeProfile({ ...defaultProfile, bookProgress: { "shusaku-vs-gennan": { stops: 3, score: 5, total: 12 }, bad: { stops: -1 }, worse: "x" } });
+    expect(out.bookProgress).toEqual({ "shusaku-vs-gennan": { stops: 3, score: 5, total: 12 } });
+    expect(out.bookProgress).not.toBe(defaultProfile.bookProgress);
+    expect(sanitizeProfile({ ...defaultProfile, bookProgress: [] }).bookProgress).toEqual({});
+    expect(warn).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("sanitizeProfile", () => {
   it("keeps a well-formed profile intact and copies its arrays", () => {
-    const good = { ...defaultProfile, name: "Ada", tint: "coral", rating: 1234, wins: 3, losses: 1, streak: 2, bestStreak: 2, lessonsDone: ["ko"], problemsDone: ["p1", "p2"], tierPassed: [1, 2], sound: true, kataDate: "2026-09-09", kataStreak: 3, kataBest: 5 };
+    const good = { ...defaultProfile, name: "Ada", tint: "coral", rating: 1234, wins: 3, losses: 1, streak: 2, bestStreak: 2, lessonsDone: ["ko"], problemsDone: ["p1", "p2"], tierPassed: [1, 2], sound: true, kataDate: "2026-09-09", kataStreak: 3, kataBest: 5, duelStarted: "2026-09-09", duelDate: "2026-09-09", duelResult: "B+3.5", duelMoves: 40, duelPlayed: 2, duelWins: 1, duelStreak: 1, duelBestStreak: 1 };
     const out = sanitizeProfile(good);
     expect(out).toEqual(good);
     expect(out.lessonsDone).not.toBe(good.lessonsDone);
@@ -51,6 +62,13 @@ describe("sanitizeProfile", () => {
     expect(sanitizeProfile({ ...defaultProfile, tierPassed: null }).tierPassed).toEqual([]);
     expect(warn).toHaveBeenCalledTimes(3);
     expect(warn.mock.calls[0][0]).toMatch(/tierPassed/);
+  });
+  it("keeps a known typeface id and resets an unknown one", () => {
+    expect(sanitizeProfile({ ...defaultProfile, typeface: "clubhouse" }).typeface).toBe("clubhouse");
+    for (const bad of ["", "helvetica", 7, null]) {
+      expect(sanitizeProfile({ ...defaultProfile, typeface: bad }).typeface).toBe(DEFAULT_TYPEFACE);
+    }
+    expect(warn.mock.calls[0][0]).toMatch(/typeface/);
   });
   it("drops unknown keys", () => {
     expect(sanitizeProfile({ ...defaultProfile, admin: true })).not.toHaveProperty("admin");

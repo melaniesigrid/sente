@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { Crown, Flame, Globe, Bot } from "lucide-react";
 import { Card, Avatar, RankBadge } from "../components/ui.jsx";
+import { Passage } from "../components/Passage.jsx";
 import { PERSONAS } from "../content/personas.js";
 import { ratingOfRank } from "../content/rank.js";
 import { provisionalText } from "../content/online.js";
@@ -37,6 +38,7 @@ export function RankingsView({ profile }) {
         the server with Glicko-2, so a rating carries how sure it is. The house ladder is
         you against the residents, Elo-style, roughly a hundred points to a rank.
       </p>
+      <Passage context="ladder" />
 
       {global !== false && (
         <>

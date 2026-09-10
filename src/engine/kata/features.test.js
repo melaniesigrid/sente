@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createGame, play, pass } from "../record.js";
-import { encodePosition, encodeMeta, encodeInputs, inverseRank, RANKS } from "./features.js";
+import { encodePosition, encodeMeta, encodeInputs, inverseRank, RANKS, PRO_YEARS } from "./features.js";
 
 const plane = (enc, f) => {
   const N = enc.size, NN = N * N;
@@ -69,6 +69,46 @@ describe("encodeMeta", () => {
     expect(m[74]).toBe(0.5);
     expect(m[79]).toBe(1);
     expect(m[153]).toBe(1);   // KGS source
+  });
+
+  it("writes the pro profile: inverse rank 1 both sides, rated, time control unknown", () => {
+    const m = encodeMeta({ pro: true, year: 1846, boardArea: 361 });
+    expect(m[0]).toBe(1);
+    expect(m[1]).toBe(1);
+    expect(m[6]).toBe(1);
+    expect(m[7]).toBe(0);
+    expect(m[40]).toBe(1);
+    expect(m[41]).toBe(0);
+    expect(m[74]).toBe(0);    // rated
+    expect(m[75]).toBe(1);    // tc unknown
+    expect(m[79]).toBe(0);    // not byo-yomi
+    expect(m[83]).toBeCloseTo(-0.9, 5);
+    expect(m[86]).toBe(0);
+    expect(m[156]).toBe(1);   // GoGoD
+    expect(m[153]).toBe(0);
+  });
+
+  it("dates the pro profile at June 1 of the year, before and after 1970", () => {
+    const a = encodeMeta({ pro: true, year: 1969, boardArea: 361 });
+    const b = encodeMeta({ pro: true, year: 1970, boardArea: 361 });
+    // weekly sinusoid: 1969-06-01 is 214 days before 1970-01-01, 1970-06-01 is 151 after
+    expect(a[87]).toBeCloseTo(Math.cos((-214 / 7) * 2 * Math.PI), 5);
+    expect(b[88]).toBeCloseTo(Math.sin((151 / 7) * 2 * Math.PI), 5);
+  });
+
+  it("uses the modern (Go4Go) source from 2021 and refuses years outside the range", () => {
+    expect(encodeMeta({ pro: true, year: 2017, boardArea: 361 })[156]).toBe(1);
+    expect(encodeMeta({ pro: true, year: 2021, boardArea: 361 })[157]).toBe(1);
+    expect(PRO_YEARS.max).toBe(2023);
+    expect(() => encodeMeta({ pro: true, year: 1799, boardArea: 361 })).toThrow(RangeError);
+    expect(() => encodeMeta({ pro: true, year: 2024, boardArea: 361 })).toThrow(RangeError);
+    expect(() => encodeMeta({ pro: true, boardArea: 361 })).toThrow(RangeError);
+  });
+
+  it("pro wins over a rank the bot seam spread in", () => {
+    const m = encodeMeta({ pro: true, year: 1846, rank: "5k", oppRank: "20k", boardArea: 361 });
+    expect(m[7]).toBe(0);
+    expect(m[41]).toBe(0);
   });
 
   it("encodeInputs bundles everything", () => {

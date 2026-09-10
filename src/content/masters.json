@@ -1,0 +1,71 @@
+[
+  {
+    "id": "jowa",
+    "name": "Jowa",
+    "year": 1835,
+    "years": [
+      1806,
+      1847
+    ],
+    "anonymous": false,
+    "games": {
+      "total": 296,
+      "even": 201,
+      "dropped": 1
+    },
+    "book": {
+      "entries": 36
+    },
+    "bytes": 4230,
+    "source": {
+      "page": "https://homepages.cwi.nl/~aeb/go/games/",
+      "terms": "I do not claim any rights on this collection. The games here are in the public domain."
+    }
+  },
+  {
+    "id": "shusaku",
+    "name": "Shusaku",
+    "year": 1846,
+    "years": [
+      1837,
+      1862
+    ],
+    "anonymous": false,
+    "games": {
+      "total": 467,
+      "even": 349,
+      "dropped": 3
+    },
+    "book": {
+      "entries": 47
+    },
+    "bytes": 4672,
+    "source": {
+      "page": "https://homepages.cwi.nl/~aeb/go/games/",
+      "terms": "I do not claim any rights on this collection. The games here are in the public domain."
+    }
+  },
+  {
+    "id": "star-player",
+    "name": "Star Player",
+    "year": 2017,
+    "years": [
+      2009,
+      2017
+    ],
+    "anonymous": true,
+    "games": {
+      "total": 164,
+      "even": 164,
+      "dropped": 0
+    },
+    "book": {
+      "entries": 40
+    },
+    "bytes": 4392,
+    "source": {
+      "page": "https://web.archive.org/web/20231031044850/https://badukmovies.com/pro_games",
+      "terms": "Here you can find a collection of 115623 pro games in sgf format. This collection is in the public domain, use it however you want to."
+    }
+  }
+]
