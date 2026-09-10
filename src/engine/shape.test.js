@@ -24,6 +24,12 @@ describe("detectShapes housekeeping", () => {
     expect(detectShapes(boardFromRows(rows2), { c: 0, r: 1 }, {}).map((f) => f.id)).toContain("empty-triangle");
   });
 
+  it("can be called with no options at all", () => {
+    const rows = ["XX...", "X....", ".....", ".....", "....."];
+    expect(detectShapes(boardFromRows(rows), { c: 0, r: 1 }).map((f) => f.id)).toContain("empty-triangle");
+    expect(detectShapes(createBoard(9), null)).toEqual([]);
+  });
+
   it("reports each shape at most once, in SHAPES order", () => {
     // A 3x3 of black is many empty triangles and many dumplings at once.
     const rows = ["XXX..", "XXX..", "XXX..", ".....", "....."];
@@ -51,6 +57,20 @@ describe("empty-triangle", () => {
     expect(ids(rows, { c: 1, r: 0 })).not.toContain("empty-triangle");
   });
 
+  it("names a triangle the move made in the corner, where only one window fits", () => {
+    // (0,0) is the corner. Its single 2x2 window holds three black and one empty.
+    const rows = ["XX...", "X....", ".....", ".....", "....."];
+    const f = find(rows, { c: 0, r: 0 }, "empty-triangle");
+    expect(f).toBeTruthy();
+    expect(f.stones).toHaveLength(3);
+  });
+
+  it("names a triangle against the far edge, where the windows below and right are off the board", () => {
+    // The move is the bottom right corner; only the window up and left of it fits.
+    const rows = [".....", ".....", ".....", "....X", "...XX"];
+    expect(ids(rows, { c: 4, r: 4 })).toContain("empty-triangle");
+  });
+
   it("ships as a note, not a warn - it is the most common and most often legitimate", () => {
     const rows = ["XX...", "X....", ".....", ".....", "....."];
     expect(find(rows, { c: 0, r: 1 }, "empty-triangle").severity).toBe("note");
@@ -67,10 +87,34 @@ describe("tigers-mouth", () => {
     expect(f.stones).toHaveLength(3);
   });
 
+  it("does not also report the mouth as an empty triangle", () => {
+    // The other half of the pair. If the mouth were specified as a 2x2 pattern
+    // both detectors would fire here and the scold would outrank the praise.
+    const rows = [".....", "..X..", ".X.X.", ".....", "....."];
+    expect(ids(rows, { c: 3, r: 2 })).not.toContain("empty-triangle");
+  });
+
   it("is not the empty triangle: an empty triangle's empty point has only two friendly neighbours", () => {
     const rows = ["XX...", "X....", ".....", ".....", "....."];
     // (1,1) is the empty corner of the triangle. Two black neighbours, two empty.
     expect(ids(rows, { c: 0, r: 1 })).not.toContain("tigers-mouth");
+  });
+
+  it("refuses to praise a mouth whose own stones are in atari", () => {
+    // (4,2) looks like a mouth: black at (4,1), (3,2) and (5,2) around it, open below.
+    // But the guard at (4,1) is surrounded by white and has (4,2) as its last liberty,
+    // so a white play there captures instead of walking into one liberty. Praising it
+    // would make the coach loudest one move before the player is punished.
+    const rows = [
+      "....O....", "...OXO...", "...X.X...", ".........", ".........",
+      ".........", ".........", ".........", ".........",
+    ];
+    expect(ids(rows, { c: 5, r: 2 })).not.toContain("tigers-mouth");
+  });
+
+  it("still praises a mouth whose stones have room to breathe", () => {
+    const rows = [".....", "..X..", ".X.X.", ".....", "....."];
+    expect(ids(rows, { c: 3, r: 2 })).toContain("tigers-mouth");
   });
 
   it("refuses a mouth broken by an enemy stone in the fourth slot", () => {
@@ -99,6 +143,14 @@ describe("tigers-mouth", () => {
     expect(ids(rows, { c: 2, r: 1 })).not.toContain("tigers-mouth");
   });
 
+  it("names a mouth on the bottom edge, where the windows past the edge are off the board", () => {
+    // The mouth is (2,4): black at (1,4) and (3,4), open upwards at (2,3).
+    const rows = [".....", ".....", ".....", ".....", ".X.X."];
+    const f = find(rows, { c: 3, r: 4 }, "tigers-mouth");
+    expect(f).toBeTruthy();
+    expect(f.stones).toHaveLength(2);
+  });
+
   it("refuses the corner, where two friendly stones make an eye rather than a mouth", () => {
     // (0,0) has only (1,0) and (0,1) as neighbours, both black: an enemy play there is illegal.
     const rows = [".X...", "X....", ".....", ".....", "....."];
@@ -113,6 +165,18 @@ describe("dumpling", () => {
     expect(f).toBeTruthy();
     expect(f.stones).toHaveLength(4);
     expect(f.severity).toBe("note");
+  });
+
+  it("names a block the move completed in the corner, where three of the four windows are off the board", () => {
+    const rows = [".....", ".....", ".....", "...XX", "...XX"];
+    const f = find(rows, { c: 4, r: 4 }, "dumpling");
+    expect(f).toBeTruthy();
+    expect(f.stones).toHaveLength(4);
+  });
+
+  it("names a block the move completed against the bottom edge", () => {
+    const rows = [".....", ".....", ".....", ".XX..", ".XX.."];
+    expect(ids(rows, { c: 2, r: 4 })).toContain("dumpling");
   });
 
   it("stays quiet when the move only extends a chain that already held the block", () => {

@@ -156,18 +156,30 @@ export function chooseRemark(findings, ctx = {}) {
     if (moveNumber - last < PACING.minGap) return null;
   }
 
-  const eligible = findings.filter((f) => {
+  const eligible = (f) => {
     const s = spoken[f.id];
     if (!s) return true;
     if (s.count >= PACING.maxPerShape) return false;
     return moveNumber - s.lastMove >= PACING.repeatAfter;
-  });
-  if (!eligible.length) return null;
+  };
+  const rank = (f) => SEVERITY_RANK[f.severity] ?? 0;
 
-  // Stable sort: equal severities keep the detector's order.
-  const best = eligible
+  // Rank everything first, then take the best one still allowed. Stable: equal
+  // severities keep the detector's order.
+  const ranked = findings
     .map((f, i) => [f, i])
-    .sort((a, b) => (SEVERITY_RANK[b[0].severity] ?? 0) - (SEVERITY_RANK[a[0].severity] ?? 0) || a[1] - b[1])[0][0];
+    .sort((a, b) => rank(b[0]) - rank(a[0]) || a[1] - b[1])
+    .map(([f]) => f);
+
+  const best = ranked.find(eligible);
+  if (!best) return null;
+
+  /* If a louder or kinder reading of this same move exists but has been used up,
+     say nothing rather than letting a lesser one take the move. A position can be
+     honestly both a tiger's mouth and an empty triangle; once the mouth has spent
+     its two remarks, filtering before ranking would start scolding good shape,
+     which is the one thing the severity order exists to prevent. */
+  if (ranked.some((f) => !eligible(f) && rank(f) > rank(best))) return null;
 
   const lines = linesFor(best.id, personaId);
   if (!lines.length) return null;

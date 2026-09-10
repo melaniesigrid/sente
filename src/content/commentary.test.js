@@ -46,6 +46,13 @@ describe("the commentary library", () => {
     expect(linesFor("empty-triangle", null)).toEqual(COMMENTARY["empty-triangle"].default);
     expect(linesFor("no-such-shape", "tetsu")).toEqual([]);
   });
+
+  it("falls back to the default voice for a persona with nothing of its own to say", () => {
+    // Sora writes no overrides, and a persona the file has never heard of behaves the same.
+    expect(COMMENTARY["empty-triangle"].sora).toBeUndefined();
+    expect(linesFor("empty-triangle", "sora")).toEqual(COMMENTARY["empty-triangle"].default);
+    expect(linesFor("dumpling", "nobody")).toEqual(COMMENTARY.dumpling.default);
+  });
 });
 
 describe("chooseRemark pacing", () => {
@@ -96,9 +103,41 @@ describe("chooseRemark pacing", () => {
     expect(r.shapeId).toBe("tigers-mouth");
   });
 
+  it("says nothing rather than scolding once the kinder reading is used up", () => {
+    // A position can honestly be both a mouth and an empty triangle. Filtering by
+    // eligibility before ranking would, after two mouths, start criticising the third
+    // one as an empty triangle - the exact thing the severity order exists to prevent.
+    const spoken = { "tigers-mouth": { count: PACING.maxPerShape, lastMove: 36 } };
+    expect(chooseRemark([triangle, mouth], { spoken, moveNumber: 70 })).toBe(null);
+  });
+
+  it("still speaks a lesser shape when nothing better was in the running", () => {
+    const spoken = { "tigers-mouth": { count: PACING.maxPerShape, lastMove: 36 } };
+    expect(chooseRemark([triangle], { spoken, moveNumber: 70 }).shapeId).toBe("empty-triangle");
+  });
+
   it("lets a warn outrank praise, though nothing ships as warn yet", () => {
     const urgent = { id: "empty-triangle", severity: "warn" };
     expect(chooseRemark([mouth, urgent], { moveNumber: 12 }).shapeId).toBe("empty-triangle");
+  });
+
+  it("says nothing about a shape the library has no words for", () => {
+    const stranger = { id: "ponnuki", severity: "praise" };
+    expect(chooseRemark([stranger], { moveNumber: 12 })).toBe(null);
+  });
+
+  it("speaks in the default voice when the persona has no line of its own", () => {
+    const r = chooseRemark([triangle], { moveNumber: 8, personaId: "sora" });
+    expect(COMMENTARY["empty-triangle"].default).toContain(r.line);
+  });
+
+  it("ranks a severity it does not recognise below every one it does", () => {
+    const odd = { id: "tigers-mouth", severity: "shrug" };
+    expect(chooseRemark([odd, triangle], { moveNumber: 12 }).shapeId).toBe("empty-triangle");
+    // It is still eligible on its own, and reports the severity it was given.
+    const alone = chooseRemark([odd], { moveNumber: 12 });
+    expect(alone.shapeId).toBe("tigers-mouth");
+    expect(alone.severity).toBe("shrug");
   });
 
   it("keeps the detector's order when severities tie", () => {

@@ -32,10 +32,13 @@
    The two shapes are not mutually exclusive and are not meant to be: a position
    can be both an empty triangle and a tiger's mouth, and both readings are true.
    The selector's severity order decides which one is worth saying. */
-import { NBRS, idx, inB } from "./board.js";
+import { NBRS, chainAt, idx, inB } from "./board.js";
 
-/** Every shape this module can name. Content must cover all of them. */
-export const SHAPES = ["empty-triangle", "tigers-mouth", "dumpling"];
+/** Every shape this module can name. Content must cover all of them.
+ *  The order breaks ties between shapes of equal severity, so the more surprising
+ *  remark comes first: told you have made a dango, you learn more than being told
+ *  about the empty triangle inside it. */
+export const SHAPES = ["tigers-mouth", "dumpling", "empty-triangle"];
 
 /** How loud a finding is. Higher wins when two shapes land on one move.
  *  `warn` is reserved: nothing in the first set uses it, and promoting a shape
@@ -87,12 +90,9 @@ export function detectShapes(board, move, opts = {}) {
 
   const at = (x, y) => cells[idx(size, x, y)];
   const out = [];
-  const seen = new Set();
-  const add = (id, stones, severity) => {
-    if (seen.has(id)) return;
-    seen.add(id);
-    out.push({ id, color, stones, severity });
-  };
+  // Each loop below breaks after its one find, and the closing SHAPES.map keeps
+  // the first of any id, so nothing here needs to dedupe.
+  const add = (id, stones, severity) => out.push({ id, color, stones, severity });
 
   const windows = windowsAt(size, c, r);
 
@@ -118,7 +118,15 @@ export function detectShapes(board, move, opts = {}) {
     const empties = nb.filter(([x, y]) => at(x, y) === null);
     if (empties.length !== 1) continue;
     if (!nb.every(([x, y]) => at(x, y) === null || at(x, y) === color)) continue;
-    add("tigers-mouth", nb.filter(([x, y]) => at(x, y) === color), "praise");
+    const guards = nb.filter(([x, y]) => at(x, y) === color);
+    /* The mouth only bites if the teeth are not the ones in danger. A guard whose
+       last liberty IS the mouth point turns an enemy play there from suicide into a
+       capture, and the shape becomes the opposite of what it looks like. Praising
+       that would make the coach loudest exactly when the player is about to be
+       punished, which costs more trust than staying quiet ever does. At most three
+       chain floods, and only once a candidate mouth has already been found. */
+    if (guards.some(([x, y]) => chainAt(board, x, y).libs.size < 2)) continue;
+    add("tigers-mouth", guards, "praise");
     break;
   }
 
