@@ -2,14 +2,14 @@
 
 Daenerys is the exception in this folder: it is not a display face and belongs to
 no pairing. It sets one thing, the signature in the footer, and it is the face
-that most needs buying before Sente is public, because the demo forbids
+that most needs buying before Joseki is public, because the demo forbids
 commercial use outright.
 
 The display faces in this folder are borrowed from the Typecase library
 (`../../../typecase/fonts`), which keeps them for personal comparison. Every one
 of them is a **demo or personal-use cut**. They are here so the typeface
 pairings in `src/content/typeface.js` can be tried on the real UI; they are not
-cleared for a public deployment of Sente.
+cleared for a public deployment of Joseki.
 
 ## What the build actually loads
 
@@ -45,7 +45,7 @@ imports them, so they cost the build nothing where they sit.
 | CocogoosePro-Thin.ttf | Cocogoose Pro | Zetafonts | Trial. Personal use only. |
 | CocogoosePro-LightItalic.ttf | Cocogoose Pro | Zetafonts | Trial. Personal use only. |
 
-Before Sente ships publicly, the three faces in the first table need either a
+Before Joseki ships publicly, the three faces in the first table need either a
 purchased desktop-plus-web licence from the vendor above, or a substitute under
 the OFL. `house` (Fraunces, Hanken Grotesk) and every Google body family the set
 uses (Instrument Sans, Newsreader, Courier Prime) are OFL already, so the default

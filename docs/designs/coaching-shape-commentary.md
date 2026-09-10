@@ -8,7 +8,7 @@ Mode: Startup
 
 ## Problem Statement
 
-Sente's house players already talk, but they talk blind. Persona chat in
+Joseki's house players already talk, but they talk blind. Persona chat in
 `src/content/personas.js` is six hand-written line pools (`greet`, `botCapture`,
 `userCapture`, `reply`, `win`, `loss`) picked at random in `src/views/Game.jsx`. The bot
 never looks at the board. It cannot say why a move was good, cannot name a shape, and
@@ -23,7 +23,7 @@ The ask is three features stacked on one bet:
 3. **Neo-Human pair go.** Two humans of about 10 kyu pick a strong bot persona (say 7d)
    that alternates turns with them. A new format nobody else offers.
 
-The bet underneath: that coaching is what makes a player choose Sente.
+The bet underneath: that coaching is what makes a player choose Joseki.
 
 ## Demand Evidence
 
@@ -99,7 +99,7 @@ From `CLAUDE.md`, all binding:
    Every persona game today is rated: `conclude` runs `rateAgainst` and writes the profile
    (`src/views/Game.jsx:201-232`), and the result card says "Rated against a house player"
    (`:512`). A bot naming your bad shape mid-game while that game moves your Glicko-2
-   rating is assistance, and Sente's whole positioning is honest ratings. So coaching is a
+   rating is assistance, and Joseki's whole positioning is honest ratings. So coaching is a
    toggle, the toggle is visible on the table, and turning it on makes the game unrated and
    says so. Daily duels are excluded entirely — they are a shared, comparable result.
 5. **Neo-Human is a seat-model change in the multiplayer Worker, not a coaching feature.**
@@ -411,7 +411,7 @@ The unrated plumbing is three places, all small:
 - `npm run build` and `npm run lint` pass.
 - Ten games played by the founder, who then answers: delightful or annoying.
 
-**Feature (later):** the club plays on Sente; games are archived; the coach can say
+**Feature (later):** the club plays on Joseki; games are archived; the coach can say
 something true about a shape you formed last week.
 
 ## Dependencies
@@ -430,7 +430,7 @@ something true about a shape you formed last week.
 
 Post in the Go Guatemala WhatsApp or Discord group this week, before the commentary is
 finished: "I am building a go server for us. What do you hate most about the ones you use
-now?" Do not describe Sente, do not show a screenshot, do not pitch the coach. Ask, then
+now?" Do not describe Joseki, do not show a screenshot, do not pitch the coach. Ask, then
 be quiet and read.
 
 Two reasons. The answers tell you whether "ugly, unsafe, hard to use" is your complaint or

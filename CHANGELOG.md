@@ -1,7 +1,10 @@
 # Changelog
 
-Sente keeps a four-part version (`MAJOR.MINOR.PATCH.MICRO`) in `VERSION`; `package.json`
+Joseki keeps a four-part version (`MAJOR.MINOR.PATCH.MICRO`) in `VERSION`; `package.json`
 carries the npm-valid three-part form. This file starts at the first versioned release.
+
+Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
+They are left as they were written rather than rewritten after the fact.
 
 ## v0.5.0.0 (2026-09-10)
 

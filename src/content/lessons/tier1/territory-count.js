@@ -12,7 +12,7 @@ export default {
   subtitle: "What a point is, and counting a finished board",
   plain: "Territory is the empty ground only one colour can reach, and under area scoring your own stones count as well. Points that touch both sides belong to nobody, and komi gives White a half point so a game can never end level.",
   tier: 1, rank: "22k", track: "judgement", size: 9, prereqs: ["two-eyes"], minutes: 5,
-  author: "Sente", sources: [],
+  author: "Joseki", sources: [],
   steps: [
     {
       type: "info",

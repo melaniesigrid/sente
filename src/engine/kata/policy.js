@@ -1,7 +1,7 @@
 /* ----------------------- POLICY MOVE PICKER (pure) -----------------------
    Turns the human network's policy logits into a move. The network says what a
    player of the profiled rank would play; this samples one of those moves at a
-   persona's temperature, masks anything illegal under Sente's rules (ko, superko,
+   persona's temperature, masks anything illegal under Joseki's rules (ko, superko,
    suicide), and keeps passing sensible: a pass is only sampled when the opponent
    has just passed or when the network itself makes it the top choice late in the
    game.

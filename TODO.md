@@ -1,6 +1,6 @@
-# Sente — Roadmap
+# Joseki — Roadmap
 
-Sente is the classiest go server: restrained, correct, honest. Class means the rules are
+Joseki is the classiest go server: restrained, correct, honest. Class means the rules are
 right, the ratings are honest, the bots are labeled, and the interface stays out of the way.
 Full reasoning: `docs/designs/classiest-go-server.md` (CEO review, 2026-09-09).
 
@@ -133,7 +133,7 @@ each fixed in its own commit:
 - [x] A front door (2026-09-10, branch `feat/landing-page`): the landing is its own
       screen (`views/Landing.jsx`) and Home is the dashboard behind it. A visitor who
       has not been onboarded opens on the front door; Enter hands them to the welcome
-      flow, and the footer keeps an "About Sente" link back. Section labels and the
+      flow, and the footer keeps an "About Joseki" link back. Section labels and the
       saying are typed as they are scrolled to (`components/Typed.jsx`), the hero
       arrives a beat at a time, and the roadmap moved off the dashboard onto it.
 - [x] Keyboard (2026-09-10, branch `feat/table-keys`): P passes and U takes back at the
@@ -549,14 +549,14 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
 - [x] The Classic in Thirteen Chapters (2026-09-10): Zhang Ni's eleventh-century treatise as a
       lesson series, one engine-verified lesson per chapter spread over tiers 2 to 5
       (`series`/`chapter` fields, `lessonsInSeries`), plus `content/classic.js` with the
-      chapters and Sente's own renderings of its sayings: a saying of the day on Learn and
+      chapters and Joseki's own renderings of its sayings: a saying of the day on Learn and
       a few new lines for Moku. Tiers 2 to 5 now each hold their Classic lessons; the rest
       of their syllabus is still open.
 - [ ] Surface the saying of the day on Home (the card is built in `Learn.jsx` as
       `ClassicCard`; lift it to a shared component).
 - [x] The Classic, second pass (2026-09-10): the book itself, not only its sayings.
       `content/classic.js` now carries the preface (Huan Tan's three kinds of player), all
-      thirteen chapters as prose in Sente's own rendering, chapter twelve's nine levels and
+      thirteen chapters as prose in Joseki's own rendering, chapter twelve's nine levels and
       chapter eleven's thirty-two names, alongside the existing passages. Learn's series card
       became a reader: preface, then thirteen expandable chapters, each with its lessons under
       it and the names glossary inside chapter eleven. Profile gained a nine-levels card. New
@@ -579,7 +579,7 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       accent rule, centred, with the label under it, and a `sm` size for the column beside a
       board. Learn drops one after a chapter's first paragraph, a finished lesson opens its
       recap with one, and each screen sets its own above that screen's passage.
-      Decisions: a passage is Zhang Ni speaking and a pull quote is Sente speaking, so the
+      Decisions: a passage is Zhang Ni speaking and a pull quote is Joseki speaking, so the
       label is not decoration — it is the thing that keeps a gloss from reading as a
       quotation. Tests hold every gloss to the house voice and to a pullable length, refuse
       one that is only the subtitle or the theme again, refuse a chapter gloss that repeats a
@@ -594,7 +594,7 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       Guanzi Pu (Guo Bailing, printed 1660, expanded by Tao Shiyu and others 1689) as a
       book on the shelf, with two lessons in tier 4: `guanzi-gote-alternates` (10k) and
       `guanzi-first-line-hane` (9k).
-      Decisions: the book supplies the subject, not the diagrams. Sente builds its own
+      Decisions: the book supplies the subject, not the diagrams. Joseki builds its own
       positions and the engine settles them, and `guanzi.test.js` scores every total a
       lesson states — the library verifier only checks that a `count` answer is a number,
       not that it is right, so the book checks its own. The shelf gained `note` so the
@@ -614,7 +614,7 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       joint is checked the same way: either peep leaves Black one chain of nine with six
       liberties and the peeping stone with one.
 - [x] The Mysterious Classic (2026-09-10): Xuanxuan Qijing (Yan Defu and Yan Tianzhang,
-      1349) joins the shelf, which is the rest of a book Sente already had — its first
+      1349) joins the shelf, which is the rest of a book Joseki already had — its first
       volume is the Classic in Thirteen Chapters. Two tier 5 life-and-death lessons:
       `xuanxuan-five-points` (3k) and `xuanxuan-one-way-in` (2k).
       The real artifact is the life-and-death solver in `xuanxuan.test.js`: exhaustive
@@ -635,7 +635,7 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       needs a position the engine can settle before it is worth authoring.
 - [ ] Other shelves are still empty. Candidate sources for the rest of the library,
       all public domain: Xuanxuan Qijing (Yan Defu and Yan Tianzhang, 1349 — its first
-      volume is the Classic Sente already ships), Gokyo Shumyo (Hayashi Genbi, 1812, 520
+      volume is the Classic Joseki already ships), Gokyo Shumyo (Hayashi Genbi, 1812, 520
       tesuji), Igo Hatsuyoron (Inoue Dosetsu Inseki, 1713, 183 hard problems).
 - [ ] Tsumego graded 30k → 5k with categories and a daily set (reuses the verifier).
 - [ ] Spaced repetition: finished quiz steps enter a recall queue; "Review five" card on Home.
@@ -702,7 +702,7 @@ and one rule: the number on the card is measured, never claimed.
 Decisions made in the masters row (branch `feat/masters-row-ui`, 2026-09-10):
 - A master game is **unrated**, and the card and the table both say so. Agreement with
   a year profile is not a strength: the raw policy is a few stones weaker than the rank
-  it imitates at dan level, so any rank on that seat would be a number Sente cannot
+  it imitates at dan level, so any rank on that seat would be a number Joseki cannot
   stand behind. No rank badge on a master’s seat either.
 - Nothing on a card is written by hand. `content/masters.js` derives every line from
   `masters.json` and `eval.json`, so a card cannot drift from the measurement, and a

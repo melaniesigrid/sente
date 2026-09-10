@@ -5,7 +5,7 @@ import { readSgf, importSummary } from "../views/sgfImport.js";
 
 /* ----------------------- OPEN AN SGF -----------------------
    The file end of review. All this does is get text off a disk and hand it to
-   `readSgf`, which decides whether it is a game Sente is willing to show; every
+   `readSgf`, which decides whether it is a game Joseki is willing to show; every
    judgment lives there, where it is tested.
 
    Failures are shown, named, and left on screen until the next attempt. A file
@@ -37,7 +37,7 @@ export function OpenSgf({ onOpen }) {
       <div className="stat-head"><FolderOpen size={17} /><span>Open a game</span></div>
       <p className="fine">
         Drop an SGF here, or choose one, and walk through it in review. The file stays on
-        your device — Sente has nowhere to send it.
+        your device — Joseki has nowhere to send it.
       </p>
       <input ref={input} type="file" accept=".sgf,application/x-go-sgf,text/plain"
         className="visually-hidden" id="sgf-file"

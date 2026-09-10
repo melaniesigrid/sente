@@ -16,7 +16,7 @@ import { formProblem, passwordNote, errorText } from "./accountForm.js";
    It is a disclosure rather than a tab because it is not a way most people
    get in, and a row of four would suggest it was.
 
-   There is no third party here. Sente holds the address, and it holds a hash
+   There is no third party here. Joseki holds the address, and it holds a hash
    of a key the browser derives from the password — never the password, which
    does not leave the machine it was typed on (`src/net/password.js`).
 

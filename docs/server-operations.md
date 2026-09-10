@@ -1,4 +1,4 @@
-# Running the Sente server
+# Running the Joseki server
 
 The multiplayer server is a Cloudflare Worker (`server/`) with two Durable Object classes,
 deployed to https://sente-server.melaniesigrid.workers.dev. This is the operator's page:

@@ -15,7 +15,7 @@ import { reviewLength } from "../engine/index.js";
    the moves through the same transitions a live game uses, so a file that claims an
    illegal move is refused rather than shown as a position that could never exist. */
 
-/** Board sizes Sente can draw. The engine parses any SZ; the app has three boards. */
+/** Board sizes Joseki can draw. The engine parses any SZ; the app has three boards. */
 export const SUPPORTED_SIZES = [9, 13, 19];
 
 const bytes = (text) => `${Math.ceil(text.length / 1024)} KB`;
@@ -30,7 +30,7 @@ export function readSgf(text, name = "the file") {
   if (text.length > MAX_SGF_BYTES) {
     return {
       ok: false, reason: "too-big",
-      message: `${name} is ${bytes(text)}. Sente reads SGF files up to ${Math.round(MAX_SGF_BYTES / 1024)} KB.`,
+      message: `${name} is ${bytes(text)}. Joseki reads SGF files up to ${Math.round(MAX_SGF_BYTES / 1024)} KB.`,
     };
   }
 
@@ -57,7 +57,7 @@ export function readSgf(text, name = "the file") {
       const why = e instanceof IllegalMoveError ? e.reason : plain(e);
       return {
         ok: false, reason: "illegal",
-        message: `${name} reads as SGF but claims a move Sente's rules refuse — ${why}. It has not been opened: a position that could not happen is not worth showing.`,
+        message: `${name} reads as SGF but claims a move Joseki's rules refuse — ${why}. It has not been opened: a position that could not happen is not worth showing.`,
       };
     }
     if (e instanceof SgfParseError) {
@@ -72,7 +72,7 @@ export function readSgf(text, name = "the file") {
   if (!SUPPORTED_SIZES.includes(record.size)) {
     return {
       ok: false, reason: "size",
-      message: `${name} is a ${record.size}×${record.size} game. Sente draws ${SUPPORTED_SIZES.join(", ")} only.`,
+      message: `${name} is a ${record.size}×${record.size} game. Joseki draws ${SUPPORTED_SIZES.join(", ")} only.`,
     };
   }
   if (reviewLength(record) === 0) {

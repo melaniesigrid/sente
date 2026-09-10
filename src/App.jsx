@@ -47,7 +47,7 @@ const NAV = [
   { id: "ladder", label: "Ladder", icon: Medal },
 ];
 
-export default function SenteApp() {
+export default function JosekiApp() {
   /* The front door until this device has been onboarded, and the dashboard ever
      after. `null` is the beat before the stored profile has been read: the shell
      shows nothing rather than flashing the wrong screen at a returning player. */
@@ -61,7 +61,7 @@ export default function SenteApp() {
   const [footSaying] = useState(() => sayingBySeed(Math.floor(Math.random() * 1e6)));
   const [resume, setResume] = useState(null); // { mode, record } handed to PlayView once
   const [params, setParams] = useState(null); // one-shot navigation params, e.g. { problemId }
-  /* A link out of one of Sente's two letters, read from the address bar once.
+  /* A link out of one of Joseki's two letters, read from the address bar once.
      It outranks everything below, onboarding included: somebody who followed a
      link to get back into an account they already have must not be asked who
      is playing first, and the token would be gone by the time they finished. */
@@ -102,9 +102,9 @@ export default function SenteApp() {
       <style>{CSS}</style>
       {view === null ? null : <>
       <header className={`topbar ${view === "landing" ? "slim" : ""}`}>
-        <button className="brand" onClick={() => setView("landing")} aria-label="Sente, the front door">
+        <button className="brand" onClick={() => setView("landing")} aria-label="Joseki, the front door">
           <span className="brand-mark" aria-hidden="true" />
-          <span className="brand-name">Sente</span>
+          <span className="brand-name">Joseki</span>
         </button>
         {view === "landing" ? (
           <button className="lp-enter" onClick={() => go("home")}>
@@ -136,7 +136,7 @@ export default function SenteApp() {
         <ErrorBoundary key={mailLink ? "mail" : welcoming ? "welcome" : view} onHome={home}>
           {/* A link out of a letter outranks the front door as well as
               onboarding: somebody who came here to get back into an account
-              they already have is not being introduced to Sente. */}
+              they already have is not being introduced to Joseki. */}
           {mailLink ? (
             <MailLinkView link={mailLink} notify={notify}
               onSignedIn={() => go("play")} onDone={closeMailLink} />
@@ -161,9 +161,9 @@ export default function SenteApp() {
           being kept company on yet, and a bubble there only fights the headline. */}
       {view !== "landing" && <MokuDock />}
       <footer className="foot">
-        <span className="foot-line">Sente · play go, beautifully</span>
+        <span className="foot-line">Joseki · play go, beautifully</span>
         <span className="foot-line">{footSaying.text}</span>
-        <button className="foot-link" onClick={() => setView("landing")}>About Sente</button>
+        <button className="foot-link" onClick={() => setView("landing")}>About Joseki</button>
         <span className="foot-line studio">built by Northbound Software Studio</span>
         <span className="signed">
           <span className="signed-by">made by</span>

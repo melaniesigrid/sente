@@ -13,7 +13,7 @@ export default {
   subtitle: "Two eyes live, one eye dies",
   plain: "A group with two separate eyes can never be captured, because filling either one would be an illegal move. Every life and death fight is really an argument about whether a second eye exists.",
   tier: 1, rank: "24k", track: "life", size: 9, prereqs: ["no-liberty-capture"], minutes: 5,
-  author: "Sente", sources: [],
+  author: "Joseki", sources: [],
   steps: [
     {
       type: "info",

@@ -76,9 +76,9 @@ describe("daily duel", () => {
   });
   it("formats the share text and the card line", () => {
     expect(duelShareText({ key: "2026-09-09", personaName: "Tetsu", code: "B+12.5", moves: 41, url: "https://x/" }))
-      .toBe("Sente Daily Duel · 2026-09-09\nvs Tetsu (house bot) · B+12.5 in 41 moves\nhttps://x/");
+      .toBe("Joseki Daily Duel · 2026-09-09\nvs Tetsu (house bot) · B+12.5 in 41 moves\nhttps://x/");
     expect(duelShareText({ key: "2026-09-09", personaName: "Tetsu", code: "W+R", moves: 0 }))
-      .toBe("Sente Daily Duel · 2026-09-09\nvs Tetsu (house bot) · W+R");
+      .toBe("Joseki Daily Duel · 2026-09-09\nvs Tetsu (house bot) · W+R");
     expect(duelResultText("B+12.5")).toBe("Won by 12.5");
     expect(duelResultText("W+R")).toBe("Lost by resignation");
     expect(duelResultText("Jigo")).toBe("Jigo");

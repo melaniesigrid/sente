@@ -218,7 +218,7 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
               aria-pressed={profile.typeface === t.id}
               aria-label={`Typeface ${t.name}`}
             >
-              <span className="type-sample" style={{ fontFamily: t.display, fontWeight: t.weight }}>Sente 9d</span>
+              <span className="type-sample" style={{ fontFamily: t.display, fontWeight: t.weight }}>Joseki 9d</span>
               <span className="type-name">{t.name}</span>
             </button>
           ))}

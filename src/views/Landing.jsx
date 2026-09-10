@@ -135,7 +135,7 @@ export function Landing({ profile, onEnter, go }) {
         <div className="lp-hero-board lp-enters">
           {/* the real engine, playing itself — not a recording */}
           <div className="lp-board-well" aria-hidden="true"><MiniSelfPlay sizePx={380} /></div>
-          <p className="lp-board-note">Sente&rsquo;s own engine, playing itself, right now.</p>
+          <p className="lp-board-note">Joseki&rsquo;s own engine, playing itself, right now.</p>
         </div>
       </section>
 
@@ -230,7 +230,7 @@ export function Landing({ profile, onEnter, go }) {
             <li><Sparkles size={15} /> Review mode: scrub the game, walk the variations, jump to every capture</li>
             <li><Sparkles size={15} /> Real-time matches against people, over the same game loop</li>
             <li><Sparkles size={15} /> Friends, rooms, and spectating with live chat</li>
-            <li><Sparkles size={15} /> Joseki trees and engine review on a finished board</li>
+            <li><Sparkles size={15} /> Corner-pattern trees and engine review on a finished board</li>
             <li><Sparkles size={15} /> A spaced-repetition tsumego queue that knows what you keep missing</li>
           </ul>
         </div>

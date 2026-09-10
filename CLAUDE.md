@@ -1,4 +1,4 @@
-# Sente
+# Joseki
 
 Go (baduk) server with a design-first neumorphic UI. Vite + React 19, plain CSS-in-JS,
 Lucide icons. Profile persists in localStorage; online play runs on a Cloudflare Worker
@@ -14,6 +14,18 @@ in `server/` (Durable Objects), deployed separately.
 
 ## Conventions
 
+- **The product is `Joseki`, capitalised. The go terms stay lowercase.** `joseki`, `sente`
+  and `gote` are words this app teaches, and two of them collide with its own name. Only the
+  product is capitalised; a corner pattern is a lowercase `joseki`, and initiative is a
+  lowercase `sente`. Where a sentence would start with either term, reword rather than
+  capitalise — "Sente and gote" and "Sente is everything" are the go term, not the app.
+- **No lowercase `sente` identifier is the old name — every one is load-bearing.** The
+  password salt (`sente-v${KDF.v}:${email}` in `src/net/password.js`), the `localStorage`
+  keys (`sente-account-v1`, `sente-profile-v3`, `sente-lobby`), the CSS variables and
+  `.sente-root`, the `sente-*` font families, the `x-sente-player` header and the Worker
+  name `sente-server` are all stored, wire-visible, or both. Renaming the salt alone would
+  lock every account out with no recovery but a reset each; renaming the Worker would hand
+  the app an empty Durable Object store. Leave them.
 - Engine code (`tryPlay`, `GameRecord`, `scoreBoard`, `aiChooseMove`, ...) is pure and must stay
   framework-free so it can move to a server. Do not import React into engine modules.
 - The two-shadow neumorphism is fixed: every raised thing is one light shadow from the top

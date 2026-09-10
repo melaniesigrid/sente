@@ -1,5 +1,5 @@
 /* ----------------------- KATAGO INPUT FEATURES (pure) -----------------------
-   Turns a Sente GameRecord into the three tensors KataGo's human-style network
+   Turns a Joseki GameRecord into the three tensors KataGo's human-style network
    expects (input version 7, meta-encoder version 1):
 
      bin     Float32Array [22 * N * N]   NCHW spatial planes, index f*N*N + y*N + x
@@ -9,7 +9,7 @@
                                          SGFMetadata::fillMetadataRow
 
    This is a line-by-line port of NNInputs::fillRowV7 (cpp/neuralnet/nninputs.cpp)
-   restricted to the rules Sente plays: area scoring, no group tax, positional
+   restricted to the rules Joseki plays: area scoring, no group tax, positional
    superko, suicide illegal, no button, no encore. Features 7, 8, 20 and 21 are
    encore-only and stay zero. The network sees the board from the side to move:
    "pla" is whoever plays next, "opp" the other side. */

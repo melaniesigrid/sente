@@ -16,7 +16,7 @@ export default {
   subtitle: "Chapter two: know who is winning while the game is still on",
   plain: "Counting is not a chore for the end of the game, it is what tells you how to play the middle of it. If you cannot say who is ahead right now, you cannot know whether to take a risk or settle.",
   tier: 2, rank: "19k", track: "judgement", size: 9, prereqs: ["territory-count", "classic-board"], minutes: 6,
-  author: "Sente", sources: [CLASSIC_SOURCE], series: "classic", chapter: 2,
+  author: "Joseki", sources: [CLASSIC_SOURCE], series: "classic", chapter: 2,
   steps: [
     {
       type: "info",

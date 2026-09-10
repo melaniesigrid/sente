@@ -8,7 +8,7 @@ export default {
   subtitle: "Chapter eleven: thirty-two names for the shapes",
   plain: "Naming a shape is how you stop reading it from scratch. Once a cut, a hane or a net has a name you know it at a glance, and your reading goes to the part of the board that is actually new.",
   tier: 2, rank: "18k", track: "shape", size: 9, prereqs: ["connect-cut"], minutes: 6,
-  author: "Sente", sources: [CLASSIC_SOURCE], series: "classic", chapter: 11,
+  author: "Joseki", sources: [CLASSIC_SOURCE], series: "classic", chapter: 11,
   steps: [
     {
       type: "info",

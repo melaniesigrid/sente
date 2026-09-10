@@ -5,7 +5,7 @@
        rating = 525 * e^(rank / 23.15)
 
    where rank 30 is 1 dan and every rank below it is one kyu weaker. A rating
-   from Sente therefore means the same thing as a rating from OGS, so 12 kyu
+   from Joseki therefore means the same thing as a rating from OGS, so 12 kyu
    here is 12 kyu there, and the ladder does not have to be re-learned when a
    player goes looking for a human opponent.
 

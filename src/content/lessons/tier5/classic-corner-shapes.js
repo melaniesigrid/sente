@@ -30,7 +30,7 @@ export default {
   subtitle: "Chapter thirteen: the shapes the classic says are already settled",
   plain: "Some corner positions are decided before anyone plays in them. This catalogue says which live and which die, and the difference is eyespace rather than the number of stones, so learning them saves you the fight.",
   tier: 5, rank: "3k", track: "life", size: 9, prereqs: ["two-eyes", "classic-miscellany"], minutes: 8,
-  author: "Sente", sources: [CLASSIC_SOURCE], series: "classic", chapter: 13,
+  author: "Joseki", sources: [CLASSIC_SOURCE], series: "classic", chapter: 13,
   steps: [
     {
       type: "info",

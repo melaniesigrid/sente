@@ -13,7 +13,7 @@ import { cleanEmail, passwordProblem, MIN_PASSWORD } from "../net/password.js";
  *  never blaming the person for something the server did. */
 export const ACCOUNT_ERRORS = {
   offline: "The server is out of reach right now",
-  "no-server": "This copy of Sente is running without a server",
+  "no-server": "This copy of Joseki is running without a server",
   "bad-name": "A handle is two to eighteen characters",
   "bad-email": "That does not look like an address",
   "bad-key": "Something went wrong securing that password. Try again.",
