@@ -119,7 +119,9 @@ each fixed in its own commit:
       (2026-09-10, branch `feat/coordinates`): both on the profile, set in Profile.
       Fixed on the way: the board's screen-reader labels said "I" for column 8,
       disagreeing with every go book and with the coordinates now drawn beside them.
-- [ ] Onboarding for a first-time visitor: name and tint, then a 10-move guided demo.
+- [x] Onboarding for a first-time visitor (2026-09-10, branch `feat/onboarding`): four
+      beats — what go is, name and tint, a four-step demo ending in a capture, and a
+      way into a first game, the lessons or a look around.
 - [x] Keyboard (2026-09-10, branch `feat/table-keys`): P passes and U takes back at the
       table, both through the same handlers the buttons use so every guard holds; the
       caption says so. In review: left and right walk a move, up and down jump ten,
@@ -162,6 +164,27 @@ Decisions made in Phase 3, lobby slice (branch `feat/board-sizes`):
   learn a new field and a rematch is always played on the board in front of you.
 - The daily duel stays 9x9 (`DUEL_SIZE`): results only compare on one board.
 - The board is drawn at 460, 560 or 680 px for 9, 13, 19; the stone scale never changes.
+
+Decisions made in Phase 3, onboarding slice (branch `feat/onboarding`):
+- The demo is run by the library's own `LessonPlayer` on a lesson-shaped position
+  set, so a beginner's first board behaves exactly like every other board and its
+  positions are engine-verified. `LessonPlayer` gained one prop, `exitLabel`,
+  because a first-time visitor has never seen a library.
+- The welcome demo is deliberately NOT in the library index: tier 1 ships the ten
+  lessons the design doc names and that list is pinned by a test. `welcome.test.js`
+  verifies its positions to the same standard, and additionally asserts that the
+  quiz answer really captures.
+- `needsOnboarding` is not just the flag. Every profile saved before the flag
+  existed lacks it, so a player with any history — a game, a lesson, a name, a
+  rating that has moved — is treated as already welcomed. Teaching a 5 kyu what a
+  liberty is would be insulting.
+- The flow waits for the stored profile to load. Without that, every returning
+  player would see a flash of "who is playing" before their own name arrived.
+- Whether to show it is derived from the profile, never stored separately: finishing
+  sets `onboarded`, which flips the condition. One source of truth.
+- Every stage can be left, and leaving counts as onboarded, because asking twice is
+  worse than not asking. Nothing oversells: it shows a capture and lets the game
+  make its own case.
 
 Decisions made in Phase 3, coordinates slice (branch `feat/coordinates`):
 - The column letters skip I, because on a printed diagram it cannot be told from 1
