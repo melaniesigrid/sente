@@ -27,6 +27,26 @@ export const idx = (size, c, r) => r * size + c;
 export const inB = (size, c, r) => c >= 0 && c < size && r >= 0 && r < size;
 export const colRow = (size, i) => [i % size, Math.floor(i / size)];
 
+/* ----- coordinates -----
+   The board is lettered left to right and numbered bottom to top, and the letter I is
+   skipped, because on a printed diagram it is indistinguishable from the number 1 and
+   from a lowercase l. Every go book, server and tournament sheet does this; a board
+   that labelled a column "I" would disagree with every one of them.
+
+   This is not SGF's alphabet. `pointToSgf` uses a..s including i, which is correct
+   there and wrong here. */
+export const COLUMN_LETTERS = "ABCDEFGHJKLMNOPQRSTUVWXYZ";
+
+/** Column letter for a zero-based column index: 0 is A, 8 is J. */
+export const colLabel = (c) => COLUMN_LETTERS[c] ?? "?";
+
+/** Row number for a zero-based row index: row 0 is the top, and the top row of a
+  * 19x19 board is 19. */
+export const rowLabel = (size, r) => size - r;
+
+/** A point in the usual notation, e.g. "Q16" on 19x19. */
+export const pointLabel = (size, c, r) => `${colLabel(c)}${rowLabel(size, r)}`;
+
 export function createBoard(size) {
   if (!Number.isInteger(size) || size < 2 || size > 25) throw new RangeError(`bad board size ${size}`);
   return { size, cells: Array(size * size).fill(null) };

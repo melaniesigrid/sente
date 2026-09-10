@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Check, Pencil, Trophy, Flame, Sparkles, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Type, Mountain, Palette } from "lucide-react";
+import { Check, Pencil, Trophy, Flame, Sparkles, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Type, Mountain, Palette, Grid3x3, Dot } from "lucide-react";
 import { Card, Pill, Avatar, RankBadge, BeltRibbon, Toggle } from "../components/ui.jsx";
 import { Passage } from "../components/Passage.jsx";
 import { MokuMark } from "../components/Moku.jsx";
 import { useMoku, useMokuFacts } from "../components/mokuStore.js";
 import { TINTS, rankOf, beltOf, nextBelt, hintsForBelt, kyuFloor } from "../content/rank.js";
+import { MARKS } from "../store/profile.js";
 import { TYPEFACES, typefaceOf } from "../content/typeface.js";
 import { THEMES, themeOf, themeVars } from "../content/theme.js";
 import { CLASSIC, LEVELS, BELOW_THE_LEVELS, levelForRank } from "../content/classic.js";
@@ -204,6 +205,30 @@ export function ProfileView({ profile, setProfile }) {
               <span className="fine">A synthesised click on every stone, a soft note per capture, and a small haptic on phones. Nothing is downloaded.</span>
             </div>
             <Toggle on={profile.sound} onChange={v => commit({ sound: v })} label="Stone sound" />
+          </div>
+          <div className="setting-row">
+            <Grid3x3 size={16} />
+            <div className="setting-copy">
+              <strong>Coordinates</strong>
+              <span className="fine">Letters and numbers around the board, the way a book prints them. The letter I is skipped, so the column after H is J.</span>
+            </div>
+            <Toggle on={profile.coordinates} onChange={v => commit({ coordinates: v })} label="Coordinates" />
+          </div>
+          <div className="setting-row">
+            <Dot size={16} />
+            <div className="setting-copy">
+              <strong>Last move</strong>
+              <span className="fine">How the stone just played is marked: a dot on it, a ring around it, or nothing at all.</span>
+            </div>
+            <div className="seg" role="radiogroup" aria-label="Last-move marker">
+              {MARKS.map(mk => (
+                <button key={mk} type="button" role="radio" aria-checked={profile.lastMoveMark === mk}
+                  className={`seg-btn ${profile.lastMoveMark === mk ? "active" : ""}`}
+                  onClick={() => commit({ lastMoveMark: mk })}>
+                  {mk === "dot" ? "Dot" : mk === "ring" ? "Ring" : "None"}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="setting-row">
             <MokuMark size={22} state={moku && moku.off ? "idle" : "watching"} />
