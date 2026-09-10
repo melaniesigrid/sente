@@ -355,7 +355,20 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
 - [ ] More of the endgame book: the monkey jump, sente before gote, and double sente. The
       monkey jump was drafted and dropped — its continuations are open-ended and the engine
       has no endgame solver, so the best line could not be verified, only guessed.
-- [ ] The Proverbs is still an empty shelf. Candidate sources for the rest of the library,
+- [x] The Proverbs, opened (2026-09-10): the `maxim` step type was fully built — verifier
+      rule, reducer, styles, rendering — and no lesson used it, so the shelf said the book
+      was not on it. Two lessons in tier 2 now use it: `proverb-ladder` (19k, tactics) and
+      `proverb-bamboo-joint` (17k, shape). The library promised ladders in the tactics track
+      and had no ladder lesson at all until this one.
+      Decisions: `proverbs.test.js` runs a small ladder solver — Black ataris, White extends
+      to its one liberty — so the lesson's claims are checked, not asserted. It confirms the
+      capture at move eleven, that the sequence step is the opening of that same ladder, and
+      that a stone at (7,7), (6,7) or (7,6) breaks it while one at (8,8) does not. The bamboo
+      joint is checked the same way: either peep leaves Black one chain of nine with six
+      liberties and the peeping stone with one.
+- [ ] More proverbs: hane at the head of two stones, death in the hane, the ponnuki. Each
+      needs a position the engine can settle before it is worth authoring.
+- [ ] Other shelves are still empty. Candidate sources for the rest of the library,
       all public domain: Xuanxuan Qijing (Yan Defu and Yan Tianzhang, 1349 — its first
       volume is the Classic Sente already ships), Gokyo Shumyo (Hayashi Genbi, 1812, 520
       tesuji), Igo Hatsuyoron (Inoue Dosetsu Inseki, 1713, 183 hard problems).
