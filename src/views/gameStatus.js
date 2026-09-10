@@ -1,5 +1,7 @@
 /* ----------------------- GAME STATUS (pure) -----------------------
    Text the Game view shows, kept free of React so it can be unit-tested. */
+import { preciseRankOf } from "../content/rank.js";
+import { rulesetOf } from "../engine/index.js";
 
 const REFUSALS = {
   ko: "Ko: you can't retake immediately",
@@ -49,18 +51,24 @@ export function resignLabel(confirming) {
 
 /** Fine print under the capture counts: the board, the rules, and whether the ladder is
  *  watching. A daily duel is unrated and says so by name. */
-export function captionText({ size, komi, handicap = 0, rated, duel = false }) {
+export function captionText({ size, komi, handicap = 0, rules, rated, duel = false }) {
+  const set = rulesetOf(rules);
   const parts = [];
   if (size) parts.push(`${size}×${size}`);
   if (handicap >= 2) parts.push(`${handicap} stones`);
-  parts.push("Area scoring", `komi ${komi}`, "superko");
+  // The ruleset is named rather than assumed: the same board can land on a
+  // different winner by half a point under a different count.
+  parts.push(`${set.name} ${set.scoring}`, `komi ${komi}`, "superko");
   parts.push(duel ? "daily duel, unrated" : rated ? "rated" : "unrated");
   return parts.join(" · ");
 }
 
 /* ----- the result card -----
-   Honest arithmetic, every term visible: "41 stones + 3 territory = 44" against
-   "35 stones + 4 territory + 7.5 komi = 46.5". A resignation and a flag have no rows. */
+   Honest arithmetic, every term visible. Under an area count that reads
+   "41 stones + 3 territory = 44" against "35 stones + 4 territory + 7.5 komi = 46.5";
+   under a territory count the stones are worth nothing and the prisoners are worth
+   everything, so it reads "38 territory + 6 prisoners = 44" instead. The terms shown
+   are the terms actually added up. A resignation and a flag have no rows. */
 const plural = (n, word) => `${n} ${word}${n === 1 || word === "territory" ? "" : "s"}`;
 
 export function resultCard(result) {
@@ -72,8 +80,13 @@ export function resultCard(result) {
     return { headline: `${side(result.winner)} wins`, sub: "on time", rows: [] };
   }
   const s = result.score;
-  const bParts = [plural(s.black.stones, "stone"), plural(s.black.territory, "territory")];
-  const wParts = [plural(s.white.stones, "stone"), plural(s.white.territory, "territory")];
+  const territoryCount = s.scoring === "territory";
+  const bParts = territoryCount
+    ? [plural(s.black.territory, "territory"), plural(s.black.prisoners ?? 0, "prisoner")]
+    : [plural(s.black.stones, "stone"), plural(s.black.territory, "territory")];
+  const wParts = territoryCount
+    ? [plural(s.white.territory, "territory"), plural(s.white.prisoners ?? 0, "prisoner")]
+    : [plural(s.white.stones, "stone"), plural(s.white.territory, "territory")];
   if (s.white.komi) wParts.push(`${s.white.komi} komi`);
   if (s.white.handicapBonus) wParts.push(`${s.white.handicapBonus} handicap`);
   const rows = [
@@ -86,6 +99,8 @@ export function resultCard(result) {
 
 /** Text for the rating line under the result, or null for an unrated game. */
 export function ratingLine(delta) {
-  if (delta === null || delta === undefined) return null;
-  return `${delta >= 0 ? "+" : ""}${delta} rating`;
+  if (!delta || typeof delta !== "object") return null;
+  const before = preciseRankOf(delta.from), after = preciseRankOf(delta.to);
+  if (before === after) return `${after} · the rank held`;
+  return `${before} → ${after}`;
 }

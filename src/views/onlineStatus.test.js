@@ -40,7 +40,7 @@ describe("lines", () => {
     expect(settledLine({ settled: { rated: false } }, "b")).toBeNull();
   });
   it("caption and table line", () => {
-    expect(onlineCaption(fresh(), 2)).toBe("9×9 · komi 7.5 · rated · 2 watching");
+    expect(onlineCaption(fresh(), 2)).toBe("9×9 · komi 5.5 · rated · 2 watching");
     const g = { black: { id: "a", name: "Ada" }, white: { id: "b", name: "Bea" }, phase: "playing", moves: 3, toPlay: "w" };
     expect(tableLine(g, "a")).toEqual({ who: "vs Bea", detail: "3 moves · their move", live: true, mine: "b" });
     expect(tableLine({ ...g, phase: "ended", result: { winner: "b", method: "resign" } }, "b"))

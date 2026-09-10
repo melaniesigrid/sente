@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { refusalText, resultLine, statusText, captionText, resignLabel, resultCard, ratingLine, RESIGN_CONFIRM_MS } from "./gameStatus.js";
+import { ratingOfRank, ratingOfValue, rankValue } from "../content/rank.js";
 import { createGame, pass, acceptScore, resign, timeout } from "../engine/index.js";
 
 describe("refusalText", () => {
@@ -72,14 +73,20 @@ describe("resignLabel", () => {
 
 describe("captionText", () => {
   it("states the rules honestly", () => {
-    expect(captionText({ komi: 7.5, rated: true })).toBe("Area scoring · komi 7.5 · superko · rated");
-    expect(captionText({ komi: 7.5, rated: false })).toBe("Area scoring · komi 7.5 · superko · unrated");
-    expect(captionText({ komi: 7.5, rated: false, duel: true })).toBe("Area scoring · komi 7.5 · superko · daily duel, unrated");
+    expect(captionText({ komi: 7.5, rated: true })).toBe("AGA area · komi 7.5 · superko · rated");
+    expect(captionText({ komi: 7.5, rated: false })).toBe("AGA area · komi 7.5 · superko · unrated");
+    expect(captionText({ komi: 7.5, rated: false, duel: true })).toBe("AGA area · komi 7.5 · superko · daily duel, unrated");
   });
   it("names the board and the handicap", () => {
-    expect(captionText({ size: 19, komi: 7.5, rated: true })).toBe("19×19 · Area scoring · komi 7.5 · superko · rated");
-    expect(captionText({ size: 13, komi: 0.5, handicap: 3, rated: true })).toBe("13×13 · 3 stones · Area scoring · komi 0.5 · superko · rated");
-    expect(captionText({ size: 9, komi: 7.5, handicap: 0, rated: false })).toBe("9×9 · Area scoring · komi 7.5 · superko · unrated");
+    expect(captionText({ size: 19, komi: 7.5, rated: true })).toBe("19×19 · AGA area · komi 7.5 · superko · rated");
+    expect(captionText({ size: 13, komi: 0.5, handicap: 3, rated: true })).toBe("13×13 · 3 stones · AGA area · komi 0.5 · superko · rated");
+    expect(captionText({ size: 9, komi: 7.5, handicap: 0, rated: false })).toBe("9×9 · AGA area · komi 7.5 · superko · unrated");
+  });
+  it("names whichever ruleset the table is set to", () => {
+    expect(captionText({ size: 19, komi: 6.5, rules: "japanese", rated: true }))
+      .toBe("19×19 · Japanese territory · komi 6.5 · superko · rated");
+    expect(captionText({ size: 9, komi: 5, rules: "nz", rated: false }))
+      .toBe("9×9 · New Zealand area · komi 5 · superko · unrated");
   });
 });
 
@@ -110,10 +117,11 @@ describe("resultCard", () => {
     expect(card).toEqual({ headline: "White wins", sub: "by resignation", rows: [] });
     expect(resultCard(null)).toBeNull();
   });
-  it("formats the rating delta with its sign", () => {
-    expect(ratingLine(12)).toBe("+12 rating");
-    expect(ratingLine(-7)).toBe("-7 rating");
-    expect(ratingLine(0)).toBe("+0 rating");
+  it("speaks the rating change in ranks, and says when the rank held", () => {
+    const from = ratingOfRank("12k");
+    expect(ratingLine({ from, to: ratingOfValue(rankValue(from) + 0.4) })).toBe("12.5k \u2192 12.1k");
+    expect(ratingLine({ from, to: ratingOfValue(rankValue(from) - 0.4) })).toBe("12.5k \u2192 12.9k");
+    expect(ratingLine({ from, to: from })).toBe("12.5k \u00b7 the rank held");
     expect(ratingLine(null)).toBeNull();
   });
 });

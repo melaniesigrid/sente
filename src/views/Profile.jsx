@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { Check, Pencil, Trophy, Flame, Sparkles, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Type, Mountain, Palette, Grid3x3, Dot } from "lucide-react";
+import { Check, Pencil, Trophy, Flame, Sparkles, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Type, Mountain, Palette, Grid3x3, Dot, Hammer } from "lucide-react";
 import { Card, Pill, Avatar, RankBadge, BeltRibbon, Toggle, PullQuote } from "../components/ui.jsx";
 import { plainFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { MokuMark } from "../components/Moku.jsx";
 import { useMoku, useMokuFacts } from "../components/mokuStore.js";
-import { TINTS, rankOf, beltOf, nextBelt, hintsForBelt, kyuFloor } from "../content/rank.js";
+import { TINTS, rankOf, preciseRankOf, beltOf, nextBelt, hintsForBelt, beltFloor } from "../content/rank.js";
 import { MARKS } from "../store/profile.js";
 import { TYPEFACES, typefaceOf } from "../content/typeface.js";
-import { THEMES, themeOf, themeVars } from "../content/theme.js";
+import { PALETTES, themeOf, themeVars, DOJO_THEME, SYSTEM_THEME } from "../theme/index.js";
 import { CLASSIC, LEVELS, BELOW_THE_LEVELS, levelForRank, chapterByNumber } from "../content/classic.js";
 import { LESSONS } from "../content/lessons.js";
 import { PROBLEMS } from "../content/problems.js";
@@ -54,7 +54,20 @@ const ordinal = (n) => ORDINALS[n - 1] || `${n}th`;
 const l0 = (s) => s.charAt(0).toLowerCase() + s.slice(1);
 
 /* ----------------------- PROFILE ----------------------- */
-export function ProfileView({ profile, setProfile }) {
+/** What the picker offers, in the order it offers them: follow the device
+ *  first, then the named rooms, then the one this device built if there is one.
+ *
+ *  The System swatch is drawn in whichever room it currently resolves to, so it
+ *  is not a grey placeholder among coloured plates — it shows you the answer it
+ *  is giving right now. */
+const roomsFor = (dojo, room) => [
+  { id: SYSTEM_THEME, name: "System", mood: "Automatic", drawAs: room },
+  ...PALETTES,
+  ...(dojo ? [{ ...dojo, id: DOJO_THEME, name: dojo.name || "Your dojo", mood: "Yours" }] : []),
+];
+
+export function ProfileView({ profile, setProfile, go, room }) {
+  const rooms = roomsFor(profile.dojo, room);
   const [editing, setEditing] = useState(false);
   const [nameDraft, setNameDraft] = useState(profile.name);
   const games = profile.wins + profile.losses;
@@ -69,7 +82,7 @@ export function ProfileView({ profile, setProfile }) {
 
   const belt = beltOf(profile.rating);
   const next = nextBelt(profile.rating);
-  const floor = belt.id === "black" ? 3000 : kyuFloor(belt.kyuMax);
+  const floor = beltFloor(belt);
   const pct = next ? Math.max(0, Math.min(100, ((profile.rating - floor) / (next.at - floor)) * 100)) : 100;
   const streak = liveStreak(profile, dayKey());
 
@@ -94,7 +107,7 @@ export function ProfileView({ profile, setProfile }) {
             </h2>
           )}
           <div className="row">
-            <RankBadge rating={profile.rating} size="lg" />
+            <RankBadge rating={profile.rating} rd={profile.rd} precise size="lg" />
             <Pill icon={Trophy}>{profile.wins} W · {profile.losses} L</Pill>
             {profile.bestStreak > 1 && <Pill icon={Flame}>streak {profile.bestStreak}</Pill>}
           </div>
@@ -112,8 +125,8 @@ export function ProfileView({ profile, setProfile }) {
             <strong>{belt.label}</strong>
             <span className="fine">
               {belt.id === "black"
-                ? `${rankOf(profile.rating)}. The belt is a fact, not a trophy.`
-                : `${rankOf(profile.rating)} · ${next.at - profile.rating} rating to ${next.belt.label.toLowerCase()} (${rankOf(next.at)})`}
+                ? `${preciseRankOf(profile.rating)}. The belt is a fact, not a trophy.`
+                : `${preciseRankOf(profile.rating)} · ${next.belt.kyuMax}k earns the ${next.belt.label.toLowerCase()}`}
             </span>
           </div>
           <div className="meter"><div className="meter-fill" style={{ width: `${pct}%`, background: next ? next.belt.color : belt.color }} /></div>
@@ -150,9 +163,9 @@ export function ProfileView({ profile, setProfile }) {
           and the shadows themselves never move.
         </p>
         <div className="theme-row">
-          {THEMES.map(t => (
+          {rooms.map(t => (
             <button key={t.id}
-              style={themeVars(t.id)}
+              style={themeVars(t.drawAs || t.id, profile.dojo)}
               className={`theme-btn ${profile.theme === t.id ? "active" : ""}`}
               onClick={() => commit({ theme: t.id })}
               aria-pressed={profile.theme === t.id}
@@ -170,7 +183,17 @@ export function ProfileView({ profile, setProfile }) {
             </button>
           ))}
         </div>
-        <p className="fine type-note">{themeOf(profile.theme).note}</p>
+        <p className="fine type-note">
+          {profile.theme === SYSTEM_THEME
+            ? `Following your device, which is asking for ${themeOf(room).name} right now. Change the device and the room changes with it.`
+            : themeOf(profile.theme, profile.dojo).note
+              || "A room you built yourself. Open the dojo to keep working on it."}
+        </p>
+        <div className="row" style={{ marginTop: 14 }}>
+          <button className="btn btn-accent" onClick={() => go("dojo")}>
+            <Hammer size={15} /> {profile.dojo ? "Open your dojo" : "Build your own"}
+          </button>
+        </div>
       </Card>
       <Card>
         <div className="stat-head"><Type size={16} /><span>Typeface</span></div>

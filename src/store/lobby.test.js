@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { sanitizeLobby, loadLobby, saveLobby, defaultLobby, LOBBY_KEY } from "./lobby.js";
+import { sanitizeLobby, loadLobby, saveLobby, defaultLobby, LOBBY_KEY, KOMI_STEPS } from "./lobby.js";
 
 const memStorage = () => {
   const m = new Map();
@@ -11,15 +11,16 @@ const memStorage = () => {
 };
 
 describe("lobby preferences", () => {
-  it("defaults to 19x19, no handicap and no clock", () => {
-    expect(defaultLobby).toEqual({ size: 19, handicap: 0, clock: "none" });
+  it("defaults to 19x19, AGA rules, no handicap, no clock, the board's own komi", () => {
+    expect(defaultLobby).toEqual({ rules: "aga", size: 19, handicap: 0, komi: null, clock: "none" });
     expect(loadLobby(memStorage())).toEqual(defaultLobby);
     expect(loadLobby(null)).toEqual(defaultLobby);
   });
   it("round-trips a table", () => {
     const s = memStorage();
-    expect(saveLobby({ size: 13, handicap: 4, clock: "standard" }, s)).toBe(true);
-    expect(loadLobby(s)).toEqual({ size: 13, handicap: 4, clock: "standard" });
+    const table = { rules: "japanese", size: 13, handicap: 4, komi: 4.5, clock: "standard" };
+    expect(saveLobby(table, s)).toBe(true);
+    expect(loadLobby(s)).toEqual(table);
   });
   it("falls back per field on junk", () => {
     expect(sanitizeLobby(null)).toEqual(defaultLobby);
@@ -28,6 +29,12 @@ describe("lobby preferences", () => {
     expect(sanitizeLobby({ clock: "blitz" })).toEqual({ ...defaultLobby, clock: "blitz" });
     expect(sanitizeLobby({ clock: "made-up" })).toEqual(defaultLobby);
     expect(sanitizeLobby({ size: "19", handicap: 12 })).toEqual(defaultLobby);
+    expect(sanitizeLobby({ rules: "ing" })).toEqual(defaultLobby);
+    expect(sanitizeLobby({ rules: "nz" })).toEqual({ ...defaultLobby, rules: "nz" });
+    expect(sanitizeLobby({ komi: 7.25 })).toEqual(defaultLobby);
+    expect(KOMI_STEPS.every(k => sanitizeLobby({ komi: k }).komi === k)).toBe(true);
+    expect(KOMI_STEPS).toContain(7);      // New Zealand komi is a whole number
+    expect(KOMI_STEPS).toContain(0);      // and a handicap game there has none at all
     const s = memStorage();
     s.setItem(LOBBY_KEY, "{not json");
     expect(loadLobby(s)).toEqual(defaultLobby);

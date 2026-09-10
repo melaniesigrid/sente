@@ -16,7 +16,7 @@ describe("room construction", () => {
     expect(seatOf(r, "zz")).toBeNull();
     expect(r.record.phase).toBe("playing");
     expect(r.record.players).toEqual({ b: "Ada", w: "Bea" });
-    expect(r.komi).toBe(7.5);
+    expect(r.komi).toBe(5.5);      // what a 9x9 is owed, not what a 19x19 is
   });
   it("refuses odd sizes", () => {
     expect(() => createRoom({ id: "x", size: 10, black: A, white: B })).toThrow(RangeError);

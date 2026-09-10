@@ -12,19 +12,44 @@
    The token is stored hashed; losing it means claiming a new handle. */
 
 import { DurableObject } from "cloudflare:workers";
-import { newRating, rateGame } from "./rating.js";
+import { newRating, rateGame, migrateRating } from "./rating.js";
 import { randomHex, sha256, cleanName, cleanTint } from "./http.js";
 import { cleanKey, publicPlayer, hasPlayed } from "./players.js";
 import { hit, refund, REGISTER_LIMIT, REGISTER_WINDOW_MS } from "./ratelimit.js";
 import { SIZES } from "./room.js";
 
 const KEEP_GAMES = 24;
+/* The shape of what is stored. Bumped when a stored record has to be rewritten
+   rather than merely read differently. 2: ratings moved from the old
+   hundred-points-a-rank scale to OGS's, so every stored rating had to be
+   re-expressed at the rank its owner had actually earned. */
+const SCHEMA = 2;
+const SCHEMA_KEY = "schema:version";
 const LADDER_TTL = 60_000;
 const LADDER_SIZE = 100;
 
 export class Registry extends DurableObject {
   constructor(ctx, env) {
     super(ctx, env);
+    this.ladderCache = null;
+    // Storage is migrated once, before the first request is answered. Blocking
+    // the object's concurrency here is the point: no handler can read a player
+    // on the old scale, and a cold start cannot race a second migration.
+    ctx.blockConcurrencyWhile(async () => { await this.#migrate(); });
+  }
+
+  /** Bring stored records up to SCHEMA. Runs once per object, at wake-up. */
+  async #migrate() {
+    const at = (await this.ctx.storage.get(SCHEMA_KEY)) ?? 1;
+    if (at >= SCHEMA) return;
+    if (at < 2) {
+      // Ratings to the OGS scale, by rank rather than by points.
+      const players = await this.ctx.storage.list({ prefix: "player:" });
+      const patch = {};
+      for (const [key, p] of players) patch[key] = { ...p, ...migrateRating(p) };
+      if (Object.keys(patch).length) await this.ctx.storage.put(patch);
+    }
+    await this.ctx.storage.put(SCHEMA_KEY, SCHEMA);
     this.ladderCache = null;
   }
 

@@ -177,7 +177,7 @@ describe("toSgf", () => {
     rec = pass(rec);
     rec = { ...rec, comment: "back\\slash" };
     const sgf = toSgf(rec);
-    expect(sgf).toContain("SZ[9]KM[0.5]HA[2]PB[A\\]B]PW[C\\:D]");
+    expect(sgf).toContain("SZ[9]KM[0.5]RU[AGA]HA[2]PB[A\\]B]PW[C\\:D]");
     expect(sgf).toContain("AB[gc][cg]");
     expect(sgf).toContain("C[back\\\\slash]");
     expect(sgf).toContain(";W[ee]");

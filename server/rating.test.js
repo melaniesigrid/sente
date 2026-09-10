@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { rate, rateGame, newRating, provisional, DEFAULT_RD } from "./rating.js";
+import { rate, rateGame, newRating, provisional, migrateRating, DEFAULT_RD, DEFAULT_RATING } from "./rating.js";
+import { rankOf, preciseRankOf } from "../src/content/rank.js";
 
 describe("glicko-2", () => {
   it("reproduces the worked example from Glickman's paper", () => {
@@ -60,5 +61,41 @@ describe("glicko-2", () => {
   it("flags wide deviations as provisional", () => {
     expect(provisional(newRating())).toBe(true);
     expect(provisional({ rating: 1500, rd: 90, vol: 0.06 })).toBe(false);
+  });
+});
+
+describe("the scale the server rates on", () => {
+  it("seats a newcomer at 20 kyu, the same seat the browser gives one", () => {
+    expect(rankOf(DEFAULT_RATING)).toBe("20k");
+    expect(preciseRankOf(newRating().rating)).toBe("20.5k");
+  });
+
+  it("carries an old-scale player across at the rank they earned", () => {
+    // The old scale: a hundred points to a rank, 3000 the first dan.
+    const legacy = (old) => rankOf(migrateRating({ rating: old, rd: 80, vol: 0.06 }).rating);
+    expect(legacy(1000)).toBe("20k");
+    expect(legacy(2000)).toBe("10k");
+    expect(legacy(2900)).toBe("1k");
+    expect(legacy(3000)).toBe("1d");
+    expect(legacy(3500)).toBe("6d");
+  });
+
+  it("carries confidence across untouched: it was never measured in points", () => {
+    const out = migrateRating({ rating: 2000, rd: 73, vol: 0.055 });
+    expect(out.rd).toBe(73);
+    expect(out.vol).toBe(0.055);
+  });
+
+  it("gives a record with no usable rating the newcomer's seat", () => {
+    expect(rankOf(migrateRating({}).rating)).toBe("15k");   // the old default, 1500
+    expect(migrateRating({ rating: "nonsense" }).rd).toBe(DEFAULT_RD);
+  });
+
+  it("names the rank a finished game leaves each side on", () => {
+    const out = rateGame(newRating(), newRating(), "b");
+    expect(out.b.rank).toMatch(/^\d+\.\d[kd]$/);
+    expect(out.b.rating).toBeGreaterThan(out.w.rating);
+    expect(out.b.delta).toBeGreaterThan(0);
+    expect(out.w.delta).toBeLessThan(0);
   });
 });
