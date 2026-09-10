@@ -584,6 +584,15 @@ ${SIGNATURE_FACE}
 .chapter-body { display: flex; flex-direction: column; gap: 12px; padding: 4px 12px 16px 42px; }
 .chapter-body.preface { padding-top: 12px; }
 .chapter-body .lesson-text { opacity: .88; }
+
+/* a pull quote: one idea in plain words, set large between the paragraphs.
+   A passage is the classical voice, ruled off at the left; this is ours,
+   centred under a short accent rule with the label under it, so a reader can
+   tell at a glance which voice is speaking. */
+.pull-quote { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 2px auto; padding: 22px 10px 16px; max-width: 40ch; text-align: center; }
+.pull-quote::before { content: ""; width: 38px; height: 2px; border-radius: 2px; background: var(--accent); opacity: .85; }
+.pull-line { margin: 0; font-family: var(--font-quote); font-style: var(--quote-style); font-weight: 420; font-size: clamp(19px, 2.4vw, 25px); line-height: 1.36; letter-spacing: .005em; }
+.pull-label { font-family: var(--font-body); font-style: normal; font-size: 12.5px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; opacity: .55; }
 @media (max-width: 620px) { .chapter-body { padding-left: 12px; } }
 
 /* ---- the thirty-two names (Classic, ch. 11) ---- */

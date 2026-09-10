@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Check, Pencil, Trophy, Flame, Sparkles, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Type, Mountain, Palette, Grid3x3, Dot } from "lucide-react";
-import { Card, Pill, Avatar, RankBadge, BeltRibbon, Toggle } from "../components/ui.jsx";
+import { Card, Pill, Avatar, RankBadge, BeltRibbon, Toggle, PullQuote } from "../components/ui.jsx";
 import { Passage } from "../components/Passage.jsx";
 import { MokuMark } from "../components/Moku.jsx";
 import { useMoku, useMokuFacts } from "../components/mokuStore.js";
@@ -8,7 +8,7 @@ import { TINTS, rankOf, beltOf, nextBelt, hintsForBelt, kyuFloor } from "../cont
 import { MARKS } from "../store/profile.js";
 import { TYPEFACES, typefaceOf } from "../content/typeface.js";
 import { THEMES, themeOf, themeVars } from "../content/theme.js";
-import { CLASSIC, LEVELS, BELOW_THE_LEVELS, levelForRank } from "../content/classic.js";
+import { CLASSIC, LEVELS, BELOW_THE_LEVELS, levelForRank, chapterByNumber } from "../content/classic.js";
 import { LESSONS } from "../content/lessons.js";
 import { PROBLEMS } from "../content/problems.js";
 import { dayKey, liveStreak } from "../content/kata.js";
@@ -28,6 +28,7 @@ function LevelsCard({ rank }) {
         Chapter twelve of {CLASSIC.title} sorts players into nine steps of mind, the
         first the highest. They line up with the nine dan grades, one for one.
       </p>
+      <PullQuote>{chapterByNumber(12).plain}</PullQuote>
       <ol className="level-list">
         {LEVELS.map(l => (
           <li key={l.n} className={`level-row ${mine && mine.n === l.n ? "here" : ""}`}

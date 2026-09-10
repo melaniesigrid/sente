@@ -7,6 +7,11 @@
    twelve laid over the dan ranks, and the passages and sayings below, which
    surface across the app and in Moku's lines.
 
+   Every chapter also carries `plain`: the same idea in ordinary modern words,
+   set large between the paragraphs where a magazine pulls a line into the
+   margin. It is Sente speaking, not Zhang Ni, so a view labels it as a gloss
+   and never as a quotation.
+
    Every saying here is Sente's own rendering of the classical text, written
    for the house voice: short, plain, no exclamation marks. They are not
    quotations from any modern translation. Pure data and pure functions;
@@ -29,6 +34,7 @@ export const CLASSIC = {
 
 export const PREFACE = {
   title: "Preface",
+  plain: "Two thousand years ago players were already sorted into three kinds: the one who sees the whole board and surrounds, the one who fights well and has to count to know where they stand, and the one who hides in a corner and lives small. The thirteen chapters are about getting from the third to the first.",
   text: [
     "The Analects ask a blunt question. Someone who eats their fill all day and puts their mind to nothing is in a hard case. Are there no weiqi players, then? Even that would be better than sitting idle.",
     "Huan Tan, writing under the Han, said the game is a small model of war, and sorted players into three. The skillful player understands the whole shape and places stones so as to surround. The average player aims at advantages and manages to cut the opponent off, so whether they win or lose they must stay attentive and count carefully to be sure of it. The inexpert player defends the sides and corners, moves inside small areas, and is content to survive in a small piece of ground.",
@@ -48,6 +54,7 @@ export const CHAPTERS = [
   {
     n: 1, title: "The Board and the Stones", lessonId: "classic-board",
     theme: "What the board is, and why no game repeats.",
+    plain: "The board never changes and the stones never stop moving, and no two games have ever gone the same way. Nothing here can be memorised. It has to be worked out again every time.",
     text: [
       "The ten thousand things count from one, so the three hundred and sixty intersections have their one as well: the point at the centre, from which the four directions are laid out.",
       "Three hundred and sixty is the number of days in a year. Divided into four corners the way a year divides into seasons, that is ninety points to a corner, one for each day of a season. Seventy-two points lie along the edges, one for each five-day week the old calendar kept. The three hundred and sixty stones are split evenly between black and white, after the two principles. The board is square and still. The stones are round and move.",
@@ -62,6 +69,7 @@ export const CHAPTERS = [
   {
     n: 2, title: "On Calculation", lessonId: "classic-calculation",
     theme: "Counting is the whole difference between a plan and a hope.",
+    plain: "Counting is the whole difference between a plan and a hope. If you can say who is ahead while the game is still going, you are calculating. If you cannot, you are guessing.",
     text: [
       "The player whose shapes are correct holds power over the other. So settle the plan inside first, and the shapes outside will come out complete.",
       "If you can work out who is winning while the game is still being played, you have calculated well. If you cannot work it out, you have calculated badly. If you do not know who won even after the stones are counted, you made no calculations at all.",
@@ -76,6 +84,7 @@ export const CHAPTERS = [
   {
     n: 3, title: "On Holding Territory", lessonId: "classic-territory",
     theme: "Corners first, then extensions measured by the stones behind them.",
+    plain: "Start in the corners, where ground is cheapest, then extend along the sides by as much as the stones behind you can hold. One stone reaches two points, two stones reach three, three reach four.",
     text: [
       "Holding territory means laying down the general lines of the game while the stones are still going down. At the start the positions divide among the four corners. Then play begins, and stones go down on the slant, skipping two points and dropping one below.",
       "From two stones standing together you may skip three points. From three, four. Five is possible if you want to reach toward another position, but nearness is not adjacency, and distance must not be excessive.",
@@ -90,6 +99,7 @@ export const CHAPTERS = [
   {
     n: 4, title: "On Joining Battle", lessonId: "classic-conflict",
     theme: "Sacrifice, initiative, and looking the other way before you strike.",
+    plain: "Stones are cheap and the initiative is not. Let go of stones that are already caught, keep the move, and look at the far side of the board before you strike at the near one.",
     text: [
       "In the Way of this game, be careful and be exact. By the end the skillful player will hold the centre, the inexpert one the sides, and the average one will find themselves in the corners. That is the old order of things.",
       "Many stones may be lost, so long as the initiative is not, because losing the initiative hands it to someone who did not have it. Before you strike to the left, look to the right. Before you go in behind the opponent's lines, look at what stands in front of them. A distant army pretends to be near; a near one pretends to be far.",
@@ -108,6 +118,7 @@ export const CHAPTERS = [
   {
     n: 5, title: "On Emptiness and Fullness", lessonId: "classic-emptiness",
     theme: "Where the stones are dense, do not go. Where they are thin, go.",
+    plain: "Do not push against strength. Where your opponent is thick, stay out; where they are thin, go in. And change the plan when the board changes, because the board always changes.",
     text: [
       "Follow too many plans at once and your shapes come apart. Once they are broken it is hard not to go under.",
       "Do not play your stones hard against the opponent's. Do that and you fill them while emptying yourself. What is empty is easy to invade; what is full is hard to overwhelm. An army takes the shape of water, which runs off the high ground and down: avoid what is already full, and flow into the void.",
@@ -124,6 +135,7 @@ export const CHAPTERS = [
   {
     n: 6, title: "On Knowing Oneself", lessonId: "classic-know-yourself",
     theme: "Your own weak point is where the opponent is coming.",
+    plain: "Find your own weakest point first, because that is where your opponent is already heading. Knowing when to decline a fight wins as many games as winning one.",
     text: [
       "The wise see what has not yet appeared. The foolish are blind with the evidence in front of them.",
       "Know your own weak points and you can tell what would profit your opponent, and win. You will win if you know when to fight and when to decline. If you can measure how hard to push. If your own preparation keeps them from being prepared. If by resting you wear them out, and by not fighting you bring them down.",
@@ -139,6 +151,7 @@ export const CHAPTERS = [
   {
     n: 7, title: "On Reading the Game", lessonId: "classic-observing",
     theme: "Ahead, keep your shape. Behind, go in. Never feed a dead group.",
+    plain: "Play to the score. Ahead, keep everything solid and simple. Behind, go into the biggest ground you can still take. Stones added to a group that is already dead only make the loss bigger.",
     text: [
       "The shapes the stones take have to hang together. Take the initiative and keep it, move after move, from the first stone to the last.",
       "If you cannot tell from the position which of you is stronger, look at the smallest details. Seeing that you are winning, hold your shape together. Seeing that you are losing, go into the larger territories. If advancing along the side only lets you survive, you are beaten. The less you give way when you are in trouble, the worse the loss will be: a desperate struggle to save what is lost loses more.",
@@ -157,6 +170,7 @@ export const CHAPTERS = [
   {
     n: 8, title: "On Examining the Heart", lessonId: "classic-feelings",
     theme: "Temperament decides more games than technique.",
+    plain: "Temperament decides more games than technique. Be sure of yourself and still modest, look for your own mistake after a loss, and let your face give nothing away.",
     text: [
       "At birth a person is calm and what they feel is hard to read. Once the world has worked on them they become active, and their state of mind can be seen. Apply that to the game and you can call a win or a loss before it arrives.",
       "Sure of yourself yet modest, you will often win. Uncertain yet proud, you will often lose. Hold your positions without fighting and you will win; kill stones endlessly without caring about anything else and you will lose. Reflect on why you lost and your play improves. Flatter yourself on a win and your skill goes. Look for the fault in yourself and blame no one else.",
@@ -175,6 +189,7 @@ export const CHAPTERS = [
   {
     n: 9, title: "On Correctness", lessonId: "classic-correctness",
     theme: "The game rewards depth, not tricks.",
+    plain: "The game is a kind of war, not a con. Strength is deep reading and patience, never tricks, chatter, or waiting for the other player to slip.",
     text: [
       "Some have said that this game treats change and deception as necessary, and invasion and killing as its ordinary terms, and asked whether that does not make it a false Way. Not at all.",
       "An army in the field needs well-defined rules or it is in danger. An army is never to be deceived: false words and the road to betrayal belong to the schemers of the Warring States. This is a small Way, but it is the same Way as war.",
@@ -191,6 +206,7 @@ export const CHAPTERS = [
   {
     n: 10, title: "On Watching the Details", lessonId: "classic-details",
     theme: "The middle game is a hundred small judgements.",
+    plain: "The middle game is a hundred small judgements. Settle the inside before you lean on the outside, break up a line of stones before it makes eyes, and only fight a ko you can afford to lose.",
     text: [
       "In play there is sometimes an advantage where there is none, and sometimes the reverse. Invading is usually thought good, and yet there are invasions that only damage the invader. Sometimes the profit is on the left and sometimes on the right. Sometimes you hold the initiative and sometimes you are subject to it. Sometimes the stones stand close together and sometimes far apart.",
       "When you connect, do not forget what came before. When you give stones up, think about what follows. Sometimes you begin near certain stones and end far from them; sometimes you have few in a place and end with many.",
@@ -208,6 +224,7 @@ export const CHAPTERS = [
   {
     n: 11, title: "On Names", lessonId: "classic-terms",
     theme: "Thirty-two names for shapes, and ten thousand changes.",
+    plain: "Every arrangement on the board has a name, and the names are how a player thinks about shapes quickly. There are thirty-two of them here, and more variations than anyone will ever count.",
     text: [
       "Players have given every arrangement a precise name. Some of them are plain enough on their face, like life and death, or establishing yourself and disappearing.",
       "There are thirty-two of these technical terms, and against them players must hold ten thousand variations in mind. All the changes the board allows, near and far, across and along, are so many that even I will never know them all. Still, it is hard to do without the names if you are playing to win.",
@@ -221,6 +238,7 @@ export const CHAPTERS = [
   {
     n: 12, title: "On the Nine Levels", lessonId: "classic-levels",
     theme: "Every player stands on one of nine steps. Reading deeper is how you climb.",
+    plain: "Strength comes in nine steps, from the player who sees the whole board at a glance to the one who is still fumbling. You climb by reading deeper, not by playing more games.",
     text: [
       "Players are told apart by nine levels of mind. The first is being in the spirit. The second, seated in enlightenment. The third, holding the whole. The fourth, seeing through the changes. The fifth, applying wisdom. The sixth, small skill. The seventh, fighting with force. The eighth, seeming inept. The ninth and last, keeping to clumsiness.",
       "Levels below these cannot usefully be counted, and since they do not belong on the list they are not dealt with here.",
@@ -235,6 +253,7 @@ export const CHAPTERS = [
     n: 13, title: "Miscellany", lessonId: "classic-miscellany",
     alsoLessonIds: ["classic-corner-shapes"],
     theme: "Corner shapes, eye sizes, and how to sit at the board.",
+    plain: "The last chapter is everything left over: corner shapes worth knowing by heart, and how to sit at a board. Do not play tired, do not boast, and do not relax because the position looks calm.",
     text: [
       "On the board the sides matter less than the corners, and the corners less than the centre. A big eye beats a small one. A diagonal line is worth less than a straight one. Do not run a ladder if the opponent has stones waiting along its path. If an attack does not come off, do not go straight back to the same point.",
       "At the end of a game, four stones bent in a corner around two points are dead; six in the corner around four points live; and the long two-by-three shape lives as well. The five-point flower, struck at its centre, has almost no life left in it. Where four stones sit as a square in the corner, two of each colour, do not rush in to capture.",
