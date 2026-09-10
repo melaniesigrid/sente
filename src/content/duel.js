@@ -34,10 +34,13 @@ export function duelRank(persona, key) {
   return RANK_LADDER[lo + (hashString(`duel-rank:${key}`) % (hi - lo + 1))];
 }
 
+/** Every duel is played on this board, so results compare across the day. */
+export const DUEL_SIZE = 9;
+
 /** The game mode the Play view runs today's duel in, or null with no personas. */
 export function duelMode(personas, key) {
   const persona = duelPersona(personas, key);
-  return persona ? { kind: "duel", persona, seed: duelSeed(key), key, rank: duelRank(persona, key) } : null;
+  return persona ? { kind: "duel", persona, seed: duelSeed(key), key, rank: duelRank(persona, key), size: DUEL_SIZE, handicap: 0 } : null;
 }
 
 /** "open" (not started today), "playing" (started, no result yet) or "done". */

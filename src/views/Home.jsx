@@ -58,7 +58,7 @@ export function Home({ profile, go, onResume }) {
           <div className="resume-copy">
             <div className="stat-head"><Play size={16} /><span>Resume last game</span></div>
             <strong>vs {saved.opponent}</strong>
-            <span className="fine">{saved.record.moves.length} {saved.record.moves.length === 1 ? "move" : "moves"} played · {saved.record.toPlay === "b" ? "Black" : "White"} to move</span>
+            <span className="fine">{saved.record.size}×{saved.record.size} · {saved.record.moves.length} {saved.record.moves.length === 1 ? "move" : "moves"} played · {saved.record.toPlay === "b" ? "Black" : "White"} to move</span>
           </div>
           <div className="row">
             <Btn icon={Play} primary small onClick={() => onResume({ mode: saved.mode, record: saved.record })}>Resume</Btn>

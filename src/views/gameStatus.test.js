@@ -62,6 +62,11 @@ describe("captionText", () => {
     expect(captionText({ komi: 7.5, rated: false })).toBe("Area scoring · komi 7.5 · superko · unrated");
     expect(captionText({ komi: 7.5, rated: false, duel: true })).toBe("Area scoring · komi 7.5 · superko · daily duel, unrated");
   });
+  it("names the board and the handicap", () => {
+    expect(captionText({ size: 19, komi: 7.5, rated: true })).toBe("19×19 · Area scoring · komi 7.5 · superko · rated");
+    expect(captionText({ size: 13, komi: 0.5, handicap: 3, rated: true })).toBe("13×13 · 3 stones · Area scoring · komi 0.5 · superko · rated");
+    expect(captionText({ size: 9, komi: 7.5, handicap: 0, rated: false })).toBe("9×9 · Area scoring · komi 7.5 · superko · unrated");
+  });
 });
 
 describe("scoring status", () => {

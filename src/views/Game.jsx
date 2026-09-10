@@ -14,7 +14,7 @@ import { Passage } from "../components/Passage.jsx";
 import { MokuMark } from "../components/Moku.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
 import { playStone, playCapture, playBell, haptic } from "../components/sound.js";
-import { rankOf, ratingOfRank, eloDelta, beltOf, hintsForBelt } from "../content/rank.js";
+import { rankOf, ratingOfRank, rankWithHandicap, eloDelta, beltOf, hintsForBelt } from "../content/rank.js";
 import { startDuel, duelOutcome, recordDuel, duelResultText, duelShareText, duelShareUrl } from "../content/duel.js";
 import { ShareDuelButton } from "../components/DuelCard.jsx";
 import { saveProfile } from "../store/profile.js";
@@ -24,8 +24,9 @@ import {
 } from "./gameStatus.js";
 
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
-const BOARD_SIZE = 9;
 const MOMENT_MS = 2600;
+/** Rendered board width per size: bigger boards get more room; the stone scale never changes. */
+const BOARD_PX = { 9: 460, 13: 560, 19: 680 };
 
 /* ----------------------- GAME -----------------------
    A thin adapter over the engine's GameRecord. The only state here is the
@@ -47,7 +48,11 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   // day so everyone meets the same opponent; otherwise it defaults to the player's own.
   const botRank = persona ? (duel ? duel.rank : (mode.rank ?? rankOf(profile.rating))) : null;
   const botRating = persona ? ratingOfRank(botRank) : null;
-  const [rec, setRec] = useState(() => initial || createGame({ size: BOARD_SIZE }));
+  // A new game is set up from the lobby's table; komi is the engine's default for the
+  // handicap. A resumed game carries its own, so a rematch is played on the board in
+  // front of you even though the saved session only remembers the opponent.
+  const [rec, setRec] = useState(() => initial || createGame({ size: mode.size, handicap: mode.handicap }));
+  const table = { size: rec.size, handicap: rec.handicap };
   const [thinking, setThinking] = useState(false);
   const [chat, setChat] = useState(() =>
     persona ? [{ who: "bot", text: pick(persona.chat.greet) }] : []);
@@ -164,7 +169,8 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
         const oldRank = rankOf(profile.rating), oldBelt = beltOf(profile.rating);
-        const d = eloDelta(profile.rating, botRating, won ? 1 : 0);
+        // One rank per handicap stone: the opponent is rated as the weaker player it gave stones to be.
+        const d = eloDelta(profile.rating, ratingOfRank(rankWithHandicap(botRank, next.handicap)), won ? 1 : 0);
         const rating = Math.max(400, profile.rating + d);
         const streak = won ? profile.streak + 1 : 0;
         const np = {
@@ -182,7 +188,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       }
     }
     return next;
-  }, [persona, duel, botRating, profile, say, setProfile, notify, sound]);
+  }, [persona, duel, botRank, profile, say, setProfile, notify, sound]);
 
   /* Ask the human network what a player of the persona's rank would do; if it is
      unavailable (offline, old browser) the heuristic house player answers instead.
@@ -223,7 +229,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       .catch(() => { if (duel) unreachable(); else settle(fallback()); });
   }, [persona, duel, botRank, profile.rating, say, conclude, afterMove]);
 
-  // A resumed game may be waiting on the house player.
+  // A resumed game, or a fresh handicap game, may be waiting on the house player.
   useEffect(() => {
     if (resumed.current) return;
     resumed.current = true;
@@ -312,8 +318,11 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     setConfirmResign(false);
     setDelta(null);
     setMoment(null);
-    setRec(createGame({ size: BOARD_SIZE }));
+    const fresh = createGame(table);
+    setRec(fresh);
     if (persona) setChat([{ who: "bot", text: pick(persona.chat.greet) }]);
+    // With a handicap White opens, and White is the house player.
+    if (persona && fresh.toPlay === "w") botTurn(fresh);
   };
 
   const downloadSgf = () => {
@@ -365,6 +374,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
             {status}
           </Pill>
           <Board board={rec.board} onPlay={onPlay} lastMove={lastMoveIndex(rec)}
+            sizePx={BOARD_PX[rec.size]}
             disabled={boardDisabled}
             atari={atariIdx}
             captured={rec.lastCaptured || []} captureKey={rec.moves.length}
@@ -444,7 +454,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
             <Card inset className="caps">
               <div><span className="dot dot-b" /> Black captures: {rec.captures.b}</div>
               <div><span className="dot dot-w" /> White captures: {rec.captures.w}</div>
-              <div className="fine">{captionText({ komi: rec.komi, rated: !!persona && !duel, duel: !!duel })}{hints ? " · atari hints on" : ""}</div>
+              <div className="fine">{captionText({ size: rec.size, komi: rec.komi, handicap: rec.handicap, rated: !!persona && !duel, duel: !!duel })}{hints ? " · atari hints on" : ""}</div>
             </Card>
           )}
           {persona ? (

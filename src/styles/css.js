@@ -226,6 +226,16 @@ ${FONT_FACES}
 .rank-picker-label strong { font-family: var(--font-display); font-weight: var(--w-display); font-size: 17px; }
 .rank-picker-controls { display: flex; align-items: center; gap: 10px; }
 .btn-icon { padding-left: 10px; padding-right: 10px; }
+.table-picker .rank-picker-controls { gap: 18px; flex-wrap: wrap; }
+.seg { display: inline-flex; gap: 4px; padding: 4px; border-radius: 14px; box-shadow: var(--sink-sm); }
+.seg-btn {
+  border: 0; cursor: pointer; background: var(--ground); color: var(--ink); border-radius: 10px;
+  padding: 10px 15px; font: 700 12.5px var(--font-body); letter-spacing: .04em;
+  transition: box-shadow .15s ease, color .15s ease; opacity: .7;
+}
+.seg-btn.active { box-shadow: var(--raise-sm); color: var(--accent); opacity: 1; }
+.seg-btn:not(.active):hover { opacity: 1; }
+.handicap-num { min-width: 96px; text-align: center; font-weight: 700; font-size: 13.5px; }
 .vs-strip { display: flex; align-items: center; gap: 12px; padding: 8px 14px; border-radius: 16px; box-shadow: var(--sink-sm); flex-wrap: wrap; }
 .vs-side { display: flex; align-items: center; gap: 9px; }
 .vs-meta { display: flex; flex-direction: column; line-height: 1.15; }

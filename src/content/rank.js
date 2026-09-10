@@ -27,6 +27,12 @@ export function stepRank(label, delta) {
   return RANK_LADDER[clamp(i + delta, 0, RANK_LADDER.length - 1)];
 }
 
+/** The rank a game is rated against once White gives `stones` handicap stones: one rank
+ *  per stone, the usual convention, clamped to the ladder. Zero stones leaves it alone. */
+export function rankWithHandicap(label, stones) {
+  return stones >= 2 ? stepRank(label, -stones) : label;
+}
+
 /** Is `label` inside the inclusive range `[weak, strong]`? */
 export function rankInRange(label, [weak, strong]) {
   const i = RANK_LADDER.indexOf(label);
