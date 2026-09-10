@@ -1,10 +1,10 @@
-import { useEffect, useRef } from "react";
 import {
   Swords, GraduationCap, Target, Medal, BookOpen, Bot, Scale,
   Circle, Grid3x3, Handshake, ArrowRight, ArrowDown, Sparkles, Route,
 } from "lucide-react";
 import { MiniSelfPlay } from "../components/MiniSelfPlay.jsx";
 import { TypedLine, TypedLabel } from "../components/Typed.jsx";
+import { useReveal } from "../components/reveal.js";
 import { needsOnboarding } from "../store/profile.js";
 import { LESSONS } from "../content/lessons.js";
 import { PERSONAS } from "../content/personas.js";
@@ -27,40 +27,6 @@ import { dayKey } from "../content/kata.js";
    engine playing itself, and every number on the page is counted from the
    content at render time. Nothing here is a claim we cannot show. */
 
-/* Cards arrive as they are scrolled to rather than all at once, which is what
-   lets the sections breathe instead of landing as one wall. A reader who has
-   asked for less motion gets them already arrived. */
-function useReveal() {
-  const root = useRef(null);
-  useEffect(() => {
-    const host = root.current;
-    if (!host) return undefined;
-    const items = host.querySelectorAll(".reveal");
-    const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce || typeof IntersectionObserver !== "function") {
-      items.forEach(el => el.classList.add("shown"));
-      return undefined;
-    }
-    const show = (el) => { el.classList.add("shown"); io.unobserve(el); };
-    // A long jump — the End key, a scrollbar drag, an anchor — can carry the page
-    // past an element without the observer ever seeing it cross the fold, and a
-    // card that is never seen is a card that stays invisible. So every callback
-    // also sweeps up anything the scroll has already gone by.
-    const sweep = () => {
-      for (const el of items) {
-        if (el.classList.contains("shown")) continue;
-        if (el.getBoundingClientRect().top < window.innerHeight) show(el);
-      }
-    };
-    const io = new IntersectionObserver((entries) => {
-      for (const e of entries) if (e.isIntersecting) show(e.target);
-      sweep();
-    }, { rootMargin: "0px 0px -12% 0px", threshold: 0.08 });
-    items.forEach(el => io.observe(el));
-    return () => io.disconnect();
-  }, []);
-  return root;
-}
 
 /* The game, in three cards. This is the whole of go for somebody who has never
    seen it, and it is deliberately not four. */

@@ -122,6 +122,14 @@ each fixed in its own commit:
 - [x] Onboarding for a first-time visitor (2026-09-10, branch `feat/onboarding`): four
       beats — what go is, name and tint, a four-step demo ending in a capture, and a
       way into a first game, the lessons or a look around.
+- [x] One scale for the whole app (2026-09-10, branch `feat/one-scale`): the front
+      door's vocabulary is now shared rather than its own. `ScreenHeader` opens every
+      screen with a typed label, a display heading and a lede; `.section-title` and the
+      landing's heading are one rule; card padding, stack gaps and the type scale all
+      moved up a step; a screen arrives a beat at a time (`.arrives`). At the table the
+      board takes two thirds of the width instead of splitting it with a panel that is
+      mostly empty. All ten rooms and eight pairings still hold: nothing names a colour
+      or a family.
 - [x] A front door (2026-09-10, branch `feat/landing-page`): the landing is its own
       screen (`views/Landing.jsx`) and Home is the dashboard behind it. A visitor who
       has not been onboarded opens on the front door; Enter hands them to the welcome
