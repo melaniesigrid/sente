@@ -92,15 +92,32 @@ without changing anything, run the workflow by hand:
 gh workflow run "Deploy server" --repo melaniesigrid/sente
 ```
 
-**If the run says the token is missing when you know you added it,** the secret exists but
-its value is empty, which is easy to do by saving the form before pasting. You can tell
-from the run log without seeing any secret: GitHub masks a non-empty secret as `***`, so a
-line reading `TOKEN:` with nothing after it means empty. Set it again, piping the value in
-so nothing is stored in your shell history:
+### When the deploy will not authenticate
+
+The workflow asks Cloudflare to verify the token before spending a deploy on it, and prints
+Cloudflare's own words along with the token's length. Two failures look alike from the
+outside and are worth telling apart.
+
+**"missing or empty" when you know you added it.** The secret exists with no value, which
+is easy to do by saving the form before pasting. You can confirm it from the run log
+without seeing any secret: GitHub masks a non-empty secret as `***`, so a line reading
+`TOKEN:` with nothing after it means empty.
+
+**A 32-character value.** An API token is 40 characters. Thirty-two hex characters is
+either the token **ID** from the token list or your **account ID**, both of which sit right
+next to the real thing in the dashboard and neither of which authenticates anything. The
+token value itself is shown exactly once, on the screen straight after you create it. If
+you did not copy it then, you cannot read it back: open the token in the dashboard and use
+**Roll** to issue a fresh value, which is shown once in the same way.
+
+Either way, set it again:
 
 ```bash
-gh secret set CLOUDFLARE_API_TOKEN --repo melaniesigrid/sente   # then paste, then Ctrl-Z Enter on Windows
+gh secret set CLOUDFLARE_API_TOKEN --repo melaniesigrid/sente   # paste, then Ctrl-Z Enter on Windows
 ```
+
+Whitespace around a pasted value is handled for you: the workflow strips it before use, so
+a trailing newline cannot break a deploy.
 
 ### 2. `ADMIN_TOKEN`, for the operator routes
 
