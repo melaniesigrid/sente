@@ -239,7 +239,7 @@ function ConfirmRow({ email, token, notify }) {
       <span>
         {busy
           ? "Sending…"
-          : `Sente has never heard back from ${email}. Confirm it and you will know a letter can reach you.`}
+          : `Joseki has never heard back from ${email}. Confirm it and you will know a letter can reach you.`}
       </span>
     </button>
   );

@@ -1,5 +1,5 @@
 /* ----------------------- MAIL (pure) -----------------------
-   What the two letters Sente sends actually say, and where their links point.
+   What the two letters Joseki sends actually say, and where their links point.
    Nothing here sends anything: `Registry` mints the token and `sendMail` in
    `server/index.js` hands the message to the `EMAIL` binding. Keeping the copy
    out of the Durable Object means it can be read in one place and tested
@@ -7,7 +7,7 @@
 
    THERE ARE ONLY TWO LETTERS, AND BOTH ARE ASKED FOR
    One confirms an address somebody just typed. One offers a way back in to
-   somebody who asked for it. Sente sends no others: no digest, no "we miss
+   somebody who asked for it. Joseki sends no others: no digest, no "we miss
    you", no announcement. An account here has no marketing list attached to it
    because there is no list, so neither letter carries an unsubscribe link —
    there is nothing to unsubscribe from.
@@ -38,7 +38,7 @@ export const RESET_TTL_MS = 60 * 60 * 1000;
  *  worse failure than saying "off" before anything is attempted. */
 export function mailConfig(env = {}) {
   const from = typeof env.MAIL_FROM === "string" ? env.MAIL_FROM.trim() : "";
-  const name = (typeof env.MAIL_FROM_NAME === "string" && env.MAIL_FROM_NAME.trim()) || "Sente";
+  const name = (typeof env.MAIL_FROM_NAME === "string" && env.MAIL_FROM_NAME.trim()) || "Joseki";
   const appUrl = (typeof env.APP_URL === "string" ? env.APP_URL.trim() : "").replace(/\/+$/, "");
   return { from, name, appUrl, mode: from && env.EMAIL ? "sending" : "off" };
 }
@@ -67,11 +67,11 @@ export function inWords(ms) {
    showing a lesser version of the message. */
 
 export function verifyMessage({ name, link, ttlMs = VERIFY_TTL_MS }) {
-  const subject = "Confirm your address for Sente";
+  const subject = "Confirm your address for Joseki";
   const text = [
     `Hello ${name},`,
     "",
-    "This address was put on a Sente account. Opening this link confirms it is yours:",
+    "This address was put on a Joseki account. Opening this link confirms it is yours:",
     "",
     link,
     "",
@@ -81,17 +81,17 @@ export function verifyMessage({ name, link, ttlMs = VERIFY_TTL_MS }) {
     "mistake or otherwise; they cannot read your mail, and this link is the only",
     "thing that would have told us the address was theirs.",
     "",
-    "— Sente",
+    "— Joseki",
   ].join("\n");
   return { subject, text, html: letter(text, link, "Confirm the address") };
 }
 
 export function resetMessage({ name, link, ttlMs = RESET_TTL_MS }) {
-  const subject = "A way back into Sente";
+  const subject = "A way back into Joseki";
   const text = [
     `Hello ${name},`,
     "",
-    "Somebody asked for a way back into the Sente account on this address. This",
+    "Somebody asked for a way back into the Joseki account on this address. This",
     "link lets you choose a new password:",
     "",
     link,
@@ -104,7 +104,7 @@ export function resetMessage({ name, link, ttlMs = RESET_TTL_MS }) {
     "If you did not ask, ignore this message. Nothing has changed and the",
     "password you have still works.",
     "",
-    "— Sente",
+    "— Joseki",
   ].join("\n");
   return { subject, text, html: letter(text, link, "Choose a new password") };
 }
@@ -112,7 +112,7 @@ export function resetMessage({ name, link, ttlMs = RESET_TTL_MS }) {
 /* The same words, in a shape a mail client will lay out. Deliberately plain:
    system fonts, no images, no tracking pixel, no remote stylesheet — nothing
    that has to be fetched to read the letter, and nothing that reports back
-   that it was read. Sente's own type and palette are not here on purpose;
+   that it was read. Joseki's own type and palette are not here on purpose;
    a letter is not a page of the app. */
 const escape = (s) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]);
 

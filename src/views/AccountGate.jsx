@@ -133,7 +133,7 @@ function CredentialForm({ mode, profile, notify, onSignedIn }) {
  *  What it says afterwards is deliberately conditional — "if there is an
  *  account on that address" — and it says the same thing whether or not there
  *  was one. Answering honestly here would turn this box into a way to ask
- *  whether any address you like has an account on Sente, which is not a
+ *  whether any address you like has an account on Joseki, which is not a
  *  question a go server should answer about its players. */
 function ForgotRow() {
   const [open, setOpen] = useState(false);
@@ -165,7 +165,7 @@ function ForgotRow() {
     return (
       <button className="attach-row" onClick={() => setOpen(true)}>
         <KeyRound size={14} />
-        <span>Forgotten your password? Sente can post you a way back in.</span>
+        <span>Forgotten your password? Joseki can post you a way back in.</span>
       </button>
     );
   }

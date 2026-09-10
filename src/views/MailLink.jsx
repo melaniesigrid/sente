@@ -6,7 +6,7 @@ import { saveAccount } from "../store/account.js";
 import { formProblem, passwordNote, errorText } from "./accountForm.js";
 
 /* ----------------------- A LINK FROM A LETTER -----------------------
-   Sente sends two letters and each carries one link back here: `?verify=` to
+   Joseki sends two letters and each carries one link back here: `?verify=` to
    confirm an address, `?reset=` to choose a new password. Both arrive in a
    mail client, which means both can open in a browser that has never signed
    in — so neither of these needs a session, and neither assumes one.
@@ -24,7 +24,7 @@ export function MailLinkView({ link, notify, onSignedIn, onDone }) {
         </div>
         <div>
           <h3>{link.kind === "verify" ? "Confirming your address" : "A new password"}</h3>
-          <p className="persona-tag">From the letter Sente sent you</p>
+          <p className="persona-tag">From the letter Joseki sent you</p>
         </div>
       </div>
       {link.kind === "verify"

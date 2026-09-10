@@ -1,5 +1,5 @@
 /* ----------------------- LINKS OUT OF A LETTER (pure) -----------------------
-   Sente's two letters each carry one link back into the app: `?verify=` to
+   Joseki's two letters each carry one link back into the app: `?verify=` to
    confirm an address and `?reset=` to choose a new password. This is the
    reading and the forgetting of those, kept apart from the card that acts on
    them so the parsing can be tested without a browser.

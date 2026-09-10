@@ -21,7 +21,7 @@
   "vars": {
     // Where the links in those letters point: the app, not this Worker.
     "APP_URL": "https://melaniesigrid.github.io/sente/",
-    "MAIL_FROM_NAME": "Sente"
+    "MAIL_FROM_NAME": "Joseki"
     // "MAIL_FROM": "sente@example.com"  <- an onboarded domain, then uncomment
   },
   "durable_objects": {

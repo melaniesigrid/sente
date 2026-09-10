@@ -12,10 +12,10 @@ describe("mailConfig", () => {
     expect(mailConfig({}).mode).toBe("off");
     expect(mailConfig().mode).toBe("off");
   });
-  it("names the sender Sente unless told otherwise, and trims the app URL", () => {
-    expect(mailConfig({}).name).toBe("Sente");
-    expect(mailConfig({ MAIL_FROM_NAME: "  " }).name).toBe("Sente");
-    expect(mailConfig({ MAIL_FROM_NAME: "Sente Go" }).name).toBe("Sente Go");
+  it("names the sender Joseki unless told otherwise, and trims the app URL", () => {
+    expect(mailConfig({}).name).toBe("Joseki");
+    expect(mailConfig({ MAIL_FROM_NAME: "  " }).name).toBe("Joseki");
+    expect(mailConfig({ MAIL_FROM_NAME: "Joseki Go" }).name).toBe("Joseki Go");
     expect(mailConfig({ APP_URL: "https://example.com/sente/  " }).appUrl).toBe("https://example.com/sente");
   });
 });
@@ -54,7 +54,7 @@ describe("the letters", () => {
 
   it("both say who they are for, what the link does, and what to do if it was not you", () => {
     for (const letter of [verifyMessage({ name: "Ada", link }), resetMessage({ name: "Ada", link })]) {
-      expect(letter.subject).toMatch(/Sente/);
+      expect(letter.subject).toMatch(/Joseki/);
       expect(letter.text).toContain("Hello Ada,");
       expect(letter.text).toContain(link);
       expect(letter.text).toMatch(/ignore this message/);
