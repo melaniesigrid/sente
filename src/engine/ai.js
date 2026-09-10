@@ -1,6 +1,7 @@
 import { NBRS, idx, inB, chainAt } from "./board.js";
 import { tryPlay } from "./rules.js";
 import { hashBoard } from "./zobrist.js";
+import { createRng, positionSeed } from "./rng.js";
 
 /* ------------- HOUSE-PLAYER AI (parameterized heuristic) -------------
    Capture-aware move picker whose weights are tuned per persona.
@@ -10,7 +11,12 @@ import { hashBoard } from "./zobrist.js";
 
    Works on any board size. Edge scoring is by distance from the edge,
    so 3rd/4th-line preferences carry over; the pass threshold scales
-   with the board area (34 moves on 9x9, as before). */
+   with the board area (34 moves on 9x9, as before).
+
+   Noise comes from `opts.rng` (default Math.random). Pass `opts.seed` instead and
+   the noise is drawn from a generator seeded by (seed, position hash): the reply
+   is then a pure function of the seed and the board, the same on every device
+   and unchanged by undoing and replaying. That is what a shared daily game needs. */
 export function aiChooseMove(board, color, koPoint, moveNum, W = {}, opts = {}) {
   const w = { capture: 12, rescue: 9, atari: 3, selfAtari: -15, eyeFill: -20, libs: 0.7,
     edge: 1, noise: 1.5, near: 0.6, ...W };
@@ -18,6 +24,7 @@ export function aiChooseMove(board, color, koPoint, moveNum, W = {}, opts = {}) 
   const opp = color === "b" ? "w" : "b";
   const hash = opts.hash ?? hashBoard(board);
   const playOpts = { koPoint, history: opts.history ?? null, hash };
+  const rng = opts.seed !== undefined ? createRng(positionSeed(opts.seed, hash)) : (opts.rng ?? Math.random);
   let best = null, bestScore = -Infinity, bestBase = -Infinity;
   for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) {
     const res = tryPlay(board, c, r, color, playOpts);
@@ -57,7 +64,7 @@ export function aiChooseMove(board, color, koPoint, moveNum, W = {}, opts = {}) 
     }
     s += (moveNum > 6 ? Math.min(near, 3) * w.near : near === 0 ? 0.5 : near * 0.3);
     const base = s;
-    s += Math.random() * w.noise;
+    s += rng() * w.noise;
     if (s > bestScore) { bestScore = s; bestBase = base; best = [c, r]; }
   }
   // Pass when nothing worthwhile is left. Judged on the noise-free score so a noisy
@@ -68,9 +75,9 @@ export function aiChooseMove(board, color, koPoint, moveNum, W = {}, opts = {}) 
 }
 
 /** Same picker, fed from a GameRecord so superko history and the ko point are honoured. */
-export function aiChooseMoveForRecord(rec, W = {}) {
+export function aiChooseMoveForRecord(rec, W = {}, opts = {}) {
   if (rec.phase !== "playing") return null;
   return aiChooseMove(rec.board, rec.toPlay, rec.koPoint, rec.moves.length, W, {
-    history: rec.hashes, hash: rec.hashes[rec.hashes.length - 1],
+    ...opts, history: rec.hashes, hash: rec.hashes[rec.hashes.length - 1],
   });
 }

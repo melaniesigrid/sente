@@ -89,7 +89,9 @@ each fixed in its own commit:
 
 ## Phase 3 — Play like a real server
 
-- [ ] Lobby: choose 9/13/19, handicap, komi, clock preset; house players available on all.
+- [x] Lobby: choose 9/13/19 and handicap (branch `feat/board-sizes`, 2026-09-10); komi is the
+      engine's default for the handicap, shown not typed; house players play every size.
+      The clock preset waits for the Clock UI item below.
 - [x] Game-end ceremony: after two passes enter scoring, tap groups to toggle dead, territory
       overlay, honest result card with every term ("41 stones + 3 territory = 44" vs
       "35 + 4 + 7.5 komi = 46.5"), a bow, and "Keep playing" to take both passes back.
@@ -103,6 +105,15 @@ each fixed in its own commit:
 - [ ] Keyboard: arrows scrub, P pass, U undo; screen-reader labels already on the board.
 - [ ] Local-only telemetry ring buffer (last 50 games: size, result, bot, move count) to
       tune house-player weights. Never leaves the device.
+
+Decisions made in Phase 3, lobby slice (branch `feat/board-sizes`):
+- 19x19 is the default board; the last table (size, handicap) is a device preference in
+  `sente-lobby`, never part of the profile.
+- A handicap game against a house player is rated as if the opponent were one rank weaker
+  per stone (`rankWithHandicap`); the lobby says "rated as 5k" so it is no surprise.
+- The daily duel stays 9x9 (`DUEL_SIZE`) and its host is the seeded heuristic player, not
+  the human network: results only compare if every device gets the same reply.
+- The board is drawn at 460, 560 or 680 px for 9, 13, 19; the stone scale never changes.
 
 ## Delight (done 2026-09-09, branch `feat/rules-kernel`)
 
@@ -222,6 +233,51 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
 - [ ] Dark variant of the stone palette.
 - [x] Sound and haptic feedback on stone placement (opt-in, synthesised, no assets).
 - [ ] Self-host fonts instead of the Google Fonts `@import`.
+
+## Parking lot — wild ideas (brainstorm 2026-09-09)
+
+Every one of these leans on something already built. Not scheduled; pull one into a phase
+when it earns its place. Ordered by cost.
+
+Free, because the engine already does the hard part:
+- [x] **Daily Duel** (done 2026-09-09, branch `feat/daily-duel`): the date picks the host
+      and seeds its noise; the engine makes each reply a pure function of (seed, position),
+      so everyone who plays the same moves sees the same game and results compare with no
+      server. One attempt a day, unrated, no undo, no rematch; the result copies as text.
+      Decisions: sitting down spends the attempt (`duelStarted` is written before the
+      first stone, so leaving the table is not a reroll); the seed is folded with the
+      Zobrist hash per move rather than a running stream, so undo could never reroll a
+      reply either; the streak counts consecutive days won; the share text is the day,
+      the host, the go-notation result and the page URL, nothing personal.
+- [ ] Games as URLs: compress the `GameRecord` into the URL fragment. Correspondence go,
+      "look at this position" links and puzzle sharing with no backend. Phase 4 later
+      upgrades the link into a room.
+- [ ] Bots that show their work: after each house move, show the top three candidates
+      and their weighted scores ("Tetsu: capture 16, atari 6, played here"). Only a
+      heuristic bot can be this honest.
+- [ ] Every house player has a tell: make Moku's lobby line literal. Hoshi really forgets
+      ladders; a mirror-go persona copies you through tengen until you take tengen.
+      Exploit a tell to unlock the scouting report.
+
+A weekend each:
+- [ ] Tsumego mined from your own games: scan a finished record for positions where a
+      group of yours sat in atari with a rescue available, or an enemy group could be
+      taken (the AI's capture/rescue evaluators find these). Feeds spaced repetition.
+- [ ] Déjà vu: keep every Zobrist hash you have ever seen locally; the board whispers
+      "you have been here before, and lost". A personal opening book with no engine.
+- [ ] Rengo with the bots: pair go, you and Hoshi against Tetsu and Yuki, alternating
+      seats. `GameRecord` does not care who chose a move; it is a seat rotation in Game.
+- [ ] One-colour go: render every stone the same colour, rules untouched, one Board prop.
+      A real pro training method.
+
+Bigger swings:
+- [ ] Play your past self: fit persona weights to your own move distribution from the
+      telemetry ring buffer. A house player with your name, at your rating, labelled a
+      bot. The ghost race for go.
+- [ ] The board as an instrument: pitch by distance from tengen, captures a chord, ko a
+      repeating figure, byo-yomi a tightening pulse. A game becomes a piece.
+- [ ] Capture Go onboarding: first capture wins on 7x7 against Hoshi, a two-line rule
+      variant on the record, replacing the ten-move guided demo with a real game.
 
 ## Principles (do not trade away)
 

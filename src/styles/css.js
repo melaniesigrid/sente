@@ -213,6 +213,16 @@ export const CSS = `
 .bubble {
   align-self: flex-start; max-width: 88%;
   padding: 9px 13px; border-radius: 14px 14px 14px 5px;
+.table-picker .rank-picker-controls { gap: 18px; flex-wrap: wrap; }
+.seg { display: inline-flex; gap: 4px; padding: 4px; border-radius: 14px; box-shadow: var(--sink-sm); }
+.seg-btn {
+  border: 0; cursor: pointer; background: var(--ground); color: var(--ink); border-radius: 10px;
+  padding: 7px 12px; font: 700 12.5px 'Hanken Grotesk', sans-serif; letter-spacing: .04em;
+  transition: box-shadow .15s ease, color .15s ease; opacity: .7;
+}
+.seg-btn.active { box-shadow: var(--raise-sm); color: var(--accent); opacity: 1; }
+.seg-btn:not(.active):hover { opacity: 1; }
+.handicap-num { min-width: 96px; text-align: center; font-weight: 700; font-size: 13.5px; }
   box-shadow: var(--sink-sm); font-size: 13.5px; line-height: 1.45;
 }
 .bubble.mine { align-self: flex-end; border-radius: 14px 14px 5px 14px; box-shadow: var(--raise-sm); color: var(--accent); }
@@ -385,6 +395,15 @@ export const CSS = `
 .kata-streak { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 16px; box-shadow: var(--sink-sm); color: var(--danger); }
 .kata-streak .stat-num { margin-top: 0; font-size: 26px; color: var(--ink); }
 .kata-card.done .kata-streak { color: var(--accent); }
+.duel-card { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.duel-card .avatar { flex: 0 0 auto; }
+.duel-copy { flex: 1 1 240px; display: flex; flex-direction: column; gap: 4px; }
+.duel-title { font-family: 'Fraunces', serif; font-weight: 560; font-size: 20px; }
+.duel-result { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 16px; box-shadow: var(--sink-sm); color: var(--ink); }
+.duel-result .stat-num { margin-top: 0; font-size: 22px; }
+.duel-card.won .duel-result { color: var(--accent); }
+.duel-card.lost .duel-result { color: var(--danger); }
+.duel-lobby { max-width: 560px; }
 .prob-tab.kata { box-shadow: var(--raise-sm), 0 0 0 2px var(--accent-soft); }
 .kata-chip { display: inline-flex; align-items: center; gap: 5px; color: var(--accent); }
 

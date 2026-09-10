@@ -13,14 +13,15 @@ const defaultStorage = () => {
   try { return globalThis.localStorage || null; } catch { return null; }
 };
 
-/** @param {{ record: object, mode: { kind: string, personaId: string|null, rank?: string|null } }} session */
+/** @param {{ record: object, mode: { kind: string, personaId: string|null, rank?: string|null, key?: string|null } }} session
+ *  `mode.key` is the calendar day of a daily duel; other modes leave it null. */
 export function saveGame(session, storage = defaultStorage()) {
   if (!storage) return false;
   try {
     const blob = {
       version: GAME_STORE_VERSION,
       savedAt: Date.now(),
-      mode: { kind: session.mode.kind, personaId: session.mode.personaId ?? null, rank: session.mode.rank ?? null },
+      mode: { kind: session.mode.kind, personaId: session.mode.personaId ?? null, rank: session.mode.rank ?? null, key: session.mode.key ?? null },
       record: session.record,
     };
     storage.setItem(GAME_KEY, JSON.stringify(blob));
@@ -52,7 +53,8 @@ export function loadGame(storage = defaultStorage()) {
   let record;
   try { record = replay(blob.record); } catch (e) { return discard(`record does not replay: ${e.message}`); }
   const rank = typeof blob.mode.rank === "string" ? blob.mode.rank : null;
-  return { record, mode: { kind: blob.mode.kind, personaId: blob.mode.personaId ?? null, rank }, savedAt: blob.savedAt ?? null };
+  const key = typeof blob.mode.key === "string" ? blob.mode.key : null;
+  return { record, mode: { kind: blob.mode.kind, personaId: blob.mode.personaId ?? null, rank, key }, savedAt: blob.savedAt ?? null };
 }
 
 export function clearGame(storage = defaultStorage()) {

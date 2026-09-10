@@ -7,10 +7,13 @@ import { LESSONS } from "../content/lessons.js";
 import { lessonById } from "../content/library.js";
 import { PROBLEMS } from "../content/problems.js";
 import { rankOf } from "../content/rank.js";
-import { personaById } from "../content/personas.js";
-import { loadGame, clearGame } from "../store/gameStore.js";
+import { PERSONAS } from "../content/personas.js";
+import { duelMode } from "../content/duel.js";
+import { clearGame } from "../store/gameStore.js";
 import { useMokuFacts } from "../components/mokuStore.js";
+import { DuelCard } from "../components/DuelCard.jsx";
 import { dayKey, dailyProblem, liveStreak } from "../content/kata.js";
+import { loadSession } from "./session.js";
 
 /* ----------------------- HOME ----------------------- */
 export function Home({ profile, go, onResume }) {
@@ -19,9 +22,10 @@ export function Home({ profile, go, onResume }) {
   const lessonPct = Math.round((lessonsDone / LESSONS.length) * 100);
   const probPct = Math.round((profile.problemsDone.length / PROBLEMS.length) * 100);
   const games = profile.wins + profile.losses;
-  const [saved, setSaved] = useState(() => loadSession(profile));
-  const discard = () => { clearGame(); setSaved(null); };
   const today = dayKey();
+  const [saved, setSaved] = useState(() => loadSession(undefined, today));
+  const discard = () => { clearGame(); setSaved(null); };
+  const duel = duelMode(PERSONAS, today);
   const kata = dailyProblem(PROBLEMS, today);
   const kataDone = profile.kataDate === today;
   const streak = liveStreak(profile, today);
@@ -51,7 +55,7 @@ export function Home({ profile, go, onResume }) {
           <div className="resume-copy">
             <div className="stat-head"><Play size={16} /><span>Resume last game</span></div>
             <strong>vs {saved.opponent}</strong>
-            <span className="fine">{saved.record.moves.length} {saved.record.moves.length === 1 ? "move" : "moves"} played · {saved.record.toPlay === "b" ? "Black" : "White"} to move</span>
+            <span className="fine">{saved.record.size}×{saved.record.size} · {saved.record.moves.length} {saved.record.moves.length === 1 ? "move" : "moves"} played · {saved.record.toPlay === "b" ? "Black" : "White"} to move</span>
           </div>
           <div className="row">
             <Btn icon={Play} primary small onClick={() => onResume({ mode: saved.mode, record: saved.record })}>Resume</Btn>
@@ -73,6 +77,9 @@ export function Home({ profile, go, onResume }) {
           </div>
         </button>
       )}
+
+      <DuelCard profile={profile} today={today} mode={duel}
+        saved={saved && saved.mode.kind === "duel" ? saved : null} onPlay={onResume} />
 
       <div className="grid3">
         <button className="neu-card tile" onClick={() => go("learn")}>
@@ -104,19 +111,6 @@ export function Home({ profile, go, onResume }) {
       </Card>
     </div>
   );
-}
-
-/** Saved game resolved against current content; unresolvable or finished games are dropped. */
-function loadSession(profile) {
-  const saved = loadGame();
-  if (!saved || saved.record.phase === "ended") { if (saved) clearGame(); return null; }
-  if (saved.mode.kind === "bot") {
-    const persona = personaById(saved.mode.personaId);
-    if (!persona) { clearGame(); return null; }
-    const rank = saved.mode.rank ?? rankOf(profile.rating);
-    return { record: saved.record, mode: { kind: "bot", persona, rank }, opponent: persona.name };
-  }
-  return { record: saved.record, mode: { kind: "local" }, opponent: "Pass & play" };
 }
 
 /* Self-playing mini board for the hero — the demo is the real engine. */
