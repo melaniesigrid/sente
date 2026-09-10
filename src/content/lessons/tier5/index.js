@@ -1,3 +1,5 @@
-/* ----------------------- TIER 5 ----------------------- 
-   Not authored yet; see docs/designs/lesson-library.md for the syllabus. */
-export const TIER5 = [];
+/* ----------------------- TIER 5 · MASTER (5k–1k) ----------------------- */
+import earReddening from "./ear-reddening.js";
+import jowaIntetsu from "./jowa-intetsu.js";
+
+export const TIER5 = [earReddening, jowaIntetsu];

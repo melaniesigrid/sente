@@ -265,18 +265,18 @@ describe("library helpers", () => {
     expect(nextLessonFor(fresh).id).toBe("liberties");
     expect(nextLessonFor({ lessonsDone: ["liberties"] }).id).toBe("no-liberty-capture");
     const allTier1 = lessonsInTier(1).map(l => l.id);
-    expect(nextLessonFor({ lessonsDone: allTier1, tierPassed: [] })).toBeNull(); // nothing authored beyond Tier 1 yet
+    expect(nextLessonFor({ lessonsDone: allTier1, tierPassed: [] }).id).toBe("ear-reddening"); // Tiers 2 to 4 are not authored yet
   });
   it("currentTierFor follows finished tiers and passed exit tests", () => {
     expect(currentTierFor(fresh)).toBe(1);
-    expect(currentTierFor({ lessonsDone: [], tierPassed: [1] })).toBe(2);
+    expect(currentTierFor({ lessonsDone: [], tierPassed: [1] })).toBe(5); // Tiers 2 to 4 hold no lessons yet
     const allTier1 = lessonsInTier(1).map(l => l.id);
-    expect(currentTierFor({ lessonsDone: allTier1, tierPassed: [] })).toBe(1);
+    expect(currentTierFor({ lessonsDone: allTier1, tierPassed: [] })).toBe(5); // the first tier with an unfinished lesson
   });
   it("searchLibrary matches title and track, case-insensitively", () => {
     expect(searchLibrary("")).toBe(LIBRARY);
     expect(searchLibrary("KO").some(l => l.id === "ko")).toBe(true);
-    expect(searchLibrary("judgement").map(l => l.id)).toEqual(["territory-count", "passing-and-ending"]);
+    expect(searchLibrary("judgement").map(l => l.id)).toEqual(["territory-count", "passing-and-ending", "ear-reddening"]);
     expect(searchLibrary("Life and death").every(l => l.track === "life")).toBe(true);
     expect(searchLibrary("zzz")).toEqual([]);
   });
