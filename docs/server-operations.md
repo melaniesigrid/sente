@@ -53,21 +53,38 @@ Until this exists, `.github/workflows/deploy-server.yml` runs the server tests a
 skips the deploy with a notice, staying green. Deploy by hand with `npm run deploy:server`
 in the meantime.
 
-Creating it needs the Cloudflare dashboard, which no script can do for you:
+`CLOUDFLARE_ACCOUNT_ID` is already set as a repository secret, so the token is the only
+piece missing.
 
-1. Go to https://dash.cloudflare.com/profile/api-tokens and choose **Create Token**.
-2. Use the **Edit Cloudflare Workers** template.
-3. Under Account Resources pick the account that owns `sente-server`; under Zone Resources
-   leave the default.
-4. Create the token and copy it. Cloudflare shows it once.
-5. Put it in the repository:
+Creating it needs the Cloudflare dashboard, which no script can do for you. Go to
+https://dash.cloudflare.com/profile/api-tokens and choose **Create Token**, then either use
+the **Edit Cloudflare Workers** template, or build a custom token with one permission row:
+
+| Field | Value |
+| --- | --- |
+| Resources | Account |
+| Permissions | Workers Scripts |
+| Access | Edit |
+
+That row covers uploading the Worker, its Durable Object migrations and its secrets, which
+is everything this deploy does. Under Account Resources, include the account that owns
+`sente-server` rather than all accounts. Leave Client IP Filtering empty, because the
+runners GitHub gives you do not have stable addresses. TTL is your call; an empty one never
+expires.
+
+Cloudflare shows the token once. Put it in the repository:
 
 ```bash
 gh secret set CLOUDFLARE_API_TOKEN --repo melaniesigrid/sente
 ```
 
-The next push that touches `server/`, `src/engine/` or `wrangler.jsonc` will deploy and then
-smoke-test itself.
+The next push that touches `server/`, `src/engine/` or `wrangler.jsonc` will deploy, wait
+for the Durable Objects to restart, and then smoke-test itself. To try it straight away
+without changing anything, run the workflow by hand:
+
+```bash
+gh workflow run "Deploy server" --repo melaniesigrid/sente
+```
 
 ### 2. `ADMIN_TOKEN`, for the operator routes
 

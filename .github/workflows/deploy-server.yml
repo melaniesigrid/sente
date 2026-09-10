@@ -24,18 +24,32 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx vitest run server
-      # Deploying needs a CLOUDFLARE_API_TOKEN repository secret (template "Edit
-      # Cloudflare Workers"). Without it the tests above still run and the job stays
-      # green; deploy by hand with `npm run deploy:server` until the secret exists.
+      # Deploying needs two repository secrets: CLOUDFLARE_ACCOUNT_ID (set) and
+      # CLOUDFLARE_API_TOKEN (an account token with Workers Scripts: Edit). Without
+      # the token the tests above still run and the job stays green; deploy by hand
+      # with `npm run deploy:server`. See docs/server-operations.md.
       - id: gate
         env:
           TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          if [ -n "$TOKEN" ]; then echo "ok=true" >> "$GITHUB_OUTPUT";
-          else echo "ok=false" >> "$GITHUB_OUTPUT"; echo "::notice::No CLOUDFLARE_API_TOKEN secret; skipping the deploy."; fi
+          if [ -z "$TOKEN" ]; then
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No CLOUDFLARE_API_TOKEN secret; skipping the deploy."
+          elif [ -z "$ACCOUNT" ]; then
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::CLOUDFLARE_API_TOKEN is set but CLOUDFLARE_ACCOUNT_ID is missing; skipping the deploy."
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
       - if: steps.gate.outputs.ok == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      # A Durable Object keeps running the previous code until its instance restarts,
+      # so give it a moment before asking production whether the new code is live.
+      - if: steps.gate.outputs.ok == 'true'
+        run: sleep 45
       - if: steps.gate.outputs.ok == 'true'
         run: node tools/server/smoke.mjs https://sente-server.melaniesigrid.workers.dev
