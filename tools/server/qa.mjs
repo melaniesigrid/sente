@@ -2,6 +2,8 @@
    a 19x19 board, a player who disconnects mid-game and comes back, a spectator
    following a live table, scoring by two passes with dead stones, and an unrated
    game. Cleans up every account it makes. */
+import { DEFAULT_RATING } from "../../server/rating.js";
+
 const base = process.argv[2] || "https://sente-server.melaniesigrid.workers.dev";
 const ws = base.replace(/^http/, "ws");
 let failures = 0;
@@ -115,7 +117,7 @@ const settled = await ga.next(m => state(m) && m.room.settled, 10000);
 ok(settled.room.settled.rated === false, "an unrated game settles without touching the ladder");
 
 const after = await j("/api/me", { headers: { authorization: `Bearer ${A.token}` } });
-ok(after.rating === 1500 && after.wins === 0 && after.losses === 0, "an unrated game leaves the rating alone");
+ok(after.rating === DEFAULT_RATING && after.wins === 0 && after.losses === 0, "an unrated game leaves the rating alone");
 ok(!(await j("/api/ladder")).some(r => r.id === A.id), "and keeps the player off the ladder");
 
 /* ---- the public read of a finished table (the share link) ---- */
