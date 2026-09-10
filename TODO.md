@@ -637,9 +637,9 @@ Open:
 - [ ] A pairing is a device preference stored in the profile; when accounts arrive,
       decide whether it syncs or stays local like the Moku toggle.
 
-## Palettes (done 2026-09-10, branch `feat/palette-damson`)
+## Palettes and the dojo (done 2026-09-10, branches `feat/palette-damson`, `feat/palette-dojo`)
 
-- [x] A theme is data in `src/content/theme.js`: ground, the two lights every shadow is
+- [x] A theme is data: ground, the two lights every shadow is
       cut from, ink, cream, accent. Eight of them — house, kaya, porcelain, damson (light);
       lacquer, graphite, sumi, yohen (dark). Damson is pastel plum paper under a damson
       mark, the one light room that is neither warm stone nor cool clay.
@@ -651,14 +651,41 @@ Open:
 - [x] Picker in Profile: every swatch is drawn in its own material.
 - [x] `theme.test.js` checks ink contrast, accent contrast against the house floor, and
       that the highlight and the shadow stay close to the ground — the illusion.
+- [x] Restructured into `src/theme/` with `index.js` as the only import surface: `tokens.js`
+      (the contract), `palettes.js` (the named rooms), `derive.js` (four colours in, every
+      token out), `color.js` (the only module that knows how a colour is spelled). A new
+      room is four colours; the two lights, the warning tone, both focus alphas, the washes,
+      the scrim, the hairline, the belt contour, the shadow lengths and the seated stones
+      are all derived.
+- [x] Dojo at `src/views/Dojo.jsx`, reached from the Profile palette card: a live board you
+      can play stones on beside the six tones, the contrast rules printed as they are
+      broken, "wear it" disabled until all six pass, and "copy as code" so a good room can
+      graduate into `palettes.js`. Stored as `profile.dojo`, sanitised like every other
+      stored field.
+- [x] `system` is the profile default and the first option in the picker: house when the
+      device asks for light, sumi when it asks for dark. `resolveTheme` is pure and takes
+      the answer as an argument; `usePrefersDark` in `src/components/prefersDark.js` is the
+      only thing in the app that reads the media query, and it keeps listening, so switching
+      a laptop to dark mode moves the room without a reload.
+- [x] Focus rings are `--accent-ring` (32% on paper, 55% in a dark room), not 16% of the
+      accent — keyboard focus was invisible on Lacquer.
+- [x] Belts carry `--belt-edge`, a contour in the room's own ink, so the white belt no
+      longer vanishes on Porcelain nor the black one on Lacquer.
+- [x] The active nav item has an accent rule under it, so state never rests on hue alone
+      where the raise has less luminance to spend.
+- [x] Type scale floor raised from 9.5px to 12px across the stylesheet; the wordmark went
+      from clamp(20, 26) to clamp(28, 38) and the brand mark from 15px to 19px.
 
 Open:
-- [ ] `prefers-color-scheme` is not consulted. A first visit lands on house whatever the
-      OS says. Decide between an explicit choice only, or a `system` option that follows.
-- [ ] The belt colours, the seal tints and the rank tints are still absolute values from
-      `rank.js`; they were chosen against paper and are only checked by eye on the dark
-      rooms. Either theme them too or prove they hold.
-- [ ] Theme is a device preference like the pairing; same question when accounts arrive.
+- [ ] The seal tints in `rank.js` are still absolute values chosen against paper. The belts
+      have a contour now; the tints only colour an avatar, so they hold, but they are the
+      last absolute colours in the app.
+- [ ] `--accent` still does secondary duty (streak note, meter fill, kata pill). In the gold
+      rooms that is six accented things on one screen. Split out `--accent-quiet`.
+- [ ] Moku takes the board's stone tokens, so the mascot changes material with the room.
+      Give it `--moku-stone-*` of its own if that turns out to cost recognisability.
+- [ ] Theme and the dojo palette are device preferences like the pairing; same question when
+      accounts arrive.
 - [ ] The typed-saying work (a saying struck out of a typewriter, with the treatise's own
       words marked) is on `feat/board-sizes-local` and was not landed: the saying cards it
       was drawn for had already been replaced by `Passage`. Reopen it against the passages,
