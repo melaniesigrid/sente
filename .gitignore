@@ -12,6 +12,8 @@ tools/masters/raw
 tools/masters/data
 dist
 dist-ssr
+# copied from node_modules by tools/copy-ort-runtime.mjs
+public/ort
 *.local
 
 # Editor directories and files

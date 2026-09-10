@@ -187,8 +187,21 @@ imitates a rank: Hoshi 20k, Tetsu 15k, Yuki 10k, Ren 5k, Sora 1k, Kaede 2d, Tats
       status pill, and falls back to the heuristic player if the network cannot load.
 - [ ] Calibrate: bot-vs-bot ladder and real-game win rates; adjust `profile.temperature`
       or nudge a persona's rank if it plays a stone stronger or weaker than its badge.
-- [ ] WebGPU backend (needs the jsep runtime, 28 MB) for 19x19 speed; WASM is single
-      threaded on Pages (no cross-origin isolation headers).
+- [x] The network runs in its own thread (`src/engine/kata/session.worker.js`,
+      2026-09-10). It is the same single-threaded build doing the same arithmetic in the
+      same order, so the logits stay bit-identical and the duel is untouched; what changed
+      is that a move no longer holds the main thread. Measured on a production build of a
+      19x19 game, the longest main-thread stall during a house-player move fell from
+      2473 ms to 60 ms. The runtime's own `proxy` flag does not work here: it builds its
+      worker out of whatever chunk the bundler put the runtime in, and when that fails it
+      falls back silently, so the house players quietly become the heuristic player. Our
+      own worker file is named, so the bundler emits it; if the browser refuses to make
+      one, `startHere` runs the network on the main thread and says so.
+- [ ] WebGPU backend (needs the jsep runtime, 28 MB) for 19x19 speed. Inference itself is
+      unchanged, about 1.2 s per move on 19x19 against 290 ms on 9x9; the worker takes it
+      off the main thread rather than shortening it. Threads are not the answer: Pages
+      sends no cross-origin isolation headers, and more than one thread changes the order
+      the sums are added up in, which would break the duel.
 - [x] Every house player adapts to any level: the lobby's rank picker (25k to 9d,
       defaulting to your own rank) sets the rank the network imitates; personas are
       personalities with a home range, ordered by fit. Ranks below 20k soften the 20k
