@@ -28,24 +28,37 @@ jobs:
       # CLOUDFLARE_API_TOKEN (an account token with Workers Scripts: Edit). Without
       # the token the tests above still run and the job stays green; deploy by hand
       # with `npm run deploy:server`. See docs/server-operations.md.
+      # Whitespace around a pasted secret is invisible in the settings page but
+      # breaks the Authorization header, so the token is trimmed before use and
+      # checked for shape. Neither the token nor its length is ever printed when
+      # it looks right.
       - id: gate
         env:
-          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          RAW: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
+          TOKEN="$(printf '%s' "$RAW" | tr -d '[:space:]')"
           if [ -z "$TOKEN" ]; then
             echo "ok=false" >> "$GITHUB_OUTPUT"
             echo "::notice::CLOUDFLARE_API_TOKEN is missing or empty, so the deploy was skipped. If the secret is listed but empty, set its value again: gh secret set CLOUDFLARE_API_TOKEN --repo melaniesigrid/sente. Steps for making the token are in docs/server-operations.md."
-          elif [ -z "$ACCOUNT" ]; then
+            exit 0
+          fi
+          if [ -z "$ACCOUNT" ]; then
             echo "ok=false" >> "$GITHUB_OUTPUT"
             echo "::warning::CLOUDFLARE_API_TOKEN is set but CLOUDFLARE_ACCOUNT_ID is missing; skipping the deploy."
-          else
-            echo "ok=true" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+          if ! printf '%s' "$TOKEN" | grep -qE '^[A-Za-z0-9_-]{30,80}$'; then
+            echo "::error::CLOUDFLARE_API_TOKEN does not look like a Cloudflare API token. After trimming whitespace it is ${#TOKEN} characters; a token is about 40 characters of letters, digits, hyphen and underscore. Check you copied the token value Cloudflare showed once, rather than its name, its ID from the token list, or a Global API Key."
+            exit 1
+          fi
+          echo "CLOUDFLARE_API_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+          echo "ok=true" >> "$GITHUB_OUTPUT"
+      # wrangler reads CLOUDFLARE_API_TOKEN from the environment, which is the
+      # trimmed value set above rather than the raw secret.
       - if: steps.gate.outputs.ok == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       # A Durable Object keeps running the previous code until its instance restarts,
       # so give it a moment before asking production whether the new code is live.
