@@ -17,6 +17,9 @@ export function publicPlayer(p) {
     id: p.id, name: p.name, tint: p.tint,
     rating: Math.round(p.rating), rd: Math.round(p.rd),
     wins: p.wins, losses: p.losses, draws: p.draws ?? 0,
+    // When their picture last changed, or null. One number, so every place a
+    // player is drawn can draw their picture; the bytes are their own request.
+    avatarAt: p.avatarAt ?? null,
     createdAt: p.createdAt, lastSeen: p.lastSeen,
   };
 }

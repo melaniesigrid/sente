@@ -24,14 +24,16 @@ export class ApiError extends Error {
   constructor(status, reason) { super(reason); this.name = "ApiError"; this.status = status; this.reason = reason; }
 }
 
-async function call(path, { method = "GET", token, body } = {}) {
+async function call(path, { method = "GET", token, body, blob } = {}) {
   if (!serverEnabled()) throw new ApiError(0, "no-server");
   const headers = { accept: "application/json" };
   if (token) headers.authorization = `Bearer ${token}`;
   if (body !== undefined) headers["content-type"] = "application/json";
+  if (blob) headers["content-type"] = blob.type;
   let res;
+  const payload = blob ?? (body === undefined ? undefined : JSON.stringify(body));
   try {
-    res = await fetch(`${SERVER_URL}${path}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+    res = await fetch(`${SERVER_URL}${path}`, { method, headers, body: payload });
   } catch { throw new ApiError(0, "offline"); }
   let data = null;
   try { data = await res.json(); } catch { /* no body */ }
@@ -62,6 +64,13 @@ export const api = {
   me: (token) => call("/api/me", { token }),
   update: (token, patch) => call("/api/me", { method: "PATCH", token, body: patch }),
   leave: (token) => call("/api/me", { method: "DELETE", token }),
+  /* What a player says about themselves. `setAvatar` posts the bytes, not
+     JSON: the picture is already squared and squeezed by `prepareAvatar`. */
+  setProfile: (token, patch) => call("/api/me/profile", { method: "PATCH", token, body: patch }),
+  setAvatar: (token, blob) => call("/api/me/avatar", { method: "PUT", token, blob }),
+  clearAvatar: (token) => call("/api/me/avatar", { method: "DELETE", token }),
+  profile: (id) => call(`/api/players/${encodeURIComponent(id)}`),
+
   games: (token) => call("/api/games", { token }),
   ladder: () => call("/api/ladder"),
   stats: () => call("/api/stats"),

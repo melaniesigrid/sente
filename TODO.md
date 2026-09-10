@@ -372,8 +372,19 @@ two Durable Object classes, deployed at https://sente-server.melaniesigrid.worke
 - [ ] Verify the address, and a way back in when the password is forgotten. Both need mail
       out of the Worker (Cloudflare Email Sending), and until they exist an address is a
       way to sign in from another device, not a proven identity — the sign-up copy says so.
-- [ ] A richer profile: a picture, and a few facts about the player, shown on a public
-      profile page and next to them at a table.
+- [x] A card a player shows other players (2026-09-10, branch `feat/accounts`): a picture,
+      a paragraph, and three facts — where you play, since when, and what you like to play.
+      Edited from Profile, under a card that says plainly that this one is the server's and
+      the one above it is this device's. The picture is squared and squeezed to 192 px in
+      the browser before a byte is sent (`src/net/avatar.js`), so a photograph nobody keeps
+      was never uploaded; the server takes 64 KB, three raster types, and no SVG. It is
+      stored under its own key so listing players for the ladder never drags a picture into
+      memory, and served immutable at a URL carrying the stamp it last changed at. Every
+      public view of a player now carries that stamp, so the lobby, the ladder and both
+      seats at an online table draw the face. `tools/server/profile.mjs <url>` proves it.
+- [ ] The card, seen from outside: a page for another player, reachable from the ladder and
+      from a seat at a table. The route (`GET /api/players/:id`) is live and tested; nothing
+      links to it yet.
 - [ ] CI deploy for the Worker: `.github/workflows/deploy-server.yml` is written and
       needs a `CLOUDFLARE_API_TOKEN` repository secret (Workers Scripts: Edit) to run.
 - [ ] Analysis: KataGo (or GnuGo) via the backend, or a WASM engine in the browser.

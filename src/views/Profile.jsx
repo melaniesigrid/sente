@@ -14,6 +14,9 @@ import { LESSONS } from "../content/lessons.js";
 import { PROBLEMS } from "../content/problems.js";
 import { dayKey, liveStreak } from "../content/kata.js";
 import { saveProfile } from "../store/profile.js";
+import { loadAccount } from "../store/account.js";
+import { serverEnabled } from "../net/api.js";
+import { OnlineProfileCard } from "./OnlineProfile.jsx";
 
 /* ----------------------- THE NINE LEVELS (Classic, ch. 12) -----------------------
    Zhang Ni's nine levels are a scale for dan players: nine steps for the nine
@@ -66,8 +69,11 @@ const roomsFor = (dojo, room) => [
   ...(dojo ? [{ ...dojo, id: DOJO_THEME, name: dojo.name || "Your dojo", mood: "Yours" }] : []),
 ];
 
-export function ProfileView({ profile, setProfile, go, room }) {
+export function ProfileView({ profile, setProfile, go, room, notify }) {
   const rooms = roomsFor(profile.dojo, room);
+  // The account's card, when there is an account. Two profiles sound like one
+  // too many, so each says what it is: this device's, and the server's.
+  const [account, setAccount] = useState(() => (serverEnabled() ? loadAccount() : null));
   const [editing, setEditing] = useState(false);
   const [nameDraft, setNameDraft] = useState(profile.name);
   const games = profile.wins + profile.losses;
@@ -113,6 +119,8 @@ export function ProfileView({ profile, setProfile, go, room }) {
           </div>
         </div>
       </Card>
+
+      {account && <OnlineProfileCard account={account} setAccount={setAccount} notify={notify} />}
 
       <PullQuote>{plainFor("profile")}</PullQuote>
       <Card className="passage-card"><Passage context="profile" /></Card>

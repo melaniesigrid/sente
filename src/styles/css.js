@@ -187,6 +187,11 @@ ${SIGNATURE_FACE}
   box-shadow: inset 2px 2px 5px var(--dark), inset -2px -2px 5px var(--light);
 }
 .avatar > * { position: relative; z-index: 1; }
+/* The picture fills the disc and sits under the inner ring, so a photograph
+   gets the same sunken edge the initial does. The initial stays in the markup
+   as the fallback and is simply not shown while a picture covers it. */
+.avatar:has(.avatar-img) > span { visibility: hidden; }
+.avatar-img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; z-index: 0; }
 .avatar-bot {
   position: absolute; right: -3px; bottom: -3px; width: 17px; height: 17px;
   border-radius: 50%; background: var(--ground); box-shadow: var(--raise-sm);
@@ -906,6 +911,23 @@ ${SIGNATURE_FACE}
 }
 .attach-row:hover { box-shadow: var(--sink-sm); opacity: 1; }
 .attach-row svg { color: var(--accent); flex: 0 0 auto; }
+
+/* ---- the card a player shows other players ----
+   A picture, a paragraph and three facts. The facts sit in one sunken well so
+   the card reads as one object rather than three loose rows. */
+.online-profile { display: flex; flex-direction: column; gap: 14px; }
+.online-profile h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }
+.op-head { display: flex; align-items: flex-start; gap: 16px; }
+.op-id { display: flex; flex-direction: column; gap: 7px; flex: 1; min-width: 0; }
+.op-picture { display: flex; flex-direction: column; align-items: center; gap: 9px; flex: none; }
+.op-picture-acts { display: flex; align-items: center; gap: 5px; }
+.op-bio { margin: 0; font-size: 15px; line-height: 1.65; white-space: pre-line; }
+.op-facts { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
+.op-fact { display: flex; flex-direction: column; gap: 2px; padding: 9px 14px; border-radius: 13px; box-shadow: var(--sink-sm); }
+.op-fact dt { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; opacity: .55; }
+.op-fact dd { margin: 0; font-size: 14.5px; font-weight: 600; }
+.op-label { font-size: 12.5px; letter-spacing: .09em; text-transform: uppercase; opacity: .6; }
+.op-textarea { width: 100%; resize: vertical; min-height: 76px; line-height: 1.6; font: 400 15px var(--font-body); }
 .seek-state { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-radius: 14px; box-shadow: var(--sink-sm); font-size: 14.5px; }
 .seek-state .pulse { color: var(--accent); animation: seek-pulse 1.6s ease-in-out infinite; }
 @keyframes seek-pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }

@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Radio, X, Play, Eye, LogOut, DoorOpen, Mail } from "lucide-react";
 import { Card, Btn, Avatar, RankBadge } from "../components/ui.jsx";
-import { api, lobbySocket, serverEnabled } from "../net/api.js";
+import { api, lobbySocket, serverEnabled, SERVER_URL } from "../net/api.js";
 import { loadAccount, saveAccount, clearAccount } from "../store/account.js";
 import { provisionalText } from "../content/online.js";
 import { tableLine } from "./onlineStatus.js";
 import { AccountGate } from "./AccountGate.jsx";
+import { avatarUrl } from "../net/avatar.js";
 import { errorText, formProblem } from "./accountForm.js";
 
 /* ----------------------- ONLINE LOBBY (card) -----------------------
@@ -96,7 +97,7 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
   return (
     <Card className="online-card">
       <div className="persona-top">
-        <Avatar name={player.name} tint={player.tint} size={52} />
+        <Avatar name={player.name} tint={player.tint} size={52} src={avatarUrl(SERVER_URL, player.id, player.avatarAt)} />
         <div>
           <h3>{player.name}</h3>
           <p className="persona-tag">

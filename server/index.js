@@ -18,6 +18,11 @@
      DELETE /api/admin/players/:id     ADMIN_TOKEN bearer
      GET   /api/admin/players          ADMIN_TOKEN bearer
      DELETE /api/admin/ratelimit/:ip   ADMIN_TOKEN bearer
+     PATCH /api/me/profile      bearer {bio, facts}
+     PUT   /api/me/avatar       bearer, image body  -> the picture, at most 64 KB
+     DELETE /api/me/avatar      bearer
+     GET   /api/players/:id                     -> a public profile
+     GET   /api/players/:id/avatar              -> the picture, cached by its stamp
      GET   /api/games           bearer         -> recent games
      GET   /api/ladder                         -> top players
      GET   /api/stats                          -> {players, online, seeking}
@@ -25,7 +30,8 @@
      GET   /api/game/:id                       -> the room (public)
      GET   /api/game/:id/ws?token=  websocket  -> play or watch */
 
-import { json, fail, readJson, bearer, HttpError, CORS } from "./http.js";
+import { json, fail, readJson, bearer, HttpError, CORS, base64, bytes } from "./http.js";
+import { AVATAR_MAX_BYTES } from "./profile.js";
 import { callerIp } from "./ratelimit.js";
 export { Registry } from "./registry.js";
 export { Room } from "./roomObject.js";
@@ -43,6 +49,7 @@ export default {
       if (e instanceof HttpError) return fail(e.status, e.reason);
       const known = {
         "bad-name": 400, "bad-email": 400, "bad-key": 400, "no-email": 400,
+        "bad-image": 400, "bad-image-type": 415, "image-too-big": 413,
         "bad-credentials": 401, "no-player": 404,
         exists: 409, "email-taken": 409, "already-attached": 409,
       };
@@ -118,6 +125,40 @@ async function route(req, env) {
       return json({ ip: callerIp(req), headers: Object.fromEntries([...req.headers].filter(([k]) => k.startsWith("cf-") || k === "x-forwarded-for" || k === "x-real-ip")) });
     }
     return fail(404, "not-found");
+  }
+
+  if (path === "/api/me/profile" && req.method === "PATCH") {
+    const player = await requirePlayer(req, reg);
+    return json(await reg.setProfile(player.id, await readJson(req)));
+  }
+
+  if (path === "/api/me/avatar") {
+    const player = await requirePlayer(req, reg);
+    if (req.method === "DELETE") return json(await reg.clearAvatar(player.id));
+    if (req.method !== "PUT") return fail(405, "method");
+    const type = (req.headers.get("content-type") || "").split(";")[0].trim();
+    const buf = await req.arrayBuffer();
+    if (buf.byteLength > AVATAR_MAX_BYTES) return fail(413, "image-too-big");
+    return json(await reg.setAvatar(player.id, type, base64(buf)));
+  }
+
+  const who = /^\/api\/players\/([^/]+?)(\/avatar)?$/.exec(path);
+  if (who && req.method === "GET") {
+    if (!who[2]) {
+      const p = await reg.profile(who[1]);
+      return p ? json(p, 200, { "cache-control": "public, max-age=30" }) : fail(404, "no-player");
+    }
+    const pic = await reg.avatar(who[1]);
+    if (!pic) return fail(404, "no-image");
+    // The URL carries the stamp the picture last changed at, so a year of
+    // caching is safe: a new picture is a new URL.
+    return new Response(bytes(pic.data), {
+      headers: {
+        ...CORS, "content-type": pic.type,
+        "cache-control": "public, max-age=31536000, immutable",
+        etag: `"${pic.at}"`,
+      },
+    });
   }
 
   if (path === "/api/games" && req.method === "GET") {

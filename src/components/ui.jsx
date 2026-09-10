@@ -22,9 +22,14 @@ export const Pill = ({ icon: Icon, children, tone }) => (
   </div>
 );
 
-export const Avatar = ({ name, tint, size = 44, bot, className = "" }) => (
+/* `src` is a picture the player chose. It sits inside the same ring the
+   initial sits in, so a table with one photograph and one letter still reads
+   as one row of avatars rather than two kinds of thing. The initial stays
+   underneath it: a picture that fails to load leaves a letter, not a hole. */
+export const Avatar = ({ name, tint, size = 44, bot, src, className = "" }) => (
   <div className={`avatar ${className}`} style={{ width: size, height: size, color: TINTS[tint] || TINTS.eucalyptus }}>
     <span style={{ fontSize: size * 0.4 }}>{(name || "?").slice(0, 1).toUpperCase()}</span>
+    {src && <img className="avatar-img" src={src} alt="" loading="lazy" decoding="async" />}
     {bot && <span className="avatar-bot"><Bot size={11} strokeWidth={2.4} /></span>}
   </div>
 );

@@ -68,5 +68,20 @@ export function cleanName(v) {
   return s.length >= 2 ? s : null;
 }
 
+/** Bytes to base64 and back. Durable Object storage takes JSON, so a picture
+ *  makes the round trip as text; `btoa` is byte-wise, hence the latin1 dance. */
+export function base64(buf) {
+  let s = "";
+  for (const b of new Uint8Array(buf)) s += String.fromCharCode(b);
+  return btoa(s);
+}
+
+export function bytes(b64) {
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i += 1) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
 export const TINTS = ["eucalyptus", "coral", "sun", "mint", "sky", "grape"];
 export const cleanTint = (v) => (TINTS.includes(v) ? v : "eucalyptus");

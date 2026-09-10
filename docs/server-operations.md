@@ -153,6 +153,29 @@ Claiming a handle is limited to twenty an hour from one address. Leaving refunds
 so a person who changes their mind never meets the limit while a script hoarding accounts
 does.
 
+## Profile routes
+
+```
+PATCH  /api/me/profile      bearer {bio, facts}   what the card says
+PUT    /api/me/avatar       bearer, image body    the picture, at most 64 KB
+DELETE /api/me/avatar       bearer
+GET    /api/players/:id                           a public profile
+GET    /api/players/:id/avatar                    the picture
+```
+
+The picture is stored under `avatar:<id>`, apart from the player record, because
+the ladder lists every player and a `list({ prefix: "player:" })` that dragged a
+hundred pictures into memory is the one thing on that object that would not fit
+in its budget. The player record carries only `avatarAt`, the stamp it last
+changed at, which is also what makes the picture URL cacheable forever: a new
+picture is a new URL.
+
+The browser squares and squeezes a picture to 192 px before uploading
+(`src/net/avatar.js`). The server does not decode it — it checks the content
+type against three raster formats and the length against 64 KB, and stores the
+bytes. **SVG is refused** and should stay refused: it is a document that can
+carry script, not a picture.
+
 ## Passwords
 
 The server never sees a password. The browser derives a key from it with
@@ -184,11 +207,12 @@ cannot be used to ask who has an account.
 
 ## Checking a deployment
 
-Four scripts, each of which cleans up the accounts it makes:
+Five scripts, each of which cleans up the accounts it makes:
 
 ```bash
 node tools/server/smoke.mjs    https://sente-server.melaniesigrid.workers.dev   # one whole game
 node tools/server/accounts.mjs https://sente-server.melaniesigrid.workers.dev   # sign up, in, out
+node tools/server/profile.mjs  https://sente-server.melaniesigrid.workers.dev   # the card and the picture
 node tools/server/qa.mjs       https://sente-server.melaniesigrid.workers.dev   # the wider pass
 node tools/server/churn.mjs    https://sente-server.melaniesigrid.workers.dev   # the rate limit
 node tools/server/bench.mjs                                                     # room load cost

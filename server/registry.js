@@ -3,6 +3,9 @@
 
      accounts     `player:<id>` records, `tok:<sha256>` session lookups and
                   `email:<address>` lookups
+     profiles     what a player says about themselves, on the player record;
+                  the picture is `avatar:<id>`, apart so that listing players
+                  for the ladder does not drag every picture into memory
      game lists   `games:<playerId>` recent games for the lobby's "your tables"
      matchmaking  `seek:<playerId>` open seeks; lobby sockets are hibernated and
                   tagged with the player id so a match can be pushed to them
@@ -26,6 +29,7 @@ import { newRating, rateGame, migrateRating } from "./rating.js";
 import { randomHex, sha256, cleanName, cleanTint, sameDigest } from "./http.js";
 import { cleanKey, publicPlayer, hasPlayed } from "./players.js";
 import { cleanEmail, cleanKey as cleanDerivedKey, privateFields, KDF } from "./accounts.js";
+import { cleanBio, cleanFacts, avatarProblem, profileOf } from "./profile.js";
 import { hit, refund, REGISTER_LIMIT, REGISTER_WINDOW_MS, SIGNIN_LIMIT, SIGNIN_WINDOW_MS } from "./ratelimit.js";
 import { SIZES } from "./room.js";
 
@@ -223,7 +227,7 @@ export class Registry extends DurableObject {
   /** The owner's own view of themselves: everything public, plus the few
    *  things only they may see. */
   #self(p) {
-    return { ...publicPlayer(p), ...privateFields(p) };
+    return { ...profileOf(p, publicPlayer(p)), ...privateFields(p) };
   }
 
   async self(id) {
@@ -263,7 +267,7 @@ export class Registry extends DurableObject {
     if (!p) return false;
     const sessions = (p.sessions ?? [p.tokenHash]).filter(Boolean).map(h => `tok:${h}`);
     await this.ctx.storage.delete([
-      `player:${id}`, `tok:${p.tokenHash}`, ...sessions, `games:${id}`, `seek:${id}`,
+      `player:${id}`, `tok:${p.tokenHash}`, ...sessions, `games:${id}`, `seek:${id}`, `avatar:${id}`,
       ...(p.email ? [`email:${p.email}`] : []),
     ]);
     if (p.claimedFrom) {
@@ -275,6 +279,62 @@ export class Registry extends DurableObject {
     for (const ws of this.ctx.getWebSockets(id)) ws.close(4000, "removed");
     this.ladderCache = null;
     return true;
+  }
+
+  /* ----- what a player says about themselves -----
+     The picture lives under its own key. The ladder lists every player, and a
+     `list({ prefix: "player:" })` that dragged a hundred pictures into memory
+     would be the one thing on this object that does not fit in its budget. */
+
+  /** Update the bio and the facts. A field left out of the patch is left
+   *  alone; a field sent empty is cleared, because clearing one has to be
+   *  possible and an empty string is how a form says so. */
+  async setProfile(id, patch) {
+    const p = await this.ctx.storage.get(`player:${id}`);
+    if (!p) throw new Error("no-player");
+    const next = {
+      ...p,
+      bio: patch.bio !== undefined ? cleanBio(patch.bio) : (p.bio ?? ""),
+      facts: patch.facts !== undefined ? cleanFacts(patch.facts) : (p.facts ?? {}),
+      lastSeen: Date.now(),
+    };
+    await this.ctx.storage.put(`player:${id}`, next);
+    return this.#self(next);
+  }
+
+  /** Store a picture. `data` is base64, because storage takes JSON and a
+   *  round trip through base64 is cheaper than a second binding. */
+  async setAvatar(id, type, data) {
+    const p = await this.ctx.storage.get(`player:${id}`);
+    if (!p) throw new Error("no-player");
+    const bytes = Math.floor((data?.length ?? 0) * 3 / 4);
+    const problem = avatarProblem(type, bytes);
+    if (problem) throw new Error(problem);
+    const at = Date.now();
+    await this.ctx.storage.put({
+      [`avatar:${id}`]: { type, data, at },
+      [`player:${id}`]: { ...p, avatarAt: at, lastSeen: at },
+    });
+    return this.#self({ ...p, avatarAt: at });
+  }
+
+  async clearAvatar(id) {
+    const p = await this.ctx.storage.get(`player:${id}`);
+    if (!p) throw new Error("no-player");
+    await this.ctx.storage.delete(`avatar:${id}`);
+    await this.ctx.storage.put(`player:${id}`, { ...p, avatarAt: null, lastSeen: Date.now() });
+    return this.#self({ ...p, avatarAt: null });
+  }
+
+  async avatar(id) {
+    return (await this.ctx.storage.get(`avatar:${id}`)) ?? null;
+  }
+
+  /** A stranger's view of a player: the ladder's row plus what they chose to
+   *  say. This is the only route that serves one player to another. */
+  async profile(id) {
+    const p = await this.ctx.storage.get(`player:${id}`);
+    return p ? profileOf(p, publicPlayer(p)) : null;
   }
 
   /* ----- games ----- */
@@ -424,7 +484,7 @@ export class Registry extends DurableObject {
     if (!opp) return;
     // The waiting player takes Black by courtesy; the newcomer takes White.
     const gameId = "g_" + randomHex(6);
-    const seatOf = (p) => ({ id: p.id, name: p.name, tint: p.tint, rating: Math.round(p.rating), rd: Math.round(p.rd) });
+    const seatOf = (p) => ({ id: p.id, name: p.name, tint: p.tint, rating: Math.round(p.rating), rd: Math.round(p.rd), avatarAt: p.avatarAt ?? null });
     const stub = this.env.ROOM.get(this.env.ROOM.idFromName(gameId));
     await stub.create({ id: gameId, size, rated, black: seatOf(opp), white: seatOf(me) });
     this.tell(match.id, { t: "matched", gameId, color: "b", opponent: seatOf(me), size });
