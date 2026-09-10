@@ -52,6 +52,7 @@ export function rate(player, games, tau = TAU) {
  *  Returns `{ b, w }` with each side's new rating, the signed change, and the
  *  rank it now reads as - the tenth is the part a player actually notices. */
 export function rateGame(black, white, winner) {
+  // Both sides at once. The engine's `rateAgainst` is the one-sided version.
   const sb = winner === "b" ? 1 : winner === "w" ? 0 : 0.5;
   const nb = rate(black, [{ opponent: white, score: sb }]);
   const nw = rate(white, [{ opponent: black, score: 1 - sb }]);

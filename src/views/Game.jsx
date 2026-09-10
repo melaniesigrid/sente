@@ -6,7 +6,7 @@ import {
 import {
   createGame, play, pass, resign, timeout, undo, markDead, acceptScore, scoreBoard, chainsInAtari, idx,
   lastMoveIndex, aiChooseMoveForRecord, kataChooseMoveForRecord, profileForRank, loadModel, onModelProgress, modelReady,
-  toSgf, IllegalMoveError, GLICKO, rateGame,
+  toSgf, IllegalMoveError, GLICKO, rateAgainst,
 } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
 import { ClockFace } from "../components/Clock.jsx";
@@ -204,7 +204,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         const oldRank = rankOf(profile.rating), oldBelt = beltOf(profile.rating);
         // One rank per handicap stone: the opponent is rated as the weaker player it gave stones to be.
         const oppRating = ratingOfRank(rankWithHandicap(botRank, next.handicap));
-        const rated = rateGame(
+        const rated = rateAgainst(
           { rating: profile.rating, rd: profile.rd, vol: profile.vol },
           { rating: oppRating, rd: HOUSE_RD },
           won ? 1 : 0,
