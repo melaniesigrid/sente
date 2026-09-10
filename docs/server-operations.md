@@ -86,6 +86,16 @@ without changing anything, run the workflow by hand:
 gh workflow run "Deploy server" --repo melaniesigrid/sente
 ```
 
+**If the run says the token is missing when you know you added it,** the secret exists but
+its value is empty, which is easy to do by saving the form before pasting. You can tell
+from the run log without seeing any secret: GitHub masks a non-empty secret as `***`, so a
+line reading `TOKEN:` with nothing after it means empty. Set it again, piping the value in
+so nothing is stored in your shell history:
+
+```bash
+gh secret set CLOUDFLARE_API_TOKEN --repo melaniesigrid/sente   # then paste, then Ctrl-Z Enter on Windows
+```
+
 ### 2. `ADMIN_TOKEN`, for the operator routes
 
 Set with `npx wrangler secret put ADMIN_TOKEN` and known only to you. A rotated value is in
