@@ -1,5 +1,5 @@
 /* ----------------------- SGF (pure) -----------------------
-   FF[4] subset: SZ, KM, HA, AB, AW, B, W, C, PB, PW, RE, and variations. The parser is a
+   FF[4] subset: SZ, KM, HA, AB, AW, B, W, C, PB, PW, RE, DT, and variations. The parser is a
    small hand-written recursive descent over the raw text: no eval, no regex on the whole
    input, hard cap of 256 KB. Anything malformed throws `SgfParseError` with the offset.
 
@@ -159,11 +159,21 @@ export function parseSgf(text) {
     handicap,
     players: { b: p.PB ? p.PB[0] : null, w: p.PW ? p.PW[0] : null },
     result: p.RE ? p.RE[0] : null,
+    date: p.DT ? p.DT[0] : null,
+    year: yearOf(p.DT),
     comment: p.C ? p.C.join("\n") : null,
     setup,
     moves,
     tree,
   };
+}
+
+/** First four-digit year in a DT value ("1846-07-21", "1846", "c. 1670" all give the
+ *  year); null when there is none. */
+function yearOf(dt) {
+  if (!dt) return null;
+  const m = /(\d{4})/.exec(dt[0]);
+  return m ? Number(m[1]) : null;
 }
 
 /** Replay the main line into a GameRecord. Illegal moves become SgfParseErrors. */

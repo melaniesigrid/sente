@@ -230,14 +230,19 @@ Plan: `docs/designs/masters-and-books.md` (CEO review plus adversarial spec revi
 2026-09-09). Two asks on one foundation: a corpus of public-domain master games, measured,
 and one rule: the number on the card is measured, never claimed.
 
-- [ ] `proyear` profile: `encodeMeta({ pro, year })` with KataGo's historical-pro meta row
-      (source GoGoD, date = year) and a bit-for-bit fixture. An honest "strong player of
-      1846" bot on its own, and the control arm of every eval below.
-- [ ] Corpus tool (`tools/masters/`): fetch the public-domain collections (Shusaku 470,
-      Jowa 293 for v1), parse through the engine, keep even 19x19 games, tag handicap, komi,
-      colour and year, drop what does not replay and count it in `index.json`.
-- [ ] `engine/style/`: features (definitions fixed in the plan), symmetries with a canonical
-      key per position, a bounded prior applied to the sampler's kept candidates only.
+- [x] `proyear` profile: `encodeMeta({ pro, year })` with KataGo's historical-pro meta row
+      (source GoGoD, June 1 of the year; Go4Go from 2021) and a meta-row fixture for 1846
+      and 2017 generated from KataGo's Python (branch `feat/masters-pr1`, 2026-09-09).
+- [ ] "Strong player of <year>" as an honest persona in the Masters row (waits on the row).
+- [x] Corpus tool (`tools/masters/`): `fetch.mjs` (manifest with quoted terms, ustar reader,
+      raw dir ignored) and `build.mjs` (engine parser, even 19x19 games, tags, seeded 60/20/20
+      split, style vector and spread, book, drop log and counts) emit `public/masters/<id>.json`
+      and `src/content/masters.json`. Shusaku 349 even games, Jowa 201; book entries 47 and 36,
+      far below the plan's 500 to 2,000 guess at three games per entry (2026-09-09).
+- [x] `engine/style/features.js` (per-move and per-game axes as the plan fixes them, means,
+      spread, z-distance) and `symmetries.js` (eight transforms, canonical hash, book key,
+      inverse for the tie case), both tested (`feat/masters-pr1`, 2026-09-09).
+- [ ] `engine/style/prior.js`: a bounded prior applied to the sampler's kept candidates only (PR 2).
 - [ ] Eval offline in CI: Python dumps `proyear` logits for held-out positions; `eval.mjs`
       scores arms (baseline, plus book, plus prior) and commits `eval.json`. The prior ships
       only if it beats the book alone on top-1 agreement and style distance.
@@ -255,6 +260,12 @@ and one rule: the number on the card is measured, never claimed.
 - [ ] Star Player: Ke Jie anonymised (decided 2026-09-09 after the lawyer check). Card says
       "a top pro of 2017", his name nowhere in code, data or UI; corpus from a source with
       stated terms; same eval and gate as the Edo masters, `proyear_2017` as the control.
+      OPEN (needs the user and counsel): the only source found that states open terms is
+      BadukMovies' pro-game zip ("This collection is in the public domain, use it however
+      you want to"), which now survives only in the Internet Archive (the domain is hijacked);
+      the 2023 capture holds 164 Ke Jie games. Waltheri, gokifu, GoMagic state no reuse
+      terms; go4go and GoGoD forbid bulk reuse without a licence; Fox and Tygem are excluded.
+      Until decided, Star Player is not in `tools/masters/manifest.json`.
 - [ ] Deferred: Dosaku and Shusai after the eval; Go Seigen, Takagawa and living players by
       name after a name-and-likeness check (the 1950 rule does not clear the first two); Moku quoting the Classic and a belt mark per book;
       fine-tune adapters per master after Phase 4, measured by the same eval; your own

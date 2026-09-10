@@ -174,16 +174,49 @@ export function encodePosition(rec) {
 
 const DAYS_1970 = { rank: 18322, preaz: 17045 }; // 2020-03-01 and 2016-09-01
 const SOURCE_KGS = 2;
+const SOURCE_GOGOD = 5;
+const SOURCE_GO4GO = 6;
 
-/** The 192-float profile row for one position.
+/** Years KataGo's `proyear_<year>` profile accepts (SGFMetadata::getProfile). 1800 to
+ *  2020 is the historical profile (GoGoD); 2021 to 2023 the modern one (Go4Go). */
+export const PRO_YEARS = { min: 1800, max: 2023, modernFrom: 2021 };
+
+/** Days since 1970-01-01 for June 1 of `year`, the date every pro profile carries. */
+function proDays(year) {
+  return Math.round(Date.UTC(year, 5, 1) / 86400000);
+}
+
+/** The 192-float profile row for one position. Two shapes:
+ *  a rank profile (KataGo's `rank_<r>` / `preaz_<r>`), or a pro profile
+ *  (`proyear_<year>`: both sides a top professional of that year, from the GoGoD
+ *  collection, time control unknown). `pro` wins over `rank` when both are given,
+ *  because the bot seam always spreads a rank into the profile.
  *  @param {object} o
- *  @param {string} o.rank        rank of the side to move, e.g. "5k"
+ *  @param {string} [o.rank]      rank of the side to move, e.g. "5k"
  *  @param {string} [o.oppRank]   rank of the other side (defaults to `rank`)
  *  @param {boolean} [o.preAZ]    imitate 2016 openings instead of post-AlphaZero ones
+ *  @param {boolean} [o.pro]      strong player of `year` on both sides
+ *  @param {number} [o.year]      1800..2023, required with `pro`
  *  @param {number} o.boardArea   N * N */
-export function encodeMeta({ rank, oppRank = rank, preAZ = false, boardArea }) {
+export function encodeMeta({ rank, oppRank = rank, preAZ = false, pro = false, year, boardArea }) {
   const m = new Float32Array(NUM_META_FEATURES);
   m[0] = 1; m[1] = 1;                    // both players human
+  if (pro) {
+    if (!Number.isInteger(year) || year < PRO_YEARS.min || year > PRO_YEARS.max) {
+      throw new RangeError(`no pro profile for year ${year}`);
+    }
+    m[6] = 1; m[40] = 1;                 // inverse rank 1 on both sides
+    m[74] = 0;                           // rated
+    m[75] = 1;                           // time control unknown
+    m[82] = 0.4 * (Math.log(0 + 60) - 6.5);
+    m[83] = 0.3 * (Math.log(0 + 1) - 3);
+    m[84] = 0.5 * (Math.log(0 + 2) - 1.5);
+    m[85] = 0.25 * (Math.log(0 + 2) - 1.5);
+    m[86] = 0.5 * Math.log(boardArea / 361);
+    encodeDate(m, proDays(year));
+    m[151 + (year >= PRO_YEARS.modernFrom ? SOURCE_GO4GO : SOURCE_GOGOD)] = 1;
+    return m;
+  }
   const invPla = inverseRank(rank), invOpp = inverseRank(oppRank);
   for (let i = 0; i < Math.min(invPla, 34); i++) m[6 + i] = 1;
   for (let i = 0; i < Math.min(invOpp, 34); i++) m[40 + i] = 1;
@@ -194,7 +227,13 @@ export function encodeMeta({ rank, oppRank = rank, preAZ = false, boardArea }) {
   m[84] = 0.5 * (Math.log(5 + 2) - 1.5);
   m[85] = 0.25 * (Math.log(0 + 2) - 1.5);
   m[86] = 0.5 * Math.log(boardArea / 361);
-  const days = preAZ ? DAYS_1970.preaz : DAYS_1970.rank;
+  encodeDate(m, preAZ ? DAYS_1970.preaz : DAYS_1970.rank);
+  m[151 + SOURCE_KGS] = 1;
+  return m;
+}
+
+/** 32 sinusoids over the game date, periods from a week up to about 1500 years. */
+function encodeDate(m, days) {
   let period = 7;
   const factor = Math.pow(80000, 1 / 31);
   for (let i = 0; i < 32; i++) {
@@ -203,8 +242,6 @@ export function encodeMeta({ rank, oppRank = rank, preAZ = false, boardArea }) {
     m[87 + i * 2 + 1] = Math.sin(rev * 2 * Math.PI);
     period *= factor;
   }
-  m[151 + SOURCE_KGS] = 1;
-  return m;
 }
 
 /** Everything the network needs for one query. */
