@@ -3,7 +3,7 @@
    type and falls back per field, with one console.warn naming what was reset. */
 import { TINTS } from "../content/rank.js";
 import { DEFAULT_TYPEFACE, typefaceOf } from "../content/typeface.js";
-import { DEFAULT_THEME, themeOf } from "../content/theme.js";
+import { SYSTEM_THEME, isThemeId, sanitizePalette } from "../theme/index.js";
 
 export const STORE_KEY = "sente-profile-v2";
 
@@ -17,7 +17,8 @@ export const defaultProfile = {
   lastMoveMark: "dot",                       // how the last stone played is marked
 
   typeface: DEFAULT_TYPEFACE,                // font pairing id, src/content/typeface.js
-  theme: DEFAULT_THEME,                      // palette id, src/content/theme.js
+  theme: SYSTEM_THEME,                       // palette id, or "system" to follow the device
+  dojo: null,                                // the palette this device built, or null
   kataDate: "", kataStreak: 0, kataBest: 0,  // kata of the day attendance
   duelStarted: "", duelDate: "", duelResult: "", duelMoves: 0,  // daily duel: day started, day finished, code ("B+3.5")
   duelPlayed: 0, duelWins: 0, duelStreak: 0, duelBestStreak: 0,
@@ -45,7 +46,10 @@ export const MARKS = ["dot", "ring", "none"];
 // Element type for each array field; anything else in an array is a corrupt profile.
 const ARRAY_OF = { lessonsDone: "string", problemsDone: "string", tierPassed: "number" };
 
-const validField = (key, value) => {
+const validField = (key, value, raw) => {
+  // `dojo` defaults to null, so its type cannot be read off the default; it is
+  // valid when it is absent or when it sanitises to a complete palette.
+  if (key === "dojo") return value === null || sanitizePalette(value) !== null;
   const def = defaultProfile[key];
   if (Array.isArray(def)) {
     const t = ARRAY_OF[key];
@@ -56,7 +60,7 @@ const validField = (key, value) => {
   if (key === "tint") return typeof value === "string" && Object.hasOwn(TINTS, value);
   if (key === "lastMoveMark") return MARKS.includes(value);
   if (key === "typeface") return typeof value === "string" && typefaceOf(value).id === value;
-  if (key === "theme") return typeof value === "string" && themeOf(value).id === value;
+  if (key === "theme") return typeof value === "string" && isThemeId(value, raw && raw.dojo ? sanitizePalette(raw.dojo) : null);
   if (typeof def === "string") return typeof value === "string";
   if (key === "bookProgress") return sanitizeBookProgress(value) !== null;
   return false;
@@ -73,8 +77,9 @@ export function sanitizeProfile(raw) {
   const bad = [];
   for (const key of Object.keys(defaultProfile)) {
     if (!(key in raw)) continue;
-    if (!validField(key, raw[key])) { bad.push(key); continue; }
-    if (key === "bookProgress") out[key] = sanitizeBookProgress(raw[key]);
+    if (!validField(key, raw[key], raw)) { bad.push(key); continue; }
+    if (key === "dojo") out[key] = raw[key] === null ? null : sanitizePalette(raw[key]);
+    else if (key === "bookProgress") out[key] = sanitizeBookProgress(raw[key]);
     else out[key] = Array.isArray(raw[key]) ? raw[key].slice() : raw[key];
   }
   if (bad.length) console.warn(`sente: profile field(s) reset to default: ${bad.join(", ")}`);
