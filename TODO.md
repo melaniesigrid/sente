@@ -220,6 +220,25 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       of their syllabus is still open.
 - [ ] Surface the saying of the day on Home (the card is built in `Learn.jsx` as
       `ClassicCard`; lift it to a shared component).
+- [x] The Classic, second pass (2026-09-10): the book itself, not only its sayings.
+      `content/classic.js` now carries the preface (Huan Tan's three kinds of player), all
+      thirteen chapters as prose in Sente's own rendering, chapter twelve's nine levels and
+      chapter eleven's thirty-two names, alongside the existing passages. Learn's series card
+      became a reader: preface, then thirteen expandable chapters, each with its lessons under
+      it and the names glossary inside chapter eleven. Profile gained a nine-levels card. New
+      lesson `classic-corner-shapes` (tier 5, 3k, life) teaches chapter thirteen's named corner
+      shapes, both verdicts replayed against the engine by the verifier.
+      Decisions: the nine levels map one-to-one onto the nine dan grades and kyu players get
+      none, because chapter twelve refuses to number anything below the ninth — the card says
+      so rather than inventing a title. Chapter eleven's names carry `sure`, and only 16 of the
+      32 claim a modern term; the rest show as unidentified, since the chapter's own argument
+      is that names must be set right. A chapter may now hold more than one lesson
+      (`alsoLessonIds`, `lessonIdsForChapter`), so `lessonAfter` walks chapter thirteen's
+      miscellany into its corner shapes. The ambient threading stays with `PASSAGES`.
+- [ ] The rest of chapter thirteen's named shapes: the five-point flower, and the two-by-three
+      that lives in the open and dies in the corner.
+- [ ] Restore the Chinese characters for chapter eleven's thirty-two names from the original,
+      and revisit the sixteen marked uncertain.
 - [ ] Tsumego graded 30k → 5k with categories and a daily set (reuses the verifier).
 - [ ] Spaced repetition: finished quiz steps enter a recall queue; "Review five" card on Home.
 - [ ] Joseki and opening library for 9×9 and 19×19.
