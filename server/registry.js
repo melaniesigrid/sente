@@ -1,29 +1,49 @@
 /* ----------------------- REGISTRY (Durable Object) -----------------------
    One instance, named "main". Owns everything that is not one game:
 
-     accounts     `player:<id>` records and `tok:<sha256>` lookups
+     accounts     `player:<id>` records, `tok:<sha256>` session lookups and
+                  `email:<address>` lookups
+     profiles     what a player says about themselves, on the player record;
+                  the picture is `avatar:<id>`, apart so that listing players
+                  for the ladder does not drag every picture into memory
      game lists   `games:<playerId>` recent games for the lobby's "your tables"
      matchmaking  `seek:<playerId>` open seeks; lobby sockets are hibernated and
                   tagged with the player id so a match can be pushed to them
      the ladder   a sort over the players, cached for a minute
 
-   Accounts are deliberately light: a display name and a bearer token that the
-   browser keeps. There is no password to forget and nothing personal to leak.
-   The token is stored hashed; losing it means claiming a new handle. */
+   A handle can be claimed with nothing but a name — sitting down to play has
+   never needed an account, and still does not. Such a handle lives in one
+   browser: the bearer token is all there is, stored hashed, and losing it means
+   claiming a new one.
+
+   Adding an address and a password turns that handle into an account that can
+   be signed into from anywhere. A sign-in mints another session token, so the
+   same person on a phone and a laptop is one player with two sessions, and
+   signing out of one leaves the other alone. What arrives from the browser is
+   never the password but a key derived from it (`server/accounts.js`); what is
+   stored is a salted SHA-256 of that key. There is no third party in this: no
+   Google, no identity provider, nobody to ask. */
 
 import { DurableObject } from "cloudflare:workers";
 import { newRating, rateGame, migrateRating } from "./rating.js";
-import { randomHex, sha256, cleanName, cleanTint } from "./http.js";
+import { randomHex, sha256, cleanName, cleanTint, sameDigest } from "./http.js";
 import { cleanKey, publicPlayer, hasPlayed } from "./players.js";
-import { hit, refund, REGISTER_LIMIT, REGISTER_WINDOW_MS } from "./ratelimit.js";
+import { cleanEmail, cleanKey as cleanDerivedKey, privateFields, KDF } from "./accounts.js";
+import { cleanBio, cleanFacts, avatarProblem, profileOf } from "./profile.js";
+import { hit, refund, REGISTER_LIMIT, REGISTER_WINDOW_MS, SIGNIN_LIMIT, SIGNIN_WINDOW_MS } from "./ratelimit.js";
 import { SIZES } from "./room.js";
 
 const KEEP_GAMES = 24;
+/* How many devices one account may stay signed in on. Past this the oldest
+   session is forgotten, which is what a person who never signs out wants. */
+const SESSION_KEEP = 12;
 /* The shape of what is stored. Bumped when a stored record has to be rewritten
    rather than merely read differently. 2: ratings moved from the old
    hundred-points-a-rank scale to OGS's, so every stored rating had to be
-   re-expressed at the rank its owner had actually earned. */
-const SCHEMA = 2;
+   re-expressed at the rank its owner had actually earned.
+   3: one token became a list of sessions, so an account can be signed in on
+      more than one device at a time. */
+const SCHEMA = 3;
 const SCHEMA_KEY = "schema:version";
 const LADDER_TTL = 60_000;
 const LADDER_SIZE = 100;
@@ -47,6 +67,17 @@ export class Registry extends DurableObject {
       const players = await this.ctx.storage.list({ prefix: "player:" });
       const patch = {};
       for (const [key, p] of players) patch[key] = { ...p, ...migrateRating(p) };
+      if (Object.keys(patch).length) await this.ctx.storage.put(patch);
+    }
+    if (at < 3) {
+      // Every handle claimed before sessions existed keeps working: its one
+      // token becomes its one session.
+      const players = await this.ctx.storage.list({ prefix: "player:" });
+      const patch = {};
+      for (const [key, p] of players) {
+        if (p.sessions) continue;
+        patch[key] = { ...p, sessions: p.tokenHash ? [p.tokenHash] : [] };
+      }
       if (Object.keys(patch).length) await this.ctx.storage.put(patch);
     }
     await this.ctx.storage.put(SCHEMA_KEY, SCHEMA);
@@ -78,9 +109,130 @@ export class Registry extends DurableObject {
       ...newRating(), wins: 0, losses: 0, draws: 0,
       createdAt: Date.now(), lastSeen: Date.now(),
       claimedFrom: ip,      // so leaving can give the claim back; never shown to anyone
+      email: null, pw: null, sessions: [],
     };
+    player.sessions = [player.tokenHash];
     await this.ctx.storage.put({ [`player:${id}`]: player, [`tok:${player.tokenHash}`]: id });
-    return { token, player: publicPlayer(player) };
+    return { token, player: this.#self(player) };
+  }
+
+  /* ----- an address and a password -----
+     Three doors into the same room: claim a handle and add an account later,
+     or sign up with both at once, or sign in to one that already exists. */
+
+  /** Salt and hash a derived key for storage. The stretch already happened in
+   *  the browser, so this is a single digest: the salt is here to keep two
+   *  people who chose the same password from sharing a stored value. */
+  async #stash(key) {
+    const salt = randomHex(16);
+    return { v: KDF.v, iterations: KDF.iterations, salt, hash: await sha256(salt + key) };
+  }
+
+  async #keyMatches(pw, key) {
+    return pw ? sameDigest(pw.hash, await sha256(pw.salt + key)) : false;
+  }
+
+  /** Mint a session token for a player and record it. */
+  async #newSession(player) {
+    const token = randomHex(32);
+    const hash = await sha256(token);
+    const sessions = [...(player.sessions ?? []), hash].slice(-SESSION_KEEP);
+    // Sessions past the cap are forgotten oldest first, and their lookups with them.
+    const dropped = (player.sessions ?? []).filter(h => !sessions.includes(h));
+    const next = { ...player, sessions, tokenHash: hash, lastSeen: Date.now() };
+    await this.ctx.storage.put({ [`player:${player.id}`]: next, [`tok:${hash}`]: player.id });
+    if (dropped.length) await this.ctx.storage.delete(dropped.map(h => `tok:${h}`));
+    return { token, player: next };
+  }
+
+  /** Attach an address and a password to a handle that already exists. This is
+   *  the path that matters most: somebody has been playing as a guest, has a
+   *  rating they care about, and wants it to survive this browser. */
+  async attach(id, rawEmail, rawKey) {
+    const p = await this.ctx.storage.get(`player:${id}`);
+    if (!p) throw new Error("no-player");
+    if (p.email) throw new Error("already-attached");
+    const email = cleanEmail(rawEmail);
+    if (!email) throw new Error("bad-email");
+    const key = cleanDerivedKey(rawKey);
+    if (!key) throw new Error("bad-key");
+    if (await this.ctx.storage.get(`email:${email}`)) throw new Error("email-taken");
+    const next = { ...p, email, emailAt: Date.now(), pw: await this.#stash(key), lastSeen: Date.now() };
+    await this.ctx.storage.put({ [`player:${id}`]: next, [`email:${email}`]: id });
+    return this.#self(next);
+  }
+
+  /** Claim a handle and an account in one step. */
+  async signUp(rawName, rawTint, rawEmail, rawKey, ip = null) {
+    const email = cleanEmail(rawEmail);
+    if (!email) throw new Error("bad-email");
+    if (!cleanDerivedKey(rawKey)) throw new Error("bad-key");
+    if (await this.ctx.storage.get(`email:${email}`)) throw new Error("email-taken");
+    const { token, player } = await this.register(rawName, rawTint, ip);
+    await this.attach(player.id, email, rawKey);
+    return { token, player: await this.self(player.id) };
+  }
+
+  /** Sign in from anywhere. A wrong address and a wrong password answer the
+   *  same way and spend the same budget, so this endpoint cannot be used to
+   *  ask whether somebody has an account here. */
+  async signIn(rawEmail, rawKey, ip = null) {
+    if (ip) {
+      const rkey = `rate:in:${ip}`;
+      const r = hit(await this.ctx.storage.get(rkey), Date.now(), SIGNIN_LIMIT, SIGNIN_WINDOW_MS);
+      await this.ctx.storage.put(rkey, r.bucket);
+      if (!r.allowed) {
+        const e = new Error("too-many-attempts");
+        e.retryAfterMs = r.retryAfterMs;
+        throw e;
+      }
+    }
+    const email = cleanEmail(rawEmail);
+    const key = cleanDerivedKey(rawKey);
+    const id = email ? await this.ctx.storage.get(`email:${email}`) : null;
+    const p = id ? await this.ctx.storage.get(`player:${id}`) : null;
+    if (!p || !key || !(await this.#keyMatches(p.pw, key))) throw new Error("bad-credentials");
+    const { token, player } = await this.#newSession(p);
+    return { token, player: this.#self(player) };
+  }
+
+  /** Change the password. Knowing the old one is required even though the
+   *  caller already holds a session: a borrowed laptop should not be able to
+   *  lock its owner out. */
+  async setPassword(id, oldKey, rawKey) {
+    const p = await this.ctx.storage.get(`player:${id}`);
+    if (!p) throw new Error("no-player");
+    if (!p.email) throw new Error("no-email");
+    const key = cleanDerivedKey(rawKey);
+    if (!key) throw new Error("bad-key");
+    if (p.pw && !(await this.#keyMatches(p.pw, cleanDerivedKey(oldKey) ?? ""))) throw new Error("bad-credentials");
+    const next = { ...p, pw: await this.#stash(key), lastSeen: Date.now() };
+    await this.ctx.storage.put(`player:${id}`, next);
+    return this.#self(next);
+  }
+
+  /** End one session, or every session. Ending them all is the answer to "I
+   *  left myself signed in somewhere"; the caller's own session goes too. */
+  async signOut(id, token, everywhere = false) {
+    const p = await this.ctx.storage.get(`player:${id}`);
+    if (!p) return false;
+    const hashes = everywhere ? (p.sessions ?? []) : [await sha256(token)];
+    const sessions = (p.sessions ?? []).filter(h => !hashes.includes(h));
+    await this.ctx.storage.put(`player:${id}`, { ...p, sessions, lastSeen: Date.now() });
+    await this.ctx.storage.delete(hashes.map(h => `tok:${h}`));
+    for (const ws of this.ctx.getWebSockets(id)) ws.close(4000, "signed-out");
+    return true;
+  }
+
+  /** The owner's own view of themselves: everything public, plus the few
+   *  things only they may see. */
+  #self(p) {
+    return { ...profileOf(p, publicPlayer(p)), ...privateFields(p) };
+  }
+
+  async self(id) {
+    const p = await this.ctx.storage.get(`player:${id}`);
+    return p ? this.#self(p) : null;
   }
 
   /** The player behind a token, or null. */
@@ -89,7 +241,7 @@ export class Registry extends DurableObject {
     const id = await this.ctx.storage.get(`tok:${await sha256(token)}`);
     if (!id) return null;
     const p = await this.ctx.storage.get(`player:${id}`);
-    return p ? publicPlayer(p) : null;
+    return p ? this.#self(p) : null;
   }
 
   async player(id) {
@@ -105,7 +257,7 @@ export class Registry extends DurableObject {
     const next = { ...p, name, tint: patch.tint !== undefined ? cleanTint(patch.tint) : p.tint, lastSeen: Date.now() };
     await this.ctx.storage.put(`player:${id}`, next);
     this.ladderCache = null;
-    return publicPlayer(next);
+    return this.#self(next);
   }
 
   /** Remove a player and their token. Finished games keep their record; the
@@ -113,7 +265,11 @@ export class Registry extends DurableObject {
   async remove(id) {
     const p = await this.ctx.storage.get(`player:${id}`);
     if (!p) return false;
-    await this.ctx.storage.delete([`player:${id}`, `tok:${p.tokenHash}`, `games:${id}`, `seek:${id}`]);
+    const sessions = (p.sessions ?? [p.tokenHash]).filter(Boolean).map(h => `tok:${h}`);
+    await this.ctx.storage.delete([
+      `player:${id}`, `tok:${p.tokenHash}`, ...sessions, `games:${id}`, `seek:${id}`, `avatar:${id}`,
+      ...(p.email ? [`email:${p.email}`] : []),
+    ]);
     if (p.claimedFrom) {
       const key = `rate:reg:${p.claimedFrom}`;
       const back = refund(await this.ctx.storage.get(key), Date.now(), REGISTER_WINDOW_MS);
@@ -123,6 +279,62 @@ export class Registry extends DurableObject {
     for (const ws of this.ctx.getWebSockets(id)) ws.close(4000, "removed");
     this.ladderCache = null;
     return true;
+  }
+
+  /* ----- what a player says about themselves -----
+     The picture lives under its own key. The ladder lists every player, and a
+     `list({ prefix: "player:" })` that dragged a hundred pictures into memory
+     would be the one thing on this object that does not fit in its budget. */
+
+  /** Update the bio and the facts. A field left out of the patch is left
+   *  alone; a field sent empty is cleared, because clearing one has to be
+   *  possible and an empty string is how a form says so. */
+  async setProfile(id, patch) {
+    const p = await this.ctx.storage.get(`player:${id}`);
+    if (!p) throw new Error("no-player");
+    const next = {
+      ...p,
+      bio: patch.bio !== undefined ? cleanBio(patch.bio) : (p.bio ?? ""),
+      facts: patch.facts !== undefined ? cleanFacts(patch.facts) : (p.facts ?? {}),
+      lastSeen: Date.now(),
+    };
+    await this.ctx.storage.put(`player:${id}`, next);
+    return this.#self(next);
+  }
+
+  /** Store a picture. `data` is base64, because storage takes JSON and a
+   *  round trip through base64 is cheaper than a second binding. */
+  async setAvatar(id, type, data) {
+    const p = await this.ctx.storage.get(`player:${id}`);
+    if (!p) throw new Error("no-player");
+    const bytes = Math.floor((data?.length ?? 0) * 3 / 4);
+    const problem = avatarProblem(type, bytes);
+    if (problem) throw new Error(problem);
+    const at = Date.now();
+    await this.ctx.storage.put({
+      [`avatar:${id}`]: { type, data, at },
+      [`player:${id}`]: { ...p, avatarAt: at, lastSeen: at },
+    });
+    return this.#self({ ...p, avatarAt: at });
+  }
+
+  async clearAvatar(id) {
+    const p = await this.ctx.storage.get(`player:${id}`);
+    if (!p) throw new Error("no-player");
+    await this.ctx.storage.delete(`avatar:${id}`);
+    await this.ctx.storage.put(`player:${id}`, { ...p, avatarAt: null, lastSeen: Date.now() });
+    return this.#self({ ...p, avatarAt: null });
+  }
+
+  async avatar(id) {
+    return (await this.ctx.storage.get(`avatar:${id}`)) ?? null;
+  }
+
+  /** A stranger's view of a player: the ladder's row plus what they chose to
+   *  say. This is the only route that serves one player to another. */
+  async profile(id) {
+    const p = await this.ctx.storage.get(`player:${id}`);
+    return p ? profileOf(p, publicPlayer(p)) : null;
   }
 
   /* ----- games ----- */
@@ -272,7 +484,7 @@ export class Registry extends DurableObject {
     if (!opp) return;
     // The waiting player takes Black by courtesy; the newcomer takes White.
     const gameId = "g_" + randomHex(6);
-    const seatOf = (p) => ({ id: p.id, name: p.name, tint: p.tint, rating: Math.round(p.rating), rd: Math.round(p.rd) });
+    const seatOf = (p) => ({ id: p.id, name: p.name, tint: p.tint, rating: Math.round(p.rating), rd: Math.round(p.rd), avatarAt: p.avatarAt ?? null });
     const stub = this.env.ROOM.get(this.env.ROOM.idFromName(gameId));
     await stub.create({ id: gameId, size, rated, black: seatOf(opp), white: seatOf(me) });
     this.tell(match.id, { t: "matched", gameId, color: "b", opponent: seatOf(me), size });

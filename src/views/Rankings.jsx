@@ -1,6 +1,8 @@
 import { useMemo, useState, useEffect } from "react";
 import { Crown, Flame, Globe, Bot } from "lucide-react";
 import { Card, Avatar, RankBadge, PullQuote } from "../components/ui.jsx";
+import { avatarUrl } from "../net/avatar.js";
+import { SERVER_URL } from "../net/api.js";
 import { plainFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { PERSONAS } from "../content/personas.js";
@@ -51,7 +53,7 @@ export function RankingsView({ profile }) {
             {global && global.map((r, i) => (
               <div key={r.id} className={`ladder-row ${account && r.id === account.player.id ? "me" : ""}`}>
                 <span className={`ladder-pos ${i === 0 ? "gold" : ""}`}>{i === 0 ? <Crown size={16} /> : i + 1}</span>
-                <Avatar name={r.name} tint={r.tint} size={38} />
+                <Avatar name={r.name} tint={r.tint} size={38} src={avatarUrl(SERVER_URL, r.id, r.avatarAt)} />
                 <div className="ladder-name">
                   <strong>{r.name}</strong>
                   <span className="fine">{provisionalText(r)} · {r.wins}–{r.losses}{account && r.id === account.player.id ? " · that's you" : ""}</span>

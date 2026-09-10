@@ -115,7 +115,7 @@ export default function SenteApp() {
           {view === "learn" && <LearnView profile={profile} setProfile={setProfile} />}
           {view === "tsumego" && <ProblemsView profile={profile} setProfile={setProfile} initialId={params ? params.problemId : null} />}
           {view === "ladder" && <RankingsView profile={profile} />}
-          {view === "profile" && <ProfileView profile={profile} setProfile={setProfile} go={go} room={room} />}
+          {view === "profile" && <ProfileView profile={profile} setProfile={setProfile} go={go} room={room} notify={notify} />}
           {view === "dojo" && <DojoView profile={profile} setProfile={setProfile} notify={notify} go={go} room={room} />}
           </>)}
         </ErrorBoundary>

@@ -8,23 +8,32 @@
    falls back to the local Worker (`npm run dev:server`), in production to the
    deployed one. Set it to "" to run the app without a server. */
 
+import { deriveKey } from "./password.js";
+
 const DEFAULT_URL = import.meta.env.DEV ? "http://localhost:8787" : "https://sente-server.melaniesigrid.workers.dev";
 const configured = import.meta.env.VITE_SENTE_SERVER;
 export const SERVER_URL = (configured === undefined ? DEFAULT_URL : configured).replace(/\/+$/, "");
 export const serverEnabled = () => SERVER_URL !== "";
 
+/** The address, folded the way the server folds it — and the way the key is
+ *  salted, so signing in with `Ada@…` finds the account made with `ada@…`. */
+const fold = (email) => (typeof email === "string" ? email.trim().toLowerCase() : "");
+const key = (email, password) => deriveKey(fold(email), password);
+
 export class ApiError extends Error {
   constructor(status, reason) { super(reason); this.name = "ApiError"; this.status = status; this.reason = reason; }
 }
 
-async function call(path, { method = "GET", token, body } = {}) {
+async function call(path, { method = "GET", token, body, blob } = {}) {
   if (!serverEnabled()) throw new ApiError(0, "no-server");
   const headers = { accept: "application/json" };
   if (token) headers.authorization = `Bearer ${token}`;
   if (body !== undefined) headers["content-type"] = "application/json";
+  if (blob) headers["content-type"] = blob.type;
   let res;
+  const payload = blob ?? (body === undefined ? undefined : JSON.stringify(body));
   try {
-    res = await fetch(`${SERVER_URL}${path}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+    res = await fetch(`${SERVER_URL}${path}`, { method, headers, body: payload });
   } catch { throw new ApiError(0, "offline"); }
   let data = null;
   try { data = await res.json(); } catch { /* no body */ }
@@ -34,9 +43,34 @@ async function call(path, { method = "GET", token, body } = {}) {
 
 export const api = {
   register: (name, tint) => call("/api/register", { method: "POST", body: { name, tint } }),
+
+  /* Accounts. Every one of these takes the password itself and derives the key
+     here, so no caller of `api` ever holds a password long enough to send one
+     by accident. Deriving costs about a second — show something while it runs. */
+  signUp: async (name, tint, email, password) =>
+    call("/api/signup", { method: "POST", body: { name, tint, email: fold(email), key: await key(email, password) } }),
+  signIn: async (email, password) =>
+    call("/api/signin", { method: "POST", body: { email: fold(email), key: await key(email, password) } }),
+  signOut: (token, everywhere = false) =>
+    call("/api/signout", { method: "POST", token, body: { everywhere } }),
+  addAccount: async (token, email, password) =>
+    call("/api/me/account", { method: "POST", token, body: { email: fold(email), key: await key(email, password) } }),
+  changePassword: async (token, email, oldPassword, password) =>
+    call("/api/me/password", {
+      method: "POST", token,
+      body: { oldKey: await key(email, oldPassword), key: await key(email, password) },
+    }),
+
   me: (token) => call("/api/me", { token }),
   update: (token, patch) => call("/api/me", { method: "PATCH", token, body: patch }),
   leave: (token) => call("/api/me", { method: "DELETE", token }),
+  /* What a player says about themselves. `setAvatar` posts the bytes, not
+     JSON: the picture is already squared and squeezed by `prepareAvatar`. */
+  setProfile: (token, patch) => call("/api/me/profile", { method: "PATCH", token, body: patch }),
+  setAvatar: (token, blob) => call("/api/me/avatar", { method: "PUT", token, blob }),
+  clearAvatar: (token) => call("/api/me/avatar", { method: "DELETE", token }),
+  profile: (id) => call(`/api/players/${encodeURIComponent(id)}`),
+
   games: (token) => call("/api/games", { token }),
   ladder: () => call("/api/ladder"),
   stats: () => call("/api/stats"),
