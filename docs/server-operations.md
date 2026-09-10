@@ -66,11 +66,17 @@ the **Edit Cloudflare Workers** template, or build a custom token with one permi
 | Permissions | Workers Scripts |
 | Access | Edit |
 
-That row covers uploading the Worker, its Durable Object migrations and its secrets, which
-is everything this deploy does. Under Account Resources, include the account that owns
-`sente-server` rather than all accounts. Leave Client IP Filtering empty, because the
-runners GitHub gives you do not have stable addresses. TTL is your call; an empty one never
-expires.
+One row is the whole requirement. There is no separate Durable Objects permission, because
+Durable Object namespaces and migrations are managed through the Workers Scripts API and
+ride along in the same upload as the script. Nothing else applies here either: this Worker
+uses no KV and no R2, Workers Tail is only for streaming logs with `wrangler tail`, no Zone
+permission is needed because the server runs on `workers.dev` rather than a custom domain,
+and Account Settings: Read is unnecessary because `CLOUDFLARE_ACCOUNT_ID` tells the deploy
+which account to use instead of making it look one up.
+
+Under Account Resources, include the account that owns `sente-server` rather than all
+accounts. Leave Client IP Filtering empty, because the runners GitHub gives you do not have
+stable addresses. TTL is your call; an empty one never expires.
 
 Cloudflare shows the token once. Put it in the repository:
 
