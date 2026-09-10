@@ -90,25 +90,26 @@ ${SIGNATURE_FACE}
 .content { flex: 1; width: 100%; max-width: 1100px; margin: 0 auto; padding: clamp(10px, 2vw, 22px) clamp(16px, 4vw, 44px) 46px; }
 .foot {
   display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
-  padding: 18px clamp(16px, 4vw, 44px); font-size: 12px; opacity: .55; letter-spacing: .05em;
+  padding: 18px clamp(16px, 4vw, 44px); font-size: 12px; letter-spacing: .05em;
+  align-items: center;
 }
-.foot-line { font-family: var(--font-caption); font-style: var(--caption-style); }
+.foot-line { font-family: var(--font-caption); font-style: var(--caption-style); opacity: .55; }
 
 /* The signature. One name, one hand, one size — it does not follow the pairing,
    and it draws itself on once when the page arrives, left to right, the way a
    pen would. */
-.signed { display: inline-flex; align-items: baseline; gap: 10px; }
-.signed-by { font-size: 9.5px; letter-spacing: .2em; text-transform: uppercase; opacity: .6; }
+.signed { display: inline-flex; align-items: baseline; gap: 12px; padding-right: 12px; }
+.signed-by { font-size: 9.5px; letter-spacing: .2em; text-transform: uppercase; opacity: .45; }
 .signature {
-  font-family: 'sente-signature', cursive; font-size: 27px; line-height: .9;
-  letter-spacing: .01em; color: var(--ink); opacity: .9;
+  font-family: 'sente-signature', cursive; font-size: 42px; line-height: 1; padding: 2px 0;
+  letter-spacing: .01em; color: var(--ink); opacity: .8;
   display: inline-block; transform: rotate(-2deg); transform-origin: left bottom;
   animation: sign 1.5s cubic-bezier(.25,.7,.3,1) .45s both;
 }
 @keyframes sign {
-  from { clip-path: inset(0 100% -25% 0); opacity: 0; }
-  25%  { opacity: .9; }
-  to   { clip-path: inset(0 -10% -25% 0); opacity: .9; }
+  from { clip-path: inset(-20% 100% -40% 0); opacity: 0; }
+  25%  { opacity: .8; }
+  to   { clip-path: inset(-20% -14% -40% 0); opacity: .8; }
 }
 
 /* ---- primitives ---- */
