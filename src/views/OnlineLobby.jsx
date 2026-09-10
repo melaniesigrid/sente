@@ -1,14 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Globe, Radio, X, Play, Eye, LogOut, KeyRound } from "lucide-react";
+import { Radio, X, Play, Eye, LogOut, DoorOpen, Mail } from "lucide-react";
 import { Card, Btn, Avatar, RankBadge } from "../components/ui.jsx";
 import { api, lobbySocket, serverEnabled } from "../net/api.js";
 import { loadAccount, saveAccount, clearAccount } from "../store/account.js";
 import { provisionalText } from "../content/online.js";
 import { tableLine } from "./onlineStatus.js";
+import { AccountGate } from "./AccountGate.jsx";
+import { errorText, formProblem } from "./accountForm.js";
 
 /* ----------------------- ONLINE LOBBY (card) -----------------------
-   Claim a handle, then look for an opponent. The handle is a token kept on
-   this device; the server rates games with Glicko-2 and keeps the ladder.
+   Get in, then look for an opponent. Getting in is `AccountGate`: an address
+   and a password, or a handle kept in this browser alone. The server rates
+   games with Glicko-2 and keeps the ladder.
    `onPlay(session)` opens a table: `{ mode: { kind: "online", gameId } }`.
    The board comes from the lobby's table picker, so one control sets the
    size for every kind of game. Online games are even; handicap is a house
@@ -18,52 +21,7 @@ export function OnlineCard({ profile, notify, onPlay, size = 9 }) {
   if (!serverEnabled()) return null;
   return account
     ? <Lobby account={account} setAccount={setAccount} notify={notify} onPlay={onPlay} size={size} />
-    : <Claim profile={profile} notify={notify} onClaimed={setAccount} />;
-}
-
-const CLAIM_ERRORS = {
-  offline: "The server is out of reach right now",
-  "too-many-handles": "That is a lot of handles from one place today. Try again in an hour.",
-  "bad-name": "A handle is two to eighteen characters",
-};
-
-function Claim({ profile, notify, onClaimed }) {
-  const [name, setName] = useState(profile.name === "Player" ? "" : profile.name);
-  const [busy, setBusy] = useState(false);
-  const claim = async () => {
-    const v = name.trim();
-    if (v.length < 2 || busy) return;
-    setBusy(true);
-    try {
-      const { token, player } = await api.register(v, profile.tint);
-      saveAccount({ token, player });
-      onClaimed({ token, player });
-      notify({ icon: "medal", text: `Welcome to the ladder, ${player.name}` });
-    } catch (e) {
-      notify({ icon: "info", text: CLAIM_ERRORS[e.reason] ?? `Could not claim that handle (${e.reason})` });
-    } finally { setBusy(false); }
-  };
-  return (
-    <Card className="online-card">
-      <div className="persona-top">
-        <div className="avatar duo"><Globe size={22} strokeWidth={2} /></div>
-        <div>
-          <h3>Play people</h3>
-          <p className="persona-tag">Live games over the network</p>
-        </div>
-      </div>
-      <p className="persona-bio">
-        Claim a handle and sit down against another person. Games are rated with Glicko-2
-        on the server, which checks every move with the same rules you play by here.
-      </p>
-      <div className="row">
-        <input className="chat-input name-input" value={name} maxLength={18} placeholder="Your handle"
-          onChange={e => setName(e.target.value)} onKeyDown={e => e.key === "Enter" && claim()} aria-label="Handle" />
-        <Btn icon={KeyRound} primary small onClick={claim} disabled={busy || name.trim().length < 2}>Claim handle</Btn>
-      </div>
-      <p className="fine">Your handle is a key kept on this device; there is no password. Clearing site data lets it go.</p>
-    </Card>
-  );
+    : <AccountGate profile={profile} notify={notify} onSignedIn={setAccount} />;
 }
 
 function Lobby({ account, setAccount, notify, onPlay, size }) {
@@ -110,6 +68,20 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
   const key = word.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 32) || null;
   const findGame = () => { if (sock.current && sock.current.send({ t: "seek", size, key })) setSeek({ size, key }); };
   const cancel = () => { if (sock.current) sock.current.send({ t: "cancel" }); setSeek(null); };
+  const signOut = async () => {
+    try { await api.signOut(token); } catch (e) { if (e.status !== 401) { notify({ icon: "info", text: errorText(e.reason) }); return; } }
+    clearAccount();
+    setAccount(null);
+    notify({ icon: "info", text: "Signed out. Your rating is waiting for you." });
+  };
+
+  const attach = async (email, password) => {
+    const me = await api.addAccount(token, email, password);
+    setPlayer(me);
+    saveAccount({ token, player: me });
+    notify({ icon: "medal", text: "That handle is yours on any device now" });
+  };
+
   const leave = async () => {
     if (!window.confirm("Leave the ladder? This handle, its key and its rating are removed for good. Finished games stay.")) return;
     try { await api.leave(token); } catch (e) { if (e.status !== 401) { notify({ icon: "info", text: "Could not reach the server; try again" }); return; } }
@@ -167,11 +139,59 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
           {done.map(g => <TableRow key={g.id} game={g} me={player.id} onOpen={() => onPlay({ mode: { kind: "online", gameId: g.id } })} />)}
         </div>
       )}
+      {!player.email && <AttachRow onAttach={attach} />}
       <div className="row spread">
         <p className="fine">Rated with Glicko-2 on the server. Every move is checked there with the same rules.</p>
-        <Btn icon={LogOut} small onClick={leave} label="Leave the ladder and remove this handle" />
+        <div className="row">
+          {player.email && <Btn icon={DoorOpen} small onClick={signOut}>Sign out</Btn>}
+          <Btn icon={LogOut} small onClick={leave} label="Leave the ladder and remove this handle" />
+        </div>
       </div>
     </Card>
+  );
+}
+
+/** The offer a handle with no address behind it should keep seeing: this
+ *  rating only exists in this browser, and one address fixes that. It is a
+ *  disclosure rather than a banner, so it never argues with the board. */
+function AttachRow({ onAttach }) {
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [shown, setShown] = useState(null);
+  const go = async () => {
+    if (busy) return;
+    const problem = formProblem("attach", { email, password, confirm: password });
+    if (problem) { setShown(problem); return; }
+    setBusy(true);
+    setShown(null);
+    try { await onAttach(email, password); setOpen(false); }
+    catch (e) { setShown(errorText(e.reason)); }
+    finally { setBusy(false); }
+  };
+  if (!open) {
+    return (
+      <button className="attach-row" onClick={() => setOpen(true)}>
+        <Mail size={14} />
+        <span>This handle lives in this browser only. Add an address to keep it.</span>
+      </button>
+    );
+  }
+  return (
+    <div className="gate-fields">
+      <input className="chat-input" type="email" value={email} placeholder="Email address" autoComplete="email"
+        onChange={e => setEmail(e.target.value)} aria-label="Email address" />
+      <input className="chat-input" type="password" value={password} placeholder="A password, ten characters or more"
+        autoComplete="new-password" onChange={e => setPassword(e.target.value)}
+        onKeyDown={e => e.key === "Enter" && go()} aria-label="Password" />
+      {shown && <p className="gate-problem" role="alert">{shown}</p>}
+      <div className="row">
+        <Btn icon={Mail} primary small onClick={go} disabled={busy}>{busy ? "Working…" : "Keep this handle"}</Btn>
+        <Btn small onClick={() => setOpen(false)}>Not now</Btn>
+      </div>
+      <p className="fine">Your rating, your games and your handle stay exactly as they are.</p>
+    </div>
   );
 }
 

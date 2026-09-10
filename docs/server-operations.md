@@ -125,6 +125,19 @@ Set with `npx wrangler secret put ADMIN_TOKEN` and known only to you. A rotated 
 `~/sente-admin-token.txt`, outside the repository; rotate it again whenever you like, and
 the routes below start refusing the old one within a minute.
 
+## Account routes
+
+```
+POST   /api/register        {name, tint}              a handle, this browser only
+POST   /api/signup          {name, tint, email, key}  a handle with an account behind it
+POST   /api/signin          {email, key}              -> a session token for this device
+POST   /api/signout         bearer {everywhere?}      one session, or all of them
+POST   /api/me/account      bearer {email, key}       give an existing handle an address
+POST   /api/me/password     bearer {oldKey, key}      change it; the old one is required
+```
+
+`key` is never a password — see **Passwords** below.
+
 ## Operator routes
 
 All four need `Authorization: Bearer $ADMIN_TOKEN`.
@@ -140,15 +153,45 @@ Claiming a handle is limited to twenty an hour from one address. Leaving refunds
 so a person who changes their mind never meets the limit while a script hoarding accounts
 does.
 
+## Passwords
+
+The server never sees a password. The browser derives a key from it with
+PBKDF2-SHA256 at 600,000 iterations, salted with the address
+(`src/net/password.js`), and sends that; the server stores a salted SHA-256 of
+what arrives (`server/accounts.js`). The reason is the free plan's 10 ms of CPU
+per invocation: a password hash worth the name costs far more than that, so the
+stretch happens where there is time for it. An attacker holding the whole store
+still pays the full 600,000 iterations per guess.
+
+Three consequences worth knowing before you touch any of it:
+
+- **The iteration count is part of the wire format.** Raising `KDF.iterations`
+  changes every key every browser derives, so existing passwords stop matching.
+  Every stored record carries the parameters it was made under (`pw.v`,
+  `pw.iterations`); a real raise means verifying at the record's own count and
+  re-stashing on the next successful sign-in. Nobody has needed that yet.
+- **There is no password reset and no address verification.** Both need mail out
+  of the Worker. Until they exist an address is a way to sign in from another
+  device, not a proven identity, and a forgotten password means claiming a new
+  handle. The sign-up copy does not pretend otherwise.
+- **`ADMIN_TOKEN` cannot read a password and neither can you.** The operator
+  routes list players; they do not expose addresses beyond what the owner sees.
+
+Sign-in is rate limited to thirty attempts an hour from one address
+(`SIGNIN_LIMIT`), counted whether the attempt succeeded or not. A wrong password
+and an address with no account here give the identical answer, so the endpoint
+cannot be used to ask who has an account.
+
 ## Checking a deployment
 
-Three scripts, each of which cleans up the accounts it makes:
+Four scripts, each of which cleans up the accounts it makes:
 
 ```bash
-node tools/server/smoke.mjs https://sente-server.melaniesigrid.workers.dev   # one whole game
-node tools/server/qa.mjs    https://sente-server.melaniesigrid.workers.dev   # the wider pass
-node tools/server/churn.mjs https://sente-server.melaniesigrid.workers.dev   # the rate limit
-node tools/server/bench.mjs                                                  # room load cost
+node tools/server/smoke.mjs    https://sente-server.melaniesigrid.workers.dev   # one whole game
+node tools/server/accounts.mjs https://sente-server.melaniesigrid.workers.dev   # sign up, in, out
+node tools/server/qa.mjs       https://sente-server.melaniesigrid.workers.dev   # the wider pass
+node tools/server/churn.mjs    https://sente-server.melaniesigrid.workers.dev   # the rate limit
+node tools/server/bench.mjs                                                     # room load cost
 ```
 
 ## One thing that will confuse you

@@ -50,6 +50,15 @@ export async function sha256(text) {
   for (const b of new Uint8Array(digest)) s += HEX[b >> 4] + HEX[b & 15];
   return s;
 }
+
+/** Compare two hex digests without letting the time taken say how much of the
+ *  first one an attacker has guessed right. */
+export function sameDigest(a, b) {
+  if (typeof a !== "string" || typeof b !== "string" || a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i += 1) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
 
 /** Display names: trimmed, 2 to 18 characters, no control characters. */
 export function cleanName(v) {

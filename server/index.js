@@ -3,9 +3,18 @@
    sockets to the right Durable Object. Nothing about go lives here.
 
      POST  /api/register        {name, tint}   -> {token, player}; 429 past a few an hour
+     POST  /api/signup          {name, tint, email, key} -> {token, player}
+     POST  /api/signin          {email, key}   -> {token, player}; 429 past a few an hour
+     POST  /api/signout         bearer {everywhere} -> {ok}
+     POST  /api/me/account      bearer {email, key}  -> add an account to a handle
+     POST  /api/me/password     bearer {oldKey, key} -> change it
      GET   /api/me              bearer         -> player
      PATCH /api/me              bearer {name, tint}
-     DELETE /api/me             bearer         -> leave: token and ladder seat gone
+     DELETE /api/me             bearer         -> leave: sessions and ladder seat gone
+
+   `key` is never a password: it is the key the browser derives from one
+   (`src/net/password.js`). The server has no way to read the password back and
+   is not told it.
      DELETE /api/admin/players/:id     ADMIN_TOKEN bearer
      GET   /api/admin/players          ADMIN_TOKEN bearer
      DELETE /api/admin/ratelimit/:ip   ADMIN_TOKEN bearer
@@ -32,7 +41,11 @@ export default {
       return await route(req, env);
     } catch (e) {
       if (e instanceof HttpError) return fail(e.status, e.reason);
-      const known = { "bad-name": 400, "no-player": 404, exists: 409 };
+      const known = {
+        "bad-name": 400, "bad-email": 400, "bad-key": 400, "no-email": 400,
+        "bad-credentials": 401, "no-player": 404,
+        exists: 409, "email-taken": 409, "already-attached": 409,
+      };
       if (known[e.message]) return fail(known[e.message], e.message);
       console.error("unhandled", e);
       return fail(500, "internal");
@@ -49,13 +62,36 @@ async function route(req, env) {
 
   if (path === "/api/register" && req.method === "POST") {
     const body = await readJson(req);
-    try {
-      return json(await reg.register(body.name, body.tint, callerIp(req)), 201);
-    } catch (e) {
-      if (e.message !== "too-many-handles") throw e;
-      const secs = Math.ceil((e.retryAfterMs ?? 3600000) / 1000);
-      return json({ error: "too-many-handles" }, 429, { "retry-after": String(secs) });
-    }
+    return limited(() => reg.register(body.name, body.tint, callerIp(req)), 201);
+  }
+
+  if (path === "/api/signup" && req.method === "POST") {
+    const b = await readJson(req);
+    return limited(() => reg.signUp(b.name, b.tint, b.email, b.key, callerIp(req)), 201);
+  }
+
+  if (path === "/api/signin" && req.method === "POST") {
+    const b = await readJson(req);
+    return limited(() => reg.signIn(b.email, b.key, callerIp(req)));
+  }
+
+  if (path === "/api/signout" && req.method === "POST") {
+    const token = bearer(req);
+    const player = await requirePlayer(req, reg);
+    const b = await readJson(req);
+    return json({ ok: await reg.signOut(player.id, token, b.everywhere === true) });
+  }
+
+  if (path === "/api/me/account" && req.method === "POST") {
+    const player = await requirePlayer(req, reg);
+    const b = await readJson(req);
+    return json(await reg.attach(player.id, b.email, b.key));
+  }
+
+  if (path === "/api/me/password" && req.method === "POST") {
+    const player = await requirePlayer(req, reg);
+    const b = await readJson(req);
+    return json(await reg.setPassword(player.id, b.oldKey, b.key));
   }
 
   if (path === "/api/me") {
@@ -115,6 +151,18 @@ async function route(req, env) {
   }
 
   return fail(404, "not-found");
+}
+
+/** Run a Registry call that may refuse for having been asked too often, and
+ *  turn that refusal into a 429 that says when to come back. */
+async function limited(run, ok = 200) {
+  try {
+    return json(await run(), ok);
+  } catch (e) {
+    if (e.message !== "too-many-handles" && e.message !== "too-many-attempts") throw e;
+    const secs = Math.ceil((e.retryAfterMs ?? 3600000) / 1000);
+    return json({ error: e.message }, 429, { "retry-after": String(secs) });
+  }
 }
 
 async function requirePlayer(req, reg) {

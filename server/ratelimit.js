@@ -39,6 +39,13 @@ export function refund(bucket, now, windowMs) {
 export const REGISTER_LIMIT = 20;
 export const REGISTER_WINDOW_MS = 60 * 60 * 1000;
 
+/** How many sign-in attempts one address may make in an hour. Thirty is far
+ *  more than a person who has forgotten which password they used will need,
+ *  and far less than guessing one is worth. Every attempt counts, right or
+ *  wrong, so a correct guess does not buy the guesser a fresh budget. */
+export const SIGNIN_LIMIT = 30;
+export const SIGNIN_WINDOW_MS = 60 * 60 * 1000;
+
 /** The caller's address, or null when the platform did not give us one
  *  (local `wrangler dev`, or a request that arrived without the header). */
 export function callerIp(req) {

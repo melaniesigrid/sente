@@ -865,6 +865,29 @@ ${SIGNATURE_FACE}
 .online-card { display: flex; flex-direction: column; gap: 12px; }
 .online-card h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }
 .word-input { max-width: 220px; }
+
+/* ---- the account gate ----
+   The three doors sit in one sunken rail with the chosen one raised out of it:
+   the figure the nav and the segmented control already use, so a person who
+   has met one has met all three. */
+.gate-tabs { display: flex; gap: 4px; padding: 4px; border-radius: 14px; box-shadow: var(--sink-sm); }
+.gate-tab {
+  flex: 1; border: 0; cursor: pointer; background: var(--ground); color: var(--ink); border-radius: 10px;
+  padding: 10px 12px; font: 700 13.5px var(--font-body); letter-spacing: .03em;
+  transition: box-shadow .15s ease, color .15s ease; opacity: .7;
+}
+.gate-tab.on { box-shadow: var(--raise-sm); color: var(--accent); opacity: 1; }
+.gate-tab:not(.on):hover { opacity: 1; }
+.gate-fields { display: flex; flex-direction: column; gap: 9px; }
+.gate-fields .chat-input { width: 100%; }
+.gate-problem { margin: 0; font-size: 14px; line-height: 1.5; color: var(--danger); }
+.attach-row {
+  display: flex; align-items: center; gap: 9px; width: 100%; text-align: left; cursor: pointer;
+  border: 0; background: transparent; color: var(--ink); border-radius: 12px; padding: 10px 12px;
+  font: 400 13.5px var(--font-body); opacity: .72; transition: box-shadow .15s ease, opacity .15s ease;
+}
+.attach-row:hover { box-shadow: var(--sink-sm); opacity: 1; }
+.attach-row svg { color: var(--accent); flex: 0 0 auto; }
 .seek-state { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-radius: 14px; box-shadow: var(--sink-sm); font-size: 14.5px; }
 .seek-state .pulse { color: var(--accent); animation: seek-pulse 1.6s ease-in-out infinite; }
 @keyframes seek-pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
