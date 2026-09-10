@@ -41,7 +41,8 @@ Everything downstream stands on this. Pure modules only; no React. Views import 
 
 Decisions made in Phase 1 (change deliberately, not by accident):
 - Board is `{ size, cells }`; `cells` is flat row-major. `go.js` is gone.
-- Komi defaults to 7.5, or 0.5 with a handicap. Area scoring gives white one point per
+- Komi defaults by board size (5.5 / 6.5 / 7.5 for 9 / 13 / 19), or 0.5 with a handicap
+  (revised in Phase 3; it was a flat 7.5 here). Area scoring gives white one point per
   handicap stone after the first (AGA convention).
 - `undo` is allowed from `playing` and `scoring` (scoring undo returns to playing and
   clears dead marks); never from `ended`.
@@ -89,9 +90,9 @@ each fixed in its own commit:
 
 ## Phase 3 — Play like a real server
 
-- [x] Lobby: choose 9/13/19 and handicap (branch `feat/board-sizes`, 2026-09-10); komi is the
-      engine's default for the handicap, shown not typed; house players play every size.
-      The clock preset waits for the Clock UI item below.
+- [x] Lobby: choose 9/13/19, handicap and komi (branch `feat/board-sizes`, 2026-09-10);
+      komi defaults to what the board is owed and can be stepped in half points;
+      house players play every size. The clock preset waits for the Clock UI item below.
 - [x] Game-end ceremony: after two passes enter scoring, tap groups to toggle dead, territory
       overlay, honest result card with every term ("41 stones + 3 territory = 44" vs
       "35 + 4 + 7.5 komi = 46.5"), a bow, and "Keep playing" to take both passes back.
@@ -106,9 +107,32 @@ each fixed in its own commit:
 - [ ] Local-only telemetry ring buffer (last 50 games: size, result, bot, move count) to
       tune house-player weights. Never leaves the device.
 
+Decisions made in Phase 3, rating slice (2026-09-10):
+- The rating scale is OGS's, number for number: `rank = ln(rating / 525) * 23.15`, rank 30
+  is 1 dan. A rating here means what a rating there means, so nobody re-learns the ladder.
+- Rank is shown to one decimal (12.4k), truncated so the tenth always sits inside the whole
+  rank on the badge. A whole rank takes weeks; a number that never moves reads as a number
+  that is not listening.
+- Rating moves by Glicko-2 (Glickman's paper, checked against its worked example), one game
+  to a rating period. A newcomer carries RD 350 and finds their real rank in an evening; a
+  settled player moves a tenth of a rank a game, so one bad night cannot undo a season. A
+  rank with RD above 160 is marked with a question mark rather than presented as fact.
+- New players start at 20k, not at OGS's 1500 (5.7k). A beginner seeded too strong loses
+  their first dozen games and watches the number fall, which is the one thing a ladder must
+  never do. Glicko's deviation covers the newcomer who is secretly stronger.
+- House players are rated at RD 30: a bot is exactly as strong as the rank it was asked to
+  play, so all the uncertainty in an update belongs to the human.
+- The profile store is `sente-profile-v3`. A v2 profile is migrated by rank, not by points
+  (`migrateLegacy`), and its deviation reopens in proportion to games already played.
+
 Decisions made in Phase 3, lobby slice (branch `feat/board-sizes`):
-- 19x19 is the default board; the last table (size, handicap) is a device preference in
-  `sente-lobby`, never part of the profile.
+- 19x19 is the default board; the last table (size, handicap, komi) is a device preference
+  in `sente-lobby`, never part of the profile.
+- Komi is per board size: 5.5 on 9x9, 6.5 on 13x13, 7.5 on 19x19, 0.5 with a handicap
+  (`KOMI` in `record.js`). One number for every board handed White a quarter of a 9x9,
+  and the human is always Black against a house player. A player who wants a different
+  game steps komi themselves; `komi: null` in the lobby store means "what this board is
+  owed" and the stepper's choice survives a change of board.
 - A handicap game against a house player is rated as if the opponent were one rank weaker
   per stone (`rankWithHandicap`); the lobby says "rated as 5k" so it is no surprise.
 - The daily duel stays 9x9 (`DUEL_SIZE`) and its host is the seeded heuristic player, not
@@ -182,7 +206,8 @@ imitates a rank: Hoshi 20k, Tetsu 15k, Yuki 10k, Ren 5k, Sora 1k, Kaede 2d, Tats
 - [ ] Matchmaking and challenge flow between humans; house players remain available and
       labeled as bots.
 - [ ] Spectating, chat, undo requests, and resign offers with consent.
-- [ ] Server-authoritative Glicko-2 rating replacing client-side Elo.
+- [ ] Server-authoritative rating: the same Glicko-2 (`src/engine/glicko.js`) run by the
+      server so a rating cannot be edited in localStorage.
 - [ ] Rankings ladder backed by real players.
 - [ ] Analysis: KataGo (or GnuGo) via the backend, or a WASM engine in the browser.
 
@@ -277,6 +302,14 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       from the first frame and `prefers-reduced-motion` gets it finished, with no caret.
       Twelve of the fifty-six sayings carry no mark, because their weight is in ordinary
       words; a lexicon that marked those too would be marking everything.
+- [x] The chapters say it twice (2026-09-10): every chapter of the Classic, and the preface,
+      now carries `plain` — the same idea in ordinary modern words — and a view sets it large
+      between the paragraphs the way a magazine pulls a line into the margin. `PullQuote` in
+      `components/ui.jsx` is the primitive: display italic over a short accent rule, with the
+      label under it, so the gloss is never mistaken for a quotation of the text beside it.
+      Learn's chapter bodies put one after the first paragraph; the Profile's nine levels card
+      opens with chapter twelve's. `npm test` holds every gloss to the house voice and checks
+      it is neither the one-line theme nor a saying the reader has already met.
 - [ ] The remaining named shapes of chapter thirteen as lessons: the five-point flower, and
       the two-by-three that lives in the open and dies in the corner.
 - [ ] Restore the Chinese characters for chapter eleven's thirty-two names from the original
@@ -374,9 +407,9 @@ Open:
 - [ ] A pairing is a device preference stored in the profile; when accounts arrive,
       decide whether it syncs or stays local like the Moku toggle.
 
-## Palettes (done 2026-09-10, branch `feat/board-sizes-local`)
+## Palettes and the dojo (done 2026-09-10, branch `feat/board-sizes-local`)
 
-- [x] A theme is data in `src/content/theme.js`: ground, the two lights every shadow is
+- [x] A theme is data: ground, the two lights every shadow is
       cut from, ink, cream, accent. Eight of them — house, kaya, porcelain, damson (light);
       lacquer, graphite, sumi, yohen (dark). Damson is pastel plum paper under a damson
       mark, the one light room that is neither warm stone nor cool clay.
@@ -389,13 +422,34 @@ Open:
 - [x] `theme.test.js` checks ink contrast, accent contrast against the house floor, and
       that the highlight and the shadow stay close to the ground — the illusion.
 
+- [x] Restructured into `src/theme/` with `index.js` as the only import surface: `tokens.js`
+      (the contract), `palettes.js` (the named rooms), `derive.js` (four colours in, every
+      token out), `color.js` (the only module that knows how a colour is spelled).
+- [x] Dojo at `src/views/Dojo.jsx`, reached from the Profile palette card: a live board and
+      the six tones side by side, the contrast rules printed as they are broken, "wear it"
+      disabled until all six pass, and "copy as code" so a good room can graduate into
+      `palettes.js`. Stored as `profile.dojo`, sanitised like every other stored field.
+- [x] Focus rings are `--accent-ring` (32% on paper, 55% in a dark room), not 16% of the
+      accent — keyboard focus was invisible on Lacquer.
+- [x] Belts carry `--belt-edge`, a contour in the room's own ink, so the white belt no
+      longer vanishes on Porcelain nor the black one on Lacquer.
+- [x] The active nav item has an accent rule under it, so state never rests on hue alone
+      where the raise has less luminance to spend.
+- [x] Type scale floor raised from 9.5px to 12px across the stylesheet; the wordmark went
+      from clamp(20, 26) to clamp(28, 38) and the brand mark from 15px to 19px.
+
 Open:
 - [ ] `prefers-color-scheme` is not consulted. A first visit lands on house whatever the
       OS says. Decide between an explicit choice only, or a `system` option that follows.
-- [ ] The belt colours, the seal tints and the rank tints are still absolute values from
-      `rank.js`; they were chosen against paper and are only checked by eye on the dark
-      rooms. Either theme them too or prove they hold.
-- [ ] Theme is a device preference like the pairing; same question when accounts arrive.
+- [ ] The seal tints in `rank.js` are still absolute values chosen against paper. The belts
+      have a contour now; the tints only colour an avatar, so they hold, but they are the
+      last absolute colours in the app.
+- [ ] `--accent` still does secondary duty (streak note, meter fill, kata pill). In the gold
+      rooms that is six accented things on one screen. Split out `--accent-quiet`.
+- [ ] Moku takes the board's stone tokens, so the mascot changes material with the room.
+      Give it `--moku-stone-*` of its own if that turns out to cost recognisability.
+- [ ] Theme and the dojo palette are device preferences like the pairing; same question
+      when accounts arrive.
 
 ## Principles (do not trade away)
 

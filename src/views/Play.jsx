@@ -3,11 +3,11 @@ import { Play, Users, Handshake, Minus, Plus, Home } from "lucide-react";
 import { Avatar, RankBadge, Btn } from "../components/ui.jsx";
 import { DuelCard } from "../components/DuelCard.jsx";
 import { PERSONAS, personasFor } from "../content/personas.js";
-import { rankOf, ratingOfRank, stepRank, rankInRange, rankWithHandicap, RANK_LADDER } from "../content/rank.js";
+import { rankOf, preciseRankOf, ratingOfRank, stepRank, rankInRange, rankWithHandicap, RANK_LADDER } from "../content/rank.js";
 import { duelMode } from "../content/duel.js";
 import { dayKey } from "../content/kata.js";
 import { SIZES, defaultKomi } from "../engine/index.js";
-import { loadLobby, saveLobby, HANDICAPS } from "../store/lobby.js";
+import { loadLobby, saveLobby, HANDICAPS, KOMI_STEPS } from "../store/lobby.js";
 import { loadSession } from "./session.js";
 import { Game } from "./Game.jsx";
 
@@ -15,9 +15,11 @@ import { Game } from "./Game.jsx";
    `resume` is `{ mode, record }` from the Home card; it seeds the first
    session only, a fresh mount without it shows the lobby.
 
-   The table (board size, handicap) is set once here and rides on the session
-   mode; the record is built from it in Game. Komi is never typed in: it is
-   the engine's default for the handicap, shown so nobody is surprised. */
+   The table (board size, handicap, komi) is set once here and rides on the
+   session mode; the record is built from it in Game. Komi defaults to what the
+   board is owed — the smaller the board the smaller the first move is worth —
+   and is shown rather than hidden. A player who wants a gentler game can move
+   it, in half points so no game can end in a draw. */
 export function PlayView({ profile, setProfile, notify, resume }) {
   // session: null | { mode: {kind:'bot', persona, rank, size, handicap} | {kind:'local', size, handicap} | duel, record? }
   const [session, setSession] = useState(() => resume || null);
@@ -33,9 +35,10 @@ export function PlayView({ profile, setProfile, notify, resume }) {
   if (!session) {
     const first = RANK_LADDER[0], last = RANK_LADDER[RANK_LADDER.length - 1];
     const hi = HANDICAPS.indexOf(table.handicap);
-    const komi = defaultKomi(table.handicap);
+    const komi = table.komi ?? defaultKomi(table.handicap, table.size);
+    const ki = KOMI_STEPS.indexOf(komi);
     const ratedAs = rankWithHandicap(rank, table.handicap);
-    const sit = (mode) => setSession({ mode: { ...mode, size: table.size, handicap: table.handicap } });
+    const sit = (mode) => setSession({ mode: { ...mode, size: table.size, handicap: table.handicap, komi } });
     return (
       <div className="stack">
         <h2 className="section-title">Find a game</h2>
@@ -48,7 +51,7 @@ export function PlayView({ profile, setProfile, notify, resume }) {
         <div className="rank-picker neu-card" role="group" aria-label="Level to play at">
           <div className="rank-picker-label">
             <strong>Play at</strong>
-            <span className="fine">{rank === myRank ? "your level" : `you are ${myRank}`}</span>
+            <span className="fine">{rank === myRank ? `your level · ${preciseRankOf(profile.rating)}` : `you are ${preciseRankOf(profile.rating)}`}</span>
           </div>
           <div className="rank-picker-controls">
             <Btn icon={Minus} small label="One rank weaker" disabled={rank === first} onClick={() => setRank(stepRank(rank, -1))} />
@@ -61,7 +64,8 @@ export function PlayView({ profile, setProfile, notify, resume }) {
           <div className="rank-picker-label">
             <strong>The table</strong>
             <span className="fine">
-              komi {komi}{table.handicap ? ` · White plays first · rated as ${ratedAs}` : ""}
+              {table.komi === null ? `komi ${komi}, what this board is owed` : `komi ${komi}, your choice`}
+              {table.handicap ? ` · White plays first · rated as ${ratedAs}` : ""}
             </span>
           </div>
           <div className="rank-picker-controls">
@@ -72,6 +76,12 @@ export function PlayView({ profile, setProfile, notify, resume }) {
                   {n}×{n}
                 </button>
               ))}
+            </div>
+            <div className="rank-picker-controls" role="group" aria-label="Komi">
+              <Btn icon={Minus} small label="Less komi" disabled={ki <= 0} onClick={() => setTable({ komi: KOMI_STEPS[ki - 1] })} />
+              <span className="handicap-num" aria-live="polite">{komi} komi</span>
+              <Btn icon={Plus} small label="More komi" disabled={ki >= KOMI_STEPS.length - 1} onClick={() => setTable({ komi: KOMI_STEPS[ki + 1] })} />
+              {table.komi !== null && <Btn icon={Home} small onClick={() => setTable({ komi: null })}>Default</Btn>}
             </div>
             <div className="rank-picker-controls" role="group" aria-label="Handicap stones">
               <Btn icon={Minus} small label="Fewer handicap stones" disabled={hi <= 0} onClick={() => setTable({ handicap: HANDICAPS[hi - 1] })} />

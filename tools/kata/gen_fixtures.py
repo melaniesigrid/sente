@@ -71,7 +71,7 @@ def main():
     for name, size, moves, dumps in SEQUENCES:
         gs = GameState(size, RULES)
         features = Features(config, pos_len=size)
-        out = {"size": size, "moves": [], "positions": []}
+        out = {"size": size, "komi": RULES["whiteKomi"], "moves": [], "positions": []}
         for i, mv in enumerate(moves):
             color = Board.BLACK if mv[0] == "b" else Board.WHITE
             gs.board.pla = color  # sequences may contain consecutive same-colour moves via passes

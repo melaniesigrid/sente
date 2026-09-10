@@ -1,0 +1,89 @@
+/* ----------------------- THE NAMED ROOMS -----------------------
+   A palette is data, like a pairing or a persona. Four colours are always
+   written by hand — ground, ink, mark, shell — and the rest is derived
+   (derive.js) unless a hand-mixed tone beat the computed one, which is what the
+   `light`/`dark`/`grid` overrides below are.
+
+   Adding a room is one entry here — four colours, ground/ink/mark/shell. `npm test` will then hold it to the same
+   rules the dojo shows a designer live: ink at 4.5:1, the mark no dimmer than
+   the house eucalyptus, and the two lights within 2.4:1 of the ground, which is
+   the whole illusion.
+
+   `house` is the design system as drawn and stays the default. */
+
+export const PALETTES = [
+  {
+    id: "house",
+    name: "House",
+    mood: "Light",
+    note: "Warm stone paper and a eucalyptus mark. The design system as drawn.",
+    ground: "#e8e4db", ink: "#4b463c", accent: "#5f8c7e", cream: "#f2ede3",
+    light: "#fbf8f2", dark: "#c4beb1", danger: "#b0715f",
+  },
+  {
+    id: "kaya",
+    name: "Kaya",
+    mood: "Light",
+    note: "The board's own wood: pale honey, and a caramel mark. Warmest of the light rooms.",
+    ground: "#ebe0c8", ink: "#4a4133", accent: "#8d693a", cream: "#f8f1de",
+    light: "#fbf3dd", dark: "#cabb9b", danger: "#b0604a",
+  },
+  {
+    id: "porcelain",
+    name: "Porcelain",
+    mood: "Light",
+    note: "Cool white clay with an indigo mark. Quiet, modern, a little clinical.",
+    ground: "#e6e9ee", ink: "#3b4453", accent: "#4a6fa5", cream: "#f6f8fb",
+    light: "#ffffff", dark: "#c2c8d3", danger: "#a85a63",
+  },
+  {
+    id: "damson",
+    name: "Damson",
+    mood: "Light",
+    note: "Pastel plum paper under a damson mark. Dusk, with the lamp not on yet.",
+    ground: "#eae2ec", ink: "#463d4b", accent: "#7b4f86", cream: "#f4eef5",
+    light: "#f9f3fa", dark: "#c8bccb", danger: "#b0605f",
+  },
+  {
+    id: "lacquer",
+    name: "Lacquer",
+    mood: "Dark",
+    note: "Black lacquer and gold leaf. The formal room: a tournament board under a low lamp.",
+    ground: "#17140f", ink: "#e9e0cd", accent: "#c9a45c", cream: "#f2e9d5",
+    light: "#241f17", dark: "#0a0806", danger: "#c4705c",
+    // The one room whose grid is not drawn in ink: gold leaf on black lacquer,
+    // which is the object this palette is named for.
+    grid: "#9c7f4c",
+  },
+  {
+    id: "graphite",
+    name: "Graphite",
+    mood: "Dark",
+    note: "Dark grey and champagne. The same room as Lacquer with the warmth taken out.",
+    ground: "#24262a", ink: "#dfe1e5", accent: "#d3b273", cream: "#edeff2",
+    light: "#2f3238", dark: "#17181b", danger: "#cf7f6d",
+  },
+  {
+    id: "sumi",
+    name: "Sumi",
+    mood: "Dark",
+    note: "Ink wash on a near-black ground, with celadon. House after dark.",
+    ground: "#1c1e1c", ink: "#dededa", accent: "#7fa892", cream: "#eef0ea",
+    light: "#262a26", dark: "#111310", danger: "#c07a68",
+  },
+  {
+    id: "yohen",
+    name: "Yohen",
+    mood: "Dark",
+    note: "Kiln-changed indigo and copper. The night game, played by the window.",
+    ground: "#1a1d26", ink: "#dcdfe8", accent: "#c07f52", cream: "#eaecf3",
+    light: "#242833", dark: "#101219", danger: "#c76a6a",
+  },
+];
+
+export const DEFAULT_THEME = "house";
+
+/** The id a palette built in the dojo answers to. It is not in PALETTES: it
+ *  lives in the profile, one per device, and only exists once someone has made
+ *  one. */
+export const DOJO_THEME = "dojo";

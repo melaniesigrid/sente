@@ -9,7 +9,7 @@
      recordFromSgf(text) -> a GameRecord built by replaying the main line through the rules
      toSgf(record)       -> main line only (records have no variations yet) */
 
-import { createGame, play, pass, resign, withMoveComment, IllegalMoveError } from "./record.js";
+import { createGame, play, pass, resign, withMoveComment, defaultKomi, IllegalMoveError } from "./record.js";
 
 export const MAX_SGF_BYTES = 256 * 1024;
 
@@ -155,7 +155,7 @@ export function parseSgf(text) {
 
   return {
     size,
-    komi: num(p.KM, handicap >= 2 ? 0.5 : 7.5),
+    komi: num(p.KM, defaultKomi(handicap, size)),
     handicap,
     players: { b: p.PB ? p.PB[0] : null, w: p.PW ? p.PW[0] : null },
     result: p.RE ? p.RE[0] : null,

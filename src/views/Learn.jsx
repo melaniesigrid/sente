@@ -1,10 +1,10 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Fragment } from "react";
 import {
   ChevronLeft, ChevronRight, Check, X, Lightbulb, BookOpen, RotateCcw, Play, Search, Clock, Lock,
   CornerDownRight, Eye,
 } from "lucide-react";
 import { Board } from "../components/Board.jsx";
-import { Card, Btn, Pill } from "../components/ui.jsx";
+import { Card, Btn, Pill, PullQuote } from "../components/ui.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
 import {
   TIERS, TRACKS, lessonById, prereqsMissing, nextLessonFor, currentTierFor, searchLibrary,
@@ -287,6 +287,19 @@ function NamesTable() {
   );
 }
 
+/* A passage with one idea pulled out of it: the paragraphs as the chapter
+   gives them, and the plain-words line set large after the first, where a
+   magazine would put it. Prose with no gloss is just paragraphs. */
+function Prose({ text, plain }) {
+  const at = Math.min(1, text.length - 1);
+  return text.map((p, i) => (
+    <Fragment key={i}>
+      <p className="lesson-text">{p}</p>
+      {plain && i === at && <PullQuote>{plain}</PullQuote>}
+    </Fragment>
+  ));
+}
+
 function ChapterRow({ chapter, lessons, done, onOpen }) {
   const [open, setOpen] = useState(false);
   return (
@@ -301,7 +314,7 @@ function ChapterRow({ chapter, lessons, done, onOpen }) {
       </button>
       {open && (
         <div className="chapter-body">
-          {chapter.text.map((p, i) => <p key={i} className="lesson-text">{p}</p>)}
+          <Prose text={chapter.text} plain={chapter.plain} />
           {chapter.n === 11 && <NamesTable />}
           {lessons.map(l => <LessonCard key={l.id} lesson={l} done={done(l.id)} onOpen={onOpen} />)}
         </div>
@@ -329,7 +342,7 @@ function ClassicCard({ done, onOpen }) {
             <div className="chapter-row">
               <div className="chapter-body preface">
                 <strong className="chapter-title">{PREFACE.title}</strong>
-                {PREFACE.text.map((p, i) => <p key={i} className="lesson-text">{p}</p>)}
+                <Prose text={PREFACE.text} plain={PREFACE.plain} />
               </div>
             </div>
             {CHAPTERS.map(ch => (

@@ -6,7 +6,7 @@ import { Card, Btn } from "../components/ui.jsx";
 import { LESSONS } from "../content/lessons.js";
 import { lessonById } from "../content/library.js";
 import { PROBLEMS } from "../content/problems.js";
-import { rankOf } from "../content/rank.js";
+import { preciseRankOf } from "../content/rank.js";
 import { PERSONAS } from "../content/personas.js";
 import { duelMode } from "../content/duel.js";
 import { clearGame } from "../store/gameStore.js";
@@ -96,7 +96,7 @@ export function Home({ profile, go, onResume }) {
         </button>
         <button className="neu-card tile" onClick={() => go("profile")}>
           <div className="stat-head"><Trophy size={17} /><span>Your rank</span></div>
-          <div className="stat-num">{rankOf(profile.rating)}<em>· {profile.wins}/{games} won</em></div>
+          <div className="stat-num">{preciseRankOf(profile.rating)}<em>· {profile.wins}/{games} won</em></div>
           <div className="meter"><div className="meter-fill" style={{ width: `${games ? (profile.wins / games) * 100 : 0}%` }} /></div>
         </button>
       </div>

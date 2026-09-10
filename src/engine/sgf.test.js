@@ -104,6 +104,7 @@ describe("parseSgf", () => {
   it("defaults size 19 and komi by handicap", () => {
     expect(parseSgf("(;FF[4])").size).toBe(19);
     expect(parseSgf("(;FF[4])").komi).toBe(7.5);
+    expect(parseSgf("(;FF[4]SZ[9])").komi).toBe(5.5);   // the board decides when the file does not
     expect(parseSgf("(;HA[3])").komi).toBe(0.5);
   });
   it("handles a zero-move game", () => {

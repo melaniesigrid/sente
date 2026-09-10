@@ -6,14 +6,17 @@ import {
 import {
   createGame, play, pass, resign, undo, markDead, acceptScore, scoreBoard, chainsInAtari, idx,
   lastMoveIndex, aiChooseMoveForRecord, kataChooseMoveForRecord, profileForRank, loadModel, onModelProgress, modelReady,
-  toSgf, IllegalMoveError,
+  toSgf, IllegalMoveError, GLICKO, rateGame,
 } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
 import { Card, Btn, Pill, Avatar, RankBadge, BeltRibbon } from "../components/ui.jsx";
 import { MokuMark } from "../components/Moku.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
 import { playStone, playCapture, playBell, haptic } from "../components/sound.js";
-import { rankOf, ratingOfRank, rankWithHandicap, eloDelta, beltOf, hintsForBelt } from "../content/rank.js";
+import {
+  rankOf, preciseRankOf, ratingOfRank, rankWithHandicap, beltOf, hintsForBelt,
+  MIN_RATING, MAX_RATING,
+} from "../content/rank.js";
 import { startDuel, duelOutcome, recordDuel, duelResultText, duelShareText, duelShareUrl } from "../content/duel.js";
 import { sayingForResult } from "../content/classic.js";
 import { SayingText } from "../components/Saying.jsx";
@@ -45,16 +48,23 @@ const BOARD_PX = { 9: 460, 13: 560, 19: 680 };
    moves give the same game on every device; the human network is not promised
    to be bit-identical across browsers.
 
-   The table (size, handicap) comes from the mode; komi is the engine's default
-   for that handicap. A handicap game against a house player is rated as if the
-   opponent were one rank weaker per stone. */
+   The table (size, handicap, komi) comes from the mode; komi falls back to the
+   engine's default for the board and handicap. A handicap game against a house
+   player is rated as if the opponent were one rank weaker per stone.
+
+   Rating is Glicko-2. A house player has a deviation at the floor because it is
+   exactly as strong as the rank it was asked to play, so all the uncertainty in
+   the update belongs to the human, which is what makes a newcomer move fast and
+   a settled player move slowly. */
+const HOUSE_RD = GLICKO.minRd;
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const duel = mode.kind === "duel" ? mode : null;
   const persona = mode.kind === "bot" || duel ? mode.persona : null;
   // The rank this game is played at; house players adapt to it. Defaults to the player's own.
   const botRank = persona && !duel ? (mode.rank ?? rankOf(profile.rating)) : null;
   const botRating = botRank ? ratingOfRank(botRank) : null;
-  const table = { size: mode.size ?? 19, handicap: mode.handicap ?? 0 };
+  const table = { size: mode.size ?? 19, handicap: mode.handicap ?? 0, ...(mode.komi != null ? { komi: mode.komi } : {}) };
   const [rec, setRec] = useState(() => initial || createGame(table));
   const [thinking, setThinking] = useState(false);
   const [chat, setChat] = useState(() =>
@@ -62,7 +72,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const [draft, setDraft] = useState("");
   const [confirmResign, setConfirmResign] = useState(false);
   const [moment, setMoment] = useState(null);      // "capture" | "captured", expires
-  const [delta, setDelta] = useState(null);        // rating change of the finished game
+  const [delta, setDelta] = useState(null);        // {from, to} ratings of the finished game
   const [ceremony, setCeremony] = useState(null);  // belt just earned, until dismissed
   const [loading, setLoading] = useState(null);    // {loaded, total} while the network downloads
   const alive = useRef(true);
@@ -170,21 +180,26 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         say(pick(won ? persona.chat.loss : persona.chat.win));
         const oldRank = rankOf(profile.rating), oldBelt = beltOf(profile.rating);
         // One rank per handicap stone: the opponent is rated as the weaker player it gave stones to be.
-        const d = eloDelta(profile.rating, ratingOfRank(rankWithHandicap(botRank, next.handicap)), won ? 1 : 0);
-        const rating = Math.max(400, profile.rating + d);
+        const oppRating = ratingOfRank(rankWithHandicap(botRank, next.handicap));
+        const rated = rateGame(
+          { rating: profile.rating, rd: profile.rd, vol: profile.vol },
+          { rating: oppRating, rd: HOUSE_RD },
+          won ? 1 : 0,
+        );
+        const rating = clamp(rated.rating, MIN_RATING, MAX_RATING);
         const streak = won ? profile.streak + 1 : 0;
         const np = {
-          ...profile, rating,
+          ...profile, rating, rd: rated.rd, vol: rated.vol,
           wins: profile.wins + (won ? 1 : 0), losses: profile.losses + (won ? 0 : 1),
           streak, bestStreak: Math.max(profile.bestStreak, streak),
         };
         setProfile(np);
         saveProfile(np);
-        setDelta(d);
+        setDelta({ from: profile.rating, to: rating });
         const newRank = rankOf(rating), newBelt = beltOf(rating);
         if (won && newBelt !== oldBelt) setCeremony(newBelt);
         else if (won && newRank !== oldRank) notify({ icon: "medal", text: `Promoted to ${newRank}` });
-        else notify({ icon: won ? "trophy" : "flag", text: `${won ? "Victory" : "Defeat"} · ${d >= 0 ? "+" : ""}${d} rating` });
+        else notify({ icon: won ? "trophy" : "flag", text: `${won ? "Victory" : "Defeat"} · now ${preciseRankOf(rating)}` });
       }
     }
     return next;
@@ -350,7 +365,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         <div className="vs-strip">
           <div className="vs-side">
             <Avatar name={profile.name} tint={profile.tint} size={34} />
-            <div className="vs-meta"><strong>{persona ? profile.name : "Black"}</strong>{persona && <RankBadge rating={profile.rating} size="sm" />}</div>
+            <div className="vs-meta"><strong>{persona ? profile.name : "Black"}</strong>{persona && <RankBadge rating={profile.rating} rd={profile.rd} precise size="sm" />}</div>
           </div>
           <span className="vs-x">vs</span>
           <div className="vs-side">
@@ -482,7 +497,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
             <p className="eyebrow"><Award size={13} /> Promotion</p>
             <h3 className="result-headline">{ceremony.label}</h3>
             <BeltRibbon belt={ceremony} className="ceremony-belt" />
-            <p className="lesson-text">Now {rankOf(profile.rating)}. {hintsForBelt(ceremony) ? "Atari hints stay on for one more belt." : "Atari hints come off from here: you read your own liberties now."}</p>
+            <p className="lesson-text">Now {preciseRankOf(profile.rating)}. {hintsForBelt(ceremony) ? "Atari hints stay on for one more belt." : "Atari hints come off from here: you read your own liberties now."}</p>
             <Btn primary onClick={() => setCeremony(null)}>Tie it tight</Btn>
           </Card>
         </div>

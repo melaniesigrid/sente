@@ -67,13 +67,21 @@ export function handicapPoints(size, n) {
   return table[n].map(([c, r]) => [c, r]);
 }
 
-export const defaultKomi = (handicap) => (handicap >= 2 ? 0.5 : 7.5);
+/* Komi is the compensation White is owed for playing second, and it is not one
+   number: the smaller the board, the smaller the first move is worth. 7.5 on a
+   9x9 is close to a quarter of the board, which is why a beginner playing Black
+   there felt the game was rigged. These are the values the rest of the world
+   uses for area scoring at each size. A handicap game has already settled the
+   balance in stones, so komi drops to the half point that prevents a draw. */
+export const KOMI = { 9: 5.5, 13: 6.5, 19: 7.5 };
+
+export const defaultKomi = (handicap, size = 19) => (handicap >= 2 ? 0.5 : KOMI[size] ?? 7.5);
 
 /* ----- construction ----- */
 
 /** @param {object} o
  *  @param {number} [o.size=19]
- *  @param {number} [o.komi]        defaults to 7.5, or 0.5 with a handicap
+ *  @param {number} [o.komi]        defaults by board size (see KOMI), or 0.5 with a handicap
  *  @param {number} [o.handicap=0]  0 or 2..9; places fixed stones unless `setup` is given
  *  @param {object} [o.clock]       clock preset, stored verbatim (see clock.js)
  *  @param {object} [o.setup]       `{ b: [[c,r]], w: [[c,r]] }` explicit setup stones
@@ -93,7 +101,7 @@ export function createGame(o = {}) {
   return {
     version: 1,
     size,
-    komi: o.komi ?? defaultKomi(handicap),
+    komi: o.komi ?? defaultKomi(handicap, size),
     handicap,
     clock: o.clock ?? null,
     players: o.players ?? null,

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { refusalText, resultLine, statusText, captionText, resignLabel, resultCard, ratingLine, RESIGN_CONFIRM_MS } from "./gameStatus.js";
 import { createGame, pass, acceptScore, resign } from "../engine/index.js";
+import { ratingOfRank, ratingOfValue, rankValue } from "../content/rank.js";
 
 describe("refusalText", () => {
   it("names ko, superko and suicide", () => {
@@ -96,10 +97,11 @@ describe("resultCard", () => {
     expect(card).toEqual({ headline: "White wins", sub: "by resignation", rows: [] });
     expect(resultCard(null)).toBeNull();
   });
-  it("formats the rating delta with its sign", () => {
-    expect(ratingLine(12)).toBe("+12 rating");
-    expect(ratingLine(-7)).toBe("-7 rating");
-    expect(ratingLine(0)).toBe("+0 rating");
+  it("speaks the rating change in ranks, and says when the rank held", () => {
+    const from = ratingOfRank("12k");
+    expect(ratingLine({ from, to: ratingOfValue(rankValue(from) + 0.4) })).toBe("12.5k → 12.1k");
+    expect(ratingLine({ from, to: ratingOfValue(rankValue(from) - 0.4) })).toBe("12.5k → 12.9k");
+    expect(ratingLine({ from, to: from })).toBe("12.5k · the rank held");
     expect(ratingLine(null)).toBeNull();
   });
 });

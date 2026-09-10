@@ -1,5 +1,6 @@
 /* ----------------------- GAME STATUS (pure) -----------------------
    Text the Game view shows, kept free of React so it can be unit-tested. */
+import { preciseRankOf } from "../content/rank.js";
 
 const REFUSALS = {
   ko: "Ko: you can't retake immediately",
@@ -80,8 +81,14 @@ export function resultCard(result) {
   return { headline: `${side(result.winner)} wins`, sub: `by ${result.margin}`, rows };
 }
 
-/** Text for the rating line under the result, or null for an unrated game. */
+/** The rating line under the result, or null for an unrated game. `delta` is
+ *  `{ from, to }` ratings. It is spoken in ranks rather than points, because a
+ *  rank is the thing the player is climbing and a point is only bookkeeping:
+ *  "12.4k to 12.1k" says what happened, "+11 rating" does not. A game that did
+ *  not move the tenth still says so, so the line is never silently missing. */
 export function ratingLine(delta) {
-  if (delta === null || delta === undefined) return null;
-  return `${delta >= 0 ? "+" : ""}${delta} rating`;
+  if (!delta || typeof delta !== "object") return null;
+  const before = preciseRankOf(delta.from), after = preciseRankOf(delta.to);
+  if (before === after) return `${after} · the rank held`;
+  return `${before} → ${after}`;
 }

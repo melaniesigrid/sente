@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  createGame, play, pass, resign, markDead, acceptScore, undo, replay, handicapPoints,
+  createGame, play, pass, resign, markDead, acceptScore, undo, replay, handicapPoints, KOMI, defaultKomi,
   lastMoveIndex, resultText, IllegalTransitionError, IllegalMoveError, GameError,
 } from "./record.js";
 import { idx } from "./board.js";
@@ -50,6 +50,17 @@ describe("handicap", () => {
     expect(g.setup.b).toHaveLength(4);
     for (const [c, r] of g.setup.b) expect(g.board.cells[idx(size, c, r)]).toBe("b");
     expect(g.hashes[0]).not.toBe(0);
+  });
+  it("owes a smaller board a smaller komi", () => {
+    // The first move is worth less on a small board, so 7.5 everywhere handed
+    // White a quarter of a 9x9 for nothing.
+    expect(createGame({ size: 9 }).komi).toBe(5.5);
+    expect(createGame({ size: 13 }).komi).toBe(6.5);
+    expect(createGame({ size: 19 }).komi).toBe(7.5);
+    expect(defaultKomi(0, 9)).toBe(5.5);
+    expect(defaultKomi(0)).toBe(7.5);          // 19x19 unless told otherwise
+    expect(defaultKomi(2, 9)).toBe(0.5);       // a handicap settles it in stones instead
+    for (const [size, komi] of Object.entries(KOMI)) expect(defaultKomi(0, Number(size))).toBe(komi);
   });
   it("respects an explicit komi with handicap", () => {
     expect(createGame({ size: 9, handicap: 2, komi: 3.5 }).komi).toBe(3.5);

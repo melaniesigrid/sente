@@ -11,10 +11,11 @@ export { REASONS, opponent, tryPlay, legalMoves, chainsInAtari } from "./rules.j
 export { removeDead, territoryMap, scoreBoard, estimateScore } from "./score.js";
 export {
   PHASES, GameError, IllegalTransitionError, IllegalMoveError,
-  handicapPoints, defaultKomi, createGame, play, pass, resign, markDead, acceptScore, undo,
+  handicapPoints, KOMI, defaultKomi, createGame, play, pass, resign, markDead, acceptScore, undo,
   replay, withMoveComment, lastMoveIndex, resultText,
 } from "./record.js";
 export { CLOCK_TYPES, createClock, tick, onMove, remainingMs } from "./clock.js";
+export { GLICKO, updateGlicko, rateGame, isProvisional } from "./glicko.js";
 export {
   MAX_SGF_BYTES, SgfParseError, parseSgfTree, parseSgf, recordFromSgf, toSgf,
   pointFromSgf, pointToSgf, resultToSgf,

@@ -26,7 +26,7 @@ describe("sanitizeProfile", () => {
   });
   it("resets non-finite or non-numeric numbers", () => {
     const out = sanitizeProfile({ ...defaultProfile, rating: "1200", wins: NaN, losses: Infinity });
-    expect(out.rating).toBe(1000);
+    expect(out.rating).toBe(defaultProfile.rating);
     expect(out.wins).toBe(0);
     expect(out.losses).toBe(0);
     expect(warn.mock.calls[0][0]).toMatch(/rating, wins, losses/);
@@ -68,5 +68,36 @@ describe("sanitizeProfile", () => {
       expect(sanitizeProfile(raw)).toEqual(defaultProfile);
     }
     expect(warn).toHaveBeenCalledTimes(4);
+  });
+});
+
+describe("migrating a v2 profile", () => {
+  it("keeps the rank the player earned, at every rung of the old ladder", async () => {
+    const { migrateLegacy } = await import("./profile.js");
+    const { rankOf } = await import("../content/rank.js");
+    const legacy = (r) => (r < 3000
+      ? `${Math.min(25, Math.max(1, Math.round((3000 - r) / 100)))}k`
+      : `${Math.min(9, Math.max(1, Math.floor((r - 3000) / 100) + 1))}d`);
+    for (let old = 400; old <= 3900; old += 25) {
+      expect(rankOf(migrateLegacy({ rating: old }).rating)).toBe(legacy(old));
+    }
+  });
+  it("carries the rest of the profile across and reopens the deviation", async () => {
+    const { migrateLegacy } = await import("./profile.js");
+    const out = migrateLegacy({ rating: 2000, name: "Ada", wins: 12, losses: 8, lessonsDone: ["ko"] });
+    expect(out.name).toBe("Ada");
+    expect(out.wins).toBe(12);
+    expect(out.lessonsDone).toEqual(["ko"]);
+    expect(out.vol).toBe(defaultProfile.vol);
+    // twenty games behind them: unsure again, but not from nothing
+    expect(out.rd).toBeLessThan(defaultProfile.rd);
+    expect(out.rd).toBeGreaterThan(50);
+    expect(migrateLegacy({ wins: 0, losses: 0 }).rd).toBe(defaultProfile.rd);
+  });
+  it("refuses anything that is not a stored object", async () => {
+    const { migrateLegacy } = await import("./profile.js");
+    expect(migrateLegacy(null)).toBeNull();
+    expect(migrateLegacy([1, 2])).toBeNull();
+    expect(migrateLegacy("20k")).toBeNull();
   });
 });
