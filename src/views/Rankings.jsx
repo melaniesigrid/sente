@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Crown, Flame } from "lucide-react";
 import { Card, Avatar, RankBadge } from "../components/ui.jsx";
+import { Passage } from "../components/Passage.jsx";
 import { PERSONAS } from "../content/personas.js";
 import { ratingOfRank } from "../content/rank.js";
 
@@ -22,6 +23,7 @@ export function RankingsView({ profile }) {
         move Elo-style after every rated game; roughly a hundred points to a rank, in
         the tradition of a one-stone gap. The global ladder opens with networked play.
       </p>
+      <Passage context="ladder" />
       <Card className="ladder">
         {rows.map((r, i) => (
           <div key={r.id} className={`ladder-row ${r.id === "you" ? "me" : ""}`}>

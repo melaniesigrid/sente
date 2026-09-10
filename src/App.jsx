@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Swords, GraduationCap, Target, LayoutDashboard, Medal } from "lucide-react";
+import { sayingBySeed } from "./content/classic.js";
 
 /* ================================================================
    SENTE — play go, beautifully
@@ -40,6 +41,8 @@ export default function SenteApp() {
   const [view, setView] = useState("home");
   const [profile, setProfile] = useState(defaultProfile);
   const [toast, setToast] = useState(null);
+  // A different line from the Classic in the footer on every load.
+  const [footSaying] = useState(() => sayingBySeed(Math.floor(Math.random() * 1e6)));
   const [resume, setResume] = useState(null); // { mode, record } handed to PlayView once
   const [params, setParams] = useState(null); // one-shot navigation params, e.g. { problemId }
   const toastTimer = useRef(null);
@@ -97,7 +100,7 @@ export default function SenteApp() {
       <MokuDock />
       <footer className="foot">
         <span>Sente · play go, beautifully</span>
-        <span>the oldest game, softly lit</span>
+        <span>{footSaying.text}</span>
       </footer>
     </div>
     </MokuProvider>

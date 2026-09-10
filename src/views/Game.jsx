@@ -10,6 +10,7 @@ import {
 } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
 import { Card, Btn, Pill, Avatar, RankBadge, BeltRibbon } from "../components/ui.jsx";
+import { Passage } from "../components/Passage.jsx";
 import { MokuMark } from "../components/Moku.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
 import { playStone, playCapture, playBell, haptic } from "../components/sound.js";
@@ -409,6 +410,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
                   ))}
                 </div>
               )}
+              <Passage context={resultKind || "any"} size="sm" />
               <p className="fine">
                 {duel ? "Daily duel, unrated. Everyone met this host on this board today; one attempt each."
                   : persona ? ratingLine(delta) ?? "Rated against a house player." : "Unrated. Thank you both for the game."}
