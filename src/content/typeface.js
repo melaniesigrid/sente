@@ -16,6 +16,10 @@
      caption   the footer, the small labels       --font-caption
      ornament  the lesson numeral, the vs mark    --font-display-italic
 
+   A fifth voice belongs to no pairing at all: the sayings of the Classic are
+   typed, not set, and every pairing types them on the same machine. See
+   TYPEWRITER below.
+
    A script is a display face and nothing else. It cannot carry a quotation and it
    cannot carry a caption: at 13px it is decoration standing where a word should
    be. So the scripts here are the ornament voice only, the quote voice is always
@@ -44,7 +48,20 @@ export const GOOGLE_IMPORT =
   "&family=Hanken+Grotesk:wght@400;500;600;700" +
   "&family=Instrument+Sans:wght@400;500;600;700" +
   "&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400" +
+  "&family=Courier+Prime:ital,wght@0,400;0,700;1,400" +
   "&display=swap');";
+
+/* ----------------------- THE TYPED VOICE -----------------------
+   A quotation is typed, not set. Sente's sayings are one person at a machine
+   putting down someone else's words, so they come out of a typewriter in every
+   pairing, the way the signature stays one hand in every pairing. This stack is
+   not part of any pairing and never changes with one; `--font-typewriter` is the
+   one token typefaceVars returns the same value for every time.
+
+   Courier Prime is the typewriter face that was drawn to be read rather than to
+   be counted in: same twelve-pitch skeleton as Courier, heavier stems, a real
+   italic and a real bold, so the marked words in a saying have somewhere to go. */
+export const TYPEWRITER = "'Courier Prime', 'Courier New', monospace";
 
 const HANKEN = "'Hanken Grotesk', sans-serif";
 
@@ -180,6 +197,7 @@ export function typefaceVars(id) {
     "--display-italic-style": t.italicStyle,
     "--font-body": t.body,
     "--font-quote": quoteOf(t),
+    "--font-typewriter": TYPEWRITER,
     "--quote-style": t.quote ? t.quoteStyle : "normal",
     "--font-caption": captionOf(t),
     "--caption-style": captionOf(t) === t.italic ? t.italicStyle : "normal",

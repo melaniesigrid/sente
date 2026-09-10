@@ -16,6 +16,7 @@ import { playStone, playCapture, playBell, haptic } from "../components/sound.js
 import { rankOf, ratingOfRank, rankWithHandicap, eloDelta, beltOf, hintsForBelt } from "../content/rank.js";
 import { startDuel, duelOutcome, recordDuel, duelResultText, duelShareText, duelShareUrl } from "../content/duel.js";
 import { sayingForResult } from "../content/classic.js";
+import { SayingText } from "../components/Saying.jsx";
 import { ShareDuelButton } from "../components/DuelCard.jsx";
 import { saveProfile } from "../store/profile.js";
 import { saveGame, clearGame } from "../store/gameStore.js";
@@ -419,7 +420,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
               </p>
               {closing && (
                 <blockquote className="closing-saying">
-                  <p>{closing.text}</p>
+                  <SayingText text={closing.text} />
                   <cite className="fine">The Classic, chapter {closing.chapter}: {closing.title}</cite>
                 </blockquote>
               )}

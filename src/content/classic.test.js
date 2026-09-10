@@ -3,6 +3,7 @@ import {
   CLASSIC, CHAPTERS, SAYINGS, CLASSIC_SOURCE, PREFACE, KINDS, LEVELS, NAMES,
   BELOW_THE_LEVELS, chapterByNumber, chapterForLesson, sayingOfTheDay, sayingBySeed,
   levelForRank, levelByNumber, namesIdentified, sayingForResult, afterGameTexts, lessonIdsForChapter,
+  emphasize, MAX_MARKS,
 } from "./classic.js";
 import { RANK_LADDER } from "./rank.js";
 import { lessonById, lessonsInSeries, seriesByKey } from "./library.js";
@@ -164,5 +165,39 @@ describe("the thirty-two names (chapter eleven)", () => {
     expect(namesIdentified().length).toBeGreaterThan(10);
     expect(namesIdentified().length).toBeLessThan(32);
     expect(namesIdentified().every(n => n.modern)).toBe(true);
+  });
+});
+
+describe("the marked words", () => {
+  it("puts the line back together exactly, mark or no mark", () => {
+    for (const s of SAYINGS) {
+      expect(emphasize(s.text).map(p => p.text).join(""), s.text).toBe(s.text);
+    }
+  });
+
+  it("strikes at most two words, and never the same word twice", () => {
+    for (const s of SAYINGS) {
+      const marks = emphasize(s.text).filter(p => p.mark).map(p => p.text.toLowerCase());
+      expect(marks.length, s.text).toBeLessThanOrEqual(MAX_MARKS);
+      expect(new Set(marks).size, s.text).toBe(marks.length);
+      for (const m of marks) expect(m.trim(), s.text).toBe(m);   // whole words, no stray space
+    }
+  });
+
+  it("marks the vocabulary of the treatise and leaves the ordinary words alone", () => {
+    const marks = (t) => emphasize(t).filter(p => p.mark).map(p => p.text);
+    expect(marks("Losing stones is bearable. Losing the initiative is not.")).toEqual(["Losing", "initiative"]);
+    expect(marks("Take the corners first.")).toEqual(["corners"]);
+    expect(marks("Be honest. Do not deceive.")).toEqual([]);
+    // a key word inside a longer word is not a key word
+    expect(marks("The stones are round and move.")).toEqual([]);
+  });
+
+  it("is total: any string in, the same string out", () => {
+    for (const junk of ["", null, undefined, 7]) {
+      const parts = emphasize(junk);
+      expect(parts.length).toBeGreaterThan(0);
+      expect(parts.map(p => p.text).join("")).toBe(String(junk ?? ""));
+    }
   });
 });

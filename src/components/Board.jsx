@@ -38,14 +38,14 @@ export function Board({
       >
         <defs>
           <radialGradient id="stB" cx="0.36" cy="0.34" r="0.85">
-            <stop offset="0%" stopColor="#6b655a" />
-            <stop offset="55%" stopColor="#4b463c" />
-            <stop offset="100%" stopColor="#3a362e" />
+            <stop offset="0%" stopColor="var(--stone-b-1)" />
+            <stop offset="55%" stopColor="var(--stone-b-2)" />
+            <stop offset="100%" stopColor="var(--stone-b-3)" />
           </radialGradient>
           <radialGradient id="stW" cx="0.36" cy="0.34" r="0.85">
-            <stop offset="0%" stopColor="#fdfaf4" />
-            <stop offset="60%" stopColor="#f2ede3" />
-            <stop offset="100%" stopColor="#ddd5c6" />
+            <stop offset="0%" stopColor="var(--stone-w-1)" />
+            <stop offset="60%" stopColor="var(--stone-w-2)" />
+            <stop offset="100%" stopColor="var(--stone-w-3)" />
           </radialGradient>
         </defs>
         {Array.from({ length: N }).map((_, i) => (

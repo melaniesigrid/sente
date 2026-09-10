@@ -14,14 +14,26 @@ ${FONT_FACES}
 ${SIGNATURE_FACE}
 
 .sente-root {
+  /* The palette. Every value here is the house theme, and every one of them is
+     overwritten by the shell from src/content/theme.js when another theme is
+     chosen — so this block is both the default and the reference. */
   --ground: #e8e4db;
   --light: #fbf8f2;
   --dark: #c4beb1;
   --ink: #4b463c;
   --cream: #f2ede3;
-  --accent: #5f8c7e;
-  --accent-soft: rgba(95,140,126,.16);
+  --accent-rgb: 95,140,126;
+  --accent: rgb(var(--accent-rgb));
+  --accent-soft: rgba(var(--accent-rgb),.16);
   --danger: #b0715f;
+  --sh-ink: 75,70,60;
+  --sh-lite: 251,248,242;
+  --wash-a: rgba(251,248,242,.55);
+  --wash-b: rgba(196,190,177,.40);
+  --scrim: rgba(232,228,219,.72);
+  --grid: var(--ink);
+  --stone-b-1: #6b655a; --stone-b-2: #4b463c; --stone-b-3: #3a362e;
+  --stone-w-1: #fdfaf4; --stone-w-2: #f2ede3; --stone-w-3: #ddd5c6;
   --font-display: 'Fraunces', serif;
   --font-display-italic: 'Fraunces', serif;
   --display-italic-style: italic;
@@ -30,6 +42,7 @@ ${SIGNATURE_FACE}
   --quote-style: italic;
   --font-caption: 'Fraunces', serif;
   --caption-style: italic;
+  --font-typewriter: 'Courier Prime', 'Courier New', monospace;
   --w-display: 560;
   --w-display-strong: 640;
   --display-tracking: 0em;
@@ -41,8 +54,8 @@ ${SIGNATURE_FACE}
   --sink-sm: inset 3px 3px 8px var(--dark), inset -3px -3px 8px var(--light);
   min-height: 100vh;
   background:
-    radial-gradient(1100px 500px at 15% -10%, rgba(251,248,242,.55), transparent 60%),
-    radial-gradient(900px 600px at 110% 110%, rgba(196,190,177,.4), transparent 60%),
+    radial-gradient(1100px 500px at 15% -10%, var(--wash-a), transparent 60%),
+    radial-gradient(900px 600px at 110% 110%, var(--wash-b), transparent 60%),
     var(--ground);
   color: var(--ink);
   font-family: var(--font-body);
@@ -204,14 +217,14 @@ ${SIGNATURE_FACE}
 .board-well { border-radius: var(--r); box-shadow: var(--sink); padding: clamp(10px, 1.6vw, 18px); flex: 1 1 320px; }
 .side { flex: 1 1 260px; min-width: 250px; }
 .goban { width: 100%; height: auto; display: block; }
-.grid-line { stroke: var(--ink); stroke-opacity: .38; stroke-width: 1.1; }
+.grid-line { stroke: var(--grid); stroke-opacity: .38; stroke-width: 1.1; }
 .star-pt { fill: var(--ink); fill-opacity: .45; }
 .ghost { fill: var(--accent); opacity: .28; }
 .mark-ring { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 4 4; opacity: .85; }
 .wrong-x line { stroke: var(--danger); stroke-width: 3; stroke-linecap: round; opacity: .9; animation: pop .18s ease; }
 .last-dot { fill: var(--accent); opacity: .9; }
-.stone-b { filter: drop-shadow(2.5px 2.5px 3px rgba(75,70,60,.45)) drop-shadow(-1.5px -1.5px 2px rgba(251,248,242,.5)); }
-.stone-w { filter: drop-shadow(2.5px 2.5px 3px rgba(75,70,60,.35)) drop-shadow(-1.5px -1.5px 2px rgba(251,248,242,.9)); }
+.stone-b { filter: drop-shadow(2.5px 2.5px 3px rgba(var(--sh-ink),.45)) drop-shadow(-1.5px -1.5px 2px rgba(var(--sh-lite),.5)); }
+.stone-w { filter: drop-shadow(2.5px 2.5px 3px rgba(var(--sh-ink),.35)) drop-shadow(-1.5px -1.5px 2px rgba(var(--sh-lite),.9)); }
 .stone-in { animation: pop .22s ease; transform-origin: center; transform-box: fill-box; }
 @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
@@ -312,7 +325,7 @@ ${SIGNATURE_FACE}
 .tint-dot::after {
   content: ''; position: absolute; inset: 11px; border-radius: 50%;
   background: currentColor;
-  box-shadow: inset 1.5px 1.5px 3px rgba(75,70,60,.35), inset -1px -1px 2px rgba(251,248,242,.5);
+  box-shadow: inset 1.5px 1.5px 3px rgba(var(--sh-ink),.35), inset -1px -1px 2px rgba(var(--sh-lite),.5);
 }
 .tint-dot:hover { transform: translateY(-2px); }
 .tint-dot.active { box-shadow: var(--sink-sm), 0 0 0 2px var(--accent-soft); transform: none; }
@@ -370,8 +383,8 @@ ${SIGNATURE_FACE}
 .response .lesson-text { font-size: 14px; }
 .response.tone-success { --rule: var(--accent); }
 .response.tone-correction { --rule: var(--danger); }
-.response.tone-verdict { --rule: rgba(75,70,60,.42); }
-.response.tone-commentary { --rule: rgba(75,70,60,.24); }
+.response.tone-verdict { --rule: rgba(var(--sh-ink),.42); }
+.response.tone-commentary { --rule: rgba(var(--sh-ink),.24); }
 .response.tone-commentary .lesson-text { opacity: .84; }
 .verdict-label {
   font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
@@ -390,7 +403,7 @@ ${SIGNATURE_FACE}
 .lesson-foot {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
   flex-wrap: wrap; margin-top: 18px; padding-top: 15px;
-  border-top: 1px solid var(--dark); border-top-color: rgba(75,70,60,.14);
+  border-top: 1px solid var(--dark); border-top-color: rgba(var(--sh-ink),.14);
 }
 .lesson-foot .row { gap: 12px; }
 
@@ -482,8 +495,8 @@ ${SIGNATURE_FACE}
 .belt-stripe { position: absolute; left: 10px; right: 10px; bottom: 0; height: 3px; border-radius: 3px 3px 0 0; opacity: .9; }
 .rank-badge.sm .belt-stripe { left: 7px; right: 7px; height: 2px; }
 .belt-ribbon { position: relative; height: 26px; margin: 14px 0 6px; }
-.belt-band { position: absolute; inset: 6px 0; border-radius: 6px; background: var(--belt); box-shadow: inset 2px 2px 5px rgba(75,70,60,.28), inset -2px -2px 4px rgba(251,248,242,.35); }
-.belt-knot { position: absolute; left: 50%; top: 2px; width: 30px; height: 22px; margin-left: -15px; border-radius: 8px; background: var(--belt); box-shadow: 3px 3px 7px var(--dark), -2px -2px 5px var(--light), inset 1px 1px 3px rgba(251,248,242,.35); }
+.belt-band { position: absolute; inset: 6px 0; border-radius: 6px; background: var(--belt); box-shadow: inset 2px 2px 5px rgba(var(--sh-ink),.28), inset -2px -2px 4px rgba(var(--sh-lite),.35); }
+.belt-knot { position: absolute; left: 50%; top: 2px; width: 30px; height: 22px; margin-left: -15px; border-radius: 8px; background: var(--belt); box-shadow: 3px 3px 7px var(--dark), -2px -2px 5px var(--light), inset 1px 1px 3px rgba(var(--sh-lite),.35); }
 .belt-tail { position: absolute; top: 14px; width: 9px; height: 26px; border-radius: 0 0 5px 5px; background: var(--belt); box-shadow: 2px 3px 6px var(--dark); }
 .belt-tail-l { left: calc(50% - 15px); transform: rotate(14deg); transform-origin: top center; }
 .belt-tail-r { left: calc(50% + 6px); transform: rotate(-14deg); transform-origin: top center; }
@@ -491,7 +504,13 @@ ${SIGNATURE_FACE}
 .belt-card .belt-meta strong { font-family: var(--font-display); font-weight: var(--w-display); font-size: 20px; }
 
 /* ---- the Classic: saying block and the thirteen chapters ---- */
-.saying-card .saying-line { font-family: var(--font-display-italic); font-style: italic; }
+/* A saying is typed, not set: one machine in every pairing, the marked words
+   struck a second time, and a caret while the line is still coming out. */
+.typed { font-family: var(--font-typewriter); font-style: normal; font-weight: 400; letter-spacing: -.012em; }
+.typed-key { background: none; color: var(--accent); font-weight: 700; }
+.type-caret { display: inline-block; width: .5em; height: 1.02em; margin-left: 1px; vertical-align: -.16em; background: var(--accent); opacity: .75; animation: type-caret 1.05s steps(1) infinite; }
+@keyframes type-caret { 50% { opacity: 0; } }
+.saying-card .saying-line { font-size: 14.5px; line-height: 1.7; }
 .chapter-list { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
 .chapter-row { border-radius: 12px; }
 .chapter-head { width: 100%; display: grid; grid-template-columns: 30px minmax(0, 1fr) 18px; align-items: center; gap: 12px; padding: 11px 12px; border: 0; border-radius: 12px; background: transparent; cursor: pointer; text-align: left; color: inherit; }
@@ -553,6 +572,27 @@ ${SIGNATURE_FACE}
 .type-btn.active .type-name { opacity: 1; }
 .type-note { margin-top: 14px; }
 .type-credit { display: block; margin-top: 5px; opacity: .5; }
+/* The theme picker. Each swatch carries its own theme's custom properties, so
+   the little plate is drawn in that material — same two shadows, different
+   room — and you choose by looking rather than by reading a name. */
+.theme-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(136px, 1fr)); gap: 12px; margin-top: 16px; }
+.theme-btn {
+  border: 0; cursor: pointer; background: var(--ground); color: var(--ink);
+  display: flex; flex-direction: column; align-items: flex-start; gap: 9px;
+  padding: 12px; border-radius: 18px; box-shadow: var(--raise-sm);
+  transition: box-shadow .18s ease, transform .18s ease;
+}
+.theme-btn:hover { transform: translateY(-2px); }
+.theme-btn.active { box-shadow: var(--sink-sm), 0 0 0 2px var(--accent-soft); transform: none; }
+.theme-plate { width: 100%; height: 50px; border-radius: 12px; box-shadow: var(--sink-sm); display: flex; align-items: center; gap: 8px; padding: 0 12px; }
+.theme-stone { width: 17px; height: 17px; border-radius: 50%; flex: none; }
+.theme-stone.b { background: radial-gradient(circle at 36% 34%, var(--stone-b-1), var(--stone-b-2) 55%, var(--stone-b-3)); box-shadow: 2px 2px 4px rgba(var(--sh-ink),.45), -1px -1px 2px rgba(var(--sh-lite),.5); }
+.theme-stone.w { background: radial-gradient(circle at 36% 34%, var(--stone-w-1), var(--stone-w-2) 60%, var(--stone-w-3)); box-shadow: 2px 2px 4px rgba(var(--sh-ink),.35), -1px -1px 2px rgba(var(--sh-lite),.9); }
+.theme-mark { width: 11px; height: 11px; border-radius: 50%; background: var(--accent); margin-left: auto; flex: none; }
+.theme-meta { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding-left: 2px; }
+.theme-title { font-family: var(--font-display); font-weight: var(--w-display-strong); font-size: 15px; line-height: 1.1; }
+.theme-mood { font: 700 9.5px var(--font-body); letter-spacing: .14em; text-transform: uppercase; opacity: .5; }
+.theme-btn.active .theme-mood { color: var(--accent); opacity: 1; }
 
 /* ---- kata of the day ---- */
 .kata-card { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
@@ -579,7 +619,7 @@ ${SIGNATURE_FACE}
 .result-card.loss .result-headline { color: var(--danger); }
 /* the classic's closing word on a finished game */
 .closing-saying { margin: 0; padding: 0 0 0 14px; border-left: 2px solid var(--dark); display: flex; flex-direction: column; gap: 4px; }
-.closing-saying p { margin: 0; font-family: var(--font-display-italic); font-style: italic; font-size: 15px; line-height: 1.55; }
+.closing-saying p { margin: 0; font-size: 14px; line-height: 1.65; }
 .closing-saying cite { font-style: normal; opacity: .7; }
 .bow-row { display: flex; align-items: center; justify-content: center; gap: 18px; padding: 6px 0 2px; }
 .bow-word { font-family: var(--font-caption); font-style: var(--caption-style); opacity: .5; font-size: 14px; letter-spacing: .04em; }
@@ -598,7 +638,7 @@ ${SIGNATURE_FACE}
 .result-total { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; }
 
 /* ---- promotion ceremony ---- */
-.ceremony { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 20px; background: rgba(232,228,219,.72); backdrop-filter: blur(6px); animation: fade-in .3s ease; }
+.ceremony { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 20px; background: var(--scrim); backdrop-filter: blur(6px); animation: fade-in .3s ease; }
 .ceremony-card { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; max-width: 380px; width: 100%; animation: rise .45s ease; }
 .ceremony-card .eyebrow { display: inline-flex; align-items: center; gap: 6px; margin: 6px 0 0; }
 .ceremony-card .result-headline { font-size: 34px; }
@@ -620,7 +660,7 @@ ${SIGNATURE_FACE}
 .moku-seat:hover .moku-off, .moku-off:focus-visible { opacity: .85; }
 @media (max-width: 760px) { .moku-bubble { max-width: 160px; font-size: 12.5px; } .moku-off { opacity: .6; } }
 
-.moku .moku-stone { filter: drop-shadow(3px 3px 4px rgba(75,70,60,.45)) drop-shadow(-2px -2px 3px rgba(251,248,242,.55)); }
+.moku .moku-stone { filter: drop-shadow(3px 3px 4px rgba(var(--sh-ink),.45)) drop-shadow(-2px -2px 3px rgba(var(--sh-lite),.55)); }
 .moku .moku-body, .moku .moku-eyes, .moku .moku-pupils, .moku .moku-brow, .moku .moku-ko { transform-origin: center; transform-box: fill-box; }
 .moku .moku-eyes { animation: moku-blink 5.5s ease-in-out infinite; }
 @keyframes moku-blink { 0%, 90%, 100% { transform: scaleY(1); } 93%, 96% { transform: scaleY(.08); } }

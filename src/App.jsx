@@ -21,6 +21,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary.jsx";
 import { MokuProvider, MokuDock } from "./components/Moku.jsx";
 import { rankOf } from "./content/rank.js";
 import { typefaceVars } from "./content/typeface.js";
+import { themeVars } from "./content/theme.js";
 import { defaultProfile, loadProfile } from "./store/profile.js";
 import { Home } from "./views/Home.jsx";
 import { PlayView } from "./views/Play.jsx";
@@ -59,7 +60,7 @@ export default function SenteApp() {
 
   return (
     <MokuProvider view={view}>
-    <div className="sente-root" style={typefaceVars(profile.typeface)}>
+    <div className="sente-root" style={{ ...themeVars(profile.theme), ...typefaceVars(profile.typeface) }}>
       <style>{CSS}</style>
       <header className="topbar">
         <div className="brand">

@@ -1,11 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { TYPEFACES, DEFAULT_TYPEFACE, typefaceOf, typefaceVars, captionOf, quoteOf, GOOGLE_IMPORT } from "./typeface.js";
+import { TYPEFACES, DEFAULT_TYPEFACE, TYPEWRITER, typefaceOf, typefaceVars, captionOf, quoteOf, GOOGLE_IMPORT } from "./typeface.js";
 import { FONT_FACES } from "../styles/fontfaces.js";
 import { CSS } from "../styles/css.js";
 
 const VARS = [
   "--font-display", "--font-display-italic", "--display-italic-style",
   "--font-body", "--font-quote", "--quote-style", "--font-caption", "--caption-style",
+  "--font-typewriter",
   "--w-display", "--w-display-strong", "--display-tracking",
   "--display-leading",
 ];
@@ -86,6 +87,15 @@ describe("typeface pairings", () => {
       expect(Object.keys(vars).sort()).toEqual([...VARS].sort());
       for (const v of VARS) expect(String(vars[v]).length, `${t.id} ${v}`).toBeGreaterThan(0);
     }
+  });
+
+  it("types every quotation on the same machine, whatever the pairing", () => {
+    // The typed voice belongs to no pairing, the way the signature belongs to none:
+    // a saying is one person at a typewriter in all of them.
+    expect(TYPEWRITER).toMatch(/monospace$/);
+    for (const t of TYPEFACES) expect(typefaceVars(t.id)["--font-typewriter"], t.id).toBe(TYPEWRITER);
+    const name = (TYPEWRITER.match(/^'([^']+)'/) || [])[1];
+    expect(GOOGLE_IMPORT).toContain(`family=${name.replace(/ /g, "+")}`);
   });
 
   it("falls back to the house pairing for an unknown id", () => {

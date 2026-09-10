@@ -263,6 +263,20 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       rather than guessed, since the chapter's own argument is that names must be set right.
       A chapter may now hold more than one lesson (`alsoLessonIds`, `lessonIdsForChapter`),
       so the series can grow past thirteen files.
+- [x] The sayings are typed, not set (2026-09-10): a quotation now comes out of a typewriter
+      in every pairing, the way the signature stays one hand in every pairing. `TYPEWRITER`
+      in `content/typeface.js` is Courier Prime, emitted as `--font-typewriter` by
+      `typefaceVars` with the same value for all eight pairings; `emphasize` in
+      `content/classic.js` splits a saying into `{ text, mark }` parts, marking at most two
+      of the words the treatise keeps returning to (counting, the initiative, full and
+      empty, life and death), never the same word twice; `SayingText` in
+      `components/Saying.jsx` types the line out a character at a time with a blinking
+      caret, resting at the punctuation, and the marked words land in the accent colour at
+      the typewriter's bold. Used by the saying of the day on Home and Learn and by the
+      closing saying on a finished game. The whole line is the element's accessible name
+      from the first frame and `prefers-reduced-motion` gets it finished, with no caret.
+      Twelve of the fifty-six sayings carry no mark, because their weight is in ordinary
+      words; a lexicon that marked those too would be marking everything.
 - [ ] The remaining named shapes of chapter thirteen as lessons: the five-point flower, and
       the two-by-three that lives in the open and dies in the corner.
 - [ ] Restore the Chinese characters for chapter eleven's thirty-two names from the original
@@ -359,6 +373,29 @@ Open:
       Kuigaf alone is 207 KB the first time Wedge is chosen.
 - [ ] A pairing is a device preference stored in the profile; when accounts arrive,
       decide whether it syncs or stays local like the Moku toggle.
+
+## Palettes (done 2026-09-10, branch `feat/board-sizes-local`)
+
+- [x] A theme is data in `src/content/theme.js`: ground, the two lights every shadow is
+      cut from, ink, cream, accent. Eight of them — house, kaya, porcelain, damson (light);
+      lacquer, graphite, sumi, yohen (dark). Damson is pastel plum paper under a damson
+      mark, the one light room that is neither warm stone nor cool clay.
+- [x] The stylesheet names no colour outside its house-default block; the shell spreads
+      `themeVars(profile.theme)` beside `typefaceVars`, so no class is toggled and no
+      second stylesheet exists.
+- [x] Stone gradients and Moku's face read tokens, so a dark room can lift the black
+      stone's crown off the board without touching a component.
+- [x] Picker in Profile: every swatch is drawn in its own material.
+- [x] `theme.test.js` checks ink contrast, accent contrast against the house floor, and
+      that the highlight and the shadow stay close to the ground — the illusion.
+
+Open:
+- [ ] `prefers-color-scheme` is not consulted. A first visit lands on house whatever the
+      OS says. Decide between an explicit choice only, or a `system` option that follows.
+- [ ] The belt colours, the seal tints and the rank tints are still absolute values from
+      `rank.js`; they were chosen against paper and are only checked by eye on the dark
+      rooms. Either theme them too or prove they hold.
+- [ ] Theme is a device preference like the pairing; same question when accounts arrive.
 
 ## Principles (do not trade away)
 

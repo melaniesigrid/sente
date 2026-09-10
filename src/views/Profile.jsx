@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Check, Pencil, Trophy, Flame, Sparkles, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Type, Mountain } from "lucide-react";
+import { Check, Pencil, Trophy, Flame, Sparkles, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Type, Mountain, Palette } from "lucide-react";
 import { Card, Pill, Avatar, RankBadge, BeltRibbon, Toggle } from "../components/ui.jsx";
 import { MokuMark } from "../components/Moku.jsx";
 import { useMoku, useMokuFacts } from "../components/mokuStore.js";
 import { TINTS, rankOf, beltOf, nextBelt, hintsForBelt, kyuFloor } from "../content/rank.js";
 import { TYPEFACES, typefaceOf } from "../content/typeface.js";
+import { THEMES, themeOf, themeVars } from "../content/theme.js";
 import { CLASSIC, LEVELS, BELOW_THE_LEVELS, levelForRank } from "../content/classic.js";
 import { LESSONS } from "../content/lessons.js";
 import { PROBLEMS } from "../content/problems.js";
@@ -134,6 +135,36 @@ export function ProfileView({ profile, setProfile }) {
 
       <LevelsCard rank={rankOf(profile.rating)} />
 
+      <Card>
+        <div className="stat-head"><Palette size={16} /><span>Palette</span></div>
+        <p className="fine" style={{ marginTop: 6 }}>
+          Seven rooms for the same board. A palette sets the ground, the two lights every
+          shadow is cut from, and the one colour that means here; the shapes, the spacing
+          and the shadows themselves never move.
+        </p>
+        <div className="theme-row">
+          {THEMES.map(t => (
+            <button key={t.id}
+              style={themeVars(t.id)}
+              className={`theme-btn ${profile.theme === t.id ? "active" : ""}`}
+              onClick={() => commit({ theme: t.id })}
+              aria-pressed={profile.theme === t.id}
+              aria-label={`Palette ${t.name}`}
+            >
+              <span className="theme-plate">
+                <span className="theme-stone b" />
+                <span className="theme-stone w" />
+                <span className="theme-mark" />
+              </span>
+              <span className="theme-meta">
+                <span className="theme-title">{t.name}</span>
+                <span className="theme-mood">{t.mood}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+        <p className="fine type-note">{themeOf(profile.theme).note}</p>
+      </Card>
       <Card>
         <div className="stat-head"><Type size={16} /><span>Typeface</span></div>
         <p className="fine" style={{ marginTop: 6 }}>

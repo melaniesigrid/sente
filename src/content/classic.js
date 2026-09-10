@@ -348,6 +348,58 @@ export const chapterForLesson = (lessonId) =>
 /** Every saying with its chapter, in book order. */
 export const SAYINGS = CHAPTERS.flatMap(ch => ch.sayings.map(text => ({ text, chapter: ch.n, title: ch.title })));
 
+/* ----------------------- THE WORDS THAT CARRY -----------------------
+   A saying is typed out on screen a character at a time, and while it types, the
+   words the classic keeps coming back to are struck a second time: the accent
+   colour, the bold weight of the typewriter face. It is the mark a reader makes
+   in a margin, not decoration.
+
+   The lexicon is the vocabulary of the treatise itself — counting, the
+   initiative, the corners, full and empty, life and death — and never the common
+   words around them. Two marks at most in a line: a third stops being a mark and
+   starts being the line. Pure data and a pure function; the view only renders
+   what comes back. */
+
+export const KEY_WORDS = [
+  "calculat(?:e|es|ed|ing|ion|ions)", "count(?:s|ed|ing)?", "reckon(?:s|ed|ing)?",
+  "initiative", "corner(?:s)?", "centre", "edge(?:s)?",
+  "shape(?:s)?", "connect(?:s|ed|ion|ions|ing)?", "cut(?:s)?",
+  "ko", "eye(?:s)?", "group(?:s)?", "territory", "ground",
+  "invade(?:s|d)?", "invasion(?:s)?", "invader(?:s)?", "sacrifice(?:s|d)?",
+  "advance(?:s|d)?", "retreat(?:s|ed)?", "attack(?:s|ed)?", "counterattack",
+  "full", "empty", "void", "danger", "dead", "death", "life",
+  "advantage(?:s)?", "victory", "defeat", "change(?:s|d|ing)?", "Way",
+  "plan(?:s)?", "weak", "modest", "calmly",
+  "win(?:s|ning)?", "won", "lose(?:s)?", "losing", "lost",
+  "fight(?:s|ing)?", "know(?:s|ing)?", "study", "enlightened",
+];
+
+const KEY_RE = new RegExp(`\\b(?:${KEY_WORDS.join("|")})\\b`, "gi");
+
+/** Two marks at most, so a marked line still reads as a line. */
+export const MAX_MARKS = 2;
+
+/** A saying split into the pieces a view renders: `{ text, mark }` in order,
+ *  joining back to exactly the string that went in. Deterministic. */
+export function emphasize(text, max = MAX_MARKS) {
+  const line = String(text ?? "");
+  const out = [];
+  const seen = new Set();          // the same word struck twice is a stutter, not a mark
+  let at = 0, marks = 0;
+  KEY_RE.lastIndex = 0;
+  for (let m = KEY_RE.exec(line); m && marks < max; m = KEY_RE.exec(line)) {
+    const word = m[0].toLowerCase();
+    if (seen.has(word)) continue;
+    seen.add(word);
+    if (m.index > at) out.push({ text: line.slice(at, m.index), mark: false });
+    out.push({ text: m[0], mark: true });
+    at = m.index + m[0].length;
+    marks++;
+  }
+  if (at < line.length) out.push({ text: line.slice(at), mark: false });
+  return out.length ? out : [{ text: line, mark: false }];
+}
+
 const hashKey = (key) => {
   let h = 2166136261;
   for (let i = 0; i < key.length; i++) { h ^= key.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
