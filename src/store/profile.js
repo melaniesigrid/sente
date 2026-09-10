@@ -13,6 +13,9 @@ export const defaultProfile = {
   lessonsDone: [], problemsDone: [],
   tierPassed: [],                            // library tier ids whose exit test was passed
   sound: false,                              // stone click + haptic, opt-in
+  coordinates: false,                        // letters and numbers around the board
+  lastMoveMark: "dot",                       // how the last stone played is marked
+
   typeface: DEFAULT_TYPEFACE,                // font pairing id, src/content/typeface.js
   theme: DEFAULT_THEME,                      // palette id, src/content/theme.js
   kataDate: "", kataStreak: 0, kataBest: 0,  // kata of the day attendance
@@ -35,6 +38,10 @@ function sanitizeBookProgress(value) {
   return out;
 }
 
+/** How the last stone played is marked. A preference, not a rule: some readers want
+ *  the dot, some the ring around the stone, and some want the board left alone. */
+export const MARKS = ["dot", "ring", "none"];
+
 // Element type for each array field; anything else in an array is a corrupt profile.
 const ARRAY_OF = { lessonsDone: "string", problemsDone: "string", tierPassed: "number" };
 
@@ -47,6 +54,7 @@ const validField = (key, value) => {
   if (typeof def === "number") return typeof value === "number" && Number.isFinite(value);
   if (typeof def === "boolean") return typeof value === "boolean";
   if (key === "tint") return typeof value === "string" && Object.hasOwn(TINTS, value);
+  if (key === "lastMoveMark") return MARKS.includes(value);
   if (key === "typeface") return typeof value === "string" && typefaceOf(value).id === value;
   if (key === "theme") return typeof value === "string" && themeOf(value).id === value;
   if (typeof def === "string") return typeof value === "string";

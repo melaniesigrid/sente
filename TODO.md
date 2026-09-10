@@ -111,7 +111,10 @@ each fixed in its own commit:
 - [x] SGF export button on every finished game (result card), and SGF import into
       review from Home (2026-09-10, branch `feat/sgf-import`): drop a file or choose
       one; it never leaves the device.
-- [ ] Coordinates toggle (A–T minus I / 1–19) and last-move marker preference.
+- [x] Coordinates toggle (A–T minus I / 1–19) and last-move marker preference
+      (2026-09-10, branch `feat/coordinates`): both on the profile, set in Profile.
+      Fixed on the way: the board's screen-reader labels said "I" for column 8,
+      disagreeing with every go book and with the coordinates now drawn beside them.
 - [ ] Onboarding for a first-time visitor: name and tint, then a 10-move guided demo.
 - [ ] Keyboard at the table: P pass, U undo. Arrows scrub in review already (2026-09-10:
       left and right walk a move, up and down jump ten, Home and End go to the ends,
@@ -128,6 +131,17 @@ Decisions made in Phase 3, lobby slice (branch `feat/board-sizes`):
   learn a new field and a rematch is always played on the board in front of you.
 - The daily duel stays 9x9 (`DUEL_SIZE`): results only compare on one board.
 - The board is drawn at 460, 560 or 680 px for 9, 13, 19; the stone scale never changes.
+
+Decisions made in Phase 3, coordinates slice (branch `feat/coordinates`):
+- The column letters skip I, because on a printed diagram it cannot be told from 1
+  or from a lowercase l. `colLabel` lives in the engine, so the drawn coordinates
+  and the screen-reader labels can never disagree. This is NOT SGF's alphabet:
+  `pointToSgf` uses a..s including i, which is correct there and wrong here.
+- Both are profile fields, not device preferences, because they are how a player
+  reads a board rather than how one machine is set up.
+- The marker has three settings (dot, ring, none) and applies wherever a real game
+  is shown — the table, an online table and review — but not to lesson or tsumego
+  boards, which carry their own didactic marks.
 
 Decisions made in Phase 3, review slice (branch `feat/review-mode`):
 - An SGF from the wild is untrusted input, so every judgment about one lives in

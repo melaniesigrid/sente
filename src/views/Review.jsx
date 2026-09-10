@@ -27,7 +27,7 @@ import {
 
 const BOARD_PX = { 9: 460, 13: 560, 19: 680 };
 
-export function Review({ record, onExit, onRematch }) {
+export function Review({ record, onExit, onRematch, profile = {} }) {
   const total = reviewLength(record);
   const [n, setN] = useState(total);
   const [showNumbers, setShowNumbers] = useState(false);
@@ -112,7 +112,8 @@ export function Review({ record, onExit, onRematch }) {
             onPlay={branchable ? onTry : undefined}
             disabled={!branchable}
             sizePx={BOARD_PX[record.size] ?? 680}
-            numbers={line ? null : numbers} captured={[]} />
+            numbers={line ? null : numbers} captured={[]}
+            coordinates={profile.coordinates} mark={profile.lastMoveMark ?? "dot"} />
           {refused && <p className="review-refused" role="alert">{refused}</p>}
           {line ? (
             <div className="row review-controls">

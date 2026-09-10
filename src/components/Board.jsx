@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { idx, starPoints } from "../engine/index.js";
+import { idx, starPoints, colLabel, rowLabel, pointLabel } from "../engine/index.js";
 
 /* ----------------------- BOARD (SVG) -----------------------
    Renders any board size; reads it from the board object. Presentational
@@ -17,7 +17,7 @@ import { idx, starPoints } from "../engine/index.js";
 export function Board({
   board, onPlay, lastMove, marks = [], disabled, sizePx = 460, flash = [],
   atari = [], captured = [], captureKey = 0, territory = null, dead = [], wrong = null,
-  numbers = null,
+  numbers = null, coordinates = false, mark = "dot",
 }) {
   const N = board.size;
   const cell = 44, m = 34;
@@ -57,6 +57,14 @@ export function Board({
         ))}
         {starPoints(N).map((p, i) => (
           <circle key={i} cx={x(p.c)} cy={y(p.r)} r={4} className="star-pt" />
+        ))}
+        {coordinates && Array.from({ length: N }).map((_, i) => (
+          <g key={"co" + i} className="coord" aria-hidden="true">
+            <text x={x(i)} y={m - 16} textAnchor="middle">{colLabel(i)}</text>
+            <text x={x(i)} y={y(N - 1) + 24} textAnchor="middle">{colLabel(i)}</text>
+            <text x={m - 18} y={y(i)} textAnchor="middle" dominantBaseline="central">{rowLabel(N, i)}</text>
+            <text x={x(N - 1) + 18} y={y(i)} textAnchor="middle" dominantBaseline="central">{rowLabel(N, i)}</text>
+          </g>
         ))}
         {scoring && territory.map((owner, i) => {
           if (owner === "neutral" || board.cells[i] !== null) return null;
@@ -102,7 +110,11 @@ export function Board({
                 <text x={x(c)} y={y(r)} className={`stone-num ${v === "b" ? "on-b" : "on-w"}`}
                   textAnchor="middle" dominantBaseline="central">{numbers.get(i)}</text>
               ) : (
-                isLast && !isDead && <circle cx={x(c)} cy={y(r)} r={7} className="last-dot" />
+                isLast && !isDead && mark !== "none" && (
+                  mark === "ring"
+                    ? <circle cx={x(c)} cy={y(r)} r={13} className="last-ring" />
+                    : <circle cx={x(c)} cy={y(r)} r={7} className="last-dot" />
+                )
               )}
             </g>
           );
@@ -110,7 +122,7 @@ export function Board({
         {Array.from({ length: N * N }).map((_, i) => {
           const c = i % N, r = Math.floor(i / N);
           const stone = board.cells[i];
-          const label = `${String.fromCharCode(65 + c)}${N - r}${stone ? (stone === "b" ? ", black stone" : ", white stone") : ""}${deadSet.has(i) ? ", marked dead" : ""}`;
+          const label = `${pointLabel(N, c, r)}${stone ? (stone === "b" ? ", black stone" : ", white stone") : ""}${deadSet.has(i) ? ", marked dead" : ""}`;
           return (
             <rect key={"h" + i}
               x={x(c) - cell / 2} y={y(r) - cell / 2}

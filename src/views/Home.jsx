@@ -37,7 +37,7 @@ export function Home({ profile, go, onResume }) {
   const streak = liveStreak(profile, today);
   useMokuFacts({ view: "home", seed: games });
   if (opened) {
-    return <Review record={opened} onExit={() => setOpened(null)} />;
+    return <Review record={opened} profile={profile} onExit={() => setOpened(null)} />;
   }
 
   return (
