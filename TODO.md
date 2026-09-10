@@ -252,18 +252,17 @@ and one rule: the number on the card is measured, never claimed.
 - [ ] Star Player: Ke Jie anonymised (decided 2026-09-09 after the lawyer check). Card says
       "a top pro of 2017", his name nowhere in code, data or UI; corpus from a source with
       stated terms; same eval and gate as the Edo masters, `proyear_2017` as the control.
-      Source (user, 2026-09-10): go4go, records saved one at a time by the account holder
-      into Downloads. In the manifest as `star-player` (`anonymous`, `year` 2017, the name
-      only as `aliasHashes`, SHA-256 of `nameKey`), `source.dir` imported by
-      `tools/masters/import.mjs` under content-hash file names so no name reaches raw, data
-      or the dump; the dump uses the manifest year (`data.year`) so the eval scores
-      `proyear_2017`, the profile that ships (branch `feat/masters-star-player`).
-      STILL OPEN (the user and counsel): go4go's only public rights line is "All Rights
-      Reserved" and the earlier check read its terms as forbidding bulk reuse without a
-      licence; the manifest quotes the footer and says so. The build refuses below 100 even
-      games (8 imported on 2026-09-10, all 2024 to 2026); keep saving, rerun import and
-      build, then the dump and eval as for the Edo masters. BadukMovies' archived zip
-      (164 games, open terms, Wayback 2023-11-05) stays the fallback source.
+      Source (2026-09-10): BadukMovies' whole pro-game zip as the Internet Archive holds it
+      (capture 2023-11-05, 69,169 SGFs, terms quoted in the manifest: "This collection is
+      in the public domain, use it however you want to"). `fetch.mjs` reads the zip and,
+      for an anonymised master, keeps only his games under content-hash names: 164 even
+      games, 2009 to 2017, 40 book entries, split 98/33/33. In the manifest as
+      `star-player` (`anonymous`, `year` 2017, the name only as `aliasHashes`, SHA-256 of
+      `nameKey`); the dump uses the manifest year (`data.year`) so the eval scores
+      `proyear_2017`, the profile that ships. `tools/masters/import.mjs` remains for
+      records saved by hand from a source that states its own terms; go4go (login-walled,
+      "All Rights Reserved", bulk download against its terms) is not used. Branch
+      `feat/masters-star-player`, PR #7, stacked on #5. Eval: see the PR.
 - [ ] Deferred: Dosaku and Shusai after the eval; Go Seigen, Takagawa and living players by
       name after a name-and-likeness check (the 1950 rule does not clear the first two); Moku quoting the Classic and a belt mark per book;
       fine-tune adapters per master after Phase 4, measured by the same eval; your own

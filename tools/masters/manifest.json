@@ -49,10 +49,11 @@
         "a817f1be2b076359e46ff4e45570332ae20e4b83eb775eb91570d366d548584e"
       ],
       "source": {
-        "dir": "C:/Users/melan/Downloads",
-        "page": "https://www.go4go.net/",
-        "terms": "Copyright © 1999-2024 Go4Go.net - All Rights Reserved",
-        "note": "Records saved one at a time by the account holder from the site's game pages, then imported with import.mjs. The footer above is the only rights statement the site publishes without a login; whether it permits this use is an open question for the user and counsel (TODO.md, Phase 6)."
+        "url": "https://web.archive.org/web/20231105170905id_/https://badukmovies.com/pro_games/download",
+        "page": "https://web.archive.org/web/20231031044850/https://badukmovies.com/pro_games",
+        "terms": "Here you can find a collection of 115623 pro games in sgf format. This collection is in the public domain, use it however you want to.",
+        "note": "BadukMovies' whole pro-game zip as the Internet Archive captured it on 2023-11-05 (the live domain has since changed hands). Only this master's games are kept, under content-hash names. import.mjs remains for records saved by hand from another source, which must state its own terms.",
+        "expected": 164
       }
     }
   ]
