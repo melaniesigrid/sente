@@ -723,6 +723,41 @@ Decisions made in the masters row (branch `feat/masters-row-ui`, 2026-09-10):
       fine-tune adapters per master after Phase 4, measured by the same eval; your own
       games on the style axes once the telemetry ring exists.
 
+## The small print (done 2026-09-10, branch `feat/legal`)
+
+Terms of use, privacy, and credits and copyright, on one screen reachable from the foot
+of every page. Written under one rule, the same one the ratings are written under: no
+sentence describes behaviour the code does not have. `src/content/legal.test.js` is what
+makes that hold — the numbers in the privacy notice are read from the server's own
+constants, and every runtime dependency must have a line on the credits page.
+
+Decisions:
+- The documents are data (`src/content/legal.js`), not markup. A view that held the
+  sentences would be a view the verifier never reads.
+- Governing law is Canada with no province named. The province is a fact about the Studio,
+  and a clause naming the wrong one is worse than one naming the country.
+- Contact is hello@northboundsoftwarestudio.com, in all three documents. A privacy request
+  that can only be made in public is not a privacy request.
+- The privacy notice admits the two gaps rather than papering over them: there is no
+  export button, and leaving does not take a finished game out of the room it was played
+  in, because that game is the opponent's too.
+- The small print is set in the same face and the same room as the rest of Joseki. The
+  size of the type is the oldest way of saying "we would rather you did not read this".
+
+Open:
+- [ ] `UPDATED` in `src/content/legal.js` is moved by hand. It should fail the suite if
+      the prose changed in a commit that did not move it, which needs a hash of the text
+      checked in beside it.
+- [ ] A real export: `GET /api/me/export` handing back everything the Registry and the
+      rooms hold about one player, as JSON. Until it exists the notice says a person does
+      it by hand, which is true and does not scale past a few requests.
+- [ ] The letters (`server/mail.js`) do not link to the privacy notice. They should, and
+      that is a one-line change to the two templates once `APP_URL` is settled.
+- [ ] Nobody is asked to agree to anything. Onboarding sets a name and a tint and never
+      mentions the terms; registering a handle for online play does not either. Decide
+      whether a line under the register button is worth its weight, or whether the footer
+      link is the whole of the notice this product needs.
+
 ## Design and polish (schedule after a design review)
 
 - [ ] Mobile layout pass: board sizing, nav collapse, touch targets.
@@ -821,9 +856,13 @@ Google-hosted text families, because the Typecase text cuts have no weight axis.
       running text any more — `galliard` was the one that did.
 
 Open:
-- [ ] Licensing: the two borrowed cuts still shipping are Welorac and Qliesya, both
-      demo/personal-use (`src/fonts/LICENSES.md`). Buy them or swap for OFL faces before
-      a public deploy. Everything else in the set is OFL today.
+- [ ] Licensing, and this one is live rather than pending: the two borrowed cuts still
+      shipping are Welorac and Qliesya, both demo/personal-use (`src/fonts/LICENSES.md`),
+      and the build that carries them is already on Pages. Buy a desktop-plus-web licence
+      from Ermedia Studio, or swap both for OFL faces, or gate `kaya` and `vitrine` out of
+      a production build. Everything else in the set is OFL today, so the default pairing
+      and every body face are clear as they stand. The credits page names both faces and
+      their vendor, which is the attribution part; it is not the licence part.
 - [ ] Convert the two remaining display cuts to woff2; Welorac is 46 KB and Qliesya 16 KB
       as OTF, and woff2 would roughly halve each.
 - [ ] A pairing is a device preference stored in the profile; when accounts arrive,

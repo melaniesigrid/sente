@@ -1,0 +1,34 @@
+Joseki — play go, beautifully
+
+© 2026 Northbound Software Studio
+All rights reserved.
+
+This software and everything shipped with it — the source code, the design
+system, the stylesheet, the lessons, the tsumego collections, the house
+players and their voices, the translations and commentary in the reading
+room, and the artwork — are the property of Northbound Software Studio and
+are protected by copyright.
+
+No licence to use, copy, modify, merge, publish, distribute, sublicense or
+sell any part of this software is granted by its being published here. The
+repository is public so that the work can be read, learned from, and reported
+on. That is not the same as a grant, and no grant should be inferred from it.
+
+Two things are outside this notice, and deliberately so.
+
+1. THE GAME. Go belongs to nobody. Its rules, its proverbs, the classical
+   life-and-death problems, and the game records of the old masters are the
+   common inheritance of everybody who sits down at a board. Nothing in this
+   notice claims any of them. Where this project has set them in its own
+   words — the translations, the lessons, the commentary — those words are the
+   Studio's, and the position underneath them is nobody's.
+
+2. OTHER PEOPLE'S SOFTWARE AND TYPE. This project is built on open-source
+   software and on typefaces drawn by other people, each under its own terms.
+   Those terms govern those components, not this notice. The full list is in
+   `src/content/legal.js`, shown to every reader on the Credits page in the
+   app, and the type is documented file by file in `src/fonts/LICENSES.md`.
+
+Asking is welcome. A request to use a piece of this for teaching, for a club,
+or for a go server that is not trying to be this one has never yet been turned
+down: hello@northboundsoftwarestudio.com.
