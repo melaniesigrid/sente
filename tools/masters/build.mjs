@@ -160,7 +160,7 @@ export function buildMaster(m, files, log = () => {}) {
     split: { train: split.train.length, dev: split.dev.length, test: split.test.length },
   };
   const master = {
-    id: m.id, name: m.name, years, anonymous: !!m.anonymous,
+    id: m.id, name: m.name, year: m.year ?? Math.round((years[0] + years[1]) / 2), years, anonymous: !!m.anonymous,
     source: { page: m.source?.page ?? null, terms: m.source?.terms ?? null },
     games: counts, style, book: { moves: book.moves, minGames: book.minGames, entries: book.entries },
   };
@@ -169,7 +169,7 @@ export function buildMaster(m, files, log = () => {}) {
     throw new RangeError(`${m.id}: ${json.length} bytes of JSON, limit ${MAX_JSON_BYTES}`);
   }
   const card = {
-    id: m.id, name: m.name, years, anonymous: !!m.anonymous,
+    id: m.id, name: m.name, year: master.year, years, anonymous: !!m.anonymous,
     games: { total: counts.total, even: counts.even, dropped: Object.values(dropped).reduce((s, n) => s + n, 0) },
     book: { entries: book.count },
     bytes: json.length,

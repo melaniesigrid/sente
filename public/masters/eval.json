@@ -72,7 +72,30 @@
      "thickness": 2.269570202427894,
      "quadrant": 0.45383643114094113,
      "atari": 0.3814740182952888
-    }
+    },
+    "sweep": {
+     "1": {
+      "top1": 0.573818608746698,
+      "top1Opening": 0.5819047619047619,
+      "styleDistance": 0.020759063479359775
+     },
+     "2": {
+      "top1": 0.5701496918109774,
+      "top1Opening": 0.5771428571428572,
+      "styleDistance": 0.007702219169016938
+     },
+     "0.25": {
+      "top1": 0.5745523921338421,
+      "top1Opening": 0.5828571428571429,
+      "styleDistance": 0.038745391520828724
+     },
+     "0.5": {
+      "top1": 0.5739653654241268,
+      "top1Opening": 0.5838095238095238,
+      "styleDistance": 0.03307269040493361
+     }
+    },
+    "chosenLambda": 0
    },
    "test": {
     "positions": 7008,
@@ -145,6 +168,10 @@
      "quadrant": 0.45305590036836174,
      "atari": 0.3904893910374989
     }
+   },
+   "prior": {
+    "lambda": 0,
+    "ships": false
    }
   },
   "jowa": {
@@ -219,7 +246,30 @@
      "thickness": 2.7012632480307452,
      "quadrant": 0.4670719568137821,
      "atari": 0.3918484733152469
-    }
+    },
+    "sweep": {
+     "1": {
+      "top1": 0.5920526014865638,
+      "top1Opening": 0.6,
+      "styleDistance": 0.022757724577137338
+     },
+     "2": {
+      "top1": 0.584333905088622,
+      "top1Opening": 0.5916666666666667,
+      "styleDistance": 0.012769188314865617
+     },
+     "0.25": {
+      "top1": 0.5903373356203545,
+      "top1Opening": 0.59,
+      "styleDistance": 0.044376031180122275
+     },
+     "0.5": {
+      "top1": 0.5926243567753001,
+      "top1Opening": 0.5966666666666667,
+      "styleDistance": 0.03671057406683936
+     }
+    },
+    "chosenLambda": 0.5
    },
    "test": {
     "positions": 3513,
@@ -241,7 +291,13 @@
       "top1Late": 0.5564709921043598,
       "styleDistance": 0.05519369989451199
      },
-     "c": null,
+     "c": {
+      "lambda": 0.5,
+      "top1": 0.5624822089382294,
+      "top1Opening": 0.585,
+      "top1Late": 0.5578441469275661,
+      "styleDistance": 0.041953396672538154
+     },
      "cross": {
       "top1": 0.5567890691716482,
       "top1Opening": 0.5583333333333333,
@@ -292,11 +348,15 @@
      "quadrant": 0.456054325955918,
      "atari": 0.3823809095735743
     }
+   },
+   "prior": {
+    "lambda": 0.5,
+    "ships": true
    }
   }
  },
  "model": "models/humanv0.fp16w.onnx",
  "floor": 0.02,
  "note": "top-1 agreement with the master's move on positions the network's training data has likely seen (GoGoD); arm a is the control and is always shown beside arm b",
- "generatedAt": "2026-09-09"
+ "generatedAt": "2026-09-10"
 }

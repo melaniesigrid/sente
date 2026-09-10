@@ -12,6 +12,7 @@
    falls back to the heuristic house player. */
 
 import { encodeInputs, NUM_BIN_FEATURES, NUM_GLOBAL_FEATURES, NUM_META_FEATURES } from "./features.js";
+import { StyleDataError, validateMaster } from "../style/master.js";
 
 export const MODEL_FILE = "models/humanv0.fp16w.onnx";
 export const MODEL_BYTES = 53784796;
@@ -98,6 +99,28 @@ export function loadModel() {
     }
   })();
   return loading;
+}
+
+const masters = new Map();
+
+/** A master's data (public/masters/<id>.json), fetched once and shape-checked.
+ *  Missing or malformed data is a `StyleDataError` naming the file. */
+export function loadMaster(id) {
+  if (!/^[a-z0-9-]+$/.test(id)) return Promise.reject(new StyleDataError(`bad master id ${id}`));
+  let p = masters.get(id);
+  if (p) return p;
+  const file = `masters/${id}.json`;
+  p = (async () => {
+    let res;
+    try { res = await fetch(base() + file); } catch (e) { throw new StyleDataError(`fetch failed: ${e.message}`, file); }
+    if (!res.ok) throw new StyleDataError(`${res.status} ${res.statusText}`, file);
+    let json;
+    try { json = await res.json(); } catch { throw new StyleDataError("not JSON", file); }
+    return validateMaster(json, file);
+  })();
+  p.catch(() => masters.delete(id));
+  masters.set(id, p);
+  return p;
 }
 
 /** Policy logits (N*N+1) and value for the side to move, or null when the

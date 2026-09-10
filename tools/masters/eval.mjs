@@ -4,7 +4,7 @@
 
      a  the year profile alone: the network's best legal move
      b  the year profile plus his opening book (book hit overrides; else arm a)
-     c  plus the style prior: PR 2; reported as null until it exists
+     c  plus the style prior on the network's shortlist, at the λ chosen on dev
 
    Agreement is judged on canonical moves: on a symmetric position a mirror-image
    reply counts as the same move, so the empty board's 3-4 openings agree whichever
@@ -18,9 +18,11 @@
 
    Inputs: tools/masters/data/<id>.json (build.mjs), tools/masters/data/<id>.logits.jsonl
    (dump_logits.py), public/masters/<id>.json. Output: public/masters/eval.json, and
-   `style.baseline` written into each master's JSON (the network's choices measured on
-   the per-move axes, which the prior needs). Before scoring, every position's dumped
-   logits are checked to cover the sampler's keep set; a gap is a failure, not a skip.
+   into each master's JSON: `style.baseline`, `masterMoves`, `moveSpread` (measured on
+   dev, which the prior needs), and `style.lambda` (the ship rule's verdict: the λ the
+   dev split chose when arm c beats arm b on test, else 0, and the bot plays the book
+   alone). Before scoring, every position's dumped logits are checked to cover the
+   sampler's keep set; a gap is a failure, not a skip.
 
      node tools/masters/eval.mjs               # every master with a logit dump
      node tools/masters/eval.mjs shusaku       # one master */
@@ -30,7 +32,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   createGame, play, legalMoves, canonical, canonicalMove, bookKey, fromCanonical,
-  moveFeatures, meanStyle, styleDistance, MODEL_FILE,
+  moveAxesVector, MOVE_AXES, meanStyle, styleDistance, keepSet as samplerKeepSet, stylePrior, MODEL_FILE,
 } from "../../src/engine/index.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -40,8 +42,9 @@ const PUBLIC = join(ROOT, "public", "masters");
 
 export const FLOOR = 0.02;               // must match choosePolicyMove's default
 export const OPENING_MOVES = 30;
-/** Per-move axes the arms are compared on (and the prior reads). */
-export const MOVE_AXES = ["line1", "line2", "line3", "line4", "line5", "contact", "tenuki", "thickness", "quadrant", "atari"];
+export const LAMBDAS = [0.25, 0.5, 1, 2];  // the dev split picks one
+export const CLAMP = 2;
+export { MOVE_AXES };
 
 /** The sampler's keep set from sparse logits over the legal moves, and whether the
  *  dump covers it: any index missing from the dump has a logit below the smallest
@@ -80,21 +83,37 @@ export function bookMove(book, board, color, can = canonical(board)) {
 /** Per-move axes of one candidate, as a flat numeric vector (nulls kept). */
 export function moveVector(board, i, color, ctx) {
   const N = board.size;
-  const f = moveFeatures(board, i % N, Math.floor(i / N), color, ctx);
-  const v = { contact: f.contact, tenuki: f.tenuki, thickness: f.thickness, quadrant: f.quadrant, atari: f.atariGiven };
-  for (let l = 1; l <= 5; l++) v[`line${l}`] = Math.min(f.line, 5) === l ? 1 : 0;
-  return v;
+  return moveAxesVector(board, i % N, Math.floor(i / N), color, ctx);
+}
+
+/** Arm c: the best kept candidate after the prior, judged exactly as the sampler
+ *  would at temperature 0: the network's shortlist, each logit plus the lean. */
+export function priorTop(sparse, rec, prior, floor = FLOOR) {
+  const NN = rec.board.size ** 2;
+  const logits = new Float32Array(NN + 1).fill(-1e9);
+  for (const [i, v] of Object.entries(sparse)) logits[Number(i)] = v;
+  const { cands, keep, full } = samplerKeepSet(logits, rec, floor);
+  let best = -Infinity, bi = null;
+  for (const k of keep) {
+    const i = cands[k];
+    if (i === NN) continue;
+    const s = Math.log(full[k]) + prior(i);
+    if (s > best) { best = s; bi = i; }
+  }
+  return bi;
 }
 
 const rate = (n, d) => (d ? n / d : null);
 
-/** Score one master. `positions` are the dumped lines; `games` the data games. */
-export function scoreMaster({ games, positions, book, crossBook = null, floor = FLOOR }) {
+/** Score one master. `positions` are the dumped lines; `games` the data games.
+ *  `style` (with baseline, masterMoves, moveSpread) and `lambda` switch arm c on. */
+export function scoreMaster({ games, positions, book, crossBook = null, floor = FLOOR, style = null, lambda = 0 }) {
   const byFile = new Map(games.map((g) => [g.file, g]));
-  const arms = { a: [], b: [], cross: [], master: [] };
-  const agree = { a: [0, 0, 0], b: [0, 0, 0], cross: [0, 0, 0] };   // [all, opening, late]
+  const arms = { a: [], b: [], c: [], cross: [], master: [] };
+  const agree = { a: [0, 0, 0], b: [0, 0, 0], c: [0, 0, 0], cross: [0, 0, 0] };   // [all, opening, late]
   const totals = [0, 0, 0];
   const hits = { b: 0, cross: 0 };
+  const withPrior = style && lambda > 0;
   let uncovered = 0;
   const bySplit = {};
 
@@ -133,14 +152,21 @@ export function scoreMaster({ games, positions, book, crossBook = null, floor = 
         const xm = crossBook ? bookMove(crossBook, rec.board, color, can) : null;
         const cross = xm !== null && legalIdx.includes(xm) ? xm : a;
         if (xm !== null) hits.cross++;
+        let cArm = b;
+        if (withPrior && bm === null) {
+          const prior = stylePrior(style, rec, { lambda, clamp: CLAMP });
+          const pt = prior ? priorTop(sparse, rec, prior, floor) : null;
+          if (pt !== null) cArm = pt;
+        }
         const bucket = k + 1 <= OPENING_MOVES ? 1 : 2;
         totals[0]++; totals[bucket]++;
-        for (const [arm, choice] of [["a", a], ["b", b], ["cross", cross]]) {
+        for (const [arm, choice] of [["a", a], ["b", b], ["c", cArm], ["cross", cross]]) {
           if (same(choice)) { agree[arm][0]++; agree[arm][bucket]++; }
         }
         const ctx = { lastEnemy, moveNumber: k + 1 };
         arms.a.push(moveVector(rec.board, a, color, ctx));
         arms.b.push(moveVector(rec.board, b, color, ctx));
+        if (withPrior) arms.c.push(moveVector(rec.board, cArm, color, ctx));
         if (crossBook) arms.cross.push(moveVector(rec.board, cross, color, ctx));
         arms.master.push(moveVector(rec.board, target, color, ctx));
         const s = g.split ?? "?";
@@ -163,7 +189,7 @@ export function scoreMaster({ games, positions, book, crossBook = null, floor = 
   return {
     positions: totals[0], opening: totals[1], late: totals[2], uncovered,
     bookHits: hits.b, crossHits: crossBook ? hits.cross : null,
-    arms: { a: result("a"), b: result("b"), c: null, cross: crossBook ? result("cross") : null },
+    arms: { a: result("a"), b: result("b"), c: withPrior ? { lambda, ...result("c") } : null, cross: crossBook ? result("cross") : null },
     bySplit: Object.fromEntries(Object.entries(bySplit).map(([s, v]) => [s, { positions: v.n, a: rate(v.a, v.n), b: rate(v.b, v.n) }])),
     baseline: meanStyle(arms.a, MOVE_AXES),
     masterMoves: masterMean,
@@ -204,29 +230,52 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const master = JSON.parse(readFileSync(masterPath, "utf8"));
     const other = built.find((x) => x.id !== m.id);
     const crossBook = other ? JSON.parse(readFileSync(join(PUBLIC, `${other.id}.json`), "utf8")).book : null;
-    const out = {};
-    for (const split of ["dev", "test"]) {
+    const bySplit = (split) => {
       const games = data.games.filter((g) => g.even && g.split === split);
       const files = new Set(games.map((g) => g.file));
-      const ps = positions.filter((p) => files.has(p.file));
-      if (!ps.length) continue;
-      const r = scoreMaster({ games, positions: ps, book: master.book, crossBook });
+      return { games, positions: positions.filter((p) => files.has(p.file)) };
+    };
+    const check = (r, split) => {
       if (r.uncovered) throw new Error(`${m.id}/${split}: ${r.uncovered} positions whose dump does not cover the keep set`);
-      out[split] = r;
-      const a = r.arms.a, b = r.arms.b, x = r.arms.cross;
+      return r;
+    };
+    // 1. dev without the prior: the baseline the prior is measured against
+    const dev = bySplit("dev");
+    if (!dev.positions.length) { console.log(`${m.id}: no dev positions dumped`); continue; }
+    const dev0 = check(scoreMaster({ ...dev, book: master.book, crossBook }), "dev");
+    master.style.moveAxes = MOVE_AXES;
+    master.style.baseline = dev0.baseline;
+    master.style.moveSpread = dev0.spread;
+    master.style.masterMoves = dev0.masterMoves;
+    master.style.clamp = CLAMP;
+    // 2. dev with the prior at each λ: pick the one with the best top-1
+    const sweep = {};
+    let bestLambda = 0, bestTop = dev0.arms.b.top1;
+    for (const lambda of LAMBDAS) {
+      const r = check(scoreMaster({ ...dev, book: master.book, style: master.style, lambda }), "dev");
+      sweep[lambda] = { top1: r.arms.c.top1, top1Opening: r.arms.c.top1Opening, styleDistance: r.arms.c.styleDistance };
+      if (r.arms.c.top1 > bestTop) { bestTop = r.arms.c.top1; bestLambda = lambda; }
+    }
+    // 3. test at the chosen λ, once
+    const test = bySplit("test");
+    const testR = test.positions.length
+      ? check(scoreMaster({ ...test, book: master.book, crossBook, style: master.style, lambda: bestLambda }), "test")
+      : null;
+    const ships = !!testR && bestLambda > 0 && testR.arms.c.top1 > testR.arms.b.top1 &&
+      testR.arms.c.styleDistance < testR.arms.b.styleDistance;
+    master.style.lambda = ships ? bestLambda : 0;
+    const out = { crossBook: other?.id ?? null, dev: { ...dev0, sweep, chosenLambda: bestLambda }, test: testR, prior: { lambda: bestLambda, ships } };
+    report.masters[m.id] = out;
+    writeFileSync(masterPath, JSON.stringify(master));
+    for (const [split, r] of [["dev", dev0], ["test", testR]]) {
+      if (!r) continue;
+      const a = r.arms.a, b = r.arms.b, c = r.arms.c, x = r.arms.cross;
       console.log(`${m.id} ${split}: ${r.positions} positions; top-1 a ${pct(a.top1)} b ${pct(b.top1)}` +
-        (x ? ` cross(${other.id}) ${pct(x.top1)}` : "") +
+        (c ? ` c(λ=${c.lambda}) ${pct(c.top1)}` : "") + (x ? ` cross(${other.id}) ${pct(x.top1)}` : "") +
         ` | opening a ${pct(a.top1Opening)} b ${pct(b.top1Opening)} | book hits ${r.bookHits}` +
-        ` | style dist a ${a.styleDistance.toFixed(3)} b ${b.styleDistance.toFixed(3)}`);
+        ` | style dist a ${a.styleDistance.toFixed(3)} b ${b.styleDistance.toFixed(3)}` + (c ? ` c ${c.styleDistance.toFixed(3)}` : ""));
     }
-    report.masters[m.id] = { crossBook: other?.id ?? null, ...out };
-    if (out.dev) {
-      master.style.baseline = out.dev.baseline;
-      master.style.moveAxes = MOVE_AXES;
-      master.style.moveSpread = out.dev.spread;
-      master.style.masterMoves = out.dev.masterMoves;
-      writeFileSync(masterPath, JSON.stringify(master));
-    }
+    console.log(`${m.id}: λ sweep on dev ${JSON.stringify(sweep)}; prior ${ships ? `ships at λ=${bestLambda}` : "does not ship"}`);
   }
   report.generatedAt = new Date().toISOString().slice(0, 10);
   writeFileSync(evalPath, JSON.stringify(report, null, 1) + "\n");
