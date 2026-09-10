@@ -10,7 +10,7 @@ const plane = (enc, f) => {
 
 describe("encodePosition", () => {
   it("fills the on-board plane and komi on an empty board", () => {
-    const enc = encodePosition(createGame({ size: 9 }));
+    const enc = encodePosition(createGame({ size: 9, komi: 7.5 }));
     expect(enc.bin.length).toBe(22 * 81);
     expect(plane(enc, 0).every((row) => row === "111111111")).toBe(true);
     expect(enc.global[5]).toBeCloseTo(-7.5 / 20);   // black to move: komi counts against
@@ -20,7 +20,7 @@ describe("encodePosition", () => {
   });
 
   it("shows stones from the side to move and the last move", () => {
-    let rec = createGame({ size: 9 });
+    let rec = createGame({ size: 9, komi: 7.5 });
     rec = play(rec, 4, 4);                // black
     const enc = encodePosition(rec);      // white to move: black is "opp"
     expect(plane(enc, 2)[4][4]).toBe("1");

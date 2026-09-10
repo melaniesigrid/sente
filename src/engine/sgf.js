@@ -10,6 +10,7 @@
      toSgf(record)       -> main line only (records have no variations yet) */
 
 import { createGame, play, pass, resign, timeout, withMoveComment, IllegalMoveError } from "./record.js";
+import { RULESETS, DEFAULT_RULES, defaultKomi } from "./rulesets.js";
 
 export const MAX_SGF_BYTES = 256 * 1024;
 
@@ -153,9 +154,11 @@ export function parseSgf(text) {
   };
   walk(tree);
 
+  const rules = rulesFromSgf(p.RU ? p.RU[0] : null);
   return {
     size,
-    komi: num(p.KM, handicap >= 2 ? 0.5 : 7.5),
+    rules,
+    komi: num(p.KM, defaultKomi(handicap, size, rules)),
     handicap,
     players: { b: p.PB ? p.PB[0] : null, w: p.PW ? p.PW[0] : null },
     result: p.RE ? p.RE[0] : null,
@@ -181,7 +184,7 @@ export function recordFromSgf(text) {
   const g = parseSgf(text);
   const first = g.moves[0];
   let rec = createGame({
-    size: g.size, komi: g.komi, handicap: g.handicap, setup: g.setup,
+    size: g.size, rules: g.rules, komi: g.komi, handicap: g.handicap, setup: g.setup,
     toPlay: first ? first.color : (g.handicap >= 2 ? "w" : "b"),
     players: g.players.b || g.players.w ? g.players : null,
   });
@@ -208,6 +211,22 @@ export function recordFromSgf(text) {
 
 const esc = (s) => String(s).replace(/([\]\\:])/g, "\\$1");
 
+/* RU is free text in the wild: "Japanese", "japanese", "AGA", "Chinese", "NZ".
+   Anything we do not recognise falls back to the default rather than failing the
+   file - a ruleset we cannot name is not a reason to refuse someone's game. */
+const RU_ALIASES = {
+  nz: "nz", newzealand: "nz", aga: "aga",
+  japanese: "japanese", japan: "japanese", chinese: "chinese", china: "chinese",
+};
+
+export function rulesFromSgf(value) {
+  if (!value) return DEFAULT_RULES;
+  const key = String(value).toLowerCase().replace(/[^a-z]/g, "");
+  return RU_ALIASES[key] ?? DEFAULT_RULES;
+}
+
+export const rulesToSgf = (id) => (RULESETS[id] ?? RULESETS[DEFAULT_RULES]).name;
+
 export function resultToSgf(result) {
   if (!result) return null;
   if (result.method === "resign") return `${result.winner.toUpperCase()}+R`;
@@ -217,7 +236,7 @@ export function resultToSgf(result) {
 }
 
 export function toSgf(rec) {
-  let out = `(;FF[4]GM[1]CA[UTF-8]AP[sente]SZ[${rec.size}]KM[${rec.komi}]`;
+  let out = `(;FF[4]GM[1]CA[UTF-8]AP[sente]SZ[${rec.size}]KM[${rec.komi}]RU[${rulesToSgf(rec.rules)}]`;
   if (rec.handicap) out += `HA[${rec.handicap}]`;
   if (rec.players && rec.players.b) out += `PB[${esc(rec.players.b)}]`;
   if (rec.players && rec.players.w) out += `PW[${esc(rec.players.w)}]`;

@@ -5,7 +5,7 @@ import { plainFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { MokuMark } from "../components/Moku.jsx";
 import { useMoku, useMokuFacts } from "../components/mokuStore.js";
-import { TINTS, rankOf, beltOf, nextBelt, hintsForBelt, kyuFloor } from "../content/rank.js";
+import { TINTS, rankOf, preciseRankOf, beltOf, nextBelt, hintsForBelt, beltFloor } from "../content/rank.js";
 import { MARKS } from "../store/profile.js";
 import { TYPEFACES, typefaceOf } from "../content/typeface.js";
 import { PALETTES, themeOf, themeVars, DOJO_THEME, SYSTEM_THEME } from "../theme/index.js";
@@ -82,7 +82,7 @@ export function ProfileView({ profile, setProfile, go, room }) {
 
   const belt = beltOf(profile.rating);
   const next = nextBelt(profile.rating);
-  const floor = belt.id === "black" ? 3000 : kyuFloor(belt.kyuMax);
+  const floor = beltFloor(belt);
   const pct = next ? Math.max(0, Math.min(100, ((profile.rating - floor) / (next.at - floor)) * 100)) : 100;
   const streak = liveStreak(profile, dayKey());
 
@@ -107,7 +107,7 @@ export function ProfileView({ profile, setProfile, go, room }) {
             </h2>
           )}
           <div className="row">
-            <RankBadge rating={profile.rating} size="lg" />
+            <RankBadge rating={profile.rating} rd={profile.rd} precise size="lg" />
             <Pill icon={Trophy}>{profile.wins} W · {profile.losses} L</Pill>
             {profile.bestStreak > 1 && <Pill icon={Flame}>streak {profile.bestStreak}</Pill>}
           </div>
@@ -125,8 +125,8 @@ export function ProfileView({ profile, setProfile, go, room }) {
             <strong>{belt.label}</strong>
             <span className="fine">
               {belt.id === "black"
-                ? `${rankOf(profile.rating)}. The belt is a fact, not a trophy.`
-                : `${rankOf(profile.rating)} · ${next.at - profile.rating} rating to ${next.belt.label.toLowerCase()} (${rankOf(next.at)})`}
+                ? `${preciseRankOf(profile.rating)}. The belt is a fact, not a trophy.`
+                : `${preciseRankOf(profile.rating)} · ${next.belt.kyuMax}k earns the ${next.belt.label.toLowerCase()}`}
             </span>
           </div>
           <div className="meter"><div className="meter-fill" style={{ width: `${pct}%`, background: next ? next.belt.color : belt.color }} /></div>

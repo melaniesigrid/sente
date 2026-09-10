@@ -13,8 +13,8 @@ const fixtures = readdirSync(dir).filter((f) => f.endsWith(".json"))
 
 /** Replay a fixture's move list; colours may repeat (the Python side forces the side
  *  to move), so we set `toPlay` directly rather than going through the rule check. */
-function replay(size, moves, upTo) {
-  let rec = createGame({ size });
+function replay(size, komi, moves, upTo) {
+  let rec = createGame({ size, komi });
   for (let i = 0; i < upTo; i++) {
     const m = moves[i];
     rec = { ...rec, toPlay: m.color };
@@ -32,7 +32,7 @@ const planeRows = (enc, f) => {
 describe.each(fixtures)("fixture %s", (name, fx) => {
   for (const pos of fx.positions) {
     it(`matches KataGo after ${pos.afterMoves} moves (${pos.toPlay} to play)`, () => {
-      let rec = replay(fx.size, fx.moves, pos.afterMoves);
+      let rec = replay(fx.size, fx.komi ?? 7.5, fx.moves, pos.afterMoves);
       rec = { ...rec, toPlay: pos.toPlay, phase: "playing" };
       expect(rec.koPoint ?? null).toBe(pos.koPoint ?? null);
       const enc = encodePosition(rec);

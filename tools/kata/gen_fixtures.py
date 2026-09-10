@@ -6,10 +6,8 @@ against itself.
         [--onnx models/humanv0.fp32.onnx] --out src/engine/kata/fixtures
 
 Each fixture holds a move sequence, the side to move, the 22 spatial planes, the 19
-global features, the 192 metadata features for three rank profiles (`meta`) and two
-`proyear_<year>` profiles (`metaPro`, mirroring makeHistoricalProProfile in
-cpp/neuralnet/sgfmetadata.cpp), and (if an ONNX file is given) the network's top
-policy moves for that position.
+global features, the 192 metadata features for a rank profile, and (if an ONNX file
+is given) the network's top policy moves for that position.
 """
 import argparse
 import datetime
@@ -73,7 +71,7 @@ def main():
     for name, size, moves, dumps in SEQUENCES:
         gs = GameState(size, RULES)
         features = Features(config, pos_len=size)
-        out = {"size": size, "moves": [], "positions": []}
+        out = {"size": size, "komi": RULES["whiteKomi"], "moves": [], "positions": []}
         for i, mv in enumerate(moves):
             color = Board.BLACK if mv[0] == "b" else Board.WHITE
             gs.board.pla = color  # sequences may contain consecutive same-colour moves via passes
@@ -104,14 +102,6 @@ def main():
                         gameDate=datetime.date(2020, 3, 1), source=SGFMetadata.SOURCE_KGS,
                     )
                     rank_rows[rank] = [float(v) for v in meta.get_metadata_row(pla, size * size)]
-                pro_rows = {}
-                for year in (1846, 2017):
-                    meta = SGFMetadata(
-                        inverseBRank=1, inverseWRank=1, bIsHuman=True, wIsHuman=True,
-                        tcIsUnknown=True, gameDate=datetime.date(year, 6, 1),
-                        source=SGFMetadata.SOURCE_GOGOD,
-                    )
-                    pro_rows[str(year)] = [float(v) for v in meta.get_metadata_row(pla, size * size)]
                 pos = {
                     "afterMoves": i + 1,
                     "toPlay": "b" if pla == Board.BLACK else "w",
@@ -120,7 +110,6 @@ def main():
                     "planes": planes,
                     "global": [float(v) for v in global_input[0]],
                     "meta": rank_rows,
-                    "metaPro": pro_rows,
                 }
                 if sess is not None:
                     meta = np.array(rank_rows["5k"], dtype=np.float32).reshape(1, -1)

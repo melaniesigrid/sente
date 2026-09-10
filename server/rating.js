@@ -1,100 +1,88 @@
-/* ----------------------- GLICKO-2 (pure) -----------------------
-   Server-authoritative rating. Every player carries `{ rating, rd, vol }`:
-   the rating itself, a rating deviation (how unsure we are) and a volatility
-   (how erratic the results have been). One rated game is one rating period,
+/* ----------------------- RATING (server side) -----------------------
+   Server-authoritative rating. Every player carries `{ rating, rd, vol }`: the
+   rating itself, a rating deviation (how unsure we are of it) and a volatility
+   (how erratic their results have been). One rated game is one rating period,
    which is the usual simplification for a server that rates game by game.
 
-   Ratings share the scale the client already reads with `rankOf`: about a
-   hundred points per rank, 1500 for a newcomer (15 kyu), 3000 for shodan.
-   Glicko's own numbers are only used inside this module.
+   The arithmetic is not here. It is `src/engine/glicko.js`, the same module the
+   browser runs against house players, because a rating that means one thing
+   offline and another online is not a rating. This file is the server's use of
+   it: what a new player starts at, how one finished game is settled, and how a
+   player stored under the old scale is carried across.
 
-   Reference: Glickman, "Example of the Glicko-2 system" (2013). The test
-   suite reproduces the worked example from that paper. */
+   The scale is OGS's, from `src/content/rank.js`: rank = ln(rating / 525) *
+   23.15, and rank 30 is 1 dan. A rating here means what a rating there means.
 
-export const DEFAULT_RATING = 1500;
-export const DEFAULT_RD = 350;
-export const DEFAULT_VOL = 0.06;
-export const TAU = 0.5;                 // volatility restraint; 0.3..1.2 are sane
-const SCALE = 173.7178;
-const EPS = 0.000001;
+   Reference: Glickman, "Example of the Glicko-2 system" (2013). The engine's
+   test suite reproduces the worked example from that paper. */
+
+import { GLICKO, updateGlicko, isProvisional } from "../src/engine/glicko.js";
+import { ratingOfRank, rankOf, preciseRankOf, MIN_RATING, MAX_RATING } from "../src/content/rank.js";
+
+/** Where an unrated player starts: 20 kyu, the same seat the browser gives a
+ *  newcomer. Seeded stronger, a beginner watches the number fall for a dozen
+ *  games, which is the one thing a ladder must never do; the wide deviation
+ *  below is what carries a stronger newcomer up quickly instead. */
+export const DEFAULT_RATING = Math.round(ratingOfRank("20k"));
+export const DEFAULT_RD = GLICKO.rd;
+export const DEFAULT_VOL = GLICKO.vol;
+export const TAU = GLICKO.tau;
+
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
 /** A fresh, unrated player. */
 export const newRating = () => ({ rating: DEFAULT_RATING, rd: DEFAULT_RD, vol: DEFAULT_VOL });
 
 /** A rating is provisional while its deviation is still wide. */
-export const provisional = (p) => p.rd > 150;
-
-const g = (phi) => 1 / Math.sqrt(1 + (3 * phi * phi) / (Math.PI * Math.PI));
-const E = (mu, muJ, phiJ) => 1 / (1 + Math.exp(-g(phiJ) * (mu - muJ)));
+export const provisional = (p) => isProvisional(p.rd);
 
 /** Rate `player` over `games`: each `{ opponent: { rating, rd }, score }` with score
  *  1 for a win, 0 for a loss, 0.5 for a draw. Returns a new `{ rating, rd, vol }`;
- *  never mutates. With no games the deviation simply grows (step 6 of the paper). */
+ *  never mutates. With no games the deviation simply grows. */
 export function rate(player, games, tau = TAU) {
-  const mu = (player.rating - DEFAULT_RATING) / SCALE;
-  const phi = player.rd / SCALE;
-  const sigma = player.vol;
-
-  if (!games.length) {
-    const phiStar = Math.sqrt(phi * phi + sigma * sigma);
-    return { rating: player.rating, rd: Math.min(phiStar * SCALE, DEFAULT_RD), vol: sigma };
-  }
-
-  // Step 3 and 4: estimated variance and improvement from the results.
-  let vInv = 0, delta = 0;
-  for (const gm of games) {
-    const muJ = (gm.opponent.rating - DEFAULT_RATING) / SCALE;
-    const phiJ = gm.opponent.rd / SCALE;
-    const gj = g(phiJ), e = E(mu, muJ, phiJ);
-    vInv += gj * gj * e * (1 - e);
-    delta += gj * (gm.score - e);
-  }
-  const v = 1 / vInv;
-  delta *= v;
-
-  // Step 5: new volatility by Illinois-style bisection on the log scale.
-  const a = Math.log(sigma * sigma);
-  const f = (x) => {
-    const ex = Math.exp(x);
-    const num = ex * (delta * delta - phi * phi - v - ex);
-    const den = 2 * (phi * phi + v + ex) * (phi * phi + v + ex);
-    return num / den - (x - a) / (tau * tau);
-  };
-  let A = a, B;
-  if (delta * delta > phi * phi + v) B = Math.log(delta * delta - phi * phi - v);
-  else {
-    let k = 1;
-    while (f(a - k * tau) < 0) k += 1;
-    B = a - k * tau;
-  }
-  let fA = f(A), fB = f(B);
-  while (Math.abs(B - A) > EPS) {
-    const C = A + ((A - B) * fA) / (fB - fA);
-    const fC = f(C);
-    if (fC * fB <= 0) { A = B; fA = fB; } else fA /= 2;
-    B = C; fB = fC;
-  }
-  const sigmaNew = Math.exp(A / 2);
-
-  // Step 6 and 7: new deviation and rating.
-  const phiStar = Math.sqrt(phi * phi + sigmaNew * sigmaNew);
-  const phiNew = 1 / Math.sqrt(1 / (phiStar * phiStar) + 1 / v);
-  let muNew = mu;
-  for (const gm of games) {
-    const muJ = (gm.opponent.rating - DEFAULT_RATING) / SCALE;
-    const phiJ = gm.opponent.rd / SCALE;
-    muNew += phiNew * phiNew * g(phiJ) * (gm.score - E(mu, muJ, phiJ));
-  }
-  return { rating: muNew * SCALE + DEFAULT_RATING, rd: phiNew * SCALE, vol: sigmaNew };
+  const out = updateGlicko(
+    player,
+    games.map((gm) => ({ rating: gm.opponent.rating, rd: gm.opponent.rd, score: gm.score })),
+    tau,
+  );
+  return { ...out, rating: clamp(out.rating, MIN_RATING, MAX_RATING) };
 }
 
 /** Rate both sides of one finished game. `winner` is "b", "w" or null (jigo).
- *  Returns `{ b, w }` with each side's new rating and the signed change. */
+ *  Returns `{ b, w }` with each side's new rating, the signed change, and the
+ *  rank it now reads as - the tenth is the part a player actually notices. */
 export function rateGame(black, white, winner) {
   const sb = winner === "b" ? 1 : winner === "w" ? 0 : 0.5;
   const nb = rate(black, [{ opponent: white, score: sb }]);
   const nw = rate(white, [{ opponent: black, score: 1 - sb }]);
   const round = (p) => ({ rating: Math.round(p.rating), rd: Math.round(p.rd), vol: p.vol });
   const b = round(nb), w = round(nw);
-  return { b: { ...b, delta: b.rating - Math.round(black.rating) }, w: { ...w, delta: w.rating - Math.round(white.rating) } };
+  return {
+    b: { ...b, delta: b.rating - Math.round(black.rating), rank: preciseRankOf(b.rating) },
+    w: { ...w, delta: w.rating - Math.round(white.rating), rank: preciseRankOf(w.rating) },
+  };
 }
+
+/* ----- carrying the old scale across -----
+   Ratings were stored on the old scale: a hundred points to a rank, 1500 for a
+   newcomer, 3000 for shodan. What a player earned there is a rank, not a number
+   of points, so the rank is what crosses. */
+
+const legacyRankOf = (r) => (r < 3000
+  ? `${clamp(Math.round((3000 - r) / 100), 1, 25)}k`
+  : `${clamp(Math.floor((r - 3000) / 100) + 1, 1, 9)}d`);
+
+/** A stored player's `{ rating, rd, vol }` on the new scale. Deviation and
+ *  volatility cross untouched: they are measures of confidence, not of points,
+ *  and a player's results were exactly as certain before the change as after. */
+export function migrateRating(p) {
+  const old = typeof p.rating === "number" && Number.isFinite(p.rating) ? p.rating : 1500;
+  return {
+    rating: Math.round(ratingOfRank(legacyRankOf(old))),
+    rd: Math.round(clamp(Number(p.rd) || DEFAULT_RD, GLICKO.minRd, GLICKO.maxRd)),
+    vol: Number.isFinite(p.vol) ? p.vol : DEFAULT_VOL,
+  };
+}
+
+/** Re-exported so the registry can name a rank without knowing the scale. */
+export { rankOf, preciseRankOf };
