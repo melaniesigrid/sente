@@ -17,6 +17,7 @@ import { idx, starPoints } from "../engine/index.js";
 export function Board({
   board, onPlay, lastMove, marks = [], disabled, sizePx = 460, flash = [],
   atari = [], captured = [], captureKey = 0, territory = null, dead = [], wrong = null,
+  numbers = null,
 }) {
   const N = board.size;
   const cell = 44, m = 34;
@@ -97,7 +98,12 @@ export function Board({
                   d={`M${x(c) - 7} ${y(r) - 7} L${x(c) + 7} ${y(r) + 7} M${x(c) + 7} ${y(r) - 7} L${x(c) - 7} ${y(r) + 7}`} />
               )}
               {atariSet.has(i) && !isDead && <circle cx={x(c)} cy={y(r)} r={21} className="atari-ring" />}
-              {isLast && !isDead && <circle cx={x(c)} cy={y(r)} r={7} className="last-dot" />}
+              {numbers && numbers.has(i) ? (
+                <text x={x(c)} y={y(r)} className={`stone-num ${v === "b" ? "on-b" : "on-w"}`}
+                  textAnchor="middle" dominantBaseline="central">{numbers.get(i)}</text>
+              ) : (
+                isLast && !isDead && <circle cx={x(c)} cy={y(r)} r={7} className="last-dot" />
+              )}
             </g>
           );
         })}

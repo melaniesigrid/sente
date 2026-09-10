@@ -19,6 +19,10 @@ export {
   MAX_SGF_BYTES, SgfParseError, parseSgfTree, parseSgf, recordFromSgf, toSgf,
   pointFromSgf, pointToSgf, resultToSgf,
 } from "./sgf.js";
+export {
+  atMove, moveNumbers, captureMoves, nextCapture, prevCapture,
+  reviewLength, clampMove, markerAt, reviewLabel, playedMoves,
+} from "./review.js";
 export { aiChooseMove, aiChooseMoveForRecord } from "./ai.js";
 export { RANKS, inverseRank, encodeInputs } from "./kata/features.js";
 export { choosePolicyMove, keepSet } from "./kata/policy.js";

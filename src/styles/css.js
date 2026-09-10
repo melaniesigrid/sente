@@ -253,6 +253,20 @@ ${SIGNATURE_FACE}
 /* The masters row: the same persona card, with the measured line under the bio. The
    claim is set smaller than the bio and the control smaller still, so the eye reads
    name, then character, then number, then the caveat that keeps the number honest. */
+/* Review. The scrub is the one range input in the app; it gets the same sunken well
+   every other control sits in, and a thumb that reads as a stone. */
+.review-result { font-family: var(--font-display); font-weight: var(--w-display); font-size: 15px; opacity: .75; }
+.review-controls { justify-content: center; gap: 6px; flex-wrap: wrap; }
+.review-count { font-variant-numeric: tabular-nums; font-size: 13px; opacity: .6; min-width: 68px; text-align: center; }
+.review-scrub { width: 100%; appearance: none; background: transparent; cursor: pointer; height: 22px; }
+.review-scrub::-webkit-slider-runnable-track { height: 6px; border-radius: 6px; box-shadow: var(--sink-sm); background: var(--ground); }
+.review-scrub::-moz-range-track { height: 6px; border-radius: 6px; box-shadow: var(--sink-sm); background: var(--ground); }
+.review-scrub::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; margin-top: -5px; border-radius: 50%; background: var(--ink); box-shadow: var(--raise-sm); }
+.review-scrub::-moz-range-thumb { width: 16px; height: 16px; border: 0; border-radius: 50%; background: var(--ink); box-shadow: var(--raise-sm); }
+.review-scrub:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 6px; }
+.stone-num { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; pointer-events: none; }
+.stone-num.on-b { fill: var(--light); }
+.stone-num.on-w { fill: var(--ink); }
 .masters-head { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
 .masters-title { display: flex; align-items: center; gap: 7px; margin: 0; font-family: var(--font-display); font-weight: var(--w-display); font-size: 17px; }
 .masters-head .fine { max-width: 70ch; }
