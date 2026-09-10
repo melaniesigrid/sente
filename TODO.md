@@ -262,7 +262,10 @@ and one rule: the number on the card is measured, never claimed.
       `proyear_2017`, the profile that ships. `tools/masters/import.mjs` remains for
       records saved by hand from a source that states its own terms; go4go (login-walled,
       "All Rights Reserved", bulk download against its terms) is not used. Branch
-      `feat/masters-star-player`, PR #7, stacked on #5. Eval: see the PR.
+      `feat/masters-star-player`, PR #7, stacked on #5. Eval (test, 3,592 positions): top-1 61.6% year profile / 61.9% with
+      book / 61.8% Shusaku's book as control; opening 62.4% to 64.6%; the lean does not ship
+      (no lambda beat the book on dev). The control moves the number as much as his own
+      book, so the card claims agreement with the 2017 profile, not a style match.
 - [ ] Deferred: Dosaku and Shusai after the eval; Go Seigen, Takagawa and living players by
       name after a name-and-likeness check (the 1950 rule does not clear the first two); Moku quoting the Classic and a belt mark per book;
       fine-tune adapters per master after Phase 4, measured by the same eval; your own
