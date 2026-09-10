@@ -330,7 +330,7 @@ function Shelf({ profile, onOpen }) {
               {progress.total > 0 && <span className="fine">{progress.score}/{progress.total} pts</span>}
             </div>
             <span className="fine">{book.blurb}</span>
-            {lessons.length === 0 && <span className="fine">Not on the shelf yet.</span>}
+            {lessons.length === 0 && <span className="fine">{book.note || "Not on the shelf yet."}</span>}
           </div>
           {lessons.length > 0 && (
             <div className="grid2">

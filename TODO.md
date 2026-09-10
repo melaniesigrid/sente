@@ -342,6 +342,23 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       that lives in the open and dies in the corner.
 - [ ] Restore the Chinese characters for chapter eleven's thirty-two names from the original,
       and revisit the sixteen marked uncertain.
+- [x] The endgame book (2026-09-10): the endgame track had no lessons at all, so the
+      classical collection of the closing moves supplies it. `content/guanzi.js` carries
+      Guanzi Pu (Guo Bailing, printed 1660, expanded by Tao Shiyu and others 1689) as a
+      book on the shelf, with two lessons in tier 4: `guanzi-gote-alternates` (10k) and
+      `guanzi-first-line-hane` (9k).
+      Decisions: the book supplies the subject, not the diagrams. Sente builds its own
+      positions and the engine settles them, and `guanzi.test.js` scores every total a
+      lesson states — the library verifier only checks that a `count` answer is a number,
+      not that it is right, so the book checks its own. The shelf gained `note` so the
+      Classic row can point at its reader instead of claiming it is not on the shelf yet.
+- [ ] More of the endgame book: the monkey jump, sente before gote, and double sente. The
+      monkey jump was drafted and dropped — its continuations are open-ended and the engine
+      has no endgame solver, so the best line could not be verified, only guessed.
+- [ ] The Proverbs is still an empty shelf. Candidate sources for the rest of the library,
+      all public domain: Xuanxuan Qijing (Yan Defu and Yan Tianzhang, 1349 — its first
+      volume is the Classic Sente already ships), Gokyo Shumyo (Hayashi Genbi, 1812, 520
+      tesuji), Igo Hatsuyoron (Inoue Dosetsu Inseki, 1713, 183 hard problems).
 - [ ] Tsumego graded 30k → 5k with categories and a daily set (reuses the verifier).
 - [ ] Spaced repetition: finished quiz steps enter a recall queue; "Review five" card on Home.
 - [ ] Joseki and opening library for 9×9 and 19×19.
@@ -358,7 +375,8 @@ and one rule: the number on the card is measured, never claimed.
 - [x] `proyear` profile: `encodeMeta({ pro, year })` with KataGo's historical-pro meta row
       (source GoGoD, June 1 of the year; Go4Go from 2021) and a meta-row fixture for 1846
       and 2017 generated from KataGo's Python (branch `feat/masters-pr1`, 2026-09-09).
-- [ ] "Strong player of <year>" as an honest persona in the Masters row (waits on the row).
+- [x] "Strong player of <year>" as an honest persona in the Masters row (2026-09-10):
+      that is exactly what every master card claims, and the only thing it claims.
 - [x] Corpus tool (`tools/masters/`): `fetch.mjs` (manifest with quoted terms, ustar reader,
       raw dir ignored) and `build.mjs` (engine parser, even 19x19 games, tags, seeded 60/20/20
       split, style vector and spread, book, drop log and counts) emit `public/masters/<id>.json`
@@ -375,9 +393,8 @@ and one rule: the number on the card is measured, never claimed.
       prior; `StyleDataError` (missing JSON, non-19x19) falls back to `proyear` in rated
       games and to "host unreachable" in a duel. (PR 2; reached main only via PR #7 —
       see the merge warning in the handoff doc.)
-- [ ] Masters row in the lobby, 19x19 only, hidden without the index, style match read
-      from `eval.json`. Unblocked 2026-09-10: the board-size picker landed in PR #15.
-      This is the last thing between the bot seam and a player being able to use it.
+- [x] Masters row in the lobby (2026-09-10, branch `feat/masters-row-ui`): 19x19 only,
+      hidden when the eval cannot be read, every number read from `eval.json`.
 - [x] Step types `replay` (embedded moves and stops; scoring is data: the master's move for
       full credit, precomputed `strong` moves for partial, refutations played out; `scored`
       status so a stop is never scored twice; Try again returns to the stop) and `maxim` in
@@ -404,6 +421,25 @@ and one rule: the number on the card is measured, never claimed.
       book / 61.8% Shusaku's book as control; opening 62.4% to 64.6%; the lean does not ship
       (no lambda beat the book on dev). The control moves the number as much as his own
       book, so the card claims agreement with the 2017 profile, not a style match.
+Decisions made in the masters row (branch `feat/masters-row-ui`, 2026-09-10):
+- A master game is **unrated**, and the card and the table both say so. Agreement with
+  a year profile is not a strength: the raw policy is a few stones weaker than the rank
+  it imitates at dan level, so any rank on that seat would be a number Sente cannot
+  stand behind. No rank badge on a master’s seat either.
+- Nothing on a card is written by hand. `content/masters.js` derives every line from
+  `masters.json` and `eval.json`, so a card cannot drift from the measurement, and a
+  master with no eval entry is simply not offered rather than shown with a claim.
+- The control is printed in the same breath as the book, always. For Star Player the
+  control moves the number as much as his own book does (61.8% against 61.9%), which
+  is why the card claims agreement with the 2017 profile and nothing about style.
+- A master never falls back to the heuristic house player: that player has no book and
+  no year, so it would be a different opponent under the same name. If the network
+  cannot answer, the table says so and waits, as a duel does.
+- A master game is not saved. The saved mode remembers an id and a rank and cannot
+  carry the loaded corpus, so a resume would seat you opposite someone else.
+- `loadEval` joins `loadMaster` in `kata/net.js`, keeping every masters fetch in the
+  one engine module allowed to do I/O.
+
 - [ ] Deferred: Dosaku and Shusai after the eval; Go Seigen, Takagawa and living players by
       name after a name-and-likeness check (the 1950 rule does not clear the first two); Moku quoting the Classic and a belt mark per book;
       fine-tune adapters per master after Phase 4, measured by the same eval; your own

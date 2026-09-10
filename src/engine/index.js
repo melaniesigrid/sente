@@ -22,7 +22,7 @@ export {
 export { aiChooseMove, aiChooseMoveForRecord } from "./ai.js";
 export { RANKS, inverseRank, encodeInputs } from "./kata/features.js";
 export { choosePolicyMove, keepSet } from "./kata/policy.js";
-export { loadModel, onModelProgress, modelReady, loadMaster, MODEL_BYTES, MODEL_FILE } from "./kata/net.js";
+export { loadModel, onModelProgress, modelReady, loadMaster, loadEval, MODEL_BYTES, MODEL_FILE } from "./kata/net.js";
 export { kataChooseMoveForRecord, clampRank, profileForRank, masterYear } from "./kata/bot.js";
 export { createRng, hashString, positionSeed } from "./rng.js";
 export {
