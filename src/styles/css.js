@@ -597,6 +597,7 @@ ${SIGNATURE_FACE}
 /* ---- online ---- */
 .online-card { display: flex; flex-direction: column; gap: 12px; }
 .online-card h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }
+.word-input { max-width: 220px; }
 .seek-state { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-radius: 14px; box-shadow: var(--sink-sm); font-size: 13.5px; }
 .seek-state .pulse { color: var(--accent); animation: seek-pulse 1.6s ease-in-out infinite; }
 @keyframes seek-pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }

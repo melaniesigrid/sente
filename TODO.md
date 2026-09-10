@@ -195,8 +195,12 @@ two Durable Object classes, deployed at https://sente-server.melaniesigrid.worke
 - [ ] Clocks: the engine's clock module on the room with a Durable Object alarm, and a
       claim-win-on-timeout for a vanished opponent. Until then online games are untimed.
 - [ ] "Keep playing" from scoring online (needs a consented resume frame in the reducer).
-- [ ] Challenge a named player, and a friends list. Today a table link (`?game=<id>`)
-      is the only way to invite someone to watch.
+- [x] Meeting on purpose: a seek can carry a rendezvous word, and seeks with a word
+      match only each other. Two friends type the same word and sit down together,
+      however busy the lobby is; open seeks never swallow them and the lobby count
+      only reports open ones.
+- [ ] A friends list, and challenging a named player from the ladder. The rendezvous
+      word covers "let us play now"; it does not remember anybody.
 - [ ] Handicap online: the lobby handicap is a house arrangement, so networked games are
       always even. Two strangers need a way to agree on stones before this can change.
 - [x] Leaving: `DELETE /api/me` removes the handle, its key and its ladder seat; only

@@ -63,7 +63,8 @@ function Claim({ profile, notify, onClaimed }) {
 function Lobby({ account, setAccount, notify, onPlay, size }) {
   const { token } = account;
   const [player, setPlayer] = useState(account.player);
-  const [seek, setSeek] = useState(null);           // null | { size }
+  const [word, setWord] = useState("");             // a rendezvous word, or "" for anyone
+  const [seek, setSeek] = useState(null);           // null | { size, key }
   const [lobby, setLobby] = useState(null);         // { online, seeking }
   const [conn, setConn] = useState("connecting");
   const [tables, setTables] = useState([]);
@@ -89,7 +90,7 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
       onStatus: setConn,
       onFrame: (f) => {
         if (f.t === "lobby") setLobby({ online: f.online, seeking: f.seeking });
-        else if (f.t === "seek") setSeek(f.status === "waiting" ? { size: f.size } : null);
+        else if (f.t === "seek") setSeek(f.status === "waiting" ? { size: f.size, key: f.key } : null);
         else if (f.t === "matched") {
           setSeek(null);
           notify({ icon: "trophy", text: `Matched with ${f.opponent.name} · you play ${f.color === "b" ? "Black" : "White"}` });
@@ -100,7 +101,8 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
     return () => { sock.current.close(); sock.current = null; };
   }, [token, notify]);
 
-  const findGame = () => { if (sock.current && sock.current.send({ t: "seek", size })) setSeek({ size }); };
+  const key = word.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 32) || null;
+  const findGame = () => { if (sock.current && sock.current.send({ t: "seek", size, key })) setSeek({ size, key }); };
   const cancel = () => { if (sock.current) sock.current.send({ t: "cancel" }); setSeek(null); };
   const leave = async () => {
     if (!window.confirm("Leave the ladder? This handle, its key and its rating are removed for good. Finished games stay.")) return;
@@ -129,14 +131,28 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
       {seek ? (
         <div className="seek-state" role="status">
           <Radio size={16} className="pulse" />
-          <span>Looking for a {seek.size}×{seek.size} opponent{lobby && lobby.seeking > 1 ? ` · ${lobby.seeking - 1} others waiting` : ""}…</span>
+          <span>
+            {seek.key
+              ? `Waiting at “${seek.key}” on ${seek.size}×${seek.size}. Whoever types the same word sits down opposite you.`
+              : `Looking for a ${seek.size}×${seek.size} opponent${lobby && lobby.seeking > 1 ? ` · ${lobby.seeking - 1} others waiting` : ""}…`}
+          </span>
           <Btn icon={X} small onClick={cancel}>Cancel</Btn>
         </div>
       ) : (
-        <div className="row">
-          <Btn icon={Play} primary small onClick={findGame} disabled={conn !== "open"}>Find an opponent on {size}×{size}</Btn>
-          <span className="fine">The table below sets the board. Online games are even, whatever handicap you set for the house.</span>
-        </div>
+        <>
+          <div className="row">
+            <Btn icon={Play} primary small onClick={findGame} disabled={conn !== "open"}>
+              {key ? `Meet at “${key}” on ${size}×${size}` : `Find an opponent on ${size}×${size}`}
+            </Btn>
+            <input className="chat-input word-input" value={word} maxLength={32} placeholder="or a word you both know"
+              onChange={e => setWord(e.target.value)} onKeyDown={e => e.key === "Enter" && findGame()}
+              aria-label="Rendezvous word for playing a friend" />
+          </div>
+          <p className="fine">
+            The table below sets the board. Online games are even, whatever handicap you set for
+            the house. Agree on a word with a friend and you will find each other, however busy it is.
+          </p>
+        </>
       )}
       {(live.length > 0 || done.length > 0) && (
         <div className="table-list">

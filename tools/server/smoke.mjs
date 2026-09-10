@@ -36,10 +36,12 @@ try { await j("/api/me", { headers: { authorization: "Bearer " + "0".repeat(64) 
 const la = await open(`${ws}/api/lobby?token=${a.token}`);
 const lb = await open(`${ws}/api/lobby?token=${b.token}`);
 await la.next(m => m.t === "lobby");
-la.send({ t: "seek", size: 9 });
+// A private rendezvous word, so the smoke never collides with a real seeker.
+const KEY = "smoke-" + Math.random().toString(36).slice(2, 8);
+la.send({ t: "seek", size: 9, key: KEY });
 const waiting = await la.next(m => m.t === "seek");
 assert(waiting.status === "waiting", "first seeker waits");
-lb.send({ t: "seek", size: 9 });
+lb.send({ t: "seek", size: 9, key: KEY });
 const ma = await la.next(m => m.t === "matched");
 const mb = await lb.next(m => m.t === "matched");
 assert(ma.gameId === mb.gameId && ma.color === "b" && mb.color === "w", "both matched, waiter is black");
