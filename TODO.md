@@ -481,6 +481,24 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       that a stone at (7,7), (6,7) or (7,6) breaks it while one at (8,8) does not. The bamboo
       joint is checked the same way: either peep leaves Black one chain of nine with six
       liberties and the peeping stone with one.
+- [x] The Mysterious Classic (2026-09-10): Xuanxuan Qijing (Yan Defu and Yan Tianzhang,
+      1349) joins the shelf, which is the rest of a book Sente already had — its first
+      volume is the Classic in Thirteen Chapters. Two tier 5 life-and-death lessons:
+      `xuanxuan-five-points` (3k) and `xuanxuan-one-way-in` (2k).
+      The real artifact is the life-and-death solver in `xuanxuan.test.js`: exhaustive
+      alternating search inside the eyespace, alive only on two eyes. It is validated
+      against straight three, straight four and square four before it is trusted, and it
+      settles every claim the lessons make. Three bugs it had first, all noted in the file:
+      terminating on survival rather than on two eyes calls a dead straight three alive;
+      `cells.join("")` collides empty points with occupied ones in the memo key; and a
+      result produced at the depth cap is only valid at that depth.
+      It also corrected the authoring: the second lesson was going to say the opponent's
+      key point is your key point, and the solver found White has three living moves
+      against Black's one killing move. The lesson now teaches that asymmetry instead.
+- [ ] Tier 6 (Dan) is still empty. These two are honestly 3k and 2k, and putting them in
+      tier 6 to fill it would be a lie about difficulty. Dan lessons need harder material:
+      "under the stones" (this book's signature technique) is the obvious candidate, but it
+      needs a position the solver can settle before it is worth authoring.
 - [ ] More proverbs: hane at the head of two stones, death in the hane, the ponnuki. Each
       needs a position the engine can settle before it is worth authoring.
 - [ ] Other shelves are still empty. Candidate sources for the rest of the library,

@@ -261,8 +261,8 @@ describe.each(LIBRARY.map(l => [l.id, l]))("lesson %s", (id, lesson) => {
 });
 
 describe("shelf helpers", () => {
-  it("has four books and sums a book's replay progress, ignoring unknown ids", () => {
-    expect(BOOKS.map(b => b.id)).toEqual(["proverbs", "masters", "classic", "guanzi"]);
+  it("has five books and sums a book's replay progress, ignoring unknown ids", () => {
+    expect(BOOKS.map(b => b.id)).toEqual(["proverbs", "masters", "classic", "xuanxuan", "guanzi"]);
     expect(lessonsInBook("nope")).toEqual([]);
     const p = bookProgressFor({ bookProgress: { ghost: { stops: 9, score: 9, total: 9 } } }, "masters");
     expect(p).toEqual({ stops: 0, score: 0, total: lessonsInBook("masters").reduce((s, l) => s + l.steps.filter(x => x.type === "replay").reduce((t, x) => t + 2 * x.stops.length, 0), 0) });
