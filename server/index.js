@@ -2,11 +2,13 @@
    The router. Authenticates bearer tokens against the Registry and hands
    sockets to the right Durable Object. Nothing about go lives here.
 
-     POST  /api/register        {name, tint}   -> {token, player}
+     POST  /api/register        {name, tint}   -> {token, player}; 429 past a few an hour
      GET   /api/me              bearer         -> player
      PATCH /api/me              bearer {name, tint}
      DELETE /api/me             bearer         -> leave: token and ladder seat gone
-     DELETE /api/admin/players/:id  ADMIN_TOKEN bearer
+     DELETE /api/admin/players/:id     ADMIN_TOKEN bearer
+     GET   /api/admin/players          ADMIN_TOKEN bearer
+     DELETE /api/admin/ratelimit/:ip   ADMIN_TOKEN bearer
      GET   /api/games           bearer         -> recent games
      GET   /api/ladder                         -> top players
      GET   /api/stats                          -> {players, online, seeking}
@@ -15,6 +17,7 @@
      GET   /api/game/:id/ws?token=  websocket  -> play or watch */
 
 import { json, fail, readJson, bearer, HttpError, CORS } from "./http.js";
+import { callerIp } from "./ratelimit.js";
 export { Registry } from "./registry.js";
 export { Room } from "./roomObject.js";
 
@@ -46,7 +49,13 @@ async function route(req, env) {
 
   if (path === "/api/register" && req.method === "POST") {
     const body = await readJson(req);
-    return json(await reg.register(body.name, body.tint), 201);
+    try {
+      return json(await reg.register(body.name, body.tint, callerIp(req)), 201);
+    } catch (e) {
+      if (e.message !== "too-many-handles") throw e;
+      const secs = Math.ceil((e.retryAfterMs ?? 3600000) / 1000);
+      return json({ error: "too-many-handles" }, 429, { "retry-after": String(secs) });
+    }
   }
 
   if (path === "/api/me") {
@@ -57,13 +66,22 @@ async function route(req, env) {
     return fail(405, "method");
   }
 
-  // Operator route: remove a player by id. Guarded by the ADMIN_TOKEN secret (wrangler secret put).
-  const admin = /^\/api\/admin\/players(?:\/([^/]+))?$/.exec(path);
-  if (admin) {
+  // Operator routes, guarded by the ADMIN_TOKEN secret (npx wrangler secret put ADMIN_TOKEN).
+  if (path.startsWith("/api/admin/")) {
     if (!env.ADMIN_TOKEN || bearer(req) !== env.ADMIN_TOKEN) return fail(401, "unauthorized");
-    if (!admin[1] && req.method === "GET") return json(await reg.everyone());
-    if (admin[1] && req.method === "DELETE") return json({ removed: await reg.remove(admin[1]) });
-    return fail(405, "method");
+    const players = /^\/api\/admin\/players(?:\/([^/]+))?$/.exec(path);
+    if (players) {
+      if (!players[1] && req.method === "GET") return json(await reg.everyone());
+      if (players[1] && req.method === "DELETE") return json({ removed: await reg.remove(players[1]) });
+      return fail(405, "method");
+    }
+    const rate = /^\/api\/admin\/ratelimit\/([^/]+)$/.exec(path);
+    if (rate && req.method === "DELETE") return json({ cleared: await reg.unblock(decodeURIComponent(rate[1])) });
+    // What the edge tells us about a caller, for checking the limit is seeing addresses.
+    if (path === "/api/admin/whoami" && req.method === "GET") {
+      return json({ ip: callerIp(req), headers: Object.fromEntries([...req.headers].filter(([k]) => k.startsWith("cf-") || k === "x-forwarded-for" || k === "x-real-ip")) });
+    }
+    return fail(404, "not-found");
   }
 
   if (path === "/api/games" && req.method === "GET") {
