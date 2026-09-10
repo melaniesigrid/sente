@@ -16,7 +16,6 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    # Needs a CLOUDFLARE_API_TOKEN repository secret (template "Edit Cloudflare Workers").
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -25,7 +24,18 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx vitest run server
-      - uses: cloudflare/wrangler-action@v3
+      # Deploying needs a CLOUDFLARE_API_TOKEN repository secret (template "Edit
+      # Cloudflare Workers"). Without it the tests above still run and the job stays
+      # green; deploy by hand with `npm run deploy:server` until the secret exists.
+      - id: gate
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -n "$TOKEN" ]; then echo "ok=true" >> "$GITHUB_OUTPUT";
+          else echo "ok=false" >> "$GITHUB_OUTPUT"; echo "::notice::No CLOUDFLARE_API_TOKEN secret; skipping the deploy."; fi
+      - if: steps.gate.outputs.ok == 'true'
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      - run: node tools/server/smoke.mjs https://sente-server.melaniesigrid.workers.dev
+      - if: steps.gate.outputs.ok == 'true'
+        run: node tools/server/smoke.mjs https://sente-server.melaniesigrid.workers.dev
