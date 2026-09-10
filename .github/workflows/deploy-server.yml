@@ -52,13 +52,18 @@ jobs:
             echo "::error::CLOUDFLARE_API_TOKEN does not look like a Cloudflare API token. After trimming whitespace it is ${#TOKEN} characters; a token is about 40 characters of letters, digits, hyphen and underscore. Check you copied the token value Cloudflare showed once, rather than its name, its ID from the token list, or a Global API Key."
             exit 1
           fi
-          echo "CLOUDFLARE_API_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+          # Mask the trimmed value before passing it on: trimming can make it
+          # differ from the registered secret, which would leave it unmasked.
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
           echo "ok=true" >> "$GITHUB_OUTPUT"
-      # wrangler reads CLOUDFLARE_API_TOKEN from the environment, which is the
-      # trimmed value set above rather than the raw secret.
+      # The trimmed token has to go through the action's own input: wrangler-action
+      # sets CLOUDFLARE_API_TOKEN from it, so leaving the input out blanks whatever
+      # the environment already held.
       - if: steps.gate.outputs.ok == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
+          apiToken: ${{ steps.gate.outputs.token }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       # A Durable Object keeps running the previous code until its instance restarts,
       # so give it a moment before asking production whether the new code is live.
