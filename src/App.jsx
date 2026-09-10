@@ -34,6 +34,8 @@ import { ProblemsView } from "./views/Problems.jsx";
 import { RankingsView } from "./views/Rankings.jsx";
 import { ProfileView } from "./views/Profile.jsx";
 import { DojoView } from "./views/Dojo.jsx";
+import { MailLinkView } from "./views/MailLink.jsx";
+import { linkFromQuery, forgetLink } from "./views/letterLink.js";
 
 /* ----------------------- APP SHELL ----------------------- */
 const NAV = [
@@ -55,6 +57,12 @@ export default function SenteApp() {
   const [footSaying] = useState(() => sayingBySeed(Math.floor(Math.random() * 1e6)));
   const [resume, setResume] = useState(null); // { mode, record } handed to PlayView once
   const [params, setParams] = useState(null); // one-shot navigation params, e.g. { problemId }
+  /* A link out of one of Sente's two letters, read from the address bar once.
+     It outranks everything below, onboarding included: somebody who followed a
+     link to get back into an account they already have must not be asked who
+     is playing first, and the token would be gone by the time they finished. */
+  const [mailLink, setMailLink] = useState(() =>
+    linkFromQuery(typeof window === "undefined" ? "" : window.location.search));
   const toastTimer = useRef(null);
   /* The stored profile arrives a tick after the first render, so the welcome flow
      waits for it. Without this every returning player would see a flash of "who is
@@ -75,6 +83,8 @@ export default function SenteApp() {
   const go = useCallback((v, p = null) => { setResume(null); setParams(p); setView(v); }, []);
   const resumeGame = useCallback((session) => { setResume(session); setView("play"); }, []);
   const home = useCallback(() => go("home"), [go]);
+  // Spent or abandoned, the token leaves the address bar either way.
+  const closeMailLink = useCallback(() => { forgetLink(); setMailLink(null); }, []);
 
   return (
     <MokuProvider view={view}>
@@ -105,8 +115,11 @@ export default function SenteApp() {
         </button>
       </header>
       <main className="content">
-        <ErrorBoundary key={welcoming ? "welcome" : view} onHome={home}>
-          {welcoming ? (
+        <ErrorBoundary key={mailLink ? "mail" : welcoming ? "welcome" : view} onHome={home}>
+          {mailLink ? (
+            <MailLinkView link={mailLink} notify={notify}
+              onSignedIn={() => go("play")} onDone={closeMailLink} />
+          ) : welcoming ? (
             <Welcome profile={profile} setProfile={setProfile}
               onFinish={(where) => go(where)} />
           ) : (<>

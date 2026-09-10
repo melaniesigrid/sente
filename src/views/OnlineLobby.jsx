@@ -80,7 +80,11 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
     const me = await api.addAccount(token, email, password);
     setPlayer(me);
     saveAccount({ token, player: me });
-    notify({ icon: "medal", text: "That handle is yours on any device now" });
+    // Not awaited: the handle is already kept, and a slow mail server should
+    // not make it look as though it was not. The row below offers the letter
+    // again for as long as the address is unconfirmed.
+    api.sendConfirmation(token).catch(() => {});
+    notify({ icon: "medal", text: "That handle is yours on any device now. Look for a letter confirming the address." });
   };
 
   const leave = async () => {
@@ -141,6 +145,9 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
         </div>
       )}
       {!player.email && <AttachRow onAttach={attach} />}
+      {player.email && !player.emailVerified && (
+        <ConfirmRow email={player.email} token={token} notify={notify} />
+      )}
       <div className="row spread">
         <p className="fine">Rated with Glicko-2 on the server. Every move is checked there with the same rules.</p>
         <div className="row">
@@ -193,6 +200,48 @@ function AttachRow({ onAttach }) {
       </div>
       <p className="fine">Your rating, your games and your handle stay exactly as they are.</p>
     </div>
+  );
+}
+
+/** The nudge an account whose address has never answered should keep seeing.
+ *
+ *  What confirming buys is worth being straight about: it does not unlock
+ *  anything and it is not a gate — a forgotten password can be posted to an
+ *  unconfirmed address exactly as it can to a confirmed one. What it proves is
+ *  that the address was typed correctly and can be reached, which is the thing
+ *  you want to have found out before it is the only way back to your handle. */
+function ConfirmRow({ email, token, notify }) {
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const send = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await api.sendConfirmation(token);
+      setSent(true);
+    } catch (e) {
+      notify({ icon: "info", text: errorText(e.reason) });
+    } finally { setBusy(false); }
+  };
+
+  if (sent) {
+    return (
+      <p className="fine" role="status">
+        A letter is on its way to {email}. The link in it lasts a week and works once. If it
+        does not arrive, look in the spam folder before asking for another.
+      </p>
+    );
+  }
+  return (
+    <button className="attach-row" onClick={send} disabled={busy}>
+      <Mail size={14} />
+      <span>
+        {busy
+          ? "Sending…"
+          : `Sente has never heard back from ${email}. Confirm it and you will know a letter can reach you.`}
+      </span>
+    </button>
   );
 }
 

@@ -69,6 +69,10 @@ export function privateFields(p) {
     email: p.email ?? null,
     // Whether there is a way back in besides the token in this browser.
     hasPassword: Boolean(p.pw),
+    // Whether the address has been proved, rather than merely typed. Nobody
+    // else is told this: it says something about a person's mailbox, not
+    // about their play, and it belongs on no page but their own.
+    emailVerified: Boolean(p.emailVerifiedAt),
     sessions: (p.sessions ?? []).length,
   };
 }
