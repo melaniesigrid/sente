@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Globe, KeyRound, LogIn, UserPlus, Loader } from "lucide-react";
+import { Globe, KeyRound, LogIn, UserPlus, Loader, Mail } from "lucide-react";
 import { Card, Btn } from "../components/ui.jsx";
 import { api } from "../net/api.js";
 import { saveAccount } from "../store/account.js";
@@ -11,6 +11,10 @@ import { formProblem, passwordNote, errorText } from "./accountForm.js";
      sign in    an address and a password, from any device
      sign up    a handle, an address and a password
      guest      a handle and nothing else, kept in this browser only
+
+   A fourth door, folded away under the first: having forgotten the password.
+   It is a disclosure rather than a tab because it is not a way most people
+   get in, and a row of four would suggest it was.
 
    There is no third party here. Sente holds the address, and it holds a hash
    of a key the browser derives from the password — never the password, which
@@ -64,7 +68,17 @@ function CredentialForm({ mode, profile, notify, onSignedIn }) {
         : await api.signIn(email, password);
       saveAccount({ token, player });
       onSignedIn({ token, player });
-      notify({ icon: "medal", text: signup ? `Welcome to the ladder, ${player.name}` : `Welcome back, ${player.name}` });
+      /* The confirmation letter is a courtesy, not a gate. An account that has
+         been made should not come apart because a mail server was slow, so
+         this is not awaited and its failure is not shown: the lobby keeps
+         offering the letter for as long as the address is unconfirmed. */
+      if (signup) api.sendConfirmation(token).catch(() => {});
+      notify({
+        icon: "medal",
+        text: signup
+          ? `Welcome to the ladder, ${player.name}. Look for a letter confirming your address.`
+          : `Welcome back, ${player.name}`,
+      });
     } catch (e) {
       setShown(errorText(e.reason));
     } finally { setBusy(false); }
@@ -103,12 +117,71 @@ function CredentialForm({ mode, profile, notify, onSignedIn }) {
           {busy ? "Working…" : signup ? "Create the account" : "Sign in"}
         </Btn>
       </div>
+      {!signup && <ForgotRow />}
       <p className="fine">
         {signup
-          ? "Your password is stretched in this browser and never sent; the server stores a hash of the result and could not read it back if it wanted to."
+          ? "Your password is stretched in this browser and never sent; the server stores a hash of the result and could not read it back if it wanted to. A letter follows, to confirm the address is one you can read."
           : "Signing in takes a moment: the browser does the work of proving the password so the server never has to hold it."}
       </p>
     </>
+  );
+}
+
+/** The way back in for somebody who cannot sign in. Folded away until asked
+ *  for, because it is not how most people arrive.
+ *
+ *  What it says afterwards is deliberately conditional — "if there is an
+ *  account on that address" — and it says the same thing whether or not there
+ *  was one. Answering honestly here would turn this box into a way to ask
+ *  whether any address you like has an account on Joseki, which is not a
+ *  question a go server should answer about its players. */
+function ForgotRow() {
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [shown, setShown] = useState(null);
+  const [asked, setAsked] = useState(false);
+
+  const ask = async () => {
+    if (busy) return;
+    const problem = formProblem("forgot", { email });
+    if (problem) { setShown(problem); return; }
+    setShown(null);
+    setBusy(true);
+    try { await api.forgot(email); setAsked(true); }
+    catch (e) { setShown(errorText(e.reason)); }
+    finally { setBusy(false); }
+  };
+
+  if (asked) {
+    return (
+      <p className="fine" role="status">
+        If there is an account on that address, a way back in is on its way to it. The link
+        lasts an hour, and using it signs the account out everywhere else.
+      </p>
+    );
+  }
+  if (!open) {
+    return (
+      <button className="attach-row" onClick={() => setOpen(true)}>
+        <KeyRound size={14} />
+        <span>Forgotten your password? Joseki can post you a way back in.</span>
+      </button>
+    );
+  }
+  return (
+    <div className="gate-fields">
+      <input className="chat-input" type="email" value={email} placeholder="The address on the account"
+        autoComplete="email" inputMode="email" onChange={e => setEmail(e.target.value)}
+        onKeyDown={e => e.key === "Enter" && ask()} aria-label="The address on the account" />
+      {shown && <p className="gate-problem" role="alert">{shown}</p>}
+      <div className="row">
+        <Btn icon={busy ? Loader : Mail} primary small onClick={ask} disabled={busy}>
+          {busy ? "Working…" : "Post me a way back in"}
+        </Btn>
+        <Btn small onClick={() => setOpen(false)}>Never mind</Btn>
+      </div>
+    </div>
   );
 }
 

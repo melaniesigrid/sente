@@ -375,9 +375,30 @@ two Durable Object classes, deployed at https://sente-server.melaniesigrid.worke
       so signing in on a phone does not sign out the laptop, and `POST /api/signout`
       ends one or (with `{everywhere: true}`) all of them.
       `tools/server/accounts.mjs <url>` proves the whole flow against a deployment.
-- [ ] Verify the address, and a way back in when the password is forgotten. Both need mail
-      out of the Worker (Cloudflare Email Sending), and until they exist an address is a
-      way to sign in from another device, not a proven identity — the sign-up copy says so.
+- [x] Verify the address, and a way back in when the password is forgotten (2026-09-10,
+      branch `feat/mail`). Two letters and no others, both asked for, neither carrying an
+      unsubscribe link because there is no list to leave (`server/mail.js` holds the copy,
+      pure and tested). Each carries one link back into the app as a query parameter, which
+      a static host will serve where a path it has never heard of would 404; `App` reads it
+      before onboarding, so somebody getting back into an account they already have is not
+      asked who is playing first. Links are stored hashed like session tokens, work once,
+      and asking for a second forgets the first. `POST /api/forgot` answers identically for
+      an address with an account, one without, and something that is not an address.
+      `tools/server/mail.mjs <url>` proves the whole of it against a deployment.
+      **Not yet sending.** Cloudflare Email Sending needs a domain on the Cloudflare
+      account, and `sente-server` runs on `workers.dev`, which is Cloudflare's and not
+      ours. Until `MAIL_FROM` is set, `/api/health` reports `"mail": "off"` and every link
+      goes to the log instead of the post. The four steps are in `docs/server-operations.md`.
+- [ ] Change the address on an account. `attach` refuses a second one, so a typo today is
+      permanent, and confirming makes the wrong address a *provably* wrong one. Wants the
+      password and a fresh confirmation posted to the new address, and should hold the old
+      one until the new one answers.
+- [ ] Let go of an address claimed and never confirmed. Signing up reserves an address on
+      the spot, so somebody can sit on one they do not own and keep its owner out. Low
+      stakes on a go server and deliberately not built yet; the shape would be a claim that
+      expires unconfirmed, not a takeover.
+- [ ] The three older rate-limited routes still spell the bucket dance out by hand;
+      `Registry#spend` now does it in one line and they could say so too.
 - [x] A card a player shows other players (2026-09-10, branch `feat/accounts`): a picture,
       a paragraph, and three facts — where you play, since when, and what you like to play.
       Edited from Profile, under a card that says plainly that this one is the server's and
@@ -418,6 +439,32 @@ Decisions made in Phase 4, accounts slice (2026-09-10, branch `feat/accounts`):
 - A password is ten characters or more and that is the only rule. Composition rules push
   people towards `Password1!`, so there are none; the field says how much further to go
   rather than colouring a meter.
+
+Decisions made in the letters slice (2026-09-10, branch `feat/mail`):
+- **A reset ends every other session; a password change still does not.** Changing a
+  password requires the old one, so the account was never out of its owner's hands and the
+  devices signed in are theirs. A reset requires only the mailbox, and the usual reason to
+  want one is that a password or a device is somewhere it should not be. So a reset signs
+  everything out and hands the browser that used the link one fresh session.
+- Following a mailed link is proof of the address, so a reset confirms the account on the
+  way through. Somebody who has just read their mail here is not then asked to prove they
+  can read their mail here.
+- The reset page asks the server which address its token was sent to, rather than carrying
+  the address in the link. The browser salts its key derivation with the address and cannot
+  derive without it; telling the holder of the token gives away nothing, because that token
+  is already a way into the account, and the alternative puts an address into browser
+  history and referrers.
+- Confirming an address gates nothing. It is not a condition of playing, of being rated, or
+  of asking for a way back in — requiring it there would lock out exactly the people who
+  need it. What it buys is knowing the address was typed correctly and can be reached,
+  before it is the only way back to a handle, and the lobby says so in those words.
+- `emailVerified` is on the owner's own view and nowhere else. It says something about a
+  person's mailbox rather than their play, and it belongs on no page but their own.
+- The link is written to the log when mail is off, and never into an HTTP response. A link
+  in a response would be a way for anyone who can ask for a reset to read one.
+- One operator route mints a link without posting it, which is how the letters are proved
+  against a deployment with no mailbox to read. It is written down plainly that this lets
+  `ADMIN_TOKEN` sign in as anybody — the same trust that could already delete them.
 
 Decisions made in slice 1:
 - Accounts are a display name plus a 32-byte bearer token generated by the server and
