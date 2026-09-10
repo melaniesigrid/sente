@@ -14,6 +14,7 @@
 import { DurableObject } from "cloudflare:workers";
 import { newRating, rateGame } from "./rating.js";
 import { randomHex, sha256, cleanName, cleanTint } from "./http.js";
+import { cleanKey, publicPlayer, hasPlayed } from "./players.js";
 import { SIZES } from "./room.js";
 
 const KEEP_GAMES = 24;
@@ -129,7 +130,7 @@ export class Registry extends DurableObject {
     const all = await this.ctx.storage.list({ prefix: "player:" });
     // Only players who have finished a rated game stand on the ladder.
     const rows = [...all.values()]
-      .filter(p => p.wins + p.losses + (p.draws ?? 0) > 0)
+      .filter(hasPlayed)
       .map(publicPlayer)
       .sort((a, b) => b.rating - a.rating || a.rd - b.rd)
       .slice(0, LADDER_SIZE);
@@ -172,7 +173,7 @@ export class Registry extends DurableObject {
     if (msg.t === "seek") {
       const size = SIZES.includes(msg.size) ? msg.size : 9;
       const rated = msg.rated !== false;
-      await this.seek(id, size, rated);
+      await this.seek(id, size, rated, cleanKey(msg.key));
     } else if (msg.t === "cancel") {
       await this.ctx.storage.delete(`seek:${id}`);
       send(ws, { t: "seek", status: "idle" });
@@ -192,18 +193,22 @@ export class Registry extends DurableObject {
 
   async webSocketError(ws) { await this.webSocketClose(ws); }
 
-  async seek(id, size, rated) {
+  /** Look for an opponent, or wait to be found. `key` is an optional rendezvous
+   *  word: seeks carrying one match only each other, so two people who agree on a
+   *  word meet however busy the lobby is, and an open seek never swallows them. */
+  async seek(id, size, rated, key = null) {
     const me = await this.ctx.storage.get(`player:${id}`);
     if (!me) return;
     const seeks = await this.ctx.storage.list({ prefix: "seek:" });
     let match = null;
-    for (const [key, s] of seeks) {
-      if (key === `seek:${id}`) continue;
+    for (const [k, s] of seeks) {
+      if (k === `seek:${id}`) continue;
+      if ((s.key ?? null) !== key) continue;
       if (s.size === size && s.rated === rated && this.ctx.getWebSockets(s.id).length) { match = s; break; }
     }
     if (!match) {
-      await this.ctx.storage.put(`seek:${id}`, { id, size, rated, at: Date.now() });
-      this.tell(id, { t: "seek", status: "waiting", size, rated });
+      await this.ctx.storage.put(`seek:${id}`, { id, size, rated, key, at: Date.now() });
+      this.tell(id, { t: "seek", status: "waiting", size, rated, key });
       await this.broadcastLobby();
       return;
     }
@@ -226,7 +231,9 @@ export class Registry extends DurableObject {
 
   async broadcastLobby() {
     const seeks = await this.ctx.storage.list({ prefix: "seek:" });
-    const frame = { t: "lobby", online: this.ctx.getWebSockets().length, seeking: seeks.size };
+    // Only open seeks are counted; a private rendezvous is nobody else's business.
+    const open = [...seeks.values()].filter(s => !s.key).length;
+    const frame = { t: "lobby", online: this.ctx.getWebSockets().length, seeking: open };
     for (const ws of this.ctx.getWebSockets()) send(ws, frame);
   }
 }
@@ -235,12 +242,3 @@ function send(ws, frame) {
   try { ws.send(JSON.stringify(frame)); } catch { /* closed */ }
 }
 
-/** Everything about a player except the token hash. */
-export function publicPlayer(p) {
-  return {
-    id: p.id, name: p.name, tint: p.tint,
-    rating: Math.round(p.rating), rd: Math.round(p.rd),
-    wins: p.wins, losses: p.losses, draws: p.draws ?? 0,
-    createdAt: p.createdAt, lastSeen: p.lastSeen,
-  };
-}
