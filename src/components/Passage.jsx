@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { passageFor, emphasize, markBudget, CLASSIC } from "../content/classic.js";
+import { typedParts } from "./typedParts.js";
 
 /* ----------------------- PASSAGE (a page from the Classic) -----------------------
    A passage from Zhang Ni's thirteen chapters, typed out on a machine, with a
@@ -29,10 +30,14 @@ const REDUCED = () =>
   typeof window !== "undefined" && typeof window.matchMedia === "function"
   && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/* A passage runs from 125 to 356 characters, so a fixed speed per character
-   would put four seconds between the shortest and the longest. The duration is
-   what is held constant instead — every passage lands in about the same beat —
-   and the speed falls out of the length, inside bounds a typist could hold. */
+/* The front door types too (components/Typed.jsx), and it types at a fixed
+   speed, which is right for a section label and a single line. A passage runs
+   from 125 to 356 characters, where a fixed speed puts four seconds between the
+   shortest and the longest. So the duration is what is held constant here —
+   every passage lands in about the same beat — and the speed falls out of the
+   length, inside bounds a typist could hold. The two share the pure part
+   (typedParts) and the caret; only the clock differs, and it differs on
+   purpose. */
 const TYPE_MS = 2200;
 const TICK = { min: 8, max: 28 };
 /** The rest a typist takes at a mark of punctuation, in ticks. */
@@ -63,19 +68,6 @@ function useTyped(text, on) {
   }, [text, on]);
 
   return shown;
-}
-
-/** The parts of a passage that are down so far, in order. Pure. */
-function typedParts(parts, shown) {
-  const out = [];
-  let at = 0;
-  for (const part of parts) {
-    const take = Math.min(part.text.length, Math.max(0, shown - at));
-    at += part.text.length;
-    if (take === 0) break;
-    out.push({ text: part.text.slice(0, take), mark: part.mark });
-  }
-  return out;
 }
 
 export function Passage({ context = "any", size = "", className = "" }) {

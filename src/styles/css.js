@@ -147,9 +147,8 @@ ${FONT_FACES}
 .passage-text { display: grid; }
 .passage-ghost, .passage-typed { grid-area: 1 / 1; }
 .passage-ghost { visibility: hidden; }
-/* The caret is the hero's alone, and only while it is still typing. */
-.type-caret { display: inline-block; width: .58em; height: 1.02em; margin-left: 1px; vertical-align: -.16em; background: var(--accent-ink); opacity: .8; animation: type-caret 1.05s steps(1) infinite; }
-@keyframes type-caret { 50% { opacity: 0; } }
+/* The caret is the one the front door already types with, declared once with the
+   landing's typed lines further down. One caret in the app, not two. */
 .passage.sm .passage-cite { font-size: 12.5px; margin-top: 6px; }
 /* the words that carry. Bold and the room's mark at reading contrast — never the
    raw accent, which is a 3:1 colour and would put the most important word in the
