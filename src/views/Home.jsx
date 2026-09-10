@@ -14,10 +14,15 @@ import { clearGame } from "../store/gameStore.js";
 import { useMokuFacts } from "../components/mokuStore.js";
 import { DuelCard } from "../components/DuelCard.jsx";
 import { dayKey, dailyProblem, liveStreak } from "../content/kata.js";
+import { OpenSgf } from "../components/OpenSgf.jsx";
+import { Review } from "./Review.jsx";
 import { loadSession } from "./session.js";
 
 /* ----------------------- HOME ----------------------- */
 export function Home({ profile, go, onResume }) {
+  // A game opened from a file. Review takes the whole view while it is open, the
+  // same way it does from a finished game.
+  const [opened, setOpened] = useState(null);
   // Count only ids that still exist in the library, so a renamed lesson does not inflate progress.
   const lessonsDone = profile.lessonsDone.filter(id => lessonById(id)).length;
   const lessonPct = Math.round((lessonsDone / LESSONS.length) * 100);
@@ -31,6 +36,10 @@ export function Home({ profile, go, onResume }) {
   const kataDone = profile.kataDate === today;
   const streak = liveStreak(profile, today);
   useMokuFacts({ view: "home", seed: games });
+  if (opened) {
+    return <Review record={opened} onExit={() => setOpened(null)} />;
+  }
+
   return (
     <div className="stack">
       <Card className="hero">
@@ -101,6 +110,8 @@ export function Home({ profile, go, onResume }) {
           <div className="meter"><div className="meter-fill" style={{ width: `${games ? (profile.wins / games) * 100 : 0}%` }} /></div>
         </button>
       </div>
+
+      <OpenSgf onOpen={(record) => setOpened(record)} />
 
       <Card inset className="roadmap">
         <div className="stat-head"><Route size={17} /><span>Where this is going</span></div>

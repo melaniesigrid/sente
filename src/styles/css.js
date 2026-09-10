@@ -255,6 +255,16 @@ ${SIGNATURE_FACE}
    name, then character, then number, then the caveat that keeps the number honest. */
 /* Review. The scrub is the one range input in the app; it gets the same sunken well
    every other control sits in, and a thumb that reads as a stone. */
+/* Open an SGF. The label is styled as a button because a bare file input cannot be,
+   and the input itself stays reachable to a screen reader rather than display:none. */
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.open-sgf { display: flex; flex-direction: column; gap: 9px; align-items: flex-start; transition: box-shadow .2s ease; }
+.open-sgf .fine { max-width: 60ch; }
+.open-sgf.dragging { box-shadow: var(--raise-sm), 0 0 0 2px var(--accent) inset; }
+.btn-file { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.visually-hidden:focus-visible + .btn-file { outline: 2px solid var(--accent); outline-offset: 3px; }
+.open-sgf-error { display: flex; align-items: flex-start; gap: 7px; margin: 0; font-size: 13px; color: var(--danger); line-height: 1.5; }
+.open-sgf-error svg { flex: none; margin-top: 2px; }
 .review-result { font-family: var(--font-display); font-weight: var(--w-display); font-size: 15px; opacity: .75; }
 .review-controls { justify-content: center; gap: 6px; flex-wrap: wrap; }
 .review-count { font-variant-numeric: tabular-nums; font-size: 13px; opacity: .6; min-width: 68px; text-align: center; }
