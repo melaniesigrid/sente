@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Swords, GraduationCap, Target, LayoutDashboard, Medal } from "lucide-react";
+import { sayingBySeed } from "./content/classic.js";
 
 /* ================================================================
    SENTE — play go, beautifully
    Design system: Laska "stone" palette (DESIGN.md)
    ground #e8e4db · highlight #fbf8f2 · shade #c4beb1
    armies #f2ede3 / #4b463c · eucalyptus accent #5f8c7e
-   Fraunces display · Hanken Grotesk body · Lucide icons only
+   Fraunces display · Hanken Grotesk body (the house pairing; the type is
+   themed from src/content/typeface.js) · Lucide icons only
    Neumorphism via two shadows: cream top-left, clay bottom-right.
 
    This file is the shell only: nav, routing state, profile store, toasts.
@@ -19,6 +21,7 @@ import { Toast } from "./components/Toast.jsx";
 import { ErrorBoundary } from "./components/ErrorBoundary.jsx";
 import { MokuProvider, MokuDock } from "./components/Moku.jsx";
 import { rankOf } from "./content/rank.js";
+import { typefaceVars } from "./content/typeface.js";
 import { defaultProfile, loadProfile } from "./store/profile.js";
 import { Home } from "./views/Home.jsx";
 import { PlayView } from "./views/Play.jsx";
@@ -40,6 +43,8 @@ export default function SenteApp() {
   const [view, setView] = useState("home");
   const [profile, setProfile] = useState(defaultProfile);
   const [toast, setToast] = useState(null);
+  // A different line from the Classic in the footer on every load.
+  const [footSaying] = useState(() => sayingBySeed(Math.floor(Math.random() * 1e6)));
   const [resume, setResume] = useState(null); // { mode, record } handed to PlayView once
   const [params, setParams] = useState(null); // one-shot navigation params, e.g. { problemId }
   const toastTimer = useRef(null);
@@ -57,7 +62,7 @@ export default function SenteApp() {
 
   return (
     <MokuProvider view={view}>
-    <div className="sente-root">
+    <div className="sente-root" style={typefaceVars(profile.typeface)}>
       <style>{CSS}</style>
       <header className="topbar">
         <div className="brand">
@@ -97,7 +102,7 @@ export default function SenteApp() {
       <MokuDock />
       <footer className="foot">
         <span>Sente · play go, beautifully</span>
-        <span>the oldest game, softly lit</span>
+        <span>{footSaying.text}</span>
       </footer>
     </div>
     </MokuProvider>

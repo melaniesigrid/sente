@@ -1,9 +1,20 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { sanitizeProfile, defaultProfile } from "./profile.js";
+import { DEFAULT_TYPEFACE } from "../content/typeface.js";
 
 let warn;
 beforeEach(() => { warn = vi.spyOn(console, "warn").mockImplementation(() => {}); });
 afterEach(() => { warn.mockRestore(); });
+
+describe("sanitizeProfile bookProgress", () => {
+  it("keeps well-shaped entries, drops malformed ones, resets a wrong value", () => {
+    const out = sanitizeProfile({ ...defaultProfile, bookProgress: { "shusaku-vs-gennan": { stops: 3, score: 5, total: 12 }, bad: { stops: -1 }, worse: "x" } });
+    expect(out.bookProgress).toEqual({ "shusaku-vs-gennan": { stops: 3, score: 5, total: 12 } });
+    expect(out.bookProgress).not.toBe(defaultProfile.bookProgress);
+    expect(sanitizeProfile({ ...defaultProfile, bookProgress: [] }).bookProgress).toEqual({});
+    expect(warn).toHaveBeenCalledTimes(1);
+  });
+});
 
 describe("sanitizeProfile", () => {
   it("keeps a well-formed profile intact and copies its arrays", () => {
@@ -51,6 +62,13 @@ describe("sanitizeProfile", () => {
     expect(sanitizeProfile({ ...defaultProfile, tierPassed: null }).tierPassed).toEqual([]);
     expect(warn).toHaveBeenCalledTimes(3);
     expect(warn.mock.calls[0][0]).toMatch(/tierPassed/);
+  });
+  it("keeps a known typeface id and resets an unknown one", () => {
+    expect(sanitizeProfile({ ...defaultProfile, typeface: "clubhouse" }).typeface).toBe("clubhouse");
+    for (const bad of ["", "helvetica", 7, null]) {
+      expect(sanitizeProfile({ ...defaultProfile, typeface: bad }).typeface).toBe(DEFAULT_TYPEFACE);
+    }
+    expect(warn.mock.calls[0][0]).toMatch(/typeface/);
   });
   it("drops unknown keys", () => {
     expect(sanitizeProfile({ ...defaultProfile, admin: true })).not.toHaveProperty("admin");

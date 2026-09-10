@@ -41,7 +41,24 @@ export const TRACKS = [
   { key: "judgement", name: "Judgement", trains: "Counting the board, choosing the biggest move, when to tenuki, reading depth" },
 ];
 
+/** The shelf: a book is a grouping over lessons that carry `book: <id>`. Lessons keep
+ *  their tier and rank; the shelf is another way in. */
+export const BOOKS = [
+  { id: "proverbs", name: "The Proverbs", blurb: "Folk wisdom as kata: a fixed form drilled until it can be broken on purpose." },
+  { id: "masters", name: "Games of the Masters", blurb: "Guess the move across a famous game, then sit across from him." },
+  { id: "classic", name: "The Classic of Weiqi in Thirteen Chapters", blurb: "Zhang Ni, c. 1050, in original words, one verified position per maxim." },
+];
+export const bookById = (id) => BOOKS.find(b => b.id === id) || null;
+
+/* A series is a set of lessons that read together across tiers. Lessons opt in
+   with `series` and order themselves with `chapter`. The Classic's chapters
+   and sayings live in content/classic.js. */
+export const SERIES = [
+  { key: "classic", name: "The Classic in Thirteen Chapters", by: "Zhang Ni, eleventh century" },
+];
+
 export const trackByKey = (key) => TRACKS.find(t => t.key === key) || null;
+export const seriesByKey = (key) => SERIES.find(s => s.key === key) || null;
 export const tierById = (id) => TIERS.find(t => t.id === id) || null;
 
 /** "30k" -> -30, "1k" -> -1, "1d" -> 1, "4d" -> 4. Anything else -> NaN. Ascending = stronger. */
@@ -67,6 +84,36 @@ export function prereqsMissing(lesson, profile) {
 }
 
 export const lessonsInTier = (tier) => LIBRARY.filter(l => l.tier === tier);
+export const lessonsInBook = (bookId) => LIBRARY.filter(l => l.book === bookId);
+
+/** Guess-the-move points across a book's replays: stops scored, points, and the
+ *  points on offer. Unknown lesson ids in the profile count nothing. */
+export function bookProgressFor(profile, bookId) {
+  const out = { stops: 0, score: 0, total: 0 };
+  for (const l of lessonsInBook(bookId)) {
+    const p = (profile.bookProgress || {})[l.id];
+    if (p) { out.stops += p.stops; out.score += p.score; }
+    for (const s of l.steps) if (s.type === "replay") out.total += 2 * s.stops.length;
+  }
+  return out;
+}
+
+/** Lessons of a series in chapter order, whatever tier they sit in. */
+export const lessonsInSeries = (key) =>
+  LIBRARY.filter(l => l.series === key).sort((a, b) => (a.chapter || 0) - (b.chapter || 0));
+
+/** The lesson to open when this one is finished: the next chapter of its series,
+ *  else the next lesson in library order. Null at the end. */
+export function lessonAfter(lesson) {
+  if (!lesson) return null;
+  if (lesson.series) {
+    const run = lessonsInSeries(lesson.series);
+    const i = run.findIndex(l => l.id === lesson.id);
+    return i >= 0 ? run[i + 1] || null : null;
+  }
+  const i = LIBRARY.findIndex(l => l.id === lesson.id);
+  return i >= 0 ? LIBRARY[i + 1] || null : null;
+}
 
 /** The learner's tier: the lowest tier they have neither passed nor finished every
  *  lesson of. Falls back to the lowest unpassed tier, then the last tier. */

@@ -124,6 +124,36 @@ lessons across six tiers; content is authored tier by tier so each tier ships co
 - `ko-as-strategy` 3d life: creating and avoiding ko as a strategic weapon
 - `studying-with-analysis` 4d judgement: reading an engine's evaluation honestly (Phase 4)
 
+## Series: The Classic in Thirteen Chapters
+
+Added 2026-09-10. A series is a set of lessons that read together across tiers: a lesson
+opts in with `series: "classic"` and orders itself with `chapter`. The first series is
+Zhang Ni's *Qijing Shisan Pian* (Song dynasty, eleventh century), one lesson per chapter,
+placed in the tier its ideas belong to rather than in one block:
+
+| Chapter | Lesson | Tier / rank | Track |
+|---------|--------|-------------|-------|
+| 1 The Board and the Stones | `classic-board` | 2 / 20k | opening |
+| 2 On Calculation | `classic-calculation` | 2 / 19k | judgement |
+| 3 On Holding Territory | `classic-territory` | 3 / 15k | opening |
+| 4 On Joining Battle | `classic-conflict` | 3 / 14k | judgement |
+| 5 On Emptiness and Fullness | `classic-emptiness` | 3 / 13k | middle |
+| 6 On Knowing Oneself | `classic-know-yourself` | 2 / 17k | tactics |
+| 7 On Reading the Game | `classic-observing` | 4 / 9k | judgement |
+| 8 On Examining the Heart | `classic-feelings` | 4 / 8k | judgement |
+| 9 On Correctness | `classic-correctness` | 4 / 7k | middle |
+| 10 On Watching the Details | `classic-details` | 5 / 4k | middle |
+| 11 On Names | `classic-terms` | 2 / 18k | shape |
+| 12 On the Nine Levels | `classic-levels` | 2 / 16k | judgement |
+| 13 Miscellany | `classic-miscellany` | 3 / 12k | life |
+
+The chapters, their themes and a set of sayings live in `src/content/classic.js`; the
+Learn view shows a saying of the day and the thirteen lessons in book order, and a few of
+Moku's lines come from the same file. Every saying is Sente's own rendering of the classical
+Chinese, in the house voice. The original is public domain; modern translations are not, so
+none is quoted. `library.test.js` verifies series lessons like any other; `classic.test.js`
+checks that every chapter has its lesson and that the sayings keep the voice.
+
 ## Content model
 
 Lessons are data in `src/content/lessons/<tier>/<id>.js`, gathered by `src/content/library.js`.

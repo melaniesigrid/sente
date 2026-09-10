@@ -212,11 +212,22 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
 - [ ] SGF authoring pipeline: build-time script turns SGF with comments into steps.
 - [ ] Tier 4 Craftsman and Tier 5 Master authored (20 lessons, 19x19).
 - [ ] Tier 6 Dan authored (8 lessons; the last needs Phase 4 analysis).
+- [x] The Classic in Thirteen Chapters (2026-09-10): Zhang Ni's eleventh-century treatise as a
+      lesson series, one engine-verified lesson per chapter spread over tiers 2 to 5
+      (`series`/`chapter` fields, `lessonsInSeries`), plus `content/classic.js` with the
+      chapters and Sente's own renderings of its sayings: a saying of the day on Learn and
+      a few new lines for Moku. Tiers 2 to 5 now each hold their Classic lessons; the rest
+      of their syllabus is still open.
+- [ ] Surface the saying of the day on Home (the card is built in `Learn.jsx` as
+      `ClassicCard`; lift it to a shared component).
 - [ ] Tsumego graded 30k → 5k with categories and a daily set (reuses the verifier).
 - [ ] Spaced repetition: finished quiz steps enter a recall queue; "Review five" card on Home.
 - [ ] Joseki and opening library for 9×9 and 19×19.
 
 ## Phase 6 — Masters and books
+
+Handoff for whoever continues: `docs/handoff/masters-2026-09-09.md` (state of PRs #4, #5, #6,
+the running logit dump, what is unfinished, gotchas).
 
 Plan: `docs/designs/masters-and-books.md` (CEO review plus adversarial spec review,
 2026-09-09). Two asks on one foundation: a corpus of public-domain master games, measured,
@@ -242,10 +253,12 @@ and one rule: the number on the card is measured, never claimed.
       prior; `StyleDataError` (missing JSON, non-19x19) falls back to `proyear` in rated
       games and to "host unreachable" in a duel. Masters row in the lobby, 19x19 only,
       hidden without the index, style match read from `eval.json`.
-- [ ] Step types `replay` (embedded moves and stops; scoring is data: the master's move,
-      precomputed dan top three for partial credit; lazy display-only "at your level" panel)
-      and `maxim` (a public-domain line, its analogy, one verified position). Book lessons
-      live in `LIBRARY` with a `book` key; `bookProgress` in the profile.
+- [x] Step types `replay` (embedded moves and stops; scoring is data: the master's move for
+      full credit, precomputed `strong` moves for partial, refutations played out; `scored`
+      status so a stop is never scored twice; Try again returns to the stop) and `maxim` in
+      `lessonStep.js`, the verifier branches, the "at your level" line when the network is
+      already loaded, and `bookProgress` in the profile with its sanitiser (`feat/masters-pr3`,
+      2026-09-09). Content is the next item.
 - [ ] Shelf v1: ten proverbs with the karate framing, two game studies (Shusaku vs Gennan
       Inseki 1846, Jowa vs Akaboshi Intetsu 1835). Then the Classic of Weiqi in Thirteen
       Chapters, thirteen lessons. Reading room names modern books, quotes nothing.
@@ -332,6 +345,28 @@ Bigger swings:
       repeating figure, byo-yomi a tightening pulse. A game becomes a piece.
 - [ ] Capture Go onboarding: first capture wins on 7x7 against Hoshi, a two-line rule
       variant on the record, replacing the ten-move guided demo with a real game.
+
+## Typefaces (done 2026-09-10, branch `feat/typefaces`)
+
+Six pairings of the same design system, chosen in Profile and stored on the profile.
+Display faces are borrowed from the Typecase library next door; body faces stay
+Google-hosted text families, because the Typecase text cuts have no weight axis.
+
+- [x] Type tokens in `CSS`: no family, weight, tracking or hero leading is named
+      directly any more; `src/App.jsx` sets them from `profile.typeface`.
+- [x] Pairings as data in `src/content/typeface.js`, house first and default.
+- [x] Local faces in `src/styles/fontfaces.js`, each with a measured `size-adjust`
+      onto Fraunces' optical size so a pairing changes voice, not layout.
+- [x] Picker in Profile, each option previewing its own display face with digits.
+
+Open:
+- [ ] Licensing: every borrowed face is a demo/personal-use cut (`src/fonts/LICENSES.md`).
+      Before a public deploy, buy the pairings worth keeping or swap them for OFL faces.
+      Only `house` and the three Google body families are clear today.
+- [ ] Convert the borrowed faces to woff2; the OTFs are 16-207 KB each and lazy, but
+      Kuigaf alone is 207 KB the first time Wedge is chosen.
+- [ ] A pairing is a device preference stored in the profile; when accounts arrive,
+      decide whether it syncs or stays local like the Moku toggle.
 
 ## Principles (do not trade away)
 
