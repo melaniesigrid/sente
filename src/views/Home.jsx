@@ -3,6 +3,7 @@ import { Swords, GraduationCap, Target, Trophy, Route, Sparkles, Play, Trash2, C
 import { createBoard, tryPlay, aiChooseMove } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
 import { Card, Btn } from "../components/ui.jsx";
+import { Passage } from "../components/Passage.jsx";
 import { LESSONS } from "../content/lessons.js";
 import { lessonById } from "../content/library.js";
 import { PROBLEMS } from "../content/problems.js";
@@ -49,6 +50,8 @@ export function Home({ profile, go, onResume }) {
           <MiniSelfPlay />
         </div>
       </Card>
+
+      <Card className="passage-card"><Passage context="home" size="lg" /></Card>
 
       {saved && (
         <Card inset className="resume-card">

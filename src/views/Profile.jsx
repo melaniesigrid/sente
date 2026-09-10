@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Check, Pencil, Trophy, Flame, Sparkles, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck } from "lucide-react";
 import { Card, Pill, Avatar, RankBadge, BeltRibbon, Toggle } from "../components/ui.jsx";
+import { Passage } from "../components/Passage.jsx";
 import { MokuMark } from "../components/Moku.jsx";
 import { useMoku, useMokuFacts } from "../components/mokuStore.js";
 import { TINTS, rankOf, beltOf, nextBelt, hintsForBelt, kyuFloor } from "../content/rank.js";
@@ -56,6 +57,8 @@ export function ProfileView({ profile, setProfile }) {
           </div>
         </div>
       </Card>
+
+      <Card className="passage-card"><Passage context="profile" /></Card>
 
       <div className="grid2">
         <Card className="belt-card">

@@ -4,13 +4,13 @@ import {
 } from "lucide-react";
 import { Board } from "../components/Board.jsx";
 import { Card, Btn, Pill } from "../components/ui.jsx";
+import { Passage } from "../components/Passage.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
 import {
   TIERS, TRACKS, lessonById, prereqsMissing, nextLessonFor, currentTierFor, searchLibrary,
   lessonsInTier, trackByKey, isDone, lessonsInSeries, lessonAfter,
 } from "../content/library.js";
-import { CLASSIC, sayingOfTheDay } from "../content/classic.js";
-import { dayKey } from "../content/kata.js";
+import { CLASSIC } from "../content/classic.js";
 import { saveProfile } from "../store/profile.js";
 import { initStep, stepReducer, marksFor, boardLocked, VERDICT_LABELS } from "./lessonStep.js";
 
@@ -43,7 +43,7 @@ function LessonPlayer({ lesson, nextLesson, onDone, onExit }) {
   const showHint = (step.type === "quiz" || step.type === "sequence") && !solved && !state.message;
 
   return (
-    <div className="stack">
+    <div className="stack lesson-player">
       <div className="row spread">
         <Btn icon={ChevronLeft} small onClick={onExit}>Library</Btn>
         <Pill icon={BookOpen}>{lesson.title} · {stepIdx + 1}/{lesson.steps.length}</Pill>
@@ -51,6 +51,7 @@ function LessonPlayer({ lesson, nextLesson, onDone, onExit }) {
       <div className="play-wrap">
         <Board
           board={state.board}
+          sizePx={600}
           onPlay={(c, r) => dispatch({ type: "play", c, r })}
           marks={marksFor(step)}
           wrong={state.wrong}
@@ -129,14 +130,12 @@ function LessonCard({ lesson, done, onOpen }) {
    lessons that teach them, in the book's order, whatever tier they sit in. */
 function ClassicCard({ done, onOpen }) {
   const [openList, setOpenList] = useState(false);
-  const saying = sayingOfTheDay(dayKey());
   const lessons = lessonsInSeries(CLASSIC.key);
   const finished = lessons.filter(l => done(l.id)).length;
   return (
     <Card inset className="stack-sm">
       <div className="stat-head"><Quote size={15} /><span>{CLASSIC.title}</span></div>
-      <p className="lesson-text">{saying.text}</p>
-      <p className="fine">Chapter {saying.chapter}, {saying.title}. {CLASSIC.author}, {CLASSIC.era}.</p>
+      <Passage context="learn" />
       <div className="row spread">
         <span className="fine">{finished}/{lessons.length} chapters read</span>
         <Btn icon={openList ? ChevronLeft : BookOpen} small onClick={() => setOpenList(o => !o)}>

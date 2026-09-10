@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Play, Users, Handshake, Minus, Plus, Home } from "lucide-react";
 import { Avatar, RankBadge, Btn } from "../components/ui.jsx";
+import { Passage } from "../components/Passage.jsx";
 import { DuelCard } from "../components/DuelCard.jsx";
 import { personasFor, PERSONAS } from "../content/personas.js";
 import { rankOf, ratingOfRank, stepRank, rankInRange, RANK_LADDER } from "../content/rank.js";
@@ -33,6 +34,7 @@ export function PlayView({ profile, setProfile, notify, resume }) {
           you pick, from 25 kyu to 9 dan, so choose the company you like. Networked
           matchmaking joins the same seat when the server lands.
         </p>
+        <Passage context="play" />
         <DuelCard profile={profile} today={today} mode={duelMode(PERSONAS, today)}
           saved={saved && saved.mode.kind === "duel" ? saved : null} onPlay={setSession} />
         <div className="rank-picker neu-card" role="group" aria-label="Level to play at">
