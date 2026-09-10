@@ -77,7 +77,7 @@ export default function SenteApp() {
   const home = useCallback(() => go("home"), [go]);
 
   return (
-    <MokuProvider view={view}>
+    <MokuProvider view={view} streak={profile.streak > 0 ? profile.streak : -profile.lossStreak}>
     <div className="sente-root" style={{ ...themeVars(room, profile.dojo), ...typefaceVars(profile.typeface) }}>
       <style>{CSS}</style>
       <header className="topbar">

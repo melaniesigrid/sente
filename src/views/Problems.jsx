@@ -23,7 +23,7 @@ export function ProblemsView({ profile, setProfile, initialId }) {
   const [state, setState] = useState(() => ({ board: setupToBoard(prob.setup), status: "open", flash: [] }));
   const streak = liveStreak(profile, today);
   const isKata = kata && prob.id === kata.id;
-  useMokuFacts({ view: "tsumego", seed: profile.problemsDone.length });
+  useMokuFacts({ view: "tsumego", solved: state.status === "solved", seed: profile.problemsDone.length });
 
   const load = (id) => {
     const p = PROBLEMS.find(x => x.id === id);

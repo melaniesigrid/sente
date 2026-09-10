@@ -178,8 +178,17 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   );
   const resultKind = over ? (over.winner === null ? "jigo" : persona ? (over.winner === "b" ? "win" : "loss") : "win") : null;
 
+  /* A think that runs past four seconds is a different face (reading, not
+     watching). One flag, not a clock: nothing between the two needs drawing. */
+  const [longThink, setLongThink] = useState(false);
+  useEffect(() => {
+    if (!thinking) { setLongThink(false); return undefined; }
+    const t = setTimeout(() => setLongThink(true), 4000);
+    return () => clearTimeout(t);
+  }, [thinking]);
+
   useMokuFacts({
-    view: "game", phase: rec.phase, thinking,
+    view: "game", phase: rec.phase, thinking, thinkingMs: longThink ? 4000 : 0,
     myAtari: myAtari.length, oppAtari: oppAtari.length, ko: rec.koPoint !== null,
     moment, result: resultKind, promoted: ceremony ? ceremony.label : null, seed: rec.moves.length,
   });
@@ -234,10 +243,11 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         );
         const rating = clamp(rated.rating, MIN_RATING, MAX_RATING);
         const streak = won ? profile.streak + 1 : 0;
+        const lossStreak = won ? 0 : profile.lossStreak + 1;
         const np = {
           ...profile, rating, rd: rated.rd, vol: rated.vol,
           wins: profile.wins + (won ? 1 : 0), losses: profile.losses + (won ? 0 : 1),
-          streak, bestStreak: Math.max(profile.bestStreak, streak),
+          streak, lossStreak, bestStreak: Math.max(profile.bestStreak, streak),
         };
         setProfile(np);
         saveProfile(np);
