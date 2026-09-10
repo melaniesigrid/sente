@@ -15,6 +15,7 @@ export const CLASSIC = {
   key: "classic",
   title: "The Classic in Thirteen Chapters",
   author: "Zhang Ni",
+  short: "The Classic of Weiqi",
   era: "Song dynasty, eleventh century",
   blurb: "The oldest treatise on the game, one lesson per chapter. Zhang Ni wrote for officials who played as they governed: count before you commit, know your own weak point, take the corners first, and do not boast of a win.",
   credit: "Sayings are Sente's renderings of the eleventh-century text, not quotations of any translation.",
@@ -181,4 +182,65 @@ export function sayingOfTheDay(key) {
 /** A saying picked deterministically by a small integer seed. */
 export function sayingBySeed(seed = 0) {
   return SAYINGS[Math.abs(Math.floor(seed)) % SAYINGS.length];
+}
+
+/* ----------------------- PASSAGES -----------------------
+   Longer pages from the book, in Sente's own rendering, for the quiet corners
+   of the app. `contexts` says where a passage sits well; "any" fits everywhere.
+   Every rendering below paraphrases the eleventh-century text; none quotes a
+   modern translation. */
+export const PASSAGES = [
+  { chapter: 1, contexts: ["home", "learn", "play"],
+    text: "The board is square and still; the stones are round and move. Since the beginning no one has ever set the stones exactly as they were set in an earlier game. Every day is new. So reasoning must go deep and reading must be exact, and you must try to understand what leads to victory and what leads to defeat. Only so can what is still unattained be reached." },
+  { chapter: 1, contexts: ["home", "play"],
+    text: "Three hundred and sixty points for the days of the year, and one more at the centre from which they all come. Four corners for the four seasons, ninety points each. A whole year lies on the table before the first stone is placed." },
+  { chapter: 2, contexts: ["learn", "tsumego", "ladder"],
+    text: "Whoever calculates greatly will win, and whoever calculates a little will lose. What then of the one who does not calculate at all? If you can say who is ahead while the stones are still falling, you have counted well. If you learn it only when they are gathered up, you have counted badly." },
+  { chapter: 3, contexts: ["home", "play", "learn"],
+    text: "At the beginning the positions are divided among the four corners. Then the stones step out: two spaces from one stone, three from two, four from three. Near is not touching; far is not out of reach. Without a good beginning there is no good end." },
+  { chapter: 4, contexts: ["play", "loss", "learn"],
+    text: "Rather than nurse stones already in danger, let them go and take new ground. Many stones may be lost so long as the initiative is not, for to lose the initiative is to hand it to someone who did not have it before. Before you strike to the left, look to the right." },
+  { chapter: 4, contexts: ["play", "win", "jigo", "home"],
+    text: "The best victory is the one won without fighting, and the best position is the one that provokes no fight. Fight well and you will not lose; keep your ranks in order and even your losses will be clean. Open by the rules. Win by imagination." },
+  { chapter: 5, contexts: ["play", "learn", "home"],
+    text: "Play too close to your opponent and you fill them while emptying yourself. What is full is hard to break; what is empty is easy to enter. Like water, which leaves the high ground and flows down, avoid what is already full and move into the void." },
+  { chapter: 5, contexts: ["loss", "play", "profile"],
+    text: "Do not hold to one plan. Change it with the moment. If you see that you can advance, advance. If you meet difficulty, retreat. Seize something and keep the same method, and at the end you will have seized only that one thing." },
+  { chapter: 6, contexts: ["profile", "learn", "home"],
+    text: "The wise see what is not yet visible; the foolish miss what is in front of their eyes. Know your own weak points and you know where your opponent is coming. Know when to fight and when to decline. Rest, and let the other side wear itself out. Whoever knows themselves is enlightened." },
+  { chapter: 7, contexts: ["loss", "tsumego", "learn"],
+    text: "If you see that you are winning, keep your shape. If you see that you are losing, go into the larger territories. A desperate struggle to save what is lost only loses more. There are many ways to lose by yourself, and only one road to victory: seeing the board as it is." },
+  { chapter: 7, contexts: ["loss", "profile", "ladder"],
+    text: "Whoever cannot see the way ahead must change. Only by changing do the connections come, and only then does a group live long." },
+  { chapter: 8, contexts: ["loss", "win", "profile", "ladder"],
+    text: "Sure of yourself yet modest, you will often win. Uncertain and proud, you will often lose. After a defeat, reflect on its causes and your skill will grow; flatter yourself on a victory and it will leave you. Seek the fault in yourself and blame no one else." },
+  { chapter: 8, contexts: ["play", "profile"],
+    text: "Keep your face still and your plans hidden, so your opponent cannot read your mind in your expression. One plan in your head is very little indeed. The skilled player weighs every side of the game; the rash one prepares for battle on the surface alone." },
+  { chapter: 9, contexts: ["learn", "tsumego", "home"],
+    text: "A small Way, but the same Way as war. The strong player thinks deeply, weighs the far consequences, and lets thought travel the whole board before a single stone is placed. They aim at conquest before conquest is visible, and take the point before the opponent has thought of it." },
+  { chapter: 10, contexts: ["play", "learn"],
+    text: "To strengthen the outside, first settle the inside. To hold the east, strike the west. When you connect, remember what came before. When you sacrifice, think of what comes after. Choose a territory carefully before you invade it; then go in." },
+  { chapter: 11, contexts: ["learn", "tsumego"],
+    text: "Thirty-two names for the ways stones meet, and ten thousand changes to think of. All the shifts of the board, near and far, across and down, are more than anyone will ever know. Set the names right, and the shapes can be seen." },
+  { chapter: 12, contexts: ["ladder", "learn", "profile"],
+    text: "Nine levels of players, from being in the spirit at the top down to being truly lost. The superior person knows from birth, the next learns by study, and the rest study only after difficulty has found them." },
+  { chapter: 13, contexts: ["win", "jigo", "ladder", "play"],
+    text: "Do not boast of victory, nor complain of defeat. The gentleman appears modest and generous; only the vulgar show anger. Sit calmly and breathe evenly, and the battle is half won. A face that betrays the mind is already losing." },
+  { chapter: 13, contexts: ["jigo", "home", "win", "profile"],
+    text: "In this game the life of one is the death of the other; near and far complete each other; the strength of one is the weakness of the other. This is peace, but not rest. Danger waits behind calm, and to sit still is to be swept away. The wise are at peace and do not forget the danger." },
+  { chapter: 13, contexts: ["loss", "ladder", "profile"],
+    text: "Do not play many games in a row, for the tired play badly. Do not play when unwell, for you will forget the moves and be easily beaten. A match is never more than three games together." },
+].map(p => ({ ...p, title: chapterByNumber(p.chapter).title }));
+
+/** Passages that suit a context ("home", "play", "learn", "tsumego", "ladder",
+ *  "profile", "win", "loss", "jigo"), or all of them for "any" or an unknown context. */
+export function passagesFor(context) {
+  const fit = PASSAGES.filter(p => p.contexts.includes(context));
+  return fit.length ? fit : PASSAGES;
+}
+
+/** One passage for a context, chosen by seed so a screen can draw a fresh one per visit. */
+export function passageFor(context, seed = 0) {
+  const list = passagesFor(context);
+  return list[Math.abs(Math.floor(seed)) % list.length];
 }
