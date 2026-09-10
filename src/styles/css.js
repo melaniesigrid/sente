@@ -23,6 +23,9 @@ ${SIGNATURE_FACE}
   --accent: rgb(var(--accent-rgb));
   --accent-soft: rgba(var(--accent-rgb),.16);
   --accent-ring: rgba(var(--accent-rgb),.32);
+  /* the mark at reading contrast: same eucalyptus, deep enough to be read as a
+     word rather than glanced at as a dot. The raw accent is 2.99:1 here. */
+  --accent-ink: #47695f;
   --danger: #b0715f;
   --sh-ink: 75,70,60;
   --sh-lite: 251,248,242;
@@ -137,7 +140,19 @@ ${SIGNATURE_FACE}
 .passage.sm { padding-left: 14px; }
 .passage.sm .passage-text { font-size: 17px; line-height: 1.5; }
 .passage.sm .passage-cite { font-size: 12.5px; margin-top: 6px; }
-.passage:hover .passage-text { color: var(--accent); }
+/* the words that carry. Bold and the room's mark at reading contrast — never the
+   raw accent, which is a 3:1 colour and would put the most important word in the
+   passage below the floor the rest of it clears. The weight is set against the
+   italic around it, not against upright body text, so it needs more than a 700. */
+.passage-key { font-weight: 640; color: var(--accent-ink); font-style: inherit; }
+.passage.lg .passage-key { font-weight: 600; }
+/* On hover the passage takes the mark and the marked words take the ink: the
+   relationship inverts, so the words never stop being the ones that stand out.
+   The whole block goes to --accent-ink and not to the raw accent for the same
+   reason a marked word does — five lines of 2.99:1 italic is the worst place in
+   the app to spend that colour, and it is a paragraph, not a dot. */
+.passage:hover .passage-text { color: var(--accent-ink); }
+.passage:hover .passage-key { color: var(--ink); }
 .passage-card { padding: clamp(22px, 3vw, 34px) clamp(22px, 3.5vw, 40px); }
 .lesson-player .lesson-text { font-size: 18px; line-height: 1.7; }
 .lesson-player .success-row { font-size: 18px; }

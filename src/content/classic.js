@@ -443,3 +443,108 @@ export function passageFor(context, seed = 0) {
   const list = passagesFor(context);
   return list[Math.abs(Math.floor(seed)) % list.length];
 }
+
+/* ----------------------- THE WORDS THAT CARRY -----------------------
+   A passage is set as one block of italic, and a block of italic is the easiest
+   thing on a screen to slide off. A reader who is not already committed reads
+   the first line and leaves. So a few words in each passage are struck a second
+   time — the room's mark taken to reading contrast, at a heavier weight — and
+   those words are what the reader takes away if they take away nothing else.
+
+   Which words is the whole design. The lexicon is in two tiers, and the tier
+   decides who wins when a passage offers more candidates than it has marks.
+   STRENGTH_WORDS are what the reader should leave carrying: the initiative, the
+   advantage, the victory, knowing and studying and staying calm. CRAFT_WORDS are
+   the board itself — the corners, the eyes, the ko — and the losing pole the
+   classic warns about. Mark "corner" over "victory" and the passage reads as a
+   glossary; mark "victory" over "corner" and it reads as encouragement. The
+   second is why anyone is on the page.
+
+   Pure data and a pure function. The view renders what comes back and decides
+   nothing. */
+
+export const STRENGTH_WORDS = [
+  "initiative", "advantage(?:s)?", "victory", "win(?:s|ning)?", "won",
+  "strength", "advance(?:s|d)?", "attack(?:s|ed)?", "counterattack", "fight(?:s|ing)?",
+  "life", "live(?:s)?", "Way", "plan(?:s)?", "change(?:s|d|ing)?",
+  "know(?:s|ing|n)?", "study", "learn(?:s|ed|ing)?", "enlightened", "wise",
+  "calm(?:ly)?", "modest", "generous", "patient", "peace",
+  "calculat(?:e|es|ed|ing|ion|ions)", "count(?:s|ed|ing)?", "reckon(?:s|ed|ing)?",
+];
+
+export const CRAFT_WORDS = [
+  "corner(?:s)?", "centre", "edge(?:s)?",
+  "shape(?:s)?", "connect(?:s|ed|ion|ions|ing)?", "cut(?:s)?",
+  "ko", "eye(?:s)?", "group(?:s)?", "territory", "ground", "stone(?:s)?",
+  "invade(?:s|d)?", "invasion(?:s)?", "invader(?:s)?", "sacrifice(?:s|d)?",
+  "retreat(?:s|ed)?",
+  "full", "empty", "void", "danger", "dead", "death",
+  "defeat", "weak(?:ness)?", "tired", "anger",
+  "lose(?:s)?", "losing", "lost", "beaten",
+];
+
+/** Both tiers, strongest first, for anything that wants the whole lexicon. */
+export const KEY_WORDS = [...STRENGTH_WORDS, ...CRAFT_WORDS];
+
+const reFor = (words) => new RegExp(`\\b(?:${words.join("|")})\\b`, "gi");
+const KEY_RE = reFor(KEY_WORDS);
+const STRENGTH_RE = reFor(STRENGTH_WORDS);
+
+/** Two marks at most in a line, so a marked line still reads as a line. */
+export const MAX_MARKS = 2;
+
+/** How many marks a text of this length can carry. A one-line saying takes two;
+ *  a five-sentence passage can take a third without turning into a highlighter,
+ *  and needs it, or the last two sentences go unmarked and unread. Roughly one
+ *  per twenty words, never fewer than one, never more than three. */
+export function markBudget(text) {
+  const words = String(text ?? "").trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.min(3, Math.round(words / 20)));
+}
+
+/** Which lexicon entry a matched word came from, or -1. Each entry already spells
+ *  its own inflections — "plan(?:s)?", "calculat(?:e|es|ed|ing|ion|ions)" — so the
+ *  entry, not the literal word, is what identifies a repeat. */
+const ENTRY_RES = KEY_WORDS.map(w => new RegExp(`^(?:${w})$`, "i"));
+const entryOf = (word) => ENTRY_RES.findIndex(re => re.test(word));
+
+/** Every distinct key word in `line`, in reading order, each tagged with whether
+ *  it is a strength word. One mark per lexicon entry: "the plan" and "his plans"
+ *  are the same word said twice, and striking both is a stutter, not emphasis. */
+function candidates(line) {
+  const out = [];
+  const seen = new Set();
+  KEY_RE.lastIndex = 0;
+  for (let m = KEY_RE.exec(line); m; m = KEY_RE.exec(line)) {
+    const word = m[0].toLowerCase();
+    const entry = entryOf(word);
+    if (seen.has(entry)) continue;
+    seen.add(entry);
+    STRENGTH_RE.lastIndex = 0;
+    out.push({ text: m[0], at: m.index, strength: STRENGTH_RE.test(word) });
+  }
+  return out;
+}
+
+/** A text split into the pieces a view renders: `{ text, mark }` in order,
+ *  joining back to exactly the string that went in. Deterministic. */
+export function emphasize(text, max = MAX_MARKS) {
+  const line = String(text ?? "");
+  // Strength first, then reading order — so a passage offering both an
+  // encouragement and a piece of board vocabulary marks the encouragement.
+  const chosen = candidates(line)
+    .map((c, i) => ({ ...c, i }))
+    .sort((a, b) => (b.strength - a.strength) || (a.i - b.i))
+    .slice(0, max)
+    .sort((a, b) => a.at - b.at);
+
+  const out = [];
+  let at = 0;
+  for (const c of chosen) {
+    if (c.at > at) out.push({ text: line.slice(at, c.at), mark: false });
+    out.push({ text: c.text, mark: true });
+    at = c.at + c.text.length;
+  }
+  if (at < line.length) out.push({ text: line.slice(at), mark: false });
+  return out.length ? out : [{ text: line, mark: false }];
+}

@@ -4,6 +4,7 @@ import {
   sayingOfTheDay, sayingBySeed, passagesFor, passageFor,
   PREFACE, KINDS, LEVELS, NAMES, BELOW_THE_LEVELS, levelForRank, levelByNumber,
   namesIdentified, lessonIdsForChapter,
+  emphasize, markBudget, MAX_MARKS, STRENGTH_WORDS, CRAFT_WORDS,
 } from "./classic.js";
 import { RANK_LADDER } from "./rank.js";
 import { lessonById, lessonsInSeries, seriesByKey } from "./library.js";
@@ -173,5 +174,79 @@ describe("the thirty-two names (chapter eleven)", () => {
     expect(namesIdentified().length).toBeGreaterThan(10);
     expect(namesIdentified().length).toBeLessThan(32);
     expect(namesIdentified().every(n => n.modern)).toBe(true);
+  });
+});
+
+describe("the words that carry", () => {
+  const marks = (t, max) => emphasize(t, max).filter(p => p.mark).map(p => p.text);
+
+  it("puts the text back together exactly, mark or no mark", () => {
+    for (const p of PASSAGES) {
+      expect(emphasize(p.text).map(x => x.text).join(""), p.text).toBe(p.text);
+    }
+  });
+
+  it("never strikes the same word twice, and never a stray space", () => {
+    for (const p of PASSAGES) {
+      const got = marks(p.text, markBudget(p.text));
+      expect(new Set(got.map(m => m.toLowerCase())).size, p.text).toBe(got.length);
+      for (const m of got) expect(m.trim(), p.text).toBe(m);
+    }
+  });
+
+  it("treats two inflections of one word as one word, not two", () => {
+    // "calculates" and "calculate" are the same entry in the lexicon; marking
+    // both is a stutter. The third mark goes to the next distinct word instead.
+    expect(marks("He calculates much, and the one who calculates little loses.", 3))
+      .toEqual(["calculates", "loses"]);
+    expect(marks("The plan is nothing; plans are everything.", 2)).toEqual(["plan"]);
+    expect(marks("A stone among stones.", 2)).toEqual(["stone"]);
+  });
+
+  it("marks the strength word ahead of the board vocabulary, in reading order", () => {
+    expect(marks("Guard the corners and the eyes, but study the initiative."))
+      .toEqual(["study", "initiative"]);
+    // The losing pole is craft, not strength: victory outranks defeat.
+    expect(marks("A defeat teaches what a victory cannot.")).toEqual(["defeat", "victory"]);
+    // One strength word among four craft words still earns a mark.
+    expect(marks("Territory is lost where the group is weak, but the plan holds."))
+      .toEqual(["Territory", "plan"]);
+  });
+
+  it("leaves ordinary words alone, and never marks inside a longer word", () => {
+    expect(marks("Be honest. Do not deceive.")).toEqual([]);
+    expect(marks("The stones are round and move.")).toEqual(["stones"]);
+    expect(marks("Winsome talk of a groundless kobold.")).toEqual([]);
+  });
+
+  it("gives a long passage a third mark and a short line only two", () => {
+    expect(markBudget("Take the corners first.")).toBe(1);
+    expect(markBudget(PASSAGES[0].text)).toBeGreaterThanOrEqual(2);
+    for (const p of PASSAGES) {
+      const b = markBudget(p.text);
+      expect(b, p.text).toBeGreaterThanOrEqual(1);
+      expect(b, p.text).toBeLessThanOrEqual(3);
+      expect(marks(p.text, b).length, p.text).toBeLessThanOrEqual(b);
+    }
+    expect(MAX_MARKS).toBe(2);
+  });
+
+  it("keeps the two tiers disjoint, so a word has one rank and not two", () => {
+    const overlap = STRENGTH_WORDS.filter(w => CRAFT_WORDS.includes(w));
+    expect(overlap).toEqual([]);
+  });
+
+  it("finds something worth marking in most of the Classic", () => {
+    const bare = PASSAGES.filter(p => marks(p.text, markBudget(p.text)).length === 0);
+    expect(bare.map(p => p.text)).toEqual([]);
+  });
+
+  it("is total: any string in, the same string out", () => {
+    for (const junk of ["", null, undefined, 7]) {
+      const parts = emphasize(junk);
+      expect(parts.length).toBeGreaterThan(0);
+      expect(parts.map(x => x.text).join("")).toBe(String(junk ?? ""));
+    }
+    expect(markBudget(null)).toBe(1);
   });
 });

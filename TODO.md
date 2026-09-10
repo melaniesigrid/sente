@@ -759,10 +759,20 @@ Open:
       Give it `--moku-stone-*` of its own if that turns out to cost recognisability.
 - [ ] Theme and the dojo palette are device preferences like the pairing; same question when
       accounts arrive.
-- [ ] The typed-saying work (a saying struck out of a typewriter, with the treatise's own
-      words marked) is on `feat/board-sizes-local` and was not landed: the saying cards it
-      was drawn for had already been replaced by `Passage`. Reopen it against the passages,
-      or retire it.
+- [x] 2026-09-10 The marked-words half of the typed-saying work, reopened against the
+      passages; the typewriter half is retired with `Saying.jsx` on `feat/board-sizes-local`.
+      `emphasize` in `content/classic.js` splits the lexicon in two tiers — STRENGTH_WORDS
+      (initiative, victory, know, calm) ranked above CRAFT_WORDS (corners, eyes, ko, and the
+      losing pole) — and `Passage` renders the winners as `<strong class="passage-key">`.
+      Decisions: the tier, not position, picks the marks, because marking a corner over a
+      victory makes a passage read as a glossary instead of as encouragement; the budget
+      scales with length (`markBudget`, one per twenty words, 1-3) so a five-sentence passage
+      does not go unmarked after its second line; one mark per lexicon ENTRY, so `plan` and
+      `plans` cannot both be struck. The colour is a new derived token `--accent-ink`: the
+      raw accent is held to 2.9:1 because it is a mark, but a marked WORD is read at reading
+      size and owes 4.5:1, so `deriveAccentInk` walks the accent away from the ground until
+      it clears, spending lightness and never hue. House eucalyptus 2.99:1 becomes #47695f
+      at 4.79:1. Tests hold every named room and any dojo room to the floor.
 
 ## Coaching (in progress, branch `feat/shape-coaching`)
 

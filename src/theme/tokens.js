@@ -48,7 +48,7 @@ export const REQUIRED_TONES = TONES.filter(t => t.required).map(t => t.key);
  *  the list of things the stylesheet is allowed to ask for. */
 export const TOKEN_NAMES = [
   "--ground", "--light", "--dark", "--ink", "--cream",
-  "--accent-rgb", "--accent-soft", "--accent-ring", "--danger",
+  "--accent-rgb", "--accent-soft", "--accent-ring", "--accent-ink", "--danger",
   "--sh-ink", "--sh-lite",
   "--wash-a", "--wash-b", "--scrim",
   "--grid", "--hairline",
@@ -62,8 +62,12 @@ export const TOKEN_NAMES = [
  *  returns a ratio and the floor it has to clear; `grade` in color.js turns a
  *  ratio into words. Keeping them here means the warnings a designer sees in
  *  the dojo are the same rules CI enforces. */
+/** The floor for anything set at reading size. WCAG AA for body text, and the
+ *  reason `--accent-ink` exists: a marked word is text, whatever else it is. */
+export const READING = 4.5;
+
 export const RULES = [
-  { id: "ink", label: "Ink on ground", a: "ink", b: "ground", min: 4.5,
+  { id: "ink", label: "Ink on ground", a: "ink", b: "ground", min: READING,
     why: "Body text. Below 4.5:1 it fails WCAG AA at reading size." },
   { id: "mark", label: "Mark on ground", a: "accent", b: "ground", min: 2.9,
     why: "The accent is a mark, not text. The house eucalyptus sits at 2.99:1 and sets the floor." },

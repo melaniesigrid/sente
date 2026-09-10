@@ -3,8 +3,8 @@ import {
   PALETTES, HOUSE_THEME, DOJO_THEME, SYSTEM_THEME, SYSTEM_PAIR,
   themeOf, themeVars, isDark, isThemeId, resolveTheme, sanitizePalette, paletteFrom, auditPalette,
 } from "./index.js";
-import { TOKEN_NAMES, TONE_KEYS, REQUIRED_TONES } from "./tokens.js";
-import { completeTones, deriveLights, deriveStoneB } from "./derive.js";
+import { TOKEN_NAMES, TONE_KEYS, REQUIRED_TONES, READING } from "./tokens.js";
+import { completeTones, deriveLights, deriveStoneB, deriveAccentInk } from "./derive.js";
 import { contrast, isHex, luminance } from "./color.js";
 
 const MINE = { ground: "#101014", ink: "#e6e6ea", accent: "#b98cff", cream: "#f2f2f6" };
@@ -233,5 +233,49 @@ describe("the audit a designer reads", () => {
 
   it("passes every named room, which is what makes it a floor and not a wish", () => {
     for (const p of PALETTES) expect(auditPalette(p).filter(r => !r.pass), p.id).toEqual([]);
+  });
+});
+
+describe("the mark, taken to reading contrast", () => {
+  it("clears the body-text floor in every named room, where the raw accent need not", () => {
+    for (const p of PALETTES) {
+      const vars = themeVars(p.id);
+      const ratio = contrast(vars["--accent-ink"], vars["--ground"]);
+      expect(ratio, `${p.id}: --accent-ink on --ground`).toBeGreaterThanOrEqual(READING);
+    }
+  });
+
+  it("clears it for a room somebody built in the dojo too", () => {
+    const vars = themeVars(DOJO_THEME, MINE);
+    expect(contrast(vars["--accent-ink"], vars["--ground"])).toBeGreaterThanOrEqual(READING);
+  });
+
+  it("moves away from the ground, not toward it: darker on paper, lighter on lacquer", () => {
+    // The house eucalyptus is short on paper (2.99:1) and has to go down.
+    const paper = deriveAccentInk("#5f8c7e", "#e8e4db");
+    expect(contrast("#5f8c7e", "#e8e4db")).toBeLessThan(READING);
+    expect(luminance(paper)).toBeLessThan(luminance("#5f8c7e"));
+
+    // A deep accent is short on lacquer (2.42:1) and has to come up.
+    const lacquer = deriveAccentInk("#3a5a50", "#141414");
+    expect(contrast("#3a5a50", "#141414")).toBeLessThan(READING);
+    expect(luminance(lacquer)).toBeGreaterThan(luminance("#3a5a50"));
+  });
+
+  it("leaves the same accent alone on a ground where it already reads", () => {
+    // The eucalyptus that fails on paper passes on lacquer at 4.86:1. Same
+    // colour, different room: the derivation spends nothing it does not need to.
+    expect(deriveAccentInk("#5f8c7e", "#141414")).toBe("#5f8c7e");
+  });
+
+  it("leaves an accent that already reads alone", () => {
+    // Near-black on paper is far past the floor; there is nothing to spend.
+    const already = deriveAccentInk("#1b1b1b", "#e8e4db");
+    expect(already).toBe("#1b1b1b");
+  });
+
+  it("is a real colour, and one the stylesheet is allowed to ask for", () => {
+    expect(TOKEN_NAMES).toContain("--accent-ink");
+    for (const p of PALETTES) expect(isHex(themeVars(p.id)["--accent-ink"]), p.id).toBe(true);
   });
 });
