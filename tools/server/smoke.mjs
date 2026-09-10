@@ -1,4 +1,6 @@
 // End-to-end smoke test against a running sente-server. Usage: node smoke.mjs [baseUrl]
+import { DEFAULT_RATING, DEFAULT_RD } from "../../server/rating.js";
+
 const base = process.argv[2] || "http://127.0.0.1:8787";
 const ws = base.replace(/^http/, "ws");
 const j = async (path, opts = {}) => {
@@ -27,7 +29,8 @@ const assert = (c, msg) => { if (!c) throw new Error("ASSERT " + msg); console.l
 
 const a = await j("/api/register", { method: "POST", body: JSON.stringify({ name: "Ada", tint: "coral" }) });
 const b = await j("/api/register", { method: "POST", body: JSON.stringify({ name: "Bea", tint: "sky" }) });
-assert(a.token.length === 64 && a.player.rating === 1500, "register gives token and 1500 rating");
+assert(a.token.length === 64 && a.player.rating === DEFAULT_RATING && a.player.rd === DEFAULT_RD,
+  `register gives a token and the newcomer seat (${DEFAULT_RATING}, rd ${DEFAULT_RD})`);
 const me = await j("/api/me", { headers: { authorization: `Bearer ${a.token}` } });
 assert(me.id === a.player.id, "bearer auth resolves the player");
 await j("/api/me", { method: "PATCH", headers: { authorization: `Bearer ${a.token}` }, body: JSON.stringify({ name: "Ada L" }) });
@@ -90,7 +93,7 @@ assert(fin.room.settled.rated && fin.room.settled.b.delta > 0 && fin.room.settle
 
 const ladder = await j("/api/ladder");
 const mine = ladder.find(r => r.id === a.player.id);
-assert(mine && mine.name === "Ada L" && mine.rating > 1500, "the winner stands on the ladder above 1500");
+assert(mine && mine.name === "Ada L" && mine.rating > DEFAULT_RATING, "the winner stands on the ladder above where they started");
 const games = await j("/api/games", { headers: { authorization: `Bearer ${b.token}` } });
 assert(games[0].id === gid && games[0].phase === "ended", "games list shows the finished game");
 const pub = await j(`/api/game/${gid}`);
