@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
-  ChevronLeft, Flag, RotateCcw, RefreshCw, Trophy, Timer, CircleDot, Scale,
+  ChevronLeft, Flag, RotateCcw, RefreshCw, Trophy, Timer, CircleDot, Scale, History,
   MessageCircle, Bot, Send, User, Handshake, Check, Download, Undo2, Award,
 } from "lucide-react";
 import {
@@ -12,6 +12,7 @@ import { Board } from "../components/Board.jsx";
 import { ClockFace } from "../components/Clock.jsx";
 import { Card, Btn, Pill, Avatar, RankBadge, BeltRibbon } from "../components/ui.jsx";
 import { Passage } from "../components/Passage.jsx";
+import { Review } from "./Review.jsx";
 import { MokuMark } from "../components/Moku.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
 import { playStone, playCapture, playBell, haptic } from "../components/sound.js";
@@ -72,6 +73,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const [ceremony, setCeremony] = useState(null);  // belt just earned, until dismissed
   const [loading, setLoading] = useState(null);    // {loaded, total} while the network downloads
   const [hostLost, setHostLost] = useState(false); // duel only: the network could not answer
+  const [reviewing, setReviewing] = useState(false); // walking back through the finished game
   const resumed = useRef(false);                   // the resume effect runs once, StrictMode or not
   const alive = useRef(true);
   const chatEndRef = useRef(null);
@@ -383,6 +385,16 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const card = over ? resultCard(over) : null;
   const boardDisabled = !!over || thinking || (!scoring && persona && turn !== "b");
 
+  /* Review takes over the whole view rather than sitting beside the table: the board
+     in review is a different board, showing a position that is no longer live, and
+     two boards on one screen would invite a click on the wrong one. */
+  if (reviewing) {
+    return (
+      <Review record={rec} onExit={() => setReviewing(false)}
+        onRematch={duel ? null : () => { setReviewing(false); reset(); }} />
+    );
+  }
+
   return (
     <div className="stack">
       <div className="row spread">
@@ -464,6 +476,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
                 {duel
                   ? <ShareDuelButton small text={duelShareText({ key: duel.key, personaName: persona.name, code: duelOutcome(rec).code, moves: duelOutcome(rec).moves, url: duelShareUrl(window.location) })} />
                   : <Btn icon={RefreshCw} small primary onClick={reset}>Rematch</Btn>}
+                <Btn icon={History} small onClick={() => setReviewing(true)}>Review</Btn>
                 <Btn icon={Download} small onClick={downloadSgf}>SGF</Btn>
                 {duel && <Btn icon={ChevronLeft} small onClick={onExit}>Lobby</Btn>}
               </div>

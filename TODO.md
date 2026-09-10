@@ -97,12 +97,19 @@ each fixed in its own commit:
       "35 + 4 + 7.5 komi = 46.5"), a bow, and "Keep playing" to take both passes back.
 - [x] Resign with confirmation; result recorded honestly.
 - [x] Clock UI (2026-09-10, branch `feat/clock`): pressure states, byo-yomi pips, no chrome.
-- [ ] Review mode: scrub with arrows, move numbers overlay, variation tree, jump to capture.
+- [x] Review mode (2026-09-10, branch `feat/review-mode`): scrub with arrows, move number
+      overlay, jump to capture, SGF out. The variation tree is NOT done and is not faked:
+      branching needs the record to hold more than one line. See the item below.
+- [ ] Variation tree in review: the record holds a main line only. Branching needs a
+      record that can carry alternatives (`parseSgf(...).tree` already parses them), and
+      that is a rules-kernel change before it is a view.
 - [x] SGF export button on every finished game (result card). SGF import into review mode
       is still open.
 - [ ] Coordinates toggle (A–T minus I / 1–19) and last-move marker preference.
 - [ ] Onboarding for a first-time visitor: name and tint, then a 10-move guided demo.
-- [ ] Keyboard: arrows scrub, P pass, U undo; screen-reader labels already on the board.
+- [ ] Keyboard at the table: P pass, U undo. Arrows scrub in review already (2026-09-10:
+      left and right walk a move, up and down jump ten, Home and End go to the ends,
+      N toggles numbers); screen-reader labels already on the board.
 - [ ] Local-only telemetry ring buffer (last 50 games: size, result, bot, move count) to
       tune house-player weights. Never leaves the device.
 
@@ -115,6 +122,18 @@ Decisions made in Phase 3, lobby slice (branch `feat/board-sizes`):
   learn a new field and a rematch is always played on the board in front of you.
 - The daily duel stays 9x9 (`DUEL_SIZE`): results only compare on one board.
 - The board is drawn at 460, 560 or 680 px for 9, 13, 19; the stone scale never changes.
+
+Decisions made in Phase 3, review slice (branch `feat/review-mode`):
+- Every reviewed position is `replay`ed from the record's own log by `engine/review.js`,
+  never reconstructed a second way, so review shows the position that was really there
+  and a tampered log is refused rather than drawn.
+- Review takes over the whole view instead of sitting beside the table: a review board
+  shows a position that is no longer live, and two boards on one screen invite a click
+  on the wrong one.
+- A captured stone carries no move number, because it is not on the board to carry one;
+  a point played twice shows the move of the stone standing there now.
+- The variation tree is deliberately absent rather than approximated. Faking a branch
+  the record cannot hold would be the first dishonest thing in the app.
 
 Decisions made in Phase 3, clock slice (branch `feat/clock`):
 - Losing on time is a rule, so it is an engine transition (`timeout`) and not something
