@@ -6,11 +6,12 @@
    the shell from the chosen pairing (src/content/typeface.js), and the block
    below carries the house pairing as the default. */
 import { GOOGLE_IMPORT } from "../content/typeface.js";
-import { FONT_FACES } from "./fontfaces.js";
+import { FONT_FACES, SIGNATURE_FACE } from "./fontfaces.js";
 
 export const CSS = `
 ${GOOGLE_IMPORT}
 ${FONT_FACES}
+${SIGNATURE_FACE}
 
 .sente-root {
   --ground: #e8e4db;
@@ -25,6 +26,10 @@ ${FONT_FACES}
   --font-display-italic: 'Fraunces', serif;
   --display-italic-style: italic;
   --font-body: 'Hanken Grotesk', sans-serif;
+  --font-quote: 'Fraunces', serif;
+  --quote-style: italic;
+  --font-caption: 'Fraunces', serif;
+  --caption-style: italic;
   --w-display: 560;
   --w-display-strong: 640;
   --display-tracking: 0em;
@@ -85,13 +90,31 @@ ${FONT_FACES}
 .content { flex: 1; width: 100%; max-width: 1100px; margin: 0 auto; padding: clamp(10px, 2vw, 22px) clamp(16px, 4vw, 44px) 46px; }
 .foot {
   display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
-  padding: 18px clamp(16px, 4vw, 44px); font-size: 13.5px; opacity: .55; letter-spacing: .05em;
+  padding: 18px clamp(16px, 4vw, 44px); font-size: 13.5px; letter-spacing: .05em;
+  align-items: center;
 }
-.foot span:last-child { font-family: var(--font-display-italic); font-style: var(--display-italic-style); }
+.foot-line { font-family: var(--font-caption); font-style: var(--caption-style); opacity: .55; }
+
+/* The signature. One name, one hand, one size: it does not follow the pairing,
+   and it draws itself on once when the page arrives, left to right, the way a
+   pen would. */
+.signed { display: inline-flex; align-items: baseline; gap: 12px; padding-right: 12px; }
+.signed-by { font-size: 9.5px; letter-spacing: .2em; text-transform: uppercase; opacity: .45; }
+.signature {
+  font-family: 'sente-signature', cursive; font-size: 42px; line-height: 1; padding: 2px 0;
+  letter-spacing: .01em; color: var(--ink); opacity: .8;
+  display: inline-block; transform: rotate(-2deg); transform-origin: left bottom;
+  animation: sign 1.5s cubic-bezier(.25,.7,.3,1) .45s both;
+}
+@keyframes sign {
+  from { clip-path: inset(-20% 100% -40% 0); opacity: 0; }
+  25%  { opacity: .8; }
+  to   { clip-path: inset(-20% -14% -40% 0); opacity: .8; }
+}
 
 /* passages from the Classic: the pairing's italic voice, a hairline, a quiet citation */
 .passage { margin: 0; padding: 4px 0 4px clamp(16px, 2.4vw, 26px); border-left: 1px solid color-mix(in srgb, var(--accent) 55%, transparent); cursor: pointer; max-width: 64ch; }
-.passage-text { margin: 0; font-family: var(--font-display-italic); font-style: var(--display-italic-style); font-weight: 420; font-size: clamp(17px, 1.9vw, 21px); line-height: 1.55; letter-spacing: .005em; color: var(--ink); }
+.passage-text { margin: 0; font-family: var(--font-quote); font-style: var(--quote-style); font-weight: 420; font-size: clamp(17px, 1.9vw, 21px); line-height: 1.55; letter-spacing: .005em; color: var(--ink); }
 .passage-cite { margin: 10px 0 0; font-family: var(--font-body); font-style: normal; font-size: 12.5px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; opacity: .6; }
 .passage.lg .passage-text { font-size: clamp(21px, 2.8vw, 29px); line-height: 1.45; font-weight: 400; }
 .passage.sm { padding-left: 14px; }
@@ -356,7 +379,7 @@ ${FONT_FACES}
 .search-row { align-items: center; gap: 8px; flex: 0 1 300px; }
 .search-icon { flex: none; opacity: .5; }
 .count-row { margin-top: 12px; }
-.maxim-line { font-family: var(--font-display-italic); font-size: 19px; line-height: 1.5; font-style: var(--display-italic-style); margin: 0 0 8px; display: flex; gap: 8px; align-items: baseline; }
+.maxim-line { font-family: var(--font-quote); font-size: 19px; line-height: 1.5; font-style: var(--quote-style); margin: 0 0 8px; display: flex; gap: 8px; align-items: baseline; }
 .maxim-line svg { flex: none; opacity: .5; transform: translateY(2px); }
 .maxim-analogy { margin: 0 0 12px; }
 .shelf { margin-top: 18px; }
@@ -453,13 +476,13 @@ ${FONT_FACES}
 .result-card.win .result-headline { color: var(--accent); }
 .result-card.loss .result-headline { color: var(--danger); }
 .bow-row { display: flex; align-items: center; justify-content: center; gap: 18px; padding: 6px 0 2px; }
-.bow-word { font-family: var(--font-display-italic); font-style: var(--display-italic-style); opacity: .5; font-size: 14px; letter-spacing: .04em; }
+.bow-word { font-family: var(--font-caption); font-style: var(--caption-style); opacity: .5; font-size: 14px; letter-spacing: .04em; }
 .bow { animation: bow 1.6s ease .3s 1; transform-origin: bottom center; }
 .bow-late { animation-delay: .55s; }
 @keyframes bow { 0%, 100% { transform: rotate(0) translateY(0); } 35%, 65% { transform: rotate(12deg) translateY(3px); } }
 .result-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .result-headline { font-family: var(--font-display); font-weight: var(--w-display); font-size: 28px; margin: 0; line-height: 1.05; }
-.result-sub { font-family: var(--font-display-italic); font-style: var(--display-italic-style); font-size: 16px; opacity: .65; }
+.result-sub { font-family: var(--font-quote); font-style: var(--quote-style); font-size: 16px; opacity: .65; }
 .result-rows { display: flex; flex-direction: column; gap: 6px; }
 .result-row { display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 13px; font-size: 14.5px; }
 .result-row .dot { margin-right: 0; }
@@ -482,7 +505,7 @@ ${FONT_FACES}
 .moku-bubble {
   max-width: 220px; padding: 9px 13px; border-radius: 14px 14px 14px 4px;
   background: var(--ground); box-shadow: var(--raise-sm);
-  font-family: var(--font-display-italic); font-style: var(--display-italic-style); font-size: 15px; line-height: 1.4; color: var(--ink);
+  font-family: var(--font-quote); font-style: var(--quote-style); font-size: 15px; line-height: 1.4; color: var(--ink);
   animation: rise-l .35s ease;
 }
 @keyframes rise-l { from { transform: translateY(6px); opacity: 0; } to { transform: none; opacity: 1; } }

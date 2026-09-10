@@ -101,8 +101,12 @@ export default function SenteApp() {
       <Toast toast={toast} />
       <MokuDock />
       <footer className="foot">
-        <span>Sente · play go, beautifully</span>
-        <span>{footSaying.text}</span>
+        <span className="foot-line">Sente · play go, beautifully</span>
+        <span className="foot-line">{footSaying.text}</span>
+        <span className="signed">
+          <span className="signed-by">made by</span>
+          <span className="signature">Melanie Baratto</span>
+        </span>
       </footer>
     </div>
     </MokuProvider>
