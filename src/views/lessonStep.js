@@ -2,18 +2,24 @@
    The whole behaviour of one lesson step as a reducer over plain state, so
    the React player only schedules timers and draws. Actions:
 
-     { type: "play", c, r }     learner clicked a point (quiz, sequence, choice)
+     { type: "play", c, r }     learner clicked a point (quiz, sequence, choice, replay)
      { type: "answer", value }  learner submitted a number (count)
-     { type: "reply" }          timer: the scripted side answers (sequence)
-     { type: "refute" }         timer: the scripted reply to a wrong move (quiz)
-     { type: "reset" }          timer or button: back to the setup
+     { type: "reply" }          the scripted side answers (sequence): a timer on
+                                short steps, the learner's own click on long ones
+     { type: "refute" }         timer: the scripted punishment lands
+     { type: "reset" }          button: back to the setup, keeping what was said
      { type: "clearWrong" }     timer: drop the wrong-move marker
      { type: "advance" }        timer or button: the next scripted move (replay)
+     { type: "reveal" }         button: play the answer out after two misses
 
    A state may carry `pending: { ms, action }`; the player runs that action
-   after `ms`. A refutation or a non-best verdict ends in status "review":
-   the text stays until the learner clicks the board or Try again, which
-   resets the step. Nothing here touches React or timers.
+   after `ms`.
+
+   Everything the lesson says goes into `log`, an ordered list of
+   { tone, text, verdict? } that only grows within a step. Timers move stones;
+   they never take words away. The log is cleared by leaving the step, not by
+   a clock and not by Reset position — a learner retrying a refuted move keeps
+   the refutation in front of them while they try again.
 
    A `replay` step is a game study: the board plays through `moves` on its
    own ("busy", advancing every TIMINGS.advance ms) and stops where `stops`
@@ -22,35 +28,72 @@
    the master's move then shown, a listed refutation is played out and ends in
    "review" (Try again returns to the stop), anything else is wrong. The
    scored stop is status "scored" until the replay resumes, so a stop can
-   never be scored twice: `moveIdx` and `stopIdx` only move forward. A `maxim`
-   step is an info step carrying a line and its plain-words analogy. */
+   never be scored twice: `moveIdx` and `stopIdx` only move forward. The stop's
+   own question stays in the step text; only what came of the learner's move
+   goes in the log. A `maxim` step is an info step carrying a line and its
+   plain-words analogy.
+
+   Nothing here touches React or timers. */
 import { tryPlay, idx, opponent, createGame, play as playRec } from "../engine/index.js";
 import { setupToBoard } from "../content/positions.js";
 
-export const TIMINGS = { reply: 400, wrongHold: 900, advance: 250, afterScore: 1100 };
+/* reply: long enough to read the line that prompted it. wrongHold: how long the
+   red cross stays on the board — the correction itself stays in the log. */
+export const TIMINGS = { reply: 600, wrongHold: 900, advance: 250, afterScore: 1100 };
 export const SCORE = { master: 2, strong: 1 };
 export const DEFAULT_PARTIAL = "A strong player's move, not his.";
 
+/* A sequence this long or longer waits for the learner instead of a timer. */
+export const GATE_FROM = 4;
+
+/* Misses on one step before "Show me" appears. Nobody gets stuck. */
+export const REVEAL_AFTER = 2;
+
 export const VERDICT_LABELS = { best: "Best", fine: "Playable", poor: "Not this" };
+
+/** Step types that are read, not solved. */
+const TOLD = (type) => type === "info" || type === "maxim";
 
 const same = (p, c, r) => p.c === c && p.r === r;
 
 export const DEFAULT_WRONG = "Not there. Look again.";
-/** What to say after a wrong move: the step's own line, else its hint, else neutral. */
-export const wrongTextFor = (step) => step.wrongText || step.hint || DEFAULT_WRONG;
-
-const lessonOf = (state) => ({ size: state.board.size });
+/* What to say after a wrong move. A step that wrote its own line gets it; every
+   other one gets the neutral line and the player opens the hint instead, so the
+   learner is never told the same sentence twice in two places. */
+export const wrongTextFor = (step) => step.wrongText || DEFAULT_WRONG;
 
 export function initStep(lesson, step) {
   const base = {
     board: setupToBoard(step.setup, lesson.size),
-    status: step.type === "info" || step.type === "maxim" ? "solved" : "open", // open | wrong | busy | review | scored | solved
+    status: TOLD(step.type) ? "solved" : "open", // open | wrong | busy | await | review | scored | solved
     flash: [], lastMove: null, wrong: null,
-    message: null, tone: null,                        // tone: "success" | "hint" | "verdict"
+    log: [],                                     // { tone, text, verdict? }, oldest first
     moveIdx: 0, verdict: null, pending: null,
+    attempts: 0, attemptsAt: null, revealed: false, refutation: null,
   };
   if (step.type !== "replay") return base;
-  return settle(step, { ...base, stopIdx: 0, score: 0, stopsDone: 0, guess: null, done: false, refutation: null });
+  return settle(step, { ...base, stopIdx: 0, score: 0, stopsDone: 0, guess: null, done: false });
+}
+
+/** Reset position: the stones go back, the transcript stays. */
+export function resetStep(lesson, step, state) {
+  return {
+    ...initStep(lesson, step),
+    log: state.log, attempts: state.attempts, attemptsAt: state.attemptsAt, revealed: state.revealed,
+  };
+}
+
+/* Misses are counted per step, but a replay is many puzzles in one step, so there
+   they are counted per stop: arriving at a new stop starts the count over, and
+   Try again at the same stop carries it on. `at` is the stop, or null elsewhere. */
+const counted = (state, at) => (state.attemptsAt === at ? state.attempts + 1 : 1);
+
+/** Append a line, ignoring an immediate repeat of the same line. */
+function say(state, tone, text, verdict) {
+  if (!text) return state;
+  const last = state.log[state.log.length - 1];
+  if (last && last.tone === tone && last.text === text) return state;
+  return { ...state, log: [...state.log, verdict ? { tone, text, verdict } : { tone, text }] };
 }
 
 /** The colour of replay move `i`: alternating from the step's `toPlay`. */
@@ -61,18 +104,24 @@ export const replayColor = (step, i) => (i % 2 === 0 ? step.toPlay : opponent(st
 function settle(step, state) {
   const stop = step.stops[state.stopIdx];
   if (state.moveIdx >= step.moves.length) {
-    return { ...state, status: "solved", done: true, message: step.success, tone: "success", pending: null };
+    return say({ ...state, status: "solved", done: true, pending: null }, "success", step.success);
   }
   if (stop && stop.at === state.moveIdx) {
-    return { ...state, status: "open", message: stop.text, tone: null, pending: null, guess: null };
+    // The stop's question is the step text, not a log line: it is asked, not said.
+    return { ...state, status: "open", pending: null, guess: null };
   }
   return { ...state, status: "busy", pending: { ms: TIMINGS.advance, action: { type: "advance" } } };
 }
 
-/** Back to the current stop of a replay, keeping the score so far. */
+/** Back to the current stop of a replay, keeping the score and the transcript. */
 function resetToStop(lesson, step, state) {
   const stop = step.stops[state.stopIdx];
-  let s = { ...initStep(lesson, step), stopIdx: state.stopIdx, score: state.score, stopsDone: state.stopsDone, status: "busy", pending: null, message: null };
+  let s = {
+    ...initStep(lesson, step),
+    stopIdx: state.stopIdx, score: state.score, stopsDone: state.stopsDone,
+    log: state.log, attempts: state.attempts, attemptsAt: state.attemptsAt, revealed: state.revealed,
+    status: "busy", pending: null,
+  };
   s.board = setupToBoard(step.setup, lesson.size);
   s.moveIdx = 0;
   const upTo = stop ? stop.at : step.moves.length;
@@ -112,60 +161,75 @@ export function marksFor(step, state = null) {
 }
 
 export const boardLocked = (step, state) =>
-  (state.status !== "open" && state.status !== "review") || step.type === "info" || step.type === "maxim" || step.type === "count";
+  (state.status !== "open" && state.status !== "review") || TOLD(step.type) || step.type === "count";
+
+/** A sequence long enough that the scripted answer waits for a click. */
+export const isGated = (step) => step.type === "sequence" && step.moves.length >= GATE_FROM;
+
+/** After two misses, the learner may have the answer played out. A replay reveals
+ *  one stop at a time, so it must be standing at one. */
+export const canReveal = (step, state) => {
+  if (TOLD(step.type) || state.status === "solved") return false;
+  if (step.type === "replay") {
+    return state.status === "open" && state.attemptsAt === state.stopIdx && state.attempts >= REVEAL_AFTER;
+  }
+  return state.attempts >= REVEAL_AFTER;
+};
 
 const placed = (state, res, c, r, extra = {}) => ({
   ...state, board: res.board, flash: res.captured, lastMove: idx(res.board.size, c, r), wrong: null, ...extra,
 });
 
-const wrong = (step, state, c, r) => ({
-  ...state, status: "wrong", wrong: { c, r }, message: wrongTextFor(step), tone: "hint",
+const missed = (step, state, c, r, at = null) => say({
+  ...state, status: "wrong", wrong: { c, r }, attempts: counted(state, at), attemptsAt: at,
   pending: { ms: TIMINGS.wrongHold, action: { type: "clearWrong" } },
-});
+}, "correction", wrongTextFor(step));
 
 export function stepReducer(lesson, step, state, action) {
   switch (action.type) {
-    case "reset": return step.type === "replay" ? resetToStop(lesson, step, state) : initStep(lesson, step);
+    case "reset": return step.type === "replay" ? resetToStop(lesson, step, state) : resetStep(lesson, step, state);
     case "advance": return advance(step, state);
     case "clearWrong":
-      return state.status === "wrong" ? { ...state, status: "open", wrong: null, message: null, tone: null, pending: null } : state;
-    case "play": return play(step, state, action.c, action.r);
+      // The cross comes off the board; what it was told stays in the log.
+      return state.status === "wrong"
+        ? { ...state, status: "open", wrong: null, pending: null }
+        : state;
+    case "play": return play(lesson, step, state, action.c, action.r);
     case "answer": return answer(step, state, action.value);
     case "reply": return reply(step, state);
     case "refute": return refute(step, state);
+    case "reveal": return reveal(lesson, step, state);
     default: return state;
   }
 }
 
-function play(step, state, c, r) {
-  if (state.status === "review") return step.type === "replay" ? resetToStop(lessonOf(state), step, state) : initStep(lessonOf(state), step);
+function play(lesson, step, state, c, r) {
+  if (state.status === "review") {
+    return step.type === "replay" ? resetToStop(lesson, step, state) : resetStep(lesson, step, state);
+  }
   if (state.status !== "open") return state;
   if (step.type === "replay") return guess(step, state, c, r);
   if (step.type === "quiz") {
     const res = tryPlay(state.board, c, r, step.toPlay);
     if (step.answers.some(a => same(a, c, r)) && res.ok) {
-      return placed(state, res, c, r, { status: "solved", message: step.success, tone: "success", pending: null });
+      return say(placed(state, res, c, r, { status: "solved", pending: null }), "success", step.success);
     }
     const rf = (step.refutations || []).find(x => same(x.move, c, r));
     if (rf && res.ok) {
-      return placed(state, res, c, r, {
-        status: "busy", refutation: rf, message: null,
+      // Say why it fails as the stone lands, then let the punishment arrive
+      // underneath the words rather than after a silent gap.
+      return say(placed(state, res, c, r, {
+        status: "busy", refutation: rf, attempts: counted(state, null), attemptsAt: null,
         pending: { ms: TIMINGS.reply, action: { type: "refute" } },
-      });
+      }), "correction", rf.text);
     }
-    return wrong(step, state, c, r);
+    return missed(step, state, c, r);
   }
   if (step.type === "sequence") {
     const expected = step.moves[state.moveIdx];
     const res = expected && same(expected, c, r) ? tryPlay(state.board, c, r, sideToMove(step, state)) : { ok: false };
-    if (!res.ok) return wrong(step, state, c, r);
-    const moveIdx = state.moveIdx + 1;
-    const done = moveIdx >= step.moves.length;
-    return placed(state, res, c, r, {
-      moveIdx, message: done ? step.success : step.commentary[state.moveIdx], tone: done ? "success" : null,
-      status: done ? "solved" : "busy",
-      pending: done ? null : { ms: TIMINGS.reply, action: { type: "reply" } },
-    });
+    if (!res.ok) return missed(step, state, c, r);
+    return stepOn(step, placed(state, res, c, r), true);
   }
   if (step.type === "choice") {
     const opt = step.options.find(o => same(o.point, c, r));
@@ -173,12 +237,24 @@ function play(step, state, c, r) {
     const res = tryPlay(state.board, c, r, step.toPlay);
     if (!res.ok) return state;
     const best = opt.verdict === "best";
-    return placed(state, res, c, r, {
-      status: best ? "solved" : "review", verdict: opt.verdict, message: opt.text, tone: best ? "success" : "verdict",
-      pending: null,
-    });
+    return say(placed(state, res, c, r, {
+      status: best ? "solved" : "review", verdict: opt.verdict, pending: null,
+      attempts: best ? state.attempts : counted(state, null), attemptsAt: null,
+    }), best ? "success" : "verdict", opt.text, best ? undefined : opt.verdict);
   }
   return state;
+}
+
+/* One move of a sequence has just landed. Say its line, then either hand the
+   board back, wait for the learner, or let the scripted reply come. */
+function stepOn(step, state, byLearner) {
+  const moveIdx = state.moveIdx + 1;
+  const done = moveIdx >= step.moves.length;
+  const withLine = say({ ...state, moveIdx }, "commentary", step.commentary?.[state.moveIdx]);
+  if (done) return say({ ...withLine, status: "solved", pending: null }, "success", step.success);
+  if (!byLearner) return { ...withLine, status: "open", pending: null };
+  if (isGated(step)) return { ...withLine, status: "await", pending: null };
+  return { ...withLine, status: "busy", pending: { ms: TIMINGS.reply, action: { type: "reply" } } };
 }
 
 /** Replay: the learner's stone at a stop. */
@@ -186,21 +262,26 @@ function guess(step, state, c, r) {
   const stop = step.stops[state.stopIdx];
   const color = replayColor(step, state.moveIdx);
   const res = tryPlay(state.board, c, r, color);
-  if (!res.ok) return wrong(stop, state, c, r);
+  if (!res.ok) return missed(stop, state, c, r, state.stopIdx);
   const after = { stopIdx: state.stopIdx + 1, stopsDone: state.stopsDone + 1, status: "scored", pending: { ms: TIMINGS.afterScore, action: { type: "advance" } } };
   if (stop.answers.some(a => same(a, c, r))) {
     // His move: the stone stays and the replay continues from it.
-    return placed(state, res, c, r, { ...after, moveIdx: state.moveIdx + 1, score: state.score + SCORE.master, message: stop.success, tone: "success", guess: null });
+    return say(placed(state, res, c, r, { ...after, moveIdx: state.moveIdx + 1, score: state.score + SCORE.master, guess: null }),
+      "success", stop.success);
   }
   if ((stop.strong || []).some(a => same(a, c, r))) {
     // A strong player's move: marked, not placed; his own move follows on the timer.
-    return { ...state, ...after, score: state.score + SCORE.strong, message: stop.partial || DEFAULT_PARTIAL, tone: "verdict", verdict: "fine", guess: { c, r }, wrong: null };
+    return say({ ...state, ...after, score: state.score + SCORE.strong, verdict: "fine", guess: { c, r }, wrong: null },
+      "verdict", stop.partial || DEFAULT_PARTIAL, "fine");
   }
   const rf = (stop.refutations || []).find(x => same(x.move, c, r));
   if (rf) {
-    return placed(state, res, c, r, { status: "busy", refutation: rf, message: null, pending: { ms: TIMINGS.reply, action: { type: "refute" } } });
+    return say(placed(state, res, c, r, {
+      status: "busy", refutation: rf, attempts: counted(state, state.stopIdx), attemptsAt: state.stopIdx,
+      pending: { ms: TIMINGS.reply, action: { type: "refute" } },
+    }), "correction", rf.text);
   }
-  return wrong(stop, state, c, r);
+  return missed(stop, state, c, r, state.stopIdx);
 }
 
 /** Replay: the next scripted move, when the board is playing itself. */
@@ -210,21 +291,16 @@ function advance(step, state) {
   if (!m) return settle(step, state);
   const res = tryPlay(state.board, m.c, m.r, replayColor(step, state.moveIdx));
   if (!res.ok) return { ...state, status: "solved", done: true, pending: null };   // verifier guarantees legality
-  return settle(step, placed(state, res, m.c, m.r, { moveIdx: state.moveIdx + 1, guess: null, message: state.status === "scored" ? null : state.message, tone: state.status === "scored" ? null : state.tone }));
+  return settle(step, placed(state, res, m.c, m.r, { moveIdx: state.moveIdx + 1, guess: null }));
 }
 
 function reply(step, state) {
-  if (step.type !== "sequence" || state.status !== "busy") return state;
+  if (step.type !== "sequence" || (state.status !== "busy" && state.status !== "await")) return state;
   const m = step.moves[state.moveIdx];
   if (!m) return { ...state, status: "solved", pending: null };
   const res = tryPlay(state.board, m.c, m.r, sideToMove(step, state));
   if (!res.ok) return { ...state, status: "solved", pending: null }; // verifier guarantees legality
-  const moveIdx = state.moveIdx + 1;
-  const done = moveIdx >= step.moves.length;
-  return placed(state, res, m.c, m.r, {
-    moveIdx, message: done ? step.success : step.commentary[state.moveIdx], tone: done ? "success" : null,
-    status: done ? "solved" : "open", pending: null,
-  });
+  return stepOn(step, placed(state, res, m.c, m.r), false);
 }
 
 function refute(step, state) {
@@ -233,7 +309,7 @@ function refute(step, state) {
   const replier = step.type === "replay" ? opponent(replayColor(step, state.moveIdx)) : opponent(step.toPlay);
   const res = rf.reply ? tryPlay(state.board, rf.reply.c, rf.reply.r, replier) : { ok: false };
   const next = res.ok ? placed(state, res, rf.reply.c, rf.reply.r) : state;
-  return { ...next, status: "review", message: rf.text, tone: "hint", pending: null };
+  return { ...next, status: "review", pending: null };
 }
 
 function answer(step, state, value) {
@@ -241,8 +317,60 @@ function answer(step, state, value) {
   const n = typeof value === "number" ? value : parseFloat(String(value).replace(",", "."));
   const tol = step.tolerance ?? 0;
   if (Number.isFinite(n) && Math.abs(n - step.answer) <= tol) {
-    return { ...state, status: "solved", message: step.success, tone: "success", wrong: null, pending: null };
+    return say({ ...state, status: "solved", wrong: null, pending: null }, "success", step.success);
   }
-  return { ...state, status: "wrong", message: wrongTextFor(step), tone: "hint", wrong: null,
-    pending: { ms: TIMINGS.wrongHold, action: { type: "clearWrong" } } };
+  return say({
+    ...state, status: "wrong", wrong: null, attempts: counted(state, null), attemptsAt: null,
+    pending: { ms: TIMINGS.wrongHold, action: { type: "clearWrong" } },
+  }, "correction", wrongTextFor(step));
+}
+
+/* Show me: play the answer out, saying every line on the way. The step ends
+   solved so the lesson can continue, but `revealed` stays true so the recap
+   can be honest about it. A replay reveals only the stop it is standing at,
+   and scores nothing for it. */
+function reveal(lesson, step, state) {
+  if (step.type === "replay") {
+    const stop = step.stops[state.stopIdx];
+    const a = stop?.answers?.[0];
+    if (!a) return state;
+    const res = tryPlay(state.board, a.c, a.r, replayColor(step, state.moveIdx));
+    if (!res.ok) return state;
+    return say(placed(state, res, a.c, a.r, {
+      stopIdx: state.stopIdx + 1, stopsDone: state.stopsDone + 1, moveIdx: state.moveIdx + 1,
+      status: "scored", revealed: true, guess: null,
+      pending: { ms: TIMINGS.afterScore, action: { type: "advance" } },
+    }), "success", stop.success);
+  }
+  const base = {
+    ...initStep(lesson, step),
+    log: state.log, attempts: state.attempts, attemptsAt: state.attemptsAt, revealed: true,
+  };
+  if (step.type === "quiz") {
+    const a = step.answers[0];
+    const res = tryPlay(base.board, a.c, a.r, step.toPlay);
+    const next = res.ok ? placed(base, res, a.c, a.r) : base;
+    return say({ ...next, status: "solved", pending: null }, "success", step.success);
+  }
+  if (step.type === "choice") {
+    const opt = step.options.find(o => o.verdict === "best") || step.options[0];
+    const res = tryPlay(base.board, opt.point.c, opt.point.r, step.toPlay);
+    const next = res.ok ? placed(base, res, opt.point.c, opt.point.r) : base;
+    return say({ ...next, status: "solved", verdict: opt.verdict, pending: null }, "success", opt.text);
+  }
+  if (step.type === "sequence") {
+    let s = { ...base, status: "busy" };
+    for (let i = 0; i < step.moves.length; i++) {
+      const m = step.moves[i];
+      const res = tryPlay(s.board, m.c, m.r, sideToMove(step, s));
+      if (!res.ok) break;
+      s = stepOn(step, placed(s, res, m.c, m.r), false);
+    }
+    return { ...s, status: "solved", pending: null };
+  }
+  if (step.type === "count") {
+    const said = say(base, "commentary", `The count is ${step.answer}.`);
+    return say({ ...said, status: "solved", pending: null }, "success", step.success);
+  }
+  return base;
 }

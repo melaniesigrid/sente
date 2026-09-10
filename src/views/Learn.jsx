@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import {
   ChevronLeft, ChevronRight, Check, X, Lightbulb, BookOpen, RotateCcw, Play, Search, Clock, Lock, Quote, FastForward,
+  CornerDownRight, Eye,
 } from "lucide-react";
 import { Board } from "../components/Board.jsx";
 import { Card, Btn, Pill } from "../components/ui.jsx";
@@ -14,32 +15,82 @@ import { CLASSIC, CHAPTERS, PREFACE, NAMES, lessonIdsForChapter } from "../conte
 import { saveProfile } from "../store/profile.js";
 import { rankOf } from "../content/rank.js";
 import { modelReady, kataChooseMoveForRecord, profileForRank } from "../engine/index.js";
-import { initStep, stepReducer, marksFor, boardLocked, recordAtStop, coordLabel, VERDICT_LABELS } from "./lessonStep.js";
+import { initStep, stepReducer, marksFor, boardLocked, canReveal, recordAtStop, coordLabel, VERDICT_LABELS } from "./lessonStep.js";
 
 /* ----------------------- LESSON PLAYER -----------------------
    Thin: all step behaviour lives in lessonStep.js. This component draws the
-   state and runs whatever `pending` timer the reducer asks for. */
-function LessonPlayer({ lesson, nextLesson, onDone, onExit, rank, onProgress }) {
-  const [stepIdx, setStepIdx] = useState(0);
-  const step = lesson.steps[stepIdx];
-  const [state, setState] = useState(() => initStep(lesson, step));
+   state and runs whatever `pending` timer the reducer asks for.
+
+   Two rules shape it. Timers move stones, never words: everything the lesson
+   says accumulates in `state.log` and is only cleared by leaving the step.
+   And the learner moves in both directions: every step keeps its own state in
+   `states`, so going back to a solved step finds it solved, transcript and all. */
+
+/* Where each lesson was left, so a trip to the library does not throw the work
+   away. Session memory only — a reload starts the lesson over. */
+const SESSIONS = new Map();
+
+const reducedMotion = () =>
+  typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+const TONE_ICON = { success: Check, correction: X, verdict: Lightbulb, commentary: CornerDownRight };
+
+/** One thing the lesson said. Four tones, one shape. */
+function Response({ entry }) {
+  const Icon = TONE_ICON[entry.tone] || CornerDownRight;
+  return (
+    <div className={`response tone-${entry.tone}`}>
+      <Icon size={14} strokeWidth={2.2} />
+      <p className="lesson-text">
+        {entry.verdict && <span className="verdict-label">{VERDICT_LABELS[entry.verdict]}</span>}
+        {entry.text}
+      </p>
+    </div>
+  );
+}
+
+function LessonPlayer({ lesson, nextLesson, onDone, onExit, onOpenNext, rank, onProgress }) {
+  const saved = SESSIONS.get(lesson.id);
+  const [stepIdx, setStepIdx] = useState(saved?.stepIdx ?? 0);
+  const [maxIdx, setMaxIdx] = useState(saved?.maxIdx ?? 0);
+  const [states, setStates] = useState(() => saved?.states ?? lesson.steps.map(st => initStep(lesson, st)));
   const [countDraft, setCountDraft] = useState("");
-  const [level, setLevel] = useState(null);       // "at your level": the network's move at the scored stop
-  const isLast = stepIdx === lesson.steps.length - 1;
-  const dispatch = (action) => setState(s => stepReducer(lesson, step, s, action));
+  const [hintsOpen, setHintsOpen] = useState(() => new Set()); // per step, once opened it stays
+  const [levelNotes, setLevelNotes] = useState([]);            // "at your level" lines, kept once said
+  const [level, setLevel] = useState(null);                    // the network's move at the scored stop
+  const [finished, setFinished] = useState(false);
+
+  const step = lesson.steps[stepIdx];
+  const state = states[stepIdx];
   const replay = step.type === "replay";
+  const isLast = stepIdx === lesson.steps.length - 1;
+  const solved = state.status === "solved";
+  const canGoNext = solved || stepIdx < maxIdx;
+
+  const dispatch = (action) =>
+    setStates(all => all.map((s, i) => (i === stepIdx ? stepReducer(lesson, step, s, action) : s)));
+
+  useEffect(() => { SESSIONS.set(lesson.id, { stepIdx, maxIdx, states }); }, [lesson.id, stepIdx, maxIdx, states]);
 
   // A scored stop is progress worth keeping, and the moment to ask the network
   // (only if it is already loaded: a lesson never starts the download).
   useEffect(() => {
-    if (!replay || state.status !== "scored") return;
+    if (!replay || state.status !== "scored") return undefined;
     onProgress?.(lesson, { stops: state.stopsDone, score: state.score, total: 2 * step.stops.length });
     setLevel(null);
-    if (!modelReady() || !rank) return;
+    if (!modelReady() || !rank) return undefined;
     const stopIdx = state.stopIdx - 1;
     let live = true;
     kataChooseMoveForRecord(recordAtStop(lesson, step, stopIdx), { ...profileForRank(rank), temperature: 0 })
-      .then((res) => { if (live && res && res.move) setLevel({ stopIdx, move: res.move }); })
+      .then((res) => {
+        if (!live || !res || !res.move) return;
+        setLevel({ stopIdx, move: res.move });
+        // Said once, kept for the rest of the step: the replay moves on, the line does not.
+        setLevelNotes(ns => ns.some(n => n.stopIdx === stopIdx) ? ns : [...ns, {
+          stopIdx,
+          text: `At your level (${rank}), a player here tends to play ${coordLabel(res.move[0], res.move[1], state.board.size)}.`,
+        }]);
+      })
       .catch(() => {});
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -48,31 +99,118 @@ function LessonPlayer({ lesson, nextLesson, onDone, onExit, rank, onProgress }) 
   useEffect(() => {
     if (!state.pending) return undefined;
     const { ms, action } = state.pending;
-    const t = setTimeout(() => dispatch(action), ms);
+    const t = setTimeout(() => dispatch(action), reducedMotion() ? 0 : ms);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.pending]);
 
-  const loadStep = (i) => {
+  /* A miss opens this step's hint rather than repeating it as a correction.
+     Stickiness is per step: a hint the learner opened on step two is not
+     handed to them unasked on step three. */
+  const hintOpen = hintsOpen.has(stepIdx);
+  const openHint = () => setHintsOpen(h => new Set(h).add(stepIdx));
+  useEffect(() => {
+    if (state.attempts > 0) setHintsOpen(h => (h.has(stepIdx) ? h : new Set(h).add(stepIdx)));
+  }, [state.attempts, stepIdx]);
+
+  const goto = (i) => {
     setStepIdx(i);
-    setState(initStep(lesson, lesson.steps[i]));
+    setMaxIdx(m => Math.max(m, i));
     setCountDraft("");
     setLevel(null);
+    setLevelNotes([]);
   };
-  const next = () => { if (isLast) onDone(); else loadStep(stepIdx + 1); };
-  const solved = state.status === "solved";
-  const showHint = (step.type === "quiz" || step.type === "sequence") && !solved && !state.message;
+  const back = () => { if (stepIdx > 0) goto(stepIdx - 1); };
+  const next = () => { if (isLast) { setFinished(true); onDone(); } else goto(stepIdx + 1); };
+
+  /* Arrows walk the lesson; Enter fires the primary when nothing else is focused,
+     so it never steals the board's own Enter-to-play or the count field. */
+  useEffect(() => {
+    const onKey = (e) => {
+      if (finished || e.metaKey || e.ctrlKey || e.altKey) return;
+      const tag = e.target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if (e.key === "ArrowLeft" && stepIdx > 0) { e.preventDefault(); back(); }
+      else if (e.key === "ArrowRight" && canGoNext) { e.preventDefault(); next(); }
+      else if (e.key === "Enter" && canGoNext && e.target === document.body) { e.preventDefault(); next(); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+
+  if (finished) {
+    const learned = lesson.steps
+      .map((st, i) => ({ text: st.success, shown: states[i].revealed }))
+      .filter(l => l.text);
+    return (
+      <div className="stack lesson-player">
+        <div className="row spread">
+          <Btn icon={ChevronLeft} small onClick={onExit}>Library</Btn>
+          <Pill icon={Check} tone="win">Lesson complete</Pill>
+        </div>
+        <div className="play-wrap">
+          <Board board={state.board} sizePx={600} marks={marksFor(step, state)} lastMove={state.lastMove} disabled />
+          <div className="side stack-sm">
+            <Card className="lesson-card-body">
+              <div className="prob-head">
+                <span className="rank-chip">{lesson.rank}</span>
+                <span className="theme-chip">{trackByKey(lesson.track)?.name}</span>
+              </div>
+              <h3 className="lesson-head">{lesson.title}</h3>
+              <p className="fine">What this taught you</p>
+              <ul className="recap">
+                {learned.map((l, i) => (
+                  <li key={i} className={l.shown ? "shown" : ""}>
+                    {l.shown ? <Eye size={14} /> : <Check size={14} />}
+                    <span>{l.text}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="lesson-foot">
+                <Btn icon={BookOpen} small onClick={onExit}>Library</Btn>
+                {nextLesson && (
+                  <Btn icon={ChevronRight} small primary onClick={() => onOpenNext(nextLesson)}>
+                    Next: {nextLesson.title}
+                  </Btn>
+                )}
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const stop = replay ? step.stops[Math.min(state.stopIdx, step.stops.length - 1)] : null;
-  const showStopHint = replay && state.status === "open" && stop?.hint && !state.wrong;
-  const levelMark = level && replay && level.stopIdx === state.stopIdx - 1 && state.status === "scored" ? [{ c: level.move[0], r: level.move[1] }] : [];
+  const prompt = step.type === "count" ? step.question
+    : replay && state.status === "open" ? stop.text
+      : step.text;
+  const hintText = replay ? (state.status === "open" ? stop?.hint : null) : step.hint;
+  const showHint = !!hintText && !solved;
+  const levelMark = level && replay && level.stopIdx === state.stopIdx - 1 && state.status === "scored"
+    ? [{ c: level.move[0], r: level.move[1] }] : [];
+  const resettable = !solved && !replay && step.type !== "info" && step.type !== "maxim";
 
   return (
     <div className="stack lesson-player">
       <div className="row spread">
         <Btn icon={ChevronLeft} small onClick={onExit}>Library</Btn>
         <div className="row">
-          {replay && <Pill icon={FastForward}>Stop {Math.min(state.stopIdx + (state.status === "open" ? 1 : 0), step.stops.length)}/{step.stops.length} · {state.score} pts</Pill>}
-          <Pill icon={BookOpen}>{lesson.title} · {stepIdx + 1}/{lesson.steps.length}</Pill>
+          {replay && (
+            <Pill icon={FastForward}>
+              Stop {Math.min(state.stopIdx + (state.status === "open" ? 1 : 0), step.stops.length)}/{step.stops.length} · {state.score} pts
+            </Pill>
+          )}
+          <nav className="step-rail" aria-label="Lesson steps">
+            {lesson.steps.map((_, i) => (
+              <button key={i} type="button"
+                className={`step-seg ${states[i].status === "solved" ? "done" : ""} ${i <= maxIdx ? "visited" : ""} ${i === stepIdx ? "current" : ""}`}
+                onClick={() => i <= maxIdx && goto(i)}
+                disabled={i > maxIdx}
+                aria-current={i === stepIdx ? "step" : undefined}
+                aria-label={`Step ${i + 1} of ${lesson.steps.length}`} />
+            ))}
+          </nav>
         </div>
       </div>
       <div className="play-wrap">
@@ -87,18 +225,31 @@ function LessonPlayer({ lesson, nextLesson, onDone, onExit, rank, onProgress }) 
           flash={state.flash} captured={state.flash} captureKey={stepIdx * 100 + state.moveIdx + (solved ? 50 : 0)}
         />
         <div className="side stack-sm">
-          <Card>
+          <Card className="lesson-card-body">
             <div className="prob-head">
               <span className="rank-chip">{lesson.rank}</span>
               <span className="theme-chip">{trackByKey(lesson.track)?.name}</span>
             </div>
+            <h3 className="lesson-head">{lesson.title}</h3>
+            <p className="fine step-count">Step {stepIdx + 1} of {lesson.steps.length}</p>
             {step.type === "maxim" && (
-              <blockquote className="maxim-line"><Quote size={14} /> {step.line}</blockquote>
+              <>
+                <blockquote className="maxim-line"><Quote size={14} /> {step.line}</blockquote>
+                <p className="fine maxim-analogy">{step.analogy}</p>
+              </>
             )}
-            {step.type === "maxim" && <p className="fine maxim-analogy">{step.analogy}</p>}
-            <p className="lesson-text">{step.type === "count" ? step.question : replay && state.status === "open" ? stop.text : step.text}</p>
-            {showHint && <p className="fine hint-row"><Lightbulb size={14} /> {step.hint}</p>}
-            {showStopHint && <p className="fine hint-row"><Lightbulb size={14} /> {stop.hint}</p>}
+            <p className="lesson-text">{prompt}</p>
+
+            {showHint && (
+              <div className="hint-block">
+                <button type="button" className="hint-toggle" onClick={openHint}
+                  disabled={hintOpen} aria-expanded={hintOpen}>
+                  <Lightbulb size={14} /> <span>Hint</span>
+                </button>
+                {hintOpen && <p className="fine hint-text">{hintText}</p>}
+              </div>
+            )}
+
             {step.type === "count" && !solved && (
               <div className="chat-row count-row">
                 <input className="chat-input" inputMode="decimal" value={countDraft} placeholder="Your count"
@@ -108,39 +259,38 @@ function LessonPlayer({ lesson, nextLesson, onDone, onExit, rank, onProgress }) 
                 <button className="chat-send" onClick={() => dispatch({ type: "answer", value: countDraft })} aria-label="Check"><Check size={15} /></button>
               </div>
             )}
-            {state.message && state.tone === "success" && (
-              <p className="lesson-text success-row"><Check size={16} /> {state.message}</p>
-            )}
-            {state.message && state.tone === "hint" && (
-              <p className="fine wrong-row"><X size={14} /> {state.message}</p>
-            )}
-            {state.message && state.tone === "verdict" && (
-              <p className="fine hint-row"><Lightbulb size={14} /> <strong>{VERDICT_LABELS[state.verdict]}.</strong> {state.message}</p>
-            )}
-            {state.message && !state.tone && (
-              <p className="fine hint-row"><ChevronRight size={14} /> {state.message}</p>
-            )}
-            {levelMark.length > 0 && (
-              <p className="fine hint-row"><Lightbulb size={14} /> At your level ({rank}), a player here tends to play {coordLabel(level.move[0], level.move[1], state.board.size)}.</p>
-            )}
+
+            <div className={`log ${step.type === "info" || step.type === "maxim" ? "" : "reserve"}`} aria-live="polite">
+              {state.log.map((entry, i) => <Response key={i} entry={entry} />)}
+              {levelNotes.map(n => <Response key={`lvl${n.stopIdx}`} entry={{ tone: "commentary", text: n.text }} />)}
+              {state.status === "await" && (
+                <button type="button" className="log-next" onClick={() => dispatch({ type: "reply" })}>
+                  <span>Play the reply</span> <ChevronRight size={14} />
+                </button>
+              )}
+            </div>
+
+            <div className="lesson-foot">
+              <Btn icon={ChevronLeft} small onClick={back} disabled={stepIdx === 0}>Back</Btn>
+              <div className="row">
+                {replay && state.status === "busy" && !state.refutation && (
+                  <Btn icon={FastForward} small onClick={() => dispatch({ type: "advance" })}>Next move</Btn>
+                )}
+                {state.status === "review" && (
+                  <Btn icon={RotateCcw} small onClick={() => dispatch({ type: "reset" })}>Try again</Btn>
+                )}
+                {resettable && state.status !== "review" && (
+                  <Btn icon={RotateCcw} small onClick={() => dispatch({ type: "reset" })} label="Reset position" />
+                )}
+                {canReveal(step, state) && (
+                  <Btn icon={Eye} small onClick={() => dispatch({ type: "reveal" })}>Show me</Btn>
+                )}
+                <Btn icon={isLast ? Check : ChevronRight} small primary onClick={next} disabled={!canGoNext}>
+                  {isLast ? "Complete lesson" : "Continue"}
+                </Btn>
+              </div>
+            </div>
           </Card>
-          <div className="row">
-            {state.status === "review" && (
-              <Btn icon={RotateCcw} small primary onClick={() => dispatch({ type: "reset" })}>Try again</Btn>
-            )}
-            {replay && state.status === "busy" && !state.refutation && (
-              <Btn icon={FastForward} small onClick={() => dispatch({ type: "advance" })}>Next move</Btn>
-            )}
-            {!solved && step.type !== "info" && step.type !== "maxim" && !replay
-              && <Btn icon={RotateCcw} small onClick={() => loadStep(stepIdx)}>Reset position</Btn>}
-            {(solved || step.type === "info" || step.type === "maxim")
-              && <Btn icon={isLast && !nextLesson ? Check : ChevronRight} primary onClick={next}>
-                {!isLast ? "Continue" : nextLesson ? `Next: ${nextLesson.title}` : "Complete lesson"}
-              </Btn>}
-            {solved && isLast && nextLesson && (
-              <Btn icon={Check} small onClick={() => onDone({ stay: false })}>Finish and stop</Btn>
-            )}
-          </div>
         </div>
       </div>
     </div>
@@ -298,15 +448,16 @@ export function LearnView({ profile, setProfile }) {
     if (missing.length) setPending({ lesson, missing });
     else { setPending(null); setActive(lesson.id); }
   };
-  // Finishing records the lesson and, unless asked to stop, opens the next one.
-  const finish = (lesson, { stay = true } = {}) => {
+  /* Completing records the lesson but leaves the player mounted: it shows its own
+     recap and offers the next lesson there, so the learner sees what the lesson
+     taught before moving on. The session is dropped so a replay starts at step one. */
+  const finish = (lesson) => {
+    SESSIONS.delete(lesson.id);
     setProfile(p => {
       const np = { ...p, lessonsDone: [...new Set([...p.lessonsDone, lesson.id])] };
       saveProfile(np);
       return np;
     });
-    const after = stay ? lessonAfter(lesson) : null;
-    setActive(after ? after.id : null);
   };
   /** A scored replay stop: keep the best run of this lesson so far. */
   const progress = (lesson, { stops, score, total }) => {
@@ -333,7 +484,8 @@ export function LearnView({ profile, setProfile }) {
     return (
       <LessonPlayer key={active} lesson={lesson} nextLesson={lessonAfter(lesson)}
         rank={rankOf(profile.rating)} onProgress={progress}
-        onExit={() => setActive(null)} onDone={(opts) => finish(lesson, opts)} />
+        onExit={() => setActive(null)} onDone={() => finish(lesson)}
+        onOpenNext={(l) => { setPending(null); setActive(l.id); }} />
     );
   }
 
