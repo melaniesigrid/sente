@@ -265,6 +265,7 @@ ${SIGNATURE_FACE}
 .visually-hidden:focus-visible + .btn-file { outline: 2px solid var(--accent); outline-offset: 3px; }
 .open-sgf-error { display: flex; align-items: flex-start; gap: 7px; margin: 0; font-size: 13px; color: var(--danger); line-height: 1.5; }
 .open-sgf-error svg { flex: none; margin-top: 2px; }
+.review-refused { margin: 0; font-size: 13px; color: var(--danger); text-align: center; }
 .review-result { font-family: var(--font-display); font-weight: var(--w-display); font-size: 15px; opacity: .75; }
 .review-controls { justify-content: center; gap: 6px; flex-wrap: wrap; }
 .review-count { font-variant-numeric: tabular-nums; font-size: 13px; opacity: .6; min-width: 68px; text-align: center; }
