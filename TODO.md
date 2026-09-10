@@ -367,7 +367,7 @@ Bigger swings:
 
 ## Typefaces (done 2026-09-10, branch `feat/typefaces`)
 
-Six pairings of the same design system, chosen in Profile and stored on the profile.
+Eight pairings of the same design system, chosen in Profile and stored on the profile.
 Display faces are borrowed from the Typecase library next door; body faces stay
 Google-hosted text families, because the Typecase text cuts have no weight axis.
 
@@ -376,7 +376,19 @@ Google-hosted text families, because the Typecase text cuts have no weight axis.
 - [x] Pairings as data in `src/content/typeface.js`, house first and default.
 - [x] Local faces in `src/styles/fontfaces.js`, each with a measured `size-adjust`
       onto Fraunces' optical size so a pairing changes voice, not layout.
-- [x] Picker in Profile, each option previewing its own display face with digits.
+- [x] Picker in Profile, each option previewing its own display face with digits.
+- [x] 2026-09-10 Four voices, not one italic: `--font-quote` (passages, maxims,
+      Moku, the result line) is always a serif, `--font-caption` (the footer, the
+      bow words) takes the body face, and the scripts keep the ornament voice at
+      26px. A script cannot carry a quotation at 15px.
+- [x] 2026-09-10 Galliard is the whole Maison Galliard trio: serif headings, its
+      own sans for body and captions, its script for the whisper.
+- [x] 2026-09-10 Two avant garde pairings, Hoshi (Cocogoose Pro Thin) and Vitrine
+      (Qliesya didone over Instrument Sans). Eight pairings now.
+- [x] 2026-09-10 The footer is signed: Melanie Baratto in Daenerys, outside the
+      pairing system, drawn on once at load.
+- [x] 2026-09-10 No local cut is slanted by the browser any more; only the Google
+      faces, which ship a real italic, are asked for one.
 
 Open:
 - [ ] Licensing: every borrowed face is a demo/personal-use cut (`src/fonts/LICENSES.md`).
