@@ -50,6 +50,15 @@ export async function sha256(text) {
   for (const b of new Uint8Array(digest)) s += HEX[b >> 4] + HEX[b & 15];
   return s;
 }
+
+/** Compare two hex digests without letting the time taken say how much of the
+ *  first one an attacker has guessed right. */
+export function sameDigest(a, b) {
+  if (typeof a !== "string" || typeof b !== "string" || a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i += 1) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
 
 /** Display names: trimmed, 2 to 18 characters, no control characters. */
 export function cleanName(v) {
@@ -57,6 +66,21 @@ export function cleanName(v) {
   // Strip control characters (U+0000..U+001F and DEL) without a literal control regex.
   const s = Array.from(v).filter(ch => { const c = ch.codePointAt(0); return c > 31 && c !== 127; }).join("").trim().slice(0, 18);
   return s.length >= 2 ? s : null;
+}
+
+/** Bytes to base64 and back. Durable Object storage takes JSON, so a picture
+ *  makes the round trip as text; `btoa` is byte-wise, hence the latin1 dance. */
+export function base64(buf) {
+  let s = "";
+  for (const b of new Uint8Array(buf)) s += String.fromCharCode(b);
+  return btoa(s);
+}
+
+export function bytes(b64) {
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i += 1) out[i] = bin.charCodeAt(i);
+  return out;
 }
 
 export const TINTS = ["eucalyptus", "coral", "sun", "mint", "sky", "grape"];

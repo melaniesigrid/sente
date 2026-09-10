@@ -6,15 +6,19 @@ import {
 import { scoreBoard, chainsInAtari, idx, lastMoveIndex, toSgf } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
 import { Card, Btn, Pill, Avatar, RankBadge } from "../components/ui.jsx";
+import { avatarUrl } from "../net/avatar.js";
 import { useMokuFacts } from "../components/mokuStore.js";
 import { playStone, playCapture, playBell, haptic } from "../components/sound.js";
 import { beltOf, hintsForBelt } from "../content/rank.js";
-import { gameSocket } from "../net/api.js";
+import { gameSocket, SERVER_URL } from "../net/api.js";
 import { loadAccount } from "../store/account.js";
 import { refusalText, resignLabel, resultCard, RESIGN_CONFIRM_MS } from "./gameStatus.js";
 import { onlineStatus, settledLine, onlineCaption } from "./onlineStatus.js";
 
 const seatName = (room, c) => room.seats[c].name;
+/* A seat carries the stamp its owner's picture last changed at, so the table
+   can draw a face without asking the server who is sitting there. */
+const faceOf = (seat) => avatarUrl(SERVER_URL, seat.id, seat.avatarAt);
 
 /* ----------------------- ONLINE GAME -----------------------
    A thin adapter over a server room. The only state here is the last room the
@@ -160,13 +164,13 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
         {room && (
           <div className="vs-strip">
             <div className="vs-side">
-              <Avatar name={room.seats.b.name} tint={room.seats.b.tint} size={34} />
+              <Avatar name={room.seats.b.name} tint={room.seats.b.tint} size={34} src={faceOf(room.seats.b)} />
               <div className="vs-meta"><strong>{room.seats.b.name}</strong><RankBadge rating={room.seats.b.rating} size="sm" /></div>
             </div>
             <span className="vs-x">vs</span>
             <div className="vs-side">
               <div className="vs-meta right"><strong>{room.seats.w.name}</strong><RankBadge rating={room.seats.w.rating} size="sm" /></div>
-              <Avatar name={room.seats.w.name} tint={room.seats.w.tint} size={34} />
+              <Avatar name={room.seats.w.name} tint={room.seats.w.tint} size={34} src={faceOf(room.seats.w)} />
             </div>
           </div>
         )}
@@ -209,9 +213,9 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
           {card && (
             <Card className={`result-card ${tone}`}>
               <div className="bow-row" aria-hidden="true">
-                <Avatar name={room.seats.b.name} tint={room.seats.b.tint} size={44} className="bow" />
+                <Avatar name={room.seats.b.name} tint={room.seats.b.tint} size={44} className="bow" src={faceOf(room.seats.b)} />
                 <span className="bow-word">rei</span>
-                <Avatar name={room.seats.w.name} tint={room.seats.w.tint} size={44} className="bow bow-late" />
+                <Avatar name={room.seats.w.name} tint={room.seats.w.tint} size={44} className="bow bow-late" src={faceOf(room.seats.w)} />
               </div>
               <div className="result-head">
                 <h3 className="result-headline">{card.headline}</h3>

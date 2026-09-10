@@ -18,7 +18,7 @@ const SCALE = 173.7178;
 const CENTRE = 1500;
 
 export const GLICKO = {
-  rating: 1500,     // an unseeded player, before Sente picks a friendlier start
+  rating: 1500,     // an unseeded player, before Joseki picks a friendlier start
   rd: 350,          // maximum uncertainty: we know nothing yet
   vol: 0.06,        // Glickman's default volatility
   tau: 0.5,         // system constant: how fast volatility is allowed to move

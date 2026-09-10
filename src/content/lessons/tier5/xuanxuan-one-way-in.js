@@ -27,7 +27,7 @@ export default {
   subtitle: "The attacker must be exact; the defender does not have to be",
   plain: "Killing and living are not mirror images. In this shape Black has exactly one move that kills and White has three that live, so the attacker has to find the point while the defender only has to avoid blundering.",
   tier: 5, rank: "2k", track: "life", size: 9, prereqs: ["xuanxuan-five-points"], minutes: 7,
-  author: "Sente", sources: [XUANXUAN_SOURCE], book: "xuanxuan",
+  author: "Joseki", sources: [XUANXUAN_SOURCE], book: "xuanxuan",
   steps: [
     {
       type: "info",

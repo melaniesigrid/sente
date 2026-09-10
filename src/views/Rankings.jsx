@@ -1,6 +1,9 @@
 import { useMemo, useState, useEffect } from "react";
 import { Crown, Flame, Globe, Bot } from "lucide-react";
-import { Card, Avatar, RankBadge, PullQuote } from "../components/ui.jsx";
+import { Card, Avatar, RankBadge, PullQuote } from "../components/ui.jsx";
+import { ScreenHeader } from "../components/ScreenHeader.jsx";
+import { avatarUrl } from "../net/avatar.js";
+import { SERVER_URL } from "../net/api.js";
 import { plainFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { PERSONAS } from "../content/personas.js";
@@ -32,13 +35,14 @@ export function RankingsView({ profile }) {
   }, [profile]);
 
   return (
-    <div className="stack">
-      <h2 className="section-title">Ladder</h2>
-      <p className="lede">
-        The global ladder is people: every rated game between two handles is settled on
-        the server with Glicko-2, so a rating carries how sure it is. The house ladder is
-        you against the residents, Elo-style, roughly a hundred points to a rank.
-      </p>
+    <div className="stack arrives">
+      <ScreenHeader
+        label="Where you stand"
+        title={<>The <em>ladder</em>.</>}
+        lede="The global ladder is people: every rated game between two handles is settled
+              on the server with Glicko-2, so a rating carries how sure it is. The house
+              ladder is you against the residents, Elo-style, roughly a hundred points to
+              a rank." />
       <PullQuote>{plainFor("ladder")}</PullQuote>
       <Passage context="ladder" />
 
@@ -51,7 +55,7 @@ export function RankingsView({ profile }) {
             {global && global.map((r, i) => (
               <div key={r.id} className={`ladder-row ${account && r.id === account.player.id ? "me" : ""}`}>
                 <span className={`ladder-pos ${i === 0 ? "gold" : ""}`}>{i === 0 ? <Crown size={16} /> : i + 1}</span>
-                <Avatar name={r.name} tint={r.tint} size={38} />
+                <Avatar name={r.name} tint={r.tint} size={38} src={avatarUrl(SERVER_URL, r.id, r.avatarAt)} />
                 <div className="ladder-name">
                   <strong>{r.name}</strong>
                   <span className="fine">{provisionalText(r)} · {r.wins}–{r.losses}{account && r.id === account.player.id ? " · that's you" : ""}</span>

@@ -7,7 +7,7 @@ export default {
   subtitle: "Tengen, 3-3 and 4-4 on a small board",
   plain: "Ground is cheapest where the board already does part of the walling for you, so openings start near the corners, then the sides, then the centre. Claim the cheap ground while it is still cheap.",
   tier: 1, rank: "20k", track: "opening", size: 9, prereqs: ["territory-count"], minutes: 5,
-  author: "Sente", sources: [],
+  author: "Joseki", sources: [],
   steps: [
     {
       type: "info",
@@ -58,7 +58,7 @@ export default {
       toPlay: "b",
       answers: [pt(2, 2), pt(6, 2), pt(2, 6), pt(6, 6), pt(4, 4)],
       text: "Empty board, Black to play. Take a big point.",
-      success: "Good. Efficiency first: claim the cheap territory before contact fighting starts. The full joseki module — canonical 4-4 and 3-4 sequences with deviations and punishments, engine-verified — is next on the curriculum roadmap.",
+      success: "Good. Efficiency first: claim the cheap territory before contact fighting starts. The full corner-pattern module — canonical 4-4 and 3-4 sequences with deviations and punishments, engine-verified — is next on the curriculum roadmap.",
       hint: "Corners are worth more than the middle of a side.",
       wrongText: "Not a big point. Corners and the centre come first on an empty board.",
     },

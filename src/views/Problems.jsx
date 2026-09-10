@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Check, X, RotateCcw, SkipForward, CalendarCheck, Flame } from "lucide-react";
 import { tryPlay } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
-import { Card, Btn, PullQuote } from "../components/ui.jsx";
+import { Card, Btn, PullQuote } from "../components/ui.jsx";
+import { ScreenHeader } from "../components/ScreenHeader.jsx";
 import { plainFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
@@ -55,12 +56,13 @@ export function ProblemsView({ profile, setProfile, initialId }) {
   const curIdx = PROBLEMS.findIndex(p => p.id === activeId);
 
   return (
-    <div className="stack">
-      <h2 className="section-title">Tsumego</h2>
-      <p className="lede">
-        Classical shapes — the public-domain vocabulary every serious life-and-death
-        collection is built on. One is today's kata; solve it daily and your attendance grows.
-      </p>
+    <div className="stack arrives">
+      <ScreenHeader
+        label="Life and death"
+        title={<>Read it <em>out</em>.</>}
+        lede="Classical shapes — the public-domain vocabulary every serious life-and-death
+              collection is built on. One of them is today's kata; solve it daily and your
+              attendance grows." />
       <PullQuote>{plainFor("tsumego")}</PullQuote>
       <Passage context="tsumego" />
       <div className="prob-tabs" role="tablist">

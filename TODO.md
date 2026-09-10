@@ -1,6 +1,6 @@
-# Sente — Roadmap
+# Joseki — Roadmap
 
-Sente is the classiest go server: restrained, correct, honest. Class means the rules are
+Joseki is the classiest go server: restrained, correct, honest. Class means the rules are
 right, the ratings are honest, the bots are labeled, and the interface stays out of the way.
 Full reasoning: `docs/designs/classiest-go-server.md` (CEO review, 2026-09-09).
 
@@ -122,6 +122,20 @@ each fixed in its own commit:
 - [x] Onboarding for a first-time visitor (2026-09-10, branch `feat/onboarding`): four
       beats — what go is, name and tint, a four-step demo ending in a capture, and a
       way into a first game, the lessons or a look around.
+- [x] One scale for the whole app (2026-09-10, branch `feat/one-scale`): the front
+      door's vocabulary is now shared rather than its own. `ScreenHeader` opens every
+      screen with a typed label, a display heading and a lede; `.section-title` and the
+      landing's heading are one rule; card padding, stack gaps and the type scale all
+      moved up a step; a screen arrives a beat at a time (`.arrives`). At the table the
+      board takes two thirds of the width instead of splitting it with a panel that is
+      mostly empty. All ten rooms and eight pairings still hold: nothing names a colour
+      or a family.
+- [x] A front door (2026-09-10, branch `feat/landing-page`): the landing is its own
+      screen (`views/Landing.jsx`) and Home is the dashboard behind it. A visitor who
+      has not been onboarded opens on the front door; Enter hands them to the welcome
+      flow, and the footer keeps an "About Joseki" link back. Section labels and the
+      saying are typed as they are scrolled to (`components/Typed.jsx`), the hero
+      arrives a beat at a time, and the roadmap moved off the dashboard onto it.
 - [x] Keyboard (2026-09-10, branch `feat/table-keys`): P passes and U takes back at the
       table, both through the same handlers the buttons use so every guard holds; the
       caption says so. In review: left and right walk a move, up and down jump ten,
@@ -360,10 +374,105 @@ two Durable Object classes, deployed at https://sente-server.melaniesigrid.worke
       mind never runs into it while a script hoarding accounts still does
       (`tools/server/churn.mjs` proves both). `DELETE /api/admin/ratelimit/:ip` clears one
       by hand, for a room of people sharing an address.
-- [ ] A way to move a handle to another device (show the key once, scan it on the other).
+- [x] Accounts with an address and a password (2026-09-10, branch `feat/accounts`), which
+      also answers "move a handle to another device": sign in and it is there. Self-hosted
+      and single-party — no Google, no identity provider, nobody else told what you play.
+      Three doors in `AccountGate`: sign in, create an account, or claim a handle with a
+      name alone the way it has always worked. A guest handle can gain an address later
+      without losing its rating, which is the path that matters. Sessions are per device,
+      so signing in on a phone does not sign out the laptop, and `POST /api/signout`
+      ends one or (with `{everywhere: true}`) all of them.
+      `tools/server/accounts.mjs <url>` proves the whole flow against a deployment.
+- [x] Verify the address, and a way back in when the password is forgotten (2026-09-10,
+      branch `feat/mail`). Two letters and no others, both asked for, neither carrying an
+      unsubscribe link because there is no list to leave (`server/mail.js` holds the copy,
+      pure and tested). Each carries one link back into the app as a query parameter, which
+      a static host will serve where a path it has never heard of would 404; `App` reads it
+      before onboarding, so somebody getting back into an account they already have is not
+      asked who is playing first. Links are stored hashed like session tokens, work once,
+      and asking for a second forgets the first. `POST /api/forgot` answers identically for
+      an address with an account, one without, and something that is not an address.
+      `tools/server/mail.mjs <url>` proves the whole of it against a deployment.
+      **Not yet sending.** Cloudflare Email Sending needs a domain on the Cloudflare
+      account, and `sente-server` runs on `workers.dev`, which is Cloudflare's and not
+      ours. Until `MAIL_FROM` is set, `/api/health` reports `"mail": "off"` and every link
+      goes to the log instead of the post. The four steps are in `docs/server-operations.md`.
+- [ ] Change the address on an account. `attach` refuses a second one, so a typo today is
+      permanent, and confirming makes the wrong address a *provably* wrong one. Wants the
+      password and a fresh confirmation posted to the new address, and should hold the old
+      one until the new one answers.
+- [ ] Let go of an address claimed and never confirmed. Signing up reserves an address on
+      the spot, so somebody can sit on one they do not own and keep its owner out. Low
+      stakes on a go server and deliberately not built yet; the shape would be a claim that
+      expires unconfirmed, not a takeover.
+- [ ] The three older rate-limited routes still spell the bucket dance out by hand;
+      `Registry#spend` now does it in one line and they could say so too.
+- [x] A card a player shows other players (2026-09-10, branch `feat/accounts`): a picture,
+      a paragraph, and three facts — where you play, since when, and what you like to play.
+      Edited from Profile, under a card that says plainly that this one is the server's and
+      the one above it is this device's. The picture is squared and squeezed to 192 px in
+      the browser before a byte is sent (`src/net/avatar.js`), so a photograph nobody keeps
+      was never uploaded; the server takes 64 KB, three raster types, and no SVG. It is
+      stored under its own key so listing players for the ladder never drags a picture into
+      memory, and served immutable at a URL carrying the stamp it last changed at. Every
+      public view of a player now carries that stamp, so the lobby, the ladder and both
+      seats at an online table draw the face. `tools/server/profile.mjs <url>` proves it.
+- [ ] The card, seen from outside: a page for another player, reachable from the ladder and
+      from a seat at a table. The route (`GET /api/players/:id`) is live and tested; nothing
+      links to it yet.
 - [ ] CI deploy for the Worker: `.github/workflows/deploy-server.yml` is written and
       needs a `CLOUDFLARE_API_TOKEN` repository secret (Workers Scripts: Edit) to run.
 - [ ] Analysis: KataGo (or GnuGo) via the backend, or a WASM engine in the browser.
+
+Decisions made in Phase 4, accounts slice (2026-09-10, branch `feat/accounts`):
+- **The password is stretched in the browser, not on the server.** A Worker on the free
+  plan gets 10 ms of CPU per invocation and a password hash worth the name costs far
+  more, so `src/net/password.js` derives a key with PBKDF2-SHA256 at 600,000 iterations
+  and sends that; the server stores a salted SHA-256 of it (`server/accounts.js`). An
+  attacker with the whole store still pays the full stretch per guess. What is given up
+  is a server-chosen work factor: every record carries the parameters it was made under,
+  and an account keeps its own until its owner next sets a password.
+- The salt is the address rather than a value the server hands out, because asking the
+  server for a salt would tell anyone who asked which addresses have accounts here. For
+  the same reason a wrong password and an address with no account give the same answer
+  and spend the same rate-limit budget: thirty attempts an hour from one address.
+- An address is not normalised beyond trimming and folding case. Gmail treats `a+go@` and
+  `a.b@` as one person; other providers do not, and silently merging two people is worse
+  than making one of them type their address the way they wrote it.
+- Sessions are a list on the player record, capped at twelve devices, oldest forgotten
+  first. Changing the password does not end them: it is the answer to "somebody knows my
+  password", and signing out everywhere is a separate, explicit thing.
+- Changing a password requires the old one even though the caller already holds a
+  session, so a borrowed laptop cannot lock its owner out.
+- A password is ten characters or more and that is the only rule. Composition rules push
+  people towards `Password1!`, so there are none; the field says how much further to go
+  rather than colouring a meter.
+
+Decisions made in the letters slice (2026-09-10, branch `feat/mail`):
+- **A reset ends every other session; a password change still does not.** Changing a
+  password requires the old one, so the account was never out of its owner's hands and the
+  devices signed in are theirs. A reset requires only the mailbox, and the usual reason to
+  want one is that a password or a device is somewhere it should not be. So a reset signs
+  everything out and hands the browser that used the link one fresh session.
+- Following a mailed link is proof of the address, so a reset confirms the account on the
+  way through. Somebody who has just read their mail here is not then asked to prove they
+  can read their mail here.
+- The reset page asks the server which address its token was sent to, rather than carrying
+  the address in the link. The browser salts its key derivation with the address and cannot
+  derive without it; telling the holder of the token gives away nothing, because that token
+  is already a way into the account, and the alternative puts an address into browser
+  history and referrers.
+- Confirming an address gates nothing. It is not a condition of playing, of being rated, or
+  of asking for a way back in — requiring it there would lock out exactly the people who
+  need it. What it buys is knowing the address was typed correctly and can be reached,
+  before it is the only way back to a handle, and the lobby says so in those words.
+- `emailVerified` is on the owner's own view and nowhere else. It says something about a
+  person's mailbox rather than their play, and it belongs on no page but their own.
+- The link is written to the log when mail is off, and never into an HTTP response. A link
+  in a response would be a way for anyone who can ask for a reset to read one.
+- One operator route mints a link without posting it, which is how the letters are proved
+  against a deployment with no mailbox to read. It is written down plainly that this lets
+  `ADMIN_TOKEN` sign in as anybody — the same trust that could already delete them.
 
 Decisions made in slice 1:
 - Accounts are a display name plus a 32-byte bearer token generated by the server and
@@ -440,14 +549,14 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
 - [x] The Classic in Thirteen Chapters (2026-09-10): Zhang Ni's eleventh-century treatise as a
       lesson series, one engine-verified lesson per chapter spread over tiers 2 to 5
       (`series`/`chapter` fields, `lessonsInSeries`), plus `content/classic.js` with the
-      chapters and Sente's own renderings of its sayings: a saying of the day on Learn and
+      chapters and Joseki's own renderings of its sayings: a saying of the day on Learn and
       a few new lines for Moku. Tiers 2 to 5 now each hold their Classic lessons; the rest
       of their syllabus is still open.
 - [ ] Surface the saying of the day on Home (the card is built in `Learn.jsx` as
       `ClassicCard`; lift it to a shared component).
 - [x] The Classic, second pass (2026-09-10): the book itself, not only its sayings.
       `content/classic.js` now carries the preface (Huan Tan's three kinds of player), all
-      thirteen chapters as prose in Sente's own rendering, chapter twelve's nine levels and
+      thirteen chapters as prose in Joseki's own rendering, chapter twelve's nine levels and
       chapter eleven's thirty-two names, alongside the existing passages. Learn's series card
       became a reader: preface, then thirteen expandable chapters, each with its lessons under
       it and the names glossary inside chapter eleven. Profile gained a nine-levels card. New
@@ -470,7 +579,7 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       accent rule, centred, with the label under it, and a `sm` size for the column beside a
       board. Learn drops one after a chapter's first paragraph, a finished lesson opens its
       recap with one, and each screen sets its own above that screen's passage.
-      Decisions: a passage is Zhang Ni speaking and a pull quote is Sente speaking, so the
+      Decisions: a passage is Zhang Ni speaking and a pull quote is Joseki speaking, so the
       label is not decoration — it is the thing that keeps a gloss from reading as a
       quotation. Tests hold every gloss to the house voice and to a pullable length, refuse
       one that is only the subtitle or the theme again, refuse a chapter gloss that repeats a
@@ -485,7 +594,7 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       Guanzi Pu (Guo Bailing, printed 1660, expanded by Tao Shiyu and others 1689) as a
       book on the shelf, with two lessons in tier 4: `guanzi-gote-alternates` (10k) and
       `guanzi-first-line-hane` (9k).
-      Decisions: the book supplies the subject, not the diagrams. Sente builds its own
+      Decisions: the book supplies the subject, not the diagrams. Joseki builds its own
       positions and the engine settles them, and `guanzi.test.js` scores every total a
       lesson states — the library verifier only checks that a `count` answer is a number,
       not that it is right, so the book checks its own. The shelf gained `note` so the
@@ -505,7 +614,7 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       joint is checked the same way: either peep leaves Black one chain of nine with six
       liberties and the peeping stone with one.
 - [x] The Mysterious Classic (2026-09-10): Xuanxuan Qijing (Yan Defu and Yan Tianzhang,
-      1349) joins the shelf, which is the rest of a book Sente already had — its first
+      1349) joins the shelf, which is the rest of a book Joseki already had — its first
       volume is the Classic in Thirteen Chapters. Two tier 5 life-and-death lessons:
       `xuanxuan-five-points` (3k) and `xuanxuan-one-way-in` (2k).
       The real artifact is the life-and-death solver in `xuanxuan.test.js`: exhaustive
@@ -526,7 +635,7 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       needs a position the engine can settle before it is worth authoring.
 - [ ] Other shelves are still empty. Candidate sources for the rest of the library,
       all public domain: Xuanxuan Qijing (Yan Defu and Yan Tianzhang, 1349 — its first
-      volume is the Classic Sente already ships), Gokyo Shumyo (Hayashi Genbi, 1812, 520
+      volume is the Classic Joseki already ships), Gokyo Shumyo (Hayashi Genbi, 1812, 520
       tesuji), Igo Hatsuyoron (Inoue Dosetsu Inseki, 1713, 183 hard problems).
 - [ ] Tsumego graded 30k → 5k with categories and a daily set (reuses the verifier).
 - [ ] Spaced repetition: finished quiz steps enter a recall queue; "Review five" card on Home.
@@ -593,7 +702,7 @@ and one rule: the number on the card is measured, never claimed.
 Decisions made in the masters row (branch `feat/masters-row-ui`, 2026-09-10):
 - A master game is **unrated**, and the card and the table both say so. Agreement with
   a year profile is not a strength: the raw policy is a few stones weaker than the rank
-  it imitates at dan level, so any rank on that seat would be a number Sente cannot
+  it imitates at dan level, so any rank on that seat would be a number Joseki cannot
   stand behind. No rank badge on a master’s seat either.
 - Nothing on a card is written by hand. `content/masters.js` derives every line from
   `masters.json` and `eval.json`, so a card cannot drift from the measurement, and a
@@ -697,18 +806,64 @@ Google-hosted text families, because the Typecase text cuts have no weight axis.
 - [x] 2026-09-10 Two avant garde pairings, Hoshi (Cocogoose Pro Thin) and Vitrine
       (Qliesya didone over Instrument Sans). Eight pairings now.
 - [x] 2026-09-10 The footer is signed: Melanie Baratto in Daenerys, outside the
-      pairing system, drawn on once at load.
+      pairing system, drawn on once at load. Replaced 2026-09-10 by a plain studio
+      credit; the signature and Daenerys are gone.
 - [x] 2026-09-10 No local cut is slanted by the browser any more; only the Google
       faces, which ship a real italic, are asked for one.
 
+- [x] 2026-09-10 Three pairings, not eight (branch `feat/readable-colour`). House, Kaya
+      and Vitrine stay; Galliard House, Wedge, Clubhouse, Signal and Hoshi are gone, and
+      Kaya's ornament voice is Fraunces' italic instead of the Bellique script — that voice
+      carries the emphasised word in the landing hero and the lesson numerals, mid-sentence
+      at reading size, and a script could not do it. No script stands anywhere in the set
+      now, so `serifless` had nothing left to except and went with them. The build carries
+      three borrowed faces instead of thirteen, and no pairing puts a personal-use cut into
+      running text any more — `galliard` was the one that did.
+
 Open:
-- [ ] Licensing: every borrowed face is a demo/personal-use cut (`src/fonts/LICENSES.md`).
-      Before a public deploy, buy the pairings worth keeping or swap them for OFL faces.
-      Only `house` and the three Google body families are clear today.
-- [ ] Convert the borrowed faces to woff2; the OTFs are 16-207 KB each and lazy, but
-      Kuigaf alone is 207 KB the first time Wedge is chosen.
+- [ ] Licensing: the two borrowed cuts still shipping are Welorac and Qliesya, both
+      demo/personal-use (`src/fonts/LICENSES.md`). Buy them or swap for OFL faces before
+      a public deploy. Everything else in the set is OFL today.
+- [ ] Convert the two remaining display cuts to woff2; Welorac is 46 KB and Qliesya 16 KB
+      as OTF, and woff2 would roughly halve each.
 - [ ] A pairing is a device preference stored in the profile; when accounts arrive,
       decide whether it syncs or stays local like the Moku toggle.
+
+## Readable colour (done 2026-09-10, branch `feat/readable-colour`)
+
+The rooms were audited against WCAG AA and the failures were systemic rather than local,
+so the fix is derived and tested rather than hand-tuned.
+
+- [x] Secondary text was dimmed with an `opacity`, and an opacity is a fixed fraction of
+      whatever is behind it. Measured, every light room failed: House ink at `.55` is
+      2.60:1, at `.6` it is 2.89:1, at `.7` it is 3.61:1 — about sixty rules of it, none
+      of them reaching 4.5. Two derived tokens replace the lot: `--ink-2` (secondary text,
+      solved to 4.5:1) and `--ink-3` (incidental text, 3:1, and spent on nothing small).
+- [x] `--danger-ink`, the warning walked up to reading contrast the way `--accent-ink`
+      already was. Same errand, same function: a pill is a mark at 2.9:1, but the word
+      "Resigned" is text.
+- [x] The mark was colouring words in fifty-odd places at its own 2.9:1 floor. `--accent`
+      now colours shapes and `--accent-ink` colours glyphs, with one exception measured
+      rather than granted by name: type at 24px and up may take the raw mark, because 3:1
+      is WCAG's own floor there.
+- [x] One `:focus-visible` ring, in `--accent-ink`, on everything in the app. There were
+      four bespoke rings and nothing at all on the rest.
+- [x] `src/styles/css.test.js` parses the stylesheet and holds all of it: no word dimmed
+      with an opacity, no small word coloured with a mark, no colour token asked for that
+      `TOKEN_NAMES` does not promise, and the derived inks measured in every room.
+- [x] Two rooms that answer a set which had grown repetitive — every light room being a
+      pale neutral ground under a near-neutral ink. Cinnabar is blush paper with oxblood
+      ink and a lacquer-red mark, the one room led by a colour; Foxfire is wet bark under
+      chartreuse, the only mark in the set that sits above its own ink in luminance.
+
+Open:
+- [ ] The grid is the last unmeasured colour: `.grid-line` draws `--grid` at
+      `stroke-opacity: .38`, and territory marks and dead stones are opacities too. They
+      are graphics rather than text, but they carry meaning during scoring and nothing
+      holds them to 3:1 yet.
+- [ ] Six of the ten marks sit in the amber band and `deriveDanger` puts every unauthored
+      warning at hue ~12°. Cinnabar pushed the set warmer still. A cool light room would
+      even it out.
 
 ## Palettes and the dojo (done 2026-09-10, branches `feat/palette-damson`, `feat/palette-dojo`)
 
@@ -773,6 +928,55 @@ Open:
       size and owes 4.5:1, so `deriveAccentInk` walks the accent away from the ground until
       it clears, spending lightness and never hue. House eucalyptus 2.99:1 becomes #47695f
       at 4.79:1. Tests hold every named room and any dojo room to the floor.
+
+## Coaching (in progress, branch `feat/shape-coaching`)
+
+Design and reasoning: `docs/designs/coaching-shape-commentary.md` (office hours, 2026-09-10,
+APPROVED after three review rounds). The order is deliberate: an experiment, then the club,
+then the archive, then Neo-Human.
+
+- [x] `src/engine/shape.js` — pure shape detection local to the move just played. Three
+      shapes: `empty-triangle`, `tigers-mouth`, `dumpling`. No board sweep; the four 2x2
+      windows around the move plus the move's empty neighbours.
+- [x] `src/engine/shape.test.js` — 27 cases including the collisions. A tiger's mouth is
+      defined on the mouth point (exactly one on-board neighbour empty, the rest mine), not
+      as a 2x2 pattern, because a 2x2 with three of my stones and one gap is the empty
+      triangle and nothing else. A dumpling is a solid 2x2 block containing the move, not a
+      liberty ratio: a 2x2 in the open has 8 liberties over 4 stones, so any ratio low
+      enough to be distinctive is an atari warning, which the belts deliberately remove.
+- [x] `src/content/commentary.js` — the voice. Lines per shape with `default` plus persona
+      overrides, `PACING`, and a pure `chooseRemark`. No exclamation marks: the opponent is
+      excitable, the coach is calm.
+- [x] `src/content/commentary.test.js` — coverage, voice rules, and the pacing arithmetic.
+
+- [x] Wired into the view: `detectShapes` after the human's move, `chooseRemark`, `say()`.
+      Chat pane only, never `withMoveComment` — `botTurn(r)` closes over its own record and
+      later does `setRec(conclude(next, r))`, so any `setRec` issued after `botTurn(next)`
+      is silently dropped. Record-writing waits for the archive.
+- [x] The coach yields: silent on any capturing move, and for six moves after table talk.
+      It speaks about your stones only, never its own.
+- [x] The coaching switch, in the chat card head. Off by default, per game, sticky once
+      armed: the switch disables itself and the game is unrated for the rest of its life,
+      so nobody takes advice for fifty moves and then turns it off to collect the rating.
+      Excluded from duels and master games outright.
+- [x] The three plumbing sites: the rating branch in `conclude` skips `rateAgainst` and
+      notifies "unrated, coached"; the caption's `rated` argument gained `&& !coaching`;
+      the result card says the coach spoke.
+- [x] `coaching` and the `spoken` map persist through `gameStore` and restore through
+      `loadSession`, read tolerantly with a default of `false`. Without it a resumed
+      coaching game came back rated, which is the dishonesty the switch exists to prevent.
+- [x] Verified in a real browser: armed the switch, played an empty triangle at the top
+      left, and Yuki said "Three stones, and only four liberties between them. The shape
+      remembers what you paid." The caption flipped from rated to unrated when armed.
+
+Open:
+- [ ] Play ten games. Answer: delightful or annoying. Everything after this waits on that.
+- [ ] No test drives the `conclude` coaching branch end to end; it is verified by reading
+      and by one browser run. A view-level test harness would close that.
+
+Later, in order: the club and chat, then the game archive (cap, eviction, localStorage
+versus Durable Objects — all open), then Neo-Human pair go, which is a seat-model change in
+the multiplayer Worker and is unrated for the same reason coached games are.
 
 ## Principles (do not trade away)
 

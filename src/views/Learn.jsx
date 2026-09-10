@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { Board } from "../components/Board.jsx";
 import { Card, Btn, Pill, PullQuote } from "../components/ui.jsx";
+import { ScreenHeader } from "../components/ScreenHeader.jsx";
 import { plainFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
@@ -509,15 +510,18 @@ export function LearnView({ profile, setProfile }) {
   }
 
   return (
-    <div className="stack">
-      <div className="row spread">
-        <h2 className="section-title">Learn</h2>
+    <div className="stack arrives">
+      <ScreenHeader className="with-aside"
+        label="The library"
+        title={<>Learn the <em>game</em>.</>}
+        lede="Every lesson is a live board you play on, not a diagram you look at. Nothing
+              moves on until the move is yours, and you can always walk it backwards.">
         <div className="chat-row search-row">
           <Search size={15} className="search-icon" />
           <input className="chat-input" value={query} placeholder="Search lessons or tracks"
             aria-label="Search lessons" onChange={e => setQuery(e.target.value)} />
         </div>
-      </div>
+      </ScreenHeader>
       <p className="lede">A graded library from 30 kyu to dan: six tiers, seven tracks, every position checked by the engine. Start where you are; nothing is locked.</p>
 
       {pending && (

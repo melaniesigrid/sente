@@ -9,7 +9,7 @@ const game = () => {
 };
 
 describe("readSgf, the happy path", () => {
-  it("opens a game Sente wrote", () => {
+  it("opens a game Joseki wrote", () => {
     const res = readSgf(toSgf(game()));
     expect(res.ok).toBe(true);
     expect(res.record.size).toBe(9);

@@ -1,7 +1,50 @@
 # Changelog
 
-Sente keeps a four-part version (`MAJOR.MINOR.PATCH.MICRO`) in `VERSION`; `package.json`
+Joseki keeps a four-part version (`MAJOR.MINOR.PATCH.MICRO`) in `VERSION`; `package.json`
 carries the npm-valid three-part form. This file starts at the first versioned release.
+
+Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
+They are left as they were written rather than rewritten after the fact.
+
+## v0.5.0.0 (2026-09-10)
+
+### Added
+
+- The house players can see the shape you just made. Ask for coaching at the table and
+  your opponent names it in their own voice: Tetsu says "An empty triangle. Even I would
+  not start a fight from there", Yuki says "Three stones, and only four liberties between
+  them. The shape remembers what you paid." Three shapes to begin with - the empty
+  triangle, the tiger's mouth and the dumpling - chosen because each is cheap to see,
+  means something between 20 kyu and 5 kyu, and has something worth saying about it.
+- `src/engine/shape.js`, a pure detector local to the stone just played: the four 2x2
+  windows around it plus its own empty neighbours, O(1) a move, no board sweep. It reports
+  what you just made and never a clump you made forty moves ago.
+- `src/content/commentary.js`, the voice. Lines per shape with a `default` set and
+  per-persona overrides, so seven house players see the same empty triangle differently,
+  and a pure `chooseRemark` holding the pacing: one remark a move, six moves between any
+  two, a shape may come back once after thirty moves and never a third time. No
+  exclamation marks - the opponent is excitable, the coach is calm.
+- A coaching switch in the chat card, off by default. It is a one-way door: a game the
+  coach has spoken in is unrated for the rest of its life, the switch disables itself, and
+  the caption and the result card both say so. Otherwise a player could take advice for
+  fifty moves and then turn it off to collect the rating, and Sente's ratings are honest or
+  they are nothing. Daily duels and master games are excluded outright.
+- The coaching flag and the coach's memory survive a reload, stored with the saved game
+  and read tolerantly with a default of `false`. Without that a resumed coached game came
+  back rated, which is the exact dishonesty the switch exists to prevent.
+
+### Notes
+
+- Two rules were wrong in the first draft and are worth recording. A tiger's mouth is not
+  a 2x2 pattern: three of your stones in a 2x2 with the fourth point empty has exactly one
+  reading and it is the empty triangle, so specified that way both detectors fired on the
+  same stones and the coach would have scolded every good mouth. It is defined on the empty
+  point instead - exactly one on-board neighbour empty, every other one yours, which is to
+  say an enemy stone played there would have one liberty. That covers the middle, the edge
+  and the corner with no special case. And a dumpling cannot be a liberty ratio: a 2x2
+  block in the open has eight liberties over four stones, so any threshold low enough to be
+  distinctive only catches groups two moves from death, which is an atari warning - and the
+  belts deliberately take atari hints away as you improve.
 
 ## v0.4.0.0 (2026-09-10)
 

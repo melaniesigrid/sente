@@ -51,7 +51,7 @@ export function MastersRow({ onSit }) {
           Bots, like every house player here. Each one plays the profile KataGo's
           human-style network holds for a strong professional of its year, with that
           master's own opening book over the first moves. {MASTER_SIZE}×{MASTER_SIZE}, unrated:
-          agreement with a profile is not a strength, and Sente will not put a rank on it.
+          agreement with a profile is not a strength, and Joseki will not put a rank on it.
         </p>
       </div>
       <div className="grid3">

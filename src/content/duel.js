@@ -94,7 +94,7 @@ export function duelShareUrl(loc) {
 /** Plain-text result for the clipboard. `url` is optional. */
 export function duelShareText({ key, personaName, code, moves, url }) {
   const lines = [
-    `Sente Daily Duel · ${key}`,
+    `Joseki Daily Duel · ${key}`,
     `vs ${personaName} (house bot) · ${code}${moves ? ` in ${moves} moves` : ""}`,
   ];
   if (url) lines.push(url);

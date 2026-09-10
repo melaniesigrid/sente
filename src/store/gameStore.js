@@ -15,14 +15,25 @@ const defaultStorage = () => {
 
 /** @param {{ record: object, mode: { kind: string, personaId: string|null, rank?: string|null, key?: string|null } }} session
  *  `mode.rank` is the level a bot game is played at; `mode.key` is the calendar day of a
- *  daily duel. Modes that do not use them leave them null. */
+ *  daily duel. Modes that do not use them leave them null.
+ *
+ *  `mode.coaching` is whether the coach has spoken in this game, and it has to survive a
+ *  reload: a coached game is unrated for its whole life, and one that came back without
+ *  the flag would be rated - the dishonesty the flag exists to prevent. `spoken` is the
+ *  coach's memory of what it has already remarked on, so a refresh does not make it
+ *  repeat itself. */
 export function saveGame(session, storage = defaultStorage()) {
   if (!storage) return false;
   try {
     const blob = {
       version: GAME_STORE_VERSION,
       savedAt: Date.now(),
-      mode: { kind: session.mode.kind, personaId: session.mode.personaId ?? null, rank: session.mode.rank ?? null, key: session.mode.key ?? null },
+      mode: {
+        kind: session.mode.kind, personaId: session.mode.personaId ?? null,
+        rank: session.mode.rank ?? null, key: session.mode.key ?? null,
+        coaching: !!session.mode.coaching,
+      },
+      spoken: session.spoken ?? {},
       record: session.record,
     };
     storage.setItem(GAME_KEY, JSON.stringify(blob));
@@ -55,7 +66,17 @@ export function loadGame(storage = defaultStorage()) {
   try { record = replay(blob.record); } catch (e) { return discard(`record does not replay: ${e.message}`); }
   const rank = typeof blob.mode.rank === "string" ? blob.mode.rank : null;
   const key = typeof blob.mode.key === "string" ? blob.mode.key : null;
-  return { record, mode: { kind: blob.mode.kind, personaId: blob.mode.personaId ?? null, rank, key }, savedAt: blob.savedAt ?? null };
+  // Read tolerantly, defaulting to false: a blob written before coaching existed is not
+  // a coached game, and false is the safe direction - it can only ever restore a rating,
+  // never quietly grant one to a game that had help.
+  const coaching = blob.mode.coaching === true;
+  const spoken = blob.spoken && typeof blob.spoken === "object" && !Array.isArray(blob.spoken) ? blob.spoken : {};
+  return {
+    record,
+    mode: { kind: blob.mode.kind, personaId: blob.mode.personaId ?? null, rank, key, coaching },
+    spoken,
+    savedAt: blob.savedAt ?? null,
+  };
 }
 
 export function clearGame(storage = defaultStorage()) {

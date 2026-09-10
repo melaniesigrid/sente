@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
   ChevronLeft, Flag, RotateCcw, RefreshCw, Trophy, Timer, CircleDot, Scale, History,
-  MessageCircle, Bot, Send, User, Handshake, Check, Download, Undo2, Award,
+  MessageCircle, Bot, Send, User, Handshake, Check, Download, Undo2, Award, GraduationCap,
 } from "lucide-react";
 import {
   createGame, play, pass, resign, timeout, undo, markDead, acceptScore, scoreBoard, chainsInAtari, idx,
   lastMoveIndex, aiChooseMoveForRecord, kataChooseMoveForRecord, profileForRank, loadModel, onModelProgress, modelReady,
-  toSgf, IllegalMoveError, GLICKO, rateAgainst,
+  toSgf, IllegalMoveError, GLICKO, rateAgainst, detectShapes,
 } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
 import { ClockFace } from "../components/Clock.jsx";
@@ -24,6 +24,7 @@ import { startDuel, duelOutcome, recordDuel, duelResultText, duelShareText, duel
 import { ShareDuelButton } from "../components/DuelCard.jsx";
 import { saveProfile } from "../store/profile.js";
 import { saveGame, clearGame } from "../store/gameStore.js";
+import { chooseRemark, noteSpoken, PACING } from "../content/commentary.js";
 import {
   statusText, refusalText, captionText, resignLabel, resultCard, ratingLine, RESIGN_CONFIRM_MS,
 } from "./gameStatus.js";
@@ -62,7 +63,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   /* A master is a house player with a corpus behind it: the loaded masters JSON
      rides on the mode and goes straight to the engine's bot seam. It has no rank
      and no rating, because agreement with a year profile is not a strength and
-     Sente does not put a number on the screen it cannot stand behind. Master games
+     Joseki does not put a number on the screen it cannot stand behind. Master games
      are therefore unrated, and the table says so. */
   const master = mode.master ?? null;
   // The rank this game is played at; house players adapt to it. A duel fixes it by the
@@ -89,11 +90,22 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const [loading, setLoading] = useState(null);    // {loaded, total} while the network downloads
   const [hostLost, setHostLost] = useState(false); // duel only: the network could not answer
   const [reviewing, setReviewing] = useState(false); // walking back through the finished game
+  /* Coaching. The house player names the shapes you make as you make them. It is off
+     until you ask for it, and asking is a one-way door: a game the coach has spoken in
+     is unrated for the rest of its life, and the switch disables itself so nobody can
+     take advice for fifty moves and then turn it off to collect the rating. Duels and
+     master games are excluded outright. `spoken` is what the coach has already said,
+     so it neither repeats itself nor chatters. */
+  const [coaching, setCoaching] = useState(() => !!mode.coaching);
+  const [confirmCoach, setConfirmCoach] = useState(false);   // two clicks, like resigning
+  const [spoken, setSpoken] = useState(() => mode.spoken ?? {});
+  const lastChatterMove = useRef(-99);              // the coach yields to table talk
   const resumed = useRef(false);                   // the resume effect runs once, StrictMode or not
   const alive = useRef(true);
   const chatEndRef = useRef(null);
   const thinkTimer = useRef(null);
   const resignTimer = useRef(null);
+  const coachTimer = useRef(null);
   const momentTimer = useRef(null);
   const over = rec.phase === "ended" ? rec.result : null;
   const scoring = rec.phase === "scoring";
@@ -107,6 +119,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     return () => {
       alive.current = false;
       clearTimeout(thinkTimer.current); clearTimeout(resignTimer.current); clearTimeout(momentTimer.current);
+      clearTimeout(coachTimer.current);
     };
   }, []);
 
@@ -129,8 +142,12 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     // rebuilding it cannot carry the loaded corpus, so a resume would sit you down
     // opposite a different opponent than the one you left.
     if (rec.phase === "ended" || rec.moves.length === 0 || master) clearGame();
-    else saveGame({ record: rec, mode: { kind: mode.kind, personaId: persona ? persona.id : null, rank: botRank, key: duel ? duel.key : null } });
-  }, [rec, mode.kind, persona, botRank, duel, master]);
+    else saveGame({
+      record: rec,
+      mode: { kind: mode.kind, personaId: persona ? persona.id : null, rank: botRank, key: duel ? duel.key : null, coaching },
+      spoken,
+    });
+  }, [rec, mode.kind, persona, botRank, duel, master, coaching, spoken]);
 
   /* The first stone is the attempt: the day is written to the profile as Black's
      first move lands, so a misclick on the card or a reload while the network
@@ -198,6 +215,12 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
         notify({ icon: won ? "trophy" : "flag", text: `${won ? "Victory" : "Defeat"} · unrated` });
+      } else if (persona && coaching) {
+        // The coach spoke in this game, so the game moves no rating. Said plainly,
+        // the way a duel and a master game say it.
+        const won = next.result.winner === "b";
+        say(pick(won ? persona.chat.loss : persona.chat.win));
+        notify({ icon: won ? "trophy" : "flag", text: `${won ? "Victory" : "Defeat"} · unrated, coached` });
       } else if (persona) {
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
@@ -226,7 +249,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       }
     }
     return next;
-  }, [persona, duel, master, botRank, profile, say, setProfile, notify, sound]);
+  }, [persona, duel, master, botRank, profile, say, setProfile, notify, sound, coaching]);
 
   /* The clock. Running out of time is a rule, so the flag goes through the engine's
      `timeout` and settles through the same `conclude` a resignation does: a loss on
@@ -260,6 +283,11 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         } else {
           next = pass(r);
         }
+        /* This `conclude` is the one the bot closed over when it started thinking, so
+           it can hold a stale `coaching`. Harmless only because `settle` can end at
+           `play` or `pass` and neither reaches "ended" - a second pass opens scoring.
+           If the house player ever learns to resign or to lose on time from here, this
+           closure has to be refreshed or a coached game could be rated. */
         setRec(conclude(next, r));
       }, wait);
     };
@@ -292,6 +320,32 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /* The coach. Reads the shape the stone just made and, if there is something worth
+     saying and the pacing allows it, says it in this house player's own words.
+
+     It speaks into the chat and never into the record. `botTurn(next)` closes over the
+     record it is handed and settles from that closure a beat later, so a `setRec` issued
+     after it is silently dropped - writing the remark into the game as an SGF comment has
+     to wait for the archive, where it can be folded in before the hand-off.
+
+     Only your stones, never the bot's: the coach talks about the shape you made. It also
+     yields - to a capture, which is louder, and to table talk, which is a conversation. */
+  const coach = useCallback((next, c, r) => {
+    if (!coaching || !persona || next.phase !== "playing") return;
+    const moveNumber = next.moves.length;
+    if (moveNumber - lastChatterMove.current < PACING.minGap) return;
+    if (next.lastCaptured.length > 0) return;
+    const findings = detectShapes(next.board, { c, r }, { color: "b", captured: next.lastCaptured });
+    /* `spoken` is read from the closure and written functionally below. Safe because
+       onPlay is a discrete event and the house player waits at least 380ms before its
+       reply, so a render always lands between two coached moves. If that ever stopped
+       holding, a stale map would repeat the same sentence rather than fall silent. */
+    const remark = chooseRemark(findings, { spoken, moveNumber, personaId: persona.id });
+    if (!remark) return;
+    say(remark.line);
+    setSpoken(sp => noteSpoken(sp, remark.shapeId, moveNumber));
+  }, [coaching, persona, spoken, say]);
+
   const onPlay = (c, r) => {
     if (over || thinking) return;
     if (scoring) {
@@ -315,6 +369,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     afterMove(next, turn);
     if (persona) {
       if (next.lastCaptured.length >= 2) say(pick(persona.chat.userCapture));
+      else coach(next, c, r);
       botTurn(next);
     }
   };
@@ -343,6 +398,24 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     clearTimeout(resignTimer.current);
     setConfirmResign(false);
     setRec(conclude(resign(rec, mySide), rec));
+  };
+
+  /* Arming the coach costs the game its rating and cannot be taken back, so it asks
+     twice, exactly as resigning does. One click is never enough for a one-way door.
+     Refused once the game has stopped being playable: after the last stone there is
+     nothing left to coach, and a stray click would only throw away a rating. */
+  const canCoach = persona && !duel && !master && !coaching && !over && !scoring;
+  const askCoaching = () => {
+    if (!canCoach) return;
+    if (!confirmCoach) {
+      setConfirmCoach(true);
+      clearTimeout(coachTimer.current);
+      coachTimer.current = setTimeout(() => setConfirmCoach(false), RESIGN_CONFIRM_MS);
+      return;
+    }
+    clearTimeout(coachTimer.current);
+    setConfirmCoach(false);
+    setCoaching(true);
   };
 
   const undoDepth = persona ? 2 : 1;
@@ -395,6 +468,12 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     const fresh = createGame(table);
     setRec(fresh);
     if (persona) setChat([{ who: "bot", text: pick(persona.chat.greet) }]);
+    // A new game is a new decision: the coach is off again and the table is rated
+    // again, so a rematch after a coached game is not silently coached too.
+    setCoaching(false);
+    setConfirmCoach(false);
+    setSpoken({});
+    lastChatterMove.current = -99;
     // With a handicap White opens, and White is the house player.
     if (persona && fresh.toPlay === "w") botTurn(fresh);
   };
@@ -417,6 +496,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     if (!t || !persona) return;
     setChat(c => [...c, { who: "you", text: t }]);
     setDraft("");
+    lastChatterMove.current = rec.moves.length;   // the coach waits out a conversation
     setTimeout(() => say(pick(persona.chat.reply)), 700 + Math.random() * 900);
   };
 
@@ -509,7 +589,8 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
               <p className="fine">
                 {duel ? "Daily duel, unrated. Everyone met this host on this board today; one attempt each."
                   : master ? "Unrated. Agreement with a profile is not a strength, so this game moves no rating."
-                    : persona ? ratingLine(delta) ?? "Rated against a house player." : "Unrated. Thank you both for the game."}
+                    : persona && coaching ? "Unrated. The coach spoke in this game, so it moves no rating."
+                      : persona ? ratingLine(delta) ?? "Rated against a house player." : "Unrated. Thank you both for the game."}
                 {over.method === "score" && rec.dead.length > 0 && ` · ${rec.dead.length} dead ${rec.dead.length === 1 ? "stone" : "stones"} removed`}
               </p>
               <div className="row">
@@ -541,12 +622,30 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
             <Card inset className="caps">
               <div><span className="dot dot-b" /> Black captures: {rec.captures.b}</div>
               <div><span className="dot dot-w" /> White captures: {rec.captures.w}</div>
-              <div className="fine">{captionText({ size: rec.size, komi: rec.komi, handicap: rec.handicap, rules: rec.rules, rated: !!persona && !duel && !master, duel: !!duel })}{hints ? " · atari hints on" : ""}{!over ? " · P passes, U takes back" : ""}</div>
+              <div className="fine">{captionText({ size: rec.size, komi: rec.komi, handicap: rec.handicap, rules: rec.rules, rated: !!persona && !duel && !master && !coaching, duel: !!duel })}{hints ? " · atari hints on" : ""}{!over ? " · P passes, U takes back" : ""}</div>
             </Card>
           )}
           {persona ? (
             <Card className="chat-card">
-              <div className="chat-head"><MessageCircle size={15} /><span>Table talk</span><span className="bot-chip"><Bot size={11} /> {duel ? "today's host" : "house player"}</span></div>
+              <div className="chat-head">
+                <MessageCircle size={15} /><span>Table talk</span>
+                {!duel && !master && (
+                  <button
+                    type="button"
+                    className={`coach-toggle${coaching ? " on" : ""}${confirmCoach ? " asking" : ""}`}
+                    onClick={askCoaching}
+                    aria-disabled={!canCoach}
+                    aria-pressed={coaching}
+                    title={coaching
+                      ? "The coach is on for this game, and this game is unrated."
+                      : "Have your opponent name the shapes you make. This game becomes unrated, for good."}
+                  >
+                    <GraduationCap size={11} />
+                    {coaching ? "coaching on · unrated" : confirmCoach ? "unrate this game?" : "ask for coaching"}
+                  </button>
+                )}
+                <span className="bot-chip"><Bot size={11} /> {duel ? "today's host" : "house player"}</span>
+              </div>
               <div className="chat-log" aria-live="polite">
                 {chat.map((m, i) => (
                   <div key={i} className={`bubble ${m.who === "you" ? "mine" : ""}`}>{m.text}</div>
@@ -574,7 +673,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       {ceremony && (
         <div className="ceremony" role="dialog" aria-modal="true" aria-label={`Promoted to ${ceremony.label}`}>
           <Card className="ceremony-card">
-            <MokuMark state="promoted" sash={ceremony.color} size={96} />
+            <MokuMark state="promoted" sash={ceremony.color} size={120} />
             <p className="eyebrow"><Award size={13} /> Promotion</p>
             <h3 className="result-headline">{ceremony.label}</h3>
             <BeltRibbon belt={ceremony} className="ceremony-belt" />

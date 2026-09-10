@@ -65,7 +65,7 @@ describe("sanitizeProfile", () => {
     expect(warn.mock.calls[0][0]).toMatch(/tierPassed/);
   });
   it("keeps a known typeface id and resets an unknown one", () => {
-    expect(sanitizeProfile({ ...defaultProfile, typeface: "clubhouse" }).typeface).toBe("clubhouse");
+    expect(sanitizeProfile({ ...defaultProfile, typeface: "vitrine" }).typeface).toBe("vitrine");
     for (const bad of ["", "helvetica", 7, null]) {
       expect(sanitizeProfile({ ...defaultProfile, typeface: bad }).typeface).toBe(DEFAULT_TYPEFACE);
     }
@@ -85,7 +85,7 @@ describe("sanitizeProfile", () => {
 describe("the stored palette", () => {
   const MINE = { ground: "#101014", ink: "#e6e6ea", accent: "#b98cff", cream: "#f2f2f6" };
 
-  // Someone opening Sente at night on a dark machine should not be handed
+  // Someone opening Joseki at night on a dark machine should not be handed
   // full-brightness cream and left to go find the setting.
   it("ships following the device", () => {
     expect(defaultProfile.theme).toBe(SYSTEM_THEME);

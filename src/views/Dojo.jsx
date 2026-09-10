@@ -124,7 +124,7 @@ export function DojoView({ profile, setProfile, notify, go, room }) {
           <div className="dojo-bar">
             <span className="brand">
               <span className="brand-mark" aria-hidden="true" />
-              <span className="brand-name">Sente</span>
+              <span className="brand-name">Joseki</span>
             </span>
             <span className="dojo-nav">
               <span className="dojo-nav-btn on">Play</span>
@@ -225,7 +225,7 @@ export function DojoView({ profile, setProfile, notify, go, room }) {
           {failing.length > 0 && (
             <p className="fine dojo-block">
               {failing.length === 1 ? "One rule is broken" : `${failing.length} rules are broken`}, so this
-              room cannot be worn yet. Every named room in Sente clears all six.
+              room cannot be worn yet. Every named room in Joseki clears all six.
             </p>
           )}
         </div>

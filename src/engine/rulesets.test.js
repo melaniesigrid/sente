@@ -157,10 +157,10 @@ describe("suicide", () => {
     }
   });
 
-  /* Sente enforces positional superko under every ruleset, and a one-stone
+  /* Joseki enforces positional superko under every ruleset, and a one-stone
      self-capture always hands back exactly the position that was there a moment
      ago. So the smallest suicide of all is refused even under New Zealand rules
-     - as superko, which is what it is. This is the one place where Sente's
+     - as superko, which is what it is. This is the one place where Joseki's
      choice of superko is visible in play, and it is stated rather than hidden. */
   it("refuses a one-stone self-capture as superko, even under New Zealand rules", () => {
     const g = createGame({

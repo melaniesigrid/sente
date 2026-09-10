@@ -17,7 +17,7 @@ measured, never claimed.
 
 - Main is at v0.1.0.0. House players run KataGo's human-style network in the browser
   (`src/engine/kata/`). The network conditions on rank, opponent rank, era, time control,
-  date and source. Sente's `encodeMeta` (`features.js:184`) hard-codes source KGS and two
+  date and source. Joseki's `encodeMeta` (`features.js:184`) hard-codes source KGS and two
   dates. KataGo itself ships a `proyear_<year>` profile (`SGFMetadata::makeHistoricalProProfile`):
   both ranks at inverse-rank 1, source GoGoD, date set to the year. That is "a strong player
   of 1846 as the GoGoD pros played", available today with a ten-line change to `encodeMeta`
@@ -50,9 +50,9 @@ measured, never claimed.
 - Rights: game records are facts, and the source says so: the collection at
   homepages.cwi.nl/~aeb/go/games states "I do not claim any rights on this collection. The
   games here are in the public domain." Commentary in modern books is copyrighted, so every
-  word of analysis in Sente is original. The Classic of Weiqi in Thirteen Chapters (Zhang
+  word of analysis in Joseki is original. The Classic of Weiqi in Thirteen Chapters (Zhang
   Ni, Song dynasty, c. 1050) and the go proverbs are public domain; modern translations are
-  not, so Sente renders its own.
+  not, so Joseki renders its own.
 
 ## Premise challenge
 

@@ -61,17 +61,20 @@ describe("typeface pairings", () => {
     }
   });
 
-  it("keeps a script out of the quotes and the captions", () => {
+  // A script is a display face and nothing else. There is none left in the set,
+  // and this is what keeps one from walking back into a caption: the ornament
+  // voice is read mid-sentence at reading size, where a script is decoration
+  // standing where a word should be.
+  it("keeps a script out of every voice, the ornament included", () => {
     for (const t of TYPEFACES) {
-      expect(quoteOf(t), t.id).not.toMatch(/script|bellique|ronalltie/);
-      expect(captionOf(t), t.id).not.toMatch(/script|bellique|ronalltie/);
+      for (const voice of [t.display, t.italic, t.body, quoteOf(t), captionOf(t)]) {
+        expect(voice, t.id).not.toMatch(/script|bellique|ronalltie/);
+      }
     }
   });
 
-  it("sets the quotes in a serif wherever the pairing owns one", () => {
-    for (const t of TYPEFACES.filter(t => !t.serifless)) {
-      expect(quoteOf(t), t.id).toMatch(/serif$/);
-    }
+  it("sets the quotes in a serif", () => {
+    for (const t of TYPEFACES) expect(quoteOf(t), t.id).toMatch(/serif$/);
   });
 
   it("never slants a face that has no italic of its own", () => {

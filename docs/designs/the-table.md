@@ -5,15 +5,15 @@ and why, so the next change to any of it starts from the reasoning rather than
 from the code.
 
 Two complaints started this. Komi felt too big, and players were losing games
-they should not have lost. And the rank Sente gave a player did not agree with
+they should not have lost. And the rank Joseki gave a player did not agree with
 the rank the same player had somewhere else.
 
-Both turned out to be true, and both had the same root: Sente was making up its
+Both turned out to be true, and both had the same root: Joseki was making up its
 own numbers where the rest of the world already has numbers that mean something.
 
 ## Komi is not one number
 
-Sente gave White 7.5 points on every board, with 0.5 in a handicap game. That is
+Joseki gave White 7.5 points on every board, with 0.5 in a handicap game. That is
 the right value for one board out of three.
 
 Komi pays White for going second, and the first move is worth less on a smaller
@@ -50,7 +50,7 @@ entry in `src/engine/rulesets.js`:
 | Chinese      | area      | 7.5          | n                   | no      |
 | New Zealand  | area      | 7 (whole)    | nothing             | yes     |
 
-AGA is the default, because it is what Sente has always counted and what every
+AGA is the default, because it is what Joseki has always counted and what every
 lesson in the library is written in. Nothing a player has already learned becomes
 wrong.
 
@@ -68,14 +68,14 @@ on which count is used, which is why the result card names the ruleset and shows
 the terms it actually added up, rather than a single number.
 
 New Zealand allows a player to fill their own last liberty. There is one honest
-limitation: Sente enforces positional superko under every ruleset, and a
+limitation: Joseki enforces positional superko under every ruleset, and a
 one-stone self-capture always hands back exactly the position that was there a
 moment ago, so the smallest suicide of all is refused as superko even under New
 Zealand rules. Multi-stone self-capture is legal and works. This is the one place
-where Sente's choice of superko is visible in play, and it is stated in the tests
+where Joseki's choice of superko is visible in play, and it is stated in the tests
 rather than hidden.
 
-Sente also departs from Japanese and Chinese rules on long cycles. Both answer a
+Joseki also departs from Japanese and Chinese rules on long cycles. Both answer a
 repetition with a referee's judgement — "no result", or a draw. A server has no
 referee, so the repetition is refused at the point it would be played and the
 game goes on.
@@ -85,7 +85,7 @@ both counts give for the shapes a player below dan will actually meet.
 
 ## The rank is OGS's rank
 
-Sente's old scale was invented: a hundred rating points to a rank, 3000 for
+Joseki's old scale was invented: a hundred rating points to a rank, 3000 for
 shodan. It was internally consistent and meant nothing anywhere else, so a player
 who knew they were 12 kyu had to learn a second, private number.
 

@@ -14,6 +14,9 @@ import { LESSONS } from "../content/lessons.js";
 import { PROBLEMS } from "../content/problems.js";
 import { dayKey, liveStreak } from "../content/kata.js";
 import { saveProfile } from "../store/profile.js";
+import { loadAccount } from "../store/account.js";
+import { serverEnabled } from "../net/api.js";
+import { OnlineProfileCard } from "./OnlineProfile.jsx";
 
 /* ----------------------- THE NINE LEVELS (Classic, ch. 12) -----------------------
    Zhang Ni's nine levels are a scale for dan players: nine steps for the nine
@@ -66,8 +69,11 @@ const roomsFor = (dojo, room) => [
   ...(dojo ? [{ ...dojo, id: DOJO_THEME, name: dojo.name || "Your dojo", mood: "Yours" }] : []),
 ];
 
-export function ProfileView({ profile, setProfile, go, room }) {
+export function ProfileView({ profile, setProfile, go, room, notify }) {
   const rooms = roomsFor(profile.dojo, room);
+  // The account's card, when there is an account. Two profiles sound like one
+  // too many, so each says what it is: this device's, and the server's.
+  const [account, setAccount] = useState(() => (serverEnabled() ? loadAccount() : null));
   const [editing, setEditing] = useState(false);
   const [nameDraft, setNameDraft] = useState(profile.name);
   const games = profile.wins + profile.losses;
@@ -87,7 +93,7 @@ export function ProfileView({ profile, setProfile, go, room }) {
   const streak = liveStreak(profile, dayKey());
 
   return (
-    <div className="stack">
+    <div className="stack arrives">
       <Card className="profile-hero">
         <Avatar name={profile.name} tint={profile.tint} size={92} />
         <div className="profile-id">
@@ -113,6 +119,8 @@ export function ProfileView({ profile, setProfile, go, room }) {
           </div>
         </div>
       </Card>
+
+      {account && <OnlineProfileCard account={account} setAccount={setAccount} notify={notify} />}
 
       <PullQuote>{plainFor("profile")}</PullQuote>
       <Card className="passage-card"><Passage context="profile" /></Card>
@@ -158,7 +166,7 @@ export function ProfileView({ profile, setProfile, go, room }) {
       <Card>
         <div className="stat-head"><Palette size={16} /><span>Palette</span></div>
         <p className="fine" style={{ marginTop: 6 }}>
-          Eight rooms for the same board. A palette sets the ground, the two lights every
+          Ten rooms for the same board. A palette sets the ground, the two lights every
           shadow is cut from, and the one colour that means here; the shapes, the spacing
           and the shadows themselves never move.
         </p>
@@ -198,7 +206,7 @@ export function ProfileView({ profile, setProfile, go, room }) {
       <Card>
         <div className="stat-head"><Type size={16} /><span>Typeface</span></div>
         <p className="fine" style={{ marginTop: 6 }}>
-          Eight pairings for the same design system. Each one sets the headings, the
+          Three pairings for the same design system. Each one sets the headings, the
           serif that carries the sayings, the body text and the small labels; the
           palette and the shadows never move.
         </p>
@@ -210,7 +218,7 @@ export function ProfileView({ profile, setProfile, go, room }) {
               aria-pressed={profile.typeface === t.id}
               aria-label={`Typeface ${t.name}`}
             >
-              <span className="type-sample" style={{ fontFamily: t.display, fontWeight: t.weight }}>Sente 9d</span>
+              <span className="type-sample" style={{ fontFamily: t.display, fontWeight: t.weight }}>Joseki 9d</span>
               <span className="type-name">{t.name}</span>
             </button>
           ))}
@@ -257,7 +265,7 @@ export function ProfileView({ profile, setProfile, go, room }) {
             </div>
           </div>
           <div className="setting-row">
-            <MokuMark size={22} state={moku && moku.off ? "idle" : "watching"} />
+            <MokuMark size={34} state={moku && moku.off ? "idle" : "watching"} />
             <div className="setting-copy">
               <strong>Moku at the table</strong>
               <span className="fine">The stone with two eyes. Every face it makes is a fact about the board: atari, ko, a capture. Never a mood.</span>

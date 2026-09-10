@@ -7,7 +7,7 @@ export default {
   subtitle: "The one rule everything grows from",
   plain: "A stone breathes through the empty points beside it. Take the last one and the stone comes off the board, and connected stones breathe together, so count the group and never the single stone.",
   tier: 1, rank: "30k", track: "tactics", size: 9, prereqs: [], minutes: 4,
-  author: "Sente", sources: [],
+  author: "Joseki", sources: [],
   steps: [
     {
       type: "info",

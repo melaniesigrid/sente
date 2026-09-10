@@ -19,7 +19,7 @@ export const WELCOME_LESSON = {
   title: "Your first stones",
   subtitle: "Everything you need to start a game",
   tier: 1, rank: "30k", track: "basics", size: 9, prereqs: [], minutes: 3,
-  author: "Sente", sources: [],
+  author: "Joseki", sources: [],
   steps: [
     {
       type: "info",

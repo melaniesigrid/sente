@@ -1,4 +1,4 @@
-# Sente — play go, beautifully
+# Joseki — play go, beautifully
 
 A full-featured go (baduk) server with a design-first UI. Play people over the network
 or house players with distinct personalities, work through guided lessons and tsumego

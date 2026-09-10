@@ -13,18 +13,7 @@
    These are demo/personal-use cuts. See src/fonts/LICENSES.md before this
    ships anywhere public. */
 import welorac from "../fonts/Welorac-Regular.otf";
-import bellique from "../fonts/Bellique-Regular.otf";
-import galliardSerif from "../fonts/MaisonGalliard-Serif.otf";
-import galliardScript from "../fonts/MaisonGalliard-Script.otf";
-import galliardSans from "../fonts/MaisonGalliard-Sans.otf";
-import kuigaf from "../fonts/Kuigaf-Regular.otf";
-import raventhorn from "../fonts/Raventhorn-Regular.otf";
-import ronalltie from "../fonts/Ronalltie-Regular.ttf";
-import further from "../fonts/Further-Regular.otf";
-import cocogooseThin from "../fonts/CocogoosePro-Thin.ttf";
-import cocogooseItalic from "../fonts/CocogoosePro-LightItalic.ttf";
 import qliesya from "../fonts/Qliesya-Regular.otf";
-import daenerys from "../fonts/Daenerys-Regular.otf";
 
 /** One @font-face. `adjust` is the size-adjust percentage that brings the
  *  family onto Fraunces' optical size. */
@@ -38,32 +27,16 @@ const face = (family, url, format, adjust) => `
 }`;
 
 /* Percentages start from the measured x-height (target 0.50em) and are then
-   corrected against the rendered page: a caps-only or condensed face reads
-   smaller than its x-height says, and the two scripts are read at label sizes
-   where their cap height is what registers. */
+   corrected against the rendered page: these two share an x-height and still
+   need different adjusts, because a didone at hairline weight reads smaller
+   than its measurement says.
+
+   Two faces, because two local display cuts are left. The pairings that wore the
+   rest — the Galliard trio, Kuigaf, Raventhorn, Ronalltie, Further, the Cocogoose
+   pair and the Bellique script — were cut from the set, so nothing imports those
+   files and nothing bundles them. The files are still in src/fonts; LICENSES.md
+   says which of them ship. */
 export const FONT_FACES = [
   face("sente-welorac", welorac, "opentype", 128),           // x-height .342
-  face("sente-bellique", bellique, "opentype", 104),         // script, cap .70
-  face("sente-galliard-serif", galliardSerif, "opentype", 100),
-  face("sente-galliard-script", galliardScript, "opentype", 100),
-  face("sente-galliard-sans", galliardSans, "opentype", 100),  // the trio's body face
-
-  face("sente-kuigaf", kuigaf, "opentype", 106),             // x-height .474
-  face("sente-raventhorn", raventhorn, "opentype", 116),     // caps-only, x-height .400
-  face("sente-ronalltie", ronalltie, "truetype", 88),        // script, cap .85
-  face("sente-further", further, "opentype", 148),           // condensed caps, reads small at .450
-  face("sente-cocogoose", cocogooseThin, "truetype", 80),    // geometric, x-height .639
-  face("sente-cocogoose-italic", cocogooseItalic, "truetype", 80),
   face("sente-qliesya", qliesya, "opentype", 140),           // didone, x-height .342
 ].join("\n");
-
-/* The signature is not part of any pairing and never changes with one: it is one
-   person's name in one hand, and a hand does not get themed. Daenerys keeps its
-   own metrics — no size-adjust, no overrides — because a signature is set by eye,
-   at one size, in one place. */
-export const SIGNATURE_FACE = `
-@font-face {
-  font-family: 'sente-signature';
-  src: url(${daenerys}) format('opentype');
-  font-weight: 400; font-style: normal; font-display: swap;
-}`;

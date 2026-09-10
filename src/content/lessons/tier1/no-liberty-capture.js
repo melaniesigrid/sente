@@ -12,7 +12,7 @@ export default {
   subtitle: "A 'suicide' point that isn't",
   plain: "You may not play a stone that leaves itself with no liberties, but captures are settled first. If your move takes your opponent's last liberty, their stones come off and yours breathes through the space they leave behind.",
   tier: 1, rank: "28k", track: "tactics", size: 9, prereqs: ["liberties"], minutes: 3,
-  author: "Sente", sources: [],
+  author: "Joseki", sources: [],
   steps: [
     {
       type: "info",

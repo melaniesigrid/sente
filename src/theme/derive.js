@@ -12,7 +12,7 @@
    An author may still override any derived value — the named palettes do,
    where a hand-mixed tone beat the computed one — but nothing is required. */
 import { mix, lighten, darken, toTriple, isDarkColor, luminance, contrast } from "./color.js";
-import { TONES, READING } from "./tokens.js";
+import { TONES, READING, LARGE } from "./tokens.js";
 
 /** The stones, as they are cut. Slate and shell are real objects; a theme does
  *  not tint them, it only seats them further into a dark board. */
@@ -31,6 +31,40 @@ export function deriveLights(ground, ink) {
     ? { light: mix(ground, ink, 0.09), dark: darken(ground, 0.45) }
     : { light: lighten(ground, 0.72), dark: darken(ground, 0.18) };
 }
+
+/** The quietest version of `tone` that still reads against the ground.
+ *
+ *  The opposite errand to deriveAccentInk above, and a separate function because
+ *  it walks the other way: that one takes a mark that is too faint and carries it
+ *  away from the ground until it reads, this one takes the ink and lets it fall
+ *  back toward the ground until it is about to stop reading, then keeps the last
+ *  step that did.
+ *
+ *  Secondary text was written as an opacity for years, and an opacity is a fixed
+ *  fraction of whatever is behind it: House ink at `.55` measures 2.60:1, which
+ *  is not quiet text, it is a rumour of text. This gets what that opacity was
+ *  reaching for and stops where the rule says stop. Binary search rather than a
+ *  fixed step, because the last usable step is exactly what is wanted here and a
+ *  coarse walk overshoots it; twenty halvings land inside a thousandth of a
+ *  ratio, far below the precision of a hex. */
+export function quieten(tone, ground, floor) {
+  let lo = 0, hi = 1;
+  for (let i = 0; i < 20; i++) {
+    const mid = (lo + hi) / 2;
+    if (contrast(mix(tone, ground, mid), ground) >= floor) lo = mid; else hi = mid;
+  }
+  return mix(tone, ground, lo);
+}
+
+/** Secondary text: as quiet as this room's ink gets while still being readable
+ *  at any size. A hair over the floor, so rounding in a browser's audit panel
+ *  cannot push a passing value back under it. */
+export const deriveInk2 = (ink, ground) => quieten(ink, ground, READING + 0.1);
+
+/** Incidental text — the oversized lesson numeral, the rank beside a level, a
+ *  step number set at display size. Held to the large-text floor and spent on
+ *  nothing small. */
+export const deriveInk3 = (ink, ground) => quieten(ink, ground, LARGE + 0.1);
 
 /** A warm warning tone that belongs to this room: the ground pulled a long way
  *  toward a fixed terracotta, so it stays legible on paper and on lacquer. */
@@ -101,6 +135,11 @@ export function tokensFor(tones) {
     "--light": t.light,
     "--dark": t.dark,
     "--ink": t.ink,
+    // The two quiet inks. Nothing in the stylesheet dims a word with an opacity
+    // any more: it asks for the step down it wants, and gets a colour that still
+    // reads in the room it is standing in.
+    "--ink-2": t.ink2 || deriveInk2(t.ink, t.ground),
+    "--ink-3": t.ink3 || deriveInk3(t.ink, t.ground),
     "--cream": t.cream,
     "--danger": t.danger,
 
@@ -113,6 +152,10 @@ export function tokensFor(tones) {
     // The one accent token that is a colour rather than a wash, because it is
     // the only one that lands on a word somebody has to read.
     "--accent-ink": t.accentInk || deriveAccentInk(t.accent, t.ground),
+    // The warning has the same two lives the accent does — a pill and a chip at
+    // 2.9:1, and the word "Resigned" at reading size — so it is walked up the
+    // same way. Same errand, same function.
+    "--danger-ink": t.dangerInk || deriveAccentInk(t.danger, t.ground),
 
     "--sh-ink": shInk,
     "--sh-lite": shLite,

@@ -22,7 +22,7 @@ export default {
   subtitle: "A connection that needs no move, and a move that costs the player who makes it",
   plain: "Some shapes are connected already, so poking at them gains nothing and quietly spends something: the ko threat that position would have been later. A forcing move you did not need is a move thrown away.",
   tier: 2, rank: "17k", track: "shape", size: 9, prereqs: ["connect-cut"], minutes: 5,
-  author: "Sente", book: "proverbs",
+  author: "Joseki", book: "proverbs",
   steps: [
     {
       type: "maxim",

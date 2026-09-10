@@ -39,6 +39,13 @@ export function refund(bucket, now, windowMs) {
 export const REGISTER_LIMIT = 20;
 export const REGISTER_WINDOW_MS = 60 * 60 * 1000;
 
+/** How many sign-in attempts one address may make in an hour. Thirty is far
+ *  more than a person who has forgotten which password they used will need,
+ *  and far less than guessing one is worth. Every attempt counts, right or
+ *  wrong, so a correct guess does not buy the guesser a fresh budget. */
+export const SIGNIN_LIMIT = 30;
+export const SIGNIN_WINDOW_MS = 60 * 60 * 1000;
+
 /** The caller's address, or null when the platform did not give us one
  *  (local `wrangler dev`, or a request that arrived without the header). */
 export function callerIp(req) {
@@ -47,3 +54,17 @@ export function callerIp(req) {
   const first = ip.split(",")[0].trim();
   return first.length && first.length <= 64 ? first : null;
 }
+
+/** How many ways back in one address — the caller's, and the account's — may
+ *  ask for in an hour. Low on purpose in both directions: a person who has
+ *  forgotten a password asks once and waits for the letter, and the limit on
+ *  the account's own address is what keeps this from being a way to fill
+ *  somebody else's inbox by typing it over and over. */
+export const FORGOT_LIMIT = 5;
+export const FORGOT_WINDOW_MS = 60 * 60 * 1000;
+
+/** How many confirmation letters one account may ask for in an hour. Enough
+ *  for a letter that went to spam and a second try, and no more: the caller
+ *  is signed in, so this is not a way in, only a way to send. */
+export const VERIFY_LIMIT = 5;
+export const VERIFY_WINDOW_MS = 60 * 60 * 1000;

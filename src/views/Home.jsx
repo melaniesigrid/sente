@@ -1,8 +1,7 @@
-import { useState, useEffect, useRef } from "react";
-import { Swords, GraduationCap, Target, Trophy, Route, Sparkles, Play, Trash2, CalendarCheck, Flame } from "lucide-react";
-import { createBoard, tryPlay, aiChooseMove } from "../engine/index.js";
-import { Board } from "../components/Board.jsx";
-import { Card, Btn, PullQuote } from "../components/ui.jsx";
+import { useState } from "react";
+import { Swords, GraduationCap, Target, Trophy, Play, Trash2, CalendarCheck, Flame } from "lucide-react";
+import { MiniSelfPlay } from "../components/MiniSelfPlay.jsx";
+import { Card, Btn, RankBadge, PullQuote } from "../components/ui.jsx";
 import { plainFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { LESSONS } from "../content/lessons.js";
@@ -37,27 +36,36 @@ export function Home({ profile, go, onResume }) {
   const kataDone = profile.kataDate === today;
   const streak = liveStreak(profile, today);
   useMokuFacts({ view: "home", seed: games });
+  const greeting = games ? "Welcome back" : "Welcome to the board";
+  // One line naming the next honest thing to do, so the dashboard opens on a
+  // suggestion rather than on a wall of numbers.
+  const nudge = !games
+    ? "Nothing played yet. A house player is waiting whenever you are \u2014 nine lines is plenty for a first game."
+    : lessonsDone < LESSONS.length
+      ? `${LESSONS.length - lessonsDone} ${LESSONS.length - lessonsDone === 1 ? "lesson" : "lessons"} still ahead of you, and the ladder is open all day.`
+      : "Every lesson read. What is left is games \u2014 and the reading that comes with them.";
   if (opened) {
     return <Review record={opened} profile={profile} onExit={() => setOpened(null)} />;
   }
 
   return (
-    <div className="stack">
+    <div className="stack arrives">
       <Card className="hero">
         <div className="hero-copy">
-          <p className="eyebrow">A home for the oldest game</p>
-          <h1 className="display">Play go,<br />beautifully.</h1>
-          <p className="lede">
-            Learn the game from its first breath, sharpen your reading on classical
-            shapes, and take your rank onto the ladder — one calm board at a time.
-          </p>
+          <p className="eyebrow">{greeting}</p>
+          <h1 className="display">{profile.name}.</h1>
+          <div className="row dash-rank">
+            <RankBadge rating={profile.rating} rd={profile.rd} size="lg" precise />
+            <span className="fine">{games ? `${profile.wins} of ${games} won` : "no games played yet"}</span>
+          </div>
+          <p className="lede">{nudge}</p>
           <div className="row">
             <Btn icon={Swords} primary onClick={() => go("play")}>Find a game</Btn>
-            <Btn icon={GraduationCap} onClick={() => go("learn")}>Start learning</Btn>
+            <Btn icon={GraduationCap} onClick={() => go("learn")}>Keep learning</Btn>
           </div>
         </div>
         <div className="hero-board" aria-hidden="true">
-          <MiniSelfPlay />
+          <MiniSelfPlay sizePx={300} />
         </div>
       </Card>
 
@@ -114,43 +122,6 @@ export function Home({ profile, go, onResume }) {
       </div>
 
       <OpenSgf onOpen={(record) => setOpened(record)} />
-
-      <Card inset className="roadmap">
-        <div className="stat-head"><Route size={17} /><span>Where this is going</span></div>
-        <ul>
-          <li><Sparkles size={14} /> Real-time matches over the network — same game loop, moves over a socket</li>
-          <li><Sparkles size={14} /> Global Glicko-2 ladder with confidence-aware seeding</li>
-          <li><Sparkles size={14} /> Friends, rooms, and spectating with live chat</li>
-          <li><Sparkles size={14} /> 13×13 and 19×19 boards, joseki trees, engine review</li>
-          <li><Sparkles size={14} /> Daily puzzle & spaced-repetition tsumego queue</li>
-        </ul>
-      </Card>
     </div>
   );
-}
-
-/* Self-playing mini board for the hero — the demo is the real engine. */
-function MiniSelfPlay() {
-  const [board, setBoard] = useState(() => createBoard(9));
-  const stateRef = useRef({ board: createBoard(9), ko: null, turn: "b", n: 0, passes: 0 });
-  useEffect(() => {
-    const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const tick = () => {
-      const s = stateRef.current;
-      if (s.passes >= 2 || s.n > 60) {
-        stateRef.current = { board: createBoard(9), ko: null, turn: "b", n: 0, passes: 0 };
-        setBoard(stateRef.current.board);
-        return;
-      }
-      const mv = aiChooseMove(s.board, s.turn, s.ko, s.n);
-      if (!mv) { s.passes++; s.turn = s.turn === "b" ? "w" : "b"; return; }
-      const res = tryPlay(s.board, mv[0], mv[1], s.turn, { koPoint: s.ko });
-      if (!res.ok) { s.passes++; return; }
-      stateRef.current = { board: res.board, ko: res.ko, turn: s.turn === "b" ? "w" : "b", n: s.n + 1, passes: 0 };
-      setBoard(res.board);
-    };
-    const iv = setInterval(tick, reduce ? 2600 : 1100);
-    return () => clearInterval(iv);
-  }, []);
-  return <Board board={board} disabled sizePx={300} />;
 }

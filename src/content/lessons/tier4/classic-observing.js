@@ -20,7 +20,7 @@ export default {
   subtitle: "Chapter seven: ahead, keep your shape; behind, go in",
   plain: "Play to the score. Ahead, keep everything simple and connected. Behind, go into the biggest ground still open, because a tidy loss is still a loss.",
   tier: 4, rank: "9k", track: "judgement", size: 9, prereqs: ["classic-calculation", "classic-conflict"], minutes: 7,
-  author: "Sente", sources: [CLASSIC_SOURCE], series: "classic", chapter: 7,
+  author: "Joseki", sources: [CLASSIC_SOURCE], series: "classic", chapter: 7,
   steps: [
     {
       type: "count",

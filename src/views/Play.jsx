@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Play, Users, Handshake, Minus, Plus, Home } from "lucide-react";
-import { Avatar, RankBadge, Btn, PullQuote } from "../components/ui.jsx";
+import { Avatar, RankBadge, Btn, PullQuote } from "../components/ui.jsx";
+import { ScreenHeader } from "../components/ScreenHeader.jsx";
 import { plainFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { DuelCard } from "../components/DuelCard.jsx";
@@ -68,14 +69,14 @@ export function PlayView({ profile, setProfile, notify, resume }) {
       mode: { ...mode, size: table.size, handicap: table.handicap, rules: table.rules, komi, clock },
     });
     return (
-      <div className="stack">
-        <h2 className="section-title">Find a game</h2>
-        <p className="lede">
-          Sit down against another person over the network, play a house opponent — each
-          with their own style and table talk — or hand the device across the table for a
-          face-to-face game. House players adapt to the level you pick, from 25 kyu to 9
-          dan, and play any board.
-        </p>
+      <div className="stack arrives">
+        <ScreenHeader
+          label="Sit down"
+          title={<>Find a <em>game</em>.</>}
+          lede="Play another person over the network, take on a house opponent — each with
+                their own style and table talk — or hand the device across the table for a
+                face-to-face game. House players adapt to the level you pick, from 25 kyu
+                to 9 dan, and play any board." />
         <PullQuote>{plainFor("play")}</PullQuote>
         <Passage context="play" />
         <OnlineCard profile={profile} notify={notify} onPlay={setSession} size={table.size} />
