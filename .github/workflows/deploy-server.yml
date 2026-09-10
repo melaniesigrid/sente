@@ -70,7 +70,16 @@ jobs:
             echo "Cloudflare accepts the token."
             exit 0
           fi
-          echo "::error::Cloudflare rejected the token. It is ${#TOKEN} characters after trimming; an API token is 40. A 32-character value is usually the token ID copied from the token list rather than the secret Cloudflare shows once on creation. Cloudflare said: $BODY"
+          # The length is the fastest way to tell which wrong thing was pasted,
+          # and it gives nothing away: a Cloudflare API token is always 40.
+          case "${#TOKEN}" in
+            40) HINT="It is the right length, so the value itself is wrong: expired, rolled, or deleted. Make a new one and set the secret again." ;;
+            32) HINT="It is 32 characters, which is the token ID from the token list or an account ID, not the token. The token is only shown once, on the screen where you create it." ;;
+            37) HINT="It is 37 characters, which is a Global API Key. This deploy wants a scoped API token instead." ;;
+            80) HINT="It is 80 characters, which is a 40-character token pasted twice. Set the secret again with a single copy." ;;
+            *)  HINT="It is ${#TOKEN} characters; a Cloudflare API token is 40. Copy the token value Cloudflare shows once when you create it, not its name, its ID, or a Global API Key." ;;
+          esac
+          echo "::error::Cloudflare rejected the token. $HINT Steps are in docs/server-operations.md. Cloudflare said: $BODY"
           exit 1
       # The trimmed token has to go through the action's own input: wrangler-action
       # sets CLOUDFLARE_API_TOKEN from it, so leaving the input out blanks whatever
