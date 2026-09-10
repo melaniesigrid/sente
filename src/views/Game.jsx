@@ -334,6 +334,25 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     setRec(r);
   };
 
+  /* P passes, U takes back. Both go through the same handlers the buttons use, so
+     every guard on them holds for the keyboard too — a duel still refuses an undo,
+     and neither fires while a house player is thinking. Typing in the chat box is
+     typing, not a shortcut. */
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const tag = e.target && e.target.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || (e.target && e.target.isContentEditable)) return;
+      const key = e.key.toLowerCase();
+      if (key !== "p" && key !== "u") return;
+      e.preventDefault();
+      if (key === "p") onPass();
+      else onUndo();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  });
+
   /* ----- the ceremony ----- */
   const onAccept = () => { if (scoring) setRec(conclude(acceptScore(rec), rec)); };
   /* Take back both passes and keep playing. If that leaves the house player to
@@ -502,7 +521,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
             <Card inset className="caps">
               <div><span className="dot dot-b" /> Black captures: {rec.captures.b}</div>
               <div><span className="dot dot-w" /> White captures: {rec.captures.w}</div>
-              <div className="fine">{captionText({ size: rec.size, komi: rec.komi, handicap: rec.handicap, rated: !!persona && !duel && !master, duel: !!duel })}{hints ? " · atari hints on" : ""}</div>
+              <div className="fine">{captionText({ size: rec.size, komi: rec.komi, handicap: rec.handicap, rated: !!persona && !duel && !master, duel: !!duel })}{hints ? " · atari hints on" : ""}{!over ? " · P passes, U takes back" : ""}</div>
             </Card>
           )}
           {persona ? (

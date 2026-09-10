@@ -116,9 +116,11 @@ each fixed in its own commit:
       Fixed on the way: the board's screen-reader labels said "I" for column 8,
       disagreeing with every go book and with the coordinates now drawn beside them.
 - [ ] Onboarding for a first-time visitor: name and tint, then a 10-move guided demo.
-- [ ] Keyboard at the table: P pass, U undo. Arrows scrub in review already (2026-09-10:
-      left and right walk a move, up and down jump ten, Home and End go to the ends,
-      N toggles numbers); screen-reader labels already on the board.
+- [x] Keyboard (2026-09-10, branch `feat/table-keys`): P passes and U takes back at the
+      table, both through the same handlers the buttons use so every guard holds; the
+      caption says so. In review: left and right walk a move, up and down jump ten,
+      Home and End go to the ends, N toggles numbers. Screen-reader labels are on the
+      board and now use the same notation the coordinates draw.
 - [ ] Local-only telemetry ring buffer (last 50 games: size, result, bot, move count) to
       tune house-player weights. Never leaves the device.
 
