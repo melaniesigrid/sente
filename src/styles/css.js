@@ -107,7 +107,7 @@ ${SIGNATURE_FACE}
 .chip-meta strong { font-size: 15px; font-weight: 700; }
 .chip-meta span { font-size: 13px; opacity: .6; font-weight: 600; letter-spacing: .06em; }
 
-.content { flex: 1; width: 100%; max-width: 1100px; margin: 0 auto; padding: clamp(10px, 2vw, 22px) clamp(16px, 4vw, 44px) 46px; }
+.content { flex: 1; width: 100%; max-width: 1100px; margin: 0 auto; padding: clamp(14px, 2.4vw, 30px) clamp(16px, 4vw, 44px) clamp(56px, 7vw, 88px); }
 .foot {
   display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
   padding: 18px clamp(16px, 4vw, 44px); font-size: 14.5px; letter-spacing: .05em;
@@ -158,14 +158,44 @@ ${SIGNATURE_FACE}
 .lesson-player .success-row { font-size: 18px; }
 
 /* ---- primitives ---- */
-.neu-card { background: var(--ground); border-radius: var(--r); box-shadow: var(--raise); padding: clamp(16px, 2.5vw, 26px); }
+.neu-card { background: var(--ground); border-radius: var(--r); box-shadow: var(--raise); padding: clamp(20px, 2.9vw, 32px); }
 .neu-inset { box-shadow: var(--sink); }
-.stack { display: flex; flex-direction: column; gap: clamp(16px, 2.5vw, 26px); }
+.stack { display: flex; flex-direction: column; gap: clamp(20px, 3vw, 34px); }
+
+/* A screen arrives a beat at a time rather than all at once. It is the front
+   door's entrance, applied where a whole screen is swapped in by the nav: the
+   eye gets to follow the order the page is meant to be read in. Anything past
+   the eighth child simply arrives with the eighth — a stagger you can still
+   count is a stagger that has gone on too long. */
+.arrives > * { animation: arrive .7s cubic-bezier(.2,.8,.2,1) both; }
+.arrives > *:nth-child(1) { animation-delay: .04s; }
+.arrives > *:nth-child(2) { animation-delay: .10s; }
+.arrives > *:nth-child(3) { animation-delay: .16s; }
+.arrives > *:nth-child(4) { animation-delay: .22s; }
+.arrives > *:nth-child(5) { animation-delay: .28s; }
+.arrives > *:nth-child(6) { animation-delay: .34s; }
+.arrives > *:nth-child(n+7) { animation-delay: .40s; }
+/* Named "arrive", not "rise": a rise animation already exists further down
+   for a centred element, carrying a translate(-50%) that would drag every screen
+   half its own width to the left. */
+@keyframes arrive {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* The screen header keeps its search box or filter beside the prose, not
+   stacked under it, once there is room for both. */
+.screen-head .search-row { align-self: flex-start; margin-top: 2px; }
+@media (min-width: 900px) {
+  .screen-head.with-aside { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; column-gap: 24px; }
+  .screen-head.with-aside .screen-label, .screen-head.with-aside .screen-title, .screen-head.with-aside .lede { grid-column: 1; }
+  .screen-head.with-aside .search-row { grid-column: 2; grid-row: 2 / span 2; align-self: center; }
+}
 .stack-sm { display: flex; flex-direction: column; gap: 14px; }
 .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .row.spread { justify-content: space-between; }
-.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: clamp(14px, 2vw, 22px); }
-.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: clamp(14px, 2vw, 22px); }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: clamp(16px, 2.2vw, 26px); }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: clamp(16px, 2.2vw, 26px); }
 
 .btn {
   display: inline-flex; align-items: center; gap: 8px;
@@ -226,10 +256,45 @@ ${SIGNATURE_FACE}
 
 /* ---- type ---- */
 .eyebrow { font-size: 14px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); margin: 0 0 10px; }
-.display { font-family: var(--font-display); font-weight: var(--w-display); font-size: clamp(30px, 5.4vw, 52px); line-height: var(--display-leading); margin: 0 0 14px; letter-spacing: calc(-0.01em + var(--display-tracking)); }
-.lede { font-size: clamp(15px, 1.8vw, 16.5px); line-height: 1.65; opacity: .82; margin: 0 0 6px; max-width: 58ch; }
-.section-title { font-family: var(--font-display); font-weight: var(--w-display); font-size: clamp(24px, 3.4vw, 32px); margin: 6px 0 0; letter-spacing: var(--display-tracking); }
-.fine { font-size: 15px; line-height: 1.6; opacity: .7; margin: 0; }
+.display { font-family: var(--font-display); font-weight: var(--w-display); font-size: clamp(34px, 6vw, 64px); line-height: var(--display-leading); margin: 0 0 16px; letter-spacing: calc(-0.016em + var(--display-tracking)); }
+.lede { font-size: clamp(16px, 1.9vw, 19px); line-height: 1.72; opacity: .8; margin: 0 0 6px; max-width: 62ch; }
+.screen-title, .section-title, .lp-h2 {
+  font-family: var(--font-display); font-weight: var(--w-display);
+  font-size: clamp(28px, 4.4vw, 52px); line-height: 1.08;
+  margin: 0; letter-spacing: calc(-0.016em + var(--display-tracking));
+  text-wrap: balance;
+}
+.screen-title em, .display em, .lp-display em, .lp-h2 em {
+  font-family: var(--font-display-italic); font-style: var(--display-italic-style); color: var(--accent);
+}
+
+/* ---- a screen header ---- */
+/* Label, heading, lede: the front door's way of opening a section, and now
+   every screen's. See components/ScreenHeader.jsx for why the label earns its
+   place — one word at heading size says nothing the nav had not already said. */
+.screen-head { display: flex; flex-direction: column; gap: 14px; padding: clamp(4px, 1vw, 12px) 0 clamp(2px, .6vw, 8px); }
+.screen-head .lede { margin: 0; }
+.screen-label, .lp-label {
+  font-family: var(--font-body); font-size: 12.5px; font-weight: 700;
+  letter-spacing: .26em; text-transform: uppercase; color: var(--accent);
+  margin: 0; opacity: .95;
+}
+
+/* A hairline between one idea and the next, fading out before it reaches the
+   edge so it reads as a breath rather than a border. */
+.rule, .lp-rule {
+  border: 0; height: 1px; margin: 0;
+  background: linear-gradient(90deg, transparent, var(--hairline) 18%, var(--hairline) 82%, transparent);
+}
+
+/* An icon sunk into its own well. It gives a card of plain prose something to
+   hang on without adding a rule or a second colour. */
+.icon-well, .lp-icon {
+  width: 58px; height: 58px; border-radius: 18px; box-shadow: var(--sink-sm);
+  display: grid; place-items: center; color: var(--accent); flex: none;
+}
+.icon-well.sm { width: 44px; height: 44px; border-radius: 14px; }
+.fine { font-size: 15.5px; line-height: 1.65; opacity: .72; margin: 0; }
 .lesson-text { font-size: 17px; line-height: 1.65; margin: 0; }
 
 /* ---- hero ---- */
@@ -240,8 +305,9 @@ ${SIGNATURE_FACE}
 
 .tile { text-align: left; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease; }
 .tile:hover { transform: translateY(-2px); }
-.stat-head { display: flex; align-items: center; gap: 9px; font-size: 14px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; opacity: .75; }
-.stat-num { font-family: var(--font-display); font-weight: var(--w-display); font-size: 34px; margin-top: 10px; }
+.stat-head { display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; opacity: .78; color: var(--accent); }
+.stat-head svg { color: var(--accent); }
+.stat-num { font-family: var(--font-display); font-weight: var(--w-display); font-size: clamp(34px, 4vw, 46px); line-height: 1.02; margin-top: 14px; }
 .stat-num em { font-style: normal; font-size: 16px; opacity: .5; margin-left: 5px; }
 
 .roadmap ul { list-style: none; padding: 0; margin: 14px 0 0; display: flex; flex-direction: column; gap: 10px; }
@@ -250,9 +316,9 @@ ${SIGNATURE_FACE}
 
 /* ---- board ---- */
 .play-wrap { display: flex; gap: clamp(18px, 3vw, 30px); align-items: flex-start; flex-wrap: wrap; }
-.board-col { flex: 1 1 320px; }
-.board-well { border-radius: var(--r); box-shadow: var(--sink); padding: clamp(10px, 1.6vw, 18px); flex: 1 1 320px; }
-.side { flex: 1 1 260px; min-width: 250px; }
+.board-col { flex: 2 1 520px; min-width: 0; }
+.board-well { border-radius: var(--r); box-shadow: var(--sink); padding: clamp(12px, 1.8vw, 22px); flex: 2 1 520px; min-width: 0; }
+.side { flex: 1 1 300px; min-width: 260px; max-width: 420px; }
 .goban { width: 100%; height: auto; display: block; }
 .grid-line { stroke: var(--grid); stroke-opacity: .38; stroke-width: 1.1; }
 .star-pt { fill: var(--ink); fill-opacity: .45; }
@@ -265,7 +331,7 @@ ${SIGNATURE_FACE}
 .stone-in { animation: pop .22s ease; transform-origin: center; transform-box: fill-box; }
 @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-.caps { display: flex; flex-direction: column; gap: 8px; font-size: 15px; }
+.caps { display: flex; flex-direction: column; gap: 10px; font-size: 16px; }
 .dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 8px; vertical-align: -1px; }
 .dot-b { background: var(--ink); }
 .dot-w { background: var(--cream); box-shadow: 0 0 0 1px var(--dark); }
@@ -432,7 +498,7 @@ ${SIGNATURE_FACE}
 /* ---- profile ---- */
 .profile-hero { display: flex; align-items: center; gap: clamp(16px, 3vw, 28px); flex-wrap: wrap; }
 .profile-id { display: flex; flex-direction: column; gap: 12px; }
-.profile-name { font-family: var(--font-display); font-weight: var(--w-display); font-size: clamp(24px, 4vw, 34px); margin: 0; display: flex; align-items: center; gap: 10px; }
+.profile-name { font-family: var(--font-display); font-weight: var(--w-display); font-size: clamp(30px, 5vw, 46px); margin: 0; display: flex; align-items: center; gap: 10px; }
 .icon-btn { border: 0; background: var(--ground); color: var(--ink); opacity: .6; cursor: pointer; width: 30px; height: 30px; border-radius: 10px; box-shadow: var(--raise-sm); display: grid; place-items: center; transition: opacity .15s ease, box-shadow .15s ease; }
 .icon-btn:hover { opacity: 1; }
 .icon-btn:active { box-shadow: var(--sink-sm); }
@@ -986,11 +1052,7 @@ ${SIGNATURE_FACE}
 /* ---- the landing's own type scale ---- */
 /* The label is typed rather than set, in the pairing's machine face, which is
    the voice the Classic already speaks in everywhere else. */
-.lp-label {
-  font-family: var(--font-body); font-size: 12.5px; font-weight: 700;
-  letter-spacing: .26em; text-transform: uppercase; color: var(--accent);
-  margin: 0 0 22px; opacity: .95;
-}
+
 .lp-display {
   font-family: var(--font-display); font-weight: var(--w-display);
   font-size: clamp(46px, 8.4vw, 104px); line-height: .96;
@@ -998,13 +1060,7 @@ ${SIGNATURE_FACE}
   margin: 0 0 26px; text-wrap: balance;
 }
 .lp-display.sm { font-size: clamp(38px, 6.4vw, 76px); margin-bottom: 20px; }
-.lp-display em { font-family: var(--font-display-italic); font-style: var(--display-italic-style); color: var(--accent); }
-.lp-h2 {
-  font-family: var(--font-display); font-weight: var(--w-display);
-  font-size: clamp(30px, 4.8vw, 56px); line-height: 1.08;
-  letter-spacing: calc(-0.016em + var(--display-tracking));
-  margin: 0 0 22px; text-wrap: balance;
-}
+
 .lp-h3 {
   font-family: var(--font-display); font-weight: var(--w-display-strong);
   font-size: clamp(19px, 2.1vw, 23px); line-height: 1.24;
@@ -1054,12 +1110,12 @@ ${SIGNATURE_FACE}
 .lp-btn.ghost:hover { opacity: 1; }
 
 /* ---- sections ---- */
-.lp-rule { border: 0; height: 1px; margin: 0; background: linear-gradient(90deg, transparent, var(--hairline) 18%, var(--hairline) 82%, transparent); }
 .lp-section { max-width: 1080px; margin: 0 auto; width: 100%; padding: clamp(64px, 9vw, 124px) clamp(20px, 5vw, 48px); }
 .lp-grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(268px, 1fr)); gap: clamp(18px, 2.4vw, 28px); margin-top: clamp(38px, 5vw, 56px); }
 .lp-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: clamp(18px, 2.4vw, 28px); margin-top: clamp(38px, 5vw, 56px); }
 
 .lp-card { display: flex; flex-direction: column; gap: 14px; padding: clamp(24px, 3vw, 34px); }
+.lp-card .lp-icon { margin-bottom: 4px; }
 .lp-card-btn { text-align: left; border: 0; cursor: pointer; color: var(--ink); background: var(--ground); transition: transform .16s ease, box-shadow .16s ease; }
 .lp-card-btn:hover { transform: translateY(-3px); }
 .lp-card-btn:hover .lp-more { opacity: 1; gap: 10px; }
@@ -1067,11 +1123,7 @@ ${SIGNATURE_FACE}
 
 /* The icon sits in its own sunken well, which gives a card of plain prose
    something to hang on without adding a rule or a second colour. */
-.lp-icon {
-  width: 58px; height: 58px; border-radius: 18px; box-shadow: var(--sink-sm);
-  display: grid; place-items: center; color: var(--accent); flex: none;
-  margin-bottom: 4px;
-}
+
 .lp-more {
   display: inline-flex; align-items: center; gap: 7px; margin-top: auto; padding-top: 8px;
   font-size: 12px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
@@ -1160,17 +1212,13 @@ ${SIGNATURE_FACE}
 /* The hero arrives in order rather than all at once: the label, then the
    headline, then the lede, the facts, and last the way in. Each child of an
    .lp-enters column takes the next beat. */
-.lp-enters > * { animation: lp-rise .85s cubic-bezier(.2,.8,.2,1) both; }
+.lp-enters > * { animation: arrive .85s cubic-bezier(.2,.8,.2,1) both; }
 .lp-enters > *:nth-child(1) { animation-delay: .05s; }
 .lp-enters > *:nth-child(2) { animation-delay: .16s; }
 .lp-enters > *:nth-child(3) { animation-delay: .27s; }
 .lp-enters > *:nth-child(4) { animation-delay: .38s; }
 .lp-enters > *:nth-child(5) { animation-delay: .49s; }
 .lp-hero-board.lp-enters > * { animation-delay: .30s; }
-@keyframes lp-rise {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: none; }
-}
 
 @media (prefers-reduced-motion: reduce) {
   .sente-root *, .sente-root *::before, .sente-root *::after {

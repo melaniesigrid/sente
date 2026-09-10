@@ -49,7 +49,7 @@ export function Home({ profile, go, onResume }) {
   }
 
   return (
-    <div className="stack">
+    <div className="stack arrives">
       <Card className="hero">
         <div className="hero-copy">
           <p className="eyebrow">{greeting}</p>

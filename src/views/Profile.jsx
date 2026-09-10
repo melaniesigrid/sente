@@ -93,7 +93,7 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
   const streak = liveStreak(profile, dayKey());
 
   return (
-    <div className="stack">
+    <div className="stack arrives">
       <Card className="profile-hero">
         <Avatar name={profile.name} tint={profile.tint} size={92} />
         <div className="profile-id">

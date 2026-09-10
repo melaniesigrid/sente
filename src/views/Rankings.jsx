@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { Crown, Flame, Globe, Bot } from "lucide-react";
-import { Card, Avatar, RankBadge, PullQuote } from "../components/ui.jsx";
+import { Card, Avatar, RankBadge, PullQuote } from "../components/ui.jsx";
+import { ScreenHeader } from "../components/ScreenHeader.jsx";
 import { avatarUrl } from "../net/avatar.js";
 import { SERVER_URL } from "../net/api.js";
 import { plainFor } from "../content/plain.js";
@@ -34,13 +35,14 @@ export function RankingsView({ profile }) {
   }, [profile]);
 
   return (
-    <div className="stack">
-      <h2 className="section-title">Ladder</h2>
-      <p className="lede">
-        The global ladder is people: every rated game between two handles is settled on
-        the server with Glicko-2, so a rating carries how sure it is. The house ladder is
-        you against the residents, Elo-style, roughly a hundred points to a rank.
-      </p>
+    <div className="stack arrives">
+      <ScreenHeader
+        label="Where you stand"
+        title={<>The <em>ladder</em>.</>}
+        lede="The global ladder is people: every rated game between two handles is settled
+              on the server with Glicko-2, so a rating carries how sure it is. The house
+              ladder is you against the residents, Elo-style, roughly a hundred points to
+              a rank." />
       <PullQuote>{plainFor("ladder")}</PullQuote>
       <Passage context="ladder" />
 
