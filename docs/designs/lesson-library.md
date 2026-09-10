@@ -1,7 +1,7 @@
 ---
 status: ACTIVE
 ---
-# Design: The Sente Lesson Library (30 kyu to dan)
+# Design: The Joseki Lesson Library (30 kyu to dan)
 
 Written 2026-09-09 by the CEO and PM. Implements TODO.md Phase 5. Companion to
 `classiest-go-server.md`.
@@ -149,7 +149,7 @@ placed in the tier its ideas belong to rather than in one block:
 
 The chapters, their themes and a set of sayings live in `src/content/classic.js`; the
 Learn view shows a saying of the day and the thirteen lessons in book order, and a few of
-Moku's lines come from the same file. Every saying is Sente's own rendering of the classical
+Moku's lines come from the same file. Every saying is Joseki's own rendering of the classical
 Chinese, in the house voice. The original is public domain; modern translations are not, so
 none is quoted. `library.test.js` verifies series lessons like any other; `classic.test.js`
 checks that every chapter has its lesson and that the sayings keep the voice.

@@ -17,7 +17,7 @@ JSON line per position:
      "logits": {"<index>": <logit>, ...}}
 
 `logits` is sparse: every index within ln(floor) - 1 of the maximum, and never fewer
-than `min_top` entries, plus the pass. Sente's sampler keeps candidates within `floor`
+than `min_top` entries, plus the pass. Joseki's sampler keeps candidates within `floor`
 of the best legal move's probability, so the dump covers its keep set with a margin;
 eval.mjs asserts that coverage before it scores anything. Indices are y * 19 + x with
 the pass at 361, as the network emits them.

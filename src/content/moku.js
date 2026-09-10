@@ -1,5 +1,5 @@
 /* ----------------------- MOKU -----------------------
-   Sente's mascot is a stone. Moku (目: "eye", also the unit of counting) is
+   Joseki's mascot is a stone. Moku (目: "eye", also the unit of counting) is
    a small black stone with two eyes, because a stone with one eye is dead.
 
    Rule, borrowed from Laska and ZipQuarry's Pip: every expression is a fact
@@ -7,7 +7,7 @@
    atari, spins because there is a ko, and is quiet when nothing has changed.
    This file resolves facts into `{ state, line }` and is pure so the mapping
    is unit-tested; the drawing and the motion live in components/Moku.jsx.
-   A few lines are Sente's renderings of Zhang Ni's Classic (content/classic.js). */
+   A few lines are Joseki's renderings of Zhang Ni's Classic (content/classic.js). */
 
 export const MOKU_STATES = [
   "idle", "watching", "atari", "hunting", "ko", "capture", "captured",

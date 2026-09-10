@@ -1,7 +1,7 @@
 /* ----------------------- THE CLASSIC -----------------------
    Zhang Ni's Qijing Shisan Pian, "The Classic of Weiqi in Thirteen
    Chapters" (Song dynasty, eleventh century), is the oldest surviving
-   treatise on the game. Sente carries it four ways: the preface and the
+   treatise on the game. Joseki carries it four ways: the preface and the
    thirteen chapters as prose you can read straight through, a lesson per
    chapter in the library (series "classic"), the nine levels of chapter
    twelve laid over the dan ranks, and the passages and sayings below, which
@@ -9,10 +9,10 @@
 
    Every chapter also carries `plain`: the same idea in ordinary modern words,
    set large between the paragraphs where a magazine pulls a line into the
-   margin. It is Sente speaking, not Zhang Ni, so a view labels it as a gloss
+   margin. It is Joseki speaking, not Zhang Ni, so a view labels it as a gloss
    and never as a quotation.
 
-   Every saying here is Sente's own rendering of the classical text, written
+   Every saying here is Joseki's own rendering of the classical text, written
    for the house voice: short, plain, no exclamation marks. They are not
    quotations from any modern translation. Pure data and pure functions;
    nothing here touches React or the browser. */
@@ -24,7 +24,7 @@ export const CLASSIC = {
   short: "The Classic of Weiqi",
   era: "Song dynasty, eleventh century",
   blurb: "The oldest treatise on the game, one lesson per chapter. Zhang Ni wrote for officials who played as they governed: count before you commit, know your own weak point, take the corners first, and do not boast of a win.",
-  credit: "Sayings are Sente's renderings of the eleventh-century text, not quotations of any translation.",
+  credit: "Sayings are Joseki's renderings of the eleventh-century text, not quotations of any translation.",
 };
 
 /* ----------------------- THE PREFACE -----------------------
@@ -276,7 +276,7 @@ export const CHAPTERS = [
 /* ----------------------- THE NINE LEVELS (chapter twelve) -----------------------
    Zhang Ni's nine are the classical jiu pin, and they were a scale for strong
    players: nine steps for the nine dan grades, the first level at the top.
-   Sente lays them over its own dan ranks exactly, one to one, and gives kyu
+   Joseki lays them over its own dan ranks exactly, one to one, and gives kyu
    players nothing, because the chapter says so itself: levels below these
    cannot usefully be counted. That refusal is the honest reading, and it is
    more interesting than handing everyone a title. */
@@ -384,7 +384,7 @@ export function sayingBySeed(seed = 0) {
 }
 
 /* ----------------------- PASSAGES -----------------------
-   Longer pages from the book, in Sente's own rendering, for the quiet corners
+   Longer pages from the book, in Joseki's own rendering, for the quiet corners
    of the app. `contexts` says where a passage sits well; "any" fits everywhere.
    Every rendering below paraphrases the eleventh-century text; none quotes a
    modern translation. */

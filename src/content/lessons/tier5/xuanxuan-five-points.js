@@ -33,7 +33,7 @@ export default {
   subtitle: "Two eyespaces of the same size, one alive and one dead",
   plain: "An eyespace is judged by its shape, not by how many points it holds. Five points in a straight line cannot be killed, and the same five rearranged as four with a foot die to a single placement.",
   tier: 5, rank: "3k", track: "life", size: 9, prereqs: ["two-eyes", "classic-corner-shapes"], minutes: 8,
-  author: "Sente", sources: [XUANXUAN_SOURCE], book: "xuanxuan",
+  author: "Joseki", sources: [XUANXUAN_SOURCE], book: "xuanxuan",
   steps: [
     {
       type: "info",

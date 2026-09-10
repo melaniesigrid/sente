@@ -1,7 +1,7 @@
 /* ----------------------- KATAGO BOARD (pure) -----------------------
    A faithful port of KataGo's reference Python board (python/katago/game/board.py,
    MIT licence, David J Wu). It exists for one reason: KataGo's neural-net input
-   features need two analyses that Sente's immutable board does not provide —
+   features need two analyses that Joseki's immutable board does not provide —
    ladder search (which stones are in an inescapable atari, and which moves capture
    them) and Benson pass-alive area. Both are implemented on this mutable, padded
    board with chain tracking so play/undo is cheap inside the ladder search.
@@ -11,7 +11,7 @@
    where dy = xSize + 1. loc 0 doubles as PASS_LOC / "no location".
 
    Nothing here imports the rest of the engine; `fromCells` is the bridge from a
-   Sente `{size, cells}` board. Framework-free, like everything in src/engine. */
+   Joseki `{size, cells}` board. Framework-free, like everything in src/engine. */
 
 export const EMPTY = 0;
 export const BLACK = 1;
@@ -66,7 +66,7 @@ export class KBoard {
     this.groupPrev[0] = -1;
   }
 
-  /** Build from a Sente board `{size, cells}` (cells of null | "b" | "w"). Stones are
+  /** Build from a Joseki board `{size, cells}` (cells of null | "b" | "w"). Stones are
    *  placed one by one, so chain data is consistent. No ko point is set. */
   static fromCells(board) {
     const kb = new KBoard(board.size);

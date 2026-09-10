@@ -85,7 +85,7 @@ describe("sanitizeProfile", () => {
 describe("the stored palette", () => {
   const MINE = { ground: "#101014", ink: "#e6e6ea", accent: "#b98cff", cream: "#f2f2f6" };
 
-  // Someone opening Sente at night on a dark machine should not be handed
+  // Someone opening Joseki at night on a dark machine should not be handed
   // full-brightness cream and left to go find the setting.
   it("ships following the device", () => {
     expect(defaultProfile.theme).toBe(SYSTEM_THEME);

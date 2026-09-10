@@ -63,7 +63,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   /* A master is a house player with a corpus behind it: the loaded masters JSON
      rides on the mode and goes straight to the engine's bot seam. It has no rank
      and no rating, because agreement with a year profile is not a strength and
-     Sente does not put a number on the screen it cannot stand behind. Master games
+     Joseki does not put a number on the screen it cannot stand behind. Master games
      are therefore unrated, and the table says so. */
   const master = mode.master ?? null;
   // The rank this game is played at; house players adapt to it. A duel fixes it by the

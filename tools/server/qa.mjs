@@ -1,4 +1,4 @@
-/* Production QA for the Sente server. Covers what the earlier smoke test does not:
+/* Production QA for the Joseki server. Covers what the earlier smoke test does not:
    a 19x19 board, a player who disconnects mid-game and comes back, a spectator
    following a live table, scoring by two passes with dead stones, and an unrated
    game. Cleans up every account it makes. */

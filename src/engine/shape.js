@@ -24,7 +24,7 @@
    A dumpling is structural, not a ratio. Liberties-per-stone does not separate
    it: a 2x2 block in the open centre has 8 liberties over 4 stones, and a
    threshold low enough to be distinctive only catches groups two moves from
-   death - which is an atari warning wearing a nicer name, and Sente takes atari
+   death - which is an atari warning wearing a nicer name, and Joseki takes atari
    hints away as the player improves. The solid 2x2 block is exact and is what
    players mean by a dango. Its four stones are always one chain, since each is
    orthogonally adjacent to two others in the block.

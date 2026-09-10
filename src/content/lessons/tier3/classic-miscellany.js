@@ -26,7 +26,7 @@ export default {
   subtitle: "Chapter thirteen: corner shapes, eye sizes, and how to sit",
   plain: "The last chapter is the practical one: shapes that are settled before anyone plays, and habits at the board. Do not play tired, do not gloat, and do not treat a calm position as a finished one.",
   tier: 3, rank: "12k", track: "life", size: 9, prereqs: ["two-eyes", "classic-terms"], minutes: 7,
-  author: "Sente", sources: [CLASSIC_SOURCE], series: "classic", chapter: 13,
+  author: "Joseki", sources: [CLASSIC_SOURCE], series: "classic", chapter: 13,
   steps: [
     {
       type: "info",

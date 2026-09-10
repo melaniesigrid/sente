@@ -91,7 +91,7 @@ export const HOUSE_THEME = "house";
 export const DOJO_THEME = "dojo";
 
 /** Follow the device. This is what a profile ships set to, because someone
- *  opening Sente at night on a dark machine should not be handed full-brightness
+ *  opening Joseki at night on a dark machine should not be handed full-brightness
  *  cream and left to go find the setting.
  *
  *  It is not a palette and never appears in PALETTES — it is a pointer at two of

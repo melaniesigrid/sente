@@ -3,7 +3,7 @@ import { GAME } from "./jowa-intetsu.game.js";
 
 /* ----------------------- 1k · middle · Jowa against Intetsu -----------------------
    Honinbo Jowa (White) against Akaboshi Intetsu, 1835. Record public domain (aeb
-   collection); every word here is Sente's own. Stops are White's moves; `strong` at
+   collection); every word here is Joseki's own. Stops are White's moves; `strong` at
    each stop is what KataGo's strong-player-of-1835 profile would play instead. */
 
 const words = {
@@ -52,7 +52,7 @@ export default {
   plain: "Sitting behind Jowa's stones shows where a game turns: the few moves where his choice and a strong contemporary's part company. Guess first, then see what he saw.",
   tier: 5, rank: "1k", track: "middle", size: 19, prereqs: [], minutes: 15,
   book: "masters",
-  author: "Sente", sources: ["Game record: public domain (homepages.cwi.nl/~aeb/go/games)"],
+  author: "Joseki", sources: ["Game record: public domain (homepages.cwi.nl/~aeb/go/games)"],
   steps: [
     {
       type: "info",

@@ -31,7 +31,7 @@
    Display faces come from the Typecase library; body faces are Google-hosted
    text families, because a UI body face needs four real weights and accents and
    the Typecase text cuts are demo cuts without them. Every display face here was
-   checked for digits: Sente sets ranks, ratings and lesson numbers in the display
+   checked for digits: Joseki sets ranks, ratings and lesson numbers in the display
    face, so a face missing 0-9 could not be used however handsome it was.
 
    `house` is the design system as drawn and stays the default. */

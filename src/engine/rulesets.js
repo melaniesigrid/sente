@@ -23,7 +23,7 @@
                  area count agree with a territory count).
      suicide     may a player fill their own last liberty?
 
-   Sente enforces positional superko under every ruleset. Japanese rules answer
+   Joseki enforces positional superko under every ruleset. Japanese rules answer
    a long cycle with "no result" and Chinese rules may call it a draw; neither
    is a thing a server can do without a referee, so the repetition is refused at
    the point it would be played and the game goes on. That is a real departure
@@ -62,7 +62,7 @@ export const RULESETS = {
 
 export const RULESET_IDS = Object.keys(RULESETS);
 
-/** The ruleset Sente plays unless told otherwise. AGA because it is what the
+/** The ruleset Joseki plays unless told otherwise. AGA because it is what the
  *  app has always played and what every lesson counts in: area scoring with the
  *  handicap compensation that keeps it honest against a territory count. */
 export const DEFAULT_RULES = "aga";

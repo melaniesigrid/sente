@@ -3,7 +3,7 @@ import { GAME } from "./ear-reddening.game.js";
 
 /* ----------------------- 1k · judgement · The Ear-Reddening Game -----------------------
    Shusaku (Black) against Gennan Inseki, 1846. Record public domain (aeb collection);
-   every word here is Sente's own. Stops are Black's moves; `strong` at each stop is
+   every word here is Joseki's own. Stops are Black's moves; `strong` at each stop is
    what KataGo's strong-player-of-1846 profile would play instead, precomputed. */
 
 const words = {
@@ -52,7 +52,7 @@ export default {
   plain: "Replaying a famous game move by move is the cheapest lesson a strong player ever gives. You guess, the record answers, and the gap between your move and Shusaku's is exactly what you have left to learn.",
   tier: 5, rank: "1k", track: "judgement", size: 19, prereqs: [], minutes: 15,
   book: "masters",
-  author: "Sente", sources: ["Game record: public domain (homepages.cwi.nl/~aeb/go/games)"],
+  author: "Joseki", sources: ["Game record: public domain (homepages.cwi.nl/~aeb/go/games)"],
   steps: [
     {
       type: "info",

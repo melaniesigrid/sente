@@ -1,5 +1,5 @@
 {
-  // Sente game server: one Worker, two Durable Object classes.
+  // Joseki game server: one Worker, two Durable Object classes.
   //   Registry  a single instance ("main"): accounts, tokens, matchmaking, the ladder
   //   Room      one instance per game: the GameRecord, seats, chat, sockets
   // Deploy with `npm run deploy:server`; develop with `npm run dev:server` (port 8787).

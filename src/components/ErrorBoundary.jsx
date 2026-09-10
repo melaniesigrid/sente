@@ -27,7 +27,7 @@ export class ErrorBoundary extends Component {
       <div className="stack">
         <Card className="error-card" role="alert">
           <div className="stat-head"><CircleAlert size={17} /><span>Something slipped</span></div>
-          <p className="lesson-text">This part of Sente hit an error it could not recover from. Your profile and any saved game are untouched.</p>
+          <p className="lesson-text">This part of Joseki hit an error it could not recover from. Your profile and any saved game are untouched.</p>
           <p className="fine error-detail">{message}</p>
           <div className="row">
             <Btn icon={LayoutDashboard} primary onClick={() => { this.setState({ error: null }); this.props.onHome?.(); }}>

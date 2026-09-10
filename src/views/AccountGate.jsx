@@ -12,7 +12,7 @@ import { formProblem, passwordNote, errorText } from "./accountForm.js";
      sign up    a handle, an address and a password
      guest      a handle and nothing else, kept in this browser only
 
-   There is no third party here. Sente holds the address, and it holds a hash
+   There is no third party here. Joseki holds the address, and it holds a hash
    of a key the browser derives from the password — never the password, which
    does not leave the machine it was typed on (`src/net/password.js`).
 

@@ -7,7 +7,7 @@ export default {
   subtitle: "Two stones, one gap, and who fills it",
   plain: "A diagonal is a gap, and whoever fills it decides the fight there. Connect and your stones are one strong chain; cut and your opponent has two weak ones to keep alive at the same time.",
   tier: 1, rank: "24k", track: "shape", size: 9, prereqs: ["liberties"], minutes: 5,
-  author: "Sente", sources: [],
+  author: "Joseki", sources: [],
   steps: [
     {
       type: "info",

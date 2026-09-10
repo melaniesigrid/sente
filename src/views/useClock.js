@@ -9,7 +9,7 @@ import { runningSide } from "../content/clockFace.js";
 
    `timed` says whose clock runs — "bw" in a face-to-face game, "b" against a house
    player. A local bot's speed is a fact about the device and the model download, not
-   about how well it plays, so timing it would put a number on the screen that Sente
+   about how well it plays, so timing it would put a number on the screen that Joseki
    cannot stand behind; the bot's face says "no clock" instead.
 
    Elapsed time is per-session: it is not written into the record, so leaving a table
