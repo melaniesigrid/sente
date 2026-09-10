@@ -14,7 +14,9 @@ import { loadGame, clearGame } from "../store/gameStore.js";
  *  @param {string} [o.today]     day key, defaults to today
  *  @param {object[]} [o.personas]
  *  @param {object} [o.profile]   the player's profile; a bot game saved without a rank resumes at theirs
- *  @returns {{ record, mode, opponent } | null} */
+ *  @returns {{ record, mode, opponent } | null}
+ *  A coached game resumes coached: `mode.coaching` and the coach's `spoken` memory ride
+ *  back on the mode, so the table stays unrated and the coach does not repeat itself. */
 export function loadSession({ storage, today = dayKey(), personas = PERSONAS, profile = null } = {}) {
   const saved = loadGame(storage);
   if (!saved || saved.record.phase === "ended") { if (saved) clearGame(storage); return null; }
@@ -22,11 +24,16 @@ export function loadSession({ storage, today = dayKey(), personas = PERSONAS, pr
     const persona = personaById(saved.mode.personaId);
     if (!persona) { clearGame(storage); return null; }
     const rank = saved.mode.rank ?? (profile ? rankOf(profile.rating) : undefined);
-    return { record: saved.record, mode: { kind: "bot", persona, rank }, opponent: persona.name };
+    return {
+      record: saved.record,
+      mode: { kind: "bot", persona, rank, coaching: saved.mode.coaching, spoken: saved.spoken },
+      opponent: persona.name,
+    };
   }
   if (saved.mode.kind === "duel") {
     const mode = saved.mode.key === today ? duelMode(personas, today) : null;
     if (!mode || mode.persona.id !== saved.mode.personaId) { clearGame(storage); return null; }
+    // A duel is never coached: it is one shared, comparable result for everyone.
     return { record: saved.record, mode, opponent: `${mode.persona.name} · daily duel` };
   }
   if (saved.mode.kind === "local") {
