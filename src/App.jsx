@@ -6,7 +6,8 @@ import { Swords, GraduationCap, Target, LayoutDashboard, Medal } from "lucide-re
    Design system: Laska "stone" palette (DESIGN.md)
    ground #e8e4db · highlight #fbf8f2 · shade #c4beb1
    armies #f2ede3 / #4b463c · eucalyptus accent #5f8c7e
-   Fraunces display · Hanken Grotesk body · Lucide icons only
+   Fraunces display · Hanken Grotesk body (the house pairing; the type is
+   themed from src/content/typeface.js) · Lucide icons only
    Neumorphism via two shadows: cream top-left, clay bottom-right.
 
    This file is the shell only: nav, routing state, profile store, toasts.
@@ -19,6 +20,7 @@ import { Toast } from "./components/Toast.jsx";
 import { ErrorBoundary } from "./components/ErrorBoundary.jsx";
 import { MokuProvider, MokuDock } from "./components/Moku.jsx";
 import { rankOf } from "./content/rank.js";
+import { typefaceVars } from "./content/typeface.js";
 import { defaultProfile, loadProfile } from "./store/profile.js";
 import { Home } from "./views/Home.jsx";
 import { PlayView } from "./views/Play.jsx";
@@ -57,7 +59,7 @@ export default function SenteApp() {
 
   return (
     <MokuProvider view={view}>
-    <div className="sente-root">
+    <div className="sente-root" style={typefaceVars(profile.typeface)}>
       <style>{CSS}</style>
       <header className="topbar">
         <div className="brand">

@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Check, Pencil, Trophy, Flame, Sparkles, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck } from "lucide-react";
+import { Check, Pencil, Trophy, Flame, Sparkles, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Type } from "lucide-react";
 import { Card, Pill, Avatar, RankBadge, BeltRibbon, Toggle } from "../components/ui.jsx";
 import { MokuMark } from "../components/Moku.jsx";
 import { useMoku, useMokuFacts } from "../components/mokuStore.js";
 import { TINTS, rankOf, beltOf, nextBelt, hintsForBelt, kyuFloor } from "../content/rank.js";
+import { TYPEFACES, typefaceOf } from "../content/typeface.js";
 import { LESSONS } from "../content/lessons.js";
 import { PROBLEMS } from "../content/problems.js";
 import { dayKey, liveStreak } from "../content/kata.js";
@@ -92,6 +93,32 @@ export function ProfileView({ profile, setProfile }) {
           </div>
         </Card>
       </div>
+
+      <Card>
+        <div className="stat-head"><Type size={16} /><span>Typeface</span></div>
+        <p className="fine" style={{ marginTop: 6 }}>
+          Six pairings for the same design system. Each one sets the headings, the
+          serif that carries the sayings, the body text and the small labels; the
+          palette and the shadows never move.
+        </p>
+        <div className="type-row">
+          {TYPEFACES.map(t => (
+            <button key={t.id}
+              className={`type-btn ${profile.typeface === t.id ? "active" : ""}`}
+              onClick={() => commit({ typeface: t.id })}
+              aria-pressed={profile.typeface === t.id}
+              aria-label={`Typeface ${t.name}`}
+            >
+              <span className="type-sample" style={{ fontFamily: t.display, fontWeight: t.weight }}>Sente 9d</span>
+              <span className="type-name">{t.name}</span>
+            </button>
+          ))}
+        </div>
+        <p className="fine type-note">
+          {typefaceOf(profile.typeface).note}
+          <em className="type-credit">{typefaceOf(profile.typeface).credit}</em>
+        </p>
+      </Card>
 
       <Card>
         <div className="stat-head"><Eye size={16} /><span>At the table</span></div>
