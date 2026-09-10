@@ -1,11 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { TYPEFACES, DEFAULT_TYPEFACE, typefaceOf, typefaceVars, GOOGLE_IMPORT } from "./typeface.js";
+import { TYPEFACES, DEFAULT_TYPEFACE, typefaceOf, typefaceVars, captionOf, quoteOf, GOOGLE_IMPORT } from "./typeface.js";
 import { FONT_FACES } from "../styles/fontfaces.js";
 import { CSS } from "../styles/css.js";
 
 const VARS = [
   "--font-display", "--font-display-italic", "--display-italic-style",
-  "--font-body", "--w-display", "--w-display-strong", "--display-tracking",
+  "--font-body", "--font-quote", "--quote-style", "--font-caption", "--caption-style",
+  "--w-display", "--w-display-strong", "--display-tracking",
   "--display-leading",
 ];
 
@@ -29,7 +30,7 @@ describe("typeface pairings", () => {
 
   it("ends every family stack in a generic family", () => {
     for (const t of TYPEFACES) {
-      for (const stack of [t.display, t.italic, t.body]) {
+      for (const stack of [t.display, t.italic, t.body, quoteOf(t), captionOf(t)]) {
         expect(stack, `${t.id}: ${stack}`).toMatch(/(serif|sans-serif|monospace)$/);
       }
     }
@@ -37,7 +38,7 @@ describe("typeface pairings", () => {
 
   it("only names local faces that fontfaces.js declares", () => {
     for (const t of TYPEFACES) {
-      for (const family of `${t.display} ${t.italic} ${t.body}`.match(/sente-[a-z-]+/g) || []) {
+      for (const family of `${t.display} ${t.italic} ${t.body} ${quoteOf(t)} ${captionOf(t)}`.match(/sente-[a-z-]+/g) || []) {
         expect(FONT_FACES, `${t.id} wants ${family}`).toContain(`font-family: '${family}'`);
       }
     }
@@ -50,10 +51,32 @@ describe("typeface pairings", () => {
     }
   });
 
-  it("keeps an already-slanted script upright", () => {
+  it("never asks the browser to slant a local cut", () => {
+    // The Typecase cuts are single-style: a faux oblique on a hairline serif or a
+    // script is the tell of a page nobody set. Only the Google faces, which ship a
+    // real italic, are ever asked for one.
     for (const t of TYPEFACES) {
-      const script = /script|bellique|ronalltie/.test(t.italic);
-      expect(t.italicStyle, t.id).toBe(script ? "normal" : "italic");
+      expect(t.italicStyle, t.id).toBe(/sente-/.test(t.italic) ? "normal" : "italic");
+    }
+  });
+
+  it("keeps a script out of the quotes and the captions", () => {
+    for (const t of TYPEFACES) {
+      expect(quoteOf(t), t.id).not.toMatch(/script|bellique|ronalltie/);
+      expect(captionOf(t), t.id).not.toMatch(/script|bellique|ronalltie/);
+    }
+  });
+
+  it("sets the quotes in a serif wherever the pairing owns one", () => {
+    for (const t of TYPEFACES.filter(t => !t.serifless)) {
+      expect(quoteOf(t), t.id).toMatch(/serif$/);
+    }
+  });
+
+  it("never slants a face that has no italic of its own", () => {
+    for (const t of TYPEFACES) {
+      const local = /sente-/.test(quoteOf(t));       // local cuts are single-style
+      expect(t.quoteStyle, t.id).toBe(local ? "normal" : "italic");
     }
   });
 
@@ -86,7 +109,7 @@ describe("the stylesheet consumes the tokens", () => {
 
   it("loads every Google family a pairing asks for", () => {
     for (const t of TYPEFACES) {
-      for (const family of [t.display, t.italic, t.body]) {
+      for (const family of [t.display, t.italic, t.body, quoteOf(t), captionOf(t)]) {
         const name = (family.match(/^'([^']+)'/) || [])[1];
         if (!name || name.startsWith("sente-")) continue;
         expect(GOOGLE_IMPORT, `${t.id} wants ${name}`).toContain(`family=${name.replace(/ /g, "+")}`);

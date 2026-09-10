@@ -24,7 +24,7 @@ describe("daily duel", () => {
     expect(duelPersona([], "2026-09-09")).toBeNull();
     expect(duelMode([], "2026-09-09")).toBeNull();
     const mode = duelMode(personas, "2026-09-09");
-    expect(mode).toEqual({ kind: "duel", persona: duelPersona(personas, "2026-09-09"), seed: duelSeed("2026-09-09"), key: "2026-09-09", rank: duelRank(mode.persona, "2026-09-09") });
+    expect(mode).toEqual({ kind: "duel", persona: duelPersona(personas, "2026-09-09"), seed: duelSeed("2026-09-09"), key: "2026-09-09", rank: duelRank(mode.persona, "2026-09-09"), size: 9, handicap: 0 });
   });
   it("reads a scored outcome from Black's chair", () => {
     const o = duelOutcome(scoredGame());

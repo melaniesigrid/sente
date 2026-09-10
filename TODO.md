@@ -89,12 +89,14 @@ each fixed in its own commit:
 
 ## Phase 3 — Play like a real server
 
-- [ ] Lobby: choose 9/13/19, handicap, komi, clock preset; house players available on all.
+- [x] Lobby: choose 9/13/19 and handicap (branch `feat/board-sizes`, 2026-09-10); komi is the
+      engine's default for the handicap, shown not typed; house players play every size.
+      The clock preset is a third row of the same card (2026-09-10).
 - [x] Game-end ceremony: after two passes enter scoring, tap groups to toggle dead, territory
       overlay, honest result card with every term ("41 stones + 3 territory = 44" vs
       "35 + 4 + 7.5 komi = 46.5"), a bow, and "Keep playing" to take both passes back.
 - [x] Resign with confirmation; result recorded honestly.
-- [x] Clock UI (2026-09-10, branch `feat/masters-row`): pressure states, byo-yomi pips, no chrome.
+- [x] Clock UI (2026-09-10, branch `feat/clock`): pressure states, byo-yomi pips, no chrome.
 - [ ] Review mode: scrub with arrows, move numbers overlay, variation tree, jump to capture.
 - [x] SGF export button on every finished game (result card). SGF import into review mode
       is still open.
@@ -104,7 +106,17 @@ each fixed in its own commit:
 - [ ] Local-only telemetry ring buffer (last 50 games: size, result, bot, move count) to
       tune house-player weights. Never leaves the device.
 
-Decisions made in Phase 3, clock slice (branch `feat/masters-row`):
+Decisions made in Phase 3, lobby slice (branch `feat/board-sizes`):
+- 19x19 is the default board; the last table (size, handicap) is a device preference in
+  `sente-lobby`, never part of the profile.
+- A handicap game against a house player is rated as if the opponent were one rank weaker
+  per stone (`rankWithHandicap`); the lobby says "rated as 5k" so it is no surprise.
+- A resumed game takes its table from its own record, so the saved session did not have to
+  learn a new field and a rematch is always played on the board in front of you.
+- The daily duel stays 9x9 (`DUEL_SIZE`): results only compare on one board.
+- The board is drawn at 460, 560 or 680 px for 9, 13, 19; the stone scale never changes.
+
+Decisions made in Phase 3, clock slice (branch `feat/clock`):
 - Losing on time is a rule, so it is an engine transition (`timeout`) and not something
   a view decides: it ends the game, the opponent wins, and it is as final as a
   resignation. `RE[B+T]` carries it both ways through SGF.
@@ -117,6 +129,8 @@ Decisions made in Phase 3, clock slice (branch `feat/masters-row`):
   byo-yomi period — so a player with five periods in hand is not shouted at.
 - Four presets and no more (None, Blitz, Standard, Long), one of each kind the engine
   knows. A wall of time controls is a server's problem, not a table's.
+- The preset is part of the table device-preference in `sente-lobby`, beside size and
+  handicap, and rides on the record so a resumed game keeps its clock.
 - Which side's clock runs lives in `content/clockFace.js` (`runningSide`), not in the
   hook, so the rule is unit-tested. `views/useClock.js` is the only part that knows
   what a browser is.
@@ -124,10 +138,8 @@ Decisions made in Phase 3, clock slice (branch `feat/masters-row`):
 Open on the clock, next slice:
 - [ ] Persist elapsed time with the saved game. Today the clock is per-session, so
       leaving a table and resuming it starts the clock over.
-- [ ] Remember the chosen preset per device, alongside the lobby table in `sente-lobby`
-      once `feat/board-sizes-local` lands.
-- [ ] The clock in a daily duel: every device would have to agree on elapsed time, so
-      it stays unclocked until there is a server.
+- [ ] The clock in a daily duel, and on an online table: both need an agreed clock,
+      so they stay unclocked until the server owns the time.
 
 ## Delight (done 2026-09-09, branch `feat/rules-kernel`)
 
@@ -191,14 +203,57 @@ imitates a rank: Hoshi 20k, Tetsu 15k, Yuki 10k, Ren 5k, Sora 1k, Kaede 2d, Tats
 
 ## Phase 4 — Multiplayer (server)
 
-- [ ] Backend: auth, persistent profiles, game service over WebSocket. The `GameRecord`
-      is the wire format; the server validates every move with the same engine.
-- [ ] Matchmaking and challenge flow between humans; house players remain available and
-      labeled as bots.
-- [ ] Spectating, chat, undo requests, and resign offers with consent.
-- [ ] Server-authoritative Glicko-2 rating replacing client-side Elo.
-- [ ] Rankings ladder backed by real players.
+Slice 1 landed 2026-09-10 on branch `feat/server`: a Cloudflare Worker (`server/`) with
+two Durable Object classes, deployed at https://sente-server.melaniesigrid.workers.dev.
+
+- [x] Backend: accounts, game service over WebSocket. The `GameRecord` is the wire
+      format; the server validates every move with the same engine (`server/room.js`
+      imports `src/engine/record.js`).
+- [x] Matchmaking between humans (seek by board size, first waiter takes Black); house
+      players remain available and labeled as bots.
+- [x] Spectating, chat, undo requests with consent, two-sided score acceptance. Resign is
+      unilateral, as in every club.
+- [x] Server-authoritative Glicko-2 (`server/rating.js`), one game per rating period.
+      The house ladder keeps client-side Elo; the two never mix.
+- [x] Rankings ladder backed by real players (`GET /api/ladder`), shown above the house
+      ladder when the server answers.
+- [ ] Clocks: the engine's clock module on the room with a Durable Object alarm, and a
+      claim-win-on-timeout for a vanished opponent. Until then online games are untimed.
+- [ ] "Keep playing" from scoring online (needs a consented resume frame in the reducer).
+- [x] Meeting on purpose: a seek can carry a rendezvous word, and seeks with a word
+      match only each other. Two friends type the same word and sit down together,
+      however busy the lobby is; open seeks never swallow them and the lobby count
+      only reports open ones.
+- [ ] A friends list, and challenging a named player from the ladder. The rendezvous
+      word covers "let us play now"; it does not remember anybody.
+- [ ] Handicap online: the lobby handicap is a house arrangement, so networked games are
+      always even. Two strangers need a way to agree on stones before this can change.
+- [x] Leaving: `DELETE /api/me` removes the handle, its key and its ladder seat; only
+      players with a finished rated game stand on the ladder. `DELETE
+      /api/admin/players/:id` and `GET /api/admin/players` are the operator routes,
+      behind an `ADMIN_TOKEN` secret.
+- [ ] Account hygiene: rate-limit `/api/register`, and a way to move a handle to
+      another device (show the key once).
+- [ ] CI deploy for the Worker: `.github/workflows/deploy-server.yml` is written and
+      needs a `CLOUDFLARE_API_TOKEN` repository secret (Workers Scripts: Edit) to run.
 - [ ] Analysis: KataGo (or GnuGo) via the backend, or a WASM engine in the browser.
+
+Decisions made in slice 1:
+- Accounts are a display name plus a 32-byte bearer token generated by the server and
+  kept in `localStorage` (`sente-account-v1`), stored hashed on the server. No email,
+  no password, nothing personal. The local profile stays local; the account is separate.
+- The Worker and the Durable Objects never hold a rule. `server/room.js` is a pure
+  reducer over `{ record, seats, chat, undo, accepted }` and is the protocol's spec;
+  `server/roomObject.js` is parse, apply, store, broadcast.
+- Newcomers start at 1500 (15 kyu on `rankOf`) with deviation 350; a rating with
+  deviation above 150 reads as provisional ("15k? provisional") everywhere it is shown.
+- A rated game settles once, in the Registry, keyed by game id; a crash between the
+  room's end and the settle retries on the next frame.
+- The client never moves ahead of the server: a stone appears only when the room state
+  comes back. On a 9x9 this is one round trip and feels instant; a local echo is a
+  later polish if 19x19 over a slow link needs it.
+- `VITE_SENTE_SERVER` picks the server at build time (dev default `localhost:8787`,
+  production default the workers.dev URL, empty string disables online play).
 
 ## Phase 5 — Lesson library (30 kyu to dan)
 
@@ -233,6 +288,24 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
   the "exit tests as lobby presets" item. `tierPassed` is on the profile but unused.
 - Learner's current tier = lowest tier not passed and not fully finished.
 - [ ] Tier exit tests as lobby presets, recorded in the profile.
+- [x] Lesson flow and player polish (2026-09-10; directive: `docs/designs/lesson-flow.md`).
+      Timers move stones, never words: everything a step says accrues in `state.log`
+      (`{ tone, text, verdict? }`) and is cleared by leaving the step, not by a clock and
+      not by Reset position. `clearWrong` now drops only the board marker. A refutation
+      says why as the stone lands, then the punishment arrives under the words. Sequences
+      of four moves or more (`GATE_FROM`) wait for the learner's "Play the reply" instead
+      of a 400ms timer; shorter ones reply at 600ms, or instantly under
+      `prefers-reduced-motion`. In a replay the stop's question stays the step text and
+      only the verdicts accrue, so a scored stop's line survives the board moving on.
+      The player keeps one state per step, so Back, the clickable stepper and re-entry
+      from the library all find a solved step solved, transcript and all (`SESSIONS`,
+      session memory only). `Show me` (`reveal`) plays the answer out after two misses and
+      marks the step `revealed` so the recap stays honest; in a replay it reveals one stop,
+      scores nothing, and misses are counted per stop (`attemptsAt`) so a study cannot be
+      revealed wholesale. The hint is a per-step disclosure that a miss opens, so
+      `wrongTextFor` no longer falls back to the hint and no sentence is said twice. One
+      `.response` block carries all four tones, and finishing a lesson shows a recap plus
+      the next lesson instead of jumping straight into it.
 - [ ] Tier 2 Apprentice and Tier 3 Journeyman authored (20 lessons, 9/13/19).
 - [ ] SGF authoring pipeline: build-time script turns SGF with comments into steps.
 - [ ] Tier 4 Craftsman and Tier 5 Master authored (20 lessons, 19x19).
@@ -245,6 +318,25 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       of their syllabus is still open.
 - [ ] Surface the saying of the day on Home (the card is built in `Learn.jsx` as
       `ClassicCard`; lift it to a shared component).
+- [x] The Classic, second pass (2026-09-10): the book itself, not only its sayings.
+      `content/classic.js` now carries the preface (Huan Tan's three kinds of player), all
+      thirteen chapters as prose in Sente's own rendering, chapter twelve's nine levels and
+      chapter eleven's thirty-two names, alongside the existing passages. Learn's series card
+      became a reader: preface, then thirteen expandable chapters, each with its lessons under
+      it and the names glossary inside chapter eleven. Profile gained a nine-levels card. New
+      lesson `classic-corner-shapes` (tier 5, 3k, life) teaches chapter thirteen's named corner
+      shapes, both verdicts replayed against the engine by the verifier.
+      Decisions: the nine levels map one-to-one onto the nine dan grades and kyu players get
+      none, because chapter twelve refuses to number anything below the ninth — the card says
+      so rather than inventing a title. Chapter eleven's names carry `sure`, and only 16 of the
+      32 claim a modern term; the rest show as unidentified, since the chapter's own argument
+      is that names must be set right. A chapter may now hold more than one lesson
+      (`alsoLessonIds`, `lessonIdsForChapter`), so `lessonAfter` walks chapter thirteen's
+      miscellany into its corner shapes. The ambient threading stays with `PASSAGES`.
+- [ ] The rest of chapter thirteen's named shapes: the five-point flower, and the two-by-three
+      that lives in the open and dies in the corner.
+- [ ] Restore the Chinese characters for chapter eleven's thirty-two names from the original,
+      and revisit the sixteen marked uncertain.
 - [ ] Tsumego graded 30k → 5k with categories and a daily set (reuses the verifier).
 - [ ] Spaced repetition: finished quiz steps enter a recall queue; "Review five" card on Home.
 - [ ] Joseki and opening library for 9×9 and 19×19.
@@ -279,9 +371,8 @@ and one rule: the number on the card is measured, never claimed.
       games and to "host unreachable" in a duel. (PR 2; reached main only via PR #7 —
       see the merge warning in the handoff doc.)
 - [ ] Masters row in the lobby, 19x19 only, hidden without the index, style match read
-      from `eval.json`. Blocked: needs the lobby's board-size picker, which is still in
-      flight on `feat/board-sizes-local` (PR #12). This is the last thing between the
-      recovered bot seam and a player being able to use it.
+      from `eval.json`. Unblocked 2026-09-10: the board-size picker landed in PR #15.
+      This is the last thing between the bot seam and a player being able to use it.
 - [x] Step types `replay` (embedded moves and stops; scoring is data: the master's move for
       full credit, precomputed `strong` moves for partial, refutations played out; `scored`
       status so a stop is never scored twice; Try again returns to the stop) and `maxim` in
@@ -377,7 +468,7 @@ Bigger swings:
 
 ## Typefaces (done 2026-09-10, branch `feat/typefaces`)
 
-Six pairings of the same design system, chosen in Profile and stored on the profile.
+Eight pairings of the same design system, chosen in Profile and stored on the profile.
 Display faces are borrowed from the Typecase library next door; body faces stay
 Google-hosted text families, because the Typecase text cuts have no weight axis.
 
@@ -386,7 +477,19 @@ Google-hosted text families, because the Typecase text cuts have no weight axis.
 - [x] Pairings as data in `src/content/typeface.js`, house first and default.
 - [x] Local faces in `src/styles/fontfaces.js`, each with a measured `size-adjust`
       onto Fraunces' optical size so a pairing changes voice, not layout.
-- [x] Picker in Profile, each option previewing its own display face with digits.
+- [x] Picker in Profile, each option previewing its own display face with digits.
+- [x] 2026-09-10 Four voices, not one italic: `--font-quote` (passages, maxims,
+      Moku, the result line) is always a serif, `--font-caption` (the footer, the
+      bow words) takes the body face, and the scripts keep the ornament voice at
+      26px. A script cannot carry a quotation at 15px.
+- [x] 2026-09-10 Galliard is the whole Maison Galliard trio: serif headings, its
+      own sans for body and captions, its script for the whisper.
+- [x] 2026-09-10 Two avant garde pairings, Hoshi (Cocogoose Pro Thin) and Vitrine
+      (Qliesya didone over Instrument Sans). Eight pairings now.
+- [x] 2026-09-10 The footer is signed: Melanie Baratto in Daenerys, outside the
+      pairing system, drawn on once at load.
+- [x] 2026-09-10 No local cut is slanted by the browser any more; only the Google
+      faces, which ship a real italic, are asked for one.
 
 Open:
 - [ ] Licensing: every borrowed face is a demo/personal-use cut (`src/fonts/LICENSES.md`).

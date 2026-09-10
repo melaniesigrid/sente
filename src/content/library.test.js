@@ -282,14 +282,16 @@ describe("library helpers", () => {
     expect(lessonAfter(lessonById("liberties")).id).toBe("no-liberty-capture");
     expect(lessonAfter(lessonById("classic-board")).id).toBe("classic-calculation");
     expect(lessonAfter(lessonById("classic-territory")).id).toBe("classic-conflict"); // chapter order, not tier order
-    expect(lessonAfter(lessonById("classic-miscellany"))).toBeNull();
+    // Chapter thirteen holds two lessons, so the miscellany flows into the corner shapes.
+    expect(lessonAfter(lessonById("classic-miscellany")).id).toBe("classic-corner-shapes");
+    expect(lessonAfter(lessonById("classic-corner-shapes"))).toBeNull();
     expect(lessonAfter(lessonById("first-9x9-opening")).id).toBe("classic-board"); // tier 1 flows into tier 2
     expect(lessonAfter(null)).toBeNull();
   });
-  it("lessonsInSeries returns chapters in order with unique chapter numbers", () => {
+  it("lessonsInSeries returns chapters in order, and a chapter may hold more than one lesson", () => {
     const cs = lessonsInSeries("classic").map(l => l.chapter);
     expect(cs).toEqual([...cs].sort((a, b) => a - b));
-    expect(new Set(cs).size).toBe(cs.length);
+    expect(cs.length).toBeGreaterThanOrEqual(new Set(cs).size);
     expect(lessonsInSeries("nope")).toEqual([]);
   });
   it("searchLibrary matches title and track, case-insensitively", () => {
