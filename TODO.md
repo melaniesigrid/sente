@@ -802,14 +802,60 @@ Google-hosted text families, because the Typecase text cuts have no weight axis.
 - [x] 2026-09-10 No local cut is slanted by the browser any more; only the Google
       faces, which ship a real italic, are asked for one.
 
+- [x] 2026-09-10 Three pairings, not eight (branch `feat/readable-colour`). House, Kaya
+      and Vitrine stay; Galliard House, Wedge, Clubhouse, Signal and Hoshi are gone, and
+      Kaya's ornament voice is Fraunces' italic instead of the Bellique script — that voice
+      carries the emphasised word in the landing hero and the lesson numerals, mid-sentence
+      at reading size, and a script could not do it. No script stands anywhere in the set
+      now, so `serifless` had nothing left to except and went with them. The build carries
+      three borrowed faces instead of thirteen, and no pairing puts a personal-use cut into
+      running text any more — `galliard` was the one that did.
+
 Open:
-- [ ] Licensing: every borrowed face is a demo/personal-use cut (`src/fonts/LICENSES.md`).
-      Before a public deploy, buy the pairings worth keeping or swap them for OFL faces.
-      Only `house` and the three Google body families are clear today.
-- [ ] Convert the borrowed faces to woff2; the OTFs are 16-207 KB each and lazy, but
-      Kuigaf alone is 207 KB the first time Wedge is chosen.
+- [ ] Licensing: the three borrowed cuts still shipping are Welorac, Qliesya and Daenerys,
+      all demo/personal-use (`src/fonts/LICENSES.md`). Buy them or swap for OFL faces before
+      a public deploy. Daenerys is the urgent one — no commercial use at all, and it signs
+      every page. Everything else in the set is OFL today.
+- [ ] Convert the two remaining display cuts to woff2; Welorac is 46 KB and Qliesya 16 KB
+      as OTF, and woff2 would roughly halve each.
 - [ ] A pairing is a device preference stored in the profile; when accounts arrive,
       decide whether it syncs or stays local like the Moku toggle.
+
+## Readable colour (done 2026-09-10, branch `feat/readable-colour`)
+
+The rooms were audited against WCAG AA and the failures were systemic rather than local,
+so the fix is derived and tested rather than hand-tuned.
+
+- [x] Secondary text was dimmed with an `opacity`, and an opacity is a fixed fraction of
+      whatever is behind it. Measured, every light room failed: House ink at `.55` is
+      2.60:1, at `.6` it is 2.89:1, at `.7` it is 3.61:1 — about sixty rules of it, none
+      of them reaching 4.5. Two derived tokens replace the lot: `--ink-2` (secondary text,
+      solved to 4.5:1) and `--ink-3` (incidental text, 3:1, and spent on nothing small).
+- [x] `--danger-ink`, the warning walked up to reading contrast the way `--accent-ink`
+      already was. Same errand, same function: a pill is a mark at 2.9:1, but the word
+      "Resigned" is text.
+- [x] The mark was colouring words in fifty-odd places at its own 2.9:1 floor. `--accent`
+      now colours shapes and `--accent-ink` colours glyphs, with one exception measured
+      rather than granted by name: type at 24px and up may take the raw mark, because 3:1
+      is WCAG's own floor there.
+- [x] One `:focus-visible` ring, in `--accent-ink`, on everything in the app. There were
+      four bespoke rings and nothing at all on the rest.
+- [x] `src/styles/css.test.js` parses the stylesheet and holds all of it: no word dimmed
+      with an opacity, no small word coloured with a mark, no colour token asked for that
+      `TOKEN_NAMES` does not promise, and the derived inks measured in every room.
+- [x] Two rooms that answer a set which had grown repetitive — every light room being a
+      pale neutral ground under a near-neutral ink. Cinnabar is blush paper with oxblood
+      ink and a lacquer-red mark, the one room led by a colour; Foxfire is wet bark under
+      chartreuse, the only mark in the set that sits above its own ink in luminance.
+
+Open:
+- [ ] The grid is the last unmeasured colour: `.grid-line` draws `--grid` at
+      `stroke-opacity: .38`, and territory marks and dead stones are opacities too. They
+      are graphics rather than text, but they carry meaning during scoring and nothing
+      holds them to 3:1 yet.
+- [ ] Six of the ten marks sit in the amber band and `deriveDanger` puts every unauthored
+      warning at hue ~12°. Cinnabar pushed the set warmer still. A cool light room would
+      even it out.
 
 ## Palettes and the dojo (done 2026-09-10, branches `feat/palette-damson`, `feat/palette-dojo`)
 

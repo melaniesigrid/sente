@@ -65,7 +65,7 @@ describe("sanitizeProfile", () => {
     expect(warn.mock.calls[0][0]).toMatch(/tierPassed/);
   });
   it("keeps a known typeface id and resets an unknown one", () => {
-    expect(sanitizeProfile({ ...defaultProfile, typeface: "clubhouse" }).typeface).toBe("clubhouse");
+    expect(sanitizeProfile({ ...defaultProfile, typeface: "vitrine" }).typeface).toBe("vitrine");
     for (const bad of ["", "helvetica", 7, null]) {
       expect(sanitizeProfile({ ...defaultProfile, typeface: bad }).typeface).toBe(DEFAULT_TYPEFACE);
     }
