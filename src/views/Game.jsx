@@ -46,10 +46,16 @@ const BOARD_PX = { 9: 460, 13: 560, 19: 680 };
 export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const duel = mode.kind === "duel" ? mode : null;
   const persona = mode.kind === "bot" || duel ? mode.persona : null;
+  /* A master is a house player with a corpus behind it: the loaded masters JSON
+     rides on the mode and goes straight to the engine's bot seam. It has no rank
+     and no rating, because agreement with a year profile is not a strength and
+     Sente does not put a number on the screen it cannot stand behind. Master games
+     are therefore unrated, and the table says so. */
+  const master = mode.master ?? null;
   // The rank this game is played at; house players adapt to it. A duel fixes it by the
   // day so everyone meets the same opponent; otherwise it defaults to the player's own.
-  const botRank = persona ? (duel ? duel.rank : (mode.rank ?? rankOf(profile.rating))) : null;
-  const botRating = persona ? ratingOfRank(botRank) : null;
+  const botRank = persona && !master ? (duel ? duel.rank : (mode.rank ?? rankOf(profile.rating))) : null;
+  const botRating = botRank !== null ? ratingOfRank(botRank) : null;
   // A new game is set up from the lobby's table; komi is the engine's default for the
   // handicap. A resumed game carries its own, so a rematch is played on the board in
   // front of you even though the saved session only remembers the opponent. The clock
@@ -102,9 +108,12 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
 
   // Persist the table on every change; an ended or empty game clears the slot.
   useEffect(() => {
-    if (rec.phase === "ended" || rec.moves.length === 0) clearGame();
+    // A master game is not saved: the saved mode remembers an id and a rank, and
+    // rebuilding it cannot carry the loaded corpus, so a resume would sit you down
+    // opposite a different opponent than the one you left.
+    if (rec.phase === "ended" || rec.moves.length === 0 || master) clearGame();
     else saveGame({ record: rec, mode: { kind: mode.kind, personaId: persona ? persona.id : null, rank: botRank, key: duel ? duel.key : null } });
-  }, [rec, mode.kind, persona, botRank, duel]);
+  }, [rec, mode.kind, persona, botRank, duel, master]);
 
   /* The first stone is the attempt: the day is written to the profile as Black's
      first move lands, so a misclick on the card or a reload while the network
@@ -168,6 +177,10 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         setProfile(np);
         saveProfile(np);
         notify({ icon: outcome.won ? "trophy" : "flag", text: `Daily duel · ${duelResultText(outcome.code)}` });
+      } else if (master) {
+        const won = next.result.winner === "b";
+        say(pick(won ? persona.chat.loss : persona.chat.win));
+        notify({ icon: won ? "trophy" : "flag", text: `${won ? "Victory" : "Defeat"} · unrated` });
       } else if (persona) {
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
@@ -191,7 +204,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       }
     }
     return next;
-  }, [persona, duel, botRank, profile, say, setProfile, notify, sound]);
+  }, [persona, duel, master, botRank, profile, say, setProfile, notify, sound]);
 
   /* The clock. Running out of time is a rule, so the flag goes through the engine's
      `timeout` and settles through the same `conclude` a resignation does: a loss on
@@ -235,14 +248,19 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
        different game under the same result code; if the network cannot answer,
        the table says so and waits. */
     const fallback = () => aiChooseMoveForRecord(r, persona.weights);
-    const ask = duel
-      ? { ...profileForRank(duel.rank, persona.profile.temperature), oppRank: duel.rank, seed: duel.seed }
-      : { ...profileForRank(botRank, persona.profile.temperature), oppRank: rankOf(profile.rating) };
+    const ask = master
+      ? { master, temperature: persona.profile.temperature }
+      : duel
+        ? { ...profileForRank(duel.rank, persona.profile.temperature), oppRank: duel.rank, seed: duel.seed }
+        : { ...profileForRank(botRank, persona.profile.temperature), oppRank: rankOf(profile.rating) };
     const unreachable = () => { if (!alive.current) return; setThinking(false); setHostLost(true); };
+    /* A master never falls back to the heuristic player: that player has no book and
+       no year, so it would be a different opponent under the same name. If the
+       network cannot answer, the table says so and waits, as a duel does. */
     kataChooseMoveForRecord(r, ask)
-      .then((res) => { if (res) settle(res.move); else if (duel) unreachable(); else settle(fallback()); })
-      .catch(() => { if (duel) unreachable(); else settle(fallback()); });
-  }, [persona, duel, botRank, profile.rating, say, conclude, afterMove]);
+      .then((res) => { if (res) settle(res.move); else if (duel || master) unreachable(); else settle(fallback()); })
+      .catch(() => { if (duel || master) unreachable(); else settle(fallback()); });
+  }, [persona, duel, master, botRank, profile.rating, say, conclude, afterMove]);
 
   // A resumed game, or a fresh handicap game, may be waiting on the house player.
   useEffect(() => {
@@ -377,7 +395,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
           <span className="vs-x">vs</span>
           <div className="vs-side">
             {persona
-              ? <><div className="vs-meta right"><strong>{persona.name}</strong><RankBadge rating={botRating} size="sm" /><ClockFace clock={clock} color="w" timed={false} align="right" /></div><Avatar name={persona.name} tint={persona.tint} size={34} bot /></>
+              ? <><div className="vs-meta right"><strong>{persona.name}</strong>{botRating !== null && <RankBadge rating={botRating} size="sm" />}<ClockFace clock={clock} color="w" timed={false} align="right" /></div><Avatar name={persona.name} tint={persona.tint} size={34} bot /></>
               : <><div className="vs-meta right"><strong>White</strong><ClockFace clock={clock} color="w" active={!over && rec.phase === "playing" && turn === "w"} align="right" /></div><div className="avatar duo sm"><User size={15} /></div></>}
           </div>
         </div>
@@ -438,7 +456,8 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
               <Passage context={resultKind || "any"} size="sm" />
               <p className="fine">
                 {duel ? "Daily duel, unrated. Everyone met this host on this board today; one attempt each."
-                  : persona ? ratingLine(delta) ?? "Rated against a house player." : "Unrated. Thank you both for the game."}
+                  : master ? "Unrated. Agreement with a profile is not a strength, so this game moves no rating."
+                    : persona ? ratingLine(delta) ?? "Rated against a house player." : "Unrated. Thank you both for the game."}
                 {over.method === "score" && rec.dead.length > 0 && ` · ${rec.dead.length} dead ${rec.dead.length === 1 ? "stone" : "stones"} removed`}
               </p>
               <div className="row">
@@ -469,7 +488,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
             <Card inset className="caps">
               <div><span className="dot dot-b" /> Black captures: {rec.captures.b}</div>
               <div><span className="dot dot-w" /> White captures: {rec.captures.w}</div>
-              <div className="fine">{captionText({ size: rec.size, komi: rec.komi, handicap: rec.handicap, rated: !!persona && !duel, duel: !!duel })}{hints ? " · atari hints on" : ""}</div>
+              <div className="fine">{captionText({ size: rec.size, komi: rec.komi, handicap: rec.handicap, rated: !!persona && !duel && !master, duel: !!duel })}{hints ? " · atari hints on" : ""}</div>
             </Card>
           )}
           {persona ? (

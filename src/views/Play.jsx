@@ -10,6 +10,7 @@ import { loadLobby, saveLobby, HANDICAPS } from "../store/lobby.js";
 import { duelMode } from "../content/duel.js";
 import { dayKey } from "../content/kata.js";
 import { CLOCK_PRESETS, presetById, presetText } from "../content/clockFace.js";
+import { MastersRow } from "../components/MastersRow.jsx";
 import { loadSession } from "./session.js";
 import { Game } from "./Game.jsx";
 import { OnlineCard } from "./OnlineLobby.jsx";
@@ -141,6 +142,7 @@ export function PlayView({ profile, setProfile, notify, resume }) {
           <p className="persona-bio">The original multiplayer. Black and White share the device; the ladder sits this one out.</p>
           <span className="persona-cta"><Handshake size={13} /> Sit down</span>
         </button>
+        <MastersRow onSit={(mode) => setSession({ mode: { ...mode, clock } })} />
       </div>
     );
   }
