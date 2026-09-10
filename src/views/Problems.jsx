@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Check, X, RotateCcw, SkipForward, CalendarCheck, Flame } from "lucide-react";
 import { tryPlay } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
-import { Card, Btn } from "../components/ui.jsx";
+import { Card, Btn, PullQuote } from "../components/ui.jsx";
+import { plainFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
 import { PROBLEMS } from "../content/problems.js";
@@ -60,6 +61,7 @@ export function ProblemsView({ profile, setProfile, initialId }) {
         Classical shapes — the public-domain vocabulary every serious life-and-death
         collection is built on. One is today's kata; solve it daily and your attendance grows.
       </p>
+      <PullQuote>{plainFor("tsumego")}</PullQuote>
       <Passage context="tsumego" />
       <div className="prob-tabs" role="tablist">
         {PROBLEMS.map((p, i) => {

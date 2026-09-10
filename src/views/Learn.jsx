@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { Board } from "../components/Board.jsx";
 import { Card, Btn, Pill, PullQuote } from "../components/ui.jsx";
+import { plainFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
 import {
@@ -419,6 +420,7 @@ function ClassicCard({ done, onOpen }) {
   return (
     <Card inset className="stack-sm">
       <div className="stat-head"><Quote size={15} /><span>{CLASSIC.title}</span></div>
+      <PullQuote>{plainFor("learn")}</PullQuote>
       <Passage context="learn" />
       <div className="row spread">
         <span className="fine">{finished}/{lessons.length} chapters read</span>
