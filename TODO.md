@@ -594,6 +594,33 @@ Open:
 - [ ] A pairing is a device preference stored in the profile; when accounts arrive,
       decide whether it syncs or stays local like the Moku toggle.
 
+## Palettes (done 2026-09-10, branch `feat/palette-damson`)
+
+- [x] A theme is data in `src/content/theme.js`: ground, the two lights every shadow is
+      cut from, ink, cream, accent. Eight of them — house, kaya, porcelain, damson (light);
+      lacquer, graphite, sumi, yohen (dark). Damson is pastel plum paper under a damson
+      mark, the one light room that is neither warm stone nor cool clay.
+- [x] The stylesheet names no colour outside its house-default block; the shell spreads
+      `themeVars(profile.theme)` beside `typefaceVars`, so no class is toggled and no
+      second stylesheet exists.
+- [x] Stone gradients and Moku's face read tokens, so a dark room can lift the black
+      stone's crown off the board without touching a component.
+- [x] Picker in Profile: every swatch is drawn in its own material.
+- [x] `theme.test.js` checks ink contrast, accent contrast against the house floor, and
+      that the highlight and the shadow stay close to the ground — the illusion.
+
+Open:
+- [ ] `prefers-color-scheme` is not consulted. A first visit lands on house whatever the
+      OS says. Decide between an explicit choice only, or a `system` option that follows.
+- [ ] The belt colours, the seal tints and the rank tints are still absolute values from
+      `rank.js`; they were chosen against paper and are only checked by eye on the dark
+      rooms. Either theme them too or prove they hold.
+- [ ] Theme is a device preference like the pairing; same question when accounts arrive.
+- [ ] The typed-saying work (a saying struck out of a typewriter, with the treatise's own
+      words marked) is on `feat/board-sizes-local` and was not landed: the saying cards it
+      was drawn for had already been replaced by `Passage`. Reopen it against the passages,
+      or retire it.
+
 ## Principles (do not trade away)
 
 - Rules live in the engine, never in a view.
