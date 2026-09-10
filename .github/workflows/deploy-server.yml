@@ -57,6 +57,21 @@ jobs:
           echo "::add-mask::$TOKEN"
           echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
           echo "ok=true" >> "$GITHUB_OUTPUT"
+      # Ask Cloudflare what it makes of the token before spending a deploy on it.
+      # The response carries no secret, only a verdict, and it distinguishes a
+      # wrong value from a token that is merely missing a permission.
+      - if: steps.gate.outputs.ok == 'true'
+        env:
+          TOKEN: ${{ steps.gate.outputs.token }}
+        run: |
+          BODY="$(curl -sS -H "Authorization: Bearer $TOKEN" \
+            https://api.cloudflare.com/client/v4/user/tokens/verify)"
+          if printf '%s' "$BODY" | grep -q '"success":true'; then
+            echo "Cloudflare accepts the token."
+            exit 0
+          fi
+          echo "::error::Cloudflare rejected the token. It is ${#TOKEN} characters after trimming; an API token is 40. A 32-character value is usually the token ID copied from the token list rather than the secret Cloudflare shows once on creation. Cloudflare said: $BODY"
+          exit 1
       # The trimmed token has to go through the action's own input: wrangler-action
       # sets CLOUDFLARE_API_TOKEN from it, so leaving the input out blanks whatever
       # the environment already held.
