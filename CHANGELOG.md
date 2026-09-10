@@ -6,6 +6,35 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.6.1.0 (2026-09-10)
+
+### Changed
+
+- A passage from the Classic is typed, not set. Passages were in the pairing's italic,
+  which makes the classic decorative: pick a pairing and Zhang Ni changes his voice with
+  it. A passage is not the house speaking, it is one person at a machine putting down
+  someone else's words a thousand years later, so it now comes out of the same typewriter
+  in every pairing. `TYPEWRITER` in `src/content/typeface.js` is Courier Prime, emitted as
+  `--font-typewriter` with the same value for every pairing; it belongs to none of them,
+  and the quote voice still carries Moku and the asides.
+- The hero passage on Home types itself out, and tapping it for another page types the new
+  one. Nothing else does: three passages typing on one screen is a tic, and a card in the
+  corner of a finished game is not where anyone waits for a sentence. Passages run 125 to
+  356 characters, so the duration is held constant and the speed falls out of the length
+  (2.2s, 8 to 28ms a character) with a typist's rest at the punctuation. A hidden twin of
+  the finished passage holds the box open, so the page below does not slide down while the
+  words arrive. `prefers-reduced-motion` gets the passage set, with no caret, and the
+  finished text is the element's accessible name from the first frame.
+- Passage sizes and measure are re-set for a monospace: Courier Prime carries a small
+  x-height on a wide advance, so the sizes go up against the apparent size, the leading
+  goes up, and the measure comes down to 58 characters. The measure moved onto the text
+  itself, because `ch` resolves against the element's own font and the figure around it is
+  still set in the body face, so declared there it was counted in the wrong characters and
+  landed the column at about three quarters of the line it asked for.
+- The marked words keep their colour and their reasoning and go to a flat 700, because
+  Courier Prime ships one bold and no axis. A monospace bold cannot widen the letter, so a
+  mark never shifts the column.
+
 ## v0.5.0.0 (2026-09-10)
 
 ### Added
