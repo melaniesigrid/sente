@@ -3,6 +3,7 @@
    type and falls back per field, with one console.warn naming what was reset. */
 import { TINTS } from "../content/rank.js";
 import { DEFAULT_TYPEFACE, typefaceOf } from "../content/typeface.js";
+import { DEFAULT_THEME, themeOf } from "../content/theme.js";
 
 export const STORE_KEY = "sente-profile-v2";
 
@@ -13,6 +14,7 @@ export const defaultProfile = {
   tierPassed: [],                            // library tier ids whose exit test was passed
   sound: false,                              // stone click + haptic, opt-in
   typeface: DEFAULT_TYPEFACE,                // font pairing id, src/content/typeface.js
+  theme: DEFAULT_THEME,                      // palette id, src/content/theme.js
   kataDate: "", kataStreak: 0, kataBest: 0,  // kata of the day attendance
   duelStarted: "", duelDate: "", duelResult: "", duelMoves: 0,  // daily duel: day started, day finished, code ("B+3.5")
   duelPlayed: 0, duelWins: 0, duelStreak: 0, duelBestStreak: 0,
@@ -46,6 +48,7 @@ const validField = (key, value) => {
   if (typeof def === "boolean") return typeof value === "boolean";
   if (key === "tint") return typeof value === "string" && Object.hasOwn(TINTS, value);
   if (key === "typeface") return typeof value === "string" && typefaceOf(value).id === value;
+  if (key === "theme") return typeof value === "string" && themeOf(value).id === value;
   if (typeof def === "string") return typeof value === "string";
   if (key === "bookProgress") return sanitizeBookProgress(value) !== null;
   return false;
