@@ -5,6 +5,7 @@ export default {
   id: "edge-first-line",
   title: "The Edge Is a Wall",
   subtitle: "Stones on the first line have fewer liberties",
+  plain: "The edge of the board is a wall that takes liberties away for nothing. A stone breathes four ways in the centre, three on the side and only two in the corner, which is why corner stones die cheapest.",
   tier: 1, rank: "22k", track: "tactics", size: 9, prereqs: ["atari-escape"], minutes: 4,
   author: "Sente", sources: [],
   steps: [

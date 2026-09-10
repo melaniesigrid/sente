@@ -592,6 +592,9 @@ ${SIGNATURE_FACE}
 .pull-quote { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 2px auto; padding: 22px 10px 16px; max-width: 40ch; text-align: center; }
 .pull-quote::before { content: ""; width: 38px; height: 2px; border-radius: 2px; background: var(--accent); opacity: .85; }
 .pull-line { margin: 0; font-family: var(--font-quote); font-style: var(--quote-style); font-weight: 420; font-size: clamp(19px, 2.4vw, 25px); line-height: 1.36; letter-spacing: .005em; }
+.pull-quote.sm { gap: 8px; padding: 12px 2px 8px; max-width: none; }
+.pull-quote.sm .pull-line { font-size: 17.5px; line-height: 1.45; }
+.pull-quote.sm .pull-label { font-size: 11.5px; }
 .pull-label { font-family: var(--font-body); font-style: normal; font-size: 12.5px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; opacity: .55; }
 @media (max-width: 620px) { .chapter-body { padding-left: 12px; } }
 

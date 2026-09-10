@@ -13,6 +13,7 @@ export default {
   id: "classic-feelings",
   title: "On Examining the Heart",
   subtitle: "Chapter eight: temperament decides more games than technique",
+  plain: "How you take a win or a loss decides your next hundred games. Look for your own mistake rather than the excuse, and keep your face still while you look for it.",
   tier: 4, rank: "8k", track: "judgement", size: 9, prereqs: ["classic-observing"], minutes: 5,
   author: "Sente", sources: [CLASSIC_SOURCE], series: "classic", chapter: 8,
   steps: [

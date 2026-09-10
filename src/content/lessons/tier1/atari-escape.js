@@ -5,6 +5,7 @@ export default {
   id: "atari-escape",
   title: "Escaping Atari",
   subtitle: "Extending from atari, and when running fails",
+  plain: "One liberty left means one move left. Extending toward open space buys air, but when the escape route runs into your opponent's stones the stone is already lost, and the move is worth more somewhere else.",
   tier: 1, rank: "23k", track: "tactics", size: 9, prereqs: ["liberties"], minutes: 5,
   author: "Sente", sources: [],
   steps: [

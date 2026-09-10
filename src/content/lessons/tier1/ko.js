@@ -10,6 +10,7 @@ export default {
   id: "ko",
   title: "The Ko Rule",
   subtitle: "No infinite loops",
+  plain: "Some shapes let each side capture straight back forever, so the rules forbid recreating the position you just left. You have to threaten something else first, which turns a loop into a bargain.",
   tier: 1, rank: "26k", track: "life", size: 9, prereqs: ["liberties"], minutes: 5,
   author: "Sente", sources: [],
   steps: [

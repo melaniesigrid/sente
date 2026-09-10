@@ -157,6 +157,7 @@ function LessonPlayer({ lesson, nextLesson, onDone, onExit, onOpenNext, rank, on
                 <span className="theme-chip">{trackByKey(lesson.track)?.name}</span>
               </div>
               <h3 className="lesson-head">{lesson.title}</h3>
+              {lesson.plain && <PullQuote size="sm">{lesson.plain}</PullQuote>}
               <p className="fine">What this taught you</p>
               <ul className="recap">
                 {learned.map((l, i) => (

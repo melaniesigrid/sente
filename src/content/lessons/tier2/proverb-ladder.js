@@ -23,6 +23,7 @@ export default {
   id: "proverb-ladder",
   title: "If You Do Not Know Ladders",
   subtitle: "The staircase capture, and the one stone that makes it a disaster",
+  plain: "A ladder is a staircase of ataris that never lets go, and reading one is twenty moves in a straight line. Follow that line to the edge of the board first, because a single enemy stone standing on it turns the capture into a disaster.",
   tier: 2, rank: "19k", track: "tactics", size: 9, prereqs: ["atari-escape"], minutes: 7,
   author: "Sente", book: "proverbs",
   steps: [
