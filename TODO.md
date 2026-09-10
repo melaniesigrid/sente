@@ -89,7 +89,9 @@ each fixed in its own commit:
 
 ## Phase 3 — Play like a real server
 
-- [ ] Lobby: choose 9/13/19, handicap, komi, clock preset; house players available on all.
+- [x] Lobby: choose 9/13/19 and handicap (branch `feat/board-sizes`, 2026-09-10); komi is the
+      engine's default for the handicap, shown not typed; house players play every size.
+      The clock preset waits for the Clock UI item below.
 - [x] Game-end ceremony: after two passes enter scoring, tap groups to toggle dead, territory
       overlay, honest result card with every term ("41 stones + 3 territory = 44" vs
       "35 + 4 + 7.5 komi = 46.5"), a bow, and "Keep playing" to take both passes back.
@@ -103,6 +105,16 @@ each fixed in its own commit:
 - [ ] Keyboard: arrows scrub, P pass, U undo; screen-reader labels already on the board.
 - [ ] Local-only telemetry ring buffer (last 50 games: size, result, bot, move count) to
       tune house-player weights. Never leaves the device.
+
+Decisions made in Phase 3, lobby slice (branch `feat/board-sizes`):
+- 19x19 is the default board; the last table (size, handicap) is a device preference in
+  `sente-lobby`, never part of the profile.
+- A handicap game against a house player is rated as if the opponent were one rank weaker
+  per stone (`rankWithHandicap`); the lobby says "rated as 5k" so it is no surprise.
+- A resumed game takes its table from its own record, so the saved session did not have to
+  learn a new field and a rematch is always played on the board in front of you.
+- The daily duel stays 9x9 (`DUEL_SIZE`): results only compare on one board.
+- The board is drawn at 460, 560 or 680 px for 9, 13, 19; the stone scale never changes.
 
 ## Delight (done 2026-09-09, branch `feat/rules-kernel`)
 

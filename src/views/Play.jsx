@@ -4,7 +4,9 @@ import { Avatar, RankBadge, Btn } from "../components/ui.jsx";
 import { Passage } from "../components/Passage.jsx";
 import { DuelCard } from "../components/DuelCard.jsx";
 import { personasFor, PERSONAS } from "../content/personas.js";
-import { rankOf, ratingOfRank, stepRank, rankInRange, RANK_LADDER } from "../content/rank.js";
+import { rankOf, ratingOfRank, stepRank, rankInRange, rankWithHandicap, RANK_LADDER } from "../content/rank.js";
+import { SIZES, defaultKomi } from "../engine/index.js";
+import { loadLobby, saveLobby, HANDICAPS } from "../store/lobby.js";
 import { duelMode } from "../content/duel.js";
 import { dayKey } from "../content/kata.js";
 import { loadSession } from "./session.js";
@@ -12,27 +14,37 @@ import { Game } from "./Game.jsx";
 
 /* ----------------------- PLAY (lobby) -----------------------
    `resume` is `{ mode, record }` from the Home card; it seeds the first
-   session only, a fresh mount without it shows the lobby. */
+   session only, a fresh mount without it shows the lobby.
+
+   The table (board size, handicap) is set once here and rides on the session
+   mode; the record is built from it in Game. Komi is never typed in: it is
+   the engine's default for the handicap, shown so nobody is surprised. */
 export function PlayView({ profile, setProfile, notify, resume }) {
-  // session: null | { mode: {kind:'bot', persona} | {kind:'local'}, record? }
+  // session: null | { mode: {kind:'bot', persona, rank, size, handicap} | {kind:'local', size, handicap} | duel, record? }
   const [session, setSession] = useState(() => resume || null);
   // The level the next game is played at. Starts at the player's own rank; every house
   // player adapts to it, so nobody has to "graduate" to an opponent.
   const myRank = rankOf(profile.rating);
   const [rank, setRank] = useState(myRank);
+  const [table, setTableState] = useState(loadLobby);
+  const setTable = (patch) => setTableState(t => { const n = { ...t, ...patch }; saveLobby(n); return n; });
   const today = dayKey();
   // The saved table is re-read whenever the lobby shows, so leaving a duel mid-game is reflected.
   const saved = useMemo(() => (session ? null : loadSession({ today, profile })), [session, today, profile]);
   if (!session) {
     const first = RANK_LADDER[0], last = RANK_LADDER[RANK_LADDER.length - 1];
+    const hi = HANDICAPS.indexOf(table.handicap);
+    const komi = defaultKomi(table.handicap);
+    const ratedAs = rankWithHandicap(rank, table.handicap);
+    const sit = (mode) => setSession({ mode: { ...mode, size: table.size, handicap: table.handicap } });
     return (
       <div className="stack">
         <h2 className="section-title">Find a game</h2>
         <p className="lede">
           Play a house opponent — each with their own style and table talk — or hand the
           device across the table for a face-to-face game. House players adapt to the level
-          you pick, from 25 kyu to 9 dan, so choose the company you like. Networked
-          matchmaking joins the same seat when the server lands.
+          you pick, from 25 kyu to 9 dan, and play any board. Networked matchmaking joins
+          the same seat when the server lands.
         </p>
         <Passage context="play" />
         <DuelCard profile={profile} today={today} mode={duelMode(PERSONAS, today)}
@@ -49,9 +61,32 @@ export function PlayView({ profile, setProfile, notify, resume }) {
             {rank !== myRank && <Btn icon={Home} small onClick={() => setRank(myRank)}>My level</Btn>}
           </div>
         </div>
+        <div className="rank-picker neu-card table-picker" role="group" aria-label="The table">
+          <div className="rank-picker-label">
+            <strong>The table</strong>
+            <span className="fine">
+              komi {komi}{table.handicap ? ` · White plays first · rated as ${ratedAs}` : ""}
+            </span>
+          </div>
+          <div className="rank-picker-controls">
+            <div className="seg" role="radiogroup" aria-label="Board size">
+              {SIZES.map(n => (
+                <button key={n} type="button" role="radio" aria-checked={table.size === n}
+                  className={`seg-btn ${table.size === n ? "active" : ""}`} onClick={() => setTable({ size: n })}>
+                  {n}×{n}
+                </button>
+              ))}
+            </div>
+            <div className="rank-picker-controls" role="group" aria-label="Handicap stones">
+              <Btn icon={Minus} small label="Fewer handicap stones" disabled={hi <= 0} onClick={() => setTable({ handicap: HANDICAPS[hi - 1] })} />
+              <span className="handicap-num" aria-live="polite">{table.handicap ? `${table.handicap} stones` : "No handicap"}</span>
+              <Btn icon={Plus} small label="More handicap stones" disabled={hi >= HANDICAPS.length - 1} onClick={() => setTable({ handicap: HANDICAPS[hi + 1] })} />
+            </div>
+          </div>
+        </div>
         <div className="grid3">
           {personasFor(rank).map(p => (
-            <button key={p.id} className="neu-card persona-card" onClick={() => setSession({ mode: { kind: "bot", persona: p, rank } })}>
+            <button key={p.id} className="neu-card persona-card" onClick={() => sit({ kind: "bot", persona: p, rank })}>
               <div className="persona-top">
                 <Avatar name={p.name} tint={p.tint} size={52} bot />
                 <div>
@@ -65,7 +100,7 @@ export function PlayView({ profile, setProfile, notify, resume }) {
             </button>
           ))}
         </div>
-        <button className="neu-card persona-card local-card" onClick={() => setSession({ mode: { kind: "local" } })}>
+        <button className="neu-card persona-card local-card" onClick={() => sit({ kind: "local" })}>
           <div className="persona-top">
             <div className="avatar duo"><Users size={22} strokeWidth={2} /></div>
             <div>
