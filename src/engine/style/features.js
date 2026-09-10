@@ -121,6 +121,16 @@ export function moveFeatures(board, c, r, color, ctx = {}) {
   return { line, phase, contact, tenuki, thickness, quadrant, atariGiven, captures: res.captured.length, legal: true };
 }
 
+/** Per-move axes as a flat numeric vector, the shape the prior and the eval share:
+ *  one-hot line (1..5+), contact, tenuki, thickness, quadrant, atari given. */
+export const MOVE_AXES = ["line1", "line2", "line3", "line4", "line5", "contact", "tenuki", "thickness", "quadrant", "atari"];
+export function moveAxesVector(board, c, r, color, ctx) {
+  const f = moveFeatures(board, c, r, color, ctx);
+  const v = { contact: f.contact, tenuki: f.tenuki, thickness: f.thickness, quadrant: f.quadrant, atari: f.atariGiven };
+  for (let l = 1; l <= 5; l++) v[`line${l}`] = Math.min(f.line, 5) === l ? 1 : 0;
+  return v;
+}
+
 /** Every axis of a game-level style vector, in a fixed order. */
 export const AXES = [
   ...CORNER_CLASSES.map((k) => `corner_${k}`),

@@ -1,9 +1,10 @@
 {
-  "$comment": "Every corpus the build reads. `terms` quotes the source's own statement of rights; a master without one does not build. `aliases` are the player-name spellings the SGF headers use. `anonymous` masters ship with the manifest `name` only and no player name reaches any emitted file.",
+  "$comment": "Every corpus the build reads. `terms` quotes the source's own statement of rights; a master without one does not build. `aliases` are the player-name spellings the SGF headers use; an anonymised master lists `aliasHashes` instead (SHA-256 of build.mjs nameKey of each spelling) so the name is nowhere in the repo. `anonymous` masters ship with the manifest `name` only and no player name reaches any emitted file. `year` is the proyear profile the master's bot plays as when out of book. A source with `url` is fetched (fetch.mjs); one with `dir` is imported from that directory on this machine (import.mjs).",
   "masters": [
     {
       "id": "shusaku",
       "name": "Shusaku",
+      "year": 1846,
       "years": [
         1837,
         1862
@@ -23,6 +24,7 @@
     {
       "id": "jowa",
       "name": "Jowa",
+      "year": 1835,
       "years": [
         1806,
         1847
@@ -36,6 +38,22 @@
         "page": "https://homepages.cwi.nl/~aeb/go/games/",
         "terms": "I do not claim any rights on this collection. The games here are in the public domain.",
         "expected": 297
+      }
+    },
+    {
+      "id": "star-player",
+      "name": "Star Player",
+      "anonymous": true,
+      "year": 2017,
+      "aliasHashes": [
+        "a817f1be2b076359e46ff4e45570332ae20e4b83eb775eb91570d366d548584e"
+      ],
+      "source": {
+        "url": "https://web.archive.org/web/20231105170905id_/https://badukmovies.com/pro_games/download",
+        "page": "https://web.archive.org/web/20231031044850/https://badukmovies.com/pro_games",
+        "terms": "Here you can find a collection of 115623 pro games in sgf format. This collection is in the public domain, use it however you want to.",
+        "note": "BadukMovies' whole pro-game zip as the Internet Archive captured it on 2023-11-05 (the live domain has since changed hands). Only this master's games are kept, under content-hash names. import.mjs remains for records saved by hand from another source, which must state its own terms.",
+        "expected": 164
       }
     }
   ]

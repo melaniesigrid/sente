@@ -111,6 +111,8 @@ Decisions made in Phase 3, lobby slice (branch `feat/board-sizes`):
   `sente-lobby`, never part of the profile.
 - A handicap game against a house player is rated as if the opponent were one rank weaker
   per stone (`rankWithHandicap`); the lobby says "rated as 5k" so it is no surprise.
+- A resumed game takes its table from its own record, so the saved session did not have to
+  learn a new field and a rematch is always played on the board in front of you.
 - The daily duel stays 9x9 (`DUEL_SIZE`): results only compare on one board.
 - The board is drawn at 460, 560 or 680 px for 9, 13, 19; the stone scale never changes.
 
@@ -275,12 +277,20 @@ and one rule: the number on the card is measured, never claimed.
 - [ ] Star Player: Ke Jie anonymised (decided 2026-09-09 after the lawyer check). Card says
       "a top pro of 2017", his name nowhere in code, data or UI; corpus from a source with
       stated terms; same eval and gate as the Edo masters, `proyear_2017` as the control.
-      OPEN (needs the user and counsel): the only source found that states open terms is
-      BadukMovies' pro-game zip ("This collection is in the public domain, use it however
-      you want to"), which now survives only in the Internet Archive (the domain is hijacked);
-      the 2023 capture holds 164 Ke Jie games. Waltheri, gokifu, GoMagic state no reuse
-      terms; go4go and GoGoD forbid bulk reuse without a licence; Fox and Tygem are excluded.
-      Until decided, Star Player is not in `tools/masters/manifest.json`.
+      Source (2026-09-10): BadukMovies' whole pro-game zip as the Internet Archive holds it
+      (capture 2023-11-05, 69,169 SGFs, terms quoted in the manifest: "This collection is
+      in the public domain, use it however you want to"). `fetch.mjs` reads the zip and,
+      for an anonymised master, keeps only his games under content-hash names: 164 even
+      games, 2009 to 2017, 40 book entries, split 98/33/33. In the manifest as
+      `star-player` (`anonymous`, `year` 2017, the name only as `aliasHashes`, SHA-256 of
+      `nameKey`); the dump uses the manifest year (`data.year`) so the eval scores
+      `proyear_2017`, the profile that ships. `tools/masters/import.mjs` remains for
+      records saved by hand from a source that states its own terms; go4go (login-walled,
+      "All Rights Reserved", bulk download against its terms) is not used. Branch
+      `feat/masters-star-player`, PR #7, stacked on #5. Eval (test, 3,592 positions): top-1 61.6% year profile / 61.9% with
+      book / 61.8% Shusaku's book as control; opening 62.4% to 64.6%; the lean does not ship
+      (no lambda beat the book on dev). The control moves the number as much as his own
+      book, so the card claims agreement with the 2017 profile, not a style match.
 - [ ] Deferred: Dosaku and Shusai after the eval; Go Seigen, Takagawa and living players by
       name after a name-and-likeness check (the 1950 rule does not clear the first two); Moku quoting the Classic and a belt mark per book;
       fine-tune adapters per master after Phase 4, measured by the same eval; your own
@@ -350,7 +360,7 @@ Bigger swings:
 
 ## Typefaces (done 2026-09-10, branch `feat/typefaces`)
 
-Six pairings of the same design system, chosen in Profile and stored on the profile.
+Eight pairings of the same design system, chosen in Profile and stored on the profile.
 Display faces are borrowed from the Typecase library next door; body faces stay
 Google-hosted text families, because the Typecase text cuts have no weight axis.
 
@@ -359,7 +369,19 @@ Google-hosted text families, because the Typecase text cuts have no weight axis.
 - [x] Pairings as data in `src/content/typeface.js`, house first and default.
 - [x] Local faces in `src/styles/fontfaces.js`, each with a measured `size-adjust`
       onto Fraunces' optical size so a pairing changes voice, not layout.
-- [x] Picker in Profile, each option previewing its own display face with digits.
+- [x] Picker in Profile, each option previewing its own display face with digits.
+- [x] 2026-09-10 Four voices, not one italic: `--font-quote` (passages, maxims,
+      Moku, the result line) is always a serif, `--font-caption` (the footer, the
+      bow words) takes the body face, and the scripts keep the ornament voice at
+      26px. A script cannot carry a quotation at 15px.
+- [x] 2026-09-10 Galliard is the whole Maison Galliard trio: serif headings, its
+      own sans for body and captions, its script for the whisper.
+- [x] 2026-09-10 Two avant garde pairings, Hoshi (Cocogoose Pro Thin) and Vitrine
+      (Qliesya didone over Instrument Sans). Eight pairings now.
+- [x] 2026-09-10 The footer is signed: Melanie Baratto in Daenerys, outside the
+      pairing system, drawn on once at load.
+- [x] 2026-09-10 No local cut is slanted by the browser any more; only the Google
+      faces, which ship a real italic, are asked for one.
 
 Open:
 - [ ] Licensing: every borrowed face is a demo/personal-use cut (`src/fonts/LICENSES.md`).

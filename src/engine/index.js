@@ -21,13 +21,15 @@ export {
 } from "./sgf.js";
 export { aiChooseMove, aiChooseMoveForRecord } from "./ai.js";
 export { RANKS, inverseRank, encodeInputs } from "./kata/features.js";
-export { choosePolicyMove } from "./kata/policy.js";
-export { loadModel, onModelProgress, modelReady, MODEL_BYTES, MODEL_FILE } from "./kata/net.js";
-export { kataChooseMoveForRecord, clampRank, profileForRank } from "./kata/bot.js";
+export { choosePolicyMove, keepSet } from "./kata/policy.js";
+export { loadModel, onModelProgress, modelReady, loadMaster, MODEL_BYTES, MODEL_FILE } from "./kata/net.js";
+export { kataChooseMoveForRecord, clampRank, profileForRank, masterYear } from "./kata/bot.js";
 export { createRng, hashString, positionSeed } from "./rng.js";
 export {
   TRANSFORMS, transformPoint, inverseTransform, transformBoard, canonical, canonicalMove, bookKey, fromCanonical,
 } from "./style/symmetries.js";
 export {
-  AXES, PRIOR_AXES, moveFeatures, gameFeatures, meanStyle, spreadStyle, styleDistance,
+  AXES, PRIOR_AXES, MOVE_AXES, moveFeatures, moveAxesVector, gameFeatures, meanStyle, spreadStyle, styleDistance,
 } from "./style/features.js";
+export { StyleDataError, validateMaster, bookEntry, sampleBook } from "./style/master.js";
+export { stylePrior, styleLean, DEFAULT_LAMBDA, DEFAULT_CLAMP } from "./style/prior.js";
