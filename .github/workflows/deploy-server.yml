@@ -35,7 +35,7 @@ jobs:
         run: |
           if [ -z "$TOKEN" ]; then
             echo "ok=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::No CLOUDFLARE_API_TOKEN secret; skipping the deploy."
+            echo "::notice::CLOUDFLARE_API_TOKEN is missing or empty, so the deploy was skipped. If the secret is listed but empty, set its value again: gh secret set CLOUDFLARE_API_TOKEN --repo melaniesigrid/sente. Steps for making the token are in docs/server-operations.md."
           elif [ -z "$ACCOUNT" ]; then
             echo "ok=false" >> "$GITHUB_OUTPUT"
             echo "::warning::CLOUDFLARE_API_TOKEN is set but CLOUDFLARE_ACCOUNT_ID is missing; skipping the deploy."
