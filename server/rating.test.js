@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
 import { rate, rateGame, newRating, provisional, migrateRating, DEFAULT_RD, DEFAULT_RATING } from "./rating.js";
 import { rankOf, preciseRankOf } from "../src/content/rank.js";
 
@@ -61,6 +62,33 @@ describe("glicko-2", () => {
   it("flags wide deviations as provisional", () => {
     expect(provisional(newRating())).toBe(true);
     expect(provisional({ rating: 1500, rd: 90, vol: 0.06 })).toBe(false);
+  });
+});
+
+describe("which rateGame the server uses", () => {
+  /* Two functions are called rateGame and both take three positional arguments:
+     this one, `(black, white, winner)`, and the engine's `(player, opponent,
+     score)` which the browser uses for house games. Confusing them would not
+     throw; it would quietly produce ratings that disagree with the ones players
+     are given. The server must therefore reach for its own, never the engine's
+     public surface, and that is cheap to assert rather than to remember. */
+  const serverSources = ["registry.js", "roomObject.js", "room.js", "index.js", "rating.js"];
+
+  it("never imports a rating from the engine's public index", () => {
+    for (const file of serverSources) {
+      const src = readFileSync(new URL(file, import.meta.url), "utf8");
+      const fromIndex = /from\s+["'][^"']*engine\/index\.js["']/.test(src);
+      expect(fromIndex, `${file} imports from src/engine/index.js`).toBe(false);
+    }
+  });
+
+  it("takes a winner, not a score, and reads its arguments as two players", () => {
+    const bWins = rateGame({ rating: 1400, rd: 80, vol: 0.06 }, { rating: 1400, rd: 80, vol: 0.06 }, "b");
+    const wWins = rateGame({ rating: 1400, rd: 80, vol: 0.06 }, { rating: 1400, rd: 80, vol: 0.06 }, "w");
+    expect(bWins.b.delta).toBeGreaterThan(0);
+    expect(wWins.b.delta).toBeLessThan(0);
+    // A jigo between equals moves neither, which a score-shaped call could not express.
+    expect(rateGame({ rating: 1400, rd: 80, vol: 0.06 }, { rating: 1400, rd: 80, vol: 0.06 }, null).b.delta).toBe(0);
   });
 });
 
