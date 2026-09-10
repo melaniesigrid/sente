@@ -46,9 +46,15 @@ export function resignLabel(confirming) {
   return confirming ? "Confirm resign?" : "Resign";
 }
 
-/** Fine print under the capture counts. A daily duel is unrated and says so by name. */
-export function captionText({ komi, rated, duel = false }) {
-  return `Area scoring · komi ${komi} · superko${duel ? " · daily duel, unrated" : rated ? " · rated" : " · unrated"}`;
+/** Fine print under the capture counts: the board, the rules, and whether the ladder is
+ *  watching. A daily duel is unrated and says so by name. */
+export function captionText({ size, komi, handicap = 0, rated, duel = false }) {
+  const parts = [];
+  if (size) parts.push(`${size}×${size}`);
+  if (handicap >= 2) parts.push(`${handicap} stones`);
+  parts.push("Area scoring", `komi ${komi}`, "superko");
+  parts.push(duel ? "daily duel, unrated" : rated ? "rated" : "unrated");
+  return parts.join(" · ");
 }
 
 /* ----- the result card -----

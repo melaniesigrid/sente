@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { rankOf, beltOf, nextBelt, kyuFloor, hintsForBelt, BELTS } from "./rank.js";
+import { rankOf, beltOf, nextBelt, kyuFloor, hintsForBelt, BELTS, rankWithHandicap } from "./rank.js";
 
 describe("belts", () => {
   it("cover every rank without a gap", () => {
@@ -48,5 +48,17 @@ describe("rank ladder", () => {
     expect(stepRank("9d", 2)).toBe("9d");
     expect(rankInRange("12k", ["15k", "5k"])).toBe(true);
     expect(rankInRange("3d", ["15k", "5k"])).toBe(false);
+  });
+});
+
+describe("rankWithHandicap", () => {
+  it("gives one rank per stone and leaves an even game alone", () => {
+    expect(rankWithHandicap("5k", 0)).toBe("5k");
+    expect(rankWithHandicap("5k", 2)).toBe("7k");
+    expect(rankWithHandicap("1d", 3)).toBe("3k");
+    expect(rankWithHandicap("24k", 9)).toBe("25k");
+  });
+  it("treats one stone as an even game, like the engine does", () => {
+    expect(rankWithHandicap("5k", 1)).toBe("5k");
   });
 });

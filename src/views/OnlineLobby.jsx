@@ -6,17 +6,18 @@ import { loadAccount, saveAccount, clearAccount } from "../store/account.js";
 import { provisionalText } from "../content/online.js";
 import { tableLine } from "./onlineStatus.js";
 
-const SIZES = [9, 13, 19];
-
 /* ----------------------- ONLINE LOBBY (card) -----------------------
    Claim a handle, then look for an opponent. The handle is a token kept on
    this device; the server rates games with Glicko-2 and keeps the ladder.
-   `onPlay(session)` opens a table: `{ mode: { kind: "online", gameId } }`. */
-export function OnlineCard({ profile, notify, onPlay }) {
+   `onPlay(session)` opens a table: `{ mode: { kind: "online", gameId } }`.
+   The board comes from the lobby's table picker, so one control sets the
+   size for every kind of game. Online games are even; handicap is a house
+   arrangement, and two strangers have no way to agree on one yet. */
+export function OnlineCard({ profile, notify, onPlay, size = 9 }) {
   const [account, setAccount] = useState(() => loadAccount());
   if (!serverEnabled()) return null;
   return account
-    ? <Lobby account={account} setAccount={setAccount} notify={notify} onPlay={onPlay} />
+    ? <Lobby account={account} setAccount={setAccount} notify={notify} onPlay={onPlay} size={size} />
     : <Claim profile={profile} notify={notify} onClaimed={setAccount} />;
 }
 
@@ -59,10 +60,9 @@ function Claim({ profile, notify, onClaimed }) {
   );
 }
 
-function Lobby({ account, setAccount, notify, onPlay }) {
+function Lobby({ account, setAccount, notify, onPlay, size }) {
   const { token } = account;
   const [player, setPlayer] = useState(account.player);
-  const [size, setSize] = useState(9);
   const [seek, setSeek] = useState(null);           // null | { size }
   const [lobby, setLobby] = useState(null);         // { online, seeking }
   const [conn, setConn] = useState("connecting");
@@ -134,12 +134,8 @@ function Lobby({ account, setAccount, notify, onPlay }) {
         </div>
       ) : (
         <div className="row">
-          <div className="size-pick" role="group" aria-label="Board size">
-            {SIZES.map(s => (
-              <button key={s} className={`size-btn ${size === s ? "on" : ""}`} onClick={() => setSize(s)} aria-pressed={size === s}>{s}×{s}</button>
-            ))}
-          </div>
-          <Btn icon={Play} primary small onClick={findGame} disabled={conn !== "open"}>Find an opponent</Btn>
+          <Btn icon={Play} primary small onClick={findGame} disabled={conn !== "open"}>Find an opponent on {size}×{size}</Btn>
+          <span className="fine">The table below sets the board. Online games are even, whatever handicap you set for the house.</span>
         </div>
       )}
       {(live.length > 0 || done.length > 0) && (

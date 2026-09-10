@@ -89,7 +89,9 @@ each fixed in its own commit:
 
 ## Phase 3 — Play like a real server
 
-- [ ] Lobby: choose 9/13/19, handicap, komi, clock preset; house players available on all.
+- [x] Lobby: choose 9/13/19 and handicap (branch `feat/board-sizes`, 2026-09-10); komi is the
+      engine's default for the handicap, shown not typed; house players play every size.
+      The clock preset waits for the Clock UI item below.
 - [x] Game-end ceremony: after two passes enter scoring, tap groups to toggle dead, territory
       overlay, honest result card with every term ("41 stones + 3 territory = 44" vs
       "35 + 4 + 7.5 komi = 46.5"), a bow, and "Keep playing" to take both passes back.
@@ -103,6 +105,16 @@ each fixed in its own commit:
 - [ ] Keyboard: arrows scrub, P pass, U undo; screen-reader labels already on the board.
 - [ ] Local-only telemetry ring buffer (last 50 games: size, result, bot, move count) to
       tune house-player weights. Never leaves the device.
+
+Decisions made in Phase 3, lobby slice (branch `feat/board-sizes`):
+- 19x19 is the default board; the last table (size, handicap) is a device preference in
+  `sente-lobby`, never part of the profile.
+- A handicap game against a house player is rated as if the opponent were one rank weaker
+  per stone (`rankWithHandicap`); the lobby says "rated as 5k" so it is no surprise.
+- A resumed game takes its table from its own record, so the saved session did not have to
+  learn a new field and a rematch is always played on the board in front of you.
+- The daily duel stays 9x9 (`DUEL_SIZE`): results only compare on one board.
+- The board is drawn at 460, 560 or 680 px for 9, 13, 19; the stone scale never changes.
 
 ## Delight (done 2026-09-09, branch `feat/rules-kernel`)
 
@@ -185,6 +197,8 @@ two Durable Object classes, deployed at https://sente-server.melaniesigrid.worke
 - [ ] "Keep playing" from scoring online (needs a consented resume frame in the reducer).
 - [ ] Challenge a named player, and a friends list. Today a table link (`?game=<id>`)
       is the only way to invite someone to watch.
+- [ ] Handicap online: the lobby handicap is a house arrangement, so networked games are
+      always even. Two strangers need a way to agree on stones before this can change.
 - [x] Leaving: `DELETE /api/me` removes the handle, its key and its ladder seat; only
       players with a finished rated game stand on the ladder. `DELETE
       /api/admin/players/:id` and `GET /api/admin/players` are the operator routes,
@@ -257,6 +271,25 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       of their syllabus is still open.
 - [ ] Surface the saying of the day on Home (the card is built in `Learn.jsx` as
       `ClassicCard`; lift it to a shared component).
+- [x] The Classic, second pass (2026-09-10): the book itself, not only its sayings.
+      `content/classic.js` now carries the preface (Huan Tan's three kinds of player), all
+      thirteen chapters as prose in Sente's own rendering, chapter twelve's nine levels and
+      chapter eleven's thirty-two names, alongside the existing passages. Learn's series card
+      became a reader: preface, then thirteen expandable chapters, each with its lessons under
+      it and the names glossary inside chapter eleven. Profile gained a nine-levels card. New
+      lesson `classic-corner-shapes` (tier 5, 3k, life) teaches chapter thirteen's named corner
+      shapes, both verdicts replayed against the engine by the verifier.
+      Decisions: the nine levels map one-to-one onto the nine dan grades and kyu players get
+      none, because chapter twelve refuses to number anything below the ninth — the card says
+      so rather than inventing a title. Chapter eleven's names carry `sure`, and only 16 of the
+      32 claim a modern term; the rest show as unidentified, since the chapter's own argument
+      is that names must be set right. A chapter may now hold more than one lesson
+      (`alsoLessonIds`, `lessonIdsForChapter`), so `lessonAfter` walks chapter thirteen's
+      miscellany into its corner shapes. The ambient threading stays with `PASSAGES`.
+- [ ] The rest of chapter thirteen's named shapes: the five-point flower, and the two-by-three
+      that lives in the open and dies in the corner.
+- [ ] Restore the Chinese characters for chapter eleven's thirty-two names from the original,
+      and revisit the sixteen marked uncertain.
 - [ ] Tsumego graded 30k → 5k with categories and a daily set (reuses the verifier).
 - [ ] Spaced repetition: finished quiz steps enter a recall queue; "Review five" card on Home.
 - [ ] Joseki and opening library for 9×9 and 19×19.

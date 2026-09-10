@@ -10,7 +10,7 @@ import {
   TIERS, TRACKS, BOOKS, lessonById, prereqsMissing, nextLessonFor, currentTierFor, searchLibrary,
   lessonsInTier, lessonsInBook, lessonsInSeries, lessonAfter, bookProgressFor, trackByKey, isDone,
 } from "../content/library.js";
-import { CLASSIC } from "../content/classic.js";
+import { CLASSIC, CHAPTERS, PREFACE, NAMES, lessonIdsForChapter } from "../content/classic.js";
 import { saveProfile } from "../store/profile.js";
 import { rankOf } from "../content/rank.js";
 import { modelReady, kataChooseMoveForRecord, profileForRank } from "../engine/index.js";
@@ -196,6 +196,58 @@ function Shelf({ profile, onOpen }) {
 /* ----------------------- THE CLASSIC (series card) -----------------------
    One saying a day from Zhang Ni's thirteen chapters, and the thirteen
    lessons that teach them, in the book's order, whatever tier they sit in. */
+/* Chapter eleven lists thirty-two names and no definitions. We show the list
+   as the chapter gives it, and say plainly which ones we cannot match to a
+   modern term rather than inventing one. See NAMES in content/classic.js. */
+function NamesTable() {
+  const known = NAMES.filter(n => n.sure).length;
+  return (
+    <div className="names-block">
+      <div className="names-grid">
+        {NAMES.map(n => (
+          <div key={n.n} className={`name-cell ${n.sure ? "" : "unsure"}`}>
+            <span className="name-word">{n.name}</span>
+            <span className="name-modern">
+              {n.sure ? n.modern : n.modern ? `${n.modern} · uncertain` : "not identified"}
+            </span>
+            <span className="fine name-gloss">{n.text}</span>
+          </div>
+        ))}
+      </div>
+      <p className="fine">
+        {known} of the thirty-two match a term the game still uses. The rest are
+        listed as the chapter lists them. The names arrive without their characters
+        and without tone marks, so some readings are uncertain, and a chapter that
+        argues names must be set right is the wrong place to guess.
+      </p>
+    </div>
+  );
+}
+
+/* One chapter of the book: the prose, and the lessons that teach it. */
+function ChapterRow({ chapter, lessons, done, onOpen }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="chapter-row">
+      <button className="chapter-head" onClick={() => setOpen(o => !o)} aria-expanded={open}>
+        <span className="chapter-n">{chapter.n}</span>
+        <span className="chapter-title">
+          <strong>{chapter.title}</strong>
+          <span className="fine">{chapter.theme}</span>
+        </span>
+        <ChevronRight size={15} className={`chapter-caret ${open ? "open" : ""}`} />
+      </button>
+      {open && (
+        <div className="chapter-body">
+          {chapter.text.map((t, i) => <p key={i} className="lesson-text">{t}</p>)}
+          {chapter.n === 11 && <NamesTable />}
+          {lessons.map(l => <LessonCard key={l.id} lesson={l} done={done(l.id)} onOpen={onOpen} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ClassicCard({ done, onOpen }) {
   const [openList, setOpenList] = useState(false);
   const lessons = lessonsInSeries(CLASSIC.key);
@@ -207,14 +259,24 @@ function ClassicCard({ done, onOpen }) {
       <div className="row spread">
         <span className="fine">{finished}/{lessons.length} chapters read</span>
         <Btn icon={openList ? ChevronLeft : BookOpen} small onClick={() => setOpenList(o => !o)}>
-          {openList ? "Hide the chapters" : "Read the thirteen chapters"}
+          {openList ? "Close the book" : "Read the thirteen chapters"}
         </Btn>
       </div>
       {openList && (
         <div className="stack-sm">
           <p className="fine">{CLASSIC.blurb} {CLASSIC.credit}</p>
-          <div className="grid2">
-            {lessons.map(l => <LessonCard key={l.id} lesson={l} done={done(l.id)} onOpen={onOpen} />)}
+          <div className="chapter-list">
+            <div className="chapter-row">
+              <div className="chapter-body preface">
+                <strong className="chapter-title">{PREFACE.title}</strong>
+                {PREFACE.text.map((t, i) => <p key={i} className="lesson-text">{t}</p>)}
+              </div>
+            </div>
+            {CHAPTERS.map(ch => (
+              <ChapterRow key={ch.n} chapter={ch}
+                lessons={lessonIdsForChapter(ch).map(lessonById).filter(Boolean)}
+                done={done} onOpen={onOpen} />
+            ))}
           </div>
         </div>
       )}
