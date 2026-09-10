@@ -146,7 +146,10 @@ merely touch a point. The detector is:
   pattern shapes. `empty-triangle` reads the four 2×2 windows containing the move;
   `tigers-mouth` reads each empty point adjacent to the move and counts that point's own
   orthogonal neighbours, which spans a 2×3 window; plus
-- **one `chainAt` query** on the chain the last stone joined, for the structural shapes.
+- **`chainAt` only for the mouth's guards.** `dumpling` turned out not to need it: the four
+  stones of a solid 2x2 are necessarily one chain, so the block test alone is enough.
+  `tigers-mouth` does need it, for the reason in the notes below - at most three chain
+  floods, and only once a candidate mouth has already been found.
 
 ### Module contract
 
@@ -204,6 +207,13 @@ Three notes on those rules, each of which a first draft got wrong:
   with no special case: an opponent stone played there would have exactly one liberty.
   Corner points are excluded from praise anyway — a one-stone corner mouth is technically
   a mouth and rhetorically silly.
+- **A mouth whose own stones are in atari is not a mouth.** The predicate above is about
+  the empty point and says nothing about liberties, which leaves a hole: if a guard's last
+  liberty IS the mouth point, an enemy play there captures rather than dies, and the shape
+  is the opposite of what it looks like. Praising it puts the coach at its loudest one move
+  before the player is punished, the worst version of the false positive Open Question 5
+  warns about. Every guard chain must have two liberties or more, which is the one place
+  the detector reaches for `chainAt`.
 - **The two shapes are not mutually exclusive, and the severity order is what saves us.**
   Black at (0,0), (1,0), (0,1), (2,1) with (1,1) empty is a textbook empty triangle in the
   lower-left 2×2 *and* a textbook mouth at (1,1). Both detectors fire, both correctly.
@@ -407,7 +417,8 @@ something true about a shape you formed last week.
 ## Dependencies
 
 - None for the experiment. It needs `chainAt` alone, already exported through
-  `src/engine/index.js`. (`chainsInAtari` and `withMoveComment` were dependencies of an
+  `src/engine/index.js`, and only to check that a tiger's mouth's own stones are not in
+  atari. (`chainsInAtari` and `withMoveComment` were dependencies of an
   earlier draft; the atari shapes were dropped and record-writing deferred, so neither is
   used now.)
 - The archive depends on Open Question 4 being settled — cap, eviction, and localStorage

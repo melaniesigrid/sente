@@ -773,7 +773,7 @@ then the archive, then Neo-Human.
 - [x] `src/engine/shape.js` — pure shape detection local to the move just played. Three
       shapes: `empty-triangle`, `tigers-mouth`, `dumpling`. No board sweep; the four 2x2
       windows around the move plus the move's empty neighbours.
-- [x] `src/engine/shape.test.js` — 21 cases including the collisions. A tiger's mouth is
+- [x] `src/engine/shape.test.js` — 27 cases including the collisions. A tiger's mouth is
       defined on the mouth point (exactly one on-board neighbour empty, the rest mine), not
       as a 2x2 pattern, because a 2x2 with three of my stones and one gap is the empty
       triangle and nothing else. A dumpling is a solid 2x2 block containing the move, not a
@@ -784,20 +784,30 @@ then the archive, then Neo-Human.
       excitable, the coach is calm.
 - [x] `src/content/commentary.test.js` — coverage, voice rules, and the pacing arithmetic.
 
-Open, and all of it in `Game.jsx`:
-- [ ] Wire it into the view: `detectShapes` after the human's move, `chooseRemark`, `say()`.
-      Chat pane only — not `withMoveComment`. `botTurn(r)` closes over its own record and
+- [x] Wired into the view: `detectShapes` after the human's move, `chooseRemark`, `say()`.
+      Chat pane only, never `withMoveComment` — `botTurn(r)` closes over its own record and
       later does `setRec(conclude(next, r))`, so any `setRec` issued after `botTurn(next)`
       is silently dropped. Record-writing waits for the archive.
-- [ ] The coaching toggle. Per game, off by default, sticky once armed: a coached game is
-      unrated for its whole life and the toggle disables itself. Three plumbing sites — the
-      rating branch in `conclude`, the caption's `rated` argument (already
-      `!!persona && !duel && !master`, so coaching is one more `&&`), and the result-card
-      fine print.
-- [ ] `coaching` and the `spoken` map into the `gameStore` blob, read tolerantly with a
-      default of `false`. Without it a resumed coaching game comes back rated, which is the
-      dishonesty the toggle exists to prevent.
+- [x] The coach yields: silent on any capturing move, and for six moves after table talk.
+      It speaks about your stones only, never its own.
+- [x] The coaching switch, in the chat card head. Off by default, per game, sticky once
+      armed: the switch disables itself and the game is unrated for the rest of its life,
+      so nobody takes advice for fifty moves and then turns it off to collect the rating.
+      Excluded from duels and master games outright.
+- [x] The three plumbing sites: the rating branch in `conclude` skips `rateAgainst` and
+      notifies "unrated, coached"; the caption's `rated` argument gained `&& !coaching`;
+      the result card says the coach spoke.
+- [x] `coaching` and the `spoken` map persist through `gameStore` and restore through
+      `loadSession`, read tolerantly with a default of `false`. Without it a resumed
+      coaching game came back rated, which is the dishonesty the switch exists to prevent.
+- [x] Verified in a real browser: armed the switch, played an empty triangle at the top
+      left, and Yuki said "Three stones, and only four liberties between them. The shape
+      remembers what you paid." The caption flipped from rated to unrated when armed.
+
+Open:
 - [ ] Play ten games. Answer: delightful or annoying. Everything after this waits on that.
+- [ ] No test drives the `conclude` coaching branch end to end; it is verified by reading
+      and by one browser run. A view-level test harness would close that.
 
 Later, in order: the club and chat, then the game archive (cap, eviction, localStorage
 versus Durable Objects — all open), then Neo-Human pair go, which is a seat-model change in
