@@ -24,8 +24,9 @@ import { MokuProvider, MokuDock } from "./components/Moku.jsx";
 import { rankOf } from "./content/rank.js";
 import { typefaceVars } from "./content/typeface.js";
 import { themeVars } from "./content/theme.js";
-import { defaultProfile, loadProfile } from "./store/profile.js";
+import { defaultProfile, loadProfile, needsOnboarding } from "./store/profile.js";
 import { Home } from "./views/Home.jsx";
+import { Welcome } from "./views/Welcome.jsx";
 import { PlayView } from "./views/Play.jsx";
 import { LearnView } from "./views/Learn.jsx";
 import { ProblemsView } from "./views/Problems.jsx";
@@ -50,7 +51,15 @@ export default function SenteApp() {
   const [resume, setResume] = useState(null); // { mode, record } handed to PlayView once
   const [params, setParams] = useState(null); // one-shot navigation params, e.g. { problemId }
   const toastTimer = useRef(null);
-  useEffect(() => { loadProfile().then(setProfile); }, []);
+  /* The stored profile arrives a tick after the first render, so the welcome flow
+     waits for it. Without this every returning player would see a flash of "who is
+     playing" before their own name loaded, which is a worse first impression than
+     the one onboarding is there to make. */
+  const [profileRead, setProfileRead] = useState(false);
+  useEffect(() => { loadProfile().then((p) => { setProfile(p); setProfileRead(true); }); }, []);
+  // Derived, not stored: finishing the flow sets `onboarded` on the profile, which
+  // flips this on its own. One source of truth, and no effect to keep in step.
+  const welcoming = profileRead && needsOnboarding(profile);
 
   const notify = useCallback((t) => {
     setToast(t);
@@ -91,13 +100,18 @@ export default function SenteApp() {
         </button>
       </header>
       <main className="content">
-        <ErrorBoundary key={view} onHome={home}>
+        <ErrorBoundary key={welcoming ? "welcome" : view} onHome={home}>
+          {welcoming ? (
+            <Welcome profile={profile} setProfile={setProfile}
+              onFinish={(where) => go(where)} />
+          ) : (<>
           {view === "home" && <Home profile={profile} go={go} onResume={resumeGame} />}
           {view === "play" && <PlayView profile={profile} setProfile={setProfile} notify={notify} resume={resume} />}
           {view === "learn" && <LearnView profile={profile} setProfile={setProfile} />}
           {view === "tsumego" && <ProblemsView profile={profile} setProfile={setProfile} initialId={params ? params.problemId : null} />}
           {view === "ladder" && <RankingsView profile={profile} />}
           {view === "profile" && <ProfileView profile={profile} setProfile={setProfile} />}
+          </>)}
         </ErrorBoundary>
       </main>
       <Toast toast={toast} />

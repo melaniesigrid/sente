@@ -49,7 +49,10 @@ function Response({ entry }) {
   );
 }
 
-function LessonPlayer({ lesson, nextLesson, onDone, onExit, onOpenNext, rank, onProgress }) {
+/* Exported so the welcome flow can run its demo through the same player the library
+   uses: same step behaviour, same timings, same board. `exitLabel` is the only thing
+   it needs to say differently — a first-time visitor has never seen a library. */
+export function LessonPlayer({ lesson, nextLesson, onDone, onExit, onOpenNext, rank, onProgress, exitLabel = "Library" }) {
   const saved = SESSIONS.get(lesson.id);
   const [stepIdx, setStepIdx] = useState(saved?.stepIdx ?? 0);
   const [maxIdx, setMaxIdx] = useState(saved?.maxIdx ?? 0);
@@ -145,7 +148,7 @@ function LessonPlayer({ lesson, nextLesson, onDone, onExit, onOpenNext, rank, on
     return (
       <div className="stack lesson-player">
         <div className="row spread">
-          <Btn icon={ChevronLeft} small onClick={onExit}>Library</Btn>
+          <Btn icon={ChevronLeft} small onClick={onExit}>{exitLabel}</Btn>
           <Pill icon={Check} tone="win">Lesson complete</Pill>
         </div>
         <div className="play-wrap">
@@ -167,7 +170,7 @@ function LessonPlayer({ lesson, nextLesson, onDone, onExit, onOpenNext, rank, on
                 ))}
               </ul>
               <div className="lesson-foot">
-                <Btn icon={BookOpen} small onClick={onExit}>Library</Btn>
+                <Btn icon={BookOpen} small onClick={onExit}>{exitLabel}</Btn>
                 {nextLesson && (
                   <Btn icon={ChevronRight} small primary onClick={() => onOpenNext(nextLesson)}>
                     Next: {nextLesson.title}
@@ -194,7 +197,7 @@ function LessonPlayer({ lesson, nextLesson, onDone, onExit, onOpenNext, rank, on
   return (
     <div className="stack lesson-player">
       <div className="row spread">
-        <Btn icon={ChevronLeft} small onClick={onExit}>Library</Btn>
+        <Btn icon={ChevronLeft} small onClick={onExit}>{exitLabel}</Btn>
         <div className="row">
           {replay && (
             <Pill icon={FastForward}>

@@ -13,6 +13,7 @@ export const defaultProfile = {
   lessonsDone: [], problemsDone: [],
   tierPassed: [],                            // library tier ids whose exit test was passed
   sound: false,                              // stone click + haptic, opt-in
+  onboarded: false,                          // the welcome flow has been seen or skipped
   coordinates: false,                        // letters and numbers around the board
   lastMoveMark: "dot",                       // how the last stone played is marked
 
@@ -90,4 +91,19 @@ export async function loadProfile() {
 
 export async function saveProfile(p) {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(p)); } catch (e) { console.error("save failed", e); }
+}
+
+/* ----------------------- FIRST VISIT -----------------------
+   Whether to show the welcome flow. `onboarded` alone is not enough: every profile
+   saved before the flag existed lacks it, and interrupting somebody who already has
+   a rating and a shelf of finished lessons to teach them what a liberty is would be
+   insulting. So a player with any history at all is treated as already welcomed, and
+   only a genuinely untouched profile sees it. */
+export function needsOnboarding(profile) {
+  if (!profile || profile.onboarded) return false;
+  const played = (profile.wins ?? 0) + (profile.losses ?? 0) > 0;
+  const studied = (profile.lessonsDone?.length ?? 0) + (profile.problemsDone?.length ?? 0) > 0;
+  const named = profile.name !== defaultProfile.name;
+  const rated = (profile.rating ?? defaultProfile.rating) !== defaultProfile.rating;
+  return !played && !studied && !named && !rated;
 }
