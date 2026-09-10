@@ -286,6 +286,18 @@ ${SIGNATURE_FACE}
    skipped by colLabel, as every go book does. */
 .coord text { font-size: 16px; font-variant-numeric: tabular-nums; fill: var(--ink); opacity: .42; pointer-events: none; }
 .last-ring { fill: none; stroke: var(--danger); stroke-width: 2.5; opacity: .85; }
+/* Welcome. Shown once, so it gets room: a wide hero, one decision per screen, and
+   pips that say how much is left rather than leaving a newcomer guessing. */
+.welcome { max-width: 860px; }
+.welcome-progress { display: flex; gap: 7px; }
+.welcome-pip { width: 30px; height: 4px; border-radius: 4px; box-shadow: var(--sink-sm); background: var(--ground); transition: background .3s ease; }
+.welcome-pip.on { background: var(--accent); }
+.welcome-hero h1 { margin: 0 0 12px; }
+.welcome-card { display: flex; flex-direction: column; gap: 10px; }
+.welcome-card .fine { max-width: 62ch; }
+.welcome-identity { display: flex; align-items: center; gap: 18px; margin-top: 6px; flex-wrap: wrap; }
+.welcome-field { display: flex; flex-direction: column; gap: 5px; flex: 1 1 220px; }
+.welcome .row { margin-top: 16px; flex-wrap: wrap; }
 .review-refused { margin: 0; font-size: 14px; color: var(--danger); text-align: center; }
 .review-result { font-family: var(--font-display); font-weight: var(--w-display); font-size: 16px; opacity: .75; }
 .review-controls { justify-content: center; gap: 6px; flex-wrap: wrap; }
