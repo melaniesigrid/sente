@@ -1,12 +1,15 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import {
   ChevronLeft, ChevronsLeft, ChevronsRight, ChevronRight, SkipBack, SkipForward, Hash, Download, Swords,
+  GitBranch, Undo2, CornerUpLeft,
 } from "lucide-react";
 import { Btn, Pill } from "../components/ui.jsx";
+import { startLine, playInLine, backInLine, lineLabel, canBranch } from "./reviewLine.js";
+import { refusalText } from "./gameStatus.js";
 import { Board } from "../components/Board.jsx";
 import {
   atMove, moveNumbers, captureMoves, nextCapture, prevCapture,
-  reviewLength, clampMove, markerAt, reviewLabel, resultText, toSgf,
+  reviewLength, clampMove, markerAt, reviewLabel, resultText, toSgf, lastMoveIndex,
 } from "../engine/index.js";
 
 /* ----------------------- REVIEW -----------------------
@@ -28,13 +31,24 @@ export function Review({ record, onExit, onRematch }) {
   const total = reviewLength(record);
   const [n, setN] = useState(total);
   const [showNumbers, setShowNumbers] = useState(false);
+  // A line being tried from the position on screen. Scratch: never written to the
+  // record, never exported. Null means you are looking at the game itself.
+  const [line, setLine] = useState(null);
+  const [refused, setRefused] = useState(null);
 
   const at = useMemo(() => atMove(record, n), [record, n]);
   const numbers = useMemo(() => (showNumbers ? moveNumbers(record, n) : null), [showNumbers, record, n]);
   const caps = useMemo(() => captureMoves(record), [record]);
   const marker = useMemo(() => markerAt(record, n), [record, n]);
 
-  const go = useCallback((to) => setN((cur) => clampMove(record, typeof to === "function" ? to(cur) : to)), [record]);
+  /* Moving to another position leaves the line behind. A line belongs to the position
+     it started from, and carrying it along would show stones from a variation on top
+     of a real position, which is exactly the confusion review exists to avoid. */
+  const go = useCallback((to) => {
+    setLine(null);
+    setRefused(null);
+    setN((cur) => clampMove(record, typeof to === "function" ? to(cur) : to));
+  }, [record]);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -58,6 +72,16 @@ export function Review({ record, onExit, onRematch }) {
     return () => document.removeEventListener("keydown", onKey);
   }, [go, total]);
 
+  const branchable = useMemo(() => canBranch(record, n), [record, n]);
+  const onTry = (c, r) => {
+    const from = line ?? startLine(record, n);
+    const res = playInLine(from, c, r);
+    if (res.error) { setRefused(refusalText(res.error) ?? "That move is not legal here."); return; }
+    setRefused(null);
+    setLine(res.line);
+  };
+  const undoTry = () => { setRefused(null); setLine(backInLine(record, line)); };
+
   const back = prevCapture(caps, n);
   const fwd = nextCapture(caps, n);
   const capHere = caps.find((c) => c.move === n);
@@ -80,9 +104,24 @@ export function Review({ record, onExit, onRematch }) {
       </div>
       <div className="play-wrap">
         <div className="board-col stack-sm">
-          <Pill icon={Hash}>{reviewLabel(record, n)}{capHere ? ` · ${capHere.stones} captured` : ""}</Pill>
-          <Board board={at.board} lastMove={marker} disabled sizePx={BOARD_PX[record.size] ?? 680}
-            numbers={numbers} captured={[]} />
+          <Pill icon={line ? GitBranch : Hash} tone={line ? "win" : ""}>
+            {line ? lineLabel(line) : `${reviewLabel(record, n)}${capHere ? ` · ${capHere.stones} captured` : ""}`}
+          </Pill>
+          <Board board={(line ? line.record : at).board}
+            lastMove={line ? lastMoveIndex(line.record) : marker}
+            onPlay={branchable ? onTry : undefined}
+            disabled={!branchable}
+            sizePx={BOARD_PX[record.size] ?? 680}
+            numbers={line ? null : numbers} captured={[]} />
+          {refused && <p className="review-refused" role="alert">{refused}</p>}
+          {line ? (
+            <div className="row review-controls">
+              <Btn icon={Undo2} small onClick={undoTry}>Take back</Btn>
+              <Btn icon={CornerUpLeft} small primary onClick={() => { setLine(null); setRefused(null); }}>
+                Back to the game
+              </Btn>
+            </div>
+          ) : null}
           <input className="review-scrub" type="range" min={0} max={total} value={n}
             aria-label="Move" onChange={(e) => go(Number(e.target.value))} />
           <div className="row review-controls">
@@ -102,6 +141,7 @@ export function Review({ record, onExit, onRematch }) {
             {onRematch && <Btn icon={Swords} small onClick={onRematch}>Play again</Btn>}
           </div>
           <p className="fine">
+            {branchable ? "Play on the board to try a line — it is never saved into the game. " : ""}
             Arrows walk a move, up and down jump ten, Home and End go to the ends, N toggles
             numbers. {caps.length === 0 ? "Nothing was captured in this game." : `${caps.length} capture${caps.length === 1 ? "" : "s"} in this game.`}
           </p>

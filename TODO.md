@@ -100,9 +100,14 @@ each fixed in its own commit:
 - [x] Review mode (2026-09-10, branch `feat/review-mode`): scrub with arrows, move number
       overlay, jump to capture, SGF out. The variation tree is NOT done and is not faked:
       branching needs the record to hold more than one line. See the item below.
-- [ ] Variation tree in review: the record holds a main line only. Branching needs a
-      record that can carry alternatives (`parseSgf(...).tree` already parses them), and
-      that is a rules-kernel change before it is a view.
+- [x] Try a line in review (2026-09-10, branch `feat/review-line`): play on from any
+      position to see what would have happened. Scratch only — never written to the
+      record, saved or exported.
+- [ ] Stored variations: read the branches an imported SGF already carries
+      (`parseSgf(...).tree` parses them today and the record throws them away), and
+      navigate between them. THIS is the part that needs the record to hold more than
+      one line — a rules-kernel change. Exploring never did; that was a wrong call
+      recorded in the review-mode PR and corrected here.
 - [x] SGF export button on every finished game (result card), and SGF import into
       review from Home (2026-09-10, branch `feat/sgf-import`): drop a file or choose
       one; it never leaves the device.
@@ -140,8 +145,14 @@ Decisions made in Phase 3, review slice (branch `feat/review-mode`):
   on the wrong one.
 - A captured stone carries no move number, because it is not on the board to carry one;
   a point played twice shows the move of the stone standing there now.
-- The variation tree is deliberately absent rather than approximated. Faking a branch
-  the record cannot hold would be the first dishonest thing in the app.
+- Trying a line needs no rules-kernel change: exploration replays the record to the
+  branch point and plays on with the engine's own `play`, holding the result in view
+  state. Only *storing* alternatives needs a record that carries more than one line.
+- A line is scratch and stays scratch: never written to the record, never saved,
+  never exported. The game that was played is the game that was played, and a reader
+  wondering about an alternative must not be able to quietly rewrite history.
+- Leaving the position abandons the line. Carrying it along would paint stones from a
+  variation on top of a real position, which is the confusion review exists to avoid.
 
 Decisions made in Phase 3, clock slice (branch `feat/clock`):
 - Losing on time is a rule, so it is an engine transition (`timeout`) and not something
