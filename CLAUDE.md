@@ -15,7 +15,14 @@ Lucide icons. No backend yet; profile persists in localStorage.
 - Engine code (`tryPlay`, `GameRecord`, `scoreBoard`, `aiChooseMove`, ...) is pure and must stay
   framework-free so it can move to a server. Do not import React into engine modules.
 - Design system is fixed: the stone palette and the two-shadow neumorphism in `CSS`. Lucide
-  icons only. Fraunces display, Hanken Grotesk body. Don't introduce another UI library.
+  icons only. Don't introduce another UI library.
+- Type is the one themed part. A pairing (display face, italic voice, body face) is data in
+  `src/content/typeface.js`; the stylesheet names no family directly, only the tokens
+  `--font-display`, `--font-display-italic`, `--font-body` and their weight/tracking/leading
+  siblings, which the shell sets from `profile.typeface`. `house` (Fraunces, Hanken Grotesk)
+  is the default and the reference. Local faces are declared once in `src/styles/fontfaces.js`
+  with a `size-adjust` that puts every face on Fraunces' optical size; they are demo cuts,
+  see `src/fonts/LICENSES.md` before a public deploy.
 - House players are labeled honestly as bots in the UI. Keep that. They play with
   KataGo's human-style network (`src/engine/kata/`, model in `public/models/`, export and
   fixture scripts in `tools/kata/`); each persona is a rank profile. `src/engine/kata/net.js`

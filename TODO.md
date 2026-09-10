@@ -338,6 +338,28 @@ Bigger swings:
 - [ ] Capture Go onboarding: first capture wins on 7x7 against Hoshi, a two-line rule
       variant on the record, replacing the ten-move guided demo with a real game.
 
+## Typefaces (done 2026-09-10, branch `feat/typefaces`)
+
+Six pairings of the same design system, chosen in Profile and stored on the profile.
+Display faces are borrowed from the Typecase library next door; body faces stay
+Google-hosted text families, because the Typecase text cuts have no weight axis.
+
+- [x] Type tokens in `CSS`: no family, weight, tracking or hero leading is named
+      directly any more; `src/App.jsx` sets them from `profile.typeface`.
+- [x] Pairings as data in `src/content/typeface.js`, house first and default.
+- [x] Local faces in `src/styles/fontfaces.js`, each with a measured `size-adjust`
+      onto Fraunces' optical size so a pairing changes voice, not layout.
+- [x] Picker in Profile, each option previewing its own display face with digits.
+
+Open:
+- [ ] Licensing: every borrowed face is a demo/personal-use cut (`src/fonts/LICENSES.md`).
+      Before a public deploy, buy the pairings worth keeping or swap them for OFL faces.
+      Only `house` and the three Google body families are clear today.
+- [ ] Convert the borrowed faces to woff2; the OTFs are 16-207 KB each and lazy, but
+      Kuigaf alone is 207 KB the first time Wedge is chosen.
+- [ ] A pairing is a device preference stored in the profile; when accounts arrive,
+      decide whether it syncs or stays local like the Moku toggle.
+
 ## Principles (do not trade away)
 
 - Rules live in the engine, never in a view.

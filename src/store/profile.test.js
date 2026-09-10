@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { sanitizeProfile, defaultProfile } from "./profile.js";
+import { DEFAULT_TYPEFACE } from "../content/typeface.js";
 
 let warn;
 beforeEach(() => { warn = vi.spyOn(console, "warn").mockImplementation(() => {}); });
@@ -61,6 +62,13 @@ describe("sanitizeProfile", () => {
     expect(sanitizeProfile({ ...defaultProfile, tierPassed: null }).tierPassed).toEqual([]);
     expect(warn).toHaveBeenCalledTimes(3);
     expect(warn.mock.calls[0][0]).toMatch(/tierPassed/);
+  });
+  it("keeps a known typeface id and resets an unknown one", () => {
+    expect(sanitizeProfile({ ...defaultProfile, typeface: "clubhouse" }).typeface).toBe("clubhouse");
+    for (const bad of ["", "helvetica", 7, null]) {
+      expect(sanitizeProfile({ ...defaultProfile, typeface: bad }).typeface).toBe(DEFAULT_TYPEFACE);
+    }
+    expect(warn.mock.calls[0][0]).toMatch(/typeface/);
   });
   it("drops unknown keys", () => {
     expect(sanitizeProfile({ ...defaultProfile, admin: true })).not.toHaveProperty("admin");
