@@ -36,6 +36,8 @@ import { RankingsView } from "./views/Rankings.jsx";
 import { ProfileView } from "./views/Profile.jsx";
 import { DojoView } from "./views/Dojo.jsx";
 import { MailLinkView } from "./views/MailLink.jsx";
+import { LegalView } from "./views/Legal.jsx";
+import { DOCUMENTS, COPYRIGHT } from "./content/legal.js";
 import { linkFromQuery, forgetLink } from "./views/letterLink.js";
 
 /* ----------------------- APP SHELL ----------------------- */
@@ -81,8 +83,10 @@ export default function JosekiApp() {
     });
   }, []);
   // Derived, not stored: finishing the flow sets `onboarded` on the profile, which
-  // flips this on its own. One source of truth, and no effect to keep in step.
-  const welcoming = profileRead && view !== "landing" && needsOnboarding(profile);
+  // flips this on its own. One source of truth, and no effect to keep in step. The
+  // front door and the small print are the two screens it does not cover: a visitor
+  // who wants to read the terms before giving a name is the visitor they are for.
+  const welcoming = profileRead && view !== "landing" && view !== "legal" && needsOnboarding(profile);
 
   const notify = useCallback((t) => {
     setToast(t);
@@ -153,18 +157,32 @@ export default function JosekiApp() {
           {view === "ladder" && <RankingsView profile={profile} />}
           {view === "profile" && <ProfileView profile={profile} setProfile={setProfile} go={go} room={room} notify={notify} />}
           {view === "dojo" && <DojoView profile={profile} setProfile={setProfile} notify={notify} go={go} room={room} />}
+          {view === "legal" && <LegalView docId={params ? params.docId : null} onPick={(id) => go("legal", { docId: id })} />}
           </>)}
         </ErrorBoundary>
       </main>
       <Toast toast={toast} />
       {/* Moku keeps a player company. The front door is not a screen anybody is
-          being kept company on yet, and a bubble there only fights the headline. */}
-      {view !== "landing" && <MokuDock />}
+          being kept company on yet, and a bubble there only fights the headline. The
+          small print is the other one: reference material is read, not sat with, and
+          the dock lands on the left edge of a 68ch measure. */}
+      {view !== "landing" && view !== "legal" && <MokuDock />}
       <footer className="foot">
         <span className="foot-line">Joseki · play go, beautifully</span>
         <span className="foot-line">{footSaying.text}</span>
         <button className="foot-link" onClick={() => setView("landing")}>About Joseki</button>
-        <span className="foot-line studio">built with ♥ by Northbound Software Studio</span>
+        {/* The small print, reachable from every screen and never from anywhere
+            else. A reader looking for the terms looks at the bottom of the page,
+            so that is the only place they are asked to look. */}
+        <span className="foot-legal">
+          {DOCUMENTS.map((d, i) => (
+            <span key={d.id} className="foot-legal">
+              {i > 0 && <span className="foot-sep" aria-hidden="true">·</span>}
+              <button className="foot-link" onClick={() => go("legal", { docId: d.id })}>{d.title}</button>
+            </span>
+          ))}
+        </span>
+        <span className="foot-line studio">{COPYRIGHT} · built with ♥</span>
       </footer>
       </>}
     </div>

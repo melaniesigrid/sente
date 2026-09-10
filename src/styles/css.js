@@ -1221,6 +1221,71 @@ ${FONT_FACES}
 .lp-enters > *:nth-child(5) { animation-delay: .49s; }
 .lp-hero-board.lp-enters > * { animation-delay: .30s; }
 
+/* ---- the small print ----
+   Set in the same face and the same room as everything else. Small print is
+   usually small as a way of asking not to be read; there is nothing in here
+   worth hiding, so the only concession to it being reference material is the
+   measure, held to 68 characters. */
+.legal-head { max-width: 68ch; }
+.legal-title {
+  font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: clamp(30px, 4.6vw, 44px); line-height: var(--display-leading);
+  letter-spacing: var(--display-tracking); margin: 0;
+}
+.legal-lede { color: var(--ink-2); font-size: 17px; line-height: 1.6; margin: 10px 0 0; }
+.legal-stamp {
+  color: var(--ink-2); font-family: var(--font-caption); font-style: var(--caption-style);
+  font-size: 13px; letter-spacing: .05em; margin: 12px 0 0;
+}
+.legal-stamp.end { margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--dark); }
+
+/* One tab per document. The strip is the raised row and the open document is
+   the sunk one, which is the same sentence the nav makes upstairs. */
+.legal-tabs { display: flex; flex-wrap: wrap; gap: 10px; }
+.legal-tab {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer; border: 0;
+  background: var(--ground); color: var(--ink-2); border-radius: 14px; padding: 11px 17px;
+  font: 700 13px var(--font-body); letter-spacing: .1em; text-transform: uppercase;
+  box-shadow: var(--raise-sm); transition: box-shadow .15s ease, transform .15s ease, color .15s ease;
+}
+.legal-tab:hover { transform: translateY(-1px); color: var(--ink); }
+.legal-tab.active { box-shadow: var(--sink-sm); color: var(--accent-ink); transform: none; }
+
+.legal-doc { max-width: 68ch; padding: clamp(22px, 3vw, 34px); }
+.legal-section { margin-top: 26px; }
+.legal-section h2 {
+  font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: clamp(19px, 2.2vw, 23px); line-height: 1.25; margin: 0 0 10px;
+}
+.legal-section p { margin: 0 0 12px; line-height: 1.68; font-size: 15.5px; }
+.legal-section p:last-child { margin-bottom: 0; }
+.legal-list { margin: 0; padding-left: 20px; }
+.legal-list li { margin-bottom: 9px; line-height: 1.62; font-size: 15.5px; }
+
+/* A credit answers three questions, so it is set as three columns and not as
+   a sentence. The terms sit in the caption face: it is the part a reader
+   scans down rather than reads. */
+.credit-list { margin: 0; }
+.credit-row {
+  display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline;
+  padding: 10px 0; border-bottom: 1px solid var(--dark);
+}
+.credit-row:last-child { border-bottom: 0; }
+.credit-row dt { font-weight: 600; font-size: 15.5px; flex: 1 1 14ch; margin: 0; }
+.credit-row dd { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; margin: 0; flex: 2 1 22ch; }
+.credit-who { color: var(--ink-2); font-size: 14.5px; flex: 1 1 auto; }
+.credit-terms {
+  color: var(--accent-ink); font-family: var(--font-caption); font-style: var(--caption-style);
+  font-size: 13px; letter-spacing: .05em; white-space: nowrap; margin-left: auto;
+}
+
+/* The footer grew a legal row: the notice, then the three ways into it. */
+.foot-legal { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.foot-sep { color: var(--ink-3); font-size: 13px; }
+
+@media (max-width: 620px) {
+  .credit-row dt { flex-basis: 100%; }
+}
 @media (prefers-reduced-motion: reduce) {
   .sente-root *, .sente-root *::before, .sente-root *::after {
     animation: none !important; transition: none !important;
