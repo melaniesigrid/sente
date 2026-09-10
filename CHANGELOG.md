@@ -3,6 +3,29 @@
 Sente keeps a four-part version (`MAJOR.MINOR.PATCH.MICRO`) in `VERSION`; `package.json`
 carries the npm-valid three-part form. This file starts at the first versioned release.
 
+## v0.3.0.0 (2026-09-10)
+
+### Added
+
+- The lobby sets the table. Pick the board — 9x9, 13x13 or 19x19 — and a handicap of two to
+  nine stones before you sit down. 19x19 is the default, the board most of the world plays
+  on, and the choice is remembered on your device between games.
+- Komi is shown, never typed: it follows the handicap the way the rules do, 7.5 for an even
+  game and 0.5 once stones are placed. With a handicap White opens, and the house player
+  takes that first move.
+- A handicap game against a house player is rated as if the opponent were one rank weaker
+  per stone, and the lobby tells you the rank it will be rated at before you start.
+
+### Changed
+
+- House players play every board size. The 13x13 and 19x19 rules, star points, handicap
+  placement and scoring have been in the engine since the rules kernel; the lobby is what
+  was missing.
+- The fine print under a game now names the board and the handicap, and the resume card on
+  Home names the board it will take you back to.
+- A resumed game keeps its own table, so a rematch is played on the board in front of you.
+- The daily duel stays 9x9 for everyone, so the day's results still compare.
+
 ## v0.2.0.0 (2026-09-10)
 
 ### Added
