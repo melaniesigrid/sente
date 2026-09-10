@@ -286,6 +286,14 @@ Six pairings of the same design system, chosen in Profile and stored on the prof
 - [x] 2026-09-10 `galliard` is the whole Maison Galliard trio, the one three-part
       family in the Typecase library: serif headings, script whispers, its own sans
       for body and captions.
+- [x] 2026-09-10 Two avant garde pairings: Hoshi (Cocogoose Pro Thin, geometric and
+      tracked wide, quoting in its own light italic) and Vitrine (Qliesya didone over
+      Instrument Sans, sayings in Newsreader italic). Eight pairings now.
+- [x] 2026-09-10 The footer is signed: Melanie Baratto in Daenerys, one hand at one
+      size, outside the pairing system, drawn on once at load.
+- [x] 2026-09-10 No local cut is ever slanted by the browser any more. Wedge and
+      Signal were faux-obliquing single-style cuts; only the Google faces, which
+      ship a real italic, are asked for one.
 - [x] 2026-09-10 Captions have their own token, `--font-caption`. A script is a
       display face: the footer, the bow words and Moku's bubble now take the body
       face in a script pairing rather than 13px of handwriting.

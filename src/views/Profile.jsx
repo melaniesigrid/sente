@@ -97,7 +97,7 @@ export function ProfileView({ profile, setProfile }) {
       <Card>
         <div className="stat-head"><Type size={16} /><span>Typeface</span></div>
         <p className="fine" style={{ marginTop: 6 }}>
-          Six pairings for the same design system. Each one sets the headings, the
+          Eight pairings for the same design system. Each one sets the headings, the
           serif that carries the sayings, the body text and the small labels; the
           palette and the shadows never move.
         </p>

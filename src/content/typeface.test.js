@@ -51,10 +51,12 @@ describe("typeface pairings", () => {
     }
   });
 
-  it("keeps an already-slanted script upright", () => {
+  it("never asks the browser to slant a local cut", () => {
+    // The Typecase cuts are single-style: a faux oblique on a hairline serif or a
+    // script is the tell of a page nobody set. Only the Google faces, which ship a
+    // real italic, are ever asked for one.
     for (const t of TYPEFACES) {
-      const script = /script|bellique|ronalltie/.test(t.italic);
-      expect(t.italicStyle, t.id).toBe(script ? "normal" : "italic");
+      expect(t.italicStyle, t.id).toBe(/sente-/.test(t.italic) ? "normal" : "italic");
     }
   });
 
@@ -66,7 +68,7 @@ describe("typeface pairings", () => {
   });
 
   it("sets the quotes in a serif wherever the pairing owns one", () => {
-    for (const t of TYPEFACES.filter(t => t.id !== "signal")) {
+    for (const t of TYPEFACES.filter(t => !t.serifless)) {
       expect(quoteOf(t), t.id).toMatch(/serif$/);
     }
   });

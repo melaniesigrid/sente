@@ -6,11 +6,12 @@
    the shell from the chosen pairing (src/content/typeface.js), and the block
    below carries the house pairing as the default. */
 import { GOOGLE_IMPORT } from "../content/typeface.js";
-import { FONT_FACES } from "./fontfaces.js";
+import { FONT_FACES, SIGNATURE_FACE } from "./fontfaces.js";
 
 export const CSS = `
 ${GOOGLE_IMPORT}
 ${FONT_FACES}
+${SIGNATURE_FACE}
 
 .sente-root {
   --ground: #e8e4db;
@@ -91,7 +92,24 @@ ${FONT_FACES}
   display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
   padding: 18px clamp(16px, 4vw, 44px); font-size: 12px; opacity: .55; letter-spacing: .05em;
 }
-.foot span:last-child { font-family: var(--font-caption); font-style: var(--caption-style); }
+.foot-line { font-family: var(--font-caption); font-style: var(--caption-style); }
+
+/* The signature. One name, one hand, one size — it does not follow the pairing,
+   and it draws itself on once when the page arrives, left to right, the way a
+   pen would. */
+.signed { display: inline-flex; align-items: baseline; gap: 10px; }
+.signed-by { font-size: 9.5px; letter-spacing: .2em; text-transform: uppercase; opacity: .6; }
+.signature {
+  font-family: 'sente-signature', cursive; font-size: 27px; line-height: .9;
+  letter-spacing: .01em; color: var(--ink); opacity: .9;
+  display: inline-block; transform: rotate(-2deg); transform-origin: left bottom;
+  animation: sign 1.5s cubic-bezier(.25,.7,.3,1) .45s both;
+}
+@keyframes sign {
+  from { clip-path: inset(0 100% -25% 0); opacity: 0; }
+  25%  { opacity: .9; }
+  to   { clip-path: inset(0 -10% -25% 0); opacity: .9; }
+}
 
 /* ---- primitives ---- */
 .neu-card { background: var(--ground); border-radius: var(--r); box-shadow: var(--raise); padding: clamp(16px, 2.5vw, 26px); }

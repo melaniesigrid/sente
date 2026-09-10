@@ -20,8 +20,13 @@
    cannot carry a caption: at 13px it is decoration standing where a word should
    be. So the scripts here are the ornament voice only, the quote voice is always
    a serif — its own where the pairing has one, Fraunces' or Newsreader's italic
-   where it does not — and the captions fall to the body face. Signal is the one
-   exception, a pairing whose whole idea is that there are no serifs in it.
+   where it does not — and the captions fall to the body face. The exceptions are
+   the two pairings marked `serifless`, Signal and Hoshi, whose whole idea is that
+   there is no serif anywhere in them; they quote in their own italic instead.
+
+   Nothing here is ever slanted by the browser. The Typecase cuts are single-style,
+   and a faux oblique on a hairline didone or on a script is the tell of a page
+   nobody set: only the Google faces, which ship a real italic, are asked for one.
 
    Display faces come from the Typecase library; body faces are Google-hosted
    text families, because a UI body face needs four real weights and accents and
@@ -84,10 +89,10 @@ export const TYPEFACES = [
   {
     id: "wedge",
     name: "Wedge",
-    note: "Wedge serifs, a narrow stance, and no script anywhere. The most matter-of-fact of the six.",
+    note: "Wedge serifs, a narrow stance, and no script anywhere. The most matter-of-fact of them all.",
     display: "'sente-kuigaf', 'Fraunces', serif",
     italic: "'sente-kuigaf', 'Fraunces', serif",
-    italicStyle: "italic",
+    italicStyle: "normal",
     body: HANKEN,
     quote: "'sente-kuigaf', 'Fraunces', serif", quoteStyle: "normal",
     weight: 400, strong: 400, tracking: "0em", leading: 1.06,
@@ -111,11 +116,37 @@ export const TYPEFACES = [
     note: "No serifs at all: a tall condensed sans for the headings against a plain grotesk. The loudest and the flattest.",
     display: "'sente-further', 'Hanken Grotesk', sans-serif",
     italic: "'sente-further', 'Hanken Grotesk', sans-serif",
-    italicStyle: "italic",
+    italicStyle: "normal",
     body: "'Instrument Sans', sans-serif",
     quote: "'Instrument Sans', sans-serif", quoteStyle: "italic",
+    serifless: true,
     weight: 400, strong: 400, tracking: "0.015em", leading: 1.06,
     credit: "Further via Typecase (demo cut, personal use) · Instrument Sans (OFL)",
+  },
+  {
+    id: "hoshi",
+    name: "Hoshi",
+    note: "Geometric to the bone, and set the way the modernists set a poster: perfect circles at hairline weight, tracked wide, nothing decorative anywhere. Named for the star points it is drawn from.",
+    display: "'sente-cocogoose', 'Hanken Grotesk', sans-serif",
+    italic: "'sente-cocogoose-italic', 'Hanken Grotesk', sans-serif",
+    italicStyle: "normal",
+    body: HANKEN,
+    quote: "'sente-cocogoose-italic', 'Hanken Grotesk', sans-serif", quoteStyle: "normal",
+    serifless: true,
+    weight: 400, strong: 400, tracking: "0.06em", leading: 1.14,
+    credit: "Cocogoose Pro, Thin and Light Italic (Zetafonts, trial, personal use) · Hanken Grotesk (OFL)",
+  },
+  {
+    id: "vitrine",
+    name: "Vitrine",
+    note: "The shop window on the good street: a didone cut down to hairlines, a plain grotesk underneath it, and the sayings in a newsreader italic. Extreme contrast up top and nothing raised anywhere else.",
+    display: "'sente-qliesya', 'Fraunces', serif",
+    italic: "'sente-qliesya', 'Fraunces', serif",
+    italicStyle: "normal",
+    body: "'Instrument Sans', sans-serif",
+    quote: "'Newsreader', Georgia, serif", quoteStyle: "italic",
+    weight: 400, strong: 400, tracking: "0.045em", leading: 1.08,
+    credit: "Qliesya via Typecase (demo cut, personal use) · Instrument Sans and Newsreader (OFL)",
   },
 ];
 
