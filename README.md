@@ -70,7 +70,9 @@ test suite. `src/engine/index.js` is the only thing views import from it.
 
 **Server.** `server/` is a Cloudflare Worker with two Durable Object classes; config in
 `wrangler.jsonc`. `npm run dev:server` runs it on port 8787, `npm run deploy:server`
-publishes it (needs `npx wrangler login` once). `node tools/server/smoke.mjs [url]`
+publishes it (needs `npx wrangler login` once). `npx wrangler secret put ADMIN_TOKEN`
+sets the key for the operator routes (`GET /api/admin/players`,
+`DELETE /api/admin/players/:id`). `node tools/server/smoke.mjs [url]`
 plays a whole game through the API and fails loudly if anything is off.
 `.github/workflows/deploy-server.yml` does the same on push to `main` once the repo has
 a `CLOUDFLARE_API_TOKEN` secret.

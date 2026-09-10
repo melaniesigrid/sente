@@ -5,6 +5,8 @@
      POST  /api/register        {name, tint}   -> {token, player}
      GET   /api/me              bearer         -> player
      PATCH /api/me              bearer {name, tint}
+     DELETE /api/me             bearer         -> leave: token and ladder seat gone
+     DELETE /api/admin/players/:id  ADMIN_TOKEN bearer
      GET   /api/games           bearer         -> recent games
      GET   /api/ladder                         -> top players
      GET   /api/stats                          -> {players, online, seeking}
@@ -51,6 +53,16 @@ async function route(req, env) {
     const player = await requirePlayer(req, reg);
     if (req.method === "GET") return json(player);
     if (req.method === "PATCH") return json(await reg.update(player.id, await readJson(req)));
+    if (req.method === "DELETE") return json({ removed: await reg.remove(player.id) });
+    return fail(405, "method");
+  }
+
+  // Operator route: remove a player by id. Guarded by the ADMIN_TOKEN secret (wrangler secret put).
+  const admin = /^\/api\/admin\/players(?:\/([^/]+))?$/.exec(path);
+  if (admin) {
+    if (!env.ADMIN_TOKEN || bearer(req) !== env.ADMIN_TOKEN) return fail(401, "unauthorized");
+    if (!admin[1] && req.method === "GET") return json(await reg.everyone());
+    if (admin[1] && req.method === "DELETE") return json({ removed: await reg.remove(admin[1]) });
     return fail(405, "method");
   }
 

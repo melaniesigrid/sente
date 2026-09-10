@@ -87,7 +87,8 @@ fin = await ga.next(m => m.t === "state" && m.room.settled, 6000);
 assert(fin.room.settled.rated && fin.room.settled.b.delta > 0 && fin.room.settled.w.delta < 0, `settled: ${JSON.stringify(fin.room.settled)}`);
 
 const ladder = await j("/api/ladder");
-assert(ladder[0].name === "Ada L" && ladder[0].rating > 1500, "ladder leads with Ada");
+const mine = ladder.find(r => r.id === a.player.id);
+assert(mine && mine.name === "Ada L" && mine.rating > 1500, "the winner stands on the ladder above 1500");
 const games = await j("/api/games", { headers: { authorization: `Bearer ${b.token}` } });
 assert(games[0].id === gid && games[0].phase === "ended", "games list shows the finished game");
 const pub = await j(`/api/game/${gid}`);
@@ -95,4 +96,12 @@ assert(pub.record.moves.length === 2, "public room fetch");
 const stats = await j("/api/stats");
 assert(stats.players >= 2, "stats");
 for (const c of [la, lb, ga, gb, spec]) c.s.close();
+
+// Leave: the test accounts must not linger on a real ladder.
+for (const p of [a, b]) {
+  const gone = await j("/api/me", { method: "DELETE", headers: { authorization: `Bearer ${p.token}` } });
+  assert(gone.removed === true, `${p.player.name} left the ladder`);
+}
+try { await j("/api/me", { headers: { authorization: `Bearer ${a.token}` } }); assert(false, "token dead"); } catch (e) { assert(/401/.test(e.message), "a left account's token is dead"); }
+assert(!(await j("/api/ladder")).some(r => r.id === a.player.id), "the ladder no longer lists a left player");
 console.log("ALL OK", base);

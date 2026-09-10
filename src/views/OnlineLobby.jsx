@@ -102,10 +102,12 @@ function Lobby({ account, setAccount, notify, onPlay }) {
 
   const findGame = () => { if (sock.current && sock.current.send({ t: "seek", size })) setSeek({ size }); };
   const cancel = () => { if (sock.current) sock.current.send({ t: "cancel" }); setSeek(null); };
-  const leave = () => {
-    if (!window.confirm("Leave this handle on this device? Without its key you cannot sit at its seat again.")) return;
+  const leave = async () => {
+    if (!window.confirm("Leave the ladder? This handle, its key and its rating are removed for good. Finished games stay.")) return;
+    try { await api.leave(token); } catch (e) { if (e.status !== 401) { notify({ icon: "info", text: "Could not reach the server; try again" }); return; } }
     clearAccount();
     setAccount(null);
+    notify({ icon: "info", text: "Handle removed" });
   };
 
   const live = tables.filter(t => t.phase !== "ended");
@@ -148,7 +150,7 @@ function Lobby({ account, setAccount, notify, onPlay }) {
       )}
       <div className="row spread">
         <p className="fine">Rated with Glicko-2 on the server. Every move is checked there with the same rules.</p>
-        <Btn icon={LogOut} small onClick={leave} label="Leave this handle on this device" />
+        <Btn icon={LogOut} small onClick={leave} label="Leave the ladder and remove this handle" />
       </div>
     </Card>
   );

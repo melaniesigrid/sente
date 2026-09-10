@@ -185,8 +185,12 @@ two Durable Object classes, deployed at https://sente-server.melaniesigrid.worke
 - [ ] "Keep playing" from scoring online (needs a consented resume frame in the reducer).
 - [ ] Challenge a named player, and a friends list. Today a table link (`?game=<id>`)
       is the only way to invite someone to watch.
-- [ ] Account hygiene: rate-limit `/api/register`, a way to move a handle to another
-      device (show the key once), and a nightly sweep of empty accounts.
+- [x] Leaving: `DELETE /api/me` removes the handle, its key and its ladder seat; only
+      players with a finished rated game stand on the ladder. `DELETE
+      /api/admin/players/:id` and `GET /api/admin/players` are the operator routes,
+      behind an `ADMIN_TOKEN` secret.
+- [ ] Account hygiene: rate-limit `/api/register`, and a way to move a handle to
+      another device (show the key once).
 - [ ] CI deploy for the Worker: `.github/workflows/deploy-server.yml` is written and
       needs a `CLOUDFLARE_API_TOKEN` repository secret (Workers Scripts: Edit) to run.
 - [ ] Analysis: KataGo (or GnuGo) via the backend, or a WASM engine in the browser.

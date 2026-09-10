@@ -67,6 +67,17 @@ export class Registry extends DurableObject {
     return publicPlayer(next);
   }
 
+  /** Remove a player and their token. Finished games keep their record; the
+   *  ladder simply stops listing them. Used by the player (leave) and by admin. */
+  async remove(id) {
+    const p = await this.ctx.storage.get(`player:${id}`);
+    if (!p) return false;
+    await this.ctx.storage.delete([`player:${id}`, `tok:${p.tokenHash}`, `games:${id}`, `seek:${id}`]);
+    for (const ws of this.ctx.getWebSockets(id)) ws.close(4000, "removed");
+    this.ladderCache = null;
+    return true;
+  }
+
   /* ----- games ----- */
 
   /** Rooms call this when a game is made and when it ends, so the lobby list is current. */
@@ -116,12 +127,20 @@ export class Registry extends DurableObject {
   async ladder() {
     if (this.ladderCache && Date.now() - this.ladderCache.at < LADDER_TTL) return this.ladderCache.rows;
     const all = await this.ctx.storage.list({ prefix: "player:" });
+    // Only players who have finished a rated game stand on the ladder.
     const rows = [...all.values()]
+      .filter(p => p.wins + p.losses + (p.draws ?? 0) > 0)
       .map(publicPlayer)
       .sort((a, b) => b.rating - a.rating || a.rd - b.rd)
       .slice(0, LADDER_SIZE);
     this.ladderCache = { at: Date.now(), rows };
     return rows;
+  }
+
+  /** Every account, for the operator. */
+  async everyone() {
+    const all = await this.ctx.storage.list({ prefix: "player:" });
+    return [...all.values()].map(publicPlayer).sort((a, b) => b.createdAt - a.createdAt);
   }
 
   async stats() {

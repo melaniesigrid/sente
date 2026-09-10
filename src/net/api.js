@@ -36,6 +36,7 @@ export const api = {
   register: (name, tint) => call("/api/register", { method: "POST", body: { name, tint } }),
   me: (token) => call("/api/me", { token }),
   update: (token, patch) => call("/api/me", { method: "PATCH", token, body: patch }),
+  leave: (token) => call("/api/me", { method: "DELETE", token }),
   games: (token) => call("/api/games", { token }),
   ladder: () => call("/api/ladder"),
   stats: () => call("/api/stats"),
