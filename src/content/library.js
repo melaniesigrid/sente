@@ -46,7 +46,9 @@ export const TRACKS = [
 export const BOOKS = [
   { id: "proverbs", name: "The Proverbs", blurb: "Folk wisdom as kata: a fixed form drilled until it can be broken on purpose." },
   { id: "masters", name: "Games of the Masters", blurb: "Guess the move across a famous game, then sit across from him." },
-  { id: "classic", name: "The Classic of Weiqi in Thirteen Chapters", blurb: "Zhang Ni, c. 1050, in original words, one verified position per maxim." },
+  { id: "classic", name: "The Classic of Weiqi in Thirteen Chapters", blurb: "Zhang Ni, c. 1050, in original words, one verified position per maxim.",
+    note: "Read it in the chapters card below: the whole book, with its lessons under each chapter." },
+  { id: "guanzi", name: "The Book of Endgame Moves", blurb: "Guo Bailing, 1660. The classical collection of the closing moves, and the one place a lesson may state a number." },
 ];
 export const bookById = (id) => BOOKS.find(b => b.id === id) || null;
 
