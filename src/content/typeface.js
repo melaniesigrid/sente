@@ -16,6 +16,10 @@
      caption   the footer, the small labels       --font-caption
      ornament  the lesson numeral, the vs mark    --font-display-italic
 
+   A fifth voice belongs to no pairing at all. A passage from the Classic is
+   typed, not set, and every pairing types it on the same machine: see
+   TYPEWRITER below. The quote voice above still carries Moku and the asides.
+
    No script stands anywhere in the set. A script is a display face and nothing
    else: it cannot carry a quotation and it cannot carry a caption, because at
    13px it is decoration standing where a word should be — and the ornament voice
@@ -44,7 +48,23 @@ export const GOOGLE_IMPORT =
   "&family=Hanken+Grotesk:wght@400;500;600;700" +
   "&family=Instrument+Sans:wght@400;500;600;700" +
   "&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400" +
+  "&family=Courier+Prime:ital,wght@0,400;0,700;1,400" +
   "&display=swap');";
+
+/* ----------------------- THE TYPED VOICE -----------------------
+   A passage is typed, not set. Sente's renderings are one person at a machine
+   putting down someone else's words a thousand years later, and that is a
+   different act from setting a quotation in the pairing's italic: the italic
+   makes the classic decorative, the typewriter makes it evidence. So a passage
+   comes out of the same machine in every pairing, the way the signature stays
+   one hand in every pairing, and `--font-typewriter` is the one token
+   typefaceVars returns the same value for every time.
+
+   Courier Prime is the typewriter face drawn to be read rather than to be
+   counted in: Courier's skeleton, stems with weight in them, and a real bold —
+   which the marked words need, since a mark that is only a colour is not a mark
+   on a monochrome screen. */
+export const TYPEWRITER = "'Courier Prime', 'Courier New', monospace";
 
 const HANKEN = "'Hanken Grotesk', sans-serif";
 
@@ -122,6 +142,7 @@ export function typefaceVars(id) {
     "--display-italic-style": t.italicStyle,
     "--font-body": t.body,
     "--font-quote": quoteOf(t),
+    "--font-typewriter": TYPEWRITER,
     "--quote-style": t.quote ? t.quoteStyle : "normal",
     "--font-caption": captionOf(t),
     "--caption-style": captionOf(t) === t.italic ? t.italicStyle : "normal",
