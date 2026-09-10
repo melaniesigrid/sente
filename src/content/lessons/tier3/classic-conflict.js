@@ -13,6 +13,7 @@ export default {
   id: "classic-conflict",
   title: "On Joining Battle",
   subtitle: "Chapter four: let the lost stones go and keep the initiative",
+  plain: "Stones are cheap and the move is not. Let the stones that are already caught go, keep the initiative, and look at the far side of the board before you start a fight on the near one.",
   tier: 3, rank: "14k", track: "judgement", size: 9, prereqs: ["classic-know-yourself"], minutes: 6,
   author: "Sente", sources: [CLASSIC_SOURCE], series: "classic", chapter: 4,
   steps: [

@@ -11,6 +11,7 @@ export default {
   id: "classic-details",
   title: "On Watching the Details",
   subtitle: "Chapter ten: to hold the east, strike the west",
+  plain: "The middle game is a hundred small judgements rather than one plan. Settle the inside before you lean on the outside, break up a line before it makes eyes, and only start a ko you could afford to lose.",
   tier: 5, rank: "4k", track: "middle", size: 13, prereqs: ["classic-correctness", "classic-emptiness"], minutes: 7,
   author: "Sente", sources: [CLASSIC_SOURCE], series: "classic", chapter: 10,
   steps: [

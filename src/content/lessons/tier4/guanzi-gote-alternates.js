@@ -30,6 +30,7 @@ export default {
   id: "guanzi-gote-alternates",
   title: "What Gote Costs",
   subtitle: "The endgame: a move that buys one boundary hands over the next",
+  plain: "A move that ends with your opponent to play buys one boundary and hands them the next. Counting that trade, rather than the size of the move on its own, is what the classical endgame book is teaching.",
   tier: 4, rank: "10k", track: "endgame", size: 9,
   prereqs: ["territory-count", "passing-and-ending"], minutes: 6,
   author: "Sente", sources: [GUANZI_SOURCE], book: "guanzi",

@@ -8,6 +8,7 @@ export default {
   id: "classic-levels",
   title: "On the Nine Levels",
   subtitle: "Chapter twelve: reading one move deeper",
+  plain: "The nine levels measure how far ahead you see, not how many games you have played. You move up a step when the reading you used to grind out slowly becomes the thing you notice at once.",
   tier: 2, rank: "16k", track: "judgement", size: 9, prereqs: ["atari-escape", "two-eyes"], minutes: 6,
   author: "Sente", sources: [CLASSIC_SOURCE], series: "classic", chapter: 12,
   steps: [

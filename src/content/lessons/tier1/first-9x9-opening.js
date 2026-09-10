@@ -5,6 +5,7 @@ export default {
   id: "first-9x9-opening",
   title: "Where to Begin",
   subtitle: "Tengen, 3-3 and 4-4 on a small board",
+  plain: "Ground is cheapest where the board already does part of the walling for you, so openings start near the corners, then the sides, then the centre. Claim the cheap ground while it is still cheap.",
   tier: 1, rank: "20k", track: "opening", size: 9, prereqs: ["territory-count"], minutes: 5,
   author: "Sente", sources: [],
   steps: [
