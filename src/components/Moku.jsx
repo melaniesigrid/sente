@@ -46,9 +46,12 @@ export function MokuProvider({ view, children }) {
 
 let counter = 0;
 
-/* Geometry is named so the eyes, brows and pupils agree on where the face is. */
-const BODY = { cx: 32, cy: 34, r: 24 };
-const EYE_L = { cx: 24, cy: 31 }, EYE_R = { cx: 40, cy: 31 };
+/* Geometry is named so the eyes, brows and pupils agree on where the face is.
+   The stone fills the 64-unit box on purpose: `size` is the stone, not a box with
+   a quarter of it empty. The ko ring at r+3 is the one thing allowed to use the
+   remaining margin, so every offset here is proportional to BODY.r. */
+const BODY = { cx: 32, cy: 32, r: 28 };
+const EYE_L = { cx: 22.7, cy: 28.5 }, EYE_R = { cx: 41.3, cy: 28.5 };
 
 export function MokuMark({ size = 56, state = "idle", sash = null, className = "" }) {
   const [uid] = useState(() => `moku${++counter}`);
@@ -67,25 +70,25 @@ export function MokuMark({ size = 56, state = "idle", sash = null, className = "
         <clipPath id={`${uid}-clip`}><circle cx={BODY.cx} cy={BODY.cy} r={BODY.r} /></clipPath>
       </defs>
       {/* ko: a dashed ring that turns, the same ring the board uses for marks */}
-      <circle className="moku-ko" cx={BODY.cx} cy={BODY.cy} r={BODY.r + 4} />
+      <circle className="moku-ko" cx={BODY.cx} cy={BODY.cy} r={BODY.r + 3} />
       <g className="moku-body">
         <circle cx={BODY.cx} cy={BODY.cy} r={BODY.r} fill={`url(#${uid}-b)`} className="moku-stone" />
         {sash && (
           <g clipPath={`url(#${uid}-clip)`}>
-            <rect x="-10" y="44" width="90" height="9" fill={sash} transform={`rotate(-18 ${BODY.cx} ${BODY.cy})`} />
+            <rect x="-12" y="43.7" width="104" height="10.5" fill={sash} transform={`rotate(-18 ${BODY.cx} ${BODY.cy})`} />
           </g>
         )}
         <g className="moku-eyes">
-          <circle cx={EYE_L.cx} cy={EYE_L.cy} r="5.4" fill="var(--cream)" />
-          <circle cx={EYE_R.cx} cy={EYE_R.cy} r="5.4" fill="var(--cream)" />
+          <circle cx={EYE_L.cx} cy={EYE_L.cy} r="6.3" fill="var(--cream)" />
+          <circle cx={EYE_R.cx} cy={EYE_R.cy} r="6.3" fill="var(--cream)" />
           <g className="moku-pupils">
-            <circle cx={EYE_L.cx} cy={EYE_L.cy} r="2.7" fill="var(--stone-b-3)" />
-            <circle cx={EYE_R.cx} cy={EYE_R.cy} r="2.7" fill="var(--stone-b-3)" />
+            <circle cx={EYE_L.cx} cy={EYE_L.cy} r="3.15" fill="var(--stone-b-3)" />
+            <circle cx={EYE_R.cx} cy={EYE_R.cy} r="3.15" fill="var(--stone-b-3)" />
           </g>
         </g>
         {/* brows: drawn only when a fact earns them (see css: atari, captured, loss, hunting) */}
-        <path className="moku-brow moku-brow-l" d={`M${EYE_L.cx - 6} ${EYE_L.cy - 9} L${EYE_L.cx + 5} ${EYE_L.cy - 7}`} />
-        <path className="moku-brow moku-brow-r" d={`M${EYE_R.cx - 5} ${EYE_R.cy - 7} L${EYE_R.cx + 6} ${EYE_R.cy - 9}`} />
+        <path className="moku-brow moku-brow-l" d={`M${EYE_L.cx - 7} ${EYE_L.cy - 10.5} L${EYE_L.cx + 5.8} ${EYE_L.cy - 8.2}`} />
+        <path className="moku-brow moku-brow-r" d={`M${EYE_R.cx - 5.8} ${EYE_R.cy - 8.2} L${EYE_R.cx + 7} ${EYE_R.cy - 10.5}`} />
       </g>
     </svg>
   );
@@ -98,9 +101,9 @@ export function MokuDock() {
     <div className="moku-dock">
       <div className="moku-bubble" role="status" aria-live="polite" key={m.line}>{m.line}</div>
       <div className="moku-seat">
-        <MokuMark state={m.state} size={58} />
+        <MokuMark state={m.state} size={92} />
         <button className="moku-off" onClick={() => m.setOff(true)} aria-label="Send Moku away" title="Send Moku away">
-          <X size={11} strokeWidth={2.6} />
+          <X size={13} strokeWidth={2.6} />
         </button>
       </div>
     </div>

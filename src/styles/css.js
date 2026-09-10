@@ -73,11 +73,11 @@ ${SIGNATURE_FACE}
 }
 .brand { display: flex; align-items: baseline; gap: 11px; }
 .brand-mark {
-  width: 19px; height: 19px; border-radius: 50%;
+  width: 24px; height: 24px; border-radius: 50%;
   background: var(--ink);
-  box-shadow: 3px 3px 7px var(--dark), -3px -3px 7px var(--light);
+  box-shadow: 4px 4px 9px var(--dark), -4px -4px 9px var(--light);
 }
-.brand-name { font-family: var(--font-display); font-weight: var(--w-display-strong); font-size: clamp(28px, 4.2vw, 38px); line-height: 1; letter-spacing: calc(.005em + var(--display-tracking)); }
+.brand-name { font-family: var(--font-display); font-weight: var(--w-display-strong); font-size: clamp(34px, 5vw, 46px); line-height: 1; letter-spacing: calc(.005em + var(--display-tracking)); }
 .nav { display: flex; gap: 6px; padding: 7px; border-radius: 18px; box-shadow: var(--sink-sm); }
 .nav-btn {
   display: flex; align-items: center; gap: 7px;
@@ -119,7 +119,7 @@ ${SIGNATURE_FACE}
    and it draws itself on once when the page arrives, left to right, the way a
    pen would. */
 .signed { display: inline-flex; align-items: baseline; gap: 12px; padding-right: 12px; }
-.signed-by { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; opacity: .45; }
+.signed-by { font-size: 12px; letter-spacing: .2em; text-transform: uppercase; opacity: .45; }
 .signature {
   font-family: 'sente-signature', cursive; font-size: 42px; line-height: 1; padding: 2px 0;
   letter-spacing: .01em; color: var(--ink); opacity: .8;
@@ -705,7 +705,7 @@ ${SIGNATURE_FACE}
 .theme-mark { width: 11px; height: 11px; border-radius: 50%; background: var(--accent); margin-left: auto; flex: none; }
 .theme-meta { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding-left: 2px; }
 .theme-title { font-family: var(--font-display); font-weight: var(--w-display-strong); font-size: 16px; line-height: 1.1; }
-.theme-mood { font: 700 11px var(--font-body); letter-spacing: .14em; text-transform: uppercase; opacity: .5; }
+.theme-mood { font: 700 12px var(--font-body); letter-spacing: .14em; text-transform: uppercase; opacity: .5; }
 .theme-btn.active .theme-mood { color: var(--accent); opacity: 1; }
 
 /* ---- the dojo: build your own room ---- */
@@ -778,7 +778,7 @@ ${SIGNATURE_FACE}
 .audit-label { font-weight: 600; }
 .audit-num { font-variant-numeric: tabular-nums; font-weight: 700; }
 .audit-row.fail .audit-num { color: var(--danger); }
-.audit-min { font-size: 11.5px; opacity: .5; font-variant-numeric: tabular-nums; }
+.audit-min { font-size: 12px; opacity: .5; font-variant-numeric: tabular-nums; }
 .audit-why { grid-column: 2 / -1; font-size: 12.5px; line-height: 1.45; opacity: .7; }
 
 .dojo-actions { display: flex; gap: 9px; flex-wrap: wrap; }
@@ -796,7 +796,7 @@ ${SIGNATURE_FACE}
 .type-btn:hover { transform: translateY(-1px); }
 .type-btn.active { box-shadow: var(--raise-sm); color: var(--accent); }
 .type-sample { font-size: 26px; line-height: 1.15; }
-.type-name { font: 700 11.5px var(--font-body); letter-spacing: .11em; text-transform: uppercase; opacity: .55; }
+.type-name { font: 700 12px var(--font-body); letter-spacing: .11em; text-transform: uppercase; opacity: .55; }
 .type-btn.active .type-name { opacity: 1; }
 .type-note { margin-top: 14px; }
 .type-credit { display: block; margin-top: 5px; opacity: .5; }
@@ -852,16 +852,16 @@ ${SIGNATURE_FACE}
 .moku-dock { position: fixed; left: clamp(12px, 2vw, 24px); bottom: clamp(12px, 2vw, 24px); z-index: 40; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; pointer-events: none; }
 .moku-dock > * { pointer-events: auto; }
 .moku-bubble {
-  max-width: 220px; padding: 9px 13px; border-radius: 14px 14px 14px 4px;
+  max-width: 250px; padding: 10px 14px; border-radius: 14px 14px 14px 4px;
   background: var(--ground); box-shadow: var(--raise-sm);
   font-family: var(--font-quote); font-style: var(--quote-style); font-size: 16px; line-height: 1.4; color: var(--ink);
   animation: rise-l .35s ease;
 }
 @keyframes rise-l { from { transform: translateY(6px); opacity: 0; } to { transform: none; opacity: 1; } }
 .moku-seat { position: relative; margin-left: 2px; }
-.moku-off { position: absolute; top: -2px; right: -8px; width: 20px; height: 20px; border: 0; border-radius: 50%; background: var(--ground); color: var(--ink); box-shadow: var(--raise-sm); display: grid; place-items: center; cursor: pointer; opacity: 0; transition: opacity .18s ease; }
+.moku-off { position: absolute; top: -2px; right: -8px; width: 23px; height: 23px; border: 0; border-radius: 50%; background: var(--ground); color: var(--ink); box-shadow: var(--raise-sm); display: grid; place-items: center; cursor: pointer; opacity: 0; transition: opacity .18s ease; }
 .moku-seat:hover .moku-off, .moku-off:focus-visible { opacity: .85; }
-@media (max-width: 760px) { .moku-bubble { max-width: 160px; font-size: 15px; } .moku-off { opacity: .6; } }
+@media (max-width: 760px) { .moku-bubble { max-width: 180px; font-size: 15px; } .moku-off { opacity: .6; } .moku-dock .moku { width: 68px; height: 68px; } }
 
 .moku .moku-stone { filter: drop-shadow(3px 3px 4px rgba(var(--sh-ink),.45)) drop-shadow(-2px -2px 3px rgba(var(--sh-lite),.55)); }
 .moku .moku-body, .moku .moku-eyes, .moku .moku-pupils, .moku .moku-brow, .moku .moku-ko { transform-origin: center; transform-box: fill-box; }

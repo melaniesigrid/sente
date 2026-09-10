@@ -673,7 +673,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       {ceremony && (
         <div className="ceremony" role="dialog" aria-modal="true" aria-label={`Promoted to ${ceremony.label}`}>
           <Card className="ceremony-card">
-            <MokuMark state="promoted" sash={ceremony.color} size={96} />
+            <MokuMark state="promoted" sash={ceremony.color} size={120} />
             <p className="eyebrow"><Award size={13} /> Promotion</p>
             <h3 className="result-headline">{ceremony.label}</h3>
             <BeltRibbon belt={ceremony} className="ceremony-belt" />
