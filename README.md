@@ -95,6 +95,19 @@ GitHub Pages (enable Pages with source "GitHub Actions" once in the repo setting
 `base` comes from the `BASE_PATH` env var, which the workflow sets to `/<repo>/`; unset
 locally, so `npm run dev` is unaffected.
 
+## Licence
+
+`LICENSE` — © 2026 Northbound Software Studio, all rights reserved. The repository is
+public so the work can be read; that is not a grant, and none should be inferred.
+
+The three documents a reader sees — terms, privacy and credits — are data in
+`src/content/legal.js` and are rendered by `src/views/Legal.jsx` from the footer of every
+screen. `src/content/legal.test.js` holds their sentences to the code: the chat the room
+keeps, the picture the server accepts, the paragraph it accepts, and every runtime
+dependency in `package.json` having a line on the credits page. A dependency added
+without a credit fails the suite. Type is documented file by file in
+`src/fonts/LICENSES.md`, which is the one to read before a public build.
+
 ## Roadmap
 
 See [TODO.md](TODO.md).

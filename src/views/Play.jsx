@@ -1,8 +1,8 @@
 import { useState, useMemo } from "react";
 import { Play, Users, Handshake, Minus, Plus, Home } from "lucide-react";
-import { Avatar, RankBadge, Btn, PullQuote } from "../components/ui.jsx";
+import { Avatar, RankBadge, Btn, Statement } from "../components/ui.jsx";
 import { ScreenHeader } from "../components/ScreenHeader.jsx";
-import { plainFor } from "../content/plain.js";
+import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { DuelCard } from "../components/DuelCard.jsx";
 import { personasFor, PERSONAS } from "../content/personas.js";
@@ -77,7 +77,7 @@ export function PlayView({ profile, setProfile, notify, resume }) {
                 their own style and table talk — or hand the device across the table for a
                 face-to-face game. House players adapt to the level you pick, from 25 kyu
                 to 9 dan, and play any board." />
-        <PullQuote>{plainFor("play")}</PullQuote>
+        <Statement lines={statementFor("play")}>{plainFor("play")}</Statement>
         <Passage context="play" />
         <OnlineCard profile={profile} notify={notify} onPlay={setSession} size={table.size} />
         <DuelCard profile={profile} today={today} mode={duelMode(PERSONAS, today)}

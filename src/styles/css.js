@@ -744,6 +744,49 @@ ${FONT_FACES}
 .pull-quote.sm .pull-line { font-size: 17.5px; line-height: 1.45; }
 .pull-quote.sm .pull-label { font-size: 12.5px; }
 .pull-label { color: var(--ink-2); font-family: var(--font-body); font-style: normal; font-size: 14px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+
+/* ---- a statement: the house voice, set as large as the screen will bear ----
+   The screen's one idea in three lines, ruled off top and bottom like a page
+   turning. A passage is the classical voice in the italic; this is ours in the
+   display face, and the two look nothing alike on purpose — they used to sit
+   one under the other in the same italic at nearly the same size, and read as
+   one long quotation.
+
+   The three lines are worn in order: capitals in the display face, the italic
+   voice, then the same capitals drawn as an outline in the incidental ink,
+   which is stroke and not a dimmed word. The plain sentence sits under them at
+   caption size — the jump from 8vw to 15px is the point of the block. */
+.statement { margin: 6px 0; padding: clamp(26px, 4vw, 46px) 0; border-top: 1px solid var(--grid); border-bottom: 1px solid var(--grid); }
+.statement-lines { margin: 0; display: flex; flex-direction: column; }
+.statement-mask { display: block; overflow: hidden; padding: .04em 0 .2em; }
+.statement-line {
+  display: block; font-family: var(--font-display); font-weight: var(--w-display);
+  font-size: clamp(38px, 8.5vw, 104px); line-height: .98; text-transform: uppercase;
+  letter-spacing: calc(-0.022em + var(--display-tracking)); color: var(--ink);
+  animation: statement-rise .9s cubic-bezier(.16, 1, .3, 1) both;
+}
+.statement-mask:nth-child(2) .statement-line {
+  font-family: var(--font-quote); font-style: var(--quote-style); font-weight: 400;
+  text-transform: none; letter-spacing: -.012em; font-size: clamp(34px, 7.4vw, 90px);
+  line-height: 1.02; animation-delay: .11s;
+}
+/* The third line is drawn rather than filled. It is a stroke in the incidental
+   ink, not a dimmed word, and a browser without the stroke property gets the
+   same ink filled in instead of a line of nothing. */
+.statement-mask:nth-child(3) .statement-line { color: var(--ink-3); animation-delay: .22s; }
+@supports (-webkit-text-stroke: 1px currentColor) {
+  .statement-mask:nth-child(3) .statement-line { color: transparent; -webkit-text-stroke: 1.5px var(--ink-3); }
+}
+.statement-gloss {
+  margin: clamp(20px, 2.6vw, 30px) 0 0; max-width: 52ch; display: flex; flex-direction: column;
+  gap: 8px; color: var(--ink-2); font-family: var(--font-body); font-size: 15px; line-height: 1.6;
+}
+@keyframes statement-rise { from { transform: translateY(105%); } to { transform: none; } }
+@media (max-width: 620px) {
+  .statement-line { -webkit-text-stroke-width: 1px; }
+  .statement-gloss { font-size: 14px; }
+}
+@media (prefers-reduced-motion: reduce) { .statement-line { animation: none; } }
 @media (max-width: 620px) { .chapter-body { padding-left: 12px; } }
 
 /* ---- the thirty-two names (Classic, ch. 11) ---- */
@@ -1244,6 +1287,71 @@ ${FONT_FACES}
 .lp-enters > *:nth-child(5) { animation-delay: .49s; }
 .lp-hero-board.lp-enters > * { animation-delay: .30s; }
 
+/* ---- the small print ----
+   Set in the same face and the same room as everything else. Small print is
+   usually small as a way of asking not to be read; there is nothing in here
+   worth hiding, so the only concession to it being reference material is the
+   measure, held to 68 characters. */
+.legal-head { max-width: 68ch; }
+.legal-title {
+  font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: clamp(30px, 4.6vw, 44px); line-height: var(--display-leading);
+  letter-spacing: var(--display-tracking); margin: 0;
+}
+.legal-lede { color: var(--ink-2); font-size: 17px; line-height: 1.6; margin: 10px 0 0; }
+.legal-stamp {
+  color: var(--ink-2); font-family: var(--font-caption); font-style: var(--caption-style);
+  font-size: 13px; letter-spacing: .05em; margin: 12px 0 0;
+}
+.legal-stamp.end { margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--dark); }
+
+/* One tab per document. The strip is the raised row and the open document is
+   the sunk one, which is the same sentence the nav makes upstairs. */
+.legal-tabs { display: flex; flex-wrap: wrap; gap: 10px; }
+.legal-tab {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer; border: 0;
+  background: var(--ground); color: var(--ink-2); border-radius: 14px; padding: 11px 17px;
+  font: 700 13px var(--font-body); letter-spacing: .1em; text-transform: uppercase;
+  box-shadow: var(--raise-sm); transition: box-shadow .15s ease, transform .15s ease, color .15s ease;
+}
+.legal-tab:hover { transform: translateY(-1px); color: var(--ink); }
+.legal-tab.active { box-shadow: var(--sink-sm); color: var(--accent-ink); transform: none; }
+
+.legal-doc { max-width: 68ch; padding: clamp(22px, 3vw, 34px); }
+.legal-section { margin-top: 26px; }
+.legal-section h2 {
+  font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: clamp(19px, 2.2vw, 23px); line-height: 1.25; margin: 0 0 10px;
+}
+.legal-section p { margin: 0 0 12px; line-height: 1.68; font-size: 15.5px; }
+.legal-section p:last-child { margin-bottom: 0; }
+.legal-list { margin: 0; padding-left: 20px; }
+.legal-list li { margin-bottom: 9px; line-height: 1.62; font-size: 15.5px; }
+
+/* A credit answers three questions, so it is set as three columns and not as
+   a sentence. The terms sit in the caption face: it is the part a reader
+   scans down rather than reads. */
+.credit-list { margin: 0; }
+.credit-row {
+  display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline;
+  padding: 10px 0; border-bottom: 1px solid var(--dark);
+}
+.credit-row:last-child { border-bottom: 0; }
+.credit-row dt { font-weight: 600; font-size: 15.5px; flex: 1 1 14ch; margin: 0; }
+.credit-row dd { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; margin: 0; flex: 2 1 22ch; }
+.credit-who { color: var(--ink-2); font-size: 14.5px; flex: 1 1 auto; }
+.credit-terms {
+  color: var(--accent-ink); font-family: var(--font-caption); font-style: var(--caption-style);
+  font-size: 13px; letter-spacing: .05em; white-space: nowrap; margin-left: auto;
+}
+
+/* The footer grew a legal row: the notice, then the three ways into it. */
+.foot-legal { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.foot-sep { color: var(--ink-3); font-size: 13px; }
+
+@media (max-width: 620px) {
+  .credit-row dt { flex-basis: 100%; }
+}
 @media (prefers-reduced-motion: reduce) {
   .sente-root *, .sente-root *::before, .sente-root *::after {
     animation: none !important; transition: none !important;

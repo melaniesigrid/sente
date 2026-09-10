@@ -35,6 +35,43 @@ They are left as they were written rather than rewritten after the fact.
   Courier Prime ships one bold and no axis. A monospace bold cannot widen the letter, so a
   mark never shifts the column.
 
+## v0.6.0.0 (2026-09-10)
+
+### Added
+
+- The small print, and a footer that admits to it. Three documents — terms of use,
+  privacy, and credits and copyright — on one screen at `src/views/Legal.jsx`, reachable
+  from the foot of every page including the front door. They are set in the same face,
+  the same room and the same two shadows as everything else: small print is usually small
+  as a way of asking not to be read, and there is nothing in these worth hiding.
+- `src/content/legal.js`, the documents as data rather than as markup, written under one
+  rule: nothing in them describes behaviour the code does not have. Where a promise would
+  be pleasant and untrue — a backup, an uptime, an export button — the document says the
+  true thing instead. The privacy notice names what the server keeps field by field, that
+  the password never leaves the browser, that the address you registered from is kept and
+  deleted with the account, and the one thing leaving does not reach: a finished game
+  stays in the room it was played in, because it is the opponent's game too.
+- `src/content/legal.test.js`, which holds the prose to the code the way the lesson
+  verifier holds a lesson to the engine. The chat line count comes from `CHAT_KEEP`, the
+  picture size from `AVATAR_MAX_BYTES`, the paragraph from `BIO_MAX`, and every runtime
+  dependency in `package.json` must have a line on the credits page — a package added
+  without an attribution fails the suite rather than going missing quietly. The house
+  voice is enforced here too: no exclamation marks in a legal document either.
+- `LICENSE`: all rights reserved, with two carve-outs stated rather than implied. Go
+  itself belongs to nobody — the rules, the proverbs, the classical problems and the old
+  masters' records are nobody's property, and only Joseki's words about them are the
+  Studio's. Other people's software and type are governed by their own terms.
+- A copyright line in the footer, from the same constant the credits page and the LICENSE
+  file read, so the three cannot drift.
+
+### Decided
+
+- Governing law is Canada, with no province named. A province is a fact about the Studio
+  rather than about the software, and a governing-law clause that names the wrong one is
+  worse than one that names the country.
+- Contact is hello@northboundsoftwarestudio.com in all three documents. A privacy request
+  that can only be made in public is not a privacy request.
+
 ## v0.5.0.0 (2026-09-10)
 
 ### Added

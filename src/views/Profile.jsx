@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Check, Pencil, Trophy, Flame, Sparkles, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Type, Mountain, Palette, Grid3x3, Dot, Hammer } from "lucide-react";
-import { Card, Pill, Avatar, RankBadge, BeltRibbon, Toggle, PullQuote } from "../components/ui.jsx";
-import { plainFor } from "../content/plain.js";
+import { Card, Pill, Avatar, RankBadge, BeltRibbon, Toggle, PullQuote, Statement } from "../components/ui.jsx";
+import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { MokuMark } from "../components/Moku.jsx";
 import { useMoku, useMokuFacts } from "../components/mokuStore.js";
@@ -122,7 +122,7 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
 
       {account && <OnlineProfileCard account={account} setAccount={setAccount} notify={notify} />}
 
-      <PullQuote>{plainFor("profile")}</PullQuote>
+      <Statement lines={statementFor("profile")}>{plainFor("profile")}</Statement>
       <Card className="passage-card"><Passage context="profile" /></Card>
 
       <div className="grid2">

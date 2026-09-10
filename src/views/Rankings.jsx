@@ -1,10 +1,10 @@
 import { useMemo, useState, useEffect } from "react";
 import { Crown, Flame, Globe, Bot } from "lucide-react";
-import { Card, Avatar, RankBadge, PullQuote } from "../components/ui.jsx";
+import { Card, Avatar, RankBadge, Statement } from "../components/ui.jsx";
 import { ScreenHeader } from "../components/ScreenHeader.jsx";
 import { avatarUrl } from "../net/avatar.js";
 import { SERVER_URL } from "../net/api.js";
-import { plainFor } from "../content/plain.js";
+import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { PERSONAS } from "../content/personas.js";
 import { ratingOfRank, preciseRankOf } from "../content/rank.js";
@@ -43,7 +43,7 @@ export function RankingsView({ profile }) {
               on the server with Glicko-2, so a rating carries how sure it is. The house
               ladder is you against the residents, Elo-style, roughly a hundred points to
               a rank." />
-      <PullQuote>{plainFor("ladder")}</PullQuote>
+      <Statement lines={statementFor("ladder")}>{plainFor("ladder")}</Statement>
       <Passage context="ladder" />
 
       {global !== false && (
