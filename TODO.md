@@ -405,6 +405,22 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       is that names must be set right. A chapter may now hold more than one lesson
       (`alsoLessonIds`, `lessonIdsForChapter`), so `lessonAfter` walks chapter thirteen's
       miscellany into its corner shapes. The ambient threading stays with `PASSAGES`.
+- [x] Plain words, set the way a magazine sets them (2026-09-10, branch `feat/plain-words`):
+      the app said everything in its own voice and the classical one, and nothing in the
+      voice you would use for a friend who has never held a stone. Now three layers carry
+      that. Every chapter of the Classic and the preface carry `plain`; every one of the
+      thirty lessons carries `plain`; and `content/plain.js` holds one line each for Home,
+      Play, Learn, Tsumego, the Ladder and the Profile, which have no prose of their own to
+      gloss. `PullQuote` in `components/ui.jsx` sets them: the quote voice under a short
+      accent rule, centred, with the label under it, and a `sm` size for the column beside a
+      board. Learn drops one after a chapter's first paragraph, a finished lesson opens its
+      recap with one, and each screen sets its own above that screen's passage.
+      Decisions: a passage is Zhang Ni speaking and a pull quote is Sente speaking, so the
+      label is not decoration — it is the thing that keeps a gloss from reading as a
+      quotation. Tests hold every gloss to the house voice and to a pullable length, refuse
+      one that is only the subtitle or the theme again, refuse a chapter gloss that repeats a
+      saying the reader has already met, and check that the Play line still says in plain
+      words that a house player is a bot.
 - [ ] The rest of chapter thirteen's named shapes: the five-point flower, and the two-by-three
       that lives in the open and dies in the corner.
 - [ ] Restore the Chinese characters for chapter eleven's thirty-two names from the original,
