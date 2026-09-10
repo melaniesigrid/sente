@@ -899,6 +899,82 @@ ${SIGNATURE_FACE}
 .moku[data-state="scoring"] .moku-body { transform: rotate(9deg); transition: transform .35s ease; }
 .moku[data-state="jigo"] .moku-body { animation: moku-wobble 2.2s ease-in-out infinite; }
 
+/* ---- moku: the expressive parts ----
+   Everything below is hidden by default and switched on per state, so a face
+   never shows a feature it did not ask for. The mouth is four paths and one
+   ellipse stacked in the same place; exactly one is ever at opacity 1. */
+.moku .moku-mouth, .moku .moku-mouth-open, .moku .moku-arc {
+  fill: none; stroke: var(--cream); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round;
+}
+/* Only the mouths hide individually. The arcs are switched by their group, and
+   a group's opacity multiplies with its children's — carrying both would leave
+   the eyes invisible no matter what the state asked for. */
+.moku .moku-mouth, .moku .moku-mouth-open { opacity: 0; transition: opacity .22s ease; }
+.moku .moku-mouth-open { fill: var(--stone-b-3); stroke-width: 1.6; }
+.moku .moku-eyes-shut, .moku .moku-blush, .moku .moku-sparks, .moku .moku-zzz { opacity: 0; transition: opacity .25s ease; }
+.moku .moku-blush ellipse { fill: var(--accent); }
+.moku .moku-sparks path { fill: var(--accent); }
+.moku .moku-z { fill: var(--cream); font: italic 700 13px var(--font-body); opacity: .85; text-anchor: middle; }
+/* The stone fills its box now, so anything that orbits it has to be allowed out. */
+.moku { overflow: visible; }
+.moku .moku-mouths, .moku .moku-eyes-shut, .moku .moku-blush { transform-origin: center; transform-box: fill-box; }
+
+/* A shut pair of eyes replaces the open pair rather than covering it. */
+.moku[data-state="happy"] .moku-eyes, .moku[data-state="proud"] .moku-eyes,
+.moku[data-state="win"] .moku-eyes, .moku[data-state="promoted"] .moku-eyes,
+.moku[data-state="sleepy"] .moku-eyes { opacity: 0; }
+.moku[data-state="happy"] .moku-eyes-shut, .moku[data-state="proud"] .moku-eyes-shut,
+.moku[data-state="win"] .moku-eyes-shut, .moku[data-state="promoted"] .moku-eyes-shut { opacity: 1; }
+/* asleep: the same arc, turned over, so the lids close downward */
+.moku[data-state="sleepy"] .moku-eyes-shut { opacity: 1; transform: scaleY(-1) translateY(-3px); }
+
+/* Which mouth each state wears. */
+.moku[data-state="win"] .moku-mouth-smile, .moku[data-state="happy"] .moku-mouth-smile,
+.moku[data-state="proud"] .moku-mouth-smile, .moku[data-state="promoted"] .moku-mouth-smile,
+.moku[data-state="capture"] .moku-mouth-smile, .moku[data-state="playful"] .moku-mouth-smile { opacity: 1; }
+.moku[data-state="loss"] .moku-mouth-frown, .moku[data-state="captured"] .moku-mouth-frown,
+.moku[data-state="sad"] .moku-mouth-frown, .moku[data-state="atari"] .moku-mouth-frown { opacity: 1; }
+.moku[data-state="reading"] .moku-mouth-flat, .moku[data-state="scoring"] .moku-mouth-flat,
+.moku[data-state="hunting"] .moku-mouth-flat, .moku[data-state="bored"] .moku-mouth-flat { opacity: 1; }
+.moku[data-state="jigo"] .moku-mouth-wave, .moku[data-state="ko"] .moku-mouth-wave,
+.moku[data-state="curious"] .moku-mouth-wave { opacity: 1; }
+.moku[data-state="sleepy"] .moku-mouth-open { opacity: 1; }
+
+/* Blush, sparkles and sleep marks. */
+.moku[data-state="happy"] .moku-blush, .moku[data-state="proud"] .moku-blush,
+.moku[data-state="promoted"] .moku-blush, .moku[data-state="win"] .moku-blush { opacity: .5; }
+.moku[data-state="win"] .moku-sparks, .moku[data-state="promoted"] .moku-sparks,
+.moku[data-state="proud"] .moku-sparks { opacity: 1; animation: moku-twinkle 1.6s ease-in-out infinite; }
+.moku[data-state="sleepy"] .moku-zzz { opacity: 1; }
+.moku[data-state="sleepy"] .moku-z1 { animation: moku-drift 3.4s ease-in-out infinite; }
+.moku[data-state="sleepy"] .moku-z2 { animation: moku-drift 3.4s ease-in-out 1.1s infinite; }
+@keyframes moku-twinkle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .45; transform: scale(.82); } }
+@keyframes moku-drift { 0% { opacity: 0; transform: translate(0, 2px) scale(.7); } 30% { opacity: .9; } 100% { opacity: 0; transform: translate(3px, -7px) scale(1.15); } }
+
+/* Motion for the moods. Each is slower than the board states on purpose: a
+   mood is the absence of urgency, so nothing here should read as an alert. */
+.moku[data-state="bored"] .moku-body { animation: moku-sway 5s ease-in-out infinite; }
+@keyframes moku-sway { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+.moku[data-state="sleepy"] .moku-body { animation: moku-breathe 4.6s ease-in-out infinite; }
+@keyframes moku-breathe { 0%, 100% { transform: scale(1) translateY(0); } 50% { transform: scale(1.035, .965) translateY(1.5px); } }
+.moku[data-state="happy"] .moku-body { animation: moku-bob 2.4s ease-in-out infinite; }
+.moku[data-state="playful"] .moku-body { animation: moku-roll 2.8s ease-in-out infinite; }
+@keyframes moku-roll { 0%, 100% { transform: rotate(0) translateX(0); } 25% { transform: rotate(-12deg) translateX(-2px); } 75% { transform: rotate(12deg) translateX(2px); } }
+.moku[data-state="sad"] .moku-body { animation: moku-sigh 4.2s ease-in-out infinite; }
+@keyframes moku-sigh { 0%, 100% { transform: translateY(2px) scale(1.01, .99); } 45% { transform: translateY(3.5px) scale(1.02, .98); } }
+.moku[data-state="sad"] .moku-brow { opacity: 1; transform: scaleY(-1); }
+.moku[data-state="proud"] .moku-body { animation: moku-hop .6s ease 2; }
+
+/* Reading is a longer think than watching: the eyes narrow and the pupils
+   sweep, rather than darting. */
+.moku[data-state="reading"] .moku-eyes { animation: none; transform: scaleY(.62); }
+.moku[data-state="reading"] .moku-pupils { animation: moku-scan 3.4s ease-in-out infinite; }
+@keyframes moku-scan { 0%, 100% { transform: translate(-2.2px, 0); } 50% { transform: translate(2.2px, 0); } }
+.moku[data-state="curious"] .moku-body { transform: rotate(-8deg); transition: transform .3s ease; }
+.moku[data-state="curious"] .moku-pupils { transform: translate(1.6px, -1.4px); }
+.moku[data-state="bored"] .moku-pupils { transform: translate(0, 1.8px); }
+
+
 /* ---- online ---- */
 .online-card { display: flex; flex-direction: column; gap: 12px; }
 .online-card h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }

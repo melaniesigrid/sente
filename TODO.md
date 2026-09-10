@@ -267,14 +267,22 @@ Small moments that make the table feel alive, all built on engine facts:
       opt-in synthesised click per stone, a soft note per capture, a bell at the end.
 - [x] Kata of the day: one tsumego per calendar day for everyone (`content/kata.js`),
       a Home card that opens it, attendance streak with a best, shown on Profile.
+- [x] Moku has a face: a mouth (smile, frown, flat, squiggle, the sleeping O), arc eyes,
+      blush, sparkles and sleep marks, each opt-in per state in the stylesheet. Three new
+      faces are still facts — `reading` (a think past four seconds), `curious` (a hovered
+      point), `proud` (a solved problem) — and five are moods of the visit: happy, playful
+      and sad off a signed win streak, bored and sleepy off idle time. `moodFor` is pure
+      and tested, including that no mood can displace a board fact.
 
 Decisions:
 - Belt boundaries follow `rankOf` exactly (`kyuFloor`), so a belt can never disagree
   with the rank on the badge.
 - House players have no opinion on life and death. While scoring, the card says the
   player's marking stands; in pass-and-play it asks both players to agree first.
-- Moku speaks one line at a time, never blocks anything, and has no mood: if nothing
-  on the board changed, it says nothing new.
+- Moku speaks one line at a time and never blocks anything. A fact about the board
+  always beats a feeling about it: moods exist, but they are resolved last and only
+  surface when nothing on the board is asking for attention. On a live board Moku
+  never goes further than bored — it does not fall asleep on your move.
 - Sound is a profile field (opt-in, default off). Moku's off switch is a device
   preference in localStorage, like Pip's in ZipQuarry.
 

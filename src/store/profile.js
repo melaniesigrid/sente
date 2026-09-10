@@ -16,7 +16,7 @@ export const defaultProfile = {
   rating: Math.round(ratingOfRank("20k")),   // 20k: winnable games first, and Glicko finds the truth fast
   rd: GLICKO.rd,                             // rating deviation: 350 until games say otherwise
   vol: GLICKO.vol,                           // Glicko-2 volatility
-  wins: 0, losses: 0, streak: 0, bestStreak: 0,
+  wins: 0, losses: 0, streak: 0, lossStreak: 0, bestStreak: 0,
   lessonsDone: [], problemsDone: [],
   tierPassed: [],                            // library tier ids whose exit test was passed
   sound: false,                              // stone click + haptic, opt-in
