@@ -4,7 +4,7 @@ import { Card, Avatar, RankBadge, PullQuote } from "../components/ui.jsx";
 import { plainFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { PERSONAS } from "../content/personas.js";
-import { ratingOfRank } from "../content/rank.js";
+import { ratingOfRank, preciseRankOf } from "../content/rank.js";
 import { provisionalText } from "../content/online.js";
 import { api, serverEnabled } from "../net/api.js";
 import { loadAccount } from "../store/account.js";
@@ -56,8 +56,8 @@ export function RankingsView({ profile }) {
                   <strong>{r.name}</strong>
                   <span className="fine">{provisionalText(r)} · {r.wins}–{r.losses}{account && r.id === account.player.id ? " · that's you" : ""}</span>
                 </div>
-                <div className="ladder-rating">{r.rating}</div>
-                <RankBadge rating={r.rating} />
+                <div className="ladder-rating">{preciseRankOf(r.rating)}</div>
+                <RankBadge rating={r.rating} rd={r.rd} precise />
               </div>
             ))}
           </Card>
@@ -74,8 +74,8 @@ export function RankingsView({ profile }) {
               <strong>{r.name}</strong>
               {r.bot ? <span className="fine">house player · adapts to your level</span> : <span className="fine">that's you</span>}
             </div>
-            <div className="ladder-rating">{r.bot ? `${r.range[0]}–${r.range[1]}` : r.rating}</div>
-            <RankBadge rating={r.rating} />
+            <div className="ladder-rating">{r.bot ? `${r.range[0]}–${r.range[1]}` : preciseRankOf(r.rating)}</div>
+            <RankBadge rating={r.rating} rd={r.bot ? undefined : r.rd} precise={!r.bot} />
           </div>
         ))}
       </Card>

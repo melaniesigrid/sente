@@ -66,6 +66,16 @@ in `server/` (Durable Objects), deployed separately.
   `npm run deploy:server`. Verify against a fresh instance, and do not conclude a change
   failed from one test run straight after a deploy. Worker code in `index.js` updates at once.
 - Rules never live in a view. If a view needs a rule, add it to the engine first.
+- A ruleset is data, not a branch: `src/engine/rulesets.js` holds the count (area or
+  territory), the komi by board size, what White is owed for handicap stones and whether
+  suicide is legal. A new set is one entry. AGA is the default and what the lessons count
+  in. Komi is what the board is owed under those rules, never one number for every board.
+- The rating scale is OGS's, number for number: `rank = ln(rating / 525) * 23.15`, rank 30
+  is 1 dan (`src/content/rank.js`). A rank is shown to a tenth, truncated so it always
+  sits inside the whole rank. Rating moves by Glicko-2 in `src/engine/glicko.js` — and the
+  server imports that same module rather than keeping a second copy, because a rating that
+  means one thing offline and another online is not a rating. See
+  `docs/designs/the-table.md`.
 - Lessons are data. A new lesson is one file in `src/content/lessons/tier<N>/`, added to that
   tier's index; `npm test` verifies every position. No exclamation marks in lesson text.
 - Run vitest from PowerShell (`C:...`), not Git Bash: the forks pool loads two copies of

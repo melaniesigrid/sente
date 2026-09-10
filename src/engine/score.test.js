@@ -23,7 +23,7 @@ describe("scoreBoard on 9x9", () => {
     // Black wall on column 3, white wall on column 5, column 4 is dame.
     const b = boardFromRows(Array(9).fill("...X.O..."));
     const s = scoreBoard(b, { komi: 7.5 });
-    expect(s.black).toEqual({ stones: 9, territory: 27, area: 36 });
+    expect(s.black).toMatchObject({ stones: 9, territory: 27, area: 36 });
     expect(s.white).toMatchObject({ stones: 9, territory: 27, area: 36, komi: 7.5 });
     expect(s.totals).toEqual({ b: 36, w: 43.5 });
     expect(s.winner).toBe("w");
@@ -72,7 +72,7 @@ describe("scoreBoard on 9x9", () => {
     // White: 11 stones; territory = rows 0-2 cols 5-8 (12) + rows 3-4 cols 6-8 (6)
     //   + rows 5-8 cols 4-8 (20) = 38 -> area 49. Dame: (3,3), (4,3).
     const s = scoreBoard(b, { komi: 7.5 });
-    expect(s.black).toEqual({ stones: 10, territory: 20, area: 30 });
+    expect(s.black).toMatchObject({ stones: 10, territory: 20, area: 30 });
     expect(s.white).toMatchObject({ stones: 11, territory: 38, area: 49 });
     expect(s.territory[idx(9, 3, 3)]).toBe("neutral");
     expect(s.territory[idx(9, 4, 3)]).toBe("neutral");
@@ -100,7 +100,7 @@ describe("scoreBoard on 13x13 and 19x19", () => {
     // White: 7 stones + 3x3 = 9 territory = 16. Black: wall 19 + left 9x19 = 171 -> 190.
     // The open right side touches both the black wall and the white corner: neutral.
     expect(s.white).toMatchObject({ stones: 7, territory: 9, area: 16 });
-    expect(s.black).toEqual({ stones: 19, territory: 171, area: 190 });
+    expect(s.black).toMatchObject({ stones: 19, territory: 171, area: 190 });
     expect(s.territory[idx(19, 12, 5)]).toBe("neutral");
     expect(s.territory[idx(19, 17, 17)]).toBe("w");
     expect(s.territory[idx(19, 2, 2)]).toBe("b");

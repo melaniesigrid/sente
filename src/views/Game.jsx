@@ -6,7 +6,7 @@ import {
 import {
   createGame, play, pass, resign, timeout, undo, markDead, acceptScore, scoreBoard, chainsInAtari, idx,
   lastMoveIndex, aiChooseMoveForRecord, kataChooseMoveForRecord, profileForRank, loadModel, onModelProgress, modelReady,
-  toSgf, IllegalMoveError,
+  toSgf, IllegalMoveError, GLICKO, rateGame,
 } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
 import { ClockFace } from "../components/Clock.jsx";
@@ -16,7 +16,10 @@ import { Review } from "./Review.jsx";
 import { MokuMark } from "../components/Moku.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
 import { playStone, playCapture, playBell, haptic } from "../components/sound.js";
-import { rankOf, ratingOfRank, rankWithHandicap, eloDelta, beltOf, hintsForBelt } from "../content/rank.js";
+import {
+  rankOf, preciseRankOf, ratingOfRank, rankWithHandicap, beltOf, hintsForBelt,
+  MIN_RATING, MAX_RATING,
+} from "../content/rank.js";
 import { startDuel, duelOutcome, recordDuel, duelResultText, duelShareText, duelShareUrl } from "../content/duel.js";
 import { ShareDuelButton } from "../components/DuelCard.jsx";
 import { saveProfile } from "../store/profile.js";
@@ -43,7 +46,16 @@ const BOARD_PX = { 9: 460, 13: 560, 19: 680 };
 
    A daily duel (`mode.kind === "duel"`) is a bot game whose replies are seeded
    by the day: no undo, no rematch, unrated, and starting it spends the day's
-   one attempt. */
+   one attempt.
+
+   Rating is Glicko-2 (`src/engine/glicko.js`, the same module the server runs).
+   A house player has a deviation at the floor because it is exactly as strong as
+   the rank it was asked to play, so all the uncertainty in an update belongs to
+   the human - which is what makes a newcomer move fast and a settled player
+   move a tenth of a rank at a time. */
+const HOUSE_RD = GLICKO.minRd;
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
 export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const duel = mode.kind === "duel" ? mode : null;
   const persona = mode.kind === "bot" || duel ? mode.persona : null;
@@ -57,12 +69,15 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   // day so everyone meets the same opponent; otherwise it defaults to the player's own.
   const botRank = persona && !master ? (duel ? duel.rank : (mode.rank ?? rankOf(profile.rating))) : null;
   const botRating = botRank !== null ? ratingOfRank(botRank) : null;
-  // A new game is set up from the lobby's table; komi is the engine's default for the
-  // handicap. A resumed game carries its own, so a rematch is played on the board in
-  // front of you even though the saved session only remembers the opponent. The clock
-  // rides along the same way, and for the same reason.
-  const [rec, setRec] = useState(() => initial || createGame({ size: mode.size, handicap: mode.handicap, clock: mode.clock ?? null }));
-  const table = { size: rec.size, handicap: rec.handicap, clock: rec.clock };
+  // A new game is set up from the lobby's table: the rules, the board, the handicap,
+  // the komi and the clock. A resumed game carries its own, so a rematch is played on
+  // the board in front of you even though the saved session only remembers the
+  // opponent. Komi falls back to what the board is owed under the chosen rules.
+  const [rec, setRec] = useState(() => initial || createGame({
+    size: mode.size, handicap: mode.handicap, rules: mode.rules,
+    komi: mode.komi, clock: mode.clock ?? null,
+  }));
+  const table = { size: rec.size, handicap: rec.handicap, rules: rec.rules, komi: rec.komi, clock: rec.clock };
   const [thinking, setThinking] = useState(false);
   const [chat, setChat] = useState(() =>
     persona ? [{ who: "bot", text: pick(persona.chat.greet) }] : []);
@@ -188,21 +203,26 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         say(pick(won ? persona.chat.loss : persona.chat.win));
         const oldRank = rankOf(profile.rating), oldBelt = beltOf(profile.rating);
         // One rank per handicap stone: the opponent is rated as the weaker player it gave stones to be.
-        const d = eloDelta(profile.rating, ratingOfRank(rankWithHandicap(botRank, next.handicap)), won ? 1 : 0);
-        const rating = Math.max(400, profile.rating + d);
+        const oppRating = ratingOfRank(rankWithHandicap(botRank, next.handicap));
+        const rated = rateGame(
+          { rating: profile.rating, rd: profile.rd, vol: profile.vol },
+          { rating: oppRating, rd: HOUSE_RD },
+          won ? 1 : 0,
+        );
+        const rating = clamp(rated.rating, MIN_RATING, MAX_RATING);
         const streak = won ? profile.streak + 1 : 0;
         const np = {
-          ...profile, rating,
+          ...profile, rating, rd: rated.rd, vol: rated.vol,
           wins: profile.wins + (won ? 1 : 0), losses: profile.losses + (won ? 0 : 1),
           streak, bestStreak: Math.max(profile.bestStreak, streak),
         };
         setProfile(np);
         saveProfile(np);
-        setDelta(d);
+        setDelta({ from: profile.rating, to: rating });
         const newRank = rankOf(rating), newBelt = beltOf(rating);
         if (won && newBelt !== oldBelt) setCeremony(newBelt);
         else if (won && newRank !== oldRank) notify({ icon: "medal", text: `Promoted to ${newRank}` });
-        else notify({ icon: won ? "trophy" : "flag", text: `${won ? "Victory" : "Defeat"} · ${d >= 0 ? "+" : ""}${d} rating` });
+        else notify({ icon: won ? "trophy" : "flag", text: `${won ? "Victory" : "Defeat"} · now ${preciseRankOf(rating)}` });
       }
     }
     return next;
@@ -421,7 +441,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         <div className="vs-strip">
           <div className="vs-side">
             <Avatar name={profile.name} tint={profile.tint} size={34} />
-            <div className="vs-meta"><strong>{persona ? profile.name : "Black"}</strong>{persona && <RankBadge rating={profile.rating} size="sm" />}<ClockFace clock={clock} color="b" active={!over && rec.phase === "playing" && turn === "b"} /></div>
+            <div className="vs-meta"><strong>{persona ? profile.name : "Black"}</strong>{persona && <RankBadge rating={profile.rating} rd={profile.rd} precise size="sm" />}<ClockFace clock={clock} color="b" active={!over && rec.phase === "playing" && turn === "b"} /></div>
           </div>
           <span className="vs-x">vs</span>
           <div className="vs-side">
@@ -521,7 +541,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
             <Card inset className="caps">
               <div><span className="dot dot-b" /> Black captures: {rec.captures.b}</div>
               <div><span className="dot dot-w" /> White captures: {rec.captures.w}</div>
-              <div className="fine">{captionText({ size: rec.size, komi: rec.komi, handicap: rec.handicap, rated: !!persona && !duel && !master, duel: !!duel })}{hints ? " · atari hints on" : ""}{!over ? " · P passes, U takes back" : ""}</div>
+              <div className="fine">{captionText({ size: rec.size, komi: rec.komi, handicap: rec.handicap, rules: rec.rules, rated: !!persona && !duel && !master, duel: !!duel })}{hints ? " · atari hints on" : ""}{!over ? " · P passes, U takes back" : ""}</div>
             </Card>
           )}
           {persona ? (
@@ -558,7 +578,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
             <p className="eyebrow"><Award size={13} /> Promotion</p>
             <h3 className="result-headline">{ceremony.label}</h3>
             <BeltRibbon belt={ceremony} className="ceremony-belt" />
-            <p className="lesson-text">Now {rankOf(profile.rating)}. {hintsForBelt(ceremony) ? "Atari hints stay on for one more belt." : "Atari hints come off from here: you read your own liberties now."}</p>
+            <p className="lesson-text">Now {preciseRankOf(profile.rating)}. {hintsForBelt(ceremony) ? "Atari hints stay on for one more belt." : "Atari hints come off from here: you read your own liberties now."}</p>
             <Btn primary onClick={() => setCeremony(null)}>Tie it tight</Btn>
           </Card>
         </div>

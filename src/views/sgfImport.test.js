@@ -82,7 +82,7 @@ describe("importSummary", () => {
     expect(s).toContain("Melanie vs Hoshi (house bot)");
     expect(s).toContain("9×9");
     expect(s).toContain("3 moves");
-    expect(s).toContain("komi 7.5");
+    expect(s).toContain("komi 5.5");   // what a 9x9 is owed
   });
   it("leaves the players out when the file has none", () => {
     let g = createGame({ size: 19 });

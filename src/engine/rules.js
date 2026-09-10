@@ -2,7 +2,12 @@
    One entry point, `tryPlay`, that either produces the next board or names why it
    cannot. Reasons: `offboard | occupied | ko | suicide | superko`. Simple ko is caught
    by `koPoint` (cheap, no history needed); positional superko is caught by comparing
-   the would-be position's Zobrist hash against `history`. */
+   the would-be position's Zobrist hash against `history`.
+
+   Suicide is refused unless the ruleset allows it (New Zealand does). Where it is
+   allowed the played chain is lifted the moment it is placed, and those stones are
+   prisoners for the opponent — they come back as `selfCaptured` so the caller can
+   credit them to the right side. */
 
 import { NBRS, idx, inB, chainAt } from "./board.js";
 import { hashBoard, xorStone } from "./zobrist.js";
@@ -23,11 +28,12 @@ const hasHash = (history, h) => {
  *  @param {number|null} [opts.koPoint]  index that simple ko forbids this turn
  *  @param {Set<number>|number[]} [opts.history]  hashes of every earlier position (superko)
  *  @param {number} [opts.hash]  hash of `board`, if the caller already has it
+ *  @param {boolean} [opts.suicide]  may the player fill their own last liberty?
  *  @returns {{ok:true, board, captured:number[][], ko:number|null, hash:number} |
  *            {ok:false, reason:string}} */
 export function tryPlay(board, c, r, color, opts = {}) {
   const { size } = board;
-  const { koPoint = null, history = null } = opts;
+  const { koPoint = null, history = null, suicide = false } = opts;
   if (!inB(size, c, r)) return { ok: false, reason: "offboard" };
   const i = idx(size, c, r);
   if (board.cells[i] !== null) return { ok: false, reason: "occupied" };
@@ -57,14 +63,23 @@ export function tryPlay(board, c, r, color, opts = {}) {
   }
 
   const mine = chainAt(nb, c, r);
-  if (mine.libs.size === 0) return { ok: false, reason: "suicide" };
+  const selfCaptured = [];
+  if (mine.libs.size === 0) {
+    if (!suicide) return { ok: false, reason: "suicide" };
+    for (const [sx, sy] of mine.stones) {
+      const si = idx(size, sx, sy);
+      cells[si] = null;
+      hash = xorStone(hash, size, si, color);
+      selfCaptured.push([sx, sy]);
+    }
+  }
   if (hasHash(history, hash)) return { ok: false, reason: "superko" };
 
   let ko = null;
-  if (captured.length === 1 && mine.stones.length === 1 && mine.libs.size === 1) {
+  if (!selfCaptured.length && captured.length === 1 && mine.stones.length === 1 && mine.libs.size === 1) {
     ko = idx(size, captured[0][0], captured[0][1]);
   }
-  return { ok: true, board: nb, captured, ko, hash };
+  return { ok: true, board: nb, captured, selfCaptured, ko, hash };
 }
 
 /** Every legal move for `color` as `[c, r]` pairs. */

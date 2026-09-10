@@ -37,7 +37,7 @@ describe("sanitizeProfile", () => {
   });
   it("resets non-finite or non-numeric numbers", () => {
     const out = sanitizeProfile({ ...defaultProfile, rating: "1200", wins: NaN, losses: Infinity });
-    expect(out.rating).toBe(1000);
+    expect(out.rating).toBe(defaultProfile.rating);
     expect(out.wins).toBe(0);
     expect(out.losses).toBe(0);
     expect(warn.mock.calls[0][0]).toMatch(/rating, wins, losses/);

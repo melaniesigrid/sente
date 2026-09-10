@@ -89,6 +89,10 @@ each fixed in its own commit:
 
 ## Phase 3 — Play like a real server
 
+- [x] Rules, komi and the rank, all meaning what they mean elsewhere (branch
+      `feat/the-table`, 2026-09-10): four rulesets with real territory scoring, komi by
+      board size, OGS's rating scale with ranks to a tenth, and Glicko-2 shared by the
+      client and the server. Reasoning in `docs/designs/the-table.md`.
 - [x] Lobby: choose 9/13/19 and handicap (branch `feat/board-sizes`, 2026-09-10); komi is the
       engine's default for the handicap, shown not typed; house players play every size.
       The clock preset is a third row of the same card (2026-09-10).
@@ -123,6 +127,31 @@ each fixed in its own commit:
       board and now use the same notation the coordinates draw.
 - [ ] Local-only telemetry ring buffer (last 50 games: size, result, bot, move count) to
       tune house-player weights. Never leaves the device.
+
+Decisions made in Phase 3, the table slice (branch `feat/the-table`, 2026-09-10):
+- Komi is what the board is owed: 5.5 on 9x9, 6.5 on 13x13, 7.5 on 19x19 under area
+  scoring, and the ruleset's own values otherwise. One number for every board handed
+  White close to a fifth of a 9x9, and against a house player the human is always Black.
+- A ruleset is an entry in `src/engine/rulesets.js`: AGA (default), Japanese, Chinese,
+  New Zealand. AGA stays the default because it is what every lesson counts in.
+- Territory scoring is real, not a relabelling: stones are worth nothing, prisoners are
+  counted, and dead stones are handed over as prisoners as well as ground. The result
+  card shows the terms it actually added up.
+- Suicide is legal only under New Zealand, and a one-stone self-capture is still refused
+  as superko, because positional superko is enforced under every ruleset. Stated in the
+  tests, not hidden.
+- The rating scale is OGS's: `rank = ln(rating / 525) * 23.15`, rank 30 is 1 dan. Ranks
+  are shown to a tenth, truncated so the decimal never disagrees with the whole rank.
+- Rating moves by Glicko-2, one game to a rating period. A rank with deviation over 160
+  is marked with a question mark. New players start at 20k, not at OGS's 1500: seeded
+  too strong, a beginner watches the number fall, which is the one thing a ladder must
+  never do.
+- `server/rating.js` is now a thin use of `src/engine/glicko.js`, on the same scale.
+  Stored ratings were migrated by rank; the registry carries `schema:version` and
+  migrates once at wake-up, inside `blockConcurrencyWhile`.
+- The profile store is `sente-profile-v3`; a v2 profile is migrated by rank, not points.
+- The engine knows five clock systems now: `canadian` and `simple` joined `absolute`,
+  `byoyomi` and `fischer`. The lobby's four presets are unchanged.
 
 Decisions made in Phase 3, lobby slice (branch `feat/board-sizes`):
 - 19x19 is the default board; the last table (size, handicap) is a device preference in
@@ -281,6 +310,9 @@ two Durable Object classes, deployed at https://sente-server.melaniesigrid.worke
 - [x] Spectating, chat, undo requests with consent, two-sided score acceptance. Resign is
       unilateral, as in every club.
 - [x] Server-authoritative Glicko-2 (`server/rating.js`), one game per rating period.
+      Since 2026-09-10 it is a thin use of `src/engine/glicko.js` on the shared OGS
+      scale: one algorithm, one meaning, client and server. Stored ratings were
+      migrated by rank; the registry carries a schema version.
       The house ladder keeps client-side Elo; the two never mix.
 - [x] Rankings ladder backed by real players (`GET /api/ladder`), shown above the house
       ladder when the server answers.

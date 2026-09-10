@@ -25,6 +25,7 @@ import { createBoard, idx, inB, withStone, chainAt, SIZES } from "./board.js";
 import { tryPlay, opponent } from "./rules.js";
 import { hashBoard } from "./zobrist.js";
 import { scoreBoard } from "./score.js";
+import { DEFAULT_RULES, isRulesId, rulesetOf, defaultKomi } from "./rulesets.js";
 
 export const PHASES = ["playing", "scoring", "ended"];
 
@@ -67,13 +68,13 @@ export function handicapPoints(size, n) {
   return table[n].map(([c, r]) => [c, r]);
 }
 
-export const defaultKomi = (handicap) => (handicap >= 2 ? 0.5 : 7.5);
 
 /* ----- construction ----- */
 
 /** @param {object} o
  *  @param {number} [o.size=19]
- *  @param {number} [o.komi]        defaults to 7.5, or 0.5 with a handicap
+ *  @param {string} [o.rules]       ruleset id (see rulesets.js); defaults to AGA
+ *  @param {number} [o.komi]        defaults to what the board is owed under those rules
  *  @param {number} [o.handicap=0]  0 or 2..9; places fixed stones unless `setup` is given
  *  @param {object} [o.clock]       clock preset, stored verbatim (see clock.js)
  *  @param {object} [o.setup]       `{ b: [[c,r]], w: [[c,r]] }` explicit setup stones
@@ -82,6 +83,7 @@ export const defaultKomi = (handicap) => (handicap >= 2 ? 0.5 : 7.5);
 export function createGame(o = {}) {
   const size = o.size ?? 19;
   const handicap = o.handicap ?? 0;
+  const rules = isRulesId(o.rules) ? o.rules : DEFAULT_RULES;
   if (handicap !== 0 && (handicap < 2 || handicap > 9)) throw new RangeError(`handicap must be 0 or 2..9`);
   const setup = o.setup
     ? { b: (o.setup.b ?? []).map(([c, r]) => [c, r]), w: (o.setup.w ?? []).map(([c, r]) => [c, r]) }
@@ -93,7 +95,8 @@ export function createGame(o = {}) {
   return {
     version: 1,
     size,
-    komi: o.komi ?? defaultKomi(handicap),
+    rules,
+    komi: o.komi ?? defaultKomi(handicap, size, rules),
     handicap,
     clock: o.clock ?? null,
     players: o.players ?? null,
@@ -123,8 +126,10 @@ export function play(rec, c, r, color = rec.toPlay) {
   if (color !== rec.toPlay) throw new IllegalMoveError("wrong-turn", { expected: rec.toPlay });
   const res = tryPlay(rec.board, c, r, color, {
     koPoint: rec.koPoint, history: rec.hashes, hash: rec.hashes[rec.hashes.length - 1],
+    suicide: rulesetOf(rec.rules).suicide,
   });
   if (!res.ok) throw new IllegalMoveError(res.reason, { c, r, color });
+  const self = res.selfCaptured ?? [];
   return {
     ...rec,
     moves: [...rec.moves, { type: "play", color, c, r }],
@@ -132,7 +137,11 @@ export function play(rec, c, r, color = rec.toPlay) {
     board: res.board,
     koPoint: res.ko,
     hashes: [...rec.hashes, res.hash],
-    captures: { ...rec.captures, [color]: rec.captures[color] + res.captured.length },
+    // Stones a player fills their own last liberty with are the opponent's prisoners.
+    captures: {
+      b: rec.captures.b + (color === "b" ? res.captured.length : self.length),
+      w: rec.captures.w + (color === "w" ? res.captured.length : self.length),
+    },
     passes: 0,
     lastCaptured: res.captured,
   };
@@ -193,7 +202,10 @@ export function markDead(rec, c, r) {
 
 export function acceptScore(rec) {
   assertPhase(rec, "acceptScore", "scoring");
-  const score = scoreBoard(rec.board, { dead: rec.dead, komi: rec.komi, handicap: rec.handicap });
+  const score = scoreBoard(rec.board, {
+    dead: rec.dead, komi: rec.komi, handicap: rec.handicap,
+    rules: rec.rules, captures: rec.captures,
+  });
   return {
     ...rec,
     phase: "ended",
@@ -214,7 +226,7 @@ export function undo(rec) {
  *  Throws the same errors as the live transitions, so a tampered log is rejected. */
 export function replay(rec, moves = rec.moves) {
   let out = createGame({
-    size: rec.size, komi: rec.komi, handicap: rec.handicap, clock: rec.clock,
+    size: rec.size, rules: rec.rules, komi: rec.komi, handicap: rec.handicap, clock: rec.clock,
     players: rec.players, setup: rec.setup, toPlay: rec.firstToPlay,
   });
   if (rec.comment) out = { ...out, comment: rec.comment };

@@ -3,6 +3,49 @@
 Sente keeps a four-part version (`MAJOR.MINOR.PATCH.MICRO`) in `VERSION`; `package.json`
 carries the npm-valid three-part form. This file starts at the first versioned release.
 
+## v0.4.0.0 (2026-09-10)
+
+### Added
+
+- Four rulesets, chosen at the table: AGA (the default, and what every lesson counts in),
+  Japanese, Chinese and New Zealand. They are data, not branches, so a new one is one
+  entry in `src/engine/rulesets.js`.
+- Territory scoring, properly: under Japanese rules stones on the board are worth nothing
+  and prisoners are worth everything, dead stones are handed over as prisoners as well as
+  ground, and the result card shows the terms it actually added up. The same finished
+  board can land on a different winner by half a point depending on the count, so the
+  ruleset is now named under every board rather than assumed.
+- Suicide, under New Zealand rules only. One honest limitation: Sente enforces positional
+  superko everywhere, and a one-stone self-capture always recreates the position it just
+  left, so the smallest suicide is still refused - as superko, which is what it is.
+- Komi can be stepped at the table, in half points, and a chosen komi survives a change of
+  board or ruleset.
+- Two more clock systems in the engine: Canadian overtime (a block of time for a block of
+  stones) and simple per-move time. Five of the five a server is expected to offer.
+- A rank is shown to a tenth: 12.0k is a strong twelve kyu, 12.9k a weak one. Truncated,
+  never rounded, so the decimal always sits inside the whole rank on the badge. A rank
+  that is still a guess wears a question mark.
+
+### Changed
+
+- Komi is what the board is owed: 5.5 on 9x9, 6.5 on 13x13, 7.5 on 19x19 under area
+  scoring. One number for every board handed White close to a fifth of a 9x9 before a
+  stone was played, and against a house player the human is always Black, so that cost
+  fell on the player every game and on the board beginners actually use.
+- The rating scale is OGS's, number for number: `rank = ln(rating / 525) * 23.15`, rank 30
+  is 1 dan. Twelve kyu here now means twelve kyu there.
+- Rating moves by Glicko-2 instead of a flat Elo step, so a newcomer finds their rank in
+  an evening and a settled player moves a tenth of a rank a game. New players still start
+  at 20 kyu: seeded stronger, a beginner watches the number fall for a dozen games.
+- The server and the browser now share one rating module and one scale. `server/rating.js`
+  is a thin use of `src/engine/glicko.js` rather than a second copy of the algorithm.
+
+### Migrated
+
+- Stored profiles move to `sente-profile-v3`, and stored server ratings to schema 2. Both
+  cross by rank rather than by points, so nobody's badge changes. The registry migrates
+  once at wake-up, before it answers anything.
+
 ## v0.3.1.0 (2026-09-10)
 
 ### Changed

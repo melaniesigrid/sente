@@ -21,7 +21,7 @@ import { Avatar } from "./components/ui.jsx";
 import { Toast } from "./components/Toast.jsx";
 import { ErrorBoundary } from "./components/ErrorBoundary.jsx";
 import { MokuProvider, MokuDock } from "./components/Moku.jsx";
-import { rankOf } from "./content/rank.js";
+import { preciseRankOf } from "./content/rank.js";
 import { typefaceVars } from "./content/typeface.js";
 import { themeVars, resolveTheme } from "./theme/index.js";
 import { usePrefersDark } from "./components/prefersDark.js";
@@ -91,7 +91,7 @@ export default function SenteApp() {
           <Avatar name={profile.name} tint={profile.tint} size={34} />
           <div className="chip-meta">
             <strong>{profile.name}</strong>
-            <span>{rankOf(profile.rating)}</span>
+            <span>{preciseRankOf(profile.rating)}</span>
           </div>
         </button>
       </header>
