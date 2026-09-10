@@ -11,8 +11,8 @@
 
    An author may still override any derived value — the named palettes do,
    where a hand-mixed tone beat the computed one — but nothing is required. */
-import { mix, lighten, darken, toTriple, isDarkColor, luminance } from "./color.js";
-import { TONES } from "./tokens.js";
+import { mix, lighten, darken, toTriple, isDarkColor, luminance, contrast } from "./color.js";
+import { TONES, READING } from "./tokens.js";
 
 /** The stones, as they are cut. Slate and shell are real objects; a theme does
  *  not tint them, it only seats them further into a dark board. */
@@ -36,6 +36,28 @@ export function deriveLights(ground, ink) {
  *  toward a fixed terracotta, so it stays legible on paper and on lacquer. */
 export function deriveDanger(ground) {
   return mix(isDarkColor(ground) ? "#e08a72" : "#a95f4c", ground, isDarkColor(ground) ? 0.12 : 0.06);
+}
+
+/** The mark, taken to reading contrast.
+ *
+ *  The accent is held to 2.9:1 because it is a mark — a dot, a ring, a chip —
+ *  and a mark is glanced at. A marked WORD is not: it sits inside a sentence and
+ *  is read at reading size, so it owes the same 4.5:1 the sentence around it
+ *  owes. Colouring one in the raw accent is how a quote ends up with its most
+ *  important word as its least legible one.
+ *
+ *  So: walk the accent away from the ground a step at a time until it clears,
+ *  and stop at the first step that does. Only lightness is spent, never hue —
+ *  the word has to still read as this room's mark, or it is just a second ink.
+ *  A room whose accent already clears gets it back untouched. */
+export function deriveAccentInk(accent, ground) {
+  const away = isDarkColor(ground) ? lighten : darken;
+  for (let t = 0; t < 0.95; t += 0.05) {
+    const step = away(accent, t);
+    if (contrast(step, ground) >= READING) return step;
+  }
+  // Nothing in the hue clears on this ground; the ink is the honest fallback.
+  return away(accent, 0.95);
 }
 
 /** Fill in whatever the author did not write. Returns the complete tone set. */
@@ -88,6 +110,9 @@ export function tokensFor(tones) {
     // far stronger ring before keyboard focus is visible at all.
     "--accent-soft": `rgba(${accent},${dark ? ".24" : ".16"})`,
     "--accent-ring": `rgba(${accent},${dark ? ".55" : ".32"})`,
+    // The one accent token that is a colour rather than a wash, because it is
+    // the only one that lands on a word somebody has to read.
+    "--accent-ink": t.accentInk || deriveAccentInk(t.accent, t.ground),
 
     "--sh-ink": shInk,
     "--sh-lite": shLite,
