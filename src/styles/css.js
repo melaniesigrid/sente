@@ -225,6 +225,10 @@ ${FONT_FACES}
 .rank-picker-label { display: flex; flex-direction: column; gap: 2px; }
 .rank-picker-label strong { font-family: var(--font-display); font-weight: var(--w-display); font-size: 17px; }
 .rank-picker-controls { display: flex; align-items: center; gap: 10px; }
+.clock-picker { display: flex; align-items: center; gap: 4px; padding: 4px; border-radius: 14px; box-shadow: var(--sink-sm); }
+.clock-opt { border: 0; background: transparent; color: var(--ink); cursor: pointer; font: inherit; font-size: 13px; padding: 7px 13px; border-radius: 11px; opacity: .55; transition: opacity .18s ease, box-shadow .18s ease; }
+.clock-opt:hover { opacity: .85; }
+.clock-opt.active { opacity: 1; box-shadow: var(--raise-sm); color: var(--accent); }
 .btn-icon { padding-left: 10px; padding-right: 10px; }
 .vs-strip { display: flex; align-items: center; gap: 12px; padding: 8px 14px; border-radius: 16px; box-shadow: var(--sink-sm); flex-wrap: wrap; }
 .vs-side { display: flex; align-items: center; gap: 9px; }
@@ -232,6 +236,22 @@ ${FONT_FACES}
 .vs-meta.right { align-items: flex-end; }
 .vs-meta strong { font-size: 14px; }
 .vs-x { font-family: var(--font-display-italic); font-style: var(--display-italic-style); opacity: .5; }
+
+/* The clock lives inside the vs-strip, not in a bar of its own. Pressure is a colour
+   shift and a pulse in the last ten seconds; byo-yomi periods are pips, one each. */
+.clock-face { display: inline-flex; align-items: center; gap: 5px; margin-top: 2px; font-variant-numeric: tabular-nums; font-size: 13px; letter-spacing: .01em; opacity: .5; transition: opacity .2s ease, color .3s ease; }
+.clock-face.right { flex-direction: row-reverse; }
+.clock-face.running { opacity: 1; }
+.clock-face.p-low { color: var(--accent); }
+.clock-face.p-urgent { color: var(--danger); }
+.clock-face.running.p-urgent .clock-digits { animation: clock-press 1s ease-in-out infinite; }
+.clock-face.flagged { opacity: 1; color: var(--danger); }
+.clock-face.untimed { font-family: var(--font-display-italic); font-style: var(--display-italic-style); font-size: 12px; opacity: .38; }
+.clock-digits { font-weight: 600; }
+.clock-face.byoyomi .clock-digits { font-weight: 700; }
+.clock-pips { display: inline-flex; gap: 3px; }
+.clock-pip { width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: .75; }
+@keyframes clock-press { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
 
 /* ---- chat ---- */
 .chat-card { display: flex; flex-direction: column; gap: 10px; padding: 16px; }

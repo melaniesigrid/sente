@@ -7,6 +7,7 @@ import { personasFor, PERSONAS } from "../content/personas.js";
 import { rankOf, ratingOfRank, stepRank, rankInRange, RANK_LADDER } from "../content/rank.js";
 import { duelMode } from "../content/duel.js";
 import { dayKey } from "../content/kata.js";
+import { CLOCK_PRESETS, presetById, presetText } from "../content/clockFace.js";
 import { loadSession } from "./session.js";
 import { Game } from "./Game.jsx";
 
@@ -20,11 +21,15 @@ export function PlayView({ profile, setProfile, notify, resume }) {
   // player adapts to it, so nobody has to "graduate" to an opponent.
   const myRank = rankOf(profile.rating);
   const [rank, setRank] = useState(myRank);
+  // The clock the next game is played with. A table preference, not a profile one.
+  const [clockId, setClockId] = useState("none");
   const today = dayKey();
   // The saved table is re-read whenever the lobby shows, so leaving a duel mid-game is reflected.
   const saved = useMemo(() => (session ? null : loadSession({ today, profile })), [session, today, profile]);
   if (!session) {
     const first = RANK_LADDER[0], last = RANK_LADDER[RANK_LADDER.length - 1];
+    const clock = presetById(clockId).preset;
+    const sit = (mode) => setSession({ mode: { ...mode, clock } });
     return (
       <div className="stack">
         <h2 className="section-title">Find a game</h2>
@@ -49,9 +54,22 @@ export function PlayView({ profile, setProfile, notify, resume }) {
             {rank !== myRank && <Btn icon={Home} small onClick={() => setRank(myRank)}>My level</Btn>}
           </div>
         </div>
+        <div className="rank-picker neu-card" role="group" aria-label="Clock">
+          <div className="rank-picker-label">
+            <strong>Clock</strong>
+            <span className="fine">{clock ? presetText(clock) : "untimed, as most games on a device are"}</span>
+          </div>
+          <div className="clock-picker" role="radiogroup" aria-label="Time control">
+            {CLOCK_PRESETS.map(p => (
+              <button key={p.id} type="button" role="radio" aria-checked={clockId === p.id}
+                className={`clock-opt ${clockId === p.id ? "active" : ""}`}
+                onClick={() => setClockId(p.id)}>{p.short}</button>
+            ))}
+          </div>
+        </div>
         <div className="grid3">
           {personasFor(rank).map(p => (
-            <button key={p.id} className="neu-card persona-card" onClick={() => setSession({ mode: { kind: "bot", persona: p, rank } })}>
+            <button key={p.id} className="neu-card persona-card" onClick={() => sit({ kind: "bot", persona: p, rank })}>
               <div className="persona-top">
                 <Avatar name={p.name} tint={p.tint} size={52} bot />
                 <div>
@@ -65,7 +83,7 @@ export function PlayView({ profile, setProfile, notify, resume }) {
             </button>
           ))}
         </div>
-        <button className="neu-card persona-card local-card" onClick={() => setSession({ mode: { kind: "local" } })}>
+        <button className="neu-card persona-card local-card" onClick={() => sit({ kind: "local" })}>
           <div className="persona-top">
             <div className="avatar duo"><Users size={22} strokeWidth={2} /></div>
             <div>

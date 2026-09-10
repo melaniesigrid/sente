@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  createGame, play, pass, resign, markDead, acceptScore, undo, replay, handicapPoints,
+  createGame, play, pass, resign, timeout, markDead, acceptScore, undo, replay, handicapPoints,
   lastMoveIndex, resultText, IllegalTransitionError, IllegalMoveError, GameError,
 } from "./record.js";
 import { idx } from "./board.js";
@@ -179,6 +179,39 @@ describe("resign", () => {
   });
 });
 
+describe("timeout", () => {
+  it("ends the game from playing and the opponent wins on time", () => {
+    const g = timeout(createGame({ size: 9 }));
+    expect(g.phase).toBe("ended");
+    expect(g.result).toEqual({ winner: "w", method: "time", margin: null, score: null });
+    expect(resultText(g)).toBe("White wins on time");
+  });
+  it("flags the side named, not always the side to play", () => {
+    let g = createGame({ size: 9 });
+    g = play(g, 4, 4);
+    expect(g.toPlay).toBe("w");
+    expect(timeout(g, "b").result.winner).toBe("w");
+    expect(timeout(g, "w").result.winner).toBe("b");
+  });
+  it("either side may flag during scoring", () => {
+    let g = createGame({ size: 9 });
+    g = pass(g); g = pass(g);
+    expect(g.phase).toBe("scoring");
+    expect(timeout(g, "w").result.winner).toBe("b");
+    expect(timeout(g, "b").result.winner).toBe("w");
+  });
+  it("refuses a colour that is not b or w", () => {
+    expect(() => timeout(createGame({ size: 9 }), "x")).toThrow(IllegalMoveError);
+  });
+  it("survives a replay of the log", () => {
+    let g = createGame({ size: 9 });
+    g = play(g, 4, 4); g = timeout(g, "w");
+    const again = replay(JSON.parse(JSON.stringify(g)));
+    expect(again.phase).toBe("ended");
+    expect(again.result).toEqual(g.result);
+  });
+});
+
 describe("undo", () => {
   it("takes back a play", () => {
     let g = createGame({ size: 9 });
@@ -216,6 +249,7 @@ describe("illegal transitions", () => {
   const scoring = () => { let g = createGame({ size: 9, setup: { b: [[0, 0]] } }); g = pass(g); return pass(g); };
   const ended = () => acceptScore(scoring());
   const resigned = () => resign(createGame({ size: 9 }));
+  const flagged = () => timeout(createGame({ size: 9 }));
 
   it("playing forbids markDead and acceptScore", () => {
     const g = createGame({ size: 9 });
@@ -228,10 +262,11 @@ describe("illegal transitions", () => {
     expect(() => pass(g)).toThrow(IllegalTransitionError);
   });
   it("ended forbids everything but reading", () => {
-    for (const g of [ended(), resigned()]) {
+    for (const g of [ended(), resigned(), flagged()]) {
       expect(() => play(g, 4, 4)).toThrow(IllegalTransitionError);
       expect(() => pass(g)).toThrow(IllegalTransitionError);
       expect(() => resign(g)).toThrow(IllegalTransitionError);
+      expect(() => timeout(g)).toThrow(IllegalTransitionError);
       expect(() => markDead(g, 0, 0)).toThrow(IllegalTransitionError);
       expect(() => acceptScore(g)).toThrow(IllegalTransitionError);
       expect(() => undo(g)).toThrow(IllegalTransitionError);
