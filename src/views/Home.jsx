@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Swords, GraduationCap, Target, Trophy, Play, Trash2, CalendarCheck, Flame } from "lucide-react";
 import { MiniSelfPlay } from "../components/MiniSelfPlay.jsx";
-import { Card, Btn, RankBadge, PullQuote } from "../components/ui.jsx";
-import { plainFor } from "../content/plain.js";
+import { Card, Btn, RankBadge, Statement } from "../components/ui.jsx";
+import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { LESSONS } from "../content/lessons.js";
 import { lessonById } from "../content/library.js";
@@ -69,7 +69,7 @@ export function Home({ profile, go, onResume }) {
         </div>
       </Card>
 
-      <PullQuote>{plainFor("home")}</PullQuote>
+      <Statement lines={statementFor("home")}>{plainFor("home")}</Statement>
       <Card className="passage-card"><Passage context="home" size="lg" /></Card>
 
       {saved && (

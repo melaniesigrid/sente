@@ -20,3 +20,29 @@ export const PLAIN_WORDS = {
 export function plainFor(key) {
   return PLAIN_WORDS[key] || null;
 }
+
+/* ----------------------- THE STATEMENT -----------------------
+   The same idea again, said in six words instead of sixty, and set enormous.
+   A screen carries one quotation and one statement: the quotation is Zhang
+   Ni's voice (`Passage`), the statement is the house's, and they do not look
+   alike, because two blocks of the same italic stacked on top of each other
+   read as one long quote nobody finishes.
+
+   Three lines, and the order is the design: the first is the display face in
+   capitals, the second turns into the italic voice, the third is drawn as an
+   outline. A view passes the three to `Statement` and the stylesheet decides
+   how each is worn — so a line can be re-worded here without touching CSS. */
+
+export const STATEMENTS = {
+  home: ["Take", "the ground.", "Stone by stone."],
+  play: ["Every", "opponent.", "None pretending."],
+  learn: ["A lesson", "is a board", "you play."],
+  tsumego: ["One corner.", "One answer.", "Read it out."],
+  ladder: ["A rating", "is a guess.", "The ladder knows."],
+  profile: ["Measured.", "Not awarded.", "That is the rank."],
+};
+
+/** The three statement lines for a screen, or null where there are none. */
+export function statementFor(key) {
+  return STATEMENTS[key] || null;
+}

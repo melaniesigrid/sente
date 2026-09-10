@@ -89,3 +89,42 @@ export const PullQuote = ({ children, label = "In plain words", size = "" }) => 
     <span className="pull-label">{label}</span>
   </aside>
 );
+
+/* ----------------------- A STATEMENT -----------------------
+   The same idea as the pull quote, in six words instead of sixty, and set as
+   large as the screen will bear. A screen carries one quotation and one
+   statement: the quotation is Zhang Ni's voice (`Passage`), set in the italic,
+   and the statement is the house's, set in the display face — because two
+   blocks of the same italic stacked together read as one long quote nobody
+   finishes, which is the bug this replaced.
+
+   Three lines, worn three ways by the stylesheet: capitals in the display
+   face, then the italic voice, then the same capitals drawn as an outline. The
+   words are data (`STATEMENTS` in content/plain.js). The plain-words sentence
+   goes under them as `children`, small and in the body face, still carrying
+   the label that says whose words they are.
+
+   The lines rise out of a mask on arrival, one after another. It is a
+   flourish and never the content: the whole statement is the paragraph's
+   accessible name from the first frame, the animated spans are hidden from a
+   reader, and less motion means the lines are simply already up. */
+export const Statement = ({ lines, children, label = "In plain words" }) => {
+  if (!lines || lines.length === 0) return null;
+  return (
+    <section className="statement">
+      <p className="statement-lines" aria-label={lines.join(" ")}>
+        {lines.map((line, i) => (
+          <span className="statement-mask" key={i} aria-hidden="true">
+            <span className="statement-line">{line}</span>
+          </span>
+        ))}
+      </p>
+      {children ? (
+        <p className="statement-gloss">
+          <span className="pull-label">{label}</span>
+          <span>{children}</span>
+        </p>
+      ) : null}
+    </section>
+  );
+};

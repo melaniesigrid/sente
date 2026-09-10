@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { PLAIN_WORDS, plainFor } from "./plain.js";
+import { PLAIN_WORDS, STATEMENTS, plainFor, statementFor } from "./plain.js";
 
 describe("plain words", () => {
   it("covers every screen that sets one", () => {
@@ -23,5 +23,30 @@ describe("plain words", () => {
   it("returns null for a screen with no line", () => {
     expect(plainFor("nowhere")).toBeNull();
     expect(plainFor("home")).toBe(PLAIN_WORDS.home);
+  });
+});
+
+describe("the statement", () => {
+  it("gives every screen with a plain line three lines to set large", () => {
+    expect(Object.keys(STATEMENTS).sort()).toEqual(Object.keys(PLAIN_WORDS).sort());
+    for (const [key, lines] of Object.entries(STATEMENTS)) {
+      expect(lines.length, key).toBe(3);
+    }
+  });
+
+  // The block is set at 8vw. A line that runs past a handful of words wraps,
+  // and a wrapped line breaks the mask the three lines rise out of.
+  it("keeps every line short enough to stand at display size", () => {
+    for (const [key, lines] of Object.entries(STATEMENTS)) {
+      for (const line of lines) {
+        expect(line.length, `${key}: ${line}`).toBeLessThanOrEqual(18);
+        expect(line, key).not.toMatch(/[!"“”]/);
+      }
+    }
+  });
+
+  it("returns null for a screen with no statement", () => {
+    expect(statementFor("nowhere")).toBeNull();
+    expect(statementFor("home")).toBe(STATEMENTS.home);
   });
 });
