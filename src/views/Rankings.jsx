@@ -13,9 +13,9 @@ import { loadAccount } from "../store/account.js";
    server answers. The house ladder is the local one: you against the bots. */
 export function RankingsView({ profile }) {
   const account = useMemo(() => loadAccount(), []);
-  const [global, setGlobal] = useState(null);   // null loading, [] empty, false unavailable
+  const [global, setGlobal] = useState(() => (serverEnabled() ? null : false));   // null loading, [] empty, false unavailable
   useEffect(() => {
-    if (!serverEnabled()) { setGlobal(false); return undefined; }
+    if (!serverEnabled()) return undefined;
     let alive = true;
     api.ladder().then(rows => { if (alive) setGlobal(rows); }).catch(() => { if (alive) setGlobal(false); });
     return () => { alive = false; };
