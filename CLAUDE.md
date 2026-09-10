@@ -16,8 +16,15 @@ in `server/` (Durable Objects), deployed separately.
 
 - Engine code (`tryPlay`, `GameRecord`, `scoreBoard`, `aiChooseMove`, ...) is pure and must stay
   framework-free so it can move to a server. Do not import React into engine modules.
-- Design system is fixed: the stone palette and the two-shadow neumorphism in `CSS`. Lucide
-  icons only. Don't introduce another UI library.
+- The two-shadow neumorphism is fixed: every raised thing is one light shadow from the top
+  left and one dark from the bottom right, every sunken thing those two turned inward.
+  Lucide icons only. Don't introduce another UI library.
+- Palette is themed the way type is. A theme (ground, the two lights, ink, cream, accent) is
+  data in `src/content/theme.js`; the stylesheet names no colour outside its default block,
+  only tokens (`--ground`, `--light`, `--dark`, `--ink`, `--cream`, `--accent`, `--sh-ink`,
+  `--sh-lite`, `--wash-a/b`, `--scrim`, `--grid`, `--stone-b-1..3`, `--stone-w-1..3`), which
+  the shell sets from `profile.theme`. `house` is the default and the reference. A new theme
+  is one entry in that file; `npm test` checks its contrast and its shadow closeness.
 - Type is the one themed part. A pairing (display face, italic voice, body face) is data in
   `src/content/typeface.js`; the stylesheet names no family directly, only the tokens
   `--font-display`, `--font-display-italic`, `--font-body` and their weight/tracking/leading

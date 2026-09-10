@@ -60,9 +60,9 @@ export function MokuMark({ size = 56, state = "idle", sash = null, className = "
     >
       <defs>
         <radialGradient id={`${uid}-b`} cx="0.36" cy="0.32" r="0.85">
-          <stop offset="0%" stopColor="#6b655a" />
-          <stop offset="55%" stopColor="#4b463c" />
-          <stop offset="100%" stopColor="#3a362e" />
+          <stop offset="0%" stopColor="var(--stone-b-1)" />
+          <stop offset="55%" stopColor="var(--stone-b-2)" />
+          <stop offset="100%" stopColor="var(--stone-b-3)" />
         </radialGradient>
         <clipPath id={`${uid}-clip`}><circle cx={BODY.cx} cy={BODY.cy} r={BODY.r} /></clipPath>
       </defs>
@@ -76,11 +76,11 @@ export function MokuMark({ size = 56, state = "idle", sash = null, className = "
           </g>
         )}
         <g className="moku-eyes">
-          <circle cx={EYE_L.cx} cy={EYE_L.cy} r="5.4" fill="#f2ede3" />
-          <circle cx={EYE_R.cx} cy={EYE_R.cy} r="5.4" fill="#f2ede3" />
+          <circle cx={EYE_L.cx} cy={EYE_L.cy} r="5.4" fill="var(--cream)" />
+          <circle cx={EYE_R.cx} cy={EYE_R.cy} r="5.4" fill="var(--cream)" />
           <g className="moku-pupils">
-            <circle cx={EYE_L.cx} cy={EYE_L.cy} r="2.7" fill="#3a362e" />
-            <circle cx={EYE_R.cx} cy={EYE_R.cy} r="2.7" fill="#3a362e" />
+            <circle cx={EYE_L.cx} cy={EYE_L.cy} r="2.7" fill="var(--stone-b-3)" />
+            <circle cx={EYE_R.cx} cy={EYE_R.cy} r="2.7" fill="var(--stone-b-3)" />
           </g>
         </g>
         {/* brows: drawn only when a fact earns them (see css: atari, captured, loss, hunting) */}
