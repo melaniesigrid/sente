@@ -71,7 +71,7 @@ ${SIGNATURE_FACE}
   gap: 14px; flex-wrap: wrap;
   padding: clamp(14px, 2.5vw, 24px) clamp(16px, 4vw, 44px);
 }
-.brand { display: flex; align-items: baseline; gap: 11px; }
+.brand { display: flex; align-items: baseline; gap: 11px; border: 0; background: none; padding: 0; color: inherit; cursor: pointer; }
 .brand-mark {
   width: 19px; height: 19px; border-radius: 50%;
   background: var(--ink);
@@ -122,14 +122,14 @@ ${SIGNATURE_FACE}
 .signed-by { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; opacity: .45; }
 .signature {
   font-family: 'sente-signature', cursive; font-size: 42px; line-height: 1; padding: 2px 0;
-  letter-spacing: .01em; color: var(--ink); opacity: .8;
+  letter-spacing: .01em; color: var(--ink); opacity: 1;
   display: inline-block; transform: rotate(-2deg); transform-origin: left bottom;
   animation: sign 1.5s cubic-bezier(.25,.7,.3,1) .45s both;
 }
 @keyframes sign {
   from { clip-path: inset(-20% 100% -40% 0); opacity: 0; }
-  25%  { opacity: .8; }
-  to   { clip-path: inset(-20% -14% -40% 0); opacity: .8; }
+  25%  { opacity: 1; }
+  to   { clip-path: inset(-20% -14% -40% 0); opacity: 1; }
 }
 
 /* passages from the Classic: the pairing's italic voice, a hairline, a quiet citation */
@@ -959,6 +959,218 @@ ${SIGNATURE_FACE}
 .chip-btn { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; border: 0; background: transparent; color: var(--accent); font: 700 11.5px var(--font-body); letter-spacing: .1em; text-transform: uppercase; cursor: pointer; padding: 4px 6px; border-radius: 8px; }
 .chip-btn:hover { box-shadow: var(--sink-sm); }
 .ladder-sub { font-size: 13px; opacity: .6; margin: -6px 0 0; }
+
+/* ----------------------- THE FRONT DOOR -----------------------
+   The landing is the one screen allowed to be big. Everywhere else the job is
+   to stay out of the way of a board; here the job is to be looked at, so the
+   type runs a whole scale larger and the air between things roughly doubles.
+
+   Nothing new is invented for it. The same two shadows raise and sink the same
+   way, the icons are the same Lucide, and every colour and family is the same
+   token, so the front door changes room and pairing with the rest of the app. */
+
+/* The landing is full-bleed: it sets its own measure per section rather than
+   living inside the shell's 1100px column. */
+.content.wide { max-width: none; padding: 0 0 clamp(20px, 4vw, 40px); }
+
+.landing { display: flex; flex-direction: column; }
+
+/* Cards arrive as they are scrolled to, so a section reads as a few things
+   settling rather than as one wall landing at once. */
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s cubic-bezier(.2,.8,.2,1), transform .7s cubic-bezier(.2,.8,.2,1); }
+.reveal.shown { opacity: 1; transform: none; }
+.reveal.d1 { transition-delay: .06s; }
+.reveal.d2 { transition-delay: .14s; }
+.reveal.d3 { transition-delay: .22s; }
+
+/* ---- the landing's own type scale ---- */
+/* The label is typed rather than set, in the pairing's machine face, which is
+   the voice the Classic already speaks in everywhere else. */
+.lp-label {
+  font-family: var(--font-body); font-size: 12.5px; font-weight: 700;
+  letter-spacing: .26em; text-transform: uppercase; color: var(--accent);
+  margin: 0 0 22px; opacity: .95;
+}
+.lp-display {
+  font-family: var(--font-display); font-weight: var(--w-display);
+  font-size: clamp(46px, 8.4vw, 104px); line-height: .96;
+  letter-spacing: calc(-0.022em + var(--display-tracking));
+  margin: 0 0 26px; text-wrap: balance;
+}
+.lp-display.sm { font-size: clamp(38px, 6.4vw, 76px); margin-bottom: 20px; }
+.lp-display em { font-family: var(--font-display-italic); font-style: var(--display-italic-style); color: var(--accent); }
+.lp-h2 {
+  font-family: var(--font-display); font-weight: var(--w-display);
+  font-size: clamp(30px, 4.8vw, 56px); line-height: 1.08;
+  letter-spacing: calc(-0.016em + var(--display-tracking));
+  margin: 0 0 22px; text-wrap: balance;
+}
+.lp-h3 {
+  font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: clamp(19px, 2.1vw, 23px); line-height: 1.24;
+  letter-spacing: var(--display-tracking); margin: 0;
+}
+.lp-lede { font-size: clamp(16px, 1.9vw, 19px); line-height: 1.72; opacity: .8; margin: 0; max-width: 54ch; }
+.lp-lede.center { margin-inline: auto; text-align: center; }
+.lp-body { font-size: clamp(15px, 1.6vw, 16.5px); line-height: 1.7; opacity: .76; margin: 0; }
+
+/* ---- hero ---- */
+.lp-hero {
+  display: flex; align-items: center; justify-content: center;
+  gap: clamp(32px, 5vw, 76px); flex-wrap: wrap;
+  max-width: 1200px; margin: 0 auto;
+  padding: clamp(40px, 7vw, 96px) clamp(20px, 5vw, 48px) clamp(64px, 9vw, 116px);
+}
+.lp-hero-copy { flex: 1 1 420px; max-width: 620px; }
+.lp-hero-board { flex: 0 1 420px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.lp-board-well { border-radius: var(--r); box-shadow: var(--sink); padding: clamp(14px, 2vw, 24px); width: 100%; }
+.lp-board-note { margin: 0; font-family: var(--font-caption); font-style: var(--caption-style); font-size: 13px; opacity: .5; text-align: center; }
+
+/* The stat chips are sunken, so they read as facts stamped into the ground
+   rather than as a second row of buttons competing with the call to action. */
+.lp-stats { display: flex; flex-wrap: wrap; gap: 10px; margin: 30px 0 34px; }
+.lp-stat {
+  display: inline-flex; align-items: baseline; gap: 7px;
+  padding: 9px 16px; border-radius: 999px; box-shadow: var(--sink-sm);
+  font-size: 13px; letter-spacing: .04em; opacity: .82;
+}
+.lp-stat b { font-family: var(--font-display); font-weight: var(--w-display-strong); font-size: 16px; color: var(--accent); }
+
+.lp-cta { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.lp-cta.center { justify-content: center; }
+.lp-btn {
+  display: inline-flex; align-items: center; gap: 11px;
+  border: 0; background: var(--ground); color: var(--ink); cursor: pointer;
+  text-decoration: none;
+  font-family: var(--font-body); font-weight: 700; font-size: 14.5px;
+  letter-spacing: .08em; text-transform: uppercase;
+  padding: 19px 30px; border-radius: 18px; box-shadow: var(--raise);
+  transition: box-shadow .18s ease, transform .18s ease, color .18s ease;
+}
+.lp-btn:hover { transform: translateY(-2px); }
+.lp-btn:active { box-shadow: var(--sink-sm); transform: none; }
+.lp-btn.primary { color: var(--accent); }
+.lp-btn.ghost { box-shadow: var(--sink-sm); opacity: .8; padding: 17px 26px; }
+.lp-btn.ghost:hover { opacity: 1; }
+
+/* ---- sections ---- */
+.lp-rule { border: 0; height: 1px; margin: 0; background: linear-gradient(90deg, transparent, var(--hairline) 18%, var(--hairline) 82%, transparent); }
+.lp-section { max-width: 1080px; margin: 0 auto; width: 100%; padding: clamp(64px, 9vw, 124px) clamp(20px, 5vw, 48px); }
+.lp-grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(268px, 1fr)); gap: clamp(18px, 2.4vw, 28px); margin-top: clamp(38px, 5vw, 56px); }
+.lp-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: clamp(18px, 2.4vw, 28px); margin-top: clamp(38px, 5vw, 56px); }
+
+.lp-card { display: flex; flex-direction: column; gap: 14px; padding: clamp(24px, 3vw, 34px); }
+.lp-card-btn { text-align: left; border: 0; cursor: pointer; color: var(--ink); background: var(--ground); transition: transform .16s ease, box-shadow .16s ease; }
+.lp-card-btn:hover { transform: translateY(-3px); }
+.lp-card-btn:hover .lp-more { opacity: 1; gap: 10px; }
+.lp-card-btn:active { box-shadow: var(--sink-sm); transform: none; }
+
+/* The icon sits in its own sunken well, which gives a card of plain prose
+   something to hang on without adding a rule or a second colour. */
+.lp-icon {
+  width: 58px; height: 58px; border-radius: 18px; box-shadow: var(--sink-sm);
+  display: grid; place-items: center; color: var(--accent); flex: none;
+  margin-bottom: 4px;
+}
+.lp-more {
+  display: inline-flex; align-items: center; gap: 7px; margin-top: auto; padding-top: 8px;
+  font-size: 12px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
+  color: var(--accent); opacity: .62; transition: opacity .18s ease, gap .18s ease;
+}
+
+/* ---- the three steps ---- */
+/* Not cards. A step is a number and a paragraph, and boxing each one would make
+   the path look like three unrelated things rather than one road. */
+.lp-step { display: flex; flex-direction: column; gap: 12px; padding: 6px 0 0; }
+.lp-step-n {
+  font-family: var(--font-display); font-weight: var(--w-display);
+  font-size: clamp(40px, 5vw, 56px); line-height: 1; color: var(--accent); opacity: .38;
+  letter-spacing: -.03em;
+}
+
+/* ---- the Classic, set large ---- */
+.lp-quote-section { text-align: center; display: flex; flex-direction: column; align-items: center; }
+.lp-quote { display: flex; flex-direction: column; align-items: center; gap: 18px; margin: 8px 0 clamp(34px, 5vw, 52px); }
+.lp-quote-line {
+  margin: 0; max-width: 26ch;
+  font-size: clamp(23px, 3.4vw, 40px); line-height: 1.44; letter-spacing: -.018em;
+}
+.lp-quote-src { margin: 0; font-family: var(--font-caption); font-style: var(--caption-style); font-size: 14px; opacity: .55; }
+
+/* ---- roadmap ---- */
+.lp-roadmap { margin-top: clamp(32px, 4vw, 44px); padding: clamp(24px, 3vw, 34px); }
+.lp-roadmap ul { list-style: none; padding: 0; margin: 20px 0 0; display: flex; flex-direction: column; gap: 15px; }
+.lp-roadmap li { display: flex; gap: 13px; align-items: baseline; font-size: clamp(15px, 1.6vw, 16.5px); line-height: 1.6; opacity: .82; }
+.lp-roadmap li svg { flex: none; color: var(--accent); transform: translateY(3px); }
+
+/* ---- the last word ---- */
+.lp-final {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  max-width: 760px; margin: 0 auto; width: 100%;
+  padding: clamp(76px, 11vw, 148px) clamp(20px, 5vw, 48px) clamp(56px, 8vw, 96px);
+}
+.lp-final .lp-lede { margin-bottom: 34px; }
+
+/* The slim chrome the landing wears: the wordmark, and one way in. Everything
+   else in the topbar belongs to a player who has already sat down. */
+.topbar.slim { padding-bottom: clamp(10px, 2vw, 16px); }
+.lp-enter {
+  display: inline-flex; align-items: center; gap: 9px;
+  border: 0; background: var(--ground); color: var(--accent); cursor: pointer;
+  font: 700 13px var(--font-body); letter-spacing: .11em; text-transform: uppercase;
+  padding: 13px 21px; border-radius: 15px; box-shadow: var(--raise-sm);
+  transition: box-shadow .15s ease, transform .15s ease;
+}
+.lp-enter:hover { transform: translateY(-1px); }
+.lp-enter:active { box-shadow: var(--sink-sm); transform: none; }
+
+/* A way back out to the front door, from the one place a reader looks for one. */
+.foot-link {
+  border: 0; background: none; padding: 0; cursor: pointer; color: inherit;
+  font-family: var(--font-caption); font-style: var(--caption-style);
+  font-size: 13px; letter-spacing: .05em; opacity: .55; text-decoration: underline;
+  text-underline-offset: 3px; text-decoration-thickness: 1px;
+}
+.foot-link:hover { opacity: .9; color: var(--accent); }
+
+/* ---- the dashboard behind the door ---- */
+.dash-rank { margin-bottom: 14px; }
+
+@media (max-width: 900px) {
+  .lp-hero { padding-top: clamp(24px, 5vw, 48px); }
+  .lp-hero-board { order: -1; flex-basis: 320px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; }
+}
+
+/* ---- typed text: the machine face, struck a character at a time ---- */
+/* Used by the front door for its section labels and for the saying it sets
+   large (src/components/Typed.jsx). The mark is <strong> as well as a colour,
+   so the emphasis survives a stylesheet that never loads. */
+.typed { font-family: var(--font-quote); font-style: var(--quote-style); font-weight: 420; letter-spacing: .005em; }
+.typed-key { color: var(--accent-ink); font-weight: 700; font-style: inherit; }
+.type-caret {
+  display: inline-block; width: .5em; height: 1.02em; margin-left: 1px;
+  vertical-align: -.16em; background: var(--accent); opacity: .75;
+  animation: type-caret 1.05s steps(1) infinite;
+}
+@keyframes type-caret { 50% { opacity: 0; } }
+
+/* The hero arrives in order rather than all at once: the label, then the
+   headline, then the lede, the facts, and last the way in. Each child of an
+   .lp-enters column takes the next beat. */
+.lp-enters > * { animation: lp-rise .85s cubic-bezier(.2,.8,.2,1) both; }
+.lp-enters > *:nth-child(1) { animation-delay: .05s; }
+.lp-enters > *:nth-child(2) { animation-delay: .16s; }
+.lp-enters > *:nth-child(3) { animation-delay: .27s; }
+.lp-enters > *:nth-child(4) { animation-delay: .38s; }
+.lp-enters > *:nth-child(5) { animation-delay: .49s; }
+.lp-hero-board.lp-enters > * { animation-delay: .30s; }
+@keyframes lp-rise {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: none; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .sente-root *, .sente-root *::before, .sente-root *::after {
