@@ -89,10 +89,10 @@ ${FONT_FACES}
 }
 .foot span:last-child { font-family: var(--font-display-italic); font-style: var(--display-italic-style); }
 
-/* passages from the Classic: Fraunces italic, a hairline, a quiet citation */
+/* passages from the Classic: the pairing's italic voice, a hairline, a quiet citation */
 .passage { margin: 0; padding: 4px 0 4px clamp(16px, 2.4vw, 26px); border-left: 1px solid color-mix(in srgb, var(--accent) 55%, transparent); cursor: pointer; max-width: 64ch; }
-.passage-text { margin: 0; font-family: 'Fraunces', serif; font-style: italic; font-weight: 420; font-size: clamp(17px, 1.9vw, 21px); line-height: 1.55; letter-spacing: .005em; color: var(--ink); }
-.passage-cite { margin: 10px 0 0; font-family: 'Hanken Grotesk', sans-serif; font-style: normal; font-size: 12.5px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; opacity: .6; }
+.passage-text { margin: 0; font-family: var(--font-display-italic); font-style: var(--display-italic-style); font-weight: 420; font-size: clamp(17px, 1.9vw, 21px); line-height: 1.55; letter-spacing: .005em; color: var(--ink); }
+.passage-cite { margin: 10px 0 0; font-family: var(--font-body); font-style: normal; font-size: 12.5px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; opacity: .6; }
 .passage.lg .passage-text { font-size: clamp(21px, 2.8vw, 29px); line-height: 1.45; font-weight: 400; }
 .passage.sm { padding-left: 14px; }
 .passage.sm .passage-text { font-size: 16px; line-height: 1.5; }

@@ -2,8 +2,8 @@ import { useState } from "react";
 import { passageFor, CLASSIC } from "../content/classic.js";
 
 /* ----------------------- PASSAGE (a page from the Classic) -----------------------
-   A passage from Zhang Ni's thirteen chapters, set in Fraunces italic with a
-   quiet citation. Every mount draws a fresh one for its context, so the same
+   A passage from Zhang Ni's thirteen chapters, set in the pairing's italic voice
+   with a quiet citation. Every mount draws a fresh one for its context, so the same
    screen greets a returning visitor with different words; a tap draws another.
    The picking is pure (`passageFor` in content/classic.js); this file only
    chooses a seed and draws. Sizes: "lg" for a hero, default for a page, "sm"
