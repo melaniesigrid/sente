@@ -45,6 +45,7 @@ ${SIGNATURE_FACE}
   --quote-style: italic;
   --font-caption: 'Fraunces', serif;
   --caption-style: italic;
+  --font-typewriter: 'Courier Prime', 'Courier New', monospace;
   --w-display: 560;
   --w-display-strong: 640;
   --display-tracking: 0em;
@@ -132,20 +133,43 @@ ${SIGNATURE_FACE}
   to   { clip-path: inset(-20% -14% -40% 0); opacity: .8; }
 }
 
-/* passages from the Classic: the pairing's italic voice, a hairline, a quiet citation */
-.passage { margin: 0; padding: 4px 0 4px clamp(16px, 2.4vw, 26px); border-left: 1px solid color-mix(in srgb, var(--accent) 55%, transparent); cursor: pointer; max-width: 64ch; }
-.passage-text { margin: 0; font-family: var(--font-quote); font-style: var(--quote-style); font-weight: 420; font-size: clamp(17px, 1.9vw, 21px); line-height: 1.55; letter-spacing: .005em; color: var(--ink); }
+/* passages from the Classic: typed and not set, on the same machine in every
+   pairing (TYPEWRITER in content/typeface.js), a hairline, a quiet citation.
+
+   The sizes are not the ones the italic wanted. Courier Prime carries a small
+   x-height on a wide advance, so it reads smaller and sets longer than a serif
+   at the same pixel size: the numbers go up against the apparent size and the
+   measure comes down, from 64 characters to 58, because in a monospace one ch
+   is exactly one character and 64 of them is a long way for an eye to travel.
+   Leading goes up too — an even column needs the air.
+
+   The measure belongs on the text and not on the figure around it: ch resolves
+   against the element's own font, and the figure is still set in the body face,
+   so a measure declared there is counted in the wrong characters and lands the
+   column at about three quarters of the line it asked for. */
+.passage { margin: 0; padding: 4px 0 4px clamp(16px, 2.4vw, 26px); border-left: 1px solid color-mix(in srgb, var(--accent) 55%, transparent); cursor: pointer; }
+.passage-text { margin: 0; max-width: 58ch; font-family: var(--font-typewriter); font-style: normal; font-weight: 400; font-size: clamp(16px, 1.75vw, 19px); line-height: 1.7; letter-spacing: -.01em; color: var(--ink); }
 .passage-cite { margin: 10px 0 0; font-family: var(--font-body); font-style: normal; font-size: 14px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; opacity: .6; }
-.passage.lg .passage-text { font-size: clamp(21px, 2.8vw, 29px); line-height: 1.45; font-weight: 400; }
+.passage.lg .passage-text { font-size: clamp(19px, 2.4vw, 25px); line-height: 1.55; }
 .passage.sm { padding-left: 14px; }
-.passage.sm .passage-text { font-size: 17px; line-height: 1.5; }
+.passage.sm .passage-text { font-size: 15.5px; line-height: 1.62; }
+/* The typed passage and its hidden twin share one grid cell, so the box is the
+   size of the finished passage from the first frame and nothing below it moves. */
+.passage-text { display: grid; }
+.passage-ghost, .passage-typed { grid-area: 1 / 1; }
+.passage-ghost { visibility: hidden; }
+/* The caret is the hero's alone, and only while it is still typing. */
+.type-caret { display: inline-block; width: .58em; height: 1.02em; margin-left: 1px; vertical-align: -.16em; background: var(--accent-ink); opacity: .8; animation: type-caret 1.05s steps(1) infinite; }
+@keyframes type-caret { 50% { opacity: 0; } }
 .passage.sm .passage-cite { font-size: 12.5px; margin-top: 6px; }
 /* the words that carry. Bold and the room's mark at reading contrast — never the
    raw accent, which is a 3:1 colour and would put the most important word in the
-   passage below the floor the rest of it clears. The weight is set against the
-   italic around it, not against upright body text, so it needs more than a 700. */
-.passage-key { font-weight: 640; color: var(--accent-ink); font-style: inherit; }
-.passage.lg .passage-key { font-weight: 600; }
+   passage below the floor the rest of it clears. The weight is a flat 700 now
+   that the passage is typed: Courier Prime ships one bold and no axis, and on a
+   machine a word is emphasised by striking it again, which is what its bold is.
+   A monospace bold cannot widen the letter either, so the mark never shifts the
+   column — the words around a mark sit exactly where they sat. */
+.passage-key { font-weight: 700; color: var(--accent-ink); font-style: inherit; }
 /* On hover the passage takes the mark and the marked words take the ink: the
    relationship inverts, so the words never stop being the ones that stand out.
    The whole block goes to --accent-ink and not to the raw accent for the same
