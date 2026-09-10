@@ -227,7 +227,7 @@ export function ProfileView({ profile, setProfile, go, room }) {
             <Toggle on={profile.sound} onChange={v => commit({ sound: v })} label="Stone sound" />
           </div>
           <div className="setting-row">
-            <MokuMark size={22} state={moku && moku.off ? "idle" : "watching"} />
+            <MokuMark size={34} state={moku && moku.off ? "idle" : "watching"} />
             <div className="setting-copy">
               <strong>Moku at the table</strong>
               <span className="fine">The stone with two eyes. Every face it makes is a fact about the board: atari, ko, a capture. Never a mood.</span>
