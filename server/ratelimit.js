@@ -54,3 +54,17 @@ export function callerIp(req) {
   const first = ip.split(",")[0].trim();
   return first.length && first.length <= 64 ? first : null;
 }
+
+/** How many ways back in one address — the caller's, and the account's — may
+ *  ask for in an hour. Low on purpose in both directions: a person who has
+ *  forgotten a password asks once and waits for the letter, and the limit on
+ *  the account's own address is what keeps this from being a way to fill
+ *  somebody else's inbox by typing it over and over. */
+export const FORGOT_LIMIT = 5;
+export const FORGOT_WINDOW_MS = 60 * 60 * 1000;
+
+/** How many confirmation letters one account may ask for in an hour. Enough
+ *  for a letter that went to spam and a second try, and no more: the caller
+ *  is signed in, so this is not a way in, only a way to send. */
+export const VERIFY_LIMIT = 5;
+export const VERIFY_WINDOW_MS = 60 * 60 * 1000;

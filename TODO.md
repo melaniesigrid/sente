@@ -383,9 +383,30 @@ two Durable Object classes, deployed at https://sente-server.melaniesigrid.worke
       so signing in on a phone does not sign out the laptop, and `POST /api/signout`
       ends one or (with `{everywhere: true}`) all of them.
       `tools/server/accounts.mjs <url>` proves the whole flow against a deployment.
-- [ ] Verify the address, and a way back in when the password is forgotten. Both need mail
-      out of the Worker (Cloudflare Email Sending), and until they exist an address is a
-      way to sign in from another device, not a proven identity — the sign-up copy says so.
+- [x] Verify the address, and a way back in when the password is forgotten (2026-09-10,
+      branch `feat/mail`). Two letters and no others, both asked for, neither carrying an
+      unsubscribe link because there is no list to leave (`server/mail.js` holds the copy,
+      pure and tested). Each carries one link back into the app as a query parameter, which
+      a static host will serve where a path it has never heard of would 404; `App` reads it
+      before onboarding, so somebody getting back into an account they already have is not
+      asked who is playing first. Links are stored hashed like session tokens, work once,
+      and asking for a second forgets the first. `POST /api/forgot` answers identically for
+      an address with an account, one without, and something that is not an address.
+      `tools/server/mail.mjs <url>` proves the whole of it against a deployment.
+      **Not yet sending.** Cloudflare Email Sending needs a domain on the Cloudflare
+      account, and `sente-server` runs on `workers.dev`, which is Cloudflare's and not
+      ours. Until `MAIL_FROM` is set, `/api/health` reports `"mail": "off"` and every link
+      goes to the log instead of the post. The four steps are in `docs/server-operations.md`.
+- [ ] Change the address on an account. `attach` refuses a second one, so a typo today is
+      permanent, and confirming makes the wrong address a *provably* wrong one. Wants the
+      password and a fresh confirmation posted to the new address, and should hold the old
+      one until the new one answers.
+- [ ] Let go of an address claimed and never confirmed. Signing up reserves an address on
+      the spot, so somebody can sit on one they do not own and keep its owner out. Low
+      stakes on a go server and deliberately not built yet; the shape would be a claim that
+      expires unconfirmed, not a takeover.
+- [ ] The three older rate-limited routes still spell the bucket dance out by hand;
+      `Registry#spend` now does it in one line and they could say so too.
 - [x] A card a player shows other players (2026-09-10, branch `feat/accounts`): a picture,
       a paragraph, and three facts — where you play, since when, and what you like to play.
       Edited from Profile, under a card that says plainly that this one is the server's and
@@ -426,6 +447,32 @@ Decisions made in Phase 4, accounts slice (2026-09-10, branch `feat/accounts`):
 - A password is ten characters or more and that is the only rule. Composition rules push
   people towards `Password1!`, so there are none; the field says how much further to go
   rather than colouring a meter.
+
+Decisions made in the letters slice (2026-09-10, branch `feat/mail`):
+- **A reset ends every other session; a password change still does not.** Changing a
+  password requires the old one, so the account was never out of its owner's hands and the
+  devices signed in are theirs. A reset requires only the mailbox, and the usual reason to
+  want one is that a password or a device is somewhere it should not be. So a reset signs
+  everything out and hands the browser that used the link one fresh session.
+- Following a mailed link is proof of the address, so a reset confirms the account on the
+  way through. Somebody who has just read their mail here is not then asked to prove they
+  can read their mail here.
+- The reset page asks the server which address its token was sent to, rather than carrying
+  the address in the link. The browser salts its key derivation with the address and cannot
+  derive without it; telling the holder of the token gives away nothing, because that token
+  is already a way into the account, and the alternative puts an address into browser
+  history and referrers.
+- Confirming an address gates nothing. It is not a condition of playing, of being rated, or
+  of asking for a way back in — requiring it there would lock out exactly the people who
+  need it. What it buys is knowing the address was typed correctly and can be reached,
+  before it is the only way back to a handle, and the lobby says so in those words.
+- `emailVerified` is on the owner's own view and nowhere else. It says something about a
+  person's mailbox rather than their play, and it belongs on no page but their own.
+- The link is written to the log when mail is off, and never into an HTTP response. A link
+  in a response would be a way for anyone who can ask for a reset to read one.
+- One operator route mints a link without posting it, which is how the letters are proved
+  against a deployment with no mailbox to read. It is written down plainly that this lets
+  `ADMIN_TOKEN` sign in as anybody — the same trust that could already delete them.
 
 Decisions made in slice 1:
 - Accounts are a display name plus a 32-byte bearer token generated by the server and
@@ -763,14 +810,60 @@ Google-hosted text families, because the Typecase text cuts have no weight axis.
 - [x] 2026-09-10 No local cut is slanted by the browser any more; only the Google
       faces, which ship a real italic, are asked for one.
 
+- [x] 2026-09-10 Three pairings, not eight (branch `feat/readable-colour`). House, Kaya
+      and Vitrine stay; Galliard House, Wedge, Clubhouse, Signal and Hoshi are gone, and
+      Kaya's ornament voice is Fraunces' italic instead of the Bellique script — that voice
+      carries the emphasised word in the landing hero and the lesson numerals, mid-sentence
+      at reading size, and a script could not do it. No script stands anywhere in the set
+      now, so `serifless` had nothing left to except and went with them. The build carries
+      three borrowed faces instead of thirteen, and no pairing puts a personal-use cut into
+      running text any more — `galliard` was the one that did.
+
 Open:
-- [ ] Licensing: every borrowed face is a demo/personal-use cut (`src/fonts/LICENSES.md`).
-      Before a public deploy, buy the pairings worth keeping or swap them for OFL faces.
-      Only `house` and the three Google body families are clear today.
-- [ ] Convert the borrowed faces to woff2; the OTFs are 16-207 KB each and lazy, but
-      Kuigaf alone is 207 KB the first time Wedge is chosen.
+- [ ] Licensing: the three borrowed cuts still shipping are Welorac, Qliesya and Daenerys,
+      all demo/personal-use (`src/fonts/LICENSES.md`). Buy them or swap for OFL faces before
+      a public deploy. Daenerys is the urgent one — no commercial use at all, and it signs
+      every page. Everything else in the set is OFL today.
+- [ ] Convert the two remaining display cuts to woff2; Welorac is 46 KB and Qliesya 16 KB
+      as OTF, and woff2 would roughly halve each.
 - [ ] A pairing is a device preference stored in the profile; when accounts arrive,
       decide whether it syncs or stays local like the Moku toggle.
+
+## Readable colour (done 2026-09-10, branch `feat/readable-colour`)
+
+The rooms were audited against WCAG AA and the failures were systemic rather than local,
+so the fix is derived and tested rather than hand-tuned.
+
+- [x] Secondary text was dimmed with an `opacity`, and an opacity is a fixed fraction of
+      whatever is behind it. Measured, every light room failed: House ink at `.55` is
+      2.60:1, at `.6` it is 2.89:1, at `.7` it is 3.61:1 — about sixty rules of it, none
+      of them reaching 4.5. Two derived tokens replace the lot: `--ink-2` (secondary text,
+      solved to 4.5:1) and `--ink-3` (incidental text, 3:1, and spent on nothing small).
+- [x] `--danger-ink`, the warning walked up to reading contrast the way `--accent-ink`
+      already was. Same errand, same function: a pill is a mark at 2.9:1, but the word
+      "Resigned" is text.
+- [x] The mark was colouring words in fifty-odd places at its own 2.9:1 floor. `--accent`
+      now colours shapes and `--accent-ink` colours glyphs, with one exception measured
+      rather than granted by name: type at 24px and up may take the raw mark, because 3:1
+      is WCAG's own floor there.
+- [x] One `:focus-visible` ring, in `--accent-ink`, on everything in the app. There were
+      four bespoke rings and nothing at all on the rest.
+- [x] `src/styles/css.test.js` parses the stylesheet and holds all of it: no word dimmed
+      with an opacity, no small word coloured with a mark, no colour token asked for that
+      `TOKEN_NAMES` does not promise, and the derived inks measured in every room.
+- [x] Two rooms that answer a set which had grown repetitive — every light room being a
+      pale neutral ground under a near-neutral ink. Cinnabar is blush paper with oxblood
+      ink and a lacquer-red mark, the one room led by a colour; Foxfire is wet bark under
+      chartreuse, the only mark in the set that sits above its own ink in luminance.
+
+Open:
+- [ ] The grid is the last unmeasured colour: `.grid-line` draws `--grid` at
+      `stroke-opacity: .38`, and territory marks and dead stones are opacities too. They
+      are graphics rather than text, but they carry meaning during scoring and nothing
+      holds them to 3:1 yet.
+- [ ] Six of the ten marks sit in the amber band and `deriveDanger` puts every unauthored
+      warning at hue ~12°. Cinnabar pushed the set warmer still. A cool light room would
+      even it out.
 
 ## Palettes and the dojo (done 2026-09-10, branches `feat/palette-damson`, `feat/palette-dojo`)
 

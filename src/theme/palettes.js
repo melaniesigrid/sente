@@ -45,6 +45,17 @@ export const PALETTES = [
     light: "#f9f3fa", dark: "#c8bccb", danger: "#b0605f",
   },
   {
+    id: "cinnabar",
+    name: "Cinnabar",
+    mood: "Light",
+    note: "Blush paper, oxblood ink, and a lacquer-red mark. The one room led by a warm colour rather than by a neutral.",
+    ground: "#f0dcd3", ink: "#45211a", accent: "#b0392a", cream: "#fdf3ee",
+    // Every other light room warns in terracotta, which in a red room would be
+    // the mark saying it again. A loss here is plum: still warm, still not
+    // neutral, and impossible to mistake for the accent beside it.
+    danger: "#7a2f52",
+  },
+  {
     id: "lacquer",
     name: "Lacquer",
     mood: "Dark",
@@ -78,6 +89,17 @@ export const PALETTES = [
     note: "Kiln-changed indigo and copper. The night game, played by the window.",
     ground: "#1a1d26", ink: "#dcdfe8", accent: "#c07f52", cream: "#eaecf3",
     light: "#242833", dark: "#101219", danger: "#c76a6a",
+  },
+  {
+    id: "foxfire",
+    name: "Foxfire",
+    mood: "Dark",
+    note: "Wet bark and a chartreuse mark. The brightest thing in the set against the darkest ground in it.",
+    ground: "#14170f", ink: "#e3e9d5", accent: "#b9d94a", cream: "#f1f5e2",
+    // The mark sits a long way above the ink in luminance, which no other dark
+    // room does: gold, copper and celadon all sit under theirs. It is what makes
+    // this room read as lit from inside rather than lamplit.
+    danger: "#d9705a",
   },
 ];
 

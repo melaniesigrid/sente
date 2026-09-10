@@ -8,6 +8,22 @@
   "main": "server/index.js",
   "compatibility_date": "2026-09-01",
   "observability": { "enabled": true },
+
+  // Cloudflare Email Sending, for the two letters in server/mail.js. The
+  // binding is unrestricted because the recipient is whichever address the
+  // person signed up with; the sender is not, and that is the part that needs
+  // setting up: MAIL_FROM has to be an address on a domain onboarded with
+  // `npx wrangler email sending enable <domain>`, and until it is set the
+  // server reports `"mail": "off"` at /api/health and writes links to the log
+  // instead of posting them. See docs/server-operations.md.
+  "send_email": [{ "name": "EMAIL" }],
+
+  "vars": {
+    // Where the links in those letters point: the app, not this Worker.
+    "APP_URL": "https://melaniesigrid.github.io/sente/",
+    "MAIL_FROM_NAME": "Joseki"
+    // "MAIL_FROM": "sente@example.com"  <- an onboarded domain, then uncomment
+  },
   "durable_objects": {
     "bindings": [
       { "name": "REGISTRY", "class_name": "Registry" },

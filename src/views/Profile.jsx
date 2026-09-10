@@ -166,7 +166,7 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
       <Card>
         <div className="stat-head"><Palette size={16} /><span>Palette</span></div>
         <p className="fine" style={{ marginTop: 6 }}>
-          Eight rooms for the same board. A palette sets the ground, the two lights every
+          Ten rooms for the same board. A palette sets the ground, the two lights every
           shadow is cut from, and the one colour that means here; the shapes, the spacing
           and the shadows themselves never move.
         </p>
@@ -206,7 +206,7 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
       <Card>
         <div className="stat-head"><Type size={16} /><span>Typeface</span></div>
         <p className="fine" style={{ marginTop: 6 }}>
-          Eight pairings for the same design system. Each one sets the headings, the
+          Three pairings for the same design system. Each one sets the headings, the
           serif that carries the sayings, the body text and the small labels; the
           palette and the shadows never move.
         </p>

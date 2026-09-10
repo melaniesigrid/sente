@@ -8,6 +8,11 @@
      POST  /api/signout         bearer {everywhere} -> {ok}
      POST  /api/me/account      bearer {email, key}  -> add an account to a handle
      POST  /api/me/password     bearer {oldKey, key} -> change it
+     POST  /api/me/verify       bearer         -> post a letter confirming the address
+     POST  /api/verify          {token}        -> open the link in that letter
+     POST  /api/forgot          {email}        -> post a way back in; always {ok:true}
+     GET   /api/reset/:token                   -> {email, name} the link was sent to
+     POST  /api/reset           {token, key}   -> set the password, sign in, sign out elsewhere
      GET   /api/me              bearer         -> player
      PATCH /api/me              bearer {name, tint}
      DELETE /api/me             bearer         -> leave: sessions and ladder seat gone
@@ -18,6 +23,7 @@
      DELETE /api/admin/players/:id     ADMIN_TOKEN bearer
      GET   /api/admin/players          ADMIN_TOKEN bearer
      DELETE /api/admin/ratelimit/:ip   ADMIN_TOKEN bearer
+     POST   /api/admin/mail/:kind/:id  ADMIN_TOKEN bearer -> the link, unsent
      PATCH /api/me/profile      bearer {bio, facts}
      PUT   /api/me/avatar       bearer, image body  -> the picture, at most 64 KB
      DELETE /api/me/avatar      bearer
@@ -33,6 +39,7 @@
 import { json, fail, readJson, bearer, HttpError, CORS, base64, bytes } from "./http.js";
 import { AVATAR_MAX_BYTES } from "./profile.js";
 import { callerIp } from "./ratelimit.js";
+import { mailConfig, mailLink, verifyMessage, resetMessage } from "./mail.js";
 export { Registry } from "./registry.js";
 export { Room } from "./roomObject.js";
 
@@ -51,7 +58,12 @@ export default {
         "bad-name": 400, "bad-email": 400, "bad-key": 400, "no-email": 400,
         "bad-image": 400, "bad-image-type": 415, "image-too-big": 413,
         "bad-credentials": 401, "no-player": 404,
-        exists: 409, "email-taken": 409, "already-attached": 409,
+        // A link that was never real and one that has been used or has aged
+        // out are different answers because the page says different things:
+        // one is "check what you pasted", the other "ask for another".
+        "bad-token": 400, "token-expired": 410,
+        exists: 409, "email-taken": 409, "already-attached": 409, "already-verified": 409,
+        "mail-failed": 502,
       };
       if (known[e.message]) return fail(known[e.message], e.message);
       console.error("unhandled", e);
@@ -65,7 +77,11 @@ async function route(req, env) {
   const path = url.pathname.replace(/\/+$/, "") || "/";
   const reg = registry(env);
 
-  if (path === "/" || path === "/api/health") return json({ name: "sente-server", ok: true });
+  // The mail mode is here so a deployment that cannot send is visible at a
+  // glance, rather than being discovered by somebody whose letter never came.
+  if (path === "/" || path === "/api/health") {
+    return json({ name: "sente-server", ok: true, mail: mailConfig(env).mode });
+  }
 
   if (path === "/api/register" && req.method === "POST") {
     const body = await readJson(req);
@@ -101,6 +117,47 @@ async function route(req, env) {
     return json(await reg.setPassword(player.id, b.oldKey, b.key));
   }
 
+  /* ----- the two letters -----
+     Asking for a confirmation needs a session, because it is a question about
+     your own account. The three routes that follow a link do not: a link is
+     opened in whatever browser the mail client hands it to, which is often
+     not the one the account is signed in on. */
+
+  if (path === "/api/me/verify" && req.method === "POST") {
+    const player = await requirePlayer(req, reg);
+    return limited(async () => {
+      await post(env, await reg.startVerify(player.id));
+      return { ok: true };
+    });
+  }
+
+  if (path === "/api/verify" && req.method === "POST") {
+    return json(await reg.confirmVerify((await readJson(req)).token));
+  }
+
+  if (path === "/api/forgot" && req.method === "POST") {
+    const b = await readJson(req);
+    return limited(async () => {
+      const minted = await reg.startReset(b.email, callerIp(req));
+      // The answer is the same whether or not there was an account to write
+      // to, and a mail server having a bad day does not change it either:
+      // this route must never become a way to ask who has an account here.
+      if (minted) {
+        try { await post(env, minted); }
+        catch (e) { console.error("mail(reset) failed", e); }
+      }
+      return { ok: true };
+    });
+  }
+
+  if (path === "/api/reset" && req.method === "POST") {
+    const b = await readJson(req);
+    return json(await reg.finishReset(b.token, b.key));
+  }
+  if (path.startsWith("/api/reset/") && req.method === "GET") {
+    return json(await reg.resetTarget(path.slice("/api/reset/".length)));
+  }
+
   if (path === "/api/me") {
     const player = await requirePlayer(req, reg);
     if (req.method === "GET") return json(player);
@@ -120,6 +177,22 @@ async function route(req, env) {
     }
     const rate = /^\/api\/admin\/ratelimit\/([^/]+)$/.exec(path);
     if (rate && req.method === "DELETE") return json({ cleared: await reg.unblock(decodeURIComponent(rate[1])) });
+    // Mint a link and hand it back rather than posting it, for the two times
+    // an operator needs one: proving the flow against a deployment with no
+    // mailbox to read (tools/server/mail.mjs), and helping somebody whose
+    // address has stopped accepting mail. Note what this grants — a reset link
+    // is a way into that account, so ADMIN_TOKEN can sign in as anybody. It
+    // could already delete them; this is the same trust, said out loud.
+    if (path.startsWith("/api/admin/mail/") && req.method === "POST") {
+      const [kind, id] = path.slice("/api/admin/mail/".length).split("/");
+      if ((kind !== "verify" && kind !== "reset") || !id) return fail(404, "not-found");
+      const minted = kind === "verify"
+        ? await reg.startVerify(id)
+        : await reg.startReset((await reg.self(id))?.email);
+      if (!minted) return fail(404, "no-player");
+      return json({ kind: minted.kind, link: mailLink(mailConfig(env).appUrl, minted.kind, minted.token) });
+    }
+
     // What the edge tells us about a caller, for checking the limit is seeing addresses.
     if (path === "/api/admin/whoami" && req.method === "GET") {
       return json({ ip: callerIp(req), headers: Object.fromEntries([...req.headers].filter(([k]) => k.startsWith("cf-") || k === "x-forwarded-for" || k === "x-real-ip")) });
@@ -200,9 +273,40 @@ async function limited(run, ok = 200) {
   try {
     return json(await run(), ok);
   } catch (e) {
-    if (e.message !== "too-many-handles" && e.message !== "too-many-attempts") throw e;
+    if (!["too-many-handles", "too-many-attempts", "too-many-letters"].includes(e.message)) throw e;
     const secs = Math.ceil((e.retryAfterMs ?? 3600000) / 1000);
     return json({ error: e.message }, 429, { "retry-after": String(secs) });
+  }
+}
+
+/** Write one of the two letters and hand it to Cloudflare Email Sending.
+ *
+ *  With no EMAIL binding or no address to send from, the link goes to the log
+ *  instead and the call succeeds. That is deliberate: a local wrangler dev,
+ *  and a deployment whose domain is not onboarded yet, can both be walked
+ *  through the whole flow with wrangler tail. The link is never put in an HTTP
+ *  response — a link in a response would be a way for anyone who can ask for a
+ *  reset to read one. */
+async function post(env, minted) {
+  const cfg = mailConfig(env);
+  const link = mailLink(cfg.appUrl, minted.kind, minted.token);
+  const write = minted.kind === "verify" ? verifyMessage : resetMessage;
+  const letter = write({ name: minted.name, link, ttlMs: minted.ttlMs });
+  if (cfg.mode !== "sending") {
+    console.log("mail(" + minted.kind + ") not sent to " + minted.email + " — " + link);
+    return;
+  }
+  try {
+    await env.EMAIL.send({
+      to: minted.email,
+      from: { email: cfg.from, name: cfg.name },
+      subject: letter.subject,
+      text: letter.text,
+      html: letter.html,
+    });
+  } catch (e) {
+    console.error("mail send failed", e);
+    throw new Error("mail-failed");
   }
 }
 
