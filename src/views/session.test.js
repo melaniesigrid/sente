@@ -41,6 +41,23 @@ describe("loadSession", () => {
     expect(loadSession({ storage: s, today: TODAY })).toBeNull();
     expect(loadGame(s)).toBeNull();
   });
+  it("resumes a coached game still coached, with the coach's memory intact", () => {
+    // The whole point of persisting the flag: a coached game is unrated for its
+    // whole life, so a reload must not hand the rating back.
+    const s = memStorage();
+    const spoken = { dumpling: { count: 1, lastMove: 8 } };
+    saveGame({ record: started(), mode: { kind: "bot", personaId: "tetsu", coaching: true }, spoken }, s);
+    const out = loadSession({ storage: s, today: TODAY });
+    expect(out.mode.coaching).toBe(true);
+    expect(out.mode.spoken).toEqual(spoken);
+  });
+  it("resumes an uncoached game uncoached", () => {
+    const s = memStorage();
+    saveGame({ record: started(), mode: { kind: "bot", personaId: "tetsu" } }, s);
+    const out = loadSession({ storage: s, today: TODAY });
+    expect(out.mode.coaching).toBe(false);
+    expect(out.mode.spoken).toEqual({});
+  });
   it("resolves pass and play", () => {
     const s = memStorage();
     saveGame({ record: started(), mode: { kind: "local" } }, s);

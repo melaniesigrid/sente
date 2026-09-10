@@ -351,7 +351,25 @@ ${SIGNATURE_FACE}
 
 /* ---- chat ---- */
 .chat-card { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
-.chat-head { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; opacity: .75; }
+.chat-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; opacity: .75; }
+/* Asking for coaching is a one-way door, so the switch is raised while it is an offer
+   and sunken once it is a fact - the same two shadows every other control uses. No
+   opacity of its own: .chat-head already dims the whole row, and a second opacity
+   multiplies against it rather than replacing it, which put this control under every
+   contrast rule the palette audit enforces on the authored colours. */
+.coach-toggle {
+  display: inline-flex; align-items: center; gap: 5px; border: 0; cursor: pointer;
+  background: var(--ground); color: var(--ink);
+  font: 700 12px var(--font-body); letter-spacing: .1em; text-transform: uppercase;
+  padding: 4px 8px; border-radius: 8px; box-shadow: var(--raise-sm);
+}
+.coach-toggle:focus-visible { outline: 2px solid var(--accent-ring); outline-offset: 2px; }
+.coach-toggle.asking { box-shadow: var(--sink-sm); color: var(--accent); }
+.coach-toggle.on { box-shadow: var(--sink-sm); color: var(--accent); cursor: default; }
+/* aria-disabled rather than disabled: the switch keeps its place in the tab order, so a
+   keyboard user is still on it when the label changes. */
+.coach-toggle[aria-disabled="true"] { cursor: default; }
+.coach-toggle[aria-disabled="true"]:not(.on) { box-shadow: var(--sink-sm); opacity: .7; }
 .bot-chip { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; padding: 4px 8px; border-radius: 8px; box-shadow: var(--sink-sm); color: var(--accent); text-transform: uppercase; letter-spacing: .1em; }
 .chat-log { display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; padding: 4px 2px; }
 .bubble {
