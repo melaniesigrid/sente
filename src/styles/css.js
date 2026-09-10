@@ -250,6 +250,15 @@ ${SIGNATURE_FACE}
 .rank-picker-controls { display: flex; align-items: center; gap: 10px; }
 .btn-icon { padding-left: 10px; padding-right: 10px; }
 .table-picker .rank-picker-controls { gap: 18px; flex-wrap: wrap; }
+/* The masters row: the same persona card, with the measured line under the bio. The
+   claim is set smaller than the bio and the control smaller still, so the eye reads
+   name, then character, then number, then the caveat that keeps the number honest. */
+.masters-head { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.masters-title { display: flex; align-items: center; gap: 7px; margin: 0; font-family: var(--font-display); font-weight: var(--w-display); font-size: 17px; }
+.masters-head .fine { max-width: 70ch; }
+.master-card:disabled { cursor: progress; }
+.master-claim { margin: 0; font-size: 12.5px; color: var(--accent); }
+.master-control { margin: 2px 0 0; font-size: 11.5px; opacity: .6; line-height: 1.45; }
 .seg { display: inline-flex; gap: 4px; padding: 4px; border-radius: 14px; box-shadow: var(--sink-sm); }
 .seg-btn {
   border: 0; cursor: pointer; background: var(--ground); color: var(--ink); border-radius: 10px;

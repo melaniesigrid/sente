@@ -101,6 +101,23 @@ export function loadModel() {
   return loading;
 }
 
+/** The masters eval (public/masters/eval.json), fetched once. The lobby needs it to
+ *  put a measured number on a card; a master with no eval is simply not offered, so
+ *  a failure here is a missing row, never a wrong claim. */
+let evalData = null;
+export function loadEval() {
+  if (evalData) return evalData;
+  const file = "masters/eval.json";
+  evalData = (async () => {
+    let res;
+    try { res = await fetch(base() + file); } catch (e) { throw new StyleDataError(`fetch failed: ${e.message}`, file); }
+    if (!res.ok) throw new StyleDataError(`${res.status} ${res.statusText}`, file);
+    try { return await res.json(); } catch { throw new StyleDataError("not JSON", file); }
+  })();
+  evalData.catch(() => { evalData = null; });
+  return evalData;
+}
+
 const masters = new Map();
 
 /** A master's data (public/masters/<id>.json), fetched once and shape-checked.
