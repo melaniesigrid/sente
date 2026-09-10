@@ -467,6 +467,29 @@ export const CSS = `
 .moku[data-state="scoring"] .moku-body { transform: rotate(9deg); transition: transform .35s ease; }
 .moku[data-state="jigo"] .moku-body { animation: moku-wobble 2.2s ease-in-out infinite; }
 
+/* ---- online ---- */
+.online-card { display: flex; flex-direction: column; gap: 12px; }
+.online-card h3 { font-family: var(--font-display, "Fraunces", serif); font-weight: 560; font-size: 19px; margin: 0; }
+.size-pick { display: inline-flex; gap: 6px; padding: 4px; border-radius: 14px; box-shadow: var(--sink-sm); }
+.size-btn { border: 0; background: transparent; color: var(--ink); font: 700 11px var(--font-body, "Hanken Grotesk", sans-serif); letter-spacing: .1em; padding: 8px 11px; border-radius: 11px; cursor: pointer; opacity: .6; }
+.size-btn.on { box-shadow: var(--raise-sm); color: var(--accent); opacity: 1; }
+.seek-state { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-radius: 14px; box-shadow: var(--sink-sm); font-size: 13.5px; }
+.seek-state .pulse { color: var(--accent); animation: seek-pulse 1.6s ease-in-out infinite; }
+@keyframes seek-pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+.table-list { display: flex; flex-direction: column; gap: 6px; }
+.table-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 0; border-radius: 12px; background: transparent; color: var(--ink); text-align: left; cursor: pointer; transition: box-shadow .15s ease; }
+.table-row:hover { box-shadow: var(--sink-sm); }
+.table-row .table-who { font-weight: 600; font-size: 13.5px; flex: 0 0 auto; }
+.table-row .fine { flex: 1; }
+.table-row svg { color: var(--accent); opacity: .8; }
+.dot-live { background: var(--accent); }
+.dot-done { background: var(--dark); }
+.board-placeholder { aspect-ratio: 1; width: 100%; border-radius: 18px; box-shadow: var(--sink); opacity: .5; }
+.bubble-who { font-weight: 700; opacity: .65; font-size: 12px; }
+.chip-btn { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; border: 0; background: transparent; color: var(--accent); font: 700 10.5px var(--font-body, "Hanken Grotesk", sans-serif); letter-spacing: .1em; text-transform: uppercase; cursor: pointer; padding: 4px 6px; border-radius: 8px; }
+.chip-btn:hover { box-shadow: var(--sink-sm); }
+.ladder-sub { font-size: 12px; opacity: .6; margin: -6px 0 0; }
+
 @media (prefers-reduced-motion: reduce) {
   .sente-root *, .sente-root *::before, .sente-root *::after {
     animation: none !important; transition: none !important;

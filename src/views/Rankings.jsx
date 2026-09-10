@@ -1,11 +1,26 @@
-import { useMemo } from "react";
-import { Crown, Flame } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
+import { Crown, Flame, Globe, Bot } from "lucide-react";
 import { Card, Avatar, RankBadge } from "../components/ui.jsx";
 import { PERSONAS } from "../content/personas.js";
 import { ratingOfRank } from "../content/rank.js";
+import { provisionalText } from "../content/online.js";
+import { api, serverEnabled } from "../net/api.js";
+import { loadAccount } from "../store/account.js";
 
-/* ----------------------- RANKINGS ----------------------- */
+/* ----------------------- RANKINGS -----------------------
+   Two ladders. The global one is the server's Glicko-2 table of people who
+   claimed a handle; it is fetched fresh on every visit and shown only when the
+   server answers. The house ladder is the local one: you against the bots. */
 export function RankingsView({ profile }) {
+  const account = useMemo(() => loadAccount(), []);
+  const [global, setGlobal] = useState(null);   // null loading, [] empty, false unavailable
+  useEffect(() => {
+    if (!serverEnabled()) { setGlobal(false); return undefined; }
+    let alive = true;
+    api.ladder().then(rows => { if (alive) setGlobal(rows); }).catch(() => { if (alive) setGlobal(false); });
+    return () => { alive = false; };
+  }, []);
+
   const rows = useMemo(() => {
     const all = [
       ...PERSONAS.map(p => ({ ...p, bot: true, rating: ratingOfRank(p.range[1]) })),
@@ -13,15 +28,39 @@ export function RankingsView({ profile }) {
     ];
     return all.sort((a, b) => b.rating - a.rating);
   }, [profile]);
+
   return (
     <div className="stack">
       <h2 className="section-title">Ladder</h2>
       <p className="lede">
-        The house ladder — you against the residents. House players adapt to the
-        level you choose; each is listed at the top of the range it calls home. Ratings
-        move Elo-style after every rated game; roughly a hundred points to a rank, in
-        the tradition of a one-stone gap. The global ladder opens with networked play.
+        The global ladder is people: every rated game between two handles is settled on
+        the server with Glicko-2, so a rating carries how sure it is. The house ladder is
+        you against the residents, Elo-style, roughly a hundred points to a rank.
       </p>
+
+      {global !== false && (
+        <>
+          <div className="stat-head"><Globe size={16} /><span>Global · people</span></div>
+          <Card className="ladder">
+            {global === null && <p className="fine">Fetching the ladder…</p>}
+            {global && global.length === 0 && <p className="fine">Nobody has sat down yet. Claim a handle in Play to be first.</p>}
+            {global && global.map((r, i) => (
+              <div key={r.id} className={`ladder-row ${account && r.id === account.player.id ? "me" : ""}`}>
+                <span className={`ladder-pos ${i === 0 ? "gold" : ""}`}>{i === 0 ? <Crown size={16} /> : i + 1}</span>
+                <Avatar name={r.name} tint={r.tint} size={38} />
+                <div className="ladder-name">
+                  <strong>{r.name}</strong>
+                  <span className="fine">{provisionalText(r)} · {r.wins}–{r.losses}{account && r.id === account.player.id ? " · that's you" : ""}</span>
+                </div>
+                <div className="ladder-rating">{r.rating}</div>
+                <RankBadge rating={r.rating} />
+              </div>
+            ))}
+          </Card>
+        </>
+      )}
+
+      <div className="stat-head"><Bot size={16} /><span>House · you and the bots</span></div>
       <Card className="ladder">
         {rows.map((r, i) => (
           <div key={r.id} className={`ladder-row ${r.id === "you" ? "me" : ""}`}>
