@@ -50,7 +50,15 @@ export const BOOKS = [
 ];
 export const bookById = (id) => BOOKS.find(b => b.id === id) || null;
 
+/* A series is a set of lessons that read together across tiers. Lessons opt in
+   with `series` and order themselves with `chapter`. The Classic's chapters
+   and sayings live in content/classic.js. */
+export const SERIES = [
+  { key: "classic", name: "The Classic in Thirteen Chapters", by: "Zhang Ni, eleventh century" },
+];
+
 export const trackByKey = (key) => TRACKS.find(t => t.key === key) || null;
+export const seriesByKey = (key) => SERIES.find(s => s.key === key) || null;
 export const tierById = (id) => TIERS.find(t => t.id === id) || null;
 
 /** "30k" -> -30, "1k" -> -1, "1d" -> 1, "4d" -> 4. Anything else -> NaN. Ascending = stronger. */
@@ -89,6 +97,10 @@ export function bookProgressFor(profile, bookId) {
   }
   return out;
 }
+
+/** Lessons of a series in chapter order, whatever tier they sit in. */
+export const lessonsInSeries = (key) =>
+  LIBRARY.filter(l => l.series === key).sort((a, b) => (a.chapter || 0) - (b.chapter || 0));
 
 /** The learner's tier: the lowest tier they have neither passed nor finished every
  *  lesson of. Falls back to the lowest unpassed tier, then the last tier. */

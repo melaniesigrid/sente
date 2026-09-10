@@ -1,0 +1,42 @@
+{
+  "$comment": "Every corpus the build reads. `terms` quotes the source's own statement of rights; a master without one does not build. `aliases` are the player-name spellings the SGF headers use. `anonymous` masters ship with the manifest `name` only and no player name reaches any emitted file.",
+  "masters": [
+    {
+      "id": "shusaku",
+      "name": "Shusaku",
+      "years": [
+        1837,
+        1862
+      ],
+      "aliases": [
+        "Shusaku",
+        "Yasuda Eisai",
+        "Kuwahara Torajiro"
+      ],
+      "source": {
+        "url": "https://homepages.cwi.nl/~aeb/go/games/shusaku.tgz",
+        "page": "https://homepages.cwi.nl/~aeb/go/games/",
+        "terms": "I do not claim any rights on this collection. The games here are in the public domain.",
+        "expected": 470
+      }
+    },
+    {
+      "id": "jowa",
+      "name": "Jowa",
+      "years": [
+        1806,
+        1847
+      ],
+      "aliases": [
+        "Jowa",
+        "Kadono Matsunosuke"
+      ],
+      "source": {
+        "url": "https://homepages.cwi.nl/~aeb/go/games/jowa.tgz",
+        "page": "https://homepages.cwi.nl/~aeb/go/games/",
+        "terms": "I do not claim any rights on this collection. The games here are in the public domain.",
+        "expected": 297
+      }
+    }
+  ]
+}

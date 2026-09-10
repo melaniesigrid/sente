@@ -7,8 +7,10 @@ import { Card, Btn, Pill } from "../components/ui.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
 import {
   TIERS, TRACKS, BOOKS, lessonById, prereqsMissing, nextLessonFor, currentTierFor, searchLibrary,
-  lessonsInTier, lessonsInBook, bookProgressFor, trackByKey, isDone,
+  lessonsInTier, lessonsInBook, lessonsInSeries, bookProgressFor, trackByKey, isDone,
 } from "../content/library.js";
+import { CLASSIC, sayingOfTheDay } from "../content/classic.js";
+import { dayKey } from "../content/kata.js";
 import { saveProfile } from "../store/profile.js";
 import { rankOf } from "../content/rank.js";
 import { modelReady, kataChooseMoveForRecord, profileForRank } from "../engine/index.js";
@@ -187,6 +189,37 @@ function Shelf({ profile, onOpen }) {
   );
 }
 
+/* ----------------------- THE CLASSIC (series card) -----------------------
+   One saying a day from Zhang Ni's thirteen chapters, and the thirteen
+   lessons that teach them, in the book's order, whatever tier they sit in. */
+function ClassicCard({ done, onOpen }) {
+  const [openList, setOpenList] = useState(false);
+  const saying = sayingOfTheDay(dayKey());
+  const lessons = lessonsInSeries(CLASSIC.key);
+  const finished = lessons.filter(l => done(l.id)).length;
+  return (
+    <Card inset className="stack-sm">
+      <div className="stat-head"><Quote size={15} /><span>{CLASSIC.title}</span></div>
+      <p className="lesson-text">{saying.text}</p>
+      <p className="fine">Chapter {saying.chapter}, {saying.title}. {CLASSIC.author}, {CLASSIC.era}.</p>
+      <div className="row spread">
+        <span className="fine">{finished}/{lessons.length} chapters read</span>
+        <Btn icon={openList ? ChevronLeft : BookOpen} small onClick={() => setOpenList(o => !o)}>
+          {openList ? "Hide the chapters" : "Read the thirteen chapters"}
+        </Btn>
+      </div>
+      {openList && (
+        <div className="stack-sm">
+          <p className="fine">{CLASSIC.blurb} {CLASSIC.credit}</p>
+          <div className="grid2">
+            {lessons.map(l => <LessonCard key={l.id} lesson={l} done={done(l.id)} onOpen={onOpen} />)}
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+}
+
 /* ----------------------- LEARN (the library) ----------------------- */
 export function LearnView({ profile, setProfile }) {
   const [active, setActive] = useState(null);      // lesson id being played
@@ -269,6 +302,8 @@ export function LearnView({ profile, setProfile }) {
           <Btn icon={Play} primary small onClick={() => open(continueLesson)}>Start</Btn>
         </Card>
       )}
+
+      {!searching && <ClassicCard done={done} onOpen={open} />}
 
       <div className="library">
         {!searching && (

@@ -44,6 +44,10 @@ describe.each(fixtures)("fixture %s", (name, fx) => {
         const m = encodeMeta({ rank, boardArea: fx.size * fx.size });
         for (let i = 0; i < 192; i++) expect(m[i], `meta[${i}] for ${rank}`).toBeCloseTo(pos.meta[rank][i], 4);
       }
+      for (const year of Object.keys(pos.metaPro ?? {})) {
+        const m = encodeMeta({ pro: true, year: Number(year), boardArea: fx.size * fx.size });
+        for (let i = 0; i < 192; i++) expect(m[i], `metaPro[${i}] for ${year}`).toBeCloseTo(pos.metaPro[year][i], 4);
+      }
     });
   }
 });

@@ -1,0 +1,46 @@
+[
+  {
+    "id": "jowa",
+    "name": "Jowa",
+    "years": [
+      1806,
+      1847
+    ],
+    "anonymous": false,
+    "games": {
+      "total": 296,
+      "even": 201,
+      "dropped": 1
+    },
+    "book": {
+      "entries": 36
+    },
+    "bytes": 4218,
+    "source": {
+      "page": "https://homepages.cwi.nl/~aeb/go/games/",
+      "terms": "I do not claim any rights on this collection. The games here are in the public domain."
+    }
+  },
+  {
+    "id": "shusaku",
+    "name": "Shusaku",
+    "years": [
+      1837,
+      1862
+    ],
+    "anonymous": false,
+    "games": {
+      "total": 467,
+      "even": 349,
+      "dropped": 3
+    },
+    "book": {
+      "entries": 47
+    },
+    "bytes": 4660,
+    "source": {
+      "page": "https://homepages.cwi.nl/~aeb/go/games/",
+      "terms": "I do not claim any rights on this collection. The games here are in the public domain."
+    }
+  }
+]
