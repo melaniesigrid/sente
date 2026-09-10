@@ -4,7 +4,7 @@ import {
   parseSgfTree, parseSgf, recordFromSgf, toSgf, pointFromSgf, pointToSgf, resultToSgf,
   SgfParseError, MAX_SGF_BYTES,
 } from "./sgf.js";
-import { acceptScore, pass, createGame, play, replay } from "./record.js";
+import { acceptScore, pass, createGame, play, replay, timeout } from "./record.js";
 import { idx } from "./board.js";
 
 const fixture = (name) => readFileSync(new URL(`./fixtures/${name}`, import.meta.url), "utf8");
@@ -184,8 +184,23 @@ describe("toSgf", () => {
     expect(sgf).toContain(";B[]");
     expect(parseSgf(sgf).players).toEqual({ b: "A]B", w: "C:D" });
   });
-  it("writes the result for score, jigo and resignation", () => {
+  it("round-trips a win on time through RE", () => {
+    let g = createGame({ size: 9 });
+    g = play(g, 4, 4);
+    g = timeout(g, "w");
+    const sgf = toSgf(g);
+    expect(sgf).toContain("RE[B+T]");
+    const back = recordFromSgf(sgf);
+    expect(back.phase).toBe("ended");
+    expect(back.result).toEqual({ winner: "b", method: "time", margin: null, score: null });
+  });
+  it("does not read a scored B+3.5 as a flag", () => {
+    const back = recordFromSgf("(;FF[4]SZ[9]RE[B+3.5];B[ee])");
+    expect(back.phase).not.toBe("ended");
+  });
+  it("writes the result for score, jigo, resignation and time", () => {
     expect(resultToSgf({ method: "resign", winner: "w" })).toBe("W+R");
+    expect(resultToSgf({ method: "time", winner: "b" })).toBe("B+T");
     expect(resultToSgf({ method: "score", winner: null, margin: 0 })).toBe("0");
     expect(resultToSgf({ method: "score", winner: "b", margin: 3.5 })).toBe("B+3.5");
     expect(resultToSgf(null)).toBeNull();

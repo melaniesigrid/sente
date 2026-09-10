@@ -18,6 +18,7 @@ const side = (c) => (c === "b" ? "Black" : "White");
 export function resultLine(result) {
   if (!result) return null;
   if (result.method === "resign") return `${side(result.winner)} wins by resignation`;
+  if (result.method === "time") return `${side(result.winner)} wins on time`;
   const { b, w } = result.score.totals;
   if (result.winner === null) return `Jigo — ${b} : ${w}`;
   return result.winner === "b" ? `Black wins — ${b} : ${w}` : `White wins — ${w} : ${b}`;
@@ -59,13 +60,16 @@ export function captionText({ size, komi, handicap = 0, rated, duel = false }) {
 
 /* ----- the result card -----
    Honest arithmetic, every term visible: "41 stones + 3 territory = 44" against
-   "35 stones + 4 territory + 7.5 komi = 46.5". Resignations have no rows. */
+   "35 stones + 4 territory + 7.5 komi = 46.5". A resignation and a flag have no rows. */
 const plural = (n, word) => `${n} ${word}${n === 1 || word === "territory" ? "" : "s"}`;
 
 export function resultCard(result) {
   if (!result) return null;
   if (result.method === "resign") {
     return { headline: `${side(result.winner)} wins`, sub: "by resignation", rows: [] };
+  }
+  if (result.method === "time") {
+    return { headline: `${side(result.winner)} wins`, sub: "on time", rows: [] };
   }
   const s = result.score;
   const bParts = [plural(s.black.stones, "stone"), plural(s.black.territory, "territory")];

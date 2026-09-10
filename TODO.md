@@ -91,12 +91,12 @@ each fixed in its own commit:
 
 - [x] Lobby: choose 9/13/19 and handicap (branch `feat/board-sizes`, 2026-09-10); komi is the
       engine's default for the handicap, shown not typed; house players play every size.
-      The clock preset waits for the Clock UI item below.
+      The clock preset is a third row of the same card (2026-09-10).
 - [x] Game-end ceremony: after two passes enter scoring, tap groups to toggle dead, territory
       overlay, honest result card with every term ("41 stones + 3 territory = 44" vs
       "35 + 4 + 7.5 komi = 46.5"), a bow, and "Keep playing" to take both passes back.
 - [x] Resign with confirmation; result recorded honestly.
-- [ ] Clock UI: pressure states (low time colour shift, byo-yomi period pips), no chrome.
+- [x] Clock UI (2026-09-10, branch `feat/clock`): pressure states, byo-yomi pips, no chrome.
 - [ ] Review mode: scrub with arrows, move numbers overlay, variation tree, jump to capture.
 - [x] SGF export button on every finished game (result card). SGF import into review mode
       is still open.
@@ -115,6 +115,31 @@ Decisions made in Phase 3, lobby slice (branch `feat/board-sizes`):
   learn a new field and a rematch is always played on the board in front of you.
 - The daily duel stays 9x9 (`DUEL_SIZE`): results only compare on one board.
 - The board is drawn at 460, 560 or 680 px for 9, 13, 19; the stone scale never changes.
+
+Decisions made in Phase 3, clock slice (branch `feat/clock`):
+- Losing on time is a rule, so it is an engine transition (`timeout`) and not something
+  a view decides: it ends the game, the opponent wins, and it is as final as a
+  resignation. `RE[B+T]` carries it both ways through SGF.
+- A flag is rated exactly like a resignation. It settles through the same `conclude`,
+  so there is no special case to keep in step.
+- Against a house player only the human is timed; the bot's face reads "no clock". A
+  local bot's speed is a fact about the device and the model download, not about how
+  well it plays, so a win by its flag would not be a win anyone earned.
+- Pressure is read from the time a side can spend *now* — main time, or the current
+  byo-yomi period — so a player with five periods in hand is not shouted at.
+- Four presets and no more (None, Blitz, Standard, Long), one of each kind the engine
+  knows. A wall of time controls is a server's problem, not a table's.
+- The preset is part of the table device-preference in `sente-lobby`, beside size and
+  handicap, and rides on the record so a resumed game keeps its clock.
+- Which side's clock runs lives in `content/clockFace.js` (`runningSide`), not in the
+  hook, so the rule is unit-tested. `views/useClock.js` is the only part that knows
+  what a browser is.
+
+Open on the clock, next slice:
+- [ ] Persist elapsed time with the saved game. Today the clock is per-session, so
+      leaving a table and resuming it starts the clock over.
+- [ ] The clock in a daily duel, and on an online table: both need an agreed clock,
+      so they stay unclocked until the server owns the time.
 
 ## Delight (done 2026-09-09, branch `feat/rules-kernel`)
 
@@ -339,14 +364,17 @@ and one rule: the number on the card is measured, never claimed.
 - [x] `engine/style/features.js` (per-move and per-game axes as the plan fixes them, means,
       spread, z-distance) and `symmetries.js` (eight transforms, canonical hash, book key,
       inverse for the tie case), both tested (`feat/masters-pr1`, 2026-09-09).
-- [ ] `engine/style/prior.js`: a bounded prior applied to the sampler's kept candidates only (PR 2).
-- [ ] Eval offline in CI: Python dumps `proyear` logits for held-out positions; `eval.mjs`
+- [x] `engine/style/prior.js`: a bounded prior applied to the sampler's kept candidates only (PR 2, on main via PR #7).
+- [x] Eval offline in CI: Python dumps `proyear` logits for held-out positions; `eval.mjs`
       scores arms (baseline, plus book, plus prior) and commits `eval.json`. The prior ships
       only if it beats the book alone on top-1 agreement and style distance.
-- [ ] Bot seam: `profile.master` = book override in the opening, then `proyear` with the
+- [x] Bot seam: `profile.master` = book override in the opening, then `proyear` with the
       prior; `StyleDataError` (missing JSON, non-19x19) falls back to `proyear` in rated
-      games and to "host unreachable" in a duel. Masters row in the lobby, 19x19 only,
-      hidden without the index, style match read from `eval.json`.
+      games and to "host unreachable" in a duel. (PR 2; reached main only via PR #7 —
+      see the merge warning in the handoff doc.)
+- [ ] Masters row in the lobby, 19x19 only, hidden without the index, style match read
+      from `eval.json`. Unblocked 2026-09-10: the board-size picker landed in PR #15.
+      This is the last thing between the bot seam and a player being able to use it.
 - [x] Step types `replay` (embedded moves and stops; scoring is data: the master's move for
       full credit, precomputed `strong` moves for partial, refutations played out; `scored`
       status so a stop is never scored twice; Try again returns to the stop) and `maxim` in

@@ -164,6 +164,20 @@ export function resign(rec, color = rec.toPlay) {
   };
 }
 
+/** `color` ran out of time. Losing on time is a rule, so it lives here and not in a
+ *  view: the flag ends the game and the opponent wins. Legal from `playing` and from
+ *  `scoring`, like a resignation, and equally final. */
+export function timeout(rec, color = rec.toPlay) {
+  assertPhase(rec, "timeout", "playing", "scoring");
+  if (color !== "b" && color !== "w") throw new IllegalMoveError("bad-color", { color });
+  return {
+    ...rec,
+    moves: [...rec.moves, { type: "timeout", color }],
+    phase: "ended",
+    result: { winner: opponent(color), method: "time", margin: null, score: null },
+  };
+}
+
 /** Toggle the dead flag on the whole chain at (c, r). Only meaningful while scoring. */
 export function markDead(rec, c, r) {
   assertPhase(rec, "markDead", "scoring");
@@ -208,6 +222,7 @@ export function replay(rec, moves = rec.moves) {
     if (mv.type === "play") out = play(out, mv.c, mv.r, mv.color);
     else if (mv.type === "pass") out = pass(out, mv.color);
     else if (mv.type === "resign") out = resign(out, mv.color);
+    else if (mv.type === "timeout") out = timeout(out, mv.color);
     else throw new IllegalMoveError("unknown-move", { move: mv });
     if (mv.comment) out = withMoveComment(out, mv.comment);
   }
@@ -233,6 +248,7 @@ export function resultText(rec) {
   const res = rec.result;
   if (!res) return null;
   if (res.method === "resign") return `${res.winner === "b" ? "Black" : "White"} wins by resignation`;
+  if (res.method === "time") return `${res.winner === "b" ? "Black" : "White"} wins on time`;
   if (res.winner === null) return "Jigo";
   return `${res.winner === "b" ? "Black" : "White"} wins by ${res.margin}`;
 }

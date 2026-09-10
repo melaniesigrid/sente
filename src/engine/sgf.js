@@ -9,7 +9,7 @@
      recordFromSgf(text) -> a GameRecord built by replaying the main line through the rules
      toSgf(record)       -> main line only (records have no variations yet) */
 
-import { createGame, play, pass, resign, withMoveComment, IllegalMoveError } from "./record.js";
+import { createGame, play, pass, resign, timeout, withMoveComment, IllegalMoveError } from "./record.js";
 
 export const MAX_SGF_BYTES = 256 * 1024;
 
@@ -198,6 +198,9 @@ export function recordFromSgf(text) {
   if (g.result && /^[BW]\+R(esign)?$/i.test(g.result) && rec.phase !== "ended") {
     rec = resign(rec, g.result[0].toUpperCase() === "B" ? "w" : "b");
   }
+  if (g.result && /^[BW]\+T(ime)?$/i.test(g.result) && rec.phase !== "ended") {
+    rec = timeout(rec, g.result[0].toUpperCase() === "B" ? "w" : "b");
+  }
   return rec;
 }
 
@@ -208,6 +211,7 @@ const esc = (s) => String(s).replace(/([\]\\:])/g, "\\$1");
 export function resultToSgf(result) {
   if (!result) return null;
   if (result.method === "resign") return `${result.winner.toUpperCase()}+R`;
+  if (result.method === "time") return `${result.winner.toUpperCase()}+T`;
   if (result.winner === null) return "0";
   return `${result.winner.toUpperCase()}+${result.margin}`;
 }
@@ -223,7 +227,7 @@ export function toSgf(rec) {
   if (rec.setup.w.length) out += "AW" + rec.setup.w.map(([c, r]) => `[${pointToSgf(c, r)}]`).join("");
   if (rec.comment) out += `C[${esc(rec.comment)}]`;
   for (const mv of rec.moves) {
-    if (mv.type === "resign") continue; // carried by RE
+    if (mv.type === "resign" || mv.type === "timeout") continue; // carried by RE
     const id = mv.color === "b" ? "B" : "W";
     out += `\n;${id}[${mv.type === "pass" ? "" : pointToSgf(mv.c, mv.r)}]`;
     if (mv.comment) out += `C[${esc(mv.comment)}]`;
