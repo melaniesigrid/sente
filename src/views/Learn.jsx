@@ -6,8 +6,8 @@ import { Board } from "../components/Board.jsx";
 import { Card, Btn, Pill } from "../components/ui.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
 import {
-  TIERS, TRACKS, lessonById, prereqsMissing, nextLessonFor, currentTierFor, searchLibrary,
-  lessonsInTier, trackByKey, isDone,
+  TIERS, TRACKS, BOOKS, lessonById, prereqsMissing, nextLessonFor, currentTierFor, searchLibrary,
+  lessonsInTier, lessonsInBook, bookProgressFor, trackByKey, isDone,
 } from "../content/library.js";
 import { saveProfile } from "../store/profile.js";
 import { rankOf } from "../content/rank.js";
@@ -158,6 +158,35 @@ function LessonCard({ lesson, done, onOpen }) {
   );
 }
 
+/* ----------------------- THE SHELF -----------------------
+   Books are a grouping over lessons that carry `book`; a book with no lessons yet
+   says so and takes no space beyond its line. Guess-the-move points come from
+   `bookProgress`, the best run per study. */
+function Shelf({ profile, onOpen }) {
+  const rows = BOOKS.map(b => ({ book: b, lessons: lessonsInBook(b.id), progress: bookProgressFor(profile, b.id) }));
+  return (
+    <div className="stack-sm shelf">
+      <div className="stat-head track-head"><span>The shelf</span><span className="fine track-trains">Books as kata: forms drilled until they can be broken on purpose</span></div>
+      {rows.map(({ book, lessons, progress }) => (
+        <Card key={book.id} inset className="shelf-book">
+          <div className="resume-copy">
+            <div className="stat-head"><BookOpen size={15} /><span>{book.name}</span>
+              {progress.total > 0 && <span className="fine">{progress.score}/{progress.total} pts</span>}
+            </div>
+            <span className="fine">{book.blurb}</span>
+            {lessons.length === 0 && <span className="fine">Not on the shelf yet.</span>}
+          </div>
+          {lessons.length > 0 && (
+            <div className="grid2">
+              {lessons.map(l => <LessonCard key={l.id} lesson={l} done={isDone(profile, l.id)} onOpen={onOpen} />)}
+            </div>
+          )}
+        </Card>
+      ))}
+    </div>
+  );
+}
+
 /* ----------------------- LEARN (the library) ----------------------- */
 export function LearnView({ profile, setProfile }) {
   const [active, setActive] = useState(null);      // lesson id being played
@@ -275,6 +304,7 @@ export function LearnView({ profile, setProfile }) {
               </div>
             </div>
           ))}
+          {!searching && <Shelf profile={profile} onOpen={open} />}
         </div>
       </div>
     </div>
