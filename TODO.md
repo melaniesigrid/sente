@@ -103,8 +103,9 @@ each fixed in its own commit:
 - [ ] Variation tree in review: the record holds a main line only. Branching needs a
       record that can carry alternatives (`parseSgf(...).tree` already parses them), and
       that is a rules-kernel change before it is a view.
-- [x] SGF export button on every finished game (result card). SGF import into review mode
-      is still open.
+- [x] SGF export button on every finished game (result card), and SGF import into
+      review from Home (2026-09-10, branch `feat/sgf-import`): drop a file or choose
+      one; it never leaves the device.
 - [ ] Coordinates toggle (A–T minus I / 1–19) and last-move marker preference.
 - [ ] Onboarding for a first-time visitor: name and tint, then a 10-move guided demo.
 - [ ] Keyboard at the table: P pass, U undo. Arrows scrub in review already (2026-09-10:
@@ -124,6 +125,13 @@ Decisions made in Phase 3, lobby slice (branch `feat/board-sizes`):
 - The board is drawn at 460, 560 or 680 px for 9, 13, 19; the stone scale never changes.
 
 Decisions made in Phase 3, review slice (branch `feat/review-mode`):
+- An SGF from the wild is untrusted input, so every judgment about one lives in
+  `views/sgfImport.js` where it is tested, and the file input only fetches text.
+  Every refusal is named: which byte, which move, which board size. Nothing says
+  "invalid file".
+- A file that parses but claims an illegal move is told apart from a malformed one
+  structurally — parse first, then replay — rather than by reading the wording of
+  the engine's error. The two deserve different sentences.
 - Every reviewed position is `replay`ed from the record's own log by `engine/review.js`,
   never reconstructed a second way, so review shows the position that was really there
   and a tampered log is refused rather than drawn.
