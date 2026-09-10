@@ -212,6 +212,14 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
 - [ ] SGF authoring pipeline: build-time script turns SGF with comments into steps.
 - [ ] Tier 4 Craftsman and Tier 5 Master authored (20 lessons, 19x19).
 - [ ] Tier 6 Dan authored (8 lessons; the last needs Phase 4 analysis).
+- [x] The Classic in Thirteen Chapters (2026-09-10): Zhang Ni's eleventh-century treatise as a
+      lesson series, one engine-verified lesson per chapter spread over tiers 2 to 5
+      (`series`/`chapter` fields, `lessonsInSeries`), plus `content/classic.js` with the
+      chapters and Sente's own renderings of its sayings: a saying of the day on Learn and
+      a few new lines for Moku. Tiers 2 to 5 now each hold their Classic lessons; the rest
+      of their syllabus is still open.
+- [ ] Surface the saying of the day on Home (the card is built in `Learn.jsx` as
+      `ClassicCard`; lift it to a shared component).
 - [ ] Tsumego graded 30k → 5k with categories and a daily set (reuses the verifier).
 - [ ] Spaced repetition: finished quiz steps enter a recall queue; "Review five" card on Home.
 - [ ] Joseki and opening library for 9×9 and 19×19.
