@@ -3,11 +3,11 @@
    this is the authoring safety net from docs/designs/lesson-library.md. */
 import { describe, it, expect } from "vitest";
 import { tryPlay, chainAt, idx, opponent } from "../engine/index.js";
-import { LIBRARY, TIERS, TRACKS, SERIES, rankToNumber, lessonById, prereqsMissing, nextLessonFor, currentTierFor, searchLibrary, lessonsInTier, lessonsInSeries, lessonAfter } from "./library.js";
+import { LIBRARY, TIERS, TRACKS, BOOKS, SERIES, bookById, rankToNumber, lessonById, prereqsMissing, nextLessonFor, currentTierFor, searchLibrary, lessonsInTier, lessonsInBook, lessonsInSeries, lessonAfter, bookProgressFor } from "./library.js";
 import { LESSONS } from "./lessons.js";
 import { setupToBoard } from "./positions.js";
 
-const STEP_TYPES = ["info", "quiz", "sequence", "choice", "count"];
+const STEP_TYPES = ["info", "quiz", "sequence", "choice", "count", "replay", "maxim"];
 const SIZES = [9, 13, 19];
 const at = (board, p) => board.cells[idx(board.size, p.c, p.r)];
 
@@ -20,8 +20,9 @@ function legalPosition(board) {
   return null;
 }
 
-/** Play a scripted line from `board`, alternating from `color`; returns an error string or null. */
-function replayLine(board, color, moves) {
+/** Play a scripted line from `board`, alternating from `color`; returns an error string or
+ *  null, or with `wantBoard` the board the line ends on. */
+function replayLine(board, color, moves, wantBoard = false) {
   let b = board, ko = null;
   for (let i = 0; i < moves.length; i++) {
     const m = moves[i];
@@ -29,6 +30,7 @@ function replayLine(board, color, moves) {
     if (!res.ok) return `move ${i + 1} (${m.c},${m.r}) for ${color} is illegal: ${res.reason}`;
     b = res.board; ko = res.ko; color = opponent(color);
   }
+  if (wantBoard) return b;
   return null;
 }
 
@@ -97,6 +99,10 @@ describe.each(LIBRARY.map(l => [l.id, l]))("lesson %s", (id, lesson) => {
     }
   });
 
+  it("names a known book, if it is on the shelf", () => {
+    if (lesson.book !== undefined) expect(bookById(lesson.book), `book ${lesson.book}`).not.toBeNull();
+  });
+
   it("prerequisites exist, sit in the same or a lower tier, and form no cycle", () => {
     for (const p of lesson.prereqs) {
       const pre = lessonById(p);
@@ -121,6 +127,11 @@ describe.each(LIBRARY.map(l => [l.id, l]))("lesson %s", (id, lesson) => {
       for (const c of s.commentary || []) texts.push(c);
       for (const r of s.refutations || []) texts.push(r.text);
       for (const o of s.options || []) texts.push(o.text);
+      for (const k of ["line", "analogy", "partial"]) if (s[k]) texts.push(s[k]);
+      for (const st of s.stops || []) {
+        for (const k of ["text", "success", "partial", "hint"]) if (st[k]) texts.push(st[k]);
+        for (const r of st.refutations || []) texts.push(r.text);
+      }
     }
     for (const t of texts) expect(t, t).not.toMatch(/!/);
   });
@@ -185,6 +196,47 @@ describe.each(LIBRARY.map(l => [l.id, l]))("lesson %s", (id, lesson) => {
       });
     }
 
+    if (step.type === "replay") {
+      it("replays every move legally and stops on the master's moves with scored answers", () => {
+        expect(step.moves.length).toBeGreaterThan(0);
+        expect(step.success).toBeTruthy();
+        expect(replayLine(board, step.toPlay, step.moves)).toBeNull();
+        expect(step.stops.length).toBeGreaterThan(0);
+        const side = step.stops[0].at % 2;
+        let last = -1;
+        for (const stop of step.stops) {
+          expect(stop.at).toBeGreaterThan(last);
+          expect(stop.at).toBeLessThan(step.moves.length);
+          expect(stop.at % 2, `stop ${stop.at} is not the master's move`).toBe(side);
+          last = stop.at;
+          expect(stop.text).toBeTruthy();
+          expect(stop.success).toBeTruthy();
+          const his = step.moves[stop.at];
+          expect(stop.answers.some(a => a.c === his.c && a.r === his.r), `stop ${stop.at}: answers lack his move`).toBe(true);
+          const pos = replayLine(board, step.toPlay, step.moves.slice(0, stop.at), true);
+          const color = stop.at % 2 === 0 ? step.toPlay : opponent(step.toPlay);
+          for (const a of stop.answers) expect(tryPlay(pos, a.c, a.r, color).ok, `stop ${stop.at} answer (${a.c},${a.r})`).toBe(true);
+          expect((stop.strong || []).length).toBeLessThanOrEqual(3);
+          for (const s of stop.strong || []) {
+            expect(stop.answers.some(a => a.c === s.c && a.r === s.r)).toBe(false);
+            expect(tryPlay(pos, s.c, s.r, color).ok, `stop ${stop.at} strong (${s.c},${s.r})`).toBe(true);
+          }
+          for (const rf of stop.refutations || []) {
+            expect(stop.answers.some(a => a.c === rf.move.c && a.r === rf.move.r)).toBe(false);
+            expect(rf.text).toBeTruthy();
+            expect(replayLine(pos, color, rf.reply ? [rf.move, rf.reply] : [rf.move])).toBeNull();
+          }
+        }
+      });
+    }
+
+    if (step.type === "maxim") {
+      it("carries the line and its analogy over a legal position", () => {
+        expect(step.line).toBeTruthy();
+        expect(step.analogy).toBeTruthy();
+      });
+    }
+
     if (step.type === "count") {
       it("asks a question with a numeric answer and tolerance", () => {
         expect(step.question).toBeTruthy();
@@ -193,6 +245,15 @@ describe.each(LIBRARY.map(l => [l.id, l]))("lesson %s", (id, lesson) => {
         expect(step.success).toBeTruthy();
       });
     }
+  });
+});
+
+describe("shelf helpers", () => {
+  it("has three books and sums a book's replay progress, ignoring unknown ids", () => {
+    expect(BOOKS.map(b => b.id)).toEqual(["proverbs", "masters", "classic"]);
+    expect(lessonsInBook("nope")).toEqual([]);
+    const p = bookProgressFor({ bookProgress: { ghost: { stops: 9, score: 9, total: 9 } } }, "masters");
+    expect(p).toEqual({ stops: 0, score: 0, total: lessonsInBook("masters").reduce((s, l) => s + l.steps.filter(x => x.type === "replay").reduce((t, x) => t + 2 * x.stops.length, 0), 0) });
   });
 });
 

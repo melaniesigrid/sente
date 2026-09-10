@@ -226,6 +226,9 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
 
 ## Phase 6 — Masters and books
 
+Handoff for whoever continues: `docs/handoff/masters-2026-09-09.md` (state of PRs #4, #5, #6,
+the running logit dump, what is unfinished, gotchas).
+
 Plan: `docs/designs/masters-and-books.md` (CEO review plus adversarial spec review,
 2026-09-09). Two asks on one foundation: a corpus of public-domain master games, measured,
 and one rule: the number on the card is measured, never claimed.
@@ -250,10 +253,12 @@ and one rule: the number on the card is measured, never claimed.
       prior; `StyleDataError` (missing JSON, non-19x19) falls back to `proyear` in rated
       games and to "host unreachable" in a duel. Masters row in the lobby, 19x19 only,
       hidden without the index, style match read from `eval.json`.
-- [ ] Step types `replay` (embedded moves and stops; scoring is data: the master's move,
-      precomputed dan top three for partial credit; lazy display-only "at your level" panel)
-      and `maxim` (a public-domain line, its analogy, one verified position). Book lessons
-      live in `LIBRARY` with a `book` key; `bookProgress` in the profile.
+- [x] Step types `replay` (embedded moves and stops; scoring is data: the master's move for
+      full credit, precomputed `strong` moves for partial, refutations played out; `scored`
+      status so a stop is never scored twice; Try again returns to the stop) and `maxim` in
+      `lessonStep.js`, the verifier branches, the "at your level" line when the network is
+      already loaded, and `bookProgress` in the profile with its sanitiser (`feat/masters-pr3`,
+      2026-09-09). Content is the next item.
 - [ ] Shelf v1: ten proverbs with the karate framing, two game studies (Shusaku vs Gennan
       Inseki 1846, Jowa vs Akaboshi Intetsu 1835). Then the Classic of Weiqi in Thirteen
       Chapters, thirteen lessons. Reading room names modern books, quotes nothing.

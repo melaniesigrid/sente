@@ -328,6 +328,12 @@ export const CSS = `
 .search-row { align-items: center; gap: 8px; flex: 0 1 300px; }
 .search-icon { flex: none; opacity: .5; }
 .count-row { margin-top: 12px; }
+.maxim-line { font-family: "Fraunces", Georgia, serif; font-size: 19px; line-height: 1.5; font-style: italic; margin: 0 0 8px; display: flex; gap: 8px; align-items: baseline; }
+.maxim-line svg { flex: none; opacity: .5; transform: translateY(2px); }
+.maxim-analogy { margin: 0 0 12px; }
+.shelf { margin-top: 18px; }
+.shelf-book { display: flex; flex-direction: column; gap: 12px; }
+.shelf-book .stat-head .fine { margin-left: auto; }
 @media (max-width: 760px) { .tier-rail { flex-direction: row; flex-wrap: wrap; flex-basis: 100%; } }
 
 /* ---- shell: resume + error cards ---- */

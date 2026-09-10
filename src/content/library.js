@@ -41,6 +41,15 @@ export const TRACKS = [
   { key: "judgement", name: "Judgement", trains: "Counting the board, choosing the biggest move, when to tenuki, reading depth" },
 ];
 
+/** The shelf: a book is a grouping over lessons that carry `book: <id>`. Lessons keep
+ *  their tier and rank; the shelf is another way in. */
+export const BOOKS = [
+  { id: "proverbs", name: "The Proverbs", blurb: "Folk wisdom as kata: a fixed form drilled until it can be broken on purpose." },
+  { id: "masters", name: "Games of the Masters", blurb: "Guess the move across a famous game, then sit across from him." },
+  { id: "classic", name: "The Classic of Weiqi in Thirteen Chapters", blurb: "Zhang Ni, c. 1050, in original words, one verified position per maxim." },
+];
+export const bookById = (id) => BOOKS.find(b => b.id === id) || null;
+
 /* A series is a set of lessons that read together across tiers. Lessons opt in
    with `series` and order themselves with `chapter`. The Classic's chapters
    and sayings live in content/classic.js. */
@@ -75,6 +84,19 @@ export function prereqsMissing(lesson, profile) {
 }
 
 export const lessonsInTier = (tier) => LIBRARY.filter(l => l.tier === tier);
+export const lessonsInBook = (bookId) => LIBRARY.filter(l => l.book === bookId);
+
+/** Guess-the-move points across a book's replays: stops scored, points, and the
+ *  points on offer. Unknown lesson ids in the profile count nothing. */
+export function bookProgressFor(profile, bookId) {
+  const out = { stops: 0, score: 0, total: 0 };
+  for (const l of lessonsInBook(bookId)) {
+    const p = (profile.bookProgress || {})[l.id];
+    if (p) { out.stops += p.stops; out.score += p.score; }
+    for (const s of l.steps) if (s.type === "replay") out.total += 2 * s.stops.length;
+  }
+  return out;
+}
 
 /** Lessons of a series in chapter order, whatever tier they sit in. */
 export const lessonsInSeries = (key) =>
