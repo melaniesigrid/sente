@@ -219,6 +219,21 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
   the "exit tests as lobby presets" item. `tierPassed` is on the profile but unused.
 - Learner's current tier = lowest tier not passed and not fully finished.
 - [ ] Tier exit tests as lobby presets, recorded in the profile.
+- [x] Lesson flow and player polish (2026-09-10; directive: `docs/designs/lesson-flow.md`).
+      Timers move stones, never words: everything a step says accrues in `state.log`
+      (`{ tone, text, verdict? }`) and is cleared by leaving the step, not by a clock and
+      not by Reset position. `clearWrong` now drops only the board marker. A refutation
+      says why as the stone lands, then the punishment arrives under the words. Sequences
+      of four moves or more (`GATE_FROM`) wait for the learner's "Play the reply" instead
+      of a 400ms timer; shorter ones reply at 600ms, or instantly under
+      `prefers-reduced-motion`. The player keeps one state per step, so Back, the clickable
+      stepper and re-entry from the library all find a solved step solved, transcript and
+      all (`SESSIONS`, session memory only). `Show me` (`reveal`) plays the answer out after
+      two misses and marks the step `revealed` so the recap stays honest. The hint is a
+      per-step disclosure that a miss opens, so `wrongTextFor` no longer falls back to the
+      hint and no sentence is said twice. One `.response` block carries all three tones,
+      and finishing a lesson shows a recap plus the next lesson instead of dropping the
+      learner back in the grid.
 - [ ] Tier 2 Apprentice and Tier 3 Journeyman authored (20 lessons, 9/13/19).
 - [ ] SGF authoring pipeline: build-time script turns SGF with comments into steps.
 - [ ] Tier 4 Craftsman and Tier 5 Master authored (20 lessons, 19x19).

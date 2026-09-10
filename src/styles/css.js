@@ -326,6 +326,80 @@ ${SIGNATURE_FACE}
 .lesson-meta p { font-size: 13px; opacity: .65; margin: 0; }
 .lesson-state { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; box-shadow: var(--sink-sm); }
 .lesson-state.done { color: var(--accent); }
+
+/* ---- the lesson player ----
+   One response block for every tone, a stepper that shows the shape of the
+   lesson, and a footer inside the card so the controls belong to it. */
+.lesson-card-body { display: flex; flex-direction: column; }
+.lesson-head { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0 0 2px; letter-spacing: var(--display-tracking); }
+.step-count { margin-bottom: 12px !important; letter-spacing: .04em; }
+
+.step-rail { display: flex; align-items: center; gap: 5px; padding: 8px 12px; border-radius: 999px; box-shadow: var(--sink-sm); }
+.step-seg {
+  width: 22px; height: 5px; border-radius: 3px; border: 0; padding: 0;
+  background: var(--ink); opacity: .15; cursor: default;
+  transition: opacity .2s ease, background .2s ease, transform .2s ease;
+}
+.step-seg.visited { opacity: .34; cursor: pointer; }
+.step-seg.done { background: var(--accent); opacity: .6; }
+.step-seg.current { opacity: 1; transform: scaleY(1.8); }
+.step-seg.visited:hover { opacity: .8; }
+.step-seg:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.hint-block { margin-top: 12px; }
+.hint-toggle {
+  display: inline-flex; align-items: center; gap: 7px; border: 0; cursor: pointer;
+  background: var(--ground); color: var(--ink); opacity: .7;
+  padding: 6px 12px; border-radius: 999px; box-shadow: var(--raise-sm);
+  font: 600 12px var(--font-body); letter-spacing: .04em;
+  transition: opacity .15s ease, box-shadow .15s ease;
+}
+.hint-toggle:hover { opacity: 1; }
+.hint-toggle:disabled { box-shadow: var(--sink-sm); cursor: default; opacity: .55; }
+.hint-text { margin-top: 9px !important; padding-left: 2px; animation: rise-l .28s ease; }
+
+.log { display: flex; flex-direction: column; gap: 9px; margin-top: 14px; }
+.log.reserve { min-height: 74px; }
+.response {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 11px 13px 11px 12px; border-radius: 5px 14px 14px 5px;
+  box-shadow: var(--sink-sm); border-left: 3px solid var(--rule);
+  animation: rise-l .26s ease;
+}
+.response svg { flex: none; transform: translateY(3px); color: var(--rule); }
+.response .lesson-text { font-size: 14px; }
+.response.tone-success { --rule: var(--accent); }
+.response.tone-correction { --rule: var(--danger); }
+.response.tone-verdict { --rule: rgba(75,70,60,.42); }
+.response.tone-commentary { --rule: rgba(75,70,60,.24); }
+.response.tone-commentary .lesson-text { opacity: .84; }
+.verdict-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--accent); margin-right: 8px;
+}
+.log-next {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px;
+  border: 0; cursor: pointer; background: var(--ground); color: var(--accent);
+  padding: 8px 14px; border-radius: 999px; box-shadow: var(--raise-sm);
+  font: 700 12px var(--font-body); letter-spacing: .05em;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.log-next:hover { transform: translateX(2px); }
+.log-next:active { box-shadow: var(--sink-sm); }
+
+.lesson-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  flex-wrap: wrap; margin-top: 18px; padding-top: 15px;
+  border-top: 1px solid var(--dark); border-top-color: rgba(75,70,60,.14);
+}
+.lesson-foot .row { gap: 12px; }
+
+.recap { list-style: none; padding: 0; margin: 10px 0 0; display: flex; flex-direction: column; gap: 10px; }
+.recap li { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 1.55; }
+.recap li svg { flex: none; transform: translateY(3px); color: var(--accent); }
+.recap li.shown { opacity: .72; }
+.recap li.shown svg { color: var(--ink); opacity: .6; }
+
 .hint-row, .wrong-row, .success-row { display: flex; gap: 8px; align-items: baseline; margin-top: 12px !important; }
 .hint-row svg, .success-row svg, .wrong-row svg { flex: none; transform: translateY(2px); }
 .wrong-row { color: var(--danger); opacity: 1; }
