@@ -764,6 +764,45 @@ Open:
       was drawn for had already been replaced by `Passage`. Reopen it against the passages,
       or retire it.
 
+## Coaching (in progress, branch `feat/shape-coaching`)
+
+Design and reasoning: `docs/designs/coaching-shape-commentary.md` (office hours, 2026-09-10,
+APPROVED after three review rounds). The order is deliberate: an experiment, then the club,
+then the archive, then Neo-Human.
+
+- [x] `src/engine/shape.js` — pure shape detection local to the move just played. Three
+      shapes: `empty-triangle`, `tigers-mouth`, `dumpling`. No board sweep; the four 2x2
+      windows around the move plus the move's empty neighbours.
+- [x] `src/engine/shape.test.js` — 21 cases including the collisions. A tiger's mouth is
+      defined on the mouth point (exactly one on-board neighbour empty, the rest mine), not
+      as a 2x2 pattern, because a 2x2 with three of my stones and one gap is the empty
+      triangle and nothing else. A dumpling is a solid 2x2 block containing the move, not a
+      liberty ratio: a 2x2 in the open has 8 liberties over 4 stones, so any ratio low
+      enough to be distinctive is an atari warning, which the belts deliberately remove.
+- [x] `src/content/commentary.js` — the voice. Lines per shape with `default` plus persona
+      overrides, `PACING`, and a pure `chooseRemark`. No exclamation marks: the opponent is
+      excitable, the coach is calm.
+- [x] `src/content/commentary.test.js` — coverage, voice rules, and the pacing arithmetic.
+
+Open, and all of it in `Game.jsx`:
+- [ ] Wire it into the view: `detectShapes` after the human's move, `chooseRemark`, `say()`.
+      Chat pane only — not `withMoveComment`. `botTurn(r)` closes over its own record and
+      later does `setRec(conclude(next, r))`, so any `setRec` issued after `botTurn(next)`
+      is silently dropped. Record-writing waits for the archive.
+- [ ] The coaching toggle. Per game, off by default, sticky once armed: a coached game is
+      unrated for its whole life and the toggle disables itself. Three plumbing sites — the
+      rating branch in `conclude`, the caption's `rated` argument (already
+      `!!persona && !duel && !master`, so coaching is one more `&&`), and the result-card
+      fine print.
+- [ ] `coaching` and the `spoken` map into the `gameStore` blob, read tolerantly with a
+      default of `false`. Without it a resumed coaching game comes back rated, which is the
+      dishonesty the toggle exists to prevent.
+- [ ] Play ten games. Answer: delightful or annoying. Everything after this waits on that.
+
+Later, in order: the club and chat, then the game archive (cap, eviction, localStorage
+versus Durable Objects — all open), then Neo-Human pair go, which is a seat-model change in
+the multiplayer Worker and is unrated for the same reason coached games are.
+
 ## Principles (do not trade away)
 
 - Rules live in the engine, never in a view.
