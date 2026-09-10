@@ -7,7 +7,7 @@ import { Card, Btn, Pill } from "../components/ui.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
 import {
   TIERS, TRACKS, lessonById, prereqsMissing, nextLessonFor, currentTierFor, searchLibrary,
-  lessonsInTier, trackByKey, isDone, lessonsInSeries,
+  lessonsInTier, trackByKey, isDone, lessonsInSeries, lessonAfter,
 } from "../content/library.js";
 import { CLASSIC, sayingOfTheDay } from "../content/classic.js";
 import { dayKey } from "../content/kata.js";
@@ -17,7 +17,7 @@ import { initStep, stepReducer, marksFor, boardLocked, VERDICT_LABELS } from "./
 /* ----------------------- LESSON PLAYER -----------------------
    Thin: all step behaviour lives in lessonStep.js. This component draws the
    state and runs whatever `pending` timer the reducer asks for. */
-function LessonPlayer({ lesson, onDone, onExit }) {
+function LessonPlayer({ lesson, nextLesson, onDone, onExit }) {
   const [stepIdx, setStepIdx] = useState(0);
   const step = lesson.steps[stepIdx];
   const [state, setState] = useState(() => initStep(lesson, step));
@@ -94,9 +94,12 @@ function LessonPlayer({ lesson, onDone, onExit }) {
             )}
             {!solved && step.type !== "info"
               ? <Btn icon={RotateCcw} small onClick={() => loadStep(stepIdx)}>Reset position</Btn>
-              : <Btn icon={isLast ? Check : ChevronRight} primary onClick={next}>
-                {isLast ? "Complete lesson" : "Continue"}
+              : <Btn icon={isLast && !nextLesson ? Check : ChevronRight} primary onClick={next}>
+                {!isLast ? "Continue" : nextLesson ? `Next: ${nextLesson.title}` : "Complete lesson"}
               </Btn>}
+            {solved && isLast && nextLesson && (
+              <Btn icon={Check} small onClick={() => onDone({ stay: false })}>Finish and stop</Btn>
+            )}
           </div>
         </div>
       </div>
@@ -166,13 +169,15 @@ export function LearnView({ profile, setProfile }) {
     if (missing.length) setPending({ lesson, missing });
     else { setPending(null); setActive(lesson.id); }
   };
-  const finish = (lesson) => {
+  // Finishing records the lesson and, unless asked to stop, opens the next one.
+  const finish = (lesson, { stay = true } = {}) => {
     setProfile(p => {
       const np = { ...p, lessonsDone: [...new Set([...p.lessonsDone, lesson.id])] };
       saveProfile(np);
       return np;
     });
-    setActive(null);
+    const after = stay ? lessonAfter(lesson) : null;
+    setActive(after ? after.id : null);
   };
 
   const results = useMemo(() => searchLibrary(query), [query]);
@@ -186,7 +191,10 @@ export function LearnView({ profile, setProfile }) {
 
   if (active) {
     const lesson = lessonById(active);
-    return <LessonPlayer key={active} lesson={lesson} onExit={() => setActive(null)} onDone={() => finish(lesson)} />;
+    return (
+      <LessonPlayer key={active} lesson={lesson} nextLesson={lessonAfter(lesson)}
+        onExit={() => setActive(null)} onDone={(opts) => finish(lesson, opts)} />
+    );
   }
 
   return (

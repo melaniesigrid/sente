@@ -3,7 +3,7 @@
    this is the authoring safety net from docs/designs/lesson-library.md. */
 import { describe, it, expect } from "vitest";
 import { tryPlay, chainAt, idx, opponent } from "../engine/index.js";
-import { LIBRARY, TIERS, TRACKS, SERIES, rankToNumber, lessonById, prereqsMissing, nextLessonFor, currentTierFor, searchLibrary, lessonsInTier, lessonsInSeries } from "./library.js";
+import { LIBRARY, TIERS, TRACKS, SERIES, rankToNumber, lessonById, prereqsMissing, nextLessonFor, currentTierFor, searchLibrary, lessonsInTier, lessonsInSeries, lessonAfter } from "./library.js";
 import { LESSONS } from "./lessons.js";
 import { setupToBoard } from "./positions.js";
 
@@ -216,6 +216,14 @@ describe("library helpers", () => {
     expect(currentTierFor({ lessonsDone: [], tierPassed: [1] })).toBe(2);
     const allTier1 = lessonsInTier(1).map(l => l.id);
     expect(currentTierFor({ lessonsDone: allTier1, tierPassed: [] })).toBe(2);
+  });
+  it("lessonAfter follows the series, else library order, and ends with null", () => {
+    expect(lessonAfter(lessonById("liberties")).id).toBe("no-liberty-capture");
+    expect(lessonAfter(lessonById("classic-board")).id).toBe("classic-calculation");
+    expect(lessonAfter(lessonById("classic-territory")).id).toBe("classic-conflict"); // chapter order, not tier order
+    expect(lessonAfter(lessonById("classic-miscellany"))).toBeNull();
+    expect(lessonAfter(lessonById("first-9x9-opening")).id).toBe("classic-board"); // tier 1 flows into tier 2
+    expect(lessonAfter(null)).toBeNull();
   });
   it("lessonsInSeries returns chapters in order with unique chapter numbers", () => {
     const cs = lessonsInSeries("classic").map(l => l.chapter);
