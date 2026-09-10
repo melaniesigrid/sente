@@ -425,6 +425,40 @@ ${SIGNATURE_FACE}
 .belt-card .belt-meta { display: flex; flex-direction: column; gap: 3px; margin-top: 22px; }
 .belt-card .belt-meta strong { font-family: var(--font-display); font-weight: var(--w-display); font-size: 20px; }
 
+/* ---- the Classic: the thirteen chapters, read straight through ---- */
+.chapter-list { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.chapter-row { border-radius: 12px; }
+.chapter-head { width: 100%; display: grid; grid-template-columns: 30px minmax(0, 1fr) 18px; align-items: center; gap: 12px; padding: 11px 12px; border: 0; border-radius: 12px; background: transparent; cursor: pointer; text-align: left; color: inherit; }
+.chapter-head:hover { background: var(--ground); box-shadow: inset 2px 2px 5px var(--dark), inset -2px -2px 5px var(--light); }
+.chapter-n { font-family: var(--font-display); font-weight: var(--w-display); font-size: 15px; opacity: .5; }
+.chapter-title { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.chapter-title strong { font-family: var(--font-display); font-weight: var(--w-display); font-size: 16px; }
+.chapter-caret { flex: none; opacity: .5; transition: transform .18s ease; }
+.chapter-caret.open { transform: rotate(90deg); }
+.chapter-body { display: flex; flex-direction: column; gap: 12px; padding: 4px 12px 16px 42px; }
+.chapter-body.preface { padding-top: 12px; }
+.chapter-body .lesson-text { opacity: .88; }
+@media (max-width: 620px) { .chapter-body { padding-left: 12px; } }
+
+/* ---- the thirty-two names (Classic, ch. 11) ---- */
+.names-block { display: flex; flex-direction: column; gap: 12px; }
+.names-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
+.name-cell { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 11px; box-shadow: var(--sink-sm); }
+.name-cell.unsure { opacity: .6; }
+.name-word { font-family: var(--font-display-italic); font-style: italic; font-size: 15px; }
+.name-modern { font-size: 12px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--accent); }
+.name-cell.unsure .name-modern { color: inherit; text-transform: none; letter-spacing: 0; font-weight: 600; opacity: .8; }
+.name-gloss { line-height: 1.5; }
+
+/* ---- the nine levels (Classic, ch. 12) ---- */
+.level-list { list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.level-row { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 2px 12px; padding: 8px 10px; border-radius: 9px; align-items: baseline; }
+.level-row .level-rank { font-family: var(--font-display); font-weight: var(--w-display); font-size: 13px; opacity: .55; }
+.level-row .level-name { font-family: var(--font-display-italic); font-style: italic; font-size: 15px; }
+.level-row .level-text { grid-column: 2; opacity: .72; }
+.level-row.here { background: var(--ground); box-shadow: inset 2px 2px 5px var(--dark), inset -2px -2px 5px var(--light); }
+.level-row.here .level-rank { opacity: 1; color: var(--accent); }
+
 /* ---- settings ---- */
 .settings { display: flex; flex-direction: column; gap: 14px; margin-top: 14px; }
 .setting-row { display: flex; align-items: center; gap: 14px; }

@@ -1,15 +1,53 @@
 import { useState } from "react";
-import { Check, Pencil, Trophy, Flame, Sparkles, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Type } from "lucide-react";
+import { Check, Pencil, Trophy, Flame, Sparkles, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Type, Mountain } from "lucide-react";
 import { Card, Pill, Avatar, RankBadge, BeltRibbon, Toggle } from "../components/ui.jsx";
 import { Passage } from "../components/Passage.jsx";
 import { MokuMark } from "../components/Moku.jsx";
 import { useMoku, useMokuFacts } from "../components/mokuStore.js";
 import { TINTS, rankOf, beltOf, nextBelt, hintsForBelt, kyuFloor } from "../content/rank.js";
 import { TYPEFACES, typefaceOf } from "../content/typeface.js";
+import { CLASSIC, LEVELS, BELOW_THE_LEVELS, levelForRank } from "../content/classic.js";
 import { LESSONS } from "../content/lessons.js";
 import { PROBLEMS } from "../content/problems.js";
 import { dayKey, liveStreak } from "../content/kata.js";
 import { saveProfile } from "../store/profile.js";
+
+/* ----------------------- THE NINE LEVELS (Classic, ch. 12) -----------------------
+   Zhang Ni's nine levels are a scale for dan players: nine steps for the nine
+   dan grades. Kyu players get no step, because the chapter refuses to number
+   anything below the ninth, and saying so is more honest than inventing a
+   title. The step is derived from the rating, never stored. */
+function LevelsCard({ rank }) {
+  const mine = levelForRank(rank);
+  return (
+    <Card>
+      <div className="stat-head"><Mountain size={16} /><span>The nine levels</span></div>
+      <p className="fine" style={{ marginTop: 6 }}>
+        Chapter twelve of {CLASSIC.title} sorts players into nine steps of mind, the
+        first the highest. They line up with the nine dan grades, one for one.
+      </p>
+      <ol className="level-list">
+        {LEVELS.map(l => (
+          <li key={l.n} className={`level-row ${mine && mine.n === l.n ? "here" : ""}`}
+            aria-current={mine && mine.n === l.n ? "true" : undefined}>
+            <span className="level-rank">{l.rank}</span>
+            <span className="level-name">{l.name}</span>
+            <span className="fine level-text">{l.text}</span>
+          </li>
+        ))}
+      </ol>
+      <p className="fine" style={{ marginTop: 12 }}>
+        {mine
+          ? `You stand on the ${ordinal(mine.n)} level: ${l0(mine.name)}.`
+          : `You are ${rank}, which is below all nine. ${BELOW_THE_LEVELS}`}
+      </p>
+    </Card>
+  );
+}
+
+const ORDINALS = ["first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth"];
+const ordinal = (n) => ORDINALS[n - 1] || `${n}th`;
+const l0 = (s) => s.charAt(0).toLowerCase() + s.slice(1);
 
 /* ----------------------- PROFILE ----------------------- */
 export function ProfileView({ profile, setProfile }) {
@@ -96,6 +134,8 @@ export function ProfileView({ profile, setProfile }) {
           </div>
         </Card>
       </div>
+
+      <LevelsCard rank={rankOf(profile.rating)} />
 
       <Card>
         <div className="stat-head"><Type size={16} /><span>Typeface</span></div>
