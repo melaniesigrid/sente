@@ -155,8 +155,9 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
               aria-label="Rendezvous word for playing a friend" />
           </div>
           <p className="fine">
-            The table below sets the board. Online games are even, whatever handicap you set for
-            the house. Agree on a word with a friend and you will find each other, however busy it is.
+            The table below sets the board. Online games are even and untimed, whatever handicap
+            and clock you set for the house. Agree on a word with a friend and you will find each
+            other, however busy it is.
           </p>
         </>
       )}

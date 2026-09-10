@@ -217,8 +217,9 @@ two Durable Object classes, deployed at https://sente-server.melaniesigrid.worke
       The house ladder keeps client-side Elo; the two never mix.
 - [x] Rankings ladder backed by real players (`GET /api/ladder`), shown above the house
       ladder when the server answers.
-- [ ] Clocks: the engine's clock module on the room with a Durable Object alarm, and a
-      claim-win-on-timeout for a vanished opponent. Until then online games are untimed.
+- [ ] Clocks online: the lobby's time control (added for house games) does not reach a
+      networked table, and the online card says so. Needs the engine's clock on the room
+      with a Durable Object alarm, and a claim-win-on-timeout for a vanished opponent.
 - [ ] "Keep playing" from scoring online (needs a consented resume frame in the reducer).
 - [x] Meeting on purpose: a seek can carry a rendezvous word, and seeks with a word
       match only each other. Two friends type the same word and sit down together,
