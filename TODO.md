@@ -265,12 +265,20 @@ and one rule: the number on the card is measured, never claimed.
 - [ ] Star Player: Ke Jie anonymised (decided 2026-09-09 after the lawyer check). Card says
       "a top pro of 2017", his name nowhere in code, data or UI; corpus from a source with
       stated terms; same eval and gate as the Edo masters, `proyear_2017` as the control.
-      OPEN (needs the user and counsel): the only source found that states open terms is
-      BadukMovies' pro-game zip ("This collection is in the public domain, use it however
-      you want to"), which now survives only in the Internet Archive (the domain is hijacked);
-      the 2023 capture holds 164 Ke Jie games. Waltheri, gokifu, GoMagic state no reuse
-      terms; go4go and GoGoD forbid bulk reuse without a licence; Fox and Tygem are excluded.
-      Until decided, Star Player is not in `tools/masters/manifest.json`.
+      Source (2026-09-10): BadukMovies' whole pro-game zip as the Internet Archive holds it
+      (capture 2023-11-05, 69,169 SGFs, terms quoted in the manifest: "This collection is
+      in the public domain, use it however you want to"). `fetch.mjs` reads the zip and,
+      for an anonymised master, keeps only his games under content-hash names: 164 even
+      games, 2009 to 2017, 40 book entries, split 98/33/33. In the manifest as
+      `star-player` (`anonymous`, `year` 2017, the name only as `aliasHashes`, SHA-256 of
+      `nameKey`); the dump uses the manifest year (`data.year`) so the eval scores
+      `proyear_2017`, the profile that ships. `tools/masters/import.mjs` remains for
+      records saved by hand from a source that states its own terms; go4go (login-walled,
+      "All Rights Reserved", bulk download against its terms) is not used. Branch
+      `feat/masters-star-player`, PR #7, stacked on #5. Eval (test, 3,592 positions): top-1 61.6% year profile / 61.9% with
+      book / 61.8% Shusaku's book as control; opening 62.4% to 64.6%; the lean does not ship
+      (no lambda beat the book on dev). The control moves the number as much as his own
+      book, so the card claims agreement with the 2017 profile, not a style match.
 - [ ] Deferred: Dosaku and Shusai after the eval; Go Seigen, Takagawa and living players by
       name after a name-and-likeness check (the 1950 rule does not clear the first two); Moku quoting the Classic and a belt mark per book;
       fine-tune adapters per master after Phase 4, measured by the same eval; your own

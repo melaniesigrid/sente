@@ -1,7 +1,7 @@
 /* The eval's pure parts on a synthetic master: keep-set coverage, the arms, and the
    cross control, without the network. */
 import { describe, it, expect } from "vitest";
-import { keepSet, networkTop, bookMove, scoreMaster, moveVector, MOVE_AXES } from "./eval.mjs";
+import { keepSet, networkTop, bookMove, scoreMaster, moveVector, priorTop, MOVE_AXES } from "./eval.mjs";
 import { createBoard, withStone, canonical, bookKey, transformPoint } from "../../src/engine/index.js";
 
 const N = 19;
@@ -84,6 +84,30 @@ describe("scoreMaster", () => {
     expect(r.arms.a.styleDistance).toBeGreaterThan(0);
     expect(r.arms.b.styleDistance).toBeLessThan(r.arms.a.styleDistance);
     for (const a of MOVE_AXES) expect(r.baseline).toHaveProperty(a);
+  });
+
+  it("arm c leans the network's shortlist off book and reports its λ", () => {
+    const zero = Object.fromEntries(MOVE_AXES.map((a) => [a, 0]));
+    const one = Object.fromEntries(MOVE_AXES.map((a) => [a, 1]));
+    // The master plays line 4 far more than the network. Two 4-4 moves against the
+    // network's 3-3 and a 3-4 (both line 3), each within the floor.
+    const style = { moveAxes: MOVE_AXES, baseline: { ...zero, line3: 0.5 }, masterMoves: { ...zero, line4: 0.9 }, moveSpread: { ...one, line4: 0.3, line3: 0.3 } };
+    const g = { ...game, seq: [["b", 3, 3], ["w", 15, 15], ["b", 15, 3], ["w", 3, 15]] };
+    const ps = [positions[0], { ...positions[1], move: [15, 3], logits: dense(at(16, 2), at(15, 3)) }];
+    const r = scoreMaster({ games: [g], positions: ps, book: { entries: {} }, style, lambda: 2 });
+    expect(r.arms.c.lambda).toBe(2);
+    expect(r.arms.c.top1).toBe(1);
+    expect(r.arms.a.top1).toBe(0);
+    const off = scoreMaster({ games: [g], positions: ps, book: { entries: {} }, style, lambda: 0 });
+    expect(off.arms.c).toBeNull();
+  });
+
+  it("priorTop judges the kept candidates only", () => {
+    const rec = { board: createBoard(N), toPlay: "b", moves: [], hashes: [0], koPoint: null };
+    const sparse = { [at(2, 2)]: 3.0, [at(3, 3)]: 2.0, [at(9, 9)]: -6.0, 361: -12 };
+    expect(priorTop(sparse, rec, () => 0)).toBe(at(2, 2));
+    expect(priorTop(sparse, rec, (i) => (i === at(3, 3) ? 2 : 0))).toBe(at(3, 3));
+    expect(priorTop(sparse, rec, (i) => (i === at(9, 9) ? 100 : 0))).toBe(at(2, 2));   // below the floor
   });
 
   it("counts an uncovered position instead of scoring it", () => {
