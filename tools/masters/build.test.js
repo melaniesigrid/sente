@@ -1,8 +1,9 @@
 /* The corpus build checked on tiny in-memory collections: what is dropped is counted
    and logged, even games feed style and book, and no header name leaks out. */
 import { describe, it, expect } from "vitest";
-import { buildMaster, buildBook, splitFiles, CorpusTooThin, MIN_EVEN_GAMES, BOOK_MIN_GAMES } from "./build.mjs";
+import { buildMaster, buildBook, splitFiles, masterSide, nameKey, CorpusTooThin, MIN_EVEN_GAMES, BOOK_MIN_GAMES } from "./build.mjs";
 import { recordFromSgf } from "../../src/engine/index.js";
+import { createHash } from "node:crypto";
 
 /** An even 19x19 game of `n` legal moves between the master (black) and a rival. */
 function game(n, { master = "Test Master", rival = "Some Rival", first = "qd", year = 1846 } = {}) {
@@ -68,6 +69,24 @@ describe("buildMaster", () => {
     expect(master.name).toBe("Star Player");
     expect(card.anonymous).toBe(true);
     expect(json).not.toContain("Test Master");
+  });
+
+  it("matches an anonymised master by the hash of the header name, never the name", () => {
+    const hash = createHash("sha256").update(nameKey("Test Master")).digest("hex");
+    const anon = { ...MASTER, name: "Star Player", anonymous: true, year: 2017, aliases: undefined, aliasHashes: [hash] };
+    expect(JSON.stringify(anon)).not.toContain("Test Master");
+    const { master, data } = buildMaster(anon, corpus(MIN_EVEN_GAMES));
+    expect(master.games.even).toBe(MIN_EVEN_GAMES);
+    expect(data.year).toBe(2017);
+    expect(masterSide({ b: "TEST MASTER 9p", w: "Rival" }, anon)).toEqual({ color: "b" });
+    expect(masterSide({ b: "Rival", w: "Test  Master" }, anon)).toEqual({ color: "w" });
+    expect(masterSide({ b: "Test Masterson", w: "Rival" }, anon)).toEqual({ drop: "no-master" });
+  });
+
+  it("reduces a header name to a spelling-proof key", () => {
+    expect(nameKey("Lee Sedol 9p")).toBe(nameKey("LEE SEDOL"));
+    expect(nameKey("Lee Sedol 9d")).toBe("leesedol");
+    expect(nameKey("李世乭")).toBe("李世乭");
   });
 });
 

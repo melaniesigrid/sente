@@ -43,6 +43,10 @@ export function untar(buf) {
 
 async function fetchMaster(m) {
   if (!m.source?.terms) throw new Error(`${m.id}: the source states no terms; refusing to fetch`);
+  if (!m.source.url) {
+    console.log(`${m.id}: no archive to fetch; records are imported from a directory (node tools/masters/import.mjs ${m.id})`);
+    return 0;
+  }
   const dir = join(RAW, m.id);
   const archive = join(RAW, `${m.id}${extOf(m.source.url)}`);
   mkdirSync(dir, { recursive: true });

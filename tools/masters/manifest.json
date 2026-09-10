@@ -1,5 +1,5 @@
 {
-  "$comment": "Every corpus the build reads. `terms` quotes the source's own statement of rights; a master without one does not build. `aliases` are the player-name spellings the SGF headers use. `anonymous` masters ship with the manifest `name` only and no player name reaches any emitted file. `year` is the proyear profile the master's bot plays as when out of book.",
+  "$comment": "Every corpus the build reads. `terms` quotes the source's own statement of rights; a master without one does not build. `aliases` are the player-name spellings the SGF headers use; an anonymised master lists `aliasHashes` instead (SHA-256 of build.mjs nameKey of each spelling) so the name is nowhere in the repo. `anonymous` masters ship with the manifest `name` only and no player name reaches any emitted file. `year` is the proyear profile the master's bot plays as when out of book. A source with `url` is fetched (fetch.mjs); one with `dir` is imported from that directory on this machine (import.mjs).",
   "masters": [
     {
       "id": "shusaku",
@@ -38,6 +38,21 @@
         "page": "https://homepages.cwi.nl/~aeb/go/games/",
         "terms": "I do not claim any rights on this collection. The games here are in the public domain.",
         "expected": 297
+      }
+    },
+    {
+      "id": "star-player",
+      "name": "Star Player",
+      "anonymous": true,
+      "year": 2017,
+      "aliasHashes": [
+        "a817f1be2b076359e46ff4e45570332ae20e4b83eb775eb91570d366d548584e"
+      ],
+      "source": {
+        "dir": "C:/Users/melan/Downloads",
+        "page": "https://www.go4go.net/",
+        "terms": "Copyright © 1999-2024 Go4Go.net - All Rights Reserved",
+        "note": "Records saved one at a time by the account holder from the site's game pages, then imported with import.mjs. The footer above is the only rights statement the site publishes without a login; whether it permits this use is an open question for the user and counsel (TODO.md, Phase 6)."
       }
     }
   ]

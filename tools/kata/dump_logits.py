@@ -8,8 +8,10 @@
 
 Reads the per-game move lists build.mjs wrote, replays each even game in the chosen
 splits with KataGo's own Python board, and at every position where the master is to
-move runs the shipped ONNX file at the `proyear_<year>` profile of the game's year
-(clamped to the profile's 1800..2020 range). One JSON line per position:
+move runs the shipped ONNX file at the `proyear_<year>` profile: the data file's
+`year` when the manifest fixes one (the profile the bot plays as, so the eval scores
+what ships), else the game's own year, clamped to the profile's 1800..2020 range. One
+JSON line per position:
 
     {"file", "k", "color", "year", "move": [c, r], "max": <max logit>,
      "logits": {"<index>": <logit>, ...}}
@@ -85,13 +87,14 @@ def main():
 
     years = [g["year"] for g in data["games"] if g["year"]]
     fallback_year = int(round(sum(years) / len(years))) if years else 1850
+    fixed_year = data.get("year")
 
     t0 = time.time()
     n_pos = 0
     with open(args.out, "w") as out:
         for gi, g in enumerate(games):
             gs = GameState(size, dict(RULES))
-            year = g["year"] or fallback_year
+            year = fixed_year or g["year"] or fallback_year
             master = Board.BLACK if g["masterColor"] == "b" else Board.WHITE
             for k, (color, c, r) in enumerate(g["seq"]):
                 pla = Board.BLACK if color == "b" else Board.WHITE

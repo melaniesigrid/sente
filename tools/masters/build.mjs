@@ -19,6 +19,7 @@
 import { mkdirSync, readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createHash } from "node:crypto";
 import {
   parseSgf, recordFromSgf, SgfParseError, createGame, play,
   gameFeatures, meanStyle, spreadStyle, AXES,
@@ -41,12 +42,25 @@ export const SPLIT = { train: 0.6, dev: 0.2, test: 0.2 };
 
 export class CorpusTooThin extends Error {}
 
-const matches = (name, aliases) =>
-  !!name && aliases.some((a) => name.toLowerCase().includes(a.toLowerCase()));
+/** A player name reduced to what a header spelling cannot change: lowercase letters
+ *  only, with a trailing rank ("9p", "7d") removed. "Lee Sedol 9p" and "LEE SEDOL" share a key. */
+export const nameKey = (name) =>
+  String(name).toLowerCase().replace(/\d+\s*[pdk]\b/g, "").replace(/[^\p{L}]/gu, "");
 
-/** Which side the master played, or a drop reason. */
-function masterSide(players, aliases) {
-  const b = matches(players.b, aliases), w = matches(players.w, aliases);
+/** Does a header name belong to the master? Plain `aliases` match as substrings; an
+ *  anonymised master names nobody in the manifest and instead lists `aliasHashes`, the
+ *  SHA-256 of each spelling's `nameKey`, which the header name must equal. */
+const matches = (name, { aliases = [], aliasHashes = [] }) => {
+  if (!name) return false;
+  if (aliases.some((a) => name.toLowerCase().includes(a.toLowerCase()))) return true;
+  if (!aliasHashes.length) return false;
+  const h = createHash("sha256").update(nameKey(name)).digest("hex");
+  return aliasHashes.includes(h);
+};
+
+/** Which side the master played, or a drop reason. `m` is the manifest entry. */
+export function masterSide(players, m) {
+  const b = matches(players.b, m), w = matches(players.w, m);
   if (b && w) return { drop: "both-master" };
   if (!b && !w) return { drop: "no-master" };
   return { color: b ? "b" : "w" };
@@ -124,7 +138,7 @@ export function buildMaster(m, files, log = () => {}) {
     if (info.size !== 19) { drop(name, "size", `${info.size}x${info.size}`); continue; }
     const plays = rec.moves.filter((x) => x.type === "play").length;
     if (plays < MIN_MOVES) { drop(name, "short", `${plays} moves`); continue; }
-    const side = masterSide(info.players, m.aliases);
+    const side = masterSide(info.players, m);
     if (side.drop) { drop(name, side.drop, `${info.players.b} vs ${info.players.w}`); continue; }
     const even = rec.setup.b.length === 0 && rec.setup.w.length === 0;
     const komi = info.tree.nodes[0].props.KM ? info.komi : null;   // Edo games carry no komi
@@ -177,6 +191,7 @@ export function buildMaster(m, files, log = () => {}) {
   };
   const data = {
     id: m.id, split,
+    year: m.year ?? null,       // the profile the bot plays as; the logit dump uses it over each game's year
     games: games.map(({ file, rec, masterColor, even, handicap, komi, year, result, moves }) => ({
       file, masterColor, even, handicap, komi, year, result, moves, split: even ? inSplit(file) : null,
       firstToPlay: rec.firstToPlay,
