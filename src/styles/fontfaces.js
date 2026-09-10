@@ -14,7 +14,6 @@
    ships anywhere public. */
 import welorac from "../fonts/Welorac-Regular.otf";
 import qliesya from "../fonts/Qliesya-Regular.otf";
-import daenerys from "../fonts/Daenerys-Regular.otf";
 
 /** One @font-face. `adjust` is the size-adjust percentage that brings the
  *  family onto Fraunces' optical size. */
@@ -41,14 +40,3 @@ export const FONT_FACES = [
   face("sente-welorac", welorac, "opentype", 128),           // x-height .342
   face("sente-qliesya", qliesya, "opentype", 140),           // didone, x-height .342
 ].join("\n");
-
-/* The signature is not part of any pairing and never changes with one: it is one
-   person's name in one hand, and a hand does not get themed. Daenerys keeps its
-   own metrics — no size-adjust, no overrides — because a signature is set by eye,
-   at one size, in one place. */
-export const SIGNATURE_FACE = `
-@font-face {
-  font-family: 'sente-signature';
-  src: url(${daenerys}) format('opentype');
-  font-weight: 400; font-style: normal; font-display: swap;
-}`;
