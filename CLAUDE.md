@@ -1,14 +1,16 @@
 # Sente
 
 Go (baduk) server with a design-first neumorphic UI. Vite + React 19, plain CSS-in-JS,
-Lucide icons. No backend yet; profile persists in localStorage.
+Lucide icons. Profile persists in localStorage; online play runs on a Cloudflare Worker
+in `server/` (Durable Objects), deployed separately.
 
 ## Commands
 
 - `npm run dev` — dev server
 - `npm run build` — production build (must pass before commit)
 - `npm run lint` — oxlint
-- `npm test` — vitest (engine unit tests)
+- `npm test` — vitest (engine, store and server unit tests)
+- `npm run dev:server` / `npm run deploy:server` — the Worker, locally on 8787 / to Cloudflare
 
 ## Conventions
 
@@ -28,6 +30,11 @@ Lucide icons. No backend yet; profile persists in localStorage.
   (Board, ui primitives, Toast, ErrorBoundary), `src/views/` (one file per screen; `Game`
   is a thin adapter over `GameRecord`), `src/store/` (localStorage), `src/styles/css.js`
   (the stylesheet). `src/App.jsx` is the shell only. Keep the section banners.
+- The server never holds a rule either. `server/room.js` is a pure reducer over the room
+  and imports the engine directly (`src/engine/record.js`, not `index.js`, which pulls in
+  the browser-only KataGo runtime). Durable Objects only parse, apply, store, broadcast.
+  Protocol changes start in `room.js` and its tests; `tools/server/smoke.mjs` must still
+  pass against `npm run dev:server`.
 - Rules never live in a view. If a view needs a rule, add it to the engine first.
 - Lessons are data. A new lesson is one file in `src/content/lessons/tier<N>/`, added to that
   tier's index; `npm test` verifies every position. No exclamation marks in lesson text.
