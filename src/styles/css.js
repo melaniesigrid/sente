@@ -266,6 +266,22 @@ ${SIGNATURE_FACE}
 .vs-meta strong { font-size: 14px; }
 .vs-x { font-family: var(--font-display-italic); font-style: var(--display-italic-style); opacity: .5; }
 
+/* The clock lives inside the vs-strip, not in a bar of its own. Pressure is a colour
+   shift and a pulse in the last ten seconds; byo-yomi periods are pips, one each. */
+.clock-face { display: inline-flex; align-items: center; gap: 5px; margin-top: 2px; font-variant-numeric: tabular-nums; font-size: 13px; letter-spacing: .01em; opacity: .5; transition: opacity .2s ease, color .3s ease; }
+.clock-face.right { flex-direction: row-reverse; }
+.clock-face.running { opacity: 1; }
+.clock-face.p-low { color: var(--accent); }
+.clock-face.p-urgent { color: var(--danger); }
+.clock-face.running.p-urgent .clock-digits { animation: clock-press 1s ease-in-out infinite; }
+.clock-face.flagged { opacity: 1; color: var(--danger); }
+.clock-face.untimed { font-family: var(--font-display-italic); font-style: var(--display-italic-style); font-size: 12px; opacity: .38; }
+.clock-digits { font-weight: 600; }
+.clock-face.byoyomi .clock-digits { font-weight: 700; }
+.clock-pips { display: inline-flex; gap: 3px; }
+.clock-pip { width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: .75; }
+@keyframes clock-press { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+
 /* ---- chat ---- */
 .chat-card { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
 .chat-head { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; opacity: .75; }

@@ -9,6 +9,7 @@ import { SIZES, defaultKomi } from "../engine/index.js";
 import { loadLobby, saveLobby, HANDICAPS } from "../store/lobby.js";
 import { duelMode } from "../content/duel.js";
 import { dayKey } from "../content/kata.js";
+import { CLOCK_PRESETS, presetById, presetText } from "../content/clockFace.js";
 import { loadSession } from "./session.js";
 import { Game } from "./Game.jsx";
 import { OnlineCard } from "./OnlineLobby.jsx";
@@ -54,7 +55,8 @@ export function PlayView({ profile, setProfile, notify, resume }) {
     const hi = HANDICAPS.indexOf(table.handicap);
     const komi = defaultKomi(table.handicap);
     const ratedAs = rankWithHandicap(rank, table.handicap);
-    const sit = (mode) => setSession({ mode: { ...mode, size: table.size, handicap: table.handicap } });
+    const clock = presetById(table.clock).preset;
+    const sit = (mode) => setSession({ mode: { ...mode, size: table.size, handicap: table.handicap, clock } });
     return (
       <div className="stack">
         <h2 className="section-title">Find a game</h2>
@@ -85,6 +87,7 @@ export function PlayView({ profile, setProfile, notify, resume }) {
             <strong>The table</strong>
             <span className="fine">
               komi {komi}{table.handicap ? ` · White plays first · rated as ${ratedAs}` : ""}
+              {clock ? ` · ${presetText(clock)}` : ""}
             </span>
           </div>
           <div className="rank-picker-controls">
@@ -100,6 +103,14 @@ export function PlayView({ profile, setProfile, notify, resume }) {
               <Btn icon={Minus} small label="Fewer handicap stones" disabled={hi <= 0} onClick={() => setTable({ handicap: HANDICAPS[hi - 1] })} />
               <span className="handicap-num" aria-live="polite">{table.handicap ? `${table.handicap} stones` : "No handicap"}</span>
               <Btn icon={Plus} small label="More handicap stones" disabled={hi >= HANDICAPS.length - 1} onClick={() => setTable({ handicap: HANDICAPS[hi + 1] })} />
+            </div>
+            <div className="seg" role="radiogroup" aria-label="Time control">
+              {CLOCK_PRESETS.map(p => (
+                <button key={p.id} type="button" role="radio" aria-checked={table.clock === p.id}
+                  className={`seg-btn ${table.clock === p.id ? "active" : ""}`} onClick={() => setTable({ clock: p.id })}>
+                  {p.short}
+                </button>
+              ))}
             </div>
           </div>
         </div>

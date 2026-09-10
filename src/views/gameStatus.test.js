@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { refusalText, resultLine, statusText, captionText, resignLabel, resultCard, ratingLine, RESIGN_CONFIRM_MS } from "./gameStatus.js";
-import { createGame, pass, acceptScore, resign } from "../engine/index.js";
+import { createGame, pass, acceptScore, resign, timeout } from "../engine/index.js";
 
 describe("refusalText", () => {
   it("names ko, superko and suicide", () => {
@@ -27,6 +27,8 @@ describe("resultLine", () => {
     const j = acceptScore(pass(pass(createGame({ size: 9, komi: 0 }))));
     expect(resultLine(j.result)).toBe("Jigo — 0 : 0");
     expect(resultLine(resign(createGame({ size: 9 })).result)).toBe("White wins by resignation");
+    expect(resultLine(timeout(createGame({ size: 9 })).result)).toBe("White wins on time");
+    expect(resultLine(timeout(createGame({ size: 9 }), "w").result)).toBe("Black wins on time");
     expect(resultLine(null)).toBeNull();
   });
 });
@@ -45,6 +47,18 @@ describe("statusText", () => {
     const g = createGame({ size: 9 });
     expect(statusText({ result: resign(g, "b").result, thinking: false, personaName: "Yuki", turn: "w" })).toBe("White wins by resignation");
     expect(statusText({ result: resign(g, "w").result, thinking: false, personaName: null, turn: "b" })).toBe("Black wins by resignation");
+  });
+});
+
+describe("a flag has no rows to show", () => {
+  it("names the winner and says on time, with no arithmetic to print", () => {
+    const card = resultCard(timeout(createGame({ size: 9 }), "b").result);
+    expect(card).toEqual({ headline: "White wins", sub: "on time", rows: [] });
+  });
+  it("reads a flag in the status pill", () => {
+    const g = timeout(createGame({ size: 9 }), "b");
+    expect(statusText({ result: g.result, thinking: false, personaName: "Yuki", turn: "w" }))
+      .toBe("White wins on time");
   });
 });
 

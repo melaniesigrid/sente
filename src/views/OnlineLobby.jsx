@@ -21,6 +21,12 @@ export function OnlineCard({ profile, notify, onPlay, size = 9 }) {
     : <Claim profile={profile} notify={notify} onClaimed={setAccount} />;
 }
 
+const CLAIM_ERRORS = {
+  offline: "The server is out of reach right now",
+  "too-many-handles": "That is a lot of handles from one place today. Try again in an hour.",
+  "bad-name": "A handle is two to eighteen characters",
+};
+
 function Claim({ profile, notify, onClaimed }) {
   const [name, setName] = useState(profile.name === "Player" ? "" : profile.name);
   const [busy, setBusy] = useState(false);
@@ -34,7 +40,7 @@ function Claim({ profile, notify, onClaimed }) {
       onClaimed({ token, player });
       notify({ icon: "medal", text: `Welcome to the ladder, ${player.name}` });
     } catch (e) {
-      notify({ icon: "info", text: e.reason === "offline" ? "The server is out of reach right now" : `Could not claim that handle (${e.reason})` });
+      notify({ icon: "info", text: CLAIM_ERRORS[e.reason] ?? `Could not claim that handle (${e.reason})` });
     } finally { setBusy(false); }
   };
   return (
@@ -149,8 +155,9 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
               aria-label="Rendezvous word for playing a friend" />
           </div>
           <p className="fine">
-            The table below sets the board. Online games are even, whatever handicap you set for
-            the house. Agree on a word with a friend and you will find each other, however busy it is.
+            The table below sets the board. Online games are even and untimed, whatever handicap
+            and clock you set for the house. Agree on a word with a friend and you will find each
+            other, however busy it is.
           </p>
         </>
       )}

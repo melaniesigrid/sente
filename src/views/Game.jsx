@@ -4,11 +4,12 @@ import {
   MessageCircle, Bot, Send, User, Handshake, Check, Download, Undo2, Award,
 } from "lucide-react";
 import {
-  createGame, play, pass, resign, undo, markDead, acceptScore, scoreBoard, chainsInAtari, idx,
+  createGame, play, pass, resign, timeout, undo, markDead, acceptScore, scoreBoard, chainsInAtari, idx,
   lastMoveIndex, aiChooseMoveForRecord, kataChooseMoveForRecord, profileForRank, loadModel, onModelProgress, modelReady,
   toSgf, IllegalMoveError,
 } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
+import { ClockFace } from "../components/Clock.jsx";
 import { Card, Btn, Pill, Avatar, RankBadge, BeltRibbon } from "../components/ui.jsx";
 import { Passage } from "../components/Passage.jsx";
 import { MokuMark } from "../components/Moku.jsx";
@@ -22,6 +23,7 @@ import { saveGame, clearGame } from "../store/gameStore.js";
 import {
   statusText, refusalText, captionText, resignLabel, resultCard, ratingLine, RESIGN_CONFIRM_MS,
 } from "./gameStatus.js";
+import { useClock } from "./useClock.js";
 
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const MOMENT_MS = 2600;
@@ -50,9 +52,10 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const botRating = persona ? ratingOfRank(botRank) : null;
   // A new game is set up from the lobby's table; komi is the engine's default for the
   // handicap. A resumed game carries its own, so a rematch is played on the board in
-  // front of you even though the saved session only remembers the opponent.
-  const [rec, setRec] = useState(() => initial || createGame({ size: mode.size, handicap: mode.handicap }));
-  const table = { size: rec.size, handicap: rec.handicap };
+  // front of you even though the saved session only remembers the opponent. The clock
+  // rides along the same way, and for the same reason.
+  const [rec, setRec] = useState(() => initial || createGame({ size: mode.size, handicap: mode.handicap, clock: mode.clock ?? null }));
+  const table = { size: rec.size, handicap: rec.handicap, clock: rec.clock };
   const [thinking, setThinking] = useState(false);
   const [chat, setChat] = useState(() =>
     persona ? [{ who: "bot", text: pick(persona.chat.greet) }] : []);
@@ -189,6 +192,18 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     }
     return next;
   }, [persona, duel, botRank, profile, say, setProfile, notify, sound]);
+
+  /* The clock. Running out of time is a rule, so the flag goes through the engine's
+     `timeout` and settles through the same `conclude` a resignation does: a loss on
+     time is rated exactly like a loss by resignation. Against a house player only
+     the human is timed — see `useClock` for why. */
+  const onFlag = useCallback((color) => {
+    if (rec.phase === "ended") return;
+    setRec(conclude(timeout(rec, color), rec));
+  }, [rec, conclude]);
+  const clock = useClock({
+    preset: rec.clock, rec, timed: persona ? "b" : "bw", onFlag,
+  });
 
   /* Ask the human network what a player of the persona's rank would do; if it is
      unavailable (offline, old browser) the heuristic house player answers instead.
@@ -357,13 +372,13 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         <div className="vs-strip">
           <div className="vs-side">
             <Avatar name={profile.name} tint={profile.tint} size={34} />
-            <div className="vs-meta"><strong>{persona ? profile.name : "Black"}</strong>{persona && <RankBadge rating={profile.rating} size="sm" />}</div>
+            <div className="vs-meta"><strong>{persona ? profile.name : "Black"}</strong>{persona && <RankBadge rating={profile.rating} size="sm" />}<ClockFace clock={clock} color="b" active={!over && rec.phase === "playing" && turn === "b"} /></div>
           </div>
           <span className="vs-x">vs</span>
           <div className="vs-side">
             {persona
-              ? <><div className="vs-meta right"><strong>{persona.name}</strong><RankBadge rating={botRating} size="sm" /></div><Avatar name={persona.name} tint={persona.tint} size={34} bot /></>
-              : <><div className="vs-meta right"><strong>White</strong></div><div className="avatar duo sm"><User size={15} /></div></>}
+              ? <><div className="vs-meta right"><strong>{persona.name}</strong><RankBadge rating={botRating} size="sm" /><ClockFace clock={clock} color="w" timed={false} align="right" /></div><Avatar name={persona.name} tint={persona.tint} size={34} bot /></>
+              : <><div className="vs-meta right"><strong>White</strong><ClockFace clock={clock} color="w" active={!over && rec.phase === "playing" && turn === "w"} align="right" /></div><div className="avatar duo sm"><User size={15} /></div></>}
           </div>
         </div>
       </div>
