@@ -1010,6 +1010,9 @@ ${FONT_FACES}
 .type-btn:hover { transform: translateY(-1px); }
 .type-btn.active { box-shadow: var(--raise-sm); color: var(--accent-ink); }
 .type-sample { font-size: 26px; line-height: 1.15; }
+/* A language names itself in words, not in one letter, so its plate is set at
+   reading size rather than at specimen size. */
+.lang-sample { font-size: 20px; line-height: 1.2; }
 .type-name { color: var(--ink-2); font: 700 12px var(--font-body); letter-spacing: .11em; text-transform: uppercase; }
 .type-btn.active .type-name { opacity: 1; }
 .type-note { margin-top: 14px; }

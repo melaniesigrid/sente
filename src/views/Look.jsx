@@ -1,12 +1,14 @@
 import { useMemo } from "react";
-import { Palette, Circle, Type, Hammer, Check, TriangleAlert } from "lucide-react";
+import { Palette, Circle, Type, Hammer, Check, TriangleAlert, Languages } from "lucide-react";
 import { boardFromRows } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
 import { Card } from "../components/ui.jsx";
 import { TYPEFACES, typefaceOf } from "../content/typeface.js";
 import { SYSTEM_THEME, themeOf, themeVars, stoneSetOf, auditPalette } from "../theme/index.js";
 import { STONE_RULE } from "../theme/tokens.js";
-import { roomsFor, setsFor } from "./look.js";
+import { roomsFor, setsFor, setName } from "./look.js";
+import { LOCALES, SYSTEM_LOCALE, localeOf, resolveLocale } from "../i18n/index.js";
+import { useT, useLocale, useDeviceLanguages } from "../components/langStore.js";
 import { saveProfile } from "../store/profile.js";
 
 /* ----------------------- THE LOOK OF THE PLACE -----------------------
@@ -22,8 +24,12 @@ import { saveProfile } from "../store/profile.js";
    stone plate wears the room you are standing in with that set on it — so the
    choosing is done by looking rather than by reading names.
 
+   The words come first, above the room, because they are the one choice on
+   this page that decides whether the rest of it can be read at all.
+
    No rule lives here. The sets are src/theme/stones.js, the rooms are
-   palettes.js, and the one number this page prints is auditPalette's. */
+   palettes.js, the languages are src/i18n/locales.js, and the one number this
+   page prints is auditPalette's. */
 
 /* Enough of a middlegame to judge two stones against each other: stones in
    contact, a shape or two worth reading, and empty board left over to see the
@@ -43,9 +49,12 @@ const ROWS = [
 export function LookView({ profile, setProfile, go, room }) {
   const commit = (patch) => setProfile(p => { const np = { ...p, ...patch }; saveProfile(np); return np; });
 
-  const { dojo, stones, theme, typeface } = profile;
-  const rooms = useMemo(() => roomsFor(dojo, room), [dojo, room]);
-  const sets = useMemo(() => setsFor(room, dojo), [room, dojo]);
+  const t = useT();
+  const locale = useLocale();
+  const devices = useDeviceLanguages();
+  const { dojo, stones, theme, typeface, locale: chosenLocale } = profile;
+  const rooms = useMemo(() => roomsFor(dojo, room, t), [dojo, room, t]);
+  const sets = useMemo(() => setsFor(room, dojo, t), [room, dojo, t]);
   const board = useMemo(() => boardFromRows(ROWS), []);
   const set = stoneSetOf(room, dojo, stones);
   const chosen = sets.find(s => s.id === stones) || sets[0];
@@ -70,29 +79,54 @@ export function LookView({ profile, setProfile, go, room }) {
   return (
     <div className="stack">
       <div className="look-head">
-        <h1 className="look-title">The look of the place</h1>
-        <p className="look-sub">
-          Everything here changes how Joseki looks and nothing here changes how it plays. Pick
-          the room, pick the stones you want to play with, pick the type. Every swatch is drawn
-          in the thing it is offering, so choose by looking.
-        </p>
+        <h1 className="look-title">{t("look.title")}</h1>
+        <p className="look-sub">{t("look.sub")}</p>
       </div>
 
+      {/* The words. A language picker is the one list a reader may not be able
+          to read, so every language names itself in its own words and the plate
+          is never translated into the language you are trying to leave. */}
       <Card>
-        <div className="stat-head"><Palette size={16} /><span>The room</span></div>
-        <p className="fine" style={{ marginTop: 6 }}>
-          Ten rooms for the same board, one that follows your device, and one you can build
-          yourself. A palette sets the ground, the two lights every shadow is cut from, and the
-          one colour that means here; the shapes and the spacing never move.
+        <div className="stat-head"><Languages size={16} /><span>{t("look.words.head")}</span></div>
+        <p className="fine" style={{ marginTop: 6 }}>{t("look.words.note")}</p>
+        <div className="type-row">
+          <button className={`type-btn ${chosenLocale === SYSTEM_LOCALE ? "active" : ""}`}
+            onClick={() => commit({ locale: SYSTEM_LOCALE })}
+            aria-pressed={chosenLocale === SYSTEM_LOCALE}
+            aria-label={t("look.words.pick", { name: t("look.words.systemName") })}>
+            <span className="type-sample lang-sample">{t("look.words.system")}</span>
+            <span className="type-name">{t("look.words.systemName")}</span>
+          </button>
+          {LOCALES.map(l => (
+            <button key={l.id}
+              lang={l.tag}
+              className={`type-btn ${chosenLocale === l.id ? "active" : ""}`}
+              onClick={() => commit({ locale: l.id })}
+              aria-pressed={chosenLocale === l.id}
+              aria-label={t("look.words.pick", { name: l.endonym })}>
+              <span className="type-sample lang-sample">{l.endonym}</span>
+              <span className="type-name">{l.tag}</span>
+            </button>
+          ))}
+        </div>
+        <p className="fine type-note">
+          {chosenLocale === SYSTEM_LOCALE
+            ? t("look.words.systemNote", { language: localeOf(resolveLocale(SYSTEM_LOCALE, devices)).endonym })
+            : t("look.words.chosen", { language: locale.endonym })}
         </p>
+      </Card>
+
+      <Card>
+        <div className="stat-head"><Palette size={16} /><span>{t("look.room.head")}</span></div>
+        <p className="fine" style={{ marginTop: 6 }}>{t("look.room.note")}</p>
         <div className="theme-row">
-          {rooms.map((t, i) => (
-            <button key={t.id}
+          {rooms.map((r, i) => (
+            <button key={r.id}
               style={roomVars[i]}
-              className={`theme-btn ${theme === t.id ? "active" : ""}`}
-              onClick={() => commit({ theme: t.id })}
-              aria-pressed={theme === t.id}
-              aria-label={`Palette ${t.name}`}
+              className={`theme-btn ${theme === r.id ? "active" : ""}`}
+              onClick={() => commit({ theme: r.id })}
+              aria-pressed={theme === r.id}
+              aria-label={t("look.room.pick", { name: r.name })}
             >
               <span className="theme-plate">
                 <span className="theme-stone b" />
@@ -100,32 +134,29 @@ export function LookView({ profile, setProfile, go, room }) {
                 <span className="theme-mark" />
               </span>
               <span className="theme-meta">
-                <span className="theme-title">{t.name}</span>
-                <span className="theme-mood">{t.mood}</span>
+                <span className="theme-title">{r.name}</span>
+                <span className="theme-mood">{r.mood}</span>
               </span>
             </button>
           ))}
         </div>
         <p className="fine type-note">
           {theme === SYSTEM_THEME
-            ? `Following your device, which is asking for ${themeOf(room).name} right now. Change the device and the room changes with it.`
+            ? t("look.room.system", { room: themeOf(room).name })
             : themeOf(theme, dojo).note
-              || "A room you built yourself. Open the dojo to keep working on it."}
+              ? t(`room.${theme}.note`, null, themeOf(theme, dojo).note)
+              : t("look.room.built")}
         </p>
         <div className="row" style={{ marginTop: 14 }}>
           <button className="btn btn-accent" onClick={() => go("dojo")}>
-            <Hammer size={15} /> {dojo ? "Open your dojo" : "Build your own room"}
+            <Hammer size={15} /> {t(dojo ? "look.room.openDojo" : "look.room.buildDojo")}
           </button>
         </div>
       </Card>
 
       <Card>
-        <div className="stat-head"><Circle size={16} /><span>Your stones</span></div>
-        <p className="fine" style={{ marginTop: 6 }}>
-          A set is two objects: the core of the black stone and the core of the white one. The
-          lit crown, the rim where the surface curves away, and the seating a dark board asks
-          for are all worked out from those two, so a set looks like itself in every room.
-        </p>
+        <div className="stat-head"><Circle size={16} /><span>{t("look.stones.head")}</span></div>
+        <p className="fine" style={{ marginTop: 6 }}>{t("look.stones.note")}</p>
         <div className="look-stones">
           <div className="look-preview">
             {/* A still life, not a game: the board is here to be looked at, and
@@ -137,9 +168,8 @@ export function LookView({ profile, setProfile, go, room }) {
               <p className={`fine look-cut ${cut.pass ? "" : "warn"}`}>
                 {cut.pass ? <Check size={13} aria-hidden="true" /> : <TriangleAlert size={13} aria-hidden="true" />}
                 <span>
-                  {cut.pass
-                    ? `${set.name}, cut at ${cut.ratio.toFixed(1)}:1 against a floor of ${cut.min}. Black and white have to be unmistakable across a board, at speed.`
-                    : `${set.name} only reaches ${cut.ratio.toFixed(1)}:1 in this room, under the floor of ${cut.min}. Another set, or a different ground in the dojo, will separate them.`}
+                  {t(cut.pass ? "look.stones.pass" : "look.stones.fail",
+                    { name: setName(set, t), ratio: cut.ratio.toFixed(1), min: cut.min })}
                 </span>
               </p>
             )}
@@ -151,50 +181,44 @@ export function LookView({ profile, setProfile, go, room }) {
                 className={`stone-btn ${stones === s.id ? "active" : ""}`}
                 onClick={() => commit({ stones: s.id })}
                 aria-pressed={stones === s.id}
-                aria-label={`Stones: ${s.name}`}
+                aria-label={t("look.stones.pick", { name: setName(s, t) })}
               >
                 <span className="stone-plate">
                   <span className="theme-stone b" />
                   <span className="theme-stone w" />
                 </span>
-                <span className="stone-name">{s.name}</span>
+                <span className="stone-name">{setName(s, t)}</span>
               </button>
             ))}
           </div>
         </div>
-        <p className="fine type-note">{chosen.note}</p>
+        <p className="fine type-note">{t(`stones.${chosen.id}.note`, null, chosen.note)}</p>
       </Card>
 
       <Card>
-        <div className="stat-head"><Type size={16} /><span>The type</span></div>
-        <p className="fine" style={{ marginTop: 6 }}>
-          Each pairing sets the headings, the serif that carries the sayings, the body text and
-          the small labels; the palette and the shadows never move.
-        </p>
+        <div className="stat-head"><Type size={16} /><span>{t("look.type.head")}</span></div>
+        <p className="fine" style={{ marginTop: 6 }}>{t("look.type.note")}</p>
         <div className="type-row">
-          {TYPEFACES.map(t => (
-            <button key={t.id}
-              className={`type-btn ${typeface === t.id ? "active" : ""}`}
-              onClick={() => commit({ typeface: t.id })}
-              aria-pressed={typeface === t.id}
-              aria-label={`Typeface ${t.name}`}
+          {TYPEFACES.map(f => (
+            <button key={f.id}
+              className={`type-btn ${typeface === f.id ? "active" : ""}`}
+              onClick={() => commit({ typeface: f.id })}
+              aria-pressed={typeface === f.id}
+              aria-label={t("look.type.pick", { name: f.name })}
             >
-              <span className="type-sample" style={{ fontFamily: t.display, fontWeight: t.weight }}>Joseki 9d</span>
-              <span className="type-name">{t.name}</span>
+              <span className="type-sample" style={{ fontFamily: f.display, fontWeight: f.weight }}>Joseki 9d</span>
+              <span className="type-name">{f.name}</span>
             </button>
           ))}
         </div>
         <p className="fine type-note">
-          {typefaceOf(typeface).note}
+          {t(`type.${typeface}.note`, null, typefaceOf(typeface).note)}
           <em className="type-credit">{typefaceOf(typeface).credit}</em>
         </p>
       </Card>
 
       <Card inset>
-        <p className="fine">
-          The room, the stones and the pairing live on this device, beside your profile. They
-          are preferences rather than account settings — a borrowed laptop keeps its own.
-        </p>
+        <p className="fine">{t("look.device")}</p>
       </Card>
     </div>
   );

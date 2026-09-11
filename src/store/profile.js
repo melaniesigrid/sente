@@ -5,6 +5,7 @@ import { TINTS, ratingOfRank, MIN_RATING, MAX_RATING } from "../content/rank.js"
 import { GLICKO } from "../engine/index.js";
 import { DEFAULT_TYPEFACE, typefaceOf } from "../content/typeface.js";
 import { SYSTEM_THEME, isThemeId, sanitizePalette, AUTO_STONES, isStoneId } from "../theme/index.js";
+import { SYSTEM_LOCALE, isLocaleId } from "../i18n/index.js";
 import { parseCardKey, sanitizeEntry } from "../content/recall.js";
 
 export const STORE_KEY = "sente-profile-v3";
@@ -25,6 +26,7 @@ export const defaultProfile = {
   coordinates: false,                        // letters and numbers around the board
   lastMoveMark: "dot",                       // how the last stone played is marked
 
+  locale: SYSTEM_LOCALE,                     // language id, or "system" to read whatever the device asks for
   typeface: DEFAULT_TYPEFACE,                // font pairing id, src/content/typeface.js
   theme: SYSTEM_THEME,                       // palette id, or "system" to follow the device
   stones: AUTO_STONES,                       // stone set id, or "auto" to play each room with its own
@@ -84,6 +86,7 @@ const validField = (key, value, raw) => {
   if (typeof def === "boolean") return typeof value === "boolean";
   if (key === "tint") return typeof value === "string" && Object.hasOwn(TINTS, value);
   if (key === "lastMoveMark") return MARKS.includes(value);
+  if (key === "locale") return typeof value === "string" && isLocaleId(value);
   if (key === "typeface") return typeof value === "string" && typefaceOf(value).id === value;
   if (key === "theme") return typeof value === "string" && isThemeId(value, raw && raw.dojo ? sanitizePalette(raw.dojo) : null);
   if (key === "stones") return typeof value === "string" && isStoneId(value);

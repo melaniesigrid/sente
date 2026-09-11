@@ -52,6 +52,15 @@ in `server/` (Durable Objects), deployed separately.
   is the default and the reference. Local faces are declared once in `src/styles/fontfaces.js`
   with a `size-adjust` that puts every face on Fraunces' optical size; they are demo cuts,
   see `src/fonts/LICENSES.md` before a public deploy.
+- **No view names a word.** User-facing text is a key into `src/i18n/`, read with `t()` from
+  `useT()`; the language is themed the way the palette and the type are. `en.js` is the
+  floor every lookup lands on, so an unfinished language shows English rather than a hole.
+  Prose a data file already owns — a room's note, a stone set's name, a pairing's note —
+  stays there and a translation overlays it by id (`t(key, vars, dataString)`). `i18n.test.js`
+  fails when a catalogue drifts from English or from the data. `system` is what a profile
+  ships set to; `src/components/langStore.js` is the only thing that reads
+  `navigator.languages`, the way `usePrefersDark` is for the media query. A name is never
+  translated, a description always is.
 - House players are labeled honestly as bots in the UI. Keep that. They play with
   KataGo's human-style network (`src/engine/kata/`, model in `public/models/`, export and
   fixture scripts in `tools/kata/`); each persona is a rank profile. `src/engine/kata/net.js`
