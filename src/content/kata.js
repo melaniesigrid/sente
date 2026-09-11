@@ -15,12 +15,15 @@ export function dailyProblem(problems, key) {
   return problems[hashString(key) % problems.length];
 }
 
-/** The key for the day before `key`, computed in UTC so DST cannot skip a day. */
-export function previousDay(key) {
+/** `key` moved by `n` days, computed in UTC so DST cannot skip or repeat one. */
+export function addDays(key, n) {
   const [y, m, d] = key.split("-").map(Number);
-  const t = new Date(Date.UTC(y, m - 1, d) - 86400000);
+  const t = new Date(Date.UTC(y, m - 1, d) + n * 86400000);
   return `${t.getUTCFullYear()}-${String(t.getUTCMonth() + 1).padStart(2, "0")}-${String(t.getUTCDate()).padStart(2, "0")}`;
 }
+
+/** The key for the day before `key`. */
+export const previousDay = (key) => addDays(key, -1);
 
 /** Profile patch after solving today's kata. Idempotent within a day. */
 export function attend(profile, key) {

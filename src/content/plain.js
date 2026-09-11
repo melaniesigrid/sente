@@ -13,6 +13,7 @@ export const PLAIN_WORDS = {
   learn: "A lesson here is a board you play, not a page you read. The library starts at what a liberty is and ends with an eleventh-century official on temperament, in the order those things start to matter.",
   tsumego: "A tsumego is a corner of a board with one right answer: make the group live, or take its second eye away. They are how reading gets quick, because the same handful of shapes turn up in real games for the rest of your life.",
   ladder: "A rating is a guess at your strength, and the ladder keeps track of how sure that guess is. A new handle moves a long way after a few games; a settled one barely moves at all, because the ladder already knows where you play.",
+  recall: "A lesson is read once, and then it fades. A question you answered a week ago comes back here, and if you still know it the wait until the next time doubles, so the things you have learned are the things you are asked about least.",
   profile: "Your rank is measured, not awarded. It is your rating read off the ladder, so it moves with results rather than with the hours you have put in, and the belt is simply the band of ranks you are standing in.",
 };
 
@@ -40,6 +41,7 @@ export const STATEMENTS = {
   tsumego: ["One corner.", "One answer.", "Read it out."],
   ladder: ["A rating", "is a guess.", "The ladder knows."],
   profile: ["Measured.", "Not awarded.", "That is the rank."],
+  recall: ["Answered", "once", "is not known."],
 };
 
 /** The three statement lines for a screen, or null where there are none. */

@@ -33,6 +33,7 @@ import { Landing } from "./views/Landing.jsx";
 import { PlayView } from "./views/Play.jsx";
 import { LearnView } from "./views/Learn.jsx";
 import { ProblemsView } from "./views/Problems.jsx";
+import { RecallView } from "./views/Recall.jsx";
 import { RankingsView } from "./views/Rankings.jsx";
 import { ProfileView } from "./views/Profile.jsx";
 import { DojoView } from "./views/Dojo.jsx";
@@ -166,8 +167,9 @@ export default function JosekiApp() {
           ) : (<>
           {view === "home" && <Home profile={profile} go={go} onResume={resumeGame} />}
           {view === "play" && <PlayView profile={profile} setProfile={setProfile} notify={notify} resume={resume} />}
-          {view === "learn" && <LearnView profile={profile} setProfile={setProfile} />}
+          {view === "learn" && <LearnView profile={profile} setProfile={setProfile} go={go} />}
           {view === "tsumego" && <ProblemsView profile={profile} setProfile={setProfile} initialId={params ? params.problemId : null} />}
+          {view === "recall" && <RecallView profile={profile} setProfile={setProfile} go={go} />}
           {view === "ladder" && <RankingsView profile={profile} />}
           {view === "profile" && <ProfileView profile={profile} setProfile={setProfile} go={go} room={room} notify={notify} />}
           {view === "look" && <LookView profile={profile} setProfile={setProfile} go={go} room={room} />}
