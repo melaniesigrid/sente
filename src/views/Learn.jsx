@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, Fragment } from "react";
 import {
   ChevronLeft, ChevronRight, Check, X, Lightbulb, BookOpen, RotateCcw, Play, Search, Clock, Lock, Quote, FastForward,
-  CornerDownRight, Eye,
+  CornerDownRight, Eye, BrainCircuit,
 } from "lucide-react";
 import { Board } from "../components/Board.jsx";
 import { Card, Btn, Pill, PullQuote, Statement } from "../components/ui.jsx";
@@ -10,12 +10,14 @@ import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
 import {
-  TIERS, TRACKS, BOOKS, lessonById, prereqsMissing, nextLessonFor, currentTierFor, searchLibrary,
+  LIBRARY, TIERS, TRACKS, BOOKS, lessonById, prereqsMissing, nextLessonFor, currentTierFor, searchLibrary,
   lessonsInTier, lessonsInBook, lessonsInSeries, lessonAfter, bookProgressFor, trackByKey, isDone,
   tierById, seriesByKey,
 } from "../content/library.js";
 import { CLASSIC, CHAPTERS, PREFACE, NAMES, lessonIdsForChapter } from "../content/classic.js";
 import { saveProfile } from "../store/profile.js";
+import { enrol, recallSummary } from "../content/recall.js";
+import { dayKey } from "../content/kata.js";
 import { rankOf } from "../content/rank.js";
 import { modelReady, kataChooseMoveForRecord, profileForRank } from "../engine/index.js";
 import { initStep, stepReducer, marksFor, boardLocked, canReveal, recordAtStop, coordLabel, VERDICT_LABELS } from "./lessonStep.js";
@@ -38,8 +40,9 @@ const reducedMotion = () =>
 
 const TONE_ICON = { success: Check, correction: X, verdict: Lightbulb, commentary: CornerDownRight };
 
-/** One thing the lesson said. Four tones, one shape. */
-function Response({ entry }) {
+/** One thing the lesson said. Four tones, one shape. Exported: the recall
+ *  sitting draws the same block, because it is the same voice answering. */
+export function Response({ entry }) {
   const Icon = TONE_ICON[entry.tone] || CornerDownRight;
   return (
     <div className={`response tone-${entry.tone}`}>
@@ -472,7 +475,7 @@ function ClassicCard({ done, onOpen }) {
 }
 
 /* ----------------------- LEARN (the library) ----------------------- */
-export function LearnView({ profile, setProfile }) {
+export function LearnView({ profile, setProfile, go }) {
   const [active, setActive] = useState(null);      // lesson id being played
   const [pending, setPending] = useState(null);    // lesson with missing prereqs awaiting a decision
   const [tier, setTier] = useState(() => currentTierFor(profile));
@@ -491,7 +494,13 @@ export function LearnView({ profile, setProfile }) {
   const finish = (lesson) => {
     SESSIONS.delete(lesson.id);
     setProfile(p => {
-      const np = { ...p, lessonsDone: [...new Set([...p.lessonsDone, lesson.id])] };
+      const np = {
+        ...p,
+        lessonsDone: [...new Set([...p.lessonsDone, lesson.id])],
+        // Its questions join the recall queue, due tomorrow. A lesson is read
+        // once; what it asked you comes back until you know it.
+        recall: enrol(p.recall, lesson, dayKey()),
+      };
       saveProfile(np);
       return np;
     });
@@ -508,6 +517,7 @@ export function LearnView({ profile, setProfile }) {
   };
 
   const results = useMemo(() => searchLibrary(query), [query]);
+  const recall = recallSummary(LIBRARY, profile.recall, dayKey());
   const searching = query.trim().length > 0;
   const tierInfo = TIERS.find(t => t.id === tier);
   const tierLessons = lessonsInTier(tier);
@@ -553,6 +563,20 @@ export function LearnView({ profile, setProfile }) {
             <Btn icon={Play} primary small onClick={() => { setPending(null); setActive(pending.missing[0].id); }}>Start with {pending.missing[0].title}</Btn>
             <Btn small onClick={() => { setPending(null); setActive(pending.lesson.id); }}>Open anyway</Btn>
           </div>
+        </Card>
+      )}
+
+      {/* What you have already read, asked back. It comes before Continue: a
+          question that is due is worth more than the next lesson, because it is
+          the one thing here that is about to be forgotten. */}
+      {!searching && recall.due > 0 && go && (
+        <Card inset className="resume-card">
+          <div className="resume-copy">
+            <div className="stat-head"><BrainCircuit size={15} /><span>Recall</span></div>
+            <strong>Review {recall.session}</strong>
+            <span className="fine">{recall.due} of {recall.total} due · questions from lessons you have finished</span>
+          </div>
+          <Btn icon={BrainCircuit} primary small onClick={() => go("recall")}>Start</Btn>
         </Card>
       )}
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Swords, GraduationCap, Target, Trophy, Play, Trash2, CalendarCheck, Flame } from "lucide-react";
+import { Swords, GraduationCap, Target, Trophy, Play, Trash2, CalendarCheck, Flame, BrainCircuit } from "lucide-react";
 import { MiniSelfPlay } from "../components/MiniSelfPlay.jsx";
 import { Card, Btn, RankBadge, Statement } from "../components/ui.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
@@ -14,6 +14,8 @@ import { clearGame } from "../store/gameStore.js";
 import { useMokuFacts } from "../components/mokuStore.js";
 import { DuelCard } from "../components/DuelCard.jsx";
 import { dayKey, dailyProblem, liveStreak } from "../content/kata.js";
+import { recallSummary } from "../content/recall.js";
+import { LIBRARY } from "../content/library.js";
 import { OpenSgf } from "../components/OpenSgf.jsx";
 import { Review } from "./Review.jsx";
 import { loadSession } from "./session.js";
@@ -35,6 +37,7 @@ export function Home({ profile, go, onResume }) {
   const kata = dailyProblem(PROBLEMS, today);
   const kataDone = profile.kataDate === today;
   const streak = liveStreak(profile, today);
+  const recall = recallSummary(LIBRARY, profile.recall, today);
   useMokuFacts({ view: "home", seed: games });
   const greeting = games ? "Welcome back" : "Welcome to the board";
   // One line naming the next honest thing to do, so the dashboard opens on a
@@ -96,6 +99,28 @@ export function Home({ profile, go, onResume }) {
           <div className="kata-streak">
             <Flame size={16} />
             <span className="stat-num">{streak}<em>{streak === 1 ? "day" : "days"}</em></span>
+          </div>
+        </button>
+      )}
+
+      {/* The recall queue, and only once there is one: a dashboard that offers
+          five cards to somebody who has finished no lessons is promising work
+          that does not exist. */}
+      {recall.total > 0 && (
+        <button className={`neu-card tile kata-card ${recall.due === 0 ? "done" : ""}`} onClick={() => go("recall")}>
+          <div className="kata-copy">
+            <div className="stat-head"><BrainCircuit size={16} /><span>Recall</span></div>
+            <strong className="kata-title">
+              {recall.due === 0 ? "Nothing due today" : `Review ${recall.session}`}
+            </strong>
+            <span className="fine">
+              {recall.due === 0
+                ? `${recall.total} ${recall.total === 1 ? "card" : "cards"} waiting their turn${recall.nextDue ? ` · next on ${recall.nextDue}` : ""}`
+                : `${recall.due} of ${recall.total} due · questions you have answered before`}
+            </span>
+          </div>
+          <div className="kata-streak">
+            <span className="stat-num">{recall.known}<em>known</em></span>
           </div>
         </button>
       )}

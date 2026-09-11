@@ -4,7 +4,7 @@ import { PLAIN_WORDS, STATEMENTS, plainFor, statementFor } from "./plain.js";
 describe("plain words", () => {
   it("covers every screen that sets one", () => {
     expect(Object.keys(PLAIN_WORDS).sort())
-      .toEqual(["home", "ladder", "learn", "play", "profile", "tsumego"]);
+      .toEqual(["home", "ladder", "learn", "play", "profile", "recall", "tsumego"]);
   });
 
   it("speaks in the house voice, at a pullable length", () => {
