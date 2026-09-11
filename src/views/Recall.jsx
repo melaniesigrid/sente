@@ -29,13 +29,19 @@ import { Response } from "./Learn.jsx";
 const reducedMotion = () =>
   typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
-/** Plain words for how far away a card has just been pushed. */
+/** A card's name: the lesson it came from, and which of that lesson's
+ *  questions it is, since one lesson often sends several. */
+const cardName = (card) =>
+  (card.lesson.steps.filter(s => s.type === "quiz" || s.type === "choice").length > 1
+    ? `${card.lesson.title}, question ${card.ordinal}`
+    : card.lesson.title);
+
+/** Plain words for how far away a card has just been pushed. The count is
+ *  exact: rounding eight days up to a week would be telling the learner
+ *  something the schedule is not going to do. */
 const comesBack = (box) => {
   const days = BOXES[Math.min(box, BOXES.length - 1)];
-  if (days === 1) return "tomorrow";
-  if (days < 7) return `in ${days} days`;
-  if (days === 7) return "in a week";
-  return `in ${Math.round(days / 7)} weeks`;
+  return days === 1 ? "tomorrow" : `in ${days} days`;
 };
 
 /** One card, played through the library's own step reducer. */
@@ -169,7 +175,7 @@ export function RecallView({ profile, setProfile, go }) {
             <span className="fine">
               {summary.total === 0
                 ? "Finish a lesson and its questions join the queue. Nothing is asked back on the day it was answered."
-                : `${summary.total} ${summary.total === 1 ? "card is" : "cards are"} waiting their turn${summary.nextDue ? `; the next comes back on ${summary.nextDue}` : ""}.`}
+                : `${summary.total} ${summary.total === 1 ? "card is" : "cards are"} waiting their turn${summary.nextIn === null ? "" : `; the next comes back ${summary.nextIn <= 1 ? "tomorrow" : `in ${summary.nextIn} days`}`}.`}
             </span>
           </div>
           <Btn icon={GraduationCap} primary small onClick={() => go("learn")}>The library</Btn>
@@ -198,7 +204,7 @@ export function RecallView({ profile, setProfile, go }) {
             {results.map(r => (
               <li key={r.key} className={r.recalled ? "" : "shown"}>
                 {r.recalled ? <Check size={14} /> : <RotateCcw size={14} />}
-                <span>{r.card.lesson.title} — back {r.recalled ? comesBack(r.card.box + 1) : comesBack(0)}</span>
+                <span>{cardName(r.card)} — back {r.recalled ? comesBack(r.card.box + 1) : comesBack(0)}</span>
               </li>
             ))}
           </ul>

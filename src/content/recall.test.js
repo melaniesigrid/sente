@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   BOXES, SESSION_SIZE, cardKey, parseCardKey, cardsInLesson, sanitizeEntry,
-  enrol, grade, scheduledCards, dueCards, recallSummary,
+  enrol, grade, scheduledCards, dueCards, recallSummary, daysUntil,
 } from "./recall.js";
 import { LIBRARY, lessonById } from "./library.js";
 import { addDays } from "./kata.js";
@@ -22,6 +22,10 @@ describe("cards", () => {
   it("takes the quiz and choice steps and nothing else", () => {
     expect(cardsInLesson(lesson).map(c => c.stepIndex)).toEqual([1, 3]);
   });
+  it("numbers a card among its lesson's questions, not among its steps", () => {
+    expect(cardsInLesson(lesson).map(c => c.ordinal)).toEqual([1, 2]);
+  });
+
   it("keys round-trip", () => {
     expect(parseCardKey(cardKey("demo", 3))).toEqual({ lessonId: "demo", stepIndex: 3 });
   });
@@ -105,9 +109,15 @@ describe("the queue", () => {
     const sum = recallSummary([lesson], schedule, TODAY);
     expect(sum).toMatchObject({ total: 2, due: 2, session: 2, known: 0, nextDue: null });
   });
-  it("names the day the next card comes back when none are waiting", () => {
+  it("names the day the next card comes back, and how far off it is", () => {
     const held = { "demo#1": { box: 2, due: "2026-09-20" } };
-    expect(recallSummary([lesson], held, TODAY)).toMatchObject({ due: 0, session: 0, nextDue: "2026-09-20" });
+    expect(recallSummary([lesson], held, TODAY))
+      .toMatchObject({ due: 0, session: 0, nextDue: "2026-09-20", nextIn: 9 });
+  });
+
+  it("has no next day, and no count, when everything is due", () => {
+    const all = { "demo#1": { box: 0, due: TODAY } };
+    expect(recallSummary([lesson], all, TODAY)).toMatchObject({ nextDue: null, nextIn: null });
   });
   it("counts a card in the last box as known", () => {
     const top = { "demo#1": { box: BOXES.length - 1, due: "2026-12-01" } };
@@ -117,6 +127,15 @@ describe("the queue", () => {
     const many = {};
     for (let i = 0; i < 40; i++) many[`demo#1`] = { box: 0, due: "2026-09-01" };
     expect(dueCards([lesson], many, TODAY).length).toBeLessThanOrEqual(SESSION_SIZE);
+  });
+});
+
+describe("counting days", () => {
+  it("counts whole days forward and back, across a month end", () => {
+    expect(daysUntil(TODAY, TODAY)).toBe(0);
+    expect(daysUntil(TODAY, "2026-09-12")).toBe(1);
+    expect(daysUntil("2026-09-28", "2026-10-02")).toBe(4);
+    expect(daysUntil(TODAY, "2026-09-10")).toBe(-1);
   });
 });
 

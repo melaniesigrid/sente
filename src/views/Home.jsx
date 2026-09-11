@@ -115,7 +115,7 @@ export function Home({ profile, go, onResume }) {
             </strong>
             <span className="fine">
               {recall.due === 0
-                ? `${recall.total} ${recall.total === 1 ? "card" : "cards"} waiting their turn${recall.nextDue ? ` · next on ${recall.nextDue}` : ""}`
+                ? `${recall.total} ${recall.total === 1 ? "card" : "cards"} waiting their turn${recall.nextIn === null ? "" : ` · next ${recall.nextIn <= 1 ? "tomorrow" : `in ${recall.nextIn} days`}`}`
                 : `${recall.due} of ${recall.total} due · questions you have answered before`}
             </span>
           </div>

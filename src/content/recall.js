@@ -47,8 +47,11 @@ export function cardsInLesson(lesson) {
   return lesson.steps
     .map((step, stepIndex) => ({ step, stepIndex }))
     .filter(({ step }) => RECALLABLE.includes(step.type))
-    .map(({ step, stepIndex }) => ({
-      key: cardKey(lesson.id, stepIndex), lessonId: lesson.id, stepIndex, lesson, step,
+    // `ordinal` is the card's place among its lesson's questions, not its step
+    // number: two cards from one lesson have to be tellable apart by name.
+    .map(({ step, stepIndex }, i) => ({
+      key: cardKey(lesson.id, stepIndex), lessonId: lesson.id, stepIndex, ordinal: i + 1,
+      lesson, step,
     }));
 }
 
@@ -87,16 +90,14 @@ const byDueThenBox = (a, b) =>
 /** Every scheduled card that still exists in the library, oldest due first.
  *  A key whose lesson or step has been renamed away is dropped, not repaired. */
 export function scheduledCards(library, schedule) {
-  const byId = new Map(library.map(l => [l.id, l]));
+  const cards = new Map();
+  for (const lesson of library) for (const c of cardsInLesson(lesson)) cards.set(c.key, c);
   const out = [];
   for (const [key, value] of Object.entries(schedule || {})) {
     const entry = sanitizeEntry(value);
-    const parsed = parseCardKey(key);
-    if (!entry || !parsed) continue;
-    const lesson = byId.get(parsed.lessonId);
-    const step = lesson && lesson.steps[parsed.stepIndex];
-    if (!step || !RECALLABLE.includes(step.type)) continue;
-    out.push({ key, lessonId: parsed.lessonId, stepIndex: parsed.stepIndex, lesson, step, ...entry });
+    const card = entry && parseCardKey(key) ? cards.get(key) : null;
+    if (!card) continue;
+    out.push({ ...card, ...entry });
   }
   return out.sort(byDueThenBox);
 }
@@ -107,8 +108,14 @@ export function dueCards(library, schedule, today, limit = SESSION_SIZE) {
   return scheduledCards(library, schedule).filter(c => c.due <= today).slice(0, limit);
 }
 
-/** What the Home card says: how many are waiting, how many are held, and the
- *  day the next one comes back when none are waiting today. */
+/** Whole days from one day key to another, in UTC. Negative when `to` is past. */
+export function daysUntil(from, to) {
+  const at = (k) => { const [y, m, d] = k.split("-").map(Number); return Date.UTC(y, m - 1, d); };
+  return Math.round((at(to) - at(from)) / 86400000);
+}
+
+/** What the Home card says: how many are waiting, how many are held, and how
+ *  far off the next one is when none are waiting today. */
 export function recallSummary(library, schedule, today) {
   const cards = scheduledCards(library, schedule);
   const due = cards.filter(c => c.due <= today);
@@ -120,5 +127,6 @@ export function recallSummary(library, schedule, today) {
     // A card in the last box has been recalled through every interval there is.
     known: cards.filter(c => c.box >= BOXES.length - 1).length,
     nextDue: next ? next.due : null,
+    nextIn: next ? daysUntil(today, next.due) : null,
   };
 }
