@@ -1116,7 +1116,10 @@ that is honestly still English.
 - [x] Spanish: review mode and the dojo, including the theme contract's own words — the
       tones and the contrast rules in `tokens.js` are overlaid by key, so the numbers a
       designer reads while breaking a rule are explained in their language.
-- [ ] Spanish: the small print, and the three documents it renders.
+- [x] Spanish: the small print and all three documents. A translated contract is a
+      courtesy and not a second contract, so every language but English carries a line
+      saying which version governs. The constants the documents are written around arrive
+      as holes rather than copied in, and the date is set by Intl from one ISO constant.
 - [ ] Spanish: online play — the lobby, the game, the account gate, the letters.
 - [ ] Spanish: the content prose. Lessons, personas, Moku, the plain-words statements, the
       books, the legal documents, and the Classic's thirteen chapters, in that order.

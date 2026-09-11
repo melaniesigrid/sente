@@ -1,5 +1,12 @@
+import { useMemo } from "react";
 import { Scale, ShieldCheck, Copyright } from "lucide-react";
-import { DOCUMENTS, CREDITS, COPYRIGHT, UPDATED, documentById } from "../content/legal.js";
+import {
+  DOCUMENTS, CREDITS, COPYRIGHT, UPDATED, UPDATED_ISO, PRODUCT, STUDIO, CONTACT, REPO,
+  documentById,
+} from "../content/legal.js";
+import { localize } from "../content/translate.js";
+import { useT, useLocale } from "../components/langStore.js";
+import { BASE_LOCALE } from "../i18n/index.js";
 
 /* ----------------------- THE SMALL PRINT -----------------------
    Three documents, one screen, one tab strip. It renders what
@@ -15,7 +22,18 @@ import { DOCUMENTS, CREDITS, COPYRIGHT, UPDATED, documentById } from "../content
    reason: a line a person can actually follow to its end.
 
    No `dangerouslySetInnerHTML`, no markdown renderer. A paragraph is a string
-   and it is set as a string, so nothing a document says can become markup. */
+   and it is set as a string, so nothing a document says can become markup.
+
+   TRANSLATION
+   The documents are offered in the reader's language and say so. A translated
+   contract is a courtesy rather than a second contract, so every language but
+   the one they were written in carries a line naming which version governs —
+   which is the honest half of offering a translation at all. The constants the
+   documents are written around arrive as holes rather than copied in, so the
+   address to write to is one string in every language. */
+
+/** The words the documents are written around, handed to every lookup. */
+const VARS = { product: PRODUCT, studio: STUDIO, contact: CONTACT, repo: REPO, copyright: COPYRIGHT };
 
 const ICONS = { terms: Scale, privacy: ShieldCheck, credits: Copyright };
 
@@ -35,11 +53,17 @@ function Section({ section }) {
 }
 
 /** The credits table, which is a table because it answers three questions at
- *  once and a paragraph answering three questions answers none of them. */
+ *  once and a paragraph answering three questions answers none of them.
+ *
+ *  What a thing is called and who made it are names and stay in every language;
+ *  what it comes under is a description, and "public domain" is a phrase before
+ *  it is a term of art. */
 function Credits() {
+  const t = useT();
+  const groups = useMemo(() => CREDITS.map(g => localize(g, `credit.${g.id}`, t, VARS)), [t]);
   return (
     <div className="legal-credits">
-      {CREDITS.map(group => (
+      {groups.map(group => (
         <section key={group.id} className="legal-section">
           <h2>{group.title}</h2>
           <p>{group.note}</p>
@@ -61,19 +85,32 @@ function Credits() {
 }
 
 export function LegalView({ docId, onPick }) {
-  const doc = documentById(docId);
+  const t = useT();
+  const locale = useLocale();
+  const authored = documentById(docId);
+  const doc = useMemo(() => localize(authored, `legalDoc.${authored.id}`, t, VARS), [authored, t]);
   const Icon = ICONS[doc.id];
+  /* The day it last changed, set the way this language sets a date. */
+  const stamped = useMemo(() => {
+    try {
+      return new Intl.DateTimeFormat(locale.tag, { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })
+        .format(new Date(`${UPDATED_ISO}T00:00:00Z`));
+    } catch {
+      return UPDATED;
+    }
+  }, [locale]);
 
   return (
     <div className="stack legal">
       <div className="legal-head">
-        <p className="eyebrow">The small print</p>
+        <p className="eyebrow">{t("legal.eyebrow")}</p>
         <h1 className="legal-title">{doc.title}</h1>
         <p className="legal-lede">{doc.blurb}</p>
-        <p className="legal-stamp">Last changed {UPDATED}</p>
+        <p className="legal-stamp">{t("legal.stamp", { date: stamped })}</p>
+        {locale.id !== BASE_LOCALE && <p className="legal-stamp">{t("legal.translated")}</p>}
       </div>
 
-      <nav className="legal-tabs" aria-label="Small print">
+      <nav className="legal-tabs" aria-label={t("legal.tabs")}>
         {DOCUMENTS.map(d => {
           const T = ICONS[d.id];
           return (
@@ -82,7 +119,7 @@ export function LegalView({ docId, onPick }) {
               aria-current={d.id === doc.id ? "page" : undefined}
               onClick={() => onPick(d.id)}>
               <T size={15} strokeWidth={2.2} />
-              <span>{d.title}</span>
+              <span>{t(`legalDoc.${d.id}.title`, null, d.title)}</span>
             </button>
           );
         })}

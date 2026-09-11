@@ -221,7 +221,7 @@ export default function JosekiApp() {
           {DOCUMENTS.map((d, i) => (
             <span key={d.id} className="foot-legal">
               {i > 0 && <span className="foot-sep" aria-hidden="true">·</span>}
-              <button className="foot-link" onClick={() => go("legal", { docId: d.id })}>{d.title}</button>
+              <button className="foot-link" onClick={() => go("legal", { docId: d.id })}>{t(`legalDoc.${d.id}.title`, null, d.title)}</button>
             </span>
           ))}
         </span>
