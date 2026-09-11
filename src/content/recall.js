@@ -10,7 +10,7 @@
    The schedule is Leitner boxes: six of them, at one, two, four, eight,
    sixteen and thirty-two days. Recalling a card on the first try moves it up
    a box; missing it, or asking to be shown, puts it back in the first. A card
-   is never due the day it was answered, right or wrong — a question answered
+   is never due the day it was answered, right or wrong: a question answered
    again within the hour is answered out of the last minute rather than out of
    memory, which is the one thing this is here to measure.
 

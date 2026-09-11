@@ -8,8 +8,8 @@
 
    So the dojo now picks from the drawer: for each tone, every value the named
    rooms actually use for that role, deduped and sorted light to dark. Building
-   a room becomes what it should have been — taking House's ground, Kaya's ink
-   and Cinnabar's mark and seeing whether the three of them can live together —
+   a room becomes what it should have been: taking House's ground, Kaya's ink
+   and Cinnabar's mark and seeing whether the three of them can live together,
    and the audit still has something to say, because a stock colour is only
    proven against the room it came from.
 
@@ -34,7 +34,7 @@ function drawer(key) {
   return out.sort((a, b) => luminance(b.hex) - luminance(a.hex));
 }
 
-/** { toneKey: [{ hex, rooms }] } — what the dojo may offer, by tone. */
+/** { toneKey: [{ hex, rooms }] }: what the dojo may offer, by tone. */
 export const SWATCHES = Object.fromEntries(TONES.map(t => [t.key, drawer(t.key)]));
 
 /** The swatches for one tone. Never throws; an unknown key has none. */

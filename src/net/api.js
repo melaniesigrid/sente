@@ -15,7 +15,7 @@ const configured = import.meta.env.VITE_SENTE_SERVER;
 export const SERVER_URL = (configured === undefined ? DEFAULT_URL : configured).replace(/\/+$/, "");
 export const serverEnabled = () => SERVER_URL !== "";
 
-/** The address, folded the way the server folds it — and the way the key is
+/** The address, folded the way the server folds it, and the way the key is
  *  salted, so signing in with `Ada@…` finds the account made with `ada@…`. */
 const fold = (email) => (typeof email === "string" ? email.trim().toLowerCase() : "");
 const key = (email, password) => deriveKey(fold(email), password);
@@ -46,7 +46,7 @@ export const api = {
 
   /* Accounts. Every one of these takes the password itself and derives the key
      here, so no caller of `api` ever holds a password long enough to send one
-     by accident. Deriving costs about a second — show something while it runs. */
+     by accident. Deriving costs about a second, so show something while it runs. */
   signUp: async (name, tint, email, password) =>
     call("/api/signup", { method: "POST", body: { name, tint, email: fold(email), key: await key(email, password) } }),
   signIn: async (email, password) =>

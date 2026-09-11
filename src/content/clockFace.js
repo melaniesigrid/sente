@@ -1,8 +1,8 @@
 /* ----------------------- CLOCK FACE -----------------------
    How a clock reads, kept apart from how it is drawn. `engine/clock.js` does the
    arithmetic and names the events; this file turns a clock into the handful of facts
-   a face needs — the digits, how much pressure the side is under, and how many
-   byo-yomi periods are left — so the mapping is unit-tested and `components/Clock.jsx`
+   a face needs (the digits, how much pressure the side is under, and how many
+   byo-yomi periods are left) so the mapping is unit-tested and `components/Clock.jsx`
    only paints it.
 
    Pressure is read from the time the side can actually spend right now: main time
@@ -25,7 +25,7 @@ export const CLOCK_PRESETS = [
 
 export const presetById = (id) => CLOCK_PRESETS.find((p) => p.id === id) ?? CLOCK_PRESETS[0];
 
-/** Whose clock is running, or null. `timed` is the sides this game clocks at all —
+/** Whose clock is running, or null. `timed` is the sides this game clocks at all:
  *  "bw" face to face, "b" against a house player, whose speed is a fact about the
  *  device rather than about how well it plays. A clock stops for scoring, for a
  *  finished game and for a side that has already flagged; the view only paints the
@@ -80,7 +80,7 @@ export function faceOf(clock, color) {
 }
 
 /** The one-line preset description shown where a game is set up, e.g.
- *  "10 min + 3 x 30 s" — the same words the lobby and the result card use. */
+ *  "10 min + 3 x 30 s", the same words the lobby and the result card use. */
 export function presetText(preset) {
   if (!preset) return "No clock";
   const mins = Math.round((preset.mainMs ?? 0) / 60_000);

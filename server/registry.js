@@ -14,7 +14,7 @@
                   days already sealed; six integers each and no identifier,
                   so publishing the whole series gives nothing away
 
-   A handle can be claimed with nothing but a name — sitting down to play has
+   A handle can be claimed with nothing but a name: sitting down to play has
    never needed an account, and still does not. Such a handle lives in one
    browser: the bearer token is all there is, stored hashed, and losing it means
    claiming a new one.
@@ -236,7 +236,7 @@ export class Registry extends DurableObject {
      Verifying an address and getting back in after forgetting a password are
      the same mechanism seen from two sides: mint a single-use token, mail the
      person a link carrying it, and act when the link comes back. The token is
-     stored the way a session token is — hashed, never in the clear — so the
+     stored the way a session token is (hashed, never in the clear) so the
      store cannot be read for a way into somebody's account.
 
      One token of each kind per player at a time. Minting a second forgets the
@@ -247,7 +247,7 @@ export class Registry extends DurableObject {
      WHY A RESET ENDS EVERY OTHER SESSION AND A PASSWORD CHANGE DOES NOT
      Changing a password requires the old one, so the account was never out of
      its owner's hands and the devices already signed in are theirs. A reset
-     requires no such proof — only the mailbox — and the usual reason to want
+     requires no such proof (only the mailbox) and the usual reason to want
      one is that a device or a password is somewhere it should not be. So a
      reset signs out everything and hands back one fresh session for the
      browser that did it. */
@@ -263,7 +263,7 @@ export class Registry extends DurableObject {
   }
 
   /** Mint a link token for a player, forgetting any earlier one of its kind.
-   *  Returns what the router needs to write the letter — never stored. */
+   *  Returns what the router needs to write the letter; never stored. */
   async #mintMail(p, kind, ttlMs) {
     const token = randomHex(32);
     const hash = await sha256(token);
@@ -280,8 +280,8 @@ export class Registry extends DurableObject {
   }
 
   /** Look a link token up without spending it. Throws the same `bad-token` for
-   *  every way of being wrong — unknown, wrong kind, or for an address the
-   *  account no longer has — so the endpoint cannot be used to sort guesses. */
+   *  every way of being wrong (unknown, wrong kind, or for an address the
+   *  account no longer has) so the endpoint cannot be used to sort guesses. */
   async #findMail(token, kind) {
     if (typeof token !== "string" || token.length !== 64) throw new Error("bad-token");
     const hash = await sha256(token);
@@ -334,7 +334,7 @@ export class Registry extends DurableObject {
   }
 
   /** Ask for a way back in. Returns what to mail, or null when there is
-   *  nothing at that address — and the router answers the same either way, so
+   *  nothing at that address, and the router answers the same either way, so
    *  this endpoint cannot be asked whether somebody has an account here. The
    *  budget is spent on the address as well as on the caller, so it also
    *  cannot be used to fill one person's inbox. */
@@ -352,8 +352,8 @@ export class Registry extends DurableObject {
   /** What the reset page needs before it can ask for a new password: the
    *  address, because the browser salts its key derivation with it and cannot
    *  derive without it. Telling the holder of the token the address it was
-   *  mailed to gives away nothing — that token is already a way into the
-   *  account — and the alternative is putting the address in the link, where
+   *  mailed to gives away nothing (that token is already a way into the
+   *  account) and the alternative is putting the address in the link, where
    *  browser history and referrers would carry it further. */
   async resetTarget(token) {
     const { p } = await this.#findMail(token, "reset");

@@ -8,8 +8,8 @@ import { rankToNumber } from "./library.js";
    never did, which is backwards: a problem is a claim that one move is the
    answer, and that is the most checkable claim in the file. This closes it.
 
-   Every problem is checked for the things that hold of all of them — a legal
-   setup, a legal answer, a parsing rank — and the life-and-death ones are
+   Every problem is checked for the things that hold of all of them (a legal
+   setup, a legal answer, a parsing rank) and the life-and-death ones are
    searched exhaustively: the stated answer must kill, and no other point in the
    eye space may. If somebody adds a second vital point by accident, this fails. */
 

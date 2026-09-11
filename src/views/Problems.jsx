@@ -60,7 +60,7 @@ export function ProblemsView({ profile, setProfile, initialId }) {
       <ScreenHeader
         label="Life and death"
         title={<>Read it <em>out</em>.</>}
-        lede="Classical shapes — the public-domain vocabulary every serious life-and-death
+        lede="Classical shapes: the public-domain vocabulary every serious life-and-death
               collection is built on. One of them is today's kata; solve it daily and your
               attendance grows." />
       <Statement lines={statementFor("tsumego")}>{plainFor("tsumego")}</Statement>
@@ -95,7 +95,7 @@ export function ProblemsView({ profile, setProfile, initialId }) {
               <p className="fine hint-row"><Flame size={14} /> Attendance: {streak} {streak === 1 ? "day" : "days"} in a row.</p>
             )}
             {state.status === "wrong" && (
-              <p className="fine wrong-row"><X size={14} /> The group answers back — resetting.</p>
+              <p className="fine wrong-row"><X size={14} /> The group answers back. Resetting.</p>
             )}
           </Card>
           <div className="row">

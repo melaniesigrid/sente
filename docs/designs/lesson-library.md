@@ -160,9 +160,9 @@ Added 2026-09-11. The shelf's shape book, and the first one Joseki wrote rather 
 It is a catalogue rather than a collection: `src/content/shapes.js` holds one article per
 shape, and every article has the same three parts in the same order.
 
-- **buys** — what the shape is for, stated as a purchase rather than a virtue.
-- **costs** — what you gave up to have it. Every shape gives something up.
-- **breaks** — the position in which the bargain is a bad one.
+- **buys**: what the shape is for, stated as a purchase rather than a virtue.
+- **costs**: what you gave up to have it. Every shape gives something up.
+- **breaks**: the position in which the bargain is a bad one.
 
 The third part is the reason the book exists. Shape books stop after the first, which is why a
 5 kyu who can name the tiger's mouth still plays one into a capturing race. Nine articles ship;
@@ -178,7 +178,7 @@ existed, so the two books cross-reference instead of duplicating.
 | The two-space extension | `shape-two-space-extension` | 4 / 7k | shape |
 | The three connections | `shape-three-connections` | 5 / 4k | shape |
 | The bamboo joint | `proverb-bamboo-joint` (Proverbs) | 2 / 17k | shape |
-| The empty triangle, the large knight's move, the dumpling | — | — | — |
+| The empty triangle, the large knight's move, the dumpling | none | none | none |
 
 **Every number in the book was measured before it was written.** `shapes.test.js` re-derives
 each of them from the engine on every run, so an article and its lesson cannot drift apart:
@@ -187,7 +187,7 @@ the stone in a tiger's mouth has one liberty and the point becomes a real eye on
 middle of the board and six in the corner; the wedge into a two-space extension has two
 liberties and dies, and six liberties and lives when a stone stands behind it; the solid
 connection is one chain of nine, the bamboo joint two of six, the tiger's mouth three chains of
-six, four and four. The last of those is the point of the lesson — ten liberties spread over
+six, four and four. The last of those is the point of the lesson: ten liberties spread over
 two chains lose a capturing race to nine in one.
 
 Sources are the standard shape literature and the traditional names; no modern translation is
@@ -226,7 +226,7 @@ the three classical shapes added there.
 verified in CI since the library shipped and the problems never were, which was backwards: a
 problem is a claim that one move is the answer, and that is the most checkable claim in the
 repository. The test checks legality, house voice and rising difficulty over the whole set, and
-searches the three life-and-death problems exhaustively — the stated answer must kill and no
+searches the three life-and-death problems exhaustively: the stated answer must kill and no
 other point in the eye space may.
 
 ## Content model

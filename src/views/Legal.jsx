@@ -3,7 +3,7 @@ import { DOCUMENTS, CREDITS, COPYRIGHT, UPDATED, documentById } from "../content
 
 /* ----------------------- THE SMALL PRINT -----------------------
    Three documents, one screen, one tab strip. It renders what
-   src/content/legal.js says and holds no sentence of its own — a paragraph
+   src/content/legal.js says and holds no sentence of its own: a paragraph
    here would be a paragraph the verifier never sees.
 
    THE DECISION WORTH KEEPING

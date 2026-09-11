@@ -206,7 +206,7 @@ function AttachRow({ onAttach }) {
 /** The nudge an account whose address has never answered should keep seeing.
  *
  *  What confirming buys is worth being straight about: it does not unlock
- *  anything and it is not a gate — a forgotten password can be posted to an
+ *  anything and it is not a gate: a forgotten password can be posted to an
  *  unconfirmed address exactly as it can to a confirmed one. What it proves is
  *  that the address was typed correctly and can be reached, which is the thing
  *  you want to have found out before it is the only way back to your handle. */

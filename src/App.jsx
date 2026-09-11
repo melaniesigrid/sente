@@ -3,10 +3,10 @@ import { Swords, GraduationCap, Target, LayoutDashboard, Medal, ArrowRight, Pale
 import { sayingBySeed } from "./content/classic.js";
 
 /* ================================================================
-   SENTE — play go, beautifully
+   SENTE · play go, beautifully
    Design system: Laska "stone" palette (DESIGN.md)
    The palette is themed from src/content/theme.js; the house room is the
-   reference — ground #e8e4db · highlight #fbf8f2 · shade #c4beb1 ·
+   reference: ground #e8e4db · highlight #fbf8f2 · shade #c4beb1 ·
    armies #f2ede3 / #4b463c · eucalyptus accent #5f8c7e
    Fraunces display · Hanken Grotesk body (the house pairing; the type is
    themed from src/content/typeface.js) · Lucide icons only
@@ -122,8 +122,8 @@ export default function JosekiApp() {
       {view === null ? null : <>
       <header className={`topbar ${view === "landing" ? "slim" : ""}`}>
         {/* The primary lockup: the answer mark and the wordmark on one
-            baseline. The mark is the whole idea of the place — a move and
-            the reply it forces — so it leads the chrome on every screen. */}
+            baseline. The mark is the whole idea of the place (a move and
+            the reply it forces) so it leads the chrome on every screen. */}
         <Wordmark as="button" className="topbar-brand" onClick={() => setView("landing")}
           aria-label={t("brand.frontDoor")} />
         {view === "landing" ? (
@@ -155,7 +155,7 @@ export default function JosekiApp() {
 
             The language leads the cluster. It is the only control in the
             chrome that decides whether the rest of the chrome can be read, and
-            it is the only one not written in English — so it goes where a
+            it is the only one not written in English, so it goes where a
             reader who cannot read the rest will still find it. It writes the
             same profile field the Look screen writes; the two are two views of
             one setting. */}

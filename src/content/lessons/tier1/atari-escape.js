@@ -32,7 +32,7 @@ export default {
       },
       toPlay: "b",
       answers: [pt(6, 7)],
-      text: "Black to play. The corner stone is in atari, but running only leads into more white stones. Count its liberties after extending before you decide — then look at the rest of the board.",
+      text: "Black to play. The corner stone is in atari, but running only leads into more white stones. Count its liberties after extending before you decide, then look at the rest of the board.",
       success: "Right. The corner stone was already lost; running would have lost two. The white stone in the centre was in atari too, and that one you can take.",
       hint: "If extending leaves you with one liberty again, the stone is not saveable. Is anything else in atari?",
       refutations: [

@@ -10,8 +10,8 @@ import { pt } from "../../positions.js";
 
    No number in this lesson is stated as measured, because none of them can be:
    the engine scores finished boards and this board is not finished. What is
-   verified is what the verifier verifies — that the sketch is a legal
-   position and that every option offered is a legal move — and the reasoning
+   verified is what the verifier verifies (that the sketch is a legal
+   position and that every option offered is a legal move) and the reasoning
    is the author's, set out so a reader can disagree with it.
 
    The board is deliberately extreme: four corners of cash against one vast
@@ -41,7 +41,7 @@ export default {
       type: "info",
       setup: board,
       marks: [pt(9, 9)],
-      text: "Black has four corners and they are real: nothing in them can be killed and nothing in them needs another move. White has a framework covering most of the middle of the board, and it is not real at all — not one point of it is territory yet. Most players holding Black here feel behind, because White's position is large and visible and Black's is small and finished. Feeling behind is the mistake this lesson is about.",
+      text: "Black has four corners and they are real: nothing in them can be killed and nothing in them needs another move. White has a framework covering most of the middle of the board, and it is not real at all: not one point of it is territory yet. Most players holding Black here feel behind, because White's position is large and visible and Black's is small and finished. Feeling behind is the mistake this lesson is about.",
     },
     {
       type: "choice",
@@ -65,7 +65,7 @@ export default {
         "Black stands on the top boundary of the framework, out of reach of anything.",
         "White pushes underneath, which is the right answer and is also an admission: White has just spent a move confirming a border rather than building one.",
         "Black does it again on the other side. Note that Black has still not entered anything, has still not made a group that needs to live, and has still not given White a target.",
-        "White pushes again. Look at what the four moves did. White's framework is smaller by two rows and is now much closer to being real territory — which is the trade — and Black's corners are exactly as large as they were, because nothing has happened to them. Whether that trade is good is a counting question, and counting it is the skill this lesson is really teaching.",
+        "White pushes again. Look at what the four moves did. White's framework is smaller by two rows and is now much closer to being real territory (which is the trade) and Black's corners are exactly as large as they were, because nothing has happened to them. Whether that trade is good is a counting question, and counting it is the skill this lesson is really teaching.",
       ],
     },
     {
@@ -82,7 +82,7 @@ export default {
     {
       type: "info",
       setup: reduced,
-      text: "Amashi is not a trick and it is not cowardice, it is an accounting position. You are saying that the opponent's paper will not all become money, and you are undertaking to prove it by reducing from outside rather than by gambling inside. Two things make it fail. The first is greed — one push too many, the invasion that was not necessary. The second is not counting, because the whole strategy is a claim about numbers and a player who never counts is holding an opinion rather than a plan. Count the board before the framework closes, not after.",
+      text: "Amashi is not a trick and it is not cowardice, it is an accounting position. You are saying that the opponent's paper will not all become money, and you are undertaking to prove it by reducing from outside rather than by gambling inside. Two things make it fail. The first is greed: one push too many, the invasion that was not necessary. The second is not counting, because the whole strategy is a claim about numbers and a player who never counts is holding an opinion rather than a plan. Count the board before the framework closes, not after.",
     },
   ],
 };

@@ -1,4 +1,4 @@
-# Joseki — Roadmap
+# Joseki Roadmap
 
 Joseki is the classiest go server: restrained, correct, honest. Class means the rules are
 right, the ratings are honest, the bots are labeled, and the interface stays out of the way.
@@ -7,14 +7,14 @@ Full reasoning: `docs/designs/classiest-go-server.md` (CEO review, 2026-09-09).
 Priority order. Check items off as they land. Phases are sequential; items inside a phase
 are ordered too.
 
-## Phase 0 — Foundation (done)
+## Phase 0: Foundation (done)
 
 - [x] Extract the pure engine and AI into `src/engine/` (go.js, ai.js)
 - [x] Vitest suite for the engine: capture, suicide, ko, multi-group capture, scoring
 - [x] Fix the `no-unused-expressions` warning at `Board`
 - [x] GitHub Actions CI: install, lint, test, build
 
-## Phase 1 — Rules kernel (done, branch `feat/rules-kernel`)
+## Phase 1: Rules kernel (done, branch `feat/rules-kernel`)
 
 Everything downstream stands on this. Pure modules only; no React. Views import through
 `src/engine/index.js`, never internals.
@@ -50,7 +50,7 @@ Decisions made in Phase 1 (change deliberately, not by accident):
 - `RE[B+R]`/`W+R` on import becomes a resignation; a scored `RE` is not applied because
   the dead stones are unknown. The game is left in whatever phase the moves reached.
 
-## Phase 2 — Split the app (done, branch `feat/rules-kernel`)
+## Phase 2: Split the app (done, branch `feat/rules-kernel`)
 
 - [x] Split `src/App.jsx` into `content/` (personas, lessons, problems), `components/`
       (Board, Card, Btn, Pill, Avatar, RankBadge), `views/` (Home, Play, Game, Rankings,
@@ -87,7 +87,7 @@ each fixed in its own commit:
   Home permanently. `sanitizeProfile` validates per field against the default's type
   (known tints included), falls back per field and warns once naming what it reset.
 
-## Phase 3 — Play like a real server
+## Phase 3: Play like a real server
 
 - [x] Rules, komi and the rank, all meaning what they mean elsewhere (branch
       `feat/the-table`, 2026-09-10): four rulesets with real territory scoring, komi by
@@ -105,12 +105,12 @@ each fixed in its own commit:
       overlay, jump to capture, SGF out. The variation tree is NOT done and is not faked:
       branching needs the record to hold more than one line. See the item below.
 - [x] Try a line in review (2026-09-10, branch `feat/review-line`): play on from any
-      position to see what would have happened. Scratch only — never written to the
+      position to see what would have happened. Scratch only: never written to the
       record, saved or exported.
 - [ ] Stored variations: read the branches an imported SGF already carries
       (`parseSgf(...).tree` parses them today and the record throws them away), and
       navigate between them. THIS is the part that needs the record to hold more than
-      one line — a rules-kernel change. Exploring never did; that was a wrong call
+      one line, a rules-kernel change. Exploring never did; that was a wrong call
       recorded in the review-mode PR and corrected here.
 - [x] SGF export button on every finished game (result card), and SGF import into
       review from Home (2026-09-10, branch `feat/sgf-import`): drop a file or choose
@@ -120,7 +120,7 @@ each fixed in its own commit:
       Fixed on the way: the board's screen-reader labels said "I" for column 8,
       disagreeing with every go book and with the coordinates now drawn beside them.
 - [x] Onboarding for a first-time visitor (2026-09-10, branch `feat/onboarding`): four
-      beats — what go is, name and tint, a four-step demo ending in a capture, and a
+      beats: what go is, name and tint, a four-step demo ending in a capture, and a
       way into a first game, the lessons or a look around.
 - [x] One scale for the whole app (2026-09-10, branch `feat/one-scale`): the front
       door's vocabulary is now shared rather than its own. `ScreenHeader` opens every
@@ -138,8 +138,8 @@ each fixed in its own commit:
       arrives a beat at a time, and the roadmap moved off the dashboard onto it.
 - [x] The front door, set large (2026-09-11, branches `feat/landing-statements`,
       `feat/stone-field`, `feat/landing-copy`, `feat/press-record`). Four pieces, in
-      that order. The `Statement` block — capitals, the quote italic, then the same
-      words drawn as an outline — became the page's section break at up to 148px, and
+      that order. The `Statement` block (capitals, the quote italic, then the same
+      words drawn as an outline) became the page's section break at up to 148px, and
       its rise is gated on the scroll rather than on mount so four of them down one
       page do not all play above the fold. The hero and the closing call sit on a
       `StoneField`: a real 19x19 game the engine plays against itself, blurred until
@@ -160,7 +160,7 @@ Decisions made on the front door (2026-09-11):
 - The one-in-ten-thousand figure is printed against move 78, not move 37. The move 37
   version traces to a documentary and secondary reporting; the move 78 version is
   Hassabis reading AlphaGo's logs.
-- A texture never sits directly under a raised or a sunken thing — the two shadows stop
+- A texture never sits directly under a raised or a sunken thing: the two shadows stop
   reading as light the moment it does. The field is a layer under a band, and the hero's
   board well now carries its own ground because it had none.
 - The field is the engine, not a drawing. A move costs about two milliseconds on 19
@@ -175,7 +175,7 @@ Decisions made on the front door (2026-09-11):
       every section was the same room and a reader scrolling it had nothing to count.
       It is now floored in four materials, alternating, with no two touching sections
       sharing one: the blurred game (hero and the closing call, from `feat/stone-field`),
-      a board's ruling at StoneField's own 44px cell (the primer and the roadmap — the
+      a board's ruling at StoneField's own 44px cell (the primer and the roadmap, the
       two sections that are explaining, where a grid is a diagram), the star points
       (a fine lattice with a heavier dot on every fourth crossing, which is how a board
       is actually marked), and a sunken band for the statements. The Record keeps the
@@ -189,7 +189,7 @@ Decisions made on the floors (2026-09-11):
   inward, so the page's rhythm is made of the light the rest of the design is lit by.
 - Every floor fades out at its edges rather than ending on a line, so a section has no
   border and the page has no seams. The rule the fields already obeyed holds: a floor
-  is a layer under a band and never a texture under a raised thing — every card carries
+  is a layer under a band and never a texture under a raised thing: every card carries
   its own `--ground` and occludes whatever it stands on.
 - A mark leaves by the side of the page, not the side of the text column
   (`calc(50% - 50vw)`), and the landing is clipped at its own edge so a mark hanging off
@@ -201,7 +201,7 @@ Decisions made on the floors (2026-09-11):
 - The hero's headline is what was breaking the hero. `lp-display` is sized off the
   window, so at 960px "beautifully" is set at 80px and wants more column than it has;
   the row wrapped and the board fell *under* the copy. Between the old 900px stacking
-  rule and that wrap was a hundred-odd pixels of layout nobody had designed — and a
+  rule and that wrap was a hundred-odd pixels of layout nobody had designed, and a
   1920x1080 laptop at 200% scaling lands in the middle of it at 960. The hero no longer
   wraps at all: two columns down to 880 with the display sized off its column and the
   board drawing smaller, one column with the board first below that.
@@ -215,7 +215,7 @@ Decisions made on the floors (2026-09-11):
 Decisions made on the language pill (2026-09-11):
 - It is lifted out of the Look screen because it is the only one of that screen's four
   choices that decides whether the other three can be read. The Look screen has to be
-  found, and it is labelled in the language you are trying to leave — a reader who opens
+  found, and it is labelled in the language you are trying to leave: a reader who opens
   the front door and cannot read it has no way of knowing a palette icon is where their
   own language is kept.
 - The pill prints the language being *read*, not the id being stored: somebody following
@@ -223,7 +223,7 @@ Decisions made on the language pill (2026-09-11):
   got them there is the menu's business, and that is where the tick goes.
 - The tag and not the endonym, because a header has room for two letters and the two
   letters are the same in every language. Every row in the menu names itself in its own
-  words, at reading size, and carries its own `lang` — this is the one list a reader may
+  words, at reading size, and carries its own `lang`: this is the one list a reader may
   not be able to read, so nothing in it is small or clever.
 - Moku's bubble is sized to the margin it stands in. It was a flat 250px in a dock pinned
   bottom left against a 1100px centred column, so on a 1440px screen it spoke straight
@@ -240,21 +240,21 @@ Decisions made on the language pill (2026-09-11):
 - [x] Local-only telemetry ring buffer (2026-09-11, branch `feat/telemetry`): the last
       fifty games, in `src/store/telemetry.js`, under its own key `sente-telemetry-v1`.
       Every finished house game is recorded in `conclude`, the one place they all pass
-      through, tagged `rated`, `coached`, `duel` or `master` — only a rated game is
+      through, tagged `rated`, `coached`, `duel` or `master`: only a rated game is
       evidence about a rank, so only rated games count toward a persona's record.
       Decisions: it lives in its own storage key rather than on the profile precisely so
       it cannot be swept along when a profile learns how to sync. It keeps the shape of a
       game (size, handicap, bot, the rank that bot was asked to play, result code, move
       count) and no moves and no names: a record you could replay is a record of what
       somebody played. It forgets the oldest at fifty. The profile carries a card showing
-      what is in it, the record against each house player, and one press to erase it —
-      a record kept quietly is a record kept badly — and a win rate is only printed once
+      what is in it, the record against each house player, and one press to erase it (
+      a record kept quietly is a record kept badly) and a win rate is only printed once
       five rated games stand behind it. The privacy notice enumerates it. The three
       storage functions survive a browser that refuses storage or has none, and are
       tested against a stub of the browser contract rather than by adding jsdom.
 - [x] Something reads it (2026-09-11): `src/content/level.js` turns the log into a level
       suggestion in the lobby. `byBot` is still only shown on the profile; calibration
-      proper — adjusting `profile.temperature` against real win rates — is still open
+      proper (adjusting `profile.temperature` against real win rates) is still open
       under House players.
 
 Decisions made in Phase 3, the table slice (branch `feat/the-table`, 2026-09-10):
@@ -277,8 +277,8 @@ Decisions made in Phase 3, the table slice (branch `feat/the-table`, 2026-09-10)
   strength, up or down, inside an evening. Atari hints follow that uncertainty rather
   than the belt alone, so a newcomer at a green belt they have not proved still gets
   them (`hintsFor` in `src/content/rank.js`).
-- `POST /api/admin/players/:id/reseed` puts one account back at that seat — the rating
-  trio and the win/loss record, nothing else — so starting over no longer means deleting
+- `POST /api/admin/players/:id/reseed` puts one account back at that seat (the rating
+  trio and the win/loss record, nothing else) so starting over no longer means deleting
   the account. The handle may be the address, because an address is what an operator is
   given. Documented in `docs/server-operations.md`.
 - `server/rating.js` is now a thin use of `src/engine/glicko.js`, on the same scale.
@@ -308,8 +308,8 @@ Decisions made in Phase 3, onboarding slice (branch `feat/onboarding`):
   verifies its positions to the same standard, and additionally asserts that the
   quiz answer really captures.
 - `needsOnboarding` is not just the flag. Every profile saved before the flag
-  existed lacks it, so a player with any history — a game, a lesson, a name, a
-  rating that has moved — is treated as already welcomed. Teaching a 5 kyu what a
+  existed lacks it, so a player with any history (a game, a lesson, a name, a
+  rating that has moved) is treated as already welcomed. Teaching a 5 kyu what a
   liberty is would be insulting.
 - The flow waits for the stored profile to load. Without that, every returning
   player would see a flash of "who is playing" before their own name arrived.
@@ -327,7 +327,7 @@ Decisions made in Phase 3, coordinates slice (branch `feat/coordinates`):
 - Both are profile fields, not device preferences, because they are how a player
   reads a board rather than how one machine is set up.
 - The marker has three settings (dot, ring, none) and applies wherever a real game
-  is shown — the table, an online table and review — but not to lesson or tsumego
+  is shown (the table, an online table and review) but not to lesson or tsumego
   boards, which carry their own didactic marks.
 
 Decisions made in Phase 3, review slice (branch `feat/review-mode`):
@@ -336,7 +336,7 @@ Decisions made in Phase 3, review slice (branch `feat/review-mode`):
   Every refusal is named: which byte, which move, which board size. Nothing says
   "invalid file".
 - A file that parses but claims an illegal move is told apart from a malformed one
-  structurally — parse first, then replay — rather than by reading the wording of
+  structurally (parse first, then replay) rather than by reading the wording of
   the engine's error. The two deserve different sentences.
 - Every reviewed position is `replay`ed from the record's own log by `engine/review.js`,
   never reconstructed a second way, so review shows the position that was really there
@@ -364,8 +364,8 @@ Decisions made in Phase 3, clock slice (branch `feat/clock`):
 - Against a house player only the human is timed; the bot's face reads "no clock". A
   local bot's speed is a fact about the device and the model download, not about how
   well it plays, so a win by its flag would not be a win anyone earned.
-- Pressure is read from the time a side can spend *now* — main time, or the current
-  byo-yomi period — so a player with five periods in hand is not shouted at.
+- Pressure is read from the time a side can spend *now* (main time, or the current
+  byo-yomi period) so a player with five periods in hand is not shouted at.
 - Four presets and no more (None, Blitz, Standard, Long), one of each kind the engine
   knows. A wall of time controls is a server's problem, not a table's.
 - The preset is part of the table device-preference in `sente-lobby`, beside size and
@@ -454,8 +454,8 @@ imitates a rank: Hoshi 20k, Tetsu 15k, Yuki 10k, Ren 5k, Sora 1k, Kaede 2d, Tats
       player at the strength they were the first time they touched the stepper.
       `src/content/level.js` reads the ring buffer and suggests a level after three in a
       row. What counts as evidence is the design: rated games only, at that level only,
-      even games only — a handicap changes the strength of the opponent, which is the
-      thing being measured — and only the most recent run, so one loss clears a winning
+      even games only (a handicap changes the strength of the opponent, which is the
+      thing being measured) and only the most recent run, so one loss clears a winning
       streak. Three is the threshold: two is a coin, and by four the player has worked it
       out themselves. It suggests and does not act, and the line says what it counted, so
       a player who disagrees has the number to disagree with.
@@ -463,7 +463,7 @@ imitates a rank: Hoshi 20k, Tetsu 15k, Yuki 10k, Ren 5k, Sora 1k, Kaede 2d, Tats
       there is a server; the raw policy is a few stones weaker than the rank it imitates
       at dan level, which the bios do not yet say.
 
-## Phase 4 — Multiplayer (server)
+## Phase 4: Multiplayer (server)
 
 Slice 1 landed 2026-09-10 on branch `feat/server`: a Cloudflare Worker (`server/`) with
 two Durable Object classes, deployed at https://sente-server.melaniesigrid.workers.dev.
@@ -505,7 +505,7 @@ two Durable Object classes, deployed at https://sente-server.melaniesigrid.worke
       by hand, for a room of people sharing an address.
 - [x] Accounts with an address and a password (2026-09-10, branch `feat/accounts`), which
       also answers "move a handle to another device": sign in and it is there. Self-hosted
-      and single-party — no Google, no identity provider, nobody else told what you play.
+      and single-party: no Google, no identity provider, nobody else told what you play.
       Three doors in `AccountGate`: sign in, create an account, or claim a handle with a
       name alone the way it has always worked. A guest handle can gain an address later
       without losing its rating, which is the path that matters. Sessions are per device,
@@ -537,7 +537,7 @@ two Durable Object classes, deployed at https://sente-server.melaniesigrid.worke
 - [ ] The three older rate-limited routes still spell the bucket dance out by hand;
       `Registry#spend` now does it in one line and they could say so too.
 - [x] A card a player shows other players (2026-09-10, branch `feat/accounts`): a picture,
-      a paragraph, and three facts — where you play, since when, and what you like to play.
+      a paragraph, and three facts: where you play, since when, and what you like to play.
       Edited from Profile, under a card that says plainly that this one is the server's and
       the one above it is this device's. The picture is squared and squeezed to 192 px in
       the browser before a byte is sent (`src/net/avatar.js`), so a photograph nobody keeps
@@ -554,8 +554,8 @@ two Durable Object classes, deployed at https://sente-server.melaniesigrid.worke
       `server/`, `src/engine/` or `wrangler.jsonc` ships the Worker; anything else does not.
 - [x] A tally the server keeps, and a notice that gained a sentence instead of losing one
       (2026-09-11, branch `feat/stats-history`): `GET /api/stats/history?days=` serves one
-      row a day — handles, handles made that day, games started, games finished, and the
-      most players in the lobby at once — kept for 365 days. Design:
+      row a day (handles, handles made that day, games started, games finished, and the
+      most players in the lobby at once) kept for 365 days. Design:
       `docs/designs/analytics-that-keeps-the-promise.md`.
 - [ ] Analysis: KataGo (or GnuGo) via the backend, or a WASM engine in the browser.
 
@@ -623,7 +623,7 @@ Decisions made in the letters slice (2026-09-10, branch `feat/mail`):
   is already a way into the account, and the alternative puts an address into browser
   history and referrers.
 - Confirming an address gates nothing. It is not a condition of playing, of being rated, or
-  of asking for a way back in — requiring it there would lock out exactly the people who
+  of asking for a way back in: requiring it there would lock out exactly the people who
   need it. What it buys is knowing the address was typed correctly and can be reached,
   before it is the only way back to a handle, and the lobby says so in those words.
 - `emailVerified` is on the owner's own view and nowhere else. It says something about a
@@ -632,7 +632,7 @@ Decisions made in the letters slice (2026-09-10, branch `feat/mail`):
   in a response would be a way for anyone who can ask for a reset to read one.
 - One operator route mints a link without posting it, which is how the letters are proved
   against a deployment with no mailbox to read. It is written down plainly that this lets
-  `ADMIN_TOKEN` sign in as anybody — the same trust that could already delete them.
+  `ADMIN_TOKEN` sign in as anybody: the same trust that could already delete them.
 
 Decisions made in slice 1:
 - Accounts are a display name plus a 32-byte bearer token generated by the server and
@@ -651,7 +651,7 @@ Decisions made in slice 1:
 - `VITE_SENTE_SERVER` picks the server at build time (dev default `localhost:8787`,
   production default the workers.dev URL, empty string disables online play).
 
-## Phase 5 — Lesson library (30 kyu to dan)
+## Phase 5: Lesson library (30 kyu to dan)
 
 Full design: `docs/designs/lesson-library.md`. Six tiers, seven tracks, about 60 lessons,
 every position verified by the engine in CI.
@@ -704,7 +704,7 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       the next lesson instead of jumping straight into it.
 - [x] Every lesson leads to the next one (2026-09-11): `lessonAfter(lesson, profile)`.
       The library is one path, so the recap always hands the learner another lesson across
-      whatever boundary comes next — track, tier, kyu or dan. The rest of a series wins first
+      whatever boundary comes next: track, tier, kyu or dan. The rest of a series wins first
       (the Classic runs Tier 2 to Tier 5 and is read as a book, prerequisite gate and all),
       then the next unread lesson ahead, then work skipped behind, preferring lessons whose
       prerequisites are read. The last chapter of a series used to end in nothing; now only
@@ -722,8 +722,8 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       judgement, and says which is which in its header.
 - [x] The Book of Shapes (2026-09-11): the shelf's shape book, and the first one written here
       rather than inherited. `content/shapes.js` is a catalogue of nine articles with the same
-      three parts each — what the shape buys, what it costs, and the position where the bargain
-      is a bad one — and the third part is the reason it exists. Five lessons across tiers 3 to
+      three parts each (what the shape buys, what it costs, and the position where the bargain
+      is a bad one) and the third part is the reason it exists. Five lessons across tiers 3 to
       5 (tiger's mouth, ponnuki, the waist of the knight's move, the two-space extension, the
       three connections); the bamboo-joint article points at the Proverbs lesson that already
       existed. `shapes.test.js` re-derives every number the prose states from the engine, so an
@@ -749,7 +749,7 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       lesson `classic-corner-shapes` (tier 5, 3k, life) teaches chapter thirteen's named corner
       shapes, both verdicts replayed against the engine by the verifier.
       Decisions: the nine levels map one-to-one onto the nine dan grades and kyu players get
-      none, because chapter twelve refuses to number anything below the ninth — the card says
+      none, because chapter twelve refuses to number anything below the ninth, so the card says
       so rather than inventing a title. Chapter eleven's names carry `sure`, and only 16 of the
       32 claim a modern term; the rest show as unidentified, since the chapter's own argument
       is that names must be set right. A chapter may now hold more than one lesson
@@ -766,7 +766,7 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       board. Learn drops one after a chapter's first paragraph, a finished lesson opens its
       recap with one, and each screen sets its own above that screen's passage.
       Decisions: a passage is Zhang Ni speaking and a pull quote is Joseki speaking, so the
-      label is not decoration — it is the thing that keeps a gloss from reading as a
+      label is not decoration: it is the thing that keeps a gloss from reading as a
       quotation. Tests hold every gloss to the house voice and to a pullable length, refuse
       one that is only the subtitle or the theme again, refuse a chapter gloss that repeats a
       saying the reader has already met, and check that the Play line still says in plain
@@ -782,25 +782,25 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       `guanzi-first-line-hane` (9k).
       Decisions: the book supplies the subject, not the diagrams. Joseki builds its own
       positions and the engine settles them, and `guanzi.test.js` scores every total a
-      lesson states — the library verifier only checks that a `count` answer is a number,
+      lesson states: the library verifier only checks that a `count` answer is a number,
       not that it is right, so the book checks its own. The shelf gained `note` so the
       Classic row can point at its reader instead of claiming it is not on the shelf yet.
 - [ ] More of the endgame book: the monkey jump, sente before gote, and double sente. The
-      monkey jump was drafted and dropped — its continuations are open-ended and the engine
+      monkey jump was drafted and dropped: its continuations are open-ended and the engine
       has no endgame solver, so the best line could not be verified, only guessed.
-- [x] The Proverbs, opened (2026-09-10): the `maxim` step type was fully built — verifier
-      rule, reducer, styles, rendering — and no lesson used it, so the shelf said the book
+- [x] The Proverbs, opened (2026-09-10): the `maxim` step type was fully built (verifier
+      rule, reducer, styles, rendering) and no lesson used it, so the shelf said the book
       was not on it. Two lessons in tier 2 now use it: `proverb-ladder` (19k, tactics) and
       `proverb-bamboo-joint` (17k, shape). The library promised ladders in the tactics track
       and had no ladder lesson at all until this one.
-      Decisions: `proverbs.test.js` runs a small ladder solver — Black ataris, White extends
-      to its one liberty — so the lesson's claims are checked, not asserted. It confirms the
+      Decisions: `proverbs.test.js` runs a small ladder solver (Black ataris, White extends
+      to its one liberty) so the lesson's claims are checked, not asserted. It confirms the
       capture at move eleven, that the sequence step is the opening of that same ladder, and
       that a stone at (7,7), (6,7) or (7,6) breaks it while one at (8,8) does not. The bamboo
       joint is checked the same way: either peep leaves Black one chain of nine with six
       liberties and the peeping stone with one.
 - [x] The Mysterious Classic (2026-09-10): Xuanxuan Qijing (Yan Defu and Yan Tianzhang,
-      1349) joins the shelf, which is the rest of a book Joseki already had — its first
+      1349) joins the shelf, which is the rest of a book Joseki already had: its first
       volume is the Classic in Thirteen Chapters. Two tier 5 life-and-death lessons:
       `xuanxuan-five-points` (3k) and `xuanxuan-one-way-in` (2k).
       The real artifact is the life-and-death solver in `xuanxuan.test.js`: exhaustive
@@ -820,20 +820,20 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
 - [ ] More proverbs: hane at the head of two stones, death in the hane, the ponnuki. Each
       needs a position the engine can settle before it is worth authoring.
 - [ ] Other shelves are still empty. Candidate sources for the rest of the library,
-      all public domain: Xuanxuan Qijing (Yan Defu and Yan Tianzhang, 1349 — its first
+      all public domain: Xuanxuan Qijing (Yan Defu and Yan Tianzhang, 1349; its first
       volume is the Classic Joseki already ships), Gokyo Shumyo (Hayashi Genbi, 1812, 520
       tesuji), Igo Hatsuyoron (Inoue Dosetsu Inseki, 1713, 183 hard problems).
 - [ ] Tsumego graded 30k → 5k with categories and a daily set (reuses the verifier).
 - [x] Spaced repetition (2026-09-11, branch `feat/recall`): finished quiz steps enter a
       recall queue, and Home carries the Review card. `src/content/recall.js` is the
-      scheduler — pure, dates as day keys, the library passed in — and `src/views/Recall.jsx`
+      scheduler (pure, dates as day keys, the library passed in) and `src/views/Recall.jsx`
       is the sitting, played through the library's own step reducer so a question behaves
       exactly as it did in the lesson.
       Decisions: a card is one `quiz` or `choice` step of a finished lesson, because those
       are the two types that ask one question with one right answer; a sequence, a count or
       a replay is a lesson in itself and grading one on a first try would grade the wrong
       thing. Six Leitner boxes at 1, 2, 4, 8, 16 and 32 days. Recalled means first try and
-      unaided — a second guess is a card read off the board rather than remembered — and a
+      unaided (a second guess is a card read off the board rather than remembered) and a
       miss or a Show me sends the card back to the first box. A card is never due the day it
       was answered, right or wrong: a question answered again within the hour is answered
       out of the last minute. The lesson is named on the card but never quoted, since its
@@ -848,7 +848,7 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       to grow a kind.
 - [ ] Joseki and opening library for 9×9 and 19×19.
 
-## Phase 6 — Masters and books
+## Phase 6: Masters and books
 
 Handoff for whoever continues: `docs/handoff/masters-2026-09-09.md` (state of PRs #4, #5, #6,
 the running logit dump, what is unfinished, gotchas).
@@ -876,7 +876,7 @@ and one rule: the number on the card is measured, never claimed.
       only if it beats the book alone on top-1 agreement and style distance.
 - [x] Bot seam: `profile.master` = book override in the opening, then `proyear` with the
       prior; `StyleDataError` (missing JSON, non-19x19) falls back to `proyear` in rated
-      games and to "host unreachable" in a duel. (PR 2; reached main only via PR #7 —
+      games and to "host unreachable" in a duel. (PR 2; reached main only via PR #7,
       see the merge warning in the handoff doc.)
 - [x] Masters row in the lobby (2026-09-10, branch `feat/masters-row-ui`): 19x19 only,
       hidden when the eval cannot be read, every number read from `eval.json`.
@@ -935,7 +935,7 @@ Decisions made in the masters row (branch `feat/masters-row-ui`, 2026-09-10):
 Terms of use, privacy, and credits and copyright, on one screen reachable from the foot
 of every page. Written under one rule, the same one the ratings are written under: no
 sentence describes behaviour the code does not have. `src/content/legal.test.js` is what
-makes that hold — the numbers in the privacy notice are read from the server's own
+makes that hold: the numbers in the privacy notice are read from the server's own
 constants, and every runtime dependency must have a line on the credits page.
 
 Decisions:
@@ -954,13 +954,13 @@ Decisions:
 Open:
 - [x] `UPDATED` no longer moves by hand alone (2026-09-11, branch `feat/legal-stamp`).
       It lives in `REVISION` beside `stamp`, a fingerprint of every word in the three
-      documents — titles, blurbs, headings, paragraphs and the credit rows, since a credit
+      documents: titles, blurbs, headings, paragraphs and the credit rows, since a credit
       that changed is a document that changed. Change a word without moving the revision
       and the suite fails and prints the stamp to paste in, so the fix is: move the date,
       paste the stamp. The stamp deliberately does not cover the revision itself: one that
       covered its own date would move every time the date did and could never disagree
       with it. The suite still cannot know what a commit touched, so it cannot force the
-      date to move on its own — what it can do is make changing a sentence impossible
+      date to move on its own; what it can do is make changing a sentence impossible
       without being stopped at the line the date lives on. Also checked now: the date
       parses as a real day and is not in the future.
 - [ ] A real export: `GET /api/me/export` handing back everything the Registry and the
@@ -997,18 +997,18 @@ Open:
       the app fetches nothing at runtime and the privacy notice lost its third party.
       Decisions: Google declares one @font-face per weight but serves ONE variable file for
       all of them, so faces are grouped by the file they point at and declared as the range
-      they really are — 40 files and 1.9 MB became 18 and 776 KB. Every `unicode-range` is
+      they really are: 40 files and 1.9 MB became 18 and 776 KB. Every `unicode-range` is
       kept as written, because that is what lets a browser skip latin-ext on a page with no
       accented characters; dropping it would make self-hosting slower than the CDN. Only
       latin and latin-ext are kept (cyrillic, greek and vietnamese were a third of the bytes
-      for characters nothing in the app can produce) — add to `KEEP` and re-run if a language
+      for characters nothing in the app can produce): add to `KEEP` and re-run if a language
       needs one. The tests hold the chain end to end: a pairing may only name a declared
       family, a declared family must have a face behind it, the list must match what the tool
       downloads, and the stylesheet must contain no `@import` and no remote url.
 - [ ] The two borrowed display cuts are still OTF (`src/fonts/`). Now that there is a font
       tool, converting Welorac and Qliesya to woff2 belongs next to it.
 
-## Parking lot — wild ideas (brainstorm 2026-09-09)
+## Parking lot: wild ideas (brainstorm 2026-09-09)
 
 Every one of these leans on something already built. Not scheduled; pull one into a phase
 when it earns its place. Ordered by cost.
@@ -1091,12 +1091,12 @@ Google-hosted text families, because the Typecase text cuts have no weight axis.
 
 - [x] 2026-09-10 Three pairings, not eight (branch `feat/readable-colour`). House, Kaya
       and Vitrine stay; Galliard House, Wedge, Clubhouse, Signal and Hoshi are gone, and
-      Kaya's ornament voice is Fraunces' italic instead of the Bellique script — that voice
+      Kaya's ornament voice is Fraunces' italic instead of the Bellique script; that voice
       carries the emphasised word in the landing hero and the lesson numerals, mid-sentence
       at reading size, and a script could not do it. No script stands anywhere in the set
       now, so `serifless` had nothing left to except and went with them. The build carries
       three borrowed faces instead of thirteen, and no pairing puts a personal-use cut into
-      running text any more — `galliard` was the one that did.
+      running text any more; `galliard` was the one that did.
 
 Open:
 - [ ] Licensing, and this one is live rather than pending: the two borrowed cuts still
@@ -1118,7 +1118,7 @@ so the fix is derived and tested rather than hand-tuned.
 
 - [x] Secondary text was dimmed with an `opacity`, and an opacity is a fixed fraction of
       whatever is behind it. Measured, every light room failed: House ink at `.55` is
-      2.60:1, at `.6` it is 2.89:1, at `.7` it is 3.61:1 — about sixty rules of it, none
+      2.60:1, at `.6` it is 2.89:1, at `.7` it is 3.61:1, about sixty rules of it, none
       of them reaching 4.5. Two derived tokens replace the lot: `--ink-2` (secondary text,
       solved to 4.5:1) and `--ink-3` (incidental text, 3:1, and spent on nothing small).
 - [x] `--danger-ink`, the warning walked up to reading contrast the way `--accent-ink`
@@ -1133,7 +1133,7 @@ so the fix is derived and tested rather than hand-tuned.
 - [x] `src/styles/css.test.js` parses the stylesheet and holds all of it: no word dimmed
       with an opacity, no small word coloured with a mark, no colour token asked for that
       `TOKEN_NAMES` does not promise, and the derived inks measured in every room.
-- [x] Two rooms that answer a set which had grown repetitive — every light room being a
+- [x] Two rooms that answer a set which had grown repetitive: every light room being a
       pale neutral ground under a near-neutral ink. Cinnabar is blush paper with oxblood
       ink and a lacquer-red mark, the one room led by a colour; Foxfire is wet bark under
       chartreuse, the only mark in the set that sits above its own ink in luminance.
@@ -1150,7 +1150,7 @@ Open:
 ## Palettes and the dojo (done 2026-09-10, branches `feat/palette-damson`, `feat/palette-dojo`)
 
 - [x] A theme is data: ground, the two lights every shadow is
-      cut from, ink, cream, accent. Eight of them — house, kaya, porcelain, damson (light);
+      cut from, ink, cream, accent. Eight of them: house, kaya, porcelain, damson (light);
       lacquer, graphite, sumi, yohen (dark). Damson is pastel plum paper under a damson
       mark, the one light room that is neither warm stone nor cool clay.
 - [x] The stylesheet names no colour outside its house-default block; the shell spreads
@@ -1160,7 +1160,7 @@ Open:
       stone's crown off the board without touching a component.
 - [x] Picker in Profile: every swatch is drawn in its own material.
 - [x] `theme.test.js` checks ink contrast, accent contrast against the house floor, and
-      that the highlight and the shadow stay close to the ground — the illusion.
+      that the highlight and the shadow stay close to the ground: the illusion.
 - [x] Restructured into `src/theme/` with `index.js` as the only import surface: `tokens.js`
       (the contract), `palettes.js` (the named rooms), `derive.js` (four colours in, every
       token out), `color.js` (the only module that knows how a colour is spelled). A new
@@ -1178,7 +1178,7 @@ Open:
       only thing in the app that reads the media query, and it keeps listening, so switching
       a laptop to dark mode moves the room without a reload.
 - [x] Focus rings are `--accent-ring` (32% on paper, 55% in a dark room), not 16% of the
-      accent — keyboard focus was invisible on Lacquer.
+      accent; keyboard focus was invisible on Lacquer.
 - [x] Belts carry `--belt-edge`, a contour in the room's own ink, so the white belt no
       longer vanishes on Porcelain nor the black one on Lacquer.
 - [x] The active nav item has an accent rule under it, so state never rests on hue alone
@@ -1198,9 +1198,9 @@ Open:
       accounts arrive.
 - [x] 2026-09-10 The marked-words half of the typed-saying work, reopened against the
       passages; the typewriter half is retired with `Saying.jsx` on `feat/board-sizes-local`.
-      `emphasize` in `content/classic.js` splits the lexicon in two tiers — STRENGTH_WORDS
+      `emphasize` in `content/classic.js` splits the lexicon in two tiers: STRENGTH_WORDS
       (initiative, victory, know, calm) ranked above CRAFT_WORDS (corners, eyes, ko, and the
-      losing pole) — and `Passage` renders the winners as `<strong class="passage-key">`.
+      losing pole), and `Passage` renders the winners as `<strong class="passage-key">`.
       Decisions: the tier, not position, picks the marks, because marking a corner over a
       victory makes a passage read as a glossary instead of as encouragement; the budget
       scales with length (`markBudget`, one per twenty words, 1-3) so a five-sentence passage
@@ -1217,22 +1217,22 @@ Design and reasoning: `docs/designs/coaching-shape-commentary.md` (office hours,
 APPROVED after three review rounds). The order is deliberate: an experiment, then the club,
 then the archive, then Neo-Human.
 
-- [x] `src/engine/shape.js` — pure shape detection local to the move just played. Three
+- [x] `src/engine/shape.js`: pure shape detection local to the move just played. Three
       shapes: `empty-triangle`, `tigers-mouth`, `dumpling`. No board sweep; the four 2x2
       windows around the move plus the move's empty neighbours.
-- [x] `src/engine/shape.test.js` — 27 cases including the collisions. A tiger's mouth is
+- [x] `src/engine/shape.test.js`: 27 cases including the collisions. A tiger's mouth is
       defined on the mouth point (exactly one on-board neighbour empty, the rest mine), not
       as a 2x2 pattern, because a 2x2 with three of my stones and one gap is the empty
       triangle and nothing else. A dumpling is a solid 2x2 block containing the move, not a
       liberty ratio: a 2x2 in the open has 8 liberties over 4 stones, so any ratio low
       enough to be distinctive is an atari warning, which the belts deliberately remove.
-- [x] `src/content/commentary.js` — the voice. Lines per shape with `default` plus persona
+- [x] `src/content/commentary.js`: the voice. Lines per shape with `default` plus persona
       overrides, `PACING`, and a pure `chooseRemark`. No exclamation marks: the opponent is
       excitable, the coach is calm.
-- [x] `src/content/commentary.test.js` — coverage, voice rules, and the pacing arithmetic.
+- [x] `src/content/commentary.test.js`: coverage, voice rules, and the pacing arithmetic.
 
 - [x] Wired into the view: `detectShapes` after the human's move, `chooseRemark`, `say()`.
-      Chat pane only, never `withMoveComment` — `botTurn(r)` closes over its own record and
+      Chat pane only, never `withMoveComment`: `botTurn(r)` closes over its own record and
       later does `setRec(conclude(next, r))`, so any `setRec` issued after `botTurn(next)`
       is silently dropped. Record-writing waits for the archive.
 - [x] The coach yields: silent on any capturing move, and for six moves after table talk.
@@ -1257,10 +1257,10 @@ Open:
       and by one browser run. A view-level test harness would close that.
 
 Later, in order: the club and chat, then the game archive (cap, eviction, localStorage
-versus Durable Objects — all open), then Neo-Human pair go, which is a seat-model change in
+versus Durable Objects, all open), then Neo-Human pair go, which is a seat-model change in
 the multiplayer Worker and is unrated for the same reason coached games are.
 
-## Phase 7 — The words (in progress, branch `feat/i18n`)
+## Phase 7: The words (in progress, branch `feat/i18n`)
 
 Joseki reads in the player's own language. English stays the language it is authored in
 and the floor every lookup lands on, so an unfinished language is a page with some English
@@ -1270,27 +1270,27 @@ One language at a time, and one screen-group at a time inside that, because the 
 is the product: a slice that is half-translated by a tired session is worse than a slice
 that is honestly still English.
 
-- [x] The kernel: `src/i18n/` — languages as data, catalogues per language, `t(key, vars,
+- [x] The kernel, `src/i18n/`: languages as data, catalogues per language, `t(key, vars,
       fallback)`, plural forms by CLDR category, and a parity test that fails when a
       translation drifts. `src/components/langStore.js` is the only thing that reads
       `navigator.languages`, the way prefersDark.js is for the media query.
 - [x] `profile.locale`, `system` by default: the words follow the device unless the player
       says otherwise, exactly as the room does.
-- [x] The language picker, at the head of the look page, above the room — it is the one
+- [x] The language picker, at the head of the look page, above the room: it is the one
       choice on that page that decides whether the rest of it can be read.
 - [x] Spanish: the shell (nav, top bar, footer, the crash card) and the whole look page,
       including the notes the theme and typeface data files hold.
 - [ ] Spanish: home, play, the lobby and the game (`Home`, `Play`, `Game`, `gameStatus`).
 - [ ] Spanish: learn, the library, tsumego, the ladder, the profile.
 - [ ] Spanish: the landing page, onboarding, the small print, the letters.
-- [ ] Spanish: the content prose — Moku's lines, the personas, the welcome copy, the
+- [ ] Spanish, the content prose: Moku's lines, the personas, the welcome copy, the
       commentary. The Classic's thirteen chapters are a translation problem of their own
       and are the last thing to touch, not the first.
 - [ ] French, the same slices in the same order. Cheap after Spanish: the keys exist, so
       each PR is a catalogue file and a test run.
 
 Decisions made in Phase 7 (change deliberately, not by accident):
-- English lives in `en.js`, except for prose that a data file already owns — a room's note,
+- English lives in `en.js`, except for prose that a data file already owns: a room's note,
   a stone set's name, a pairing's note. Those stay in the data file and a translation
   overlays them by id under `room.`, `stones.` and `type.`, which is what the third
   argument to `t` is for. The parity test holds the overlays complete against the data.
@@ -1305,7 +1305,7 @@ Decisions made in Phase 7 (change deliberately, not by accident):
 - A missing key returns the key itself and warns once in development. Visible in a
   screenshot, harmless to a player, and never a crash.
 
-## Phase 8 — Pair go
+## Phase 8: Pair go
 
 Full design: `docs/designs/pair-go.md`. Four seats, one human and one 7 dan house
 player to a team, taking turns. The partner is silent: no hints, no marked candidates,
@@ -1313,26 +1313,26 @@ no explanations while the game is live. You learn by watching a 7 dan play its h
 a position you made, which is how anyone has ever learned this game.
 
 Everything rests on one idea: a game has seats, and a seat has an occupant. The
-`GameRecord` does not change — who plays next is a pure function of `moves.length`, so
+`GameRecord` does not change: who plays next is a pure function of `moves.length`, so
 undo rewinds the seat for free and the server refuses a wrong-seat move with the same
 call the client greys the board with. A two-seat roster is an ordinary game; a
 four-seat roster is pair go.
 
 Pair go is unrated in every phase and says so at the table. A win in which a 7 dan
-played half your moves is evidence about the pair, not about you — the same reason a
+played half your moves is evidence about the pair, not about you, the same reason a
 duel, a master game and a coached game move no rating.
 
-**Phase A — against a bot team (client only)**
-- [x] A1: `src/engine/rengo.js` — roster, rotation, `seatAt`, `canSeatPlay`, pure and
+**Phase A: against a bot team (client only)**
+- [x] A1, `src/engine/rengo.js`: roster, rotation, `seatAt`, `canSeatPlay`, pure and
       tested, exported through `index.js`. No UI; ships dark.
-- [x] A2: the table — `src/content/rengo.js` builds a roster from your profile, the
+- [x] A2: the table. `src/content/rengo.js` builds a roster from your profile, the
       opponent persona and the partner rank; `src/views/PairGame.jsx` plays it. A view
       of its own rather than a fourth branch inside `Game.jsx`, which already carries
       duel, master and coaching. A lobby card to sit down at.
-- [ ] A3: the finish — resume a saved pair game, SGF with four names, telemetry, Moku's
+- [ ] A3: the finish. Resume a saved pair game, SGF with four names, telemetry, Moku's
       reactions, the keyboard, review.
 
-**Phase B — online pair go (server)**
+**Phase B: online pair go (server)**
 - [ ] B1: `server/room.js` carries a roster instead of `seats: { b, w }` and validates
       the seat as well as the colour. A two-seat room is the same code path, so the
       games already running migrate rather than fork.
@@ -1343,7 +1343,7 @@ duel, a master game and a coached game move no rating.
 - [ ] B3: disconnection, reconnection and an abandoned seat in a four-seat room;
       spectating a pair game.
 
-**Phase C — four humans (true rengo)**
+**Phase C: four humans (true rengo)**
 - [ ] C1: all-human rosters. The one new rule is a social one the interface has to
       keep: partners may not consult, so a live pair game has no team-only chat.
 - [ ] C2: invite a friend to your team, matchmake pairs against pairs, and decide
@@ -1351,7 +1351,7 @@ duel, a master game and a coached game move no rating.
 
 Open, deliberately: whether a handicap between *teams* means anything (Phase A offers
 even games only), and whether a partner may ever resign or accept a score for you
-(Phase A says no — ending a game is the human's decision in every seat a human sits in).
+(Phase A says no: ending a game is the human's decision in every seat a human sits in).
 
 Out of scope, and named here so it does not creep in: reviewing the finished game and
 asking *why* the partner played there. Analysis is its own feature for every kind of
@@ -1371,7 +1371,7 @@ The mark means sente, not "a stone": a move and the reply it forces. Three marks
 
 - [x] The answer mark (a played stone in the mark colour over the outlined stone it forces)
       and the primary lockup, leading the top bar on every screen (2026-09-11).
-- [x] The plain lockup — the wordmark alone, no mark and no bead — in the footer, where the
+- [x] The plain lockup (the wordmark alone, no mark and no bead) in the footer, where the
       mark would land below the size it survives at.
 - [x] The corner mark (the 4x4 corner, one stone on the 3-3, the star point still open) at the
       landing's closing call and as the boot splash in `index.html`. Reserved for those two:

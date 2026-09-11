@@ -47,7 +47,7 @@ export default {
       answers: [pt(5, 2)],
       text: "White has wedged into the left-hand gap. Black to play.",
       hint: "Do not try to save both stones. Block on the side where more of the board is, and let the wedge deal with the consequences.",
-      success: "Block, and count. The wedge stone is on two liberties with black stones either side of it, and the pair Black just made has five. Black has not connected — the far stone is still standing on its own with three — and Black did not need to. The wedge cannot live, so it was never a cut.",
+      success: "Block, and count. The wedge stone is on two liberties with black stones either side of it, and the pair Black just made has five. Black has not connected (the far stone is still standing on its own with three) and Black did not need to. The wedge cannot live, so it was never a cut.",
       refutations: [
         {
           move: pt(4, 1), reply: pt(5, 2),

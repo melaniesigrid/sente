@@ -1,7 +1,7 @@
 /* ----------------------- THE STONE SETS, AUDITED -----------------------
    A set is two colours, and the two colours have one job between them: at a
    glance, across a board, at speed, nobody may have to work out whose stone
-   that is. So every set is held against every room here — eighty boards —
+   that is. So every set is held against every room here, eighty boards,
    and not one of them is allowed to come in under the floor the dojo prints.
 
    The rest is the cut: a stone has a lit crown, a body and a rim, in that
@@ -41,7 +41,7 @@ describe("the sets in the drawer", () => {
     expect(isStoneId(undefined)).toBe(false);
   });
 
-  it("cuts every stone crown, body, rim — light to dark, always", () => {
+  it("cuts every stone crown, body, rim: light to dark, always", () => {
     for (const s of STONE_SETS) {
       for (const [half, cut] of [["black", cutBlack(s.b)], ["white", cutWhite(s.w)]]) {
         expect(cut, `${s.id} ${half}`).toHaveLength(3);
@@ -61,8 +61,8 @@ describe("the sets in the drawer", () => {
 
 describe("every set in every room", () => {
   // The one rule a set can break on its own. It is measured on the stones as
-  // they are actually played — the black one seated into the board it is lying
-  // on — because that is the pair a player has to tell apart.
+  // they are actually played, the black one seated into the board it is lying
+  // on, because that is the pair a player has to tell apart.
   it("keeps the two stones unmistakable, all eighty boards of it", () => {
     for (const p of PALETTES) {
       for (const s of STONE_SETS) {

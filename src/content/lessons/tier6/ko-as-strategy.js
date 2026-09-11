@@ -8,7 +8,7 @@ import { pt } from "../../positions.js";
    The ko in the upper left is a real one and the engine says so: White's stone
    at (4,3) has exactly one liberty, Black's capture at (3,3) takes it, and
    White's immediate recapture at (4,3) is refused with the reason "ko". The
-   cycle in the sequence step — take, threat, answer, retake — is replayed by
+   cycle in the sequence step (take, threat, answer, retake) is replayed by
    the verifier with the ko point carried through, which is the only way to
    demonstrate the rule rather than describe it.
 
@@ -33,7 +33,7 @@ export default {
       type: "info",
       setup: board,
       marks: [pt(3, 3)],
-      text: "The marked point is a ko. The white stone beside it has one liberty, Black can take it, and White cannot take it straight back — that is the rule, and it is the only rule in go that makes the rest of the board part of a local fight. Everything that follows is about what to do with that fact.",
+      text: "The marked point is a ko. The white stone beside it has one liberty, Black can take it, and White cannot take it straight back; that is the rule, and it is the only rule in go that makes the rest of the board part of a local fight. Everything that follows is about what to do with that fact.",
     },
     {
       type: "sequence",
@@ -64,12 +64,12 @@ export default {
       type: "info",
       setup: board,
       marks: [pt(3, 3)],
-      text: "The phrase worth carrying out of here is a flower-viewing ko: a ko where one player has everything to gain and nothing to lose. If Black loses this one, Black loses a stone and a corner Black never owned. If White loses it, White loses a group. That asymmetry, and not the number of threats, is what decides whether a ko is worth starting — and it is the reason strong players will deliberately create a ko in a position they could settle quietly, because a ko is the one shape in go where being behind locally costs nothing and being ahead locally wins the board.",
+      text: "The phrase worth carrying out of here is a flower-viewing ko: a ko where one player has everything to gain and nothing to lose. If Black loses this one, Black loses a stone and a corner Black never owned. If White loses it, White loses a group. That asymmetry, and not the number of threats, is what decides whether a ko is worth starting, and it is the reason strong players will deliberately create a ko in a position they could settle quietly, because a ko is the one shape in go where being behind locally costs nothing and being ahead locally wins the board.",
     },
     {
       type: "info",
       setup: board,
-      text: "So the discipline, in order. First, ask what you lose if the ko goes against you, and refuse to start any ko where that answer is a living group. Second, count threats — yours and theirs, honestly, including the ones you will destroy by playing them. Third, spend a move making the ko cheaper before you spend one taking it: removing a threat of theirs, or creating a threat of yours, is almost always bigger than the first capture. And last, remember that the player who must answer every threat is the player who has already lost the ko, whatever the stones on the board are doing.",
+      text: "So the discipline, in order. First, ask what you lose if the ko goes against you, and refuse to start any ko where that answer is a living group. Second, count threats: yours and theirs, honestly, including the ones you will destroy by playing them. Third, spend a move making the ko cheaper before you spend one taking it: removing a threat of theirs, or creating a threat of yours, is almost always bigger than the first capture. And last, remember that the player who must answer every threat is the player who has already lost the ko, whatever the stones on the board are doing.",
     },
   ],
 };

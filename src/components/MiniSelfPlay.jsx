@@ -5,7 +5,7 @@ import { Board } from "./Board.jsx";
 /* ----------------------- A SELF-PLAYING BOARD -----------------------
    The demo is the real engine: the same createBoard, the same tryPlay, the
    same move chooser the house players use. Nothing here is a recording, which
-   is the point — the first thing a visitor sees is the thing itself, playing.
+   is the point: the first thing a visitor sees is the thing itself, playing.
 
    It resets when both sides pass or the game runs long, so it never sits on a
    finished position, and a reader who has asked for less motion gets a much

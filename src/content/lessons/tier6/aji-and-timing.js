@@ -73,7 +73,7 @@ export default {
       type: "info",
       setup: later,
       marks: [pt(16, 14)],
-      text: "Here is the same stone a dozen moves later in the patient version, with Black having built along the bottom. It has not moved and Black has never spent a stone on it. Now it has two jobs available: it can slide underneath and live small, or it can lean on White's group from below while Black takes profit on the outside. White has to keep both in mind every time they consider leaving the area, and that cost — the cost of being unable to settle — is being paid by White, every move, for free.",
+      text: "Here is the same stone a dozen moves later in the patient version, with Black having built along the bottom. It has not moved and Black has never spent a stone on it. Now it has two jobs available: it can slide underneath and live small, or it can lean on White's group from below while Black takes profit on the outside. White has to keep both in mind every time they consider leaving the area, and that cost, the cost of being unable to settle, is being paid by White, every move, for free.",
     },
     {
       type: "info",

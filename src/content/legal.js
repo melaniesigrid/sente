@@ -12,7 +12,7 @@
 
    THE RULE THIS FILE IS WRITTEN UNDER
    Nothing here describes behaviour the code does not have. Where a promise
-   would be pleasant but untrue — a backup, an uptime, an export button — the
+   would be pleasant but untrue (a backup, an uptime, an export button), the
    document says the true thing instead. A privacy notice that overstates is a
    worse document than one that admits a gap, because the gap is at least
    something a reader can act on. The privacy sections carry a `src` note in
@@ -39,7 +39,7 @@ export const COPYRIGHT = `© ${COPYRIGHT_YEAR} ${STUDIO}`;
 
    The two live in one object on purpose. A date moved by hand is a date that
    gets forgotten, and a notice dated three weeks before the sentence it
-   contains is worse than an undated one — it is a document actively claiming
+   contains is worse than an undated one: it is a document actively claiming
    it has not changed. `legal.test.js` recomputes the stamp from the prose and
    fails when it disagrees with the one checked in here, printing the stamp it
    wanted, so the fix is: move the date, paste the stamp, done. The suite
@@ -48,7 +48,7 @@ export const COPYRIGHT = `© ${COPYRIGHT_YEAR} ${STUDIO}`;
    being stopped and handed the line where the date lives. */
 export const REVISION = {
   updated: "11 September 2026",
-  stamp: "f6f9e88c",
+  stamp: "fe8760f7",
 };
 
 /** The day the documents last changed. */
@@ -214,7 +214,7 @@ const PRIVACY = {
       heading: "What stays on this device",
       paras: [
         "Your name, your avatar tint, your rank, your finished lessons and problems, the room and the pairing you chose, the game in progress and the last table you set up. All of it sits in your browser's local storage, under keys of Joseki's own, and none of it is sent anywhere.",
-        "Joseki also keeps the shape of your last fifty games against the house players — the board size, the handicap, which house player, how the game ended and how many moves it took — so the house players can be tuned against what really happens at the board. It holds no moves and nothing that could replay a game, it is never sent anywhere, and your profile page shows you exactly what is in it and empties it in one press.",
+        "Joseki also keeps the shape of your last fifty games against the house players (the board size, the handicap, which house player, how the game ended and how many moves it took) so the house players can be tuned against what really happens at the board. It holds no moves and nothing that could replay a game, it is never sent anywhere, and your profile page shows you exactly what is in it and empties it in one press.",
         "Clearing site data for Joseki erases every one of them, and there is no copy elsewhere to restore from.",
       ],
     },
@@ -314,7 +314,7 @@ export function documentById(id) {
 
 /* ----------------------- THE FINGERPRINT -----------------------
    Every word a reader reads, in the order they read it, as one string. Titles,
-   blurbs, headings, paragraphs and the credit rows — a credit that changed is
+   blurbs, headings, paragraphs and the credit rows: a credit that changed is
    a document that changed, so the rows are in. What is deliberately out is the
    revision itself: the date is what the stamp exists to protect, and a stamp
    that covered its own date would change every time the date moved and so

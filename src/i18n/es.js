@@ -1,6 +1,6 @@
 /* ----------------------- ESPAÑOL -----------------------
    Spanish. `tú`, never `usted`: Joseki talks to one person at a board, and the
-   formal register would put a counter between them. Neutral Spanish — nothing
+   formal register would put a counter between them. Neutral Spanish: nothing
    that only a reader in Madrid or only a reader in Buenos Aires would say.
 
    Two words are deliberate. The ladder is `Clasificación` and never `Escalera`,

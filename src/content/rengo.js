@@ -27,7 +27,7 @@ import { rankOf, ratingOfRank } from "./rank.js";
 export const PARTNER_RANK = "7d";
 
 /** The strengths a partner can be asked to play at. A weak partner is a real
- *  choice — a 1 dan makes mistakes you can still see the shape of — so the
+ *  choice (a 1 dan makes mistakes you can still see the shape of) so the
  *  range runs from where dan play starts to the top of the ladder. */
 export const PARTNER_RANKS = ["1d", "3d", "5d", "7d", "9d"];
 
@@ -75,7 +75,7 @@ export function rosterFromSaved(saved, profile) {
  *
  *  The human network conditions on the opponent's rank as well as its own, so a
  *  bot seat has to be told who it is playing against. In a pair game that is a
- *  question with no single answer — there are two opponents — and this is the
+ *  question with no single answer (there are two opponents) and this is the
  *  honest one: the player who is about to reply to the move being made. */
 export function opponentSeatOf(roster, seatId, firstToPlay = "b") {
   const rot = rotationOf(roster, firstToPlay);

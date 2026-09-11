@@ -1,7 +1,7 @@
 /* ----------------------- THE BOOK OF SHAPES -----------------------
    The third book on the shelf, after the Proverbs and the classics. It is not a
    collection of positions: it is a catalogue of bargains. Every shape a player
-   learns to reach for is a trade — it buys something, it costs something, and
+   learns to reach for is a trade: it buys something, it costs something, and
    there is a position in which the bargain is a bad one. Books that teach shape
    usually stop after the first of the three, which is why a 5 kyu who knows the
    names still plays a tiger's mouth into a capturing race.
@@ -14,9 +14,9 @@
    carries the Japanese name beside the English one. The `proverb` is the line
    the lesson's maxim step sets large, in Joseki's own words, not a quotation of
    any modern translation. Nothing here is claimed that the engine was not asked
-   first: `shapes.test.js` checks the structural facts — that a stone in a
+   first: `shapes.test.js` checks the structural facts (that a stone in a
    tiger's mouth has one liberty, that the waist of the knight's move splits,
-   that a ponnuki has eight liberties and an eye — rather than letting an
+   that a ponnuki has eight liberties and an eye) rather than letting an
    article assert them.
 
    Pure data and pure functions. Nothing here touches React. */
@@ -70,7 +70,7 @@ export const SHAPE_ARTICLES = [
     family: "speed", grade: "9k", lessonId: "shape-keima-waist",
     proverb: "Strike at the waist of the knight's move.",
     buys: "Ground, quickly. A knight's move covers more board per stone than a one-point jump, leans on a group without touching it, and is the standard way to chase something: it takes the running room in front away without giving the runner anything to push against.",
-    costs: "A cut. The two stones are not connected and never were. They are connected by a reading — that whoever cuts between them comes off worse — and when the reading changes, the shape changes with it.",
+    costs: "A cut. The two stones are not connected and never were. They are connected by a reading (that whoever cuts between them comes off worse) and when the reading changes, the shape changes with it.",
     breaks: "At the waist, and especially when the opponent already has a stone near the cut or a ladder that works. The proverb says where to hit, not that hitting always works: striking the waist of a knight's move backed by a wall just gives the wall something to eat.",
   },
   {
@@ -103,7 +103,7 @@ export const SHAPE_ARTICLES = [
     proverb: "There is no such thing as the connection. There are three, and they cost different things.",
     buys: "A choice, which is the whole content of the article. The solid connection buys liberties and the end of all argument. The tiger's mouth buys an eye and a stone's reach in a useful direction. The bamboo joint buys a shape with no cutting point in it and a foot in two places at once.",
     costs: "In that order: a slow move, a forcing move handed over, and two points of the board with no eye in them. There is no free one.",
-    breaks: "Whenever the choice is made out of habit. Strong players do not have a favourite connection, they have a question — am I about to be in a capturing race, do I need an eye here, do I need to be facing that way — and the shape falls out of the answer. The mistake is not picking the wrong one. It is not noticing there was a pick.",
+    breaks: "Whenever the choice is made out of habit. Strong players do not have a favourite connection, they have a question: am I about to be in a capturing race, do I need an eye here, do I need to be facing that way, and the shape falls out of the answer. The mistake is not picking the wrong one. It is not noticing there was a pick.",
   },
 ];
 
@@ -113,7 +113,7 @@ export const shapeByKey = (key) => SHAPE_ARTICLES.find(s => s.key === key) || nu
 export const shapeForLesson = (id) => SHAPE_ARTICLES.find(s => s.lessonId === id) || null;
 
 /** Articles grouped the way the catalogue reads: how stones join, how they make
- *  eyes, how they cover ground, how they push — and the two you are trying not
+ *  eyes, how they cover ground, how they push, and the two you are trying not
  *  to make. */
 export const SHAPE_FAMILIES = [
   { key: "connection", name: "Joining", blurb: "Three ways to make two groups one, and what each of them costs." },

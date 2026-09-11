@@ -5,7 +5,7 @@
 ## What it is
 
 Pair go (rengo) is go with four players: two to a team, one team Black and one team
-White, and the four of them take turns in a fixed rotation — Black, White, Black's
+White, and the four of them take turns in a fixed rotation: Black, White, Black's
 partner, White's partner, back to Black. Partners may not consult. Every player
 inherits whatever their partner just did and has to make sense of it.
 
@@ -23,14 +23,14 @@ shortcut.
 A hint answers the question you already knew to ask. A partner answers the questions
 you did not know were there: it plays the move you would not have found, in *your*
 game, against *your* mistake, and then hands the position back and makes you live in
-it. You learn what a 7 dan does with a position you built — which is the oldest way
+it. You learn what a 7 dan does with a position you built, which is the oldest way
 anyone has ever learned this game, and the reason pair go with a stronger partner is
 a teaching format and not a novelty.
 
 It also fails honestly. A hint system that is wrong teaches you wrong. A partner that
 is wrong just loses the game with you.
 
-Reviewing the finished game — asking *why* the partner played there — is a separate
+Reviewing the finished game (asking *why* the partner played there) is a separate
 feature and out of scope here. This design must not grow an analysis engine.
 
 ## The seat model
@@ -54,9 +54,9 @@ who is allowed to fill it.
 
 | | b1 | w1 | b2 | w2 |
 |---|---|---|---|---|
-| Phase A — pair go vs a bot team | you | bot | bot partner | bot partner |
-| Phase B — online pair go | you | remote human | your bot partner | their bot partner |
-| Phase C — four humans | you | remote | remote | remote |
+| Phase A: pair go vs a bot team | you | bot | bot partner | bot partner |
+| Phase B: online pair go | you | remote human | your bot partner | their bot partner |
+| Phase C: four humans | you | remote | remote | remote |
 
 Two consequences worth naming, because they are what make the model worth having:
 
@@ -74,13 +74,13 @@ Two consequences worth naming, because they are what make the model worth having
 A rating is a claim about one player's strength. Win a game in which a 7 dan played
 half your moves and the win is not evidence about you; it is evidence about the pair.
 Joseki already refuses to rate a duel, a master game and a coached game for smaller
-versions of this reason, and this is the largest version of it. Phase C — four humans,
-no bots — could be rated with a team rating one day, but a team rating is a different
+versions of this reason, and this is the largest version of it. Phase C (four humans,
+no bots) could be rated with a team rating one day, but a team rating is a different
 number with a different meaning and it is not being smuggled in under this one.
 
 ## Phases
 
-### Phase A — pair go against a bot team *(client only)*
+### Phase A: pair go against a bot team *(client only)*
 
 You and a 7 dan partner against a house player and its 7 dan partner. No server, no
 second human. Ships as three PRs:
@@ -89,12 +89,12 @@ second human. Ships as three PRs:
   tested, exported through `src/engine/index.js`. No UI. Ships dark.
 - **A2 · the table.** `src/content/rengo.js` (building a roster from your profile, the
   opponent persona and the partner rank) and `src/views/PairGame.jsx`, a view of its
-  own rather than another branch inside `Game.jsx` — the four-seat header, two bots
+  own rather than another branch inside `Game.jsx`: the four-seat header, two bots
   taking turns, scoring and the result card. A lobby card to sit down at.
 - **A3 · the finish.** Resume a saved pair game, SGF with four player names, telemetry,
   Moku's reactions, the keyboard, review.
 
-### Phase B — online pair go *(server)*
+### Phase B: online pair go *(server)*
 
 Two humans, each with their own bot partner.
 
@@ -108,7 +108,7 @@ Two humans, each with their own bot partner.
 - **B3 · four chairs are fragile.** Disconnection, reconnection and an abandoned seat
   in a four-seat room; spectating a pair game.
 
-### Phase C — four humans *(true rengo)*
+### Phase C: four humans *(true rengo)*
 
 - **C1 · all-human rosters.** Four human seats; no partner bot. The one new rule is a
   social one that the interface has to keep: partners may not consult, so a pair game

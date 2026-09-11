@@ -37,7 +37,7 @@ export function OpenSgf({ onOpen }) {
       <div className="stat-head"><FolderOpen size={17} /><span>Open a game</span></div>
       <p className="fine">
         Drop an SGF here, or choose one, and walk through it in review. The file stays on
-        your device — Joseki has nowhere to send it.
+        your device. Joseki has nowhere to send it.
       </p>
       <input ref={input} type="file" accept=".sgf,application/x-go-sgf,text/plain"
         className="visually-hidden" id="sgf-file"

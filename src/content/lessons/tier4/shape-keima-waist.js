@@ -27,7 +27,7 @@ export default {
   id: "shape-keima-waist",
   title: "Strike at the Waist",
   subtitle: "Where to cut a knight's move, and when not to bother",
-  plain: "A knight's move covers ground fast because its two stones are not joined — they are held together by a reading. Cutting between them is an offer of a fight, and the offer is only good when you have something standing nearby to fight with.",
+  plain: "A knight's move covers ground fast because its two stones are not joined: they are held together by a reading. Cutting between them is an offer of a fight, and the offer is only good when you have something standing nearby to fight with.",
   tier: 4, rank: "9k", track: "tactics", size: 19, prereqs: ["proverb-ladder", "connect-cut"], minutes: 7,
   author: "Joseki", book: "shapes",
   steps: [
@@ -57,7 +57,7 @@ export default {
       type: "info",
       setup: keima,
       marks: [pt(4, 4), pt(5, 4)],
-      text: "That is the proverb's missing half. Cutting a knight's move never captures anything — it makes three weak groups where there were two, and then the fight decides. A knight's move in the open is safe not because it is connected but because whoever steps into the waist is the one with no friends there.",
+      text: "That is the proverb's missing half. Cutting a knight's move never captures anything: it makes three weak groups where there were two, and then the fight decides. A knight's move in the open is safe not because it is connected but because whoever steps into the waist is the one with no friends there.",
     },
     {
       type: "sequence",

@@ -32,7 +32,7 @@ import { initStep, stepReducer, marksFor, boardLocked, canReveal, recordAtStop, 
    `states`, so going back to a solved step finds it solved, transcript and all. */
 
 /* Where each lesson was left, so a trip to the library does not throw the work
-   away. Session memory only — a reload starts the lesson over. */
+   away. Session memory only: a reload starts the lesson over. */
 const SESSIONS = new Map();
 
 const reducedMotion = () =>
@@ -69,7 +69,7 @@ function crossingNote(lesson, next) {
 
 /* Exported so the welcome flow can run its demo through the same player the library
    uses: same step behaviour, same timings, same board. `exitLabel` is the only thing
-   it needs to say differently — a first-time visitor has never seen a library. */
+   it needs to say differently: a first-time visitor has never seen a library. */
 
 export function LessonPlayer({ lesson, nextLesson, onDone, onExit, onOpenNext, rank, onProgress, exitLabel = "Library" }) {
   const saved = SESSIONS.get(lesson.id);

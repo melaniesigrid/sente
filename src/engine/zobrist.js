@@ -1,7 +1,7 @@
 /* ----------------------- ZOBRIST HASHING (pure) -----------------------
    Every (point, colour) pair gets a random key; a position's hash is the XOR of the
    keys of the stones on it. Keys come from a seeded PRNG, so the same position hashes
-   to the same number in every process — tests, the browser, and a future server agree.
+   to the same number in every process: tests, the browser, and a future server agree.
 
    Hashes are 53-bit safe integers (21 high bits + 32 low bits) so they survive JSON,
    compare with `===`, and drop straight into a Set. Only the board matters, not the
