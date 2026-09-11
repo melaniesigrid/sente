@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Check, Pencil, Trophy, Flame, Sparkles, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Mountain, Palette, Grid3x3, Dot, Hammer } from "lucide-react";
-import { Card, Pill, Avatar, RankBadge, BeltRibbon, Toggle, PullQuote, Statement } from "../components/ui.jsx";
+import { Check, Pencil, Trophy, Flame, Sparkles, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Mountain, Palette, Grid3x3, Dot, Hammer, History, Trash2 } from "lucide-react";
+import { Card, Btn, Pill, Avatar, RankBadge, BeltRibbon, Toggle, PullQuote, Statement } from "../components/ui.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { MokuMark } from "../components/Moku.jsx";
@@ -15,8 +15,65 @@ import { PROBLEMS } from "../content/problems.js";
 import { dayKey, liveStreak } from "../content/kata.js";
 import { saveProfile } from "../store/profile.js";
 import { loadAccount } from "../store/account.js";
+import { loadTelemetry, clearTelemetry, byBot, summarize, CAP } from "../store/telemetry.js";
+import { PERSONAS } from "../content/personas.js";
 import { serverEnabled } from "../net/api.js";
 import { OnlineProfileCard } from "./OnlineProfile.jsx";
+
+/* ----------------------- THE LAST FIFTY GAMES -----------------------
+   The device's own ring buffer, shown to the person it is about. A record kept
+   quietly is a record kept badly: if the app is going to remember how the last
+   fifty games went, the player should be able to read it, see exactly what it
+   holds, and empty it in one press. Nothing here is sent anywhere - see
+   store/telemetry.js, which has no network call in it at all. */
+function GameLogCard() {
+  const [log, setLog] = useState(loadTelemetry);
+  const [confirming, setConfirming] = useState(false);
+  const sum = summarize(log);
+  const bots = byBot(log);
+  const nameOf = (id) => PERSONAS.find(p => p.id === id)?.name || id;
+
+  return (
+    <Card>
+      <div className="stat-head"><History size={16} /><span>The last {CAP} games</span></div>
+      <p className="fine" style={{ marginTop: 6 }}>
+        Kept on this device so the house players can be tuned against what happens at the
+        board rather than against their own bios. It holds the shape of a game — board size,
+        handicap, which house player, how it ended, how many moves — and no moves, no names
+        and nothing that could replay it. It is never sent anywhere, and it forgets the
+        oldest game once it is full.
+      </p>
+      {sum.games === 0 ? (
+        <p className="fine" style={{ marginTop: 10 }}>Nothing in it yet. It fills as you play.</p>
+      ) : (<>
+        <div className="row" style={{ marginTop: 10 }}>
+          <Pill icon={Swords}>{sum.games} of {CAP}{sum.full ? " · full" : ""}</Pill>
+          <Pill icon={Trophy}>{sum.wins} W · {sum.losses} L rated</Pill>
+        </div>
+        {bots.length > 0 && (
+          <ul className="level-list" style={{ marginTop: 10 }}>
+            {bots.map(r => (
+              <li key={r.bot} className="level-row">
+                <span className="level-rank">{nameOf(r.bot)}</span>
+                <span className="fine">
+                  {r.games} rated · you won {r.wins}
+                  {r.games >= 5 ? ` · ${Math.round((r.wins / r.games) * 100)}%` : " · too few to read a rate into"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="row" style={{ marginTop: 12 }}>
+          <Btn icon={Trash2} small
+            onClick={() => { if (confirming) { clearTelemetry(); setLog([]); setConfirming(false); } else setConfirming(true); }}>
+            {confirming ? "Forget it — sure?" : "Forget these games"}
+          </Btn>
+          {confirming && <Btn small onClick={() => setConfirming(false)}>Keep them</Btn>}
+        </div>
+      </>)}
+    </Card>
+  );
+}
 
 /* ----------------------- THE NINE LEVELS (Classic, ch. 12) -----------------------
    Zhang Ni's nine levels are a scale for dan players: nine steps for the nine
@@ -250,6 +307,8 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
           <div className="stat-num">{profile.problemsDone.length}<em>/{PROBLEMS.length}</em></div>
         </Card>
       </div>
+      <GameLogCard />
+
       <Card inset>
         <p className="fine">
           Your profile lives on this device. Accounts, friends, and match history

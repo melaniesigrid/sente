@@ -24,6 +24,8 @@ import { startDuel, duelOutcome, recordDuel, duelResultText, duelShareText, duel
 import { ShareDuelButton } from "../components/DuelCard.jsx";
 import { saveProfile } from "../store/profile.js";
 import { saveGame, clearGame } from "../store/gameStore.js";
+import { recordGame } from "../store/telemetry.js";
+import { dayKey } from "../content/kata.js";
 import { chooseRemark, noteSpoken, PACING } from "../content/commentary.js";
 import {
   statusText, refusalText, captionText, resignLabel, resultCard, ratingLine, RESIGN_CONFIRM_MS,
@@ -203,24 +205,41 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const conclude = useCallback((next, prev) => {
     if (next.phase === "ended" && prev.phase !== "ended") {
       if (sound) playBell();
+      /* `duelOutcome` is general despite its name: it reads a finished record
+         from Black's chair and knows nothing about a duel. Every kind of game
+         is remembered the same way, so they all go through it. */
+      const outcome = duelOutcome(next);
+      /* The device's own ring buffer, so the house players can be tuned against
+         what happens at the board rather than against their bios. Nothing about
+         it leaves this machine - see store/telemetry.js for what it keeps and
+         what it refuses to keep. The kind matters: only a rated game is
+         evidence about a rank. */
+      const remember = (kind) => outcome && recordGame({
+        at: dayKey(), size: next.size, handicap: next.handicap,
+        bot: persona ? persona.id : null, botRank: botRank ?? null,
+        kind, result: outcome.code, won: outcome.won, moves: outcome.moves,
+      });
       if (duel) {
-        const outcome = duelOutcome(next);
+        remember("duel");
         say(pick(outcome.won === null ? persona.chat.reply : outcome.won ? persona.chat.loss : persona.chat.win));
         const np = { ...profile, ...recordDuel(profile, duel.key, outcome) };
         setProfile(np);
         saveProfile(np);
         notify({ icon: outcome.won ? "trophy" : "flag", text: `Daily duel · ${duelResultText(outcome.code)}` });
       } else if (master) {
+        remember("master");
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
         notify({ icon: won ? "trophy" : "flag", text: `${won ? "Victory" : "Defeat"} · unrated` });
       } else if (persona && coaching) {
+        remember("coached");
         // The coach spoke in this game, so the game moves no rating. Said plainly,
         // the way a duel and a master game say it.
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
         notify({ icon: won ? "trophy" : "flag", text: `${won ? "Victory" : "Defeat"} · unrated, coached` });
       } else if (persona) {
+        remember("rated");
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
         const oldRank = rankOf(profile.rating), oldBelt = beltOf(profile.rating);
