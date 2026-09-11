@@ -1050,3 +1050,17 @@ the multiplayer Worker and is unrated for the same reason coached games are.
 - House players are labeled as bots everywhere.
 - Every failure has a name and a message; nothing fails silently.
 - Board first, status second, controls third. No chrome that does not earn its pixels.
+
+## Brand marks (done, branch `feat/brand-marks`)
+
+The mark means sente, not "a stone": a move and the reply it forces. Three marks in
+`src/components/Brand.jsx`, all drawn from tokens so they change room with everything else.
+
+- [x] The answer mark (a played stone in the mark colour over the outlined stone it forces)
+      and the primary lockup, leading the top bar on every screen (2026-09-11).
+- [x] The plain lockup — the wordmark alone, no mark and no bead — in the footer, where the
+      mark would land below the size it survives at.
+- [x] The corner mark (the 4x4 corner, one stone on the 3-3, the star point still open) at the
+      landing's closing call and as the boot splash in `index.html`. Reserved for those two:
+      it is the first of the three to fail small.
+- [x] The favicon is the answer mark.

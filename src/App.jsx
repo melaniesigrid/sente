@@ -19,6 +19,7 @@ import { sayingBySeed } from "./content/classic.js";
 import { CSS } from "./styles/css.js";
 import { Avatar } from "./components/ui.jsx";
 import { Toast } from "./components/Toast.jsx";
+import { Wordmark } from "./components/Brand.jsx";
 import { ErrorBoundary } from "./components/ErrorBoundary.jsx";
 import { MokuProvider, MokuDock } from "./components/Moku.jsx";
 import { preciseRankOf } from "./content/rank.js";
@@ -108,10 +109,11 @@ export default function JosekiApp() {
       <style>{CSS}</style>
       {view === null ? null : <>
       <header className={`topbar ${view === "landing" ? "slim" : ""}`}>
-        <button className="brand" onClick={() => setView("landing")} aria-label="Joseki, the front door">
-          <span className="brand-mark" aria-hidden="true" />
-          <span className="brand-name">Joseki</span>
-        </button>
+        {/* The primary lockup: the answer mark and the wordmark on one
+            baseline. The mark is the whole idea of the place — a move and
+            the reply it forces — so it leads the chrome on every screen. */}
+        <Wordmark as="button" className="topbar-brand" onClick={() => setView("landing")}
+          aria-label="Joseki, the front door" />
         {view === "landing" ? (
           <button className="lp-enter" onClick={() => go("home")}>
             <span>{needsOnboarding(profile) ? "Enter" : "Your board"}</span>
@@ -181,7 +183,13 @@ export default function JosekiApp() {
           the dock lands on the left edge of a 68ch measure. */}
       {view !== "landing" && view !== "legal" && <MokuDock />}
       <footer className="foot">
-        <span className="foot-line">Joseki · play go, beautifully</span>
+        {/* The footer takes the letters alone. The mark would have to be
+            smaller here than it can survive, and a mark nobody can read is
+            worse than no mark. */}
+        <span className="foot-line foot-brand">
+          <Wordmark lockup="plain" className="foot-wordmark" />
+          <span>&middot; play go, beautifully</span>
+        </span>
         <span className="foot-line">{footSaying.text}</span>
         <button className="foot-link" onClick={() => setView("landing")}>About Joseki</button>
         {/* The small print, reachable from every screen and never from anywhere
