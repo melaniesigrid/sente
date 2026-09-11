@@ -844,9 +844,17 @@ Decisions:
   size of the type is the oldest way of saying "we would rather you did not read this".
 
 Open:
-- [ ] `UPDATED` in `src/content/legal.js` is moved by hand. It should fail the suite if
-      the prose changed in a commit that did not move it, which needs a hash of the text
-      checked in beside it.
+- [x] `UPDATED` no longer moves by hand alone (2026-09-11, branch `feat/legal-stamp`).
+      It lives in `REVISION` beside `stamp`, a fingerprint of every word in the three
+      documents — titles, blurbs, headings, paragraphs and the credit rows, since a credit
+      that changed is a document that changed. Change a word without moving the revision
+      and the suite fails and prints the stamp to paste in, so the fix is: move the date,
+      paste the stamp. The stamp deliberately does not cover the revision itself: one that
+      covered its own date would move every time the date did and could never disagree
+      with it. The suite still cannot know what a commit touched, so it cannot force the
+      date to move on its own — what it can do is make changing a sentence impossible
+      without being stopped at the line the date lives on. Also checked now: the date
+      parses as a real day and is not in the future.
 - [ ] A real export: `GET /api/me/export` handing back everything the Registry and the
       rooms hold about one player, as JSON. Until it exists the notice says a person does
       it by hand, which is true and does not scale past a few requests.
