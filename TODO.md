@@ -217,6 +217,19 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       plies. The scratch solvers — net, life-and-death, and race — are the reusable half of
       this work; the rule in `.claude/rules/lessons.md` is that positions are searched, not
       hand-written, and these are what does the searching.
+- [x] `false-eye` (2026-09-11, 2 / 18k, life): the first of the Tier 2 life-and-death
+      lessons, and the one where the engine tells the story better than prose could. Two
+      positions a single stone apart, the stone on a diagonal touching neither eye. In the
+      live shape both eye points are illegal for Black — suicide, both of them, which is what
+      two eyes means stated exactly. In the dead shape one of them is legal, because playing
+      there captures the white stone the diagonal cut off, and a point you may legally play
+      in was never an eye. White then has no move at all: the retake is ko-banned and its own
+      eye is suicide.
+- [x] `tools/lessons/search.mjs` now obeys the ko rule (2026-09-11). The ko point is threaded
+      through all three solvers and a pass clears it, which is what a ko threat elsewhere
+      amounts to. Caught while authoring `false-eye`, whose kill depends on White being
+      unable to retake; `marvels-net` and `liberty-race` were re-proved under the ko-aware
+      search and are unchanged.
 - [ ] The rest of the Fundamentals: chapter two's cutting and connecting (do not peep where
       you can cut), chapter five's thickness, chapter ten's shortage of liberties and the
       snapback as bait, chapter seven on how to study joseki.

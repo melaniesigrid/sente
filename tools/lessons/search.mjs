@@ -15,6 +15,12 @@
    is a proof and a negative one only means "not within these bounds". Keep the
    region small; the trees grow fast.
 
+   All three obey the ko rule: the ko point is threaded through the search, and a
+   pass clears it, which is what a ko threat played elsewhere amounts to. This
+   matters more than it sounds. The false-eye position in Tier 2 is only a clean
+   kill because White's retake is ko-banned; a search that ignored ko would call
+   the same position dead for the wrong reason.
+
    Run it directly to re-prove the two positions already in the library:
 
      node tools/lessons/search.mjs */
@@ -54,27 +60,27 @@ export function netted(board, target, attacker, depth, opts = {}) {
   const { escapeLibs = 4, radius = 2, first = attacker } = opts;
   const memo = new Map();
 
-  function search(b, toMove, left) {
+  function search(b, toMove, left, ko) {
     if (at(b, target) === null) return true;                     // captured
     if (chainAt(b, target.c, target.r).libs.size >= escapeLibs) return false;
     if (left <= 0) return false;
-    const k = key(b) + toMove + left;
+    const k = key(b) + toMove + left + ko;
     if (memo.has(k)) return memo.get(k);
     memo.set(k, false);                                          // cycle guard
 
     let out = toMove !== attacker;
     for (const i of around(b, target, radius)) {
       const [c, r] = colRow(b.size, i);
-      const res = tryPlay(b, c, r, toMove);
+      const res = tryPlay(b, c, r, toMove, { koPoint: ko });
       if (!res.ok) continue;
-      const sub = search(res.board, opponent(toMove), toMove === attacker ? left - 1 : left);
+      const sub = search(res.board, opponent(toMove), toMove === attacker ? left - 1 : left, res.ko);
       if (toMove === attacker && sub) { out = true; break; }
       if (toMove !== attacker && !sub) { out = false; break; }
     }
     memo.set(k, out);
     return out;
   }
-  return search(board, first, depth);
+  return search(board, first, depth, null);
 }
 
 /* ---------- life and death ----------
@@ -85,10 +91,10 @@ export function killable(board, target, region, depth, opts = {}) {
   const { attacker = "b", first = attacker } = opts;
   const memo = new Map();
 
-  function search(b, toMove, left, passed) {
+  function search(b, toMove, left, passed, ko) {
     if (at(b, target) === null) return true;
     if (left <= 0) return false;
-    const k = key(b) + toMove + left + passed;
+    const k = key(b) + toMove + left + passed + ko;
     if (memo.has(k)) return memo.get(k);
     memo.set(k, false);
 
@@ -96,17 +102,18 @@ export function killable(board, target, region, depth, opts = {}) {
     for (const i of region) {
       if (b.cells[i] !== null) continue;
       const [c, r] = colRow(b.size, i);
-      const res = tryPlay(b, c, r, toMove);
+      const res = tryPlay(b, c, r, toMove, { koPoint: ko });
       if (!res.ok) continue;
-      const sub = search(res.board, opponent(toMove), toMove === attacker ? left - 1 : left, 0);
+      const sub = search(res.board, opponent(toMove), toMove === attacker ? left - 1 : left, 0, res.ko);
       if (toMove === attacker && sub) { out = true; break; }
       if (toMove !== attacker && !sub) { out = false; break; }
     }
-    if (toMove !== attacker && out && !passed && !search(b, attacker, left, 1)) out = false;
+    // a pass clears the ko ban, which is what a ko threat elsewhere amounts to
+    if (toMove !== attacker && out && !passed && !search(b, attacker, left, 1, null)) out = false;
     memo.set(k, out);
     return out;
   }
-  return search(board, first, depth, 0);
+  return search(board, first, depth, 0, opts.koPoint ?? null);
 }
 
 /* ---------- capturing races ----------
@@ -116,11 +123,11 @@ export function killable(board, target, region, depth, opts = {}) {
 export function raceWinner(board, bSeed, wSeed, region, depth, first = "b") {
   const memo = new Map();
 
-  function search(b, toMove, left, passes) {
+  function search(b, toMove, left, passes, ko) {
     if (at(b, wSeed) === null) return "b";
     if (at(b, bSeed) === null) return "w";
     if (passes >= 2 || left <= 0) return "=";
-    const k = key(b) + toMove + left + passes;
+    const k = key(b) + toMove + left + passes + ko;
     if (memo.has(k)) return memo.get(k);
     memo.set(k, "=");
 
@@ -133,16 +140,16 @@ export function raceWinner(board, bSeed, wSeed, region, depth, first = "b") {
     for (const i of region) {
       if (b.cells[i] !== null) continue;
       const [c, r] = colRow(b.size, i);
-      const res = tryPlay(b, c, r, toMove);
+      const res = tryPlay(b, c, r, toMove, { koPoint: ko });
       if (!res.ok) continue;
-      if (consider(search(res.board, opponent(toMove), left - 1, 0))) break;
+      if (consider(search(res.board, opponent(toMove), left - 1, 0, res.ko))) break;
     }
-    if (best !== toMove) consider(search(b, opponent(toMove), left - 1, passes + 1));
+    if (best !== toMove) consider(search(b, opponent(toMove), left - 1, passes + 1, null));
     const out = best === null ? "=" : best;
     memo.set(k, out);
     return out;
   }
-  return search(board, first, depth, 0);
+  return search(board, first, depth, 0, null);
 }
 
 /** Replay alternating moves from `first`; throws on the first illegal one. */

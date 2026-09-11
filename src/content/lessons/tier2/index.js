@@ -6,5 +6,9 @@ import classicCalculation from "./classic-calculation.js";
 import classicTerms from "./classic-terms.js";
 import classicKnowYourself from "./classic-know-yourself.js";
 import classicLevels from "./classic-levels.js";
+import falseEye from "./false-eye.js";
 
-export const TIER2 = [classicBoard, classicCalculation, classicTerms, classicKnowYourself, classicLevels];
+export const TIER2 = [
+  classicBoard, classicCalculation, classicTerms, classicKnowYourself, classicLevels,
+  falseEye,
+];
