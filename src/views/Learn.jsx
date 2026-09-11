@@ -12,6 +12,7 @@ import { useMokuFacts } from "../components/mokuStore.js";
 import {
   TIERS, TRACKS, BOOKS, lessonById, prereqsMissing, nextLessonFor, currentTierFor, searchLibrary,
   lessonsInTier, lessonsInBook, lessonsInSeries, lessonAfter, bookProgressFor, trackByKey, isDone,
+  tierById, seriesByKey,
 } from "../content/library.js";
 import { CLASSIC, CHAPTERS, PREFACE, NAMES, lessonIdsForChapter } from "../content/classic.js";
 import { saveProfile } from "../store/profile.js";
@@ -51,9 +52,22 @@ function Response({ entry }) {
   );
 }
 
+/* A lesson may lead out of its track, its tier, or its rank. Name the boundary it
+   crosses, so the jump reads as the path continuing and not as a wrong turn. The welcome
+   demo is not in the library, so it is told nothing about where the path goes. */
+function crossingNote(lesson, next) {
+  if (!next) return lessonById(lesson.id) ? "That was the last lesson in the library." : null;
+  if (next.series && next.series === lesson.series)
+    return `Chapter ${next.chapter} of ${seriesByKey(next.series)?.name}`;
+  if (next.tier !== lesson.tier) return `${tierById(next.tier)?.name}, ${next.rank}`;
+  if (next.track !== lesson.track) return trackByKey(next.track)?.name || null;
+  return "Next in this track";
+}
+
 /* Exported so the welcome flow can run its demo through the same player the library
    uses: same step behaviour, same timings, same board. `exitLabel` is the only thing
    it needs to say differently — a first-time visitor has never seen a library. */
+
 export function LessonPlayer({ lesson, nextLesson, onDone, onExit, onOpenNext, rank, onProgress, exitLabel = "Library" }) {
   const saved = SESSIONS.get(lesson.id);
   const [stepIdx, setStepIdx] = useState(saved?.stepIdx ?? 0);
@@ -172,6 +186,9 @@ export function LessonPlayer({ lesson, nextLesson, onDone, onExit, onOpenNext, r
                   </li>
                 ))}
               </ul>
+              {crossingNote(lesson, nextLesson) && (
+                <p className="fine">{crossingNote(lesson, nextLesson)}</p>
+              )}
               <div className="lesson-foot">
                 <Btn icon={BookOpen} small onClick={onExit}>{exitLabel}</Btn>
                 {nextLesson && (
@@ -502,10 +519,12 @@ export function LearnView({ profile, setProfile }) {
   if (active) {
     const lesson = lessonById(active);
     return (
-      <LessonPlayer key={active} lesson={lesson} nextLesson={lessonAfter(lesson)}
+      /* Every lesson leads to another one, across track, tier and rank; only the very
+         last lesson in the library ends. The prerequisite gate still applies to the jump. */
+      <LessonPlayer key={active} lesson={lesson} nextLesson={lessonAfter(lesson, profile)}
         rank={rankOf(profile.rating)} onProgress={progress}
         onExit={() => setActive(null)} onDone={() => finish(lesson)}
-        onOpenNext={(l) => { setPending(null); setActive(l.id); }} />
+        onOpenNext={(l) => { setActive(null); open(l); }} />
     );
   }
 

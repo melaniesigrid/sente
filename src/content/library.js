@@ -105,17 +105,36 @@ export function bookProgressFor(profile, bookId) {
 export const lessonsInSeries = (key) =>
   LIBRARY.filter(l => l.series === key).sort((a, b) => (a.chapter || 0) - (b.chapter || 0));
 
-/** The lesson to open when this one is finished: the next chapter of its series,
- *  else the next lesson in library order. Null at the end. */
-export function lessonAfter(lesson) {
-  if (!lesson) return null;
-  if (lesson.series) {
-    const run = lessonsInSeries(lesson.series);
-    const i = run.findIndex(l => l.id === lesson.id);
-    return i >= 0 ? run[i + 1] || null : null;
+/** The lesson to open when this one is finished. The library is one path, so a lesson at
+ *  the end of a track, a tier or a series still hands the learner the next thing to read,
+ *  across whatever boundary comes next: the rest of its series first, then forward through
+ *  the library. Given a profile it also passes over what has been read, comes back for work
+ *  skipped behind, and prefers a lesson whose prerequisites are read. Only the last lesson
+ *  in the library, with nothing unread behind it, ends. */
+export function lessonAfter(lesson, profile) {
+  if (!lesson) return profile ? nextLessonFor(profile) : null;
+  const at = LIBRARY.findIndex(l => l.id === lesson.id);
+  const ahead = at < 0 ? [] : LIBRARY.slice(at + 1);
+  const behind = at < 0 ? [] : LIBRARY.slice(0, at);
+
+  /* The Classic runs from Tier 2 to Tier 5: its next chapter outranks the next shelf. */
+  const run = lesson.series ? lessonsInSeries(lesson.series) : [];
+  const chapterAt = run.findIndex(l => l.id === lesson.id);
+  const rest = chapterAt < 0 ? [] : run.slice(chapterAt + 1);
+
+  const unread = (l) => !profile || !isDone(profile, l.id);
+  const ready = (l) => !profile || prereqsMissing(l, profile).length === 0;
+  const chapter = rest.find(unread);
+  if (chapter) return chapter; // a book is read as a book, prerequisite gate and all
+  /* Going back for skipped work is a thing only a profile can know about. */
+  const shelves = profile ? [ahead, behind] : [ahead];
+  for (const wanted of [(l) => unread(l) && ready(l), unread]) {
+    for (const shelf of shelves) {
+      const hit = shelf.find(wanted);
+      if (hit) return hit;
+    }
   }
-  const i = LIBRARY.findIndex(l => l.id === lesson.id);
-  return i >= 0 ? LIBRARY[i + 1] || null : null;
+  return ahead[0] || null; // every lesson read: the next one along, or the end of the library
 }
 
 /** The learner's tier: the lowest tier they have neither passed nor finished every
