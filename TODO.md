@@ -263,6 +263,23 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       throw-in and the plain atari usually both work, and what makes the throw-in right in a
       real game is something outside the region. It needs a lesson built around recognising
       the shape from the victim's side rather than a puzzle with a unique solution.
+- [x] `koSensitive()` in the search tool (2026-09-11), and an audit of every life-and-death
+      claim in the library against it. A verdict that changes when the ko rule is switched
+      off rests on a ko, and a lesson has to say so instead of calling it a clean kill. All
+      six shipped positions — both false-eye shapes and the four eye spaces — come back
+      clean. One correction fell out of the audit: `false-eye`'s header claimed the ko ban
+      was what killed the group, and it is not; White is simply out of moves either way.
+- [ ] Bent four in the corner, for Tier 6. The search calls it dead with Black moving first
+      and alive with White moving first, and `koSensitive` flags it: the killing line runs
+      through a ko White is banned from retaking. That is the classical result rather than a
+      bug, but it is a rules argument — and one that differs between Japanese and Chinese
+      scoring — not a 16k life-and-death problem, so it was kept out of `corner-life`. It
+      wants a dan lesson, and it has a citation waiting: the Dunhuang manuscript already
+      records that bent four in the corner is dead at the end of the game, in the sixth
+      century.
+- [ ] Also measured while hunting corners: three in a row and four in a row behave
+      identically in the corner, on the edge and in the centre — three dies to the middle,
+      four lives. The corner only changes things for shapes that wrap around the 1-1 point.
 - [ ] The rest of the Fundamentals: chapter two's cutting and connecting (do not peep where
       you can cut), chapter five's thickness, chapter ten's shortage of liberties and the
       snapback as bait, chapter seven on how to study joseki.

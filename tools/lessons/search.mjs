@@ -88,7 +88,7 @@ export function netted(board, target, attacker, depth, opts = {}) {
    indices). The defender may pass: if passing still survives, the group is
    alive, which is the working definition a tsumego uses. */
 export function killable(board, target, region, depth, opts = {}) {
-  const { attacker = "b", first = attacker } = opts;
+  const { attacker = "b", first = attacker, ignoreKo = false } = opts;
   const memo = new Map();
 
   function search(b, toMove, left, passed, ko) {
@@ -102,7 +102,7 @@ export function killable(board, target, region, depth, opts = {}) {
     for (const i of region) {
       if (b.cells[i] !== null) continue;
       const [c, r] = colRow(b.size, i);
-      const res = tryPlay(b, c, r, toMove, { koPoint: ko });
+      const res = tryPlay(b, c, r, toMove, { koPoint: ignoreKo ? null : ko });
       if (!res.ok) continue;
       const sub = search(res.board, opponent(toMove), toMove === attacker ? left - 1 : left, 0, res.ko);
       if (toMove === attacker && sub) { out = true; break; }
@@ -150,6 +150,21 @@ export function raceWinner(board, bSeed, wSeed, region, depth, first = "b") {
     return out;
   }
   return search(board, first, depth, 0, null);
+}
+
+/* ---------- the ko warning ----------
+   A verdict that changes when the ko rule is switched off is a verdict that
+   rests on a ko, and a lesson must say so rather than call it a clean kill.
+   This is not a theoretical worry: a bent four in the corner comes out DEAD
+   from killable() and the line that kills it runs through a ko the defender is
+   banned from retaking. That position is a genuine rules argument, not a 16k
+   life-and-death problem, and this check is what tells the two apart.
+
+   True means "the answer depends on the ko rule - go and look at the line". */
+export function koSensitive(board, target, region, depth, opts = {}) {
+  const strict = killable(board, target, region, depth, opts);
+  const loose = killable(board, target, region, depth, { ...opts, ignoreKo: true });
+  return strict !== loose;
 }
 
 /** Replay alternating moves from `first`; throws on the first illegal one. */

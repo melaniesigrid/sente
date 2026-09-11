@@ -17,9 +17,11 @@ import { pt } from "../../positions.js";
        forbidden by the ko rule, and its own eye at (3,8) is suicide
      Black then plays (3,8) and takes six stones
 
-   That White cannot retake is not a detail we arranged; it is the ko rule from
-   Tier 1 doing the work. `killable` says the group is dead whichever side moves
-   first, and it says the live shape is alive whichever side moves first. */
+   The ko ban is real but it is not what does the killing: `koSensitive` reports
+   this position as clean, meaning the verdict is the same with the ko rule
+   switched off. White is simply out of moves. `killable` says the group is dead
+   whichever side moves first, and the live shape alive whichever side moves
+   first. */
 
 const alive = {
   b: [pt(0, 6), pt(1, 6), pt(2, 6), pt(3, 6), pt(4, 6), pt(5, 6), pt(5, 7), pt(5, 8)],
