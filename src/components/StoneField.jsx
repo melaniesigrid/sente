@@ -79,34 +79,70 @@ export function StoneField({ live = true }) {
   const ids = { b: `fsb-${uid}`, w: `fsw-${uid}`, shine: `fss-${uid}` };
 
   useEffect(() => {
-    const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const moving = live && !reduce;
+    const query = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)");
+    let moving = live && !(query && query.matches);
 
     let state = freshField();
-    let timer = null, frame = 0, dead = false;
-    let onScreen = true, awake = true;
+    let timer = null, raf = 0, dead = false;
+    /* Asked, not assumed. `visibilitychange` only fires on a transition, so a
+       field mounted in a background tab -- a restored session, a middle-click,
+       a prerender -- would otherwise believe the tab was in front and open its
+       interval behind it, which is the one thing this arrangement exists to
+       prevent. `seeded` is the same idea one step earlier: the beat may not
+       start while the seed is still walking chunks, or two drivers are walking
+       one position between them. */
+    let onScreen = true, awake = !document.hidden, seeded = false;
 
-    const beat = () => {
-      const before = state.board;
-      const dealing = fieldSpent(state);
-      state = dealing ? advanceField(freshField(), SETTLED) : advanceField(state, 1);
-      setFrame({ board: state.board, gone: dealing ? [] : departed(before, state.board) });
-    };
     const stop = () => { if (timer) { clearInterval(timer); timer = null; } };
-    const start = () => { if (moving && !timer && onScreen && awake && !dead) timer = setInterval(beat, TICK_MS); };
+    const start = () => {
+      if (moving && seeded && !timer && onScreen && awake && !dead) timer = setInterval(beat, TICK_MS);
+    };
 
-    /* The seed, a chunk to a frame. */
+    /* A position, a chunk to a frame. Both the first deal and every one after
+       it come through here: sixty-four moves of a real engine is forty
+       milliseconds on this desktop and several hundred on a phone, and running
+       that inside the beat would drop the frame a reader is scrolling on. The
+       seed was always chunked; the re-deal used to be the same work in one
+       synchronous go, which is exactly what the chunking is for. */
     const seed = () => {
       state = advanceField(state, CHUNK);
-      if (state.n < SETTLED && !fieldSpent(state)) { frame = requestAnimationFrame(seed); return; }
+      if (state.n < SETTLED && !fieldSpent(state)) { raf = requestAnimationFrame(seed); return; }
       if (dead) return;
+      seeded = true;
       setFrame({ board: state.board, gone: [] });
       start();
     };
-    frame = requestAnimationFrame(seed);
+
+    function beat() {
+      const before = state.board;
+      if (fieldSpent(state)) {
+        /* Spent. Stop the clock and deal again the slow way; the interval
+           starts itself back up when the new position is ready. */
+        stop();
+        seeded = false;
+        state = freshField();
+        raf = requestAnimationFrame(seed);
+        return;
+      }
+      state = advanceField(state, 1);
+      setFrame({ board: state.board, gone: departed(before, state.board) });
+    }
+
+    raf = requestAnimationFrame(seed);
 
     const onVisibility = () => { awake = !document.hidden; if (awake) start(); else stop(); };
     document.addEventListener("visibilitychange", onVisibility);
+
+    /* A reader who turns the switch on mid-session is asking for the motion to
+       stop now, not on their next visit. Stopping the clock is the whole of it:
+       the stylesheet has already taken the landing and the lift off, and a
+       position changing under that with no motion at all is a jump cut, which
+       is worse than the animation they asked to be rid of. */
+    const onMotion = () => {
+      moving = live && !(query && query.matches);
+      if (moving) start(); else stop();
+    };
+    if (query && query.addEventListener) query.addEventListener("change", onMotion);
 
     /* Pause when the band is off screen. This only ever stops the interval;
        a browser with no IntersectionObserver simply keeps playing, which costs
@@ -122,9 +158,10 @@ export function StoneField({ live = true }) {
 
     return () => {
       dead = true;
-      cancelAnimationFrame(frame);
+      cancelAnimationFrame(raf);
       stop();
       document.removeEventListener("visibilitychange", onVisibility);
+      if (query && query.removeEventListener) query.removeEventListener("change", onMotion);
       if (io) io.disconnect();
     };
   }, [live]);

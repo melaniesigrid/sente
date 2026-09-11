@@ -3,7 +3,7 @@ import {
   FIELD_N, SETTLED, LONGEST, freshField, stepField, advanceField, fieldSpent, fieldStones,
   departed,
 } from "./fieldGame.js";
-import { createBoard, withStone } from "../engine/index.js";
+import { createBoard, withStone, tryPlay } from "../engine/index.js";
 
 describe("the field's game", () => {
   it("deals an empty board of the size the page is about", () => {
@@ -54,13 +54,14 @@ describe("the field's game", () => {
   });
 });
 
-describe("what came off the board", () => {
-  const board = (...stones) => {
-    let b = createBoard(FIELD_N);
-    for (const [c, r, colour] of stones) b = withStone(b, c, r, colour);
-    return b;
-  };
+/** A board with these stones on it and nothing else. */
+const board = (...stones) => {
+  let b = createBoard(FIELD_N);
+  for (const [c, r, colour] of stones) b = withStone(b, c, r, colour);
+  return b;
+};
 
+describe("what came off the board", () => {
   it("names the stone that is gone, and nothing else", () => {
     const before = board([3, 3, "b"], [4, 3, "w"], [5, 5, "b"]);
     const after = board([3, 3, "b"], [5, 5, "b"]);
@@ -104,5 +105,102 @@ describe("what came off the board", () => {
     const gone = departed(before, after);
     expect(gone.length).toBe(1);
     expect(gone[0]).toMatchObject({ c: 0, r: 0, colour: "w" });
+  });
+});
+
+describe("what came off the board, in the order the field draws it", () => {
+  // The field draws the departing stones before it draws the standing ones, so
+  // the order this comes back in is the order they are painted in. Board order
+  // is the only order that cannot surprise: it is the order every other list
+  // on a board is in, and it keeps a render stable between two ticks.
+  it("names them in board order, whatever order they were played in", () => {
+    const before = board([9, 9, "b"], [1, 1, "b"], [5, 2, "b"]);
+    const after = board();
+    expect(departed(before, after).map(s => s.i)).toEqual(
+      [...departed(before, after)].map(s => s.i).sort((a, b2) => a - b2),
+    );
+    expect(departed(before, after).map(s => [s.c, s.r])).toEqual([[1, 1], [5, 2], [9, 9]]);
+  });
+
+  // The column and the row are worked out from the index, so the far corner is
+  // the one that catches an off-by-one: on a 19 the last point is 18, 18, and
+  // an index read against the wrong size lands nowhere near it.
+  it("places the last point on the board at the far corner", () => {
+    const before = board([FIELD_N - 1, FIELD_N - 1, "w"]);
+    expect(departed(before, board())).toEqual([
+      { i: FIELD_N * FIELD_N - 1, c: FIELD_N - 1, r: FIELD_N - 1, colour: "w" },
+    ]);
+  });
+
+  it("says nothing about two empty boards", () => {
+    expect(departed(board(), board())).toEqual([]);
+  });
+
+  // This is the whole reason StoneField passes an empty list when it deals a
+  // fresh game rather than asking this. Two positions that are not one move
+  // apart are not a capture: handed the old game and the new one, this
+  // truthfully reports sixty stones leaving at once, which on screen is every
+  // stone on the board lifting off together. The guard belongs at the call.
+  it("reports a whole position leaving when it is handed two unrelated games", () => {
+    /* Built rather than played. Two self-played games would make this true
+       almost always, which is the worst kind of test: it passes here and fails
+       once, on a machine that is not this one, for a reason nobody can
+       reproduce. `stepField` takes its move from an unseeded Math.random. */
+    const settled = board(...Array.from({ length: 20 }, (_, i) => [i % 19, Math.floor(i / 19), i % 2 ? "b" : "w"]));
+    const dealt = board([18, 18, "b"]);
+    expect(departed(settled, dealt).length).toBe(20);
+  });
+
+  // A capture and the move that follows it into the same point are two stones
+  // on one index, and the field keys the departing one apart for exactly this
+  // reason: an index that is in both lists at once would otherwise be one key
+  // used twice in a single render.
+  it("can name a point that the position it is compared against still has a stone on", () => {
+    const before = board([3, 3, "b"]);
+    const after = board([3, 3, "w"]);
+    const goneAt = departed(before, after).map(s => s.i);
+    const standingAt = fieldStones(after).map(s => s.i);
+    expect(goneAt).toEqual([3 * FIELD_N + 3]);
+    expect(standingAt).toContain(goneAt[0]);
+  });
+
+  // The engine playing itself is the only caller there is, so the claim is put
+  // to a real game rather than to three hand-set stones: over a whole position,
+  // every stone this names was on the board before the move and is not the same
+  // stone after it, and nothing that left is missed.
+  it("agrees with the engine over a whole game it plays itself", () => {
+    let s = freshField(), captures = 0, beats = 0;
+    for (let n = 0; n < LONGEST && !fieldSpent(s); n++) {
+      const before = s.board;
+      s = stepField(s);
+      const gone = departed(before, s.board);
+      for (const g of gone) {
+        expect(before.cells[g.i]).toBe(g.colour);
+        expect(s.board.cells[g.i]).not.toBe(g.colour);
+      }
+      const lost = before.cells.filter((c, i) => c && s.board.cells[i] !== c).length;
+      expect(gone.length).toBe(lost);
+      if (gone.length) captures++;
+      if (lost) beats++;
+    }
+    /* Not `>= 0`, which a counter cannot fail. A `departed` stubbed out to
+       return nothing would satisfy that and nothing else here would notice:
+       the per-move checks above are all vacuously true over an empty list. */
+    expect(captures, "every beat that lost a stone is a beat departed named").toBe(beats);
+  });
+
+  // And against a capture the engine performs through `tryPlay`, which is the
+  // path the field itself goes down. The self-played game above can run its
+  // whole length without taking a stone off -- these two AIs rarely fight --
+  // so the capture is set up here rather than waited for.
+  it("names the stone a tryPlay capture took off", () => {
+    const before = board([0, 0, "w"], [1, 0, "b"]);
+    const res = tryPlay(before, 0, 1, "b");
+    expect(res.ok).toBe(true);
+    expect(departed(before, res.board)).toEqual([
+      { i: 0, c: 0, r: 0, colour: "w" },
+    ]);
+    // and the move that was played is an arrival, not a departure
+    expect(departed(before, res.board).some(s => s.c === 0 && s.r === 1)).toBe(false);
   });
 });

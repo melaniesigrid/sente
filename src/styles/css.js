@@ -1032,7 +1032,7 @@ ${FONT_FACES}
 /* --fig-lead is the beat the lines get to themselves before the first stone
    lands. Every delay on this block is measured from it, so the whole sequence
    -- rules, stones, rings, captures -- moves together if it is ever retimed. */
-.fig { position: absolute; z-index: 0; pointer-events: none; --fig-lead: 260ms; }
+.fig { position: absolute; z-index: 0; pointer-events: none; --fig-lead: 420ms; }
 .fig svg { height: var(--fig-h, clamp(200px, 30vw, 420px)); width: auto; display: block; overflow: visible; }
 /* The board is set before it is played on. The lines draw themselves in over a
    beat, and only then does the first stone land -- which is the order the thing
@@ -1040,9 +1040,14 @@ ${FONT_FACES}
    that begins. A browser that will not animate a dash offset gets the lines
    already drawn, which is the picture either way. */
 .fig-grid line { stroke: var(--grid); stroke-width: 1.25px; vector-effect: non-scaling-stroke; opacity: .5; }
+/* The rules take exactly the lead and not a millisecond more: the duration is
+   the same custom property every stone's delay is measured from, so the two
+   cannot drift apart on a retime. They did drift -- the lead was 260ms and this
+   ran for 500, so the first stone landed while the board was half drawn and the
+   sentence above was describing something that did not happen. */
 .fig.playing .fig-grid line {
   stroke-dasharray: 100%;
-  animation: fig-rule .5s cubic-bezier(.4, 0, .2, 1) both;
+  animation: fig-rule var(--fig-lead) cubic-bezier(.4, 0, .2, 1) both;
 }
 @keyframes fig-rule {
   from { stroke-dashoffset: 100%; opacity: 0; }
@@ -1107,20 +1112,30 @@ ${FONT_FACES}
    actually makes in the eye as it is set down, and the second is the hole the
    ponnuki is named for. They are drawn in the ink the grid is drawn in, so
    they read as the board reacting rather than as a colour arriving. */
+/* The weight is stated here rather than derived from the stone's radius. Off
+   the radius it came out at four pixels against a grid drawn at one and a
+   quarter, which is not a board reacting, it is a halo: the ring has to be the
+   lighter of the two marks on the page, not the heavier. */
 .fig .fig-ring {
-  opacity: 0; stroke: var(--ink-3); vector-effect: non-scaling-stroke;
+  opacity: 0; stroke: var(--ink-3); stroke-width: 1.75px;
+  vector-effect: non-scaling-stroke;
   transform-box: fill-box; transform-origin: center;
 }
+.fig .fig-ring.out { stroke-width: 2.25px; }
 .fig.playing .fig-ring {
   animation: fig-ring .72s cubic-bezier(.15, .7, .3, 1) calc(var(--laid, 0ms) + var(--fig-lead)) both;
 }
 .fig.playing .fig-ring.out {
   animation: fig-hole .9s cubic-bezier(.15, .7, .3, 1) calc(var(--gone, 0ms) + var(--fig-lead)) both;
 }
+/* Eight of these are alive at once while the ladder walks its twenty-eight
+   moves, so the landing ring is kept faint on purpose: the wave should be felt
+   at the edge of the eye and never read as a second thing happening behind the
+   words. The capture ring is the one that is allowed to be seen. */
 @keyframes fig-ring {
   0% { opacity: 0; transform: scale(.5); }
-  18% { opacity: .5; }
-  100% { opacity: 0; transform: scale(1.85); }
+  18% { opacity: .3; }
+  100% { opacity: 0; transform: scale(1.7); }
 }
 /* The hole rings wider and holds a breath longer than a landing does: a
    capture is the larger event of the two, and the point it leaves is the one
@@ -1135,7 +1150,9 @@ ${FONT_FACES}
    stone runs the same slow loop, started earlier the further down the diagonal
    it sits (--sheen, set per stone), which is one wave of light crossing the
    shape and not a row of pulsing dots. */
-.fig-shine { animation: fig-gleam 9s ease-in-out infinite; animation-delay: var(--sheen, 0ms); }
+/* Gated on playing with everything else. An ungated infinite loop is a hundred
+   elements animating on a page nobody has scrolled to yet. */
+.fig.playing .fig-shine { animation: fig-gleam 9s ease-in-out infinite; animation-delay: var(--sheen, 0ms); }
 @keyframes fig-gleam { 0%, 100% { opacity: .5; } 45% { opacity: 1; } }
 
 /* A statement with a figure holds it: the block is the positioned thing, its
@@ -1185,10 +1202,17 @@ ${FONT_FACES}
 @media (prefers-reduced-motion: reduce) {
   .fig.playing .fig-stone { animation: none; opacity: 1; }
   .fig.playing .fig-stone.taken { animation: none; opacity: 0; }
-  .fig-shine { animation: none; }
+  /* Named in full, because gating the gleam on .playing made the rule that
+     draws it heavier than a bare .fig-shine could ever be. The same trap, one
+     rule further down the sheet, caught this time by the test. */
+  .fig.playing .fig-shine, .fig-shine { animation: none; }
   /* A ring is a thing that happened. With the motion off nothing happens, so
-     there is nothing for it to be, and the board is simply already ruled. */
-  .fig .fig-ring, .fig.playing .fig-ring { animation: none; opacity: 0; }
+     there is nothing for it to be, and the board is simply already ruled.
+     The capture ring is named in full: .fig.playing .fig-ring is a class
+     lighter than the rule that draws it, and a lighter rule further down the
+     sheet is not an override, it is a comment. */
+  .fig .fig-ring, .fig.playing .fig-ring,
+  .fig.playing .fig-ring.out { animation: none; opacity: 0; }
   .fig.playing .fig-grid line { animation: none; stroke-dasharray: none; }
 }
 
