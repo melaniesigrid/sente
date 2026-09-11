@@ -1276,14 +1276,25 @@ ${FONT_FACES}
 .lp-body { color: var(--ink-2); font-size: clamp(15px, 1.6vw, 16.5px); line-height: 1.7; margin: 0; }
 
 /* ---- hero ---- */
+/* Two columns or one, and which it is, is stated rather than discovered.
+   This was a wrapping flex row with a stacking rule at 900px, and between those
+   two numbers was a band nobody had designed: the columns wrapped on their own
+   at about 1000px, so the board fell *under* the headline instead of rising
+   above it, and the well stretched to the full width of the page on the way
+   down. A 1920x1080 laptop at 200% scaling is 960 CSS pixels — the middle of
+   that band, and an ordinary PC.
+
+   So the hero does not wrap. Above the breakpoint it is two columns and
+   nowrap forbids the accident; below it, it is one column with the board
+   first, which is the order the small layout always meant to have. */
 .lp-hero {
   display: flex; align-items: center; justify-content: center;
-  gap: clamp(32px, 5vw, 76px); flex-wrap: wrap;
+  gap: clamp(32px, 5vw, 76px); flex-wrap: nowrap;
   max-width: 1200px; margin: 0 auto;
   padding: clamp(40px, 7vw, 96px) clamp(20px, 5vw, 48px) clamp(64px, 9vw, 116px);
 }
-.lp-hero-copy { flex: 1 1 420px; max-width: 620px; }
-.lp-hero-board { flex: 0 1 420px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.lp-hero-copy { flex: 1 1 420px; max-width: 620px; min-width: 0; }
+.lp-hero-board { flex: 0 1 420px; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 16px; }
 .lp-board-well { border-radius: var(--r); box-shadow: var(--sink); padding: clamp(14px, 2vw, 24px); width: 100%; background: var(--ground); }
 .lp-board-note { color: var(--ink-2); margin: 0; font-family: var(--font-caption); font-style: var(--caption-style); font-size: 13px; text-align: center; }
 
@@ -1509,7 +1520,7 @@ ${FONT_FACES}
    The mask is not a scrim over the picture — it is the ground itself coming
    back in at the edges, so the field has no border and never ends on a line. */
 .lp-ground { position: relative; isolation: isolate; }
-.lp-ground > *:not(.stone-field) { position: relative; z-index: 1; }
+.lp-ground > *:not(.stone-field):not(.lp-decor) { position: relative; z-index: 1; }
 .stone-field {
   position: absolute; inset: 0; z-index: 0; overflow: hidden;
   pointer-events: none; opacity: 0; transition: opacity 1.4s ease;
@@ -1532,6 +1543,129 @@ ${FONT_FACES}
 /* Reduced motion still gets the picture — StoneField holds one settled
    position rather than playing — but not the fade onto the page. */
 @media (prefers-reduced-motion: reduce) { .stone-field { transition: none; } }
+
+/* ---- the floors ----
+   One flat ground from the top of the page to the bottom made every section
+   the same room, and a reader scrolling it had nothing to count. So the page
+   is floored in four materials, alternating, and no two touching sections
+   share one:
+
+     the game    a real position, blurred (StoneField, above) — hero and the
+                 last word, the two places the page is being looked at rather
+                 than read.
+     the ruling  a board's lines, at the spacing StoneField draws stones on.
+                 Behind the primer and behind the roadmap: the two sections
+                 that are explaining, where a grid is a diagram and not a mood.
+     the points  the 4-4s. A fine lattice with a heavier dot every fourth
+                 crossing, which is how a board is actually marked, so the
+                 "field of dots" is the star points and not wallpaper.
+     the sunken  a band pressed into the page. This is the alternating light
+                 and dark the sections needed, done the house way: not a
+                 painted stripe but the same two shadows turned inward, so a
+                 statement sits in a trough rather than on a swatch.
+
+   Two things every floor obeys. It is a layer *under* the band, never a
+   texture behind a raised thing — the two shadows stop reading the moment
+   there is pattern under them, and every card carries its own --ground so it
+   occludes whatever it stands on. And it ends by fading out, never on a line:
+   each one is masked back to the bare ground at its edges, so a floor has no
+   border and the page has no seams.
+
+   The Record keeps the plain ground on purpose. It is a broadsheet, and
+   newsprint is the one surface on this page that earns being blank. */
+
+/* The ruling. --grid is the token a board's lines are already drawn in, at the
+   same 44px cell StoneField uses, so the two grounds are the same board. */
+.lp-ruled::before,
+.lp-dotted::before {
+  content: ""; position: absolute; inset: 0; z-index: 0;
+  pointer-events: none;
+  /* Masks read the alpha channel, so the colour here is only a carrier — it is
+     a token all the same, because the stylesheet names no colour anywhere. */
+  -webkit-mask-image: radial-gradient(115% 76% at 50% 50%, var(--ink) 24%, transparent 80%);
+  mask-image: radial-gradient(115% 76% at 50% 50%, var(--ink) 24%, transparent 80%);
+}
+.lp-ruled::before {
+  background-image:
+    linear-gradient(to right, var(--grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+  background-size: 44px 44px;
+  background-position: center;
+  /* Prose sits on this. A ruling heavy enough to be admired is a ruling the
+     lede has to be read through, so it stops where it is still a surface. */
+  opacity: .3;
+}
+/* The points: the fine lattice, and the star point on every fourth crossing.
+   176px is 44 x 4 — the 4-4, drawn where a 4-4 goes. */
+.lp-dotted::before {
+  background-image:
+    radial-gradient(circle, var(--ink-3) 2.2px, transparent 2.7px),
+    radial-gradient(circle, var(--grid) 1.3px, transparent 1.8px);
+  background-size: 176px 176px, 44px 44px;
+  background-position: center, center;
+  opacity: .5;
+}
+
+/* The sunken band. A statement is pressed into the page rather than printed on
+   a panel: the hairlines are the lip and the two inset shadows are the same
+   light this whole design is lit by, coming over the near edge. */
+.lp-band.sunk {
+  background: var(--wash-b);
+  box-shadow:
+    inset 0 1px 0 var(--hairline), inset 0 -1px 0 var(--hairline),
+    inset 0 16px 24px -20px rgba(var(--sh-ink), .55),
+    inset 0 -16px 24px -20px rgba(var(--sh-ink), .55);
+}
+
+/* ---- the marks, at the size of a section ----
+   The brand marks run large and bleed off the band they sit in. They are flat
+   here: the house drop-shadows on a stone are a 3px blur, which at 400px is a
+   smudge, so the raise comes off and what is left is the shape. Kept faint
+   enough that body text never has to compete with it, and the section clips
+   them, so a mark ends at the margin like a stamp rather than trailing off. */
+.lp-decor { position: absolute; z-index: 0; pointer-events: none; opacity: .115; }
+.lp-decor svg { height: var(--decor-h, clamp(200px, 27vw, 440px)); width: auto; }
+.lp-decor .mark-ink,
+.lp-decor .mark-played,
+.lp-decor .mark-waiting { filter: none; }
+/* A stroke width is in viewBox units, so a line drawn to read at 32px becomes
+   fifty pixels thick at 440. Every stroke in a decor is taken out of the
+   scaling and given a real width instead, which is how the waiting stone stays
+   a drawn circle and the corner's grid stays a grid.
+
+   The width goes on the drawn element and not on the group around it: a
+   group is not a shape, and a browser takes the effect off the line it is
+   actually stroking. */
+.lp-decor .mark-waiting,
+.lp-decor .mark-grid line,
+.lp-decor .mark-edge { vector-effect: non-scaling-stroke; }
+.lp-decor .mark-waiting { stroke-width: 3px; }
+.lp-decor .mark-grid { stroke-opacity: 1; }
+.lp-decor .mark-grid line { stroke-width: 1.5px; }
+.lp-decor .mark-edge { stroke-width: 3px; }
+/* A mark leaves by the side of the page, not by the side of the text column.
+   A section holds its content in a 1080px measure, so a right edge of zero would stop a
+   mark short with a strip of bare ground beyond it, and the clip would read as
+   a mistake rather than as a bleed. calc(50% - 50vw) is the section's own
+   edge pushed back out to the window, whatever measure the section keeps.
+
+   Vertically they stay inside their section on purpose: a mark that spilled
+   into the band above it would cross the seam the floors were put in to make. */
+.lp-decor-left { top: 50%; left: calc(50% - 50vw); transform: translate(-34%, -50%); }
+.lp-decor-right { top: 50%; right: calc(50% - 50vw); transform: translate(34%, -50%); }
+.lp-decor-tr { top: 4%; right: calc(50% - 50vw); transform: translate(18%, 0); }
+.lp-decor-bl { bottom: 4%; left: calc(50% - 50vw); transform: translate(-18%, 0); }
+.lp-decor-center { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+/* The page is clipped at its own edge instead, so a mark hanging off the side
+   never turns into a sideways scrollbar. clip rather than hidden: hidden
+   would make the landing a scroll container and take anchor links with it. */
+.landing { overflow-x: clip; }
+/* On a narrow screen there is no margin for a mark to stand in, and a shape
+   behind a single column of prose is only noise. */
+@media (max-width: 760px) {
+  .lp-decor:not(.lp-decor-center) { display: none; }
+  .lp-decor-center { opacity: .07; }
+}
 
 /* The slim chrome the landing wears: the wordmark, and one way in. Everything
    else in the topbar belongs to a player who has already sat down. */
@@ -1558,9 +1692,31 @@ ${FONT_FACES}
 /* ---- the dashboard behind the door ---- */
 .dash-rank { margin-bottom: 14px; }
 
-@media (max-width: 900px) {
-  .lp-hero { padding-top: clamp(24px, 5vw, 48px); }
-  .lp-hero-board { order: -1; flex-basis: 320px; }
+/* The middle window: still two columns, both taken in.
+   What actually broke the row was the headline. The display face is sized off
+   the window, so at 960px "beautifully" is set at 80px and wants some 470px of
+   column to itself — more than the column had — and that is what pushed the
+   board out of the row and under the copy. Here the display is sized off the
+   column instead, and the board is given a narrower well: it is fluid and only
+   caps at its sizePx, so it simply draws smaller rather than overflowing.
+
+   Two columns now hold down to 880, which covers the ordinary PC window this
+   was failing in — a 1920x1080 laptop at 200% scaling is 960 CSS pixels. */
+@media (max-width: 1100px) and (min-width: 880px) {
+  .lp-hero { gap: clamp(22px, 2.8vw, 36px); }
+  .lp-hero-copy { flex: 1 1 380px; }
+  .lp-hero-board { flex: 0 1 330px; }
+  .lp-hero .lp-display { font-size: clamp(44px, 6.2vw, 68px); }
+  .lp-hero .lp-lede { font-size: 16.5px; }
+  .lp-hero .lp-stats { margin: 22px 0 26px; }
+}
+
+/* One column, and the board first — now because the small layout asks for it,
+   not because the row ran out of room. */
+@media (max-width: 879px) {
+  .lp-hero { flex-direction: column; padding-top: clamp(24px, 5vw, 48px); }
+  .lp-hero-copy { flex: none; width: 100%; max-width: 620px; }
+  .lp-hero-board { order: -1; flex: none; width: 100%; max-width: 420px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .reveal { opacity: 1; transform: none; }

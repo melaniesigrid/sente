@@ -4,6 +4,7 @@ import {
 } from "lucide-react";
 import { MiniSelfPlay } from "../components/MiniSelfPlay.jsx";
 import { StoneField } from "../components/StoneField.jsx";
+import { Decor } from "../components/Decor.jsx";
 import { Mark } from "../components/Brand.jsx";
 import { Statement } from "../components/ui.jsx";
 import { TypedLine, TypedLabel } from "../components/Typed.jsx";
@@ -62,10 +63,14 @@ const PATH = [
 
 /* A statement, given a whole band of the page. Full-bleed, one idea, and the
    three lines rise as the band is reached rather than on mount — see the
-   `.statement.lp` block in the stylesheet for why that gate exists. */
+   `.statement.lp` block in the stylesheet for why that gate exists.
+
+   The band is sunken: it is the darker step in the page's alternation, and it
+   is darker by being pressed into the ground rather than by being painted, so
+   the rhythm is made of the same light as everything else. */
 function Band({ lines, center = false }) {
   return (
-    <div className="lp-band">
+    <div className="lp-band sunk">
       <div className="lp-band-inner">
         <Statement lines={lines} className={`lp reveal${center ? " center" : ""}`} />
       </div>
@@ -162,7 +167,11 @@ export function Landing({ profile, onEnter, go }) {
       <hr className="lp-rule" />
 
       {/* -------------------------------------------------- the primer */}
-      <section className="lp-section" id="primer">
+      {/* Ruled ground: the primer is explaining a board, so it is set on one.
+          The forcing move and its answer stand in the left margin at the size
+          of the section, which is the argument the mark was drawn to make. */}
+      <section className="lp-section lp-ground lp-ruled" id="primer">
+        <Decor variant="answer" at="left" />
         <TypedLabel className="lp-label reveal">The game</TypedLabel>
         <h2 className="lp-h2 reveal">Two players. One board.<br />Hold more of it than they do.</h2>
         <p className="lp-lede reveal">
@@ -183,7 +192,9 @@ export function Landing({ profile, onEnter, go }) {
       <Band lines={LANDING_STATEMENTS.rules} />
 
       {/* ------------------------------------------------- what is here */}
-      <section className="lp-section" id="inside">
+      {/* The star points, and the corner they mark, opening the top right. */}
+      <section className="lp-section lp-ground lp-dotted" id="inside">
+        <Decor variant="corner" at="tr" />
         <TypedLabel className="lp-label reveal">What is here</TypedLabel>
         <h2 className="lp-h2 reveal">Everything a player needs,<br />and nothing that shouts.</h2>
         <p className="lp-lede reveal">
@@ -252,7 +263,11 @@ export function Landing({ profile, onEnter, go }) {
       <hr className="lp-rule" />
 
       {/* -------------------------------------------------- the Classic */}
-      <section className="lp-section lp-quote-section" id="classic">
+      {/* Plain ground, and one mark centred behind the saying at the size of a
+          seal. A line from the Classic is the quietest thing on the page and
+          the only one that gets the mark straight behind it. */}
+      <section className="lp-section lp-quote-section lp-ground" id="classic">
+        <Decor variant="answer" at="center" size="clamp(300px, 42vw, 560px)" />
         <TypedLabel className="lp-label reveal">{CLASSIC.title}</TypedLabel>
         <div className="lp-quote reveal">
           <TypedLine text={saying.text} className="lp-quote-line" />
@@ -270,7 +285,9 @@ export function Landing({ profile, onEnter, go }) {
       <Band lines={LANDING_STATEMENTS.honest} />
 
       {/* ---------------------------------------------------- the path */}
-      <section className="lp-section" id="path">
+      {/* The corner, low and to the left, where a road starts. */}
+      <section className="lp-section lp-ground" id="path">
+        <Decor variant="corner" at="bl" />
         <TypedLabel className="lp-label reveal">Where to start</TypedLabel>
         <h2 className="lp-h2 reveal">Three weeks to a real game.</h2>
         <div className="lp-grid3">
@@ -290,7 +307,10 @@ export function Landing({ profile, onEnter, go }) {
       <hr className="lp-rule" />
 
       {/* ---------------------------------------------------- roadmap */}
-      <section className="lp-section" id="next">
+      {/* Ruled again, and the old single stone in the right margin: the mark
+          this one started as, kept for the section about what is not built. */}
+      <section className="lp-section lp-ground lp-ruled" id="next">
+        <Decor variant="stone" at="right" size="clamp(180px, 22vw, 340px)" />
         <TypedLabel className="lp-label reveal">Still to come</TypedLabel>
         <h2 className="lp-h2 reveal">Being built in the open.</h2>
         <div className="neu-card neu-inset lp-roadmap reveal">
