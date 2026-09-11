@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Radio, X, Play, Eye, LogOut, DoorOpen, Mail } from "lucide-react";
+import { Radio, X, Play, Eye, LogOut, DoorOpen, Mail, Users } from "lucide-react";
 import { Card, Btn, Avatar, RankBadge } from "../components/ui.jsx";
 import { api, lobbySocket, serverEnabled, SERVER_URL } from "../net/api.js";
 import { loadAccount, saveAccount, clearAccount } from "../store/account.js";
 import { provisionalText } from "../content/online.js";
+import { DEFAULT_PARTNER_RANK } from "../engine/index.js";
 import { tableLine } from "./onlineStatus.js";
 import { AccountGate } from "./AccountGate.jsx";
 import { avatarUrl } from "../net/avatar.js";
@@ -29,7 +30,7 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
   const { token } = account;
   const [player, setPlayer] = useState(account.player);
   const [word, setWord] = useState("");             // a rendezvous word, or "" for anyone
-  const [seek, setSeek] = useState(null);           // null | { size, key }
+  const [seek, setSeek] = useState(null);           // null | { size, key, pair }
   const [lobby, setLobby] = useState(null);         // { online, seeking }
   const [conn, setConn] = useState("connecting");
   const [tables, setTables] = useState([]);
@@ -55,7 +56,7 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
       onStatus: setConn,
       onFrame: (f) => {
         if (f.t === "lobby") setLobby({ online: f.online, seeking: f.seeking });
-        else if (f.t === "seek") setSeek(f.status === "waiting" ? { size: f.size, key: f.key } : null);
+        else if (f.t === "seek") setSeek(f.status === "waiting" ? { size: f.size, key: f.key, pair: f.pair ?? null } : null);
         else if (f.t === "matched") {
           setSeek(null);
           notify({ icon: "trophy", text: `Matched with ${f.opponent.name} · you play ${f.color === "b" ? "Black" : "White"}` });
@@ -67,7 +68,13 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
   }, [token, notify]);
 
   const key = word.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 32) || null;
-  const findGame = () => { if (sock.current && sock.current.send({ t: "seek", size, key })) setSeek({ size, key }); };
+  /* A pair seek names the partner rank it wants and only ever meets another pair
+     seek: sitting down expecting a partner and getting an ordinary game is not a
+     near miss, it is a different game. */
+  const findGame = (pair = null) => {
+    const frame = { t: "seek", size, key, ...(pair ? { pair } : {}) };
+    if (sock.current && sock.current.send(frame)) setSeek({ size, key, pair });
+  };
   const cancel = () => { if (sock.current) sock.current.send({ t: "cancel" }); setSeek(null); };
   const signOut = async () => {
     try { await api.signOut(token); } catch (e) { if (e.status !== 401) { notify({ icon: "info", text: errorText(e.reason) }); return; } }
@@ -115,21 +122,36 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
         <div className="seek-state" role="status">
           <Radio size={16} className="pulse" />
           <span>
-            {seek.key
-              ? `Waiting at “${seek.key}” on ${seek.size}×${seek.size}. Whoever types the same word sits down opposite you.`
-              : `Looking for a ${seek.size}×${seek.size} opponent${lobby && lobby.seeking > 1 ? ` · ${lobby.seeking - 1} others waiting` : ""}…`}
+            {seek.pair
+              ? `Looking for another pair player on ${seek.size}×${seek.size}. You will each get a ${seek.pair.rank} partner, and the four of you take turns.`
+              : seek.key
+                ? `Waiting at “${seek.key}” on ${seek.size}×${seek.size}. Whoever types the same word sits down opposite you.`
+                : `Looking for a ${seek.size}×${seek.size} opponent${lobby && lobby.seeking > 1 ? ` · ${lobby.seeking - 1} others waiting` : ""}…`}
           </span>
           <Btn icon={X} small onClick={cancel}>Cancel</Btn>
         </div>
       ) : (
         <>
           <div className="row">
-            <Btn icon={Play} primary small onClick={findGame} disabled={conn !== "open"}>
+            <Btn icon={Play} primary small onClick={() => findGame()} disabled={conn !== "open"}>
               {key ? `Meet at “${key}” on ${size}×${size}` : `Find an opponent on ${size}×${size}`}
             </Btn>
             <input className="chat-input word-input" value={word} maxLength={32} placeholder="or a word you both know"
               onChange={e => setWord(e.target.value)} onKeyDown={e => e.key === "Enter" && findGame()}
               aria-label="Rendezvous word for playing a friend" />
+          </div>
+          {/* Pair go over the network. The partner runs in each player's own
+              browser, which is the one thing about it a player has to be told:
+              their half of your team stops when your device does. */}
+          <div className="row">
+            <Btn icon={Users} small onClick={() => findGame({ rank: DEFAULT_PARTNER_RANK })} disabled={conn !== "open"}>
+              Find a pair game on {size}×{size}
+            </Btn>
+            <span className="fine">
+              You and a {DEFAULT_PARTNER_RANK} partner against another player and theirs, taking turns.
+              Unrated. Each partner runs in the browser of the player it partners, so it plays
+              for as long as that player is at the table.
+            </span>
           </div>
           <p className="fine">
             The table below sets the board. Online games are even and untimed, whatever handicap

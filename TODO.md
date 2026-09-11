@@ -1352,10 +1352,29 @@ duel, a master game and a coached game move no rating.
         not consult, so the protocol has nowhere to put a private line to your partner.
       - The client's `seat` is a seat id now, not a colour, and the status pill names the
         player to move rather than the colour — at a pair table a colour is two people.
-- [ ] B2: matchmaking for a pair table and the invite link that seats a partner. Each
-      human's browser runs their own bot partner and submits its move like any other:
-      no KataGo on the server. The cost is that a team's partner needs that team's
-      device online, and the table says so.
+- [x] B2: matchmaking for a pair table (branch `feat/rengo-online`). Each human's
+      browser runs their own bot partner and submits its move like any other: no KataGo
+      on the server. The cost is that a team's partner needs that team's device online,
+      and the lobby says so before you sit down. Decisions made while building it:
+      - A bot seat carries `runBy`, the player id whose browser answers for it. That one
+        field is the whole mechanism.
+      - A move is applied as whichever seat is *actually* to play, when the sender
+        controls it (`actingSeat`). A client never names the chair it means and so can
+        never name the wrong one; everything that is not a move (chat, resign, the
+        count, an undo) speaks from the sender's own chair.
+      - A pair seek only ever meets another pair seek. Sitting down expecting a partner
+        and getting an ordinary game is not a near miss, it is a different game.
+      - `DEFAULT_PARTNER_RANK` lives in `src/engine/rengo.js` because the Registry
+        seats the table and the server may import from the engine and nowhere else.
+        When A2 lands, `content/rengo.js`'s `PARTNER_RANK` should re-export it rather
+        than hold a second "7d" that can drift.
+      - Verified by `tools/server/smoke.mjs` against a local Worker: the seek queues
+        stay apart, four seats are created, the table is unrated, each player answers
+        for their own partner and is refused the other team's, and the round-undo
+        works with consent from the other side.
+- [ ] B2 follow-up: the invite link that seats a named friend at a pair table. The
+      rendezvous word already matches two pair seekers; what is missing is choosing
+      *which* team a friend joins, which only matters once Phase C seats four humans.
 - [ ] B3: disconnection, reconnection and an abandoned seat in a four-seat room;
       spectating a pair game.
 
