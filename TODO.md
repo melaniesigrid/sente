@@ -1139,7 +1139,10 @@ that is honestly still English.
 - [x] Spanish: tier 2, seven lessons from 20k to 15k — four chapters of the Classic and
       three proverbs. The Chinese terms keep their transliterations: a chapter arguing that
       names must be set right is the last place to replace them.
-- [ ] Spanish: tiers 3 to 5, fifteen lessons.
+- [x] Spanish: tiers 3 and 4, nine lessons from 15k to 5k — six more chapters of the
+      Classic and the two endgame studies from the Guanzi. The Guanzi numbers are measured
+      rather than claimed, so none of them was rounded in the translating.
+- [ ] Spanish: tier 5, six lessons.
 - [ ] Spanish: the Classic's thirteen chapters, the preface and the thirty-two names.
 - [ ] Spanish: the content prose. Lessons, personas, Moku, the plain-words statements, the
       books, the legal documents, and the Classic's thirteen chapters, in that order.
