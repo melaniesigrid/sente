@@ -4,7 +4,7 @@
 import { TINTS, ratingOfRank, MIN_RATING, MAX_RATING } from "../content/rank.js";
 import { GLICKO } from "../engine/index.js";
 import { DEFAULT_TYPEFACE, typefaceOf } from "../content/typeface.js";
-import { SYSTEM_THEME, isThemeId, sanitizePalette } from "../theme/index.js";
+import { SYSTEM_THEME, isThemeId, sanitizePalette, AUTO_STONES, isStoneId } from "../theme/index.js";
 
 export const STORE_KEY = "sente-profile-v3";
 /** v2 held ratings on the old 100-points-per-rank scale. v3 is OGS's scale, so
@@ -26,6 +26,7 @@ export const defaultProfile = {
 
   typeface: DEFAULT_TYPEFACE,                // font pairing id, src/content/typeface.js
   theme: SYSTEM_THEME,                       // palette id, or "system" to follow the device
+  stones: AUTO_STONES,                       // stone set id, or "auto" to play each room with its own
   dojo: null,                                // the palette this device built, or null
   kataDate: "", kataStreak: 0, kataBest: 0,  // kata of the day attendance
   duelStarted: "", duelDate: "", duelResult: "", duelMoves: 0,  // daily duel: day started, day finished, code ("B+3.5")
@@ -71,6 +72,7 @@ const validField = (key, value, raw) => {
   if (key === "lastMoveMark") return MARKS.includes(value);
   if (key === "typeface") return typeof value === "string" && typefaceOf(value).id === value;
   if (key === "theme") return typeof value === "string" && isThemeId(value, raw && raw.dojo ? sanitizePalette(raw.dojo) : null);
+  if (key === "stones") return typeof value === "string" && isStoneId(value);
   if (typeof def === "string") return typeof value === "string";
   if (key === "bookProgress") return sanitizeBookProgress(value) !== null;
   return false;

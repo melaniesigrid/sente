@@ -3,7 +3,8 @@
    stored data to a palette that cannot break the app. Nothing here knows about
    React; the shell spreads what `themeVars` returns onto one element. */
 import { PALETTES, HOUSE_THEME, DOJO_THEME, SYSTEM_THEME, SYSTEM_PAIR } from "./palettes.js";
-import { tokensFor, completeTones, deriveStoneB } from "./derive.js";
+import { tokensFor, completeTones, stonesFor } from "./derive.js";
+import { AUTO_STONES, isStoneId, stonesOf } from "./stones.js";
 import { TONES, TONE_KEYS, REQUIRED_TONES, RULES, CLOSENESS, STONE_RULE } from "./tokens.js";
 import { isHex, contrast, grade, isDarkColor } from "./color.js";
 
@@ -33,8 +34,21 @@ export function isDark(theme) {
 /** The custom properties `.sente-root` needs. The shell spreads these onto the
  *  root element's style beside the pairing's, so no stylesheet is rewritten and
  *  no class is toggled. */
-export function themeVars(id, custom = null) {
-  return tokensFor(themeOf(id, custom));
+export function themeVars(id, custom = null, stones = AUTO_STONES) {
+  return tokensFor(withStones(themeOf(id, custom), stones));
+}
+
+/** A palette with the stones a player asked for. `auto` — and anything
+ *  unrecognised — leaves the room's own set alone, which is how a room keeps
+ *  being played with the stones it was designed around. */
+export function withStones(theme, stones) {
+  return stones && stones !== AUTO_STONES && isStoneId(stones) ? { ...theme, stones } : theme;
+}
+
+/** The set a room is actually played with, once the player's choice is applied.
+ *  The look page names it; nothing else needs to know. */
+export function stoneSetOf(id, custom = null, stones = AUTO_STONES) {
+  return stonesOf(withStones(themeOf(id, custom), stones).stones);
 }
 
 /** Every id the profile may legally hold: a named room, `system`, or `dojo`
@@ -60,6 +74,9 @@ export function sanitizePalette(raw) {
     if (isHex(raw[key])) out[key] = raw[key].toLowerCase();
   }
   if (typeof raw.name === "string" && raw.name.trim()) out.name = raw.name.trim().slice(0, 40);
+  // The set a built room is played with is part of the room, not part of the
+  // player's override: a dojo started from Sumi keeps jade when it is saved.
+  if (isStoneId(raw.stones) && raw.stones !== AUTO_STONES) out.stones = raw.stones;
   return out;
 }
 
@@ -68,7 +85,7 @@ export function sanitizePalette(raw) {
 export function paletteFrom(id) {
   const t = themeOf(id);
   const full = completeTones(t);
-  const out = { name: `${t.name}, edited` };
+  const out = { name: `${t.name}, edited`, stones: full.stones };
   for (const key of TONE_KEYS) out[key] = full[key];
   return out;
 }
@@ -78,15 +95,18 @@ export function paletteFrom(id) {
  *  two can never disagree.
  *
  *  Returns [{ id, label, why, ratio, min, pass, grade }], worst first. */
-export function auditPalette(palette) {
-  const t = completeTones(palette);
+export function auditPalette(palette, stones = AUTO_STONES) {
+  const t = completeTones(withStones(palette, stones));
   const rows = RULES.map(r => {
     const ratio = contrast(t[r.a], t[r.b]);
     return { ...r, ratio, pass: ratio >= r.min, grade: grade(ratio) };
   });
-  const slate = (t.stoneB || deriveStoneB(t.ground))[1];
-  const stones = contrast(t.cream, slate);
-  rows.push({ ...STONE_RULE, ratio: stones, pass: stones >= STONE_RULE.min, grade: grade(stones) });
+  // Measured on the stones this room is actually played with, both of them:
+  // the set is a choice now, and a choice that made the two stones hard to tell
+  // apart would be the worst thing a player could do to a board.
+  const pair = stonesFor(t);
+  const cut = contrast(pair.w[1], pair.b[1]);
+  rows.push({ ...STONE_RULE, ratio: cut, pass: cut >= STONE_RULE.min, grade: grade(cut) });
   for (const [key, label] of [["light", "Highlight near ground"], ["dark", "Shadow near ground"]]) {
     const ratio = contrast(t[key], t.ground);
     rows.push({

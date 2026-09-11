@@ -55,8 +55,13 @@ export function DojoView({ profile, setProfile, notify, go, room }) {
     return { ...draft, light, dark };
   }, [draft, autoLights]);
 
-  const vars = useMemo(() => themeVars(DOJO_THEME, palette), [palette]);
-  const audit = useMemo(() => auditPalette(palette), [palette]);
+  // The stones the player chose follow them in here too, so the board they are
+  // mixing a room against is the board they will actually play on.
+  const vars = useMemo(() => themeVars(DOJO_THEME, palette, profile.stones), [palette, profile.stones]);
+  const audit = useMemo(() => auditPalette(palette, profile.stones), [palette, profile.stones]);
+  // Ten more token sets, each two binary searches deep, and none of them moves
+  // while a colour is being dragged.
+  const roomVars = useMemo(() => PALETTES.map(p => themeVars(p.id, null, profile.stones)), [profile.stones]);
   const failing = audit.filter(r => !r.pass);
   const live = profile.theme === DOJO_THEME;
 
@@ -237,9 +242,9 @@ export function DojoView({ profile, setProfile, notify, go, room }) {
           Loads that palette into the controls above. It does not change what you are wearing.
         </p>
         <div className="theme-row">
-          {PALETTES.map(p => (
+          {PALETTES.map((p, i) => (
             <button key={p.id}
-              style={themeVars(p.id)}
+              style={roomVars[i]}
               className="theme-btn"
               onClick={() => { setDraft(paletteFrom(p.id)); setAutoLights(false); }}
               aria-label={`Start from ${p.name}`}
@@ -257,8 +262,8 @@ export function DojoView({ profile, setProfile, notify, go, room }) {
           ))}
         </div>
         <p className="fine type-note">
-          Switching between the named rooms lives in{" "}
-          <button className="link-btn" onClick={() => go("profile")}>your profile</button>.
+          Switching between the named rooms, the stones and the type lives on{" "}
+          <button className="link-btn" onClick={() => go("look")}>the look page</button>.
         </p>
       </Card>
     </div>

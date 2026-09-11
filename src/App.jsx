@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Swords, GraduationCap, Target, LayoutDashboard, Medal, ArrowRight } from "lucide-react";
+import { Swords, GraduationCap, Target, LayoutDashboard, Medal, ArrowRight, Palette } from "lucide-react";
 import { sayingBySeed } from "./content/classic.js";
 
 /* ================================================================
@@ -35,6 +35,7 @@ import { ProblemsView } from "./views/Problems.jsx";
 import { RankingsView } from "./views/Rankings.jsx";
 import { ProfileView } from "./views/Profile.jsx";
 import { DojoView } from "./views/Dojo.jsx";
+import { LookView } from "./views/Look.jsx";
 import { MailLinkView } from "./views/MailLink.jsx";
 import { LegalView } from "./views/Legal.jsx";
 import { DOCUMENTS, COPYRIGHT } from "./content/legal.js";
@@ -86,7 +87,8 @@ export default function JosekiApp() {
   // flips this on its own. One source of truth, and no effect to keep in step. The
   // front door and the small print are the two screens it does not cover: a visitor
   // who wants to read the terms before giving a name is the visitor they are for.
-  const welcoming = profileRead && view !== "landing" && view !== "legal" && needsOnboarding(profile);
+  const welcoming = profileRead && view !== "landing" && view !== "legal" && view !== "look"
+    && needsOnboarding(profile);
 
   const notify = useCallback((t) => {
     setToast(t);
@@ -102,7 +104,7 @@ export default function JosekiApp() {
 
   return (
     <MokuProvider view={view}>
-    <div className="sente-root" style={{ ...themeVars(room, profile.dojo), ...typefaceVars(profile.typeface) }}>
+    <div className="sente-root" style={{ ...themeVars(room, profile.dojo, profile.stones), ...typefaceVars(profile.typeface) }}>
       <style>{CSS}</style>
       {view === null ? null : <>
       <header className={`topbar ${view === "landing" ? "slim" : ""}`}>
@@ -127,13 +129,23 @@ export default function JosekiApp() {
             </button>
           ))}
         </nav>
-        <button className="profile-chip" onClick={() => go("profile")} aria-label="Your profile">
-          <Avatar name={profile.name} tint={profile.tint} size={34} />
-          <div className="chip-meta">
-            <strong>{profile.name}</strong>
-            <span>{preciseRankOf(profile.rating)}</span>
-          </div>
-        </button>
+        {/* You, and how the place looks to you: one cluster on the right, since
+            neither is a section of the game. The look is a preference rather
+            than a screen you visit, but it is one press from anywhere, which is
+            what a thing you try on wants. */}
+        <div className="topbar-you">
+          <button className="icon-btn look-btn" onClick={() => go("look")}
+            aria-label="The look of the place" aria-current={view === "look" ? "page" : undefined}>
+            <Palette size={17} />
+          </button>
+          <button className="profile-chip" onClick={() => go("profile")} aria-label="Your profile">
+            <Avatar name={profile.name} tint={profile.tint} size={34} />
+            <div className="chip-meta">
+              <strong>{profile.name}</strong>
+              <span>{preciseRankOf(profile.rating)}</span>
+            </div>
+          </button>
+        </div>
         </>)}
       </header>
       <main className={`content ${!mailLink && view === "landing" ? "wide" : ""}`}>
@@ -156,6 +168,7 @@ export default function JosekiApp() {
           {view === "tsumego" && <ProblemsView profile={profile} setProfile={setProfile} initialId={params ? params.problemId : null} />}
           {view === "ladder" && <RankingsView profile={profile} />}
           {view === "profile" && <ProfileView profile={profile} setProfile={setProfile} go={go} room={room} notify={notify} />}
+          {view === "look" && <LookView profile={profile} setProfile={setProfile} go={go} room={room} />}
           {view === "dojo" && <DojoView profile={profile} setProfile={setProfile} notify={notify} go={go} room={room} />}
           {view === "legal" && <LegalView docId={params ? params.docId : null} onPick={(id) => go("legal", { docId: id })} />}
           </>)}

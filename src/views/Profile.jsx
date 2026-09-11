@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Pencil, Trophy, Flame, Sparkles, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Type, Mountain, Palette, Grid3x3, Dot, Hammer } from "lucide-react";
+import { Check, Pencil, Trophy, Flame, Sparkles, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Mountain, Palette, Grid3x3, Dot, Hammer } from "lucide-react";
 import { Card, Pill, Avatar, RankBadge, BeltRibbon, Toggle, PullQuote, Statement } from "../components/ui.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
@@ -7,8 +7,8 @@ import { MokuMark } from "../components/Moku.jsx";
 import { useMoku, useMokuFacts } from "../components/mokuStore.js";
 import { TINTS, rankOf, preciseRankOf, beltOf, nextBelt, hintsFor, hintsForBelt, beltFloor } from "../content/rank.js";
 import { MARKS } from "../store/profile.js";
-import { TYPEFACES, typefaceOf } from "../content/typeface.js";
-import { PALETTES, themeOf, themeVars, DOJO_THEME, SYSTEM_THEME } from "../theme/index.js";
+import { typefaceOf } from "../content/typeface.js";
+import { PALETTES, themeOf, themeVars, SYSTEM_THEME, stoneSetOf } from "../theme/index.js";
 import { CLASSIC, LEVELS, BELOW_THE_LEVELS, levelForRank, chapterByNumber } from "../content/classic.js";
 import { LESSONS } from "../content/lessons.js";
 import { PROBLEMS } from "../content/problems.js";
@@ -57,20 +57,8 @@ const ordinal = (n) => ORDINALS[n - 1] || `${n}th`;
 const l0 = (s) => s.charAt(0).toLowerCase() + s.slice(1);
 
 /* ----------------------- PROFILE ----------------------- */
-/** What the picker offers, in the order it offers them: follow the device
- *  first, then the named rooms, then the one this device built if there is one.
- *
- *  The System swatch is drawn in whichever room it currently resolves to, so it
- *  is not a grey placeholder among coloured plates — it shows you the answer it
- *  is giving right now. */
-const roomsFor = (dojo, room) => [
-  { id: SYSTEM_THEME, name: "System", mood: "Automatic", drawAs: room },
-  ...PALETTES,
-  ...(dojo ? [{ ...dojo, id: DOJO_THEME, name: dojo.name || "Your dojo", mood: "Yours" }] : []),
-];
 
 export function ProfileView({ profile, setProfile, go, room, notify }) {
-  const rooms = roomsFor(profile.dojo, room);
   // The account's card, when there is an account. Two profiles sound like one
   // too many, so each says what it is: this device's, and the server's.
   const [account, setAccount] = useState(() => (serverEnabled() ? loadAccount() : null));
@@ -163,70 +151,35 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
 
       <LevelsCard rank={rankOf(profile.rating)} />
 
+      {/* Everything that decides how the place looks lives on its own screen
+          now — the rooms, the stones, the pairings and the dojo behind them.
+          What stays here is the sentence that says what you are wearing. */}
       <Card>
-        <div className="stat-head"><Palette size={16} /><span>Palette</span></div>
+        <div className="stat-head"><Palette size={16} /><span>The look of the place</span></div>
         <p className="fine" style={{ marginTop: 6 }}>
-          Ten rooms for the same board. A palette sets the ground, the two lights every
-          shadow is cut from, and the one colour that means here; the shapes, the spacing
-          and the shadows themselves never move.
+          You are in {themeOf(room, profile.dojo).name}, playing with{" "}
+          {stoneSetOf(room, profile.dojo, profile.stones).name.toLowerCase()}, set in the{" "}
+          {typefaceOf(profile.typeface).name} pairing.
+          {profile.theme === SYSTEM_THEME ? " The room is following your device." : ""}
         </p>
-        <div className="theme-row">
-          {rooms.map(t => (
-            <button key={t.id}
-              style={themeVars(t.drawAs || t.id, profile.dojo)}
-              className={`theme-btn ${profile.theme === t.id ? "active" : ""}`}
-              onClick={() => commit({ theme: t.id })}
-              aria-pressed={profile.theme === t.id}
-              aria-label={`Palette ${t.name}`}
-            >
-              <span className="theme-plate">
-                <span className="theme-stone b" />
-                <span className="theme-stone w" />
-                <span className="theme-mark" />
-              </span>
-              <span className="theme-meta">
-                <span className="theme-title">{t.name}</span>
-                <span className="theme-mood">{t.mood}</span>
-              </span>
-            </button>
+        <div className="look-strip" aria-hidden="true">
+          {PALETTES.map(t => (
+            <span key={t.id} className="theme-plate look-chip"
+              style={themeVars(t.id, null, profile.stones)}>
+              <span className="theme-stone b" />
+              <span className="theme-stone w" />
+              <span className="theme-mark" />
+            </span>
           ))}
         </div>
-        <p className="fine type-note">
-          {profile.theme === SYSTEM_THEME
-            ? `Following your device, which is asking for ${themeOf(room).name} right now. Change the device and the room changes with it.`
-            : themeOf(profile.theme, profile.dojo).note
-              || "A room you built yourself. Open the dojo to keep working on it."}
-        </p>
         <div className="row" style={{ marginTop: 14 }}>
-          <button className="btn btn-accent" onClick={() => go("dojo")}>
-            <Hammer size={15} /> {profile.dojo ? "Open your dojo" : "Build your own"}
+          <button className="btn btn-accent" onClick={() => go("look")}>
+            <Palette size={15} /> Change the look
+          </button>
+          <button className="btn btn-sm" onClick={() => go("dojo")}>
+            <Hammer size={14} /> {profile.dojo ? "Open your dojo" : "Build your own room"}
           </button>
         </div>
-      </Card>
-      <Card>
-        <div className="stat-head"><Type size={16} /><span>Typeface</span></div>
-        <p className="fine" style={{ marginTop: 6 }}>
-          Three pairings for the same design system. Each one sets the headings, the
-          serif that carries the sayings, the body text and the small labels; the
-          palette and the shadows never move.
-        </p>
-        <div className="type-row">
-          {TYPEFACES.map(t => (
-            <button key={t.id}
-              className={`type-btn ${profile.typeface === t.id ? "active" : ""}`}
-              onClick={() => commit({ typeface: t.id })}
-              aria-pressed={profile.typeface === t.id}
-              aria-label={`Typeface ${t.name}`}
-            >
-              <span className="type-sample" style={{ fontFamily: t.display, fontWeight: t.weight }}>Joseki 9d</span>
-              <span className="type-name">{t.name}</span>
-            </button>
-          ))}
-        </div>
-        <p className="fine type-note">
-          {typefaceOf(profile.typeface).note}
-          <em className="type-credit">{typefaceOf(profile.typeface).credit}</em>
-        </p>
       </Card>
 
       <Card>

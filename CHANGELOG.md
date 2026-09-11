@@ -6,6 +6,45 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.7.0.0 (2026-09-11)
+
+### Added
+
+- **The look of the place has its own screen.** The rooms, the stones and the pairings
+  were three cards deep in a profile that is really about your rank; there are now enough
+  of them that the profile was the wrong place to keep them. They live on one page,
+  reached from the palette button in the top bar, with the dojo behind it. The profile
+  keeps a sentence saying what you are wearing and a strip of plates.
+- **Stones are themed, and you choose them.** A go set is two objects, and Joseki had
+  exactly one pair of them: Nachi slate and Hyuga clam, the same two colours in every
+  room. The board was themed and the pieces on it were not. Eight sets now sit in the
+  drawer — slate & shell, ink & ivory, jade, lapis, plum, cinnabar, walnut & honey, moss
+  & rice — and the one you pick follows you from room to room.
+- **Every named room names the set it was designed around.** Sumi is played with jade,
+  yohen with lapis, lacquer with honey, kaya with the tournament set, cinnabar with its
+  own. The room decides unless you say otherwise, so changing rooms changes the stones
+  with them. A room built in the dojo keeps the set it was started from.
+
+### Changed
+
+- A set is authored as two colours — the core of the black stone and the core of the
+  white one — and everything else is arithmetic: the lit crown, the rim where the surface
+  curves away, and the seating a dark board needs so a black stone stays black instead of
+  reading as grey slate lying on the wood. Adding a set is two colours and nothing else.
+- The contrast rule that used to measure shell against a fixed slate now measures the two
+  stones a room is actually played with, both of them. Every one of the eighty
+  room-and-set boards is held to it in `npm test`, and the look page prints the number
+  for the pair you are looking at.
+- The house stones are cut from the house set rather than typed out, which moved two of
+  their six stops by a value or two out of 255. The stylesheet's own fallback stones are
+  now checked against that arithmetic so they cannot drift.
+
+### Fixed
+
+- A board that is only there to be looked at no longer announces eighty-one named points
+  to a screen reader, and no longer tracks the pointer across cells it will not accept a
+  stone on.
+
 ## v0.6.1.1 (2026-09-10)
 
 ### Changed

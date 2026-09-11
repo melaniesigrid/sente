@@ -4,6 +4,12 @@
    (derive.js) unless a hand-mixed tone beat the computed one, which is what the
    `light`/`dark`/`grid` overrides below are.
 
+   Every room also names the set it is played with (`stones`, from
+   src/theme/stones.js), because a themed board with one fixed pair of stones on
+   it was the last place a room stopped at the edge of the wood. The set is a
+   default, not a lock: a player who prefers one pair everywhere says so on the
+   look page and it follows them from room to room.
+
    Adding a room is one entry here — four colours, ground/ink/mark/shell. `npm test` will then hold it to the same
    rules the dojo shows a designer live: ink at 4.5:1, the mark no dimmer than
    the house eucalyptus, and the two lights within 2.4:1 of the ground, which is
@@ -14,6 +20,7 @@
 export const PALETTES = [
   {
     id: "house",
+    stones: "slate",
     name: "House",
     mood: "Light",
     note: "Warm stone paper and a eucalyptus mark. The design system as drawn.",
@@ -22,6 +29,7 @@ export const PALETTES = [
   },
   {
     id: "kaya",
+    stones: "ebony",
     name: "Kaya",
     mood: "Light",
     note: "The board's own wood: pale honey, and a caramel mark. Warmest of the light rooms.",
@@ -30,6 +38,7 @@ export const PALETTES = [
   },
   {
     id: "porcelain",
+    stones: "lapis",
     name: "Porcelain",
     mood: "Light",
     note: "Cool white clay with an indigo mark. Quiet, modern, a little clinical.",
@@ -38,6 +47,7 @@ export const PALETTES = [
   },
   {
     id: "damson",
+    stones: "plum",
     name: "Damson",
     mood: "Light",
     note: "Pastel plum paper under a damson mark. Dusk, with the lamp not on yet.",
@@ -46,6 +56,7 @@ export const PALETTES = [
   },
   {
     id: "cinnabar",
+    stones: "cinnabar",
     name: "Cinnabar",
     mood: "Light",
     note: "Blush paper, oxblood ink, and a lacquer-red mark. The one room led by a warm colour rather than by a neutral.",
@@ -57,6 +68,7 @@ export const PALETTES = [
   },
   {
     id: "lacquer",
+    stones: "honey",
     name: "Lacquer",
     mood: "Dark",
     note: "Black lacquer and gold leaf. The formal room: a tournament board under a low lamp.",
@@ -68,6 +80,7 @@ export const PALETTES = [
   },
   {
     id: "graphite",
+    stones: "slate",
     name: "Graphite",
     mood: "Dark",
     note: "Dark grey and champagne. The same room as Lacquer with the warmth taken out.",
@@ -76,6 +89,7 @@ export const PALETTES = [
   },
   {
     id: "sumi",
+    stones: "jade",
     name: "Sumi",
     mood: "Dark",
     note: "Ink wash on a near-black ground, with celadon. House after dark.",
@@ -84,6 +98,7 @@ export const PALETTES = [
   },
   {
     id: "yohen",
+    stones: "lapis",
     name: "Yohen",
     mood: "Dark",
     note: "Kiln-changed indigo and copper. The night game, played by the window.",
@@ -92,6 +107,7 @@ export const PALETTES = [
   },
   {
     id: "foxfire",
+    stones: "moss",
     name: "Foxfire",
     mood: "Dark",
     note: "Wet bark and a chartreuse mark. The brightest thing in the set against the darkest ground in it.",

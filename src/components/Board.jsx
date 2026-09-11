@@ -132,7 +132,7 @@ export function Board({
               aria-label={label}
               tabIndex={disabled ? -1 : 0}
               onKeyDown={(e) => { if ((e.key === "Enter" || e.key === " ") && !disabled) { e.preventDefault(); onPlay?.(c, r); } }}
-              onMouseEnter={() => setHover({ c, r })}
+              onMouseEnter={disabled ? undefined : () => setHover({ c, r })}
               onClick={() => !disabled && onPlay?.(c, r)}
             />
           );

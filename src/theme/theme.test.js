@@ -5,6 +5,7 @@ import {
 } from "./index.js";
 import { TOKEN_NAMES, TONE_KEYS, REQUIRED_TONES, READING } from "./tokens.js";
 import { completeTones, deriveLights, deriveStoneB, deriveAccentInk } from "./derive.js";
+import { stonesOf, cutWhite } from "./stones.js";
 import { contrast, isHex, luminance } from "./color.js";
 
 const MINE = { ground: "#101014", ink: "#e6e6ea", accent: "#b98cff", cream: "#f2f2f6" };
@@ -55,7 +56,7 @@ describe("the named rooms", () => {
   // crown must still sit above the wood or the piece disappears into it.
   it("seats a black stone into a dark board without letting it vanish", () => {
     for (const p of PALETTES.filter(isDark)) {
-      const stones = deriveStoneB(p.ground);
+      const stones = deriveStoneB(p.ground, stonesOf(p.stones).b);
       expect(luminance(stones[0]), `${p.id} crown above ground`).toBeGreaterThan(luminance(p.ground));
       expect(luminance(stones[1]), `${p.id} stone stays dark`).toBeLessThan(luminance("#4b463c"));
     }
@@ -195,8 +196,16 @@ describe("derivation", () => {
     }
   });
 
-  it("leaves the stones alone on paper", () => {
-    expect(deriveStoneB("#e8e4db")).toEqual(["#6b655a", "#4b463c", "#3a362e"]);
+  // What a stone is cut from, and what happens to it in a dark room, is the
+  // subject of stones.test.js — there is a drawer of sets to hold to it now
+  // rather than one pair. What belongs here is that every room hands the board
+  // a set to be played with.
+  it("draws every room with the set that room names", () => {
+    for (const p of PALETTES) {
+      const set = stonesOf(p.stones);
+      expect(themeVars(p.id)["--stone-b-2"], p.id).toBe(deriveStoneB(p.ground, set.b)[1]);
+      expect(themeVars(p.id)["--stone-w-2"], p.id).toBe(cutWhite(set.w)[1]);
+    }
   });
 
   it("hands the dojo a complete palette to start editing from", () => {

@@ -14,6 +14,9 @@
      paletteFrom     a named room, completed, ready to edit
      sanitizePalette untrusted stored data -> a palette or null
      TONES           what a palette is authored from, in editing order
+     STONE_SETS      the stone sets, as data; a room names one, a player overrides it
+     stonesOf        a set id -> the set
+     stoneSetOf      an id + the player's choice -> the set the board is played with
 */
 export {
   PALETTES, HOUSE_THEME, SYSTEM_THEME, SYSTEM_PAIR, DOJO_THEME, TONES, TONE_KEYS, REQUIRED_TONES,
@@ -21,4 +24,8 @@ export {
 } from "./theme.js";
 export { contrast, luminance, grade, isHex, isDarkColor, toTriple } from "./color.js";
 export { RULES, CLOSENESS, TOKEN_NAMES } from "./tokens.js";
-export { completeTones, tokensFor, deriveLights, deriveStoneB } from "./derive.js";
+export { stoneSetOf } from "./theme.js";
+export { completeTones, tokensFor, deriveLights, deriveStoneB, stonesFor } from "./derive.js";
+export {
+  STONE_SETS, AUTO_STONES, HOUSE_STONES, stonesOf, isStoneId, cutBlack, cutWhite,
+} from "./stones.js";

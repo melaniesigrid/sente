@@ -13,7 +13,7 @@
       ones that may be spent on glyphs. */
 import { describe, it, expect } from "vitest";
 import { CSS } from "./css.js";
-import { PALETTES, themeVars, contrast } from "../theme/index.js";
+import { PALETTES, themeVars, contrast, cutBlack, cutWhite, stonesOf, HOUSE_STONES } from "../theme/index.js";
 import { TOKEN_NAMES } from "../theme/tokens.js";
 
 /** Every rule in the sheet, as { selector, body }. Good enough for this: the
@@ -43,6 +43,18 @@ const DRAWS_TEXT = body =>
   /font-size|font-family|font:|letter-spacing|line-height|text-transform/.test(body);
 
 describe("the stylesheet", () => {
+  // The sheet's `.sente-root` block is the one place it may name a colour: it
+  // is what a browser draws before the shell has spread a single custom
+  // property. The stones there are the house set, and nothing but arithmetic
+  // keeps them so — which is what they are checked against.
+  it("ships the house set as the stylesheet's own stones", () => {
+    const root = CSS.split(".sente-root {")[1].split("\n}")[0];
+    const val = (name) => new RegExp(`--stone-${name}: (#[0-9a-f]{6})`).exec(root)[1];
+    const set = stonesOf(HOUSE_STONES);
+    expect(["b-1", "b-2", "b-3"].map(val)).toEqual(cutBlack(set.b));
+    expect(["w-1", "w-2", "w-3"].map(val)).toEqual(cutWhite(set.w));
+  });
+
   it("dims no word with an opacity", () => {
     const offenders = rules(CSS)
       .filter(r => DRAWS_TEXT(r.body) && /opacity: \.\d/.test(r.body))

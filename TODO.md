@@ -776,6 +776,18 @@ Open:
 ## Design and polish (schedule after a design review)
 
 - [ ] Mobile layout pass: board sizing, nav collapse, touch targets.
+- [x] The look of the place is one screen (`src/views/Look.jsx`, v0.7.0.0): the rooms, the
+      stones and the pairings together, reached from the top bar. The profile keeps a
+      sentence saying what you are wearing and a strip of plates; it is no longer a place
+      to choose.
+- [x] Stones are themed (`src/theme/stones.js`, v0.7.0.0): eight sets, each two authored
+      colours, cut into crown/body/rim and seated into the board they are played on. Every
+      named room names the set it was designed around, a dojo room keeps the set it was
+      started from, and a player may override all of it for every room at once.
+      `stones.test.js` holds all eighty room-and-set boards to the floor the dojo prints.
+- [ ] The dojo picks its own set: a built room inherits the set it was started from but
+      cannot change it without changing the override for every room. The tone list is the
+      obvious place for it, beside the six colours.
 - [ ] Dark variant of the stone palette.
 - [x] Sound and haptic feedback on stone placement (opt-in, synthesised, no assets).
 - [ ] Self-host fonts instead of the Google Fonts `@import`.
