@@ -10,10 +10,14 @@
    a vendor's licence says) it leaves alone rather than pretending. */
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { DOCUMENTS, CREDITS, COPYRIGHT, CONTACT, UPDATED, documentById } from "./legal.js";
+import {
+  DOCUMENTS, CREDITS, COPYRIGHT, CONTACT, UPDATED, REVISION,
+  documentById, documentText, documentStamp,
+} from "./legal.js";
 import { CHAT_KEEP } from "../../server/room.js";
 import { AVATAR_MAX_BYTES, BIO_MAX } from "../../server/profile.js";
 import { RETAIN_DAYS, sealed, emptyDay } from "../../server/rollup.js";
+import { hashString } from "../engine/index.js";
 
 /** Every word of every document, as one string. The claims live in prose, so
  *  the checks are made against prose. */
@@ -62,6 +66,57 @@ describe("the documents", () => {
 
   it("say when they last changed", () => {
     expect(UPDATED).toMatch(/^\d{1,2} \w+ \d{4}$/);
+    expect(UPDATED).toBe(REVISION.updated);
+  });
+
+  it("carry a date that is a real day, and not one in the future", () => {
+    const day = new Date(`${UPDATED} UTC`);
+    expect(Number.isNaN(day.getTime()), `${UPDATED} is not a date`).toBe(false);
+    expect(day.getTime(), "the notice is dated in the future").toBeLessThanOrEqual(Date.now());
+  });
+
+  /* THE GUARD. The date used to be moved by hand, which means it used to be
+     forgotten. The stamp is a fingerprint of every word in the three
+     documents; when a word changes and the revision does not, this fails and
+     prints the stamp to paste in. Moving the date is then the obvious thing to
+     do, because it is the line above. */
+  it("carry a stamp that matches the words they actually contain", () => {
+    const now = documentStamp();
+    expect(now, [
+      "",
+      "The documents changed and the revision did not.",
+      "",
+      "In src/content/legal.js, set REVISION to:",
+      `  { updated: "<today, as '11 September 2026'>", stamp: "${now}" }`,
+      "",
+      "Move the date in the same commit. A notice dated before the sentence it",
+      "contains is worse than an undated one: it claims it has not changed.",
+      "",
+    ].join("\n")).toBe(REVISION.stamp);
+  });
+
+  /* The stamp is only worth having if it moves. One word is enough — which is
+     the whole claim the guard above rests on. (The revision date is not
+     excluded by being absent from the prose: the notice quite legitimately
+     states dates of its own. It is excluded by `documentText` reading
+     DOCUMENTS and nothing else.) */
+  it("carry a stamp that moves when a single word does", () => {
+    const text = documentText();
+    const stamp = (t) => hashString(t).toString(16).padStart(8, "0");
+    expect(stamp(text)).toBe(documentStamp());
+    expect(stamp(`${text} and one more thing`)).not.toBe(documentStamp());
+    expect(stamp(text.replace("Joseki", "Sente"))).not.toBe(documentStamp());
+  });
+
+  it("stamp every document, not only the first", () => {
+    const text = documentText();
+    for (const doc of DOCUMENTS) {
+      expect(text, doc.id).toContain(doc.sections[doc.sections.length - 1].paras[0]);
+    }
+  });
+
+  it("stamp the credit rows too, because a credit that changed is a document that changed", () => {
+    expect(documentText()).toContain(CREDITS[0].items[0].what);
   });
 });
 
