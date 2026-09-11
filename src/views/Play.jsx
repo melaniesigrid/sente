@@ -15,10 +15,12 @@ import { suggestLevel, suggestionText } from "../content/level.js";
 import { loadTelemetry } from "../store/telemetry.js";
 import { CLOCK_PRESETS, presetById, presetText } from "../content/clockFace.js";
 import { MastersRow } from "../components/MastersRow.jsx";
+import { PairCard } from "../components/PairCard.jsx";
 import { loadSession } from "./session.js";
 import { Game } from "./Game.jsx";
 import { OnlineCard } from "./OnlineLobby.jsx";
 import { OnlineGame } from "./OnlineGame.jsx";
+import { PairGame } from "./PairGame.jsx";
 
 /* ----------------------- PLAY (lobby) -----------------------
    `resume` is `{ mode, record }` from the Home card; it seeds the first
@@ -197,9 +199,13 @@ export function PlayView({ profile, setProfile, notify, resume }) {
           <p className="persona-bio">The original multiplayer. Black and White share the device; the ladder sits this one out.</p>
           <span className="persona-cta"><Handshake size={13} /> Sit down</span>
         </button>
+        <PairCard profile={profile} rank={rank} onPlay={sit} />
         <MastersRow onSit={(mode) => setSession({ mode: { ...mode, clock } })} />
       </div>
     );
+  }
+  if (session.mode.kind === "pair") {
+    return <PairGame mode={session.mode} onExit={() => setSession(null)} profile={profile} notify={notify} />;
   }
   if (session.mode.kind === "online") {
     return <OnlineGame gameId={session.mode.gameId} onExit={() => setSession(null)} profile={profile} notify={notify} />;
