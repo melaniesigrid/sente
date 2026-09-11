@@ -38,7 +38,7 @@ export function onlineStatus({ room, seat, conn }) {
   }
   const up = seatToPlay(room.seats, rec);
   if (!seat) return up ? `${room.seats[up].name} to move` : `${side(rec.toPlay)} to move`;
-  return canSeatPlay(room.seats, rec, seat) ? "Your move" : `${room.seats[up].name} to move`;
+  return canSeatPlay(room.seats, rec, seat) ? "Your move" : up ? `${room.seats[up].name} to move` : `${side(rec.toPlay)} to move`;
 }
 
 /** "+12" / "−9" line for a settled room from `seat`'s side, or null. A pair

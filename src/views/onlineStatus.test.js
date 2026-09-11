@@ -22,6 +22,11 @@ describe("onlineStatus", () => {
     // A watcher is told who, not what colour: at a pair table a colour is two people.
     expect(onlineStatus({ room: r, seat: null, conn: "open" })).toBe("Ada to move");
   });
+  it("falls back to the colour when the next seat is missing", () => {
+    const r = fresh();
+    r.seats = {};
+    expect(onlineStatus({ room: r, seat: "b1", conn: "open" })).toBe("Black to move");
+  });
   it("covers undo asks and the two-sided count", () => {
     let r = step(fresh(), "b1", { t: "play", c: 2, r: 2 });
     r = step(r, "b1", { t: "undoRequest" });
