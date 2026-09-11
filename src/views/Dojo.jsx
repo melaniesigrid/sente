@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { Palette, RotateCcw, Check, Copy, Hammer, TriangleAlert, Trash2 } from "lucide-react";
 import { boardFromRows, tryPlay } from "../engine/index.js";
+import { Wordmark } from "../components/Brand.jsx";
 import { Board } from "../components/Board.jsx";
 import { Card } from "../components/ui.jsx";
 import {
@@ -127,10 +128,7 @@ export function DojoView({ profile, setProfile, notify, go, room }) {
       <div className="dojo" style={vars}>
         <div className="dojo-stage">
           <div className="dojo-bar">
-            <span className="brand">
-              <span className="brand-mark" aria-hidden="true" />
-              <span className="brand-name">Joseki</span>
-            </span>
+            <Wordmark />
             <span className="dojo-nav">
               <span className="dojo-nav-btn on">Play</span>
               <span className="dojo-nav-btn">Learn</span>
