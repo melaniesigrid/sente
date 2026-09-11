@@ -16,6 +16,7 @@ import { RULESETS } from "../engine/rulesets.js";
 import { PALETTES } from "../theme/palettes.js";
 import { dayKey } from "../content/kata.js";
 import { LANDING_STATEMENTS } from "../content/plain.js";
+import { RECORD, RECORD_DEK, RECORD_STANDFIRST, SOURCES } from "../content/press.js";
 
 /* ----------------------- THE FRONT DOOR -----------------------
    Everything a visitor sees before they have played a stone. It is a different
@@ -199,6 +200,52 @@ export function Landing({ profile, onEnter, go }) {
               <span className="lp-more"><span>Open</span><ArrowRight size={15} strokeWidth={2.4} /></span>
             </button>
           ))}
+        </div>
+      </section>
+
+      <Band lines={LANDING_STATEMENTS.fell} />
+
+      {/* ------------------------------------------------- the record */}
+      {/* The one section set as a page rather than as an interface. Every
+          column is answerable to a numbered line in the rail underneath it,
+          and the test beside press.js fails the build if one is not — which
+          is the only thing that makes a marketing section on this site
+          defensible at all. */}
+      <section className="lp-section wide" id="record">
+        <div className="lp-record">
+          <div className="lp-record-head">
+            <h2 className="lp-record-mast">The Record</h2>
+            <p className="lp-record-rule">{RECORD_STANDFIRST}</p>
+          </div>
+          <p className="lp-record-dek reveal">{RECORD_DEK}</p>
+          <div className="lp-columns">
+            {RECORD.map((col, i) => (
+              <article className={`lp-col reveal d${(i % 3) + 1}${i === 0 ? " lead" : ""}`} key={col.title}>
+                <p className="lp-col-kicker">{col.kicker}</p>
+                <h3>{col.title}</h3>
+                {col.figure ? (
+                  <span className="lp-figure">
+                    {col.figure.value}
+                    <small>{col.figure.note}</small>
+                  </span>
+                ) : null}
+                {col.body.map((para, j) => (
+                  <p key={j} className={i === 0 && j === 0 ? "lp-drop" : undefined}>{para}</p>
+                ))}
+              </article>
+            ))}
+          </div>
+          <div className="lp-sources reveal">
+            <p className="lp-sources-label">Sources</p>
+            <ol>
+              {SOURCES.map(s => (
+                <li key={s.id}>
+                  <a href={s.url} target="_blank" rel="noreferrer">{s.title}</a>
+                  {`. ${s.where}, ${s.year}.`}
+                </li>
+              ))}
+            </ol>
+          </div>
         </div>
       </section>
 

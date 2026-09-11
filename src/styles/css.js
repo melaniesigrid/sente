@@ -1315,6 +1315,7 @@ ${FONT_FACES}
 .lp-btn.ghost:hover { opacity: 1; }
 
 /* ---- sections ---- */
+.lp-section.wide { max-width: 1340px; }
 .lp-section { max-width: 1080px; margin: 0 auto; width: 100%; padding: clamp(64px, 9vw, 124px) clamp(20px, 5vw, 48px); }
 .lp-grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(268px, 1fr)); gap: clamp(18px, 2.4vw, 28px); margin-top: clamp(38px, 5vw, 56px); }
 .lp-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: clamp(18px, 2.4vw, 28px); margin-top: clamp(38px, 5vw, 56px); }
@@ -1380,6 +1381,111 @@ ${FONT_FACES}
 .lp-roadmap ul { list-style: none; padding: 0; margin: 20px 0 0; display: flex; flex-direction: column; gap: 15px; }
 .lp-roadmap li { color: var(--ink-2); display: flex; gap: 13px; align-items: baseline; font-size: clamp(15px, 1.6vw, 16.5px); line-height: 1.6; }
 .lp-roadmap li svg { flex: none; color: var(--accent-ink); transform: translateY(3px); }
+
+/* ---- The Record: the one section set as a page rather than as cards ----
+   A broadsheet. Hairline masthead, a kicker, columns with rules between them,
+   an opener that drops, and the sources ruled off underneath at caption size.
+   It is the only block on the site that is not neumorphic, and that is the
+   argument for it: the page stops being an interface for a moment and becomes
+   something printed, which is how a reader knows the register has changed from
+   "here is what this app does" to "here is what this game is".
+
+   Nothing is invented to make it work. The rules are the hairline that is
+   already on the screen, the type is the same three tokens, and the drop cap
+   is the display face at four lines. No colour and no family is named.
+
+   The 12px floor holds. A real broadsheet would set the footnotes at eight
+   point; these sit at 12 and stop, because nothing below that carries meaning
+   at arm's length and the footnote rail is the part that has to be read most
+   carefully — it is where the page proves what it just said. */
+.lp-record { border-top: 2px solid var(--grid); border-bottom: 1px solid var(--hairline); }
+.lp-record-head {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+  gap: 12px; padding: 14px 0 0; border-bottom: 1px solid var(--hairline);
+}
+.lp-record-mast {
+  font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: clamp(30px, 5vw, 58px); line-height: 1; margin: 0;
+  letter-spacing: calc(-0.01em + var(--display-tracking)); text-transform: uppercase;
+}
+.lp-record-rule {
+  color: var(--ink-2); font-family: var(--font-caption); font-style: var(--caption-style);
+  font-size: 13px; margin: 0 0 10px;
+}
+.lp-record-dek {
+  margin: clamp(18px, 2.4vw, 28px) 0 0; max-width: 62ch;
+  font-family: var(--font-quote); font-style: var(--quote-style);
+  font-size: clamp(19px, 2.3vw, 26px); line-height: 1.42; color: var(--ink);
+}
+.lp-columns {
+  margin-top: clamp(26px, 3.4vw, 40px);
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 0;
+}
+.lp-col { padding: clamp(20px, 2.4vw, 30px) clamp(18px, 2.2vw, 28px); border-top: 1px solid var(--hairline); }
+/* The rule between columns, and only between them: a rule on the outside edge
+   of a broadsheet is a box, and a box is a card, which is the thing this
+   section exists to not be. */
+.lp-col + .lp-col { border-left: 1px solid var(--hairline); }
+.lp-col-kicker {
+  font-family: var(--font-body); font-size: 12px; font-weight: 700;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--accent-ink);
+  margin: 0 0 9px;
+}
+.lp-col h3 {
+  font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: clamp(21px, 2.3vw, 27px); line-height: 1.12; margin: 0 0 12px;
+  letter-spacing: var(--display-tracking); text-wrap: balance;
+}
+.lp-col p { color: var(--ink-2); font-size: 15.5px; line-height: 1.66; margin: 0 0 11px; }
+.lp-col p:last-of-type { margin-bottom: 0; }
+/* The opener drops — the first paragraph of the lead column and nothing else.
+   A drop cap in every column reads as a pattern rather than as the start of
+   something, and one asked of "the first paragraph" lands on the kicker. */
+.lp-col p.lp-drop::first-letter {
+  float: left; font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: 3.4em; line-height: .82; padding: .06em .09em 0 0; color: var(--ink);
+}
+.lp-figure {
+  display: block; margin: 0 0 12px;
+  font-family: var(--font-display); font-weight: var(--w-display);
+  font-size: clamp(27px, 3.2vw, 38px); line-height: 1.04; color: var(--accent-ink);
+  letter-spacing: calc(-0.018em + var(--display-tracking));
+}
+.lp-figure small {
+  display: block; margin-top: 5px; color: var(--ink-2);
+  font-family: var(--font-caption); font-style: var(--caption-style);
+  font-size: 13px; letter-spacing: 0; font-weight: 400;
+}
+/* The rail. Every column above is answerable to a line down here, which is the
+   only reason the section is allowed to exist on a page that is selling
+   something. */
+.lp-sources { border-top: 1px solid var(--hairline); padding: clamp(18px, 2.2vw, 26px) clamp(18px, 2.2vw, 28px) 4px; }
+.lp-sources-label {
+  font-family: var(--font-body); font-size: 12px; font-weight: 700;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 12px;
+}
+.lp-sources ol {
+  margin: 0; padding: 0; list-style: none;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 9px clamp(18px, 2.2vw, 30px); counter-reset: src;
+}
+.lp-sources li {
+  counter-increment: src; color: var(--ink-2);
+  font-family: var(--font-caption); font-style: var(--caption-style);
+  font-size: 12.5px; line-height: 1.5; padding-left: 24px; position: relative;
+}
+.lp-sources li::before {
+  content: counter(src); position: absolute; left: 0; top: 0;
+  font-family: var(--font-body); font-style: normal; font-size: 12px; font-weight: 700;
+  color: var(--accent-ink);
+}
+.lp-sources a { color: inherit; text-decoration-color: var(--hairline); text-underline-offset: 3px; }
+.lp-sources a:hover { text-decoration-color: var(--accent-ink); }
+@media (max-width: 620px) {
+  .lp-col + .lp-col { border-left: 0; }
+  .lp-record-head { padding-bottom: 10px; }
+}
 
 /* ---- the last word ---- */
 .lp-final {
