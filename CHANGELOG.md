@@ -6,6 +6,28 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.6.1.1 (2026-09-10)
+
+### Changed
+
+- Moku wears Laska's face. The mascot's face was drawn here from scratch; Laska's
+  dot-mascot (`playlaska.com`, `web/src/mascots.tsx`) had already answered the same
+  question better, so the geometry is hers now — big round eyes set wide and high, a
+  glint up and outward, a soft shine across the top, and a smile that opens when there
+  is something to cheer. Every offset in `src/components/Moku.jsx` is Laska's own number
+  times `BODY.r / 34`, her body radius, so the proportions are hers and only the scale
+  is ours.
+- Black is the one thing that had to give. Laska's eyes are dark discs read against a
+  coral or a mint body, and on a black stone they vanish, as does a dark smile. So the
+  eyes get a cream white behind them and the smile is stroked in cream. The discs, the
+  glint and the curves are untouched: it is her face in negative, not a redrawn one.
+- The brows stay ours, since Laska has no angry face, but their offsets are now multiples
+  of the eye they sit over rather than the absolute numbers drawn against the older,
+  smaller, lower eyes — against her wider eye those crowded it to within a pixel at dock
+  size. Both mouths are drawn and the stylesheet picks one off `data-state`, so Moku's
+  motion all still lives in one place, and the down states turn the same smile over
+  instead of introducing a third curve.
+
 ## v0.6.1.0 (2026-09-10)
 
 ### Changed
