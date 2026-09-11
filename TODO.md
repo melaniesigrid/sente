@@ -1396,9 +1396,22 @@ duel, a master game and a coached game move no rating.
         single-player one. That is C2's question, not C1's.
       - The no-team-chat rule needed no work: chat has been one room-wide conversation
         since B1, because a private line to your partner is what the rule forbids.
-- [ ] C2: invite a friend to your team (choose which team a named friend joins), and
-      decide whether a team rating is a number Joseki is willing to stand behind. The
-      rendezvous word already gets four people who agree on it to the same table.
+- [x] C2: choose your team (branch `feat/rengo-teams`). A rengo seek may name team 1 or
+      2, so two people who agree on a rendezvous word and pick the same side are partners.
+      That is the whole invite mechanism: no friend list and no second protocol.
+      - The matching is pure and tested (`server/seating.js`): a named team is honoured
+        earliest-first; people with no preference are dealt **alternately** rather than
+        filling one team, because filling team 1 first would partner the first two
+        arrivals with each other and break the arrival-order promise C1 makes; and an
+        over-subscribed team leaves its extra seeker waiting rather than reseating them.
+      - Four people present and unable to start reads as broken, so the lobby names the
+        team that is over-subscribed.
+      - **Team rating: no.** A rating has to attach to something that persists and an
+        ad-hoc pair does not. The two honest shapes are a rating on a *standing* pair
+        (needs a partnership object Joseki does not have; build that first, the number
+        second) or a second per-player "pair rank" (cheap and dishonest: it reads as your
+        pair go strength while measuring the partners you happened to draw). Reasoning in
+        `docs/designs/pair-go.md`.
 
 Open, deliberately: whether a handicap between *teams* means anything (Phase A offers
 even games only), and whether a partner may ever resign or accept a score for you

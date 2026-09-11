@@ -74,9 +74,32 @@ Two consequences worth naming, because they are what make the model worth having
 A rating is a claim about one player's strength. Win a game in which a 7 dan played
 half your moves and the win is not evidence about you; it is evidence about the pair.
 Joseki already refuses to rate a duel, a master game and a coached game for smaller
-versions of this reason, and this is the largest version of it. Phase C (four humans,
-no bots) could be rated with a team rating one day, but a team rating is a different
-number with a different meaning and it is not being smuggled in under this one.
+versions of this reason, and this is the largest version of it.
+
+### Should four humans carry a team rating? No. *(decided with C2)*
+
+The obvious objection to the paragraph above is that Phase C has no bots in it: four
+people played every move, so why is that not evidence about them?
+
+Because **a rating is a claim that has to attach to something that persists**, and an
+ad-hoc pair does not persist. You are matched with whoever typed the same word. A number
+earned by you-and-Eve says nothing about you-and-Fen, and averaging it into your own rank
+is worse than saying nothing: it moves the one number on the profile that is supposed to
+mean a single thing, on evidence about two people.
+
+There are only two honest shapes, and both are refused for now:
+
+- **A rating on the standing pair.** This would genuinely mean something (it is how
+  doubles ratings work in other games), but it needs a *standing pair*: two people who
+  sign up as a partnership and keep it. Joseki has no such object, and inventing one to
+  carry a number is the wrong order to do it in. If people start playing regularly with
+  the same partner, build the partnership first and the number second.
+- **A second per-player number ("pair rank").** Cheap to compute, and dishonest: it reads
+  as a claim about your pair go strength while actually measuring the average strength of
+  the partners you happened to draw.
+
+So a rengo table stays unrated and says so where you sit down. The door is open; the
+number stays off the screen until there is something for it to be true of.
 
 ## Where it stands
 
@@ -85,7 +108,7 @@ number with a different meaning and it is not being smuggled in under this one.
 | offline | you + a 7 dan vs a persona + its 7 dan | A | ✅ |
 | online | two people, each with their own 7 dan | B | ✅ |
 | online | four people, no bots | C1 | ✅ |
-| online | invite a named friend onto your team | C2 | open |
+| online | choose your team, so you play *with* a friend | C2 | ✅ |
 
 One roster model covers all three. Each row changes only who occupies a seat.
 
@@ -176,8 +199,21 @@ Two humans, each with their own bot partner.
   since B1, because a private line to your partner is exactly what the rule forbids,
   which is what it looks like when a social rule is designed into a protocol instead of
   being asked of the people using it.
-- **C2 · seating a team.** Invite a friend to your team, matchmake pairs against pairs,
-  and decide whether a team rating is a number Joseki is willing to stand behind.
+- **C2 · seating a team.** ✅ A rengo seek may name a team, 1 or 2, so two people who
+  agree on a rendezvous word and pick the same side are partners. That is the whole invite
+  mechanism: no friend list, no accounts, no second protocol, and it reuses the private
+  rendezvous an ordinary game already has.
+
+  The matching is a pure function (`server/seating.js`) rather than something buried in
+  the Durable Object, because it has real cases: a named team is honoured earliest-first;
+  people who did not mind are dealt **alternately** rather than filling one team (filling
+  team 1 first would partner the first two arrivals with each other, breaking the
+  arrival-order promise C1 makes); and if three people want the same side, the first two
+  get it and the third **keeps waiting rather than being quietly moved**: being put on a
+  team you did not choose is the one thing naming a team is meant to prevent. The lobby
+  says so out loud, because four people present and not playing otherwise reads as broken.
+
+  The team-rating question is answered above: **no**, and why.
 
 ## Open questions
 

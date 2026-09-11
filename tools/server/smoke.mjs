@@ -248,9 +248,73 @@ const rfin = await j(`/api/game/${rgid}`);
 assert(rfin.record.moves.length === 4, "one full round: four people, four moves");
 assert(rfin.record.moves.map(m => m.color).join() === "b,w,b,w", "and the colours alternated");
 for (const s2 of four) { s2.g.s.close(); s2.l.s.close(); }
-lg.s.close();
-for (const p2 of [c, d, e, f, g]) await j("/api/me", { method: "DELETE", headers: { authorization: `Bearer ${p2.token}` } });
 console.log("ok  rengo: four people, nobody plays anybody else's moves");
+
+/* ----- choosing a team -----
+   Two people who agree on a word and pick the same team are partners. That is
+   the whole invite mechanism: no friend list, no accounts, no second protocol.
+   Here Cy and Eve ask for team 1 and must end up on the same side. */
+const TKEY = "teams-" + Math.random().toString(36).slice(2, 8);
+const picked = [];
+for (const [who, want] of [[c, 1], [d, 2], [e, 1], [f, 2]]) {
+  const l = await open(`${ws}/api/lobby?token=${who.token}`);
+  await l.next(m => m.t === "lobby");
+  picked.push({ who, want, l });
+}
+for (let i = 0; i < 3; i++) {
+  picked[i].l.send({ t: "seek", size: 9, key: TKEY, rengo: true, team: picked[i].want });
+  await picked[i].l.next(m => m.t === "seek" && m.seated === i + 1);
+}
+picked[3].l.send({ t: "seek", size: 9, key: TKEY, rengo: true, team: picked[3].want });
+for (const s2 of picked) {
+  const m = await s2.l.next(mm => mm.t === "matched");
+  s2.seat = m.seat;
+  s2.partner = m.partner.name;
+}
+const sideOf = (name) => picked.find(s2 => s2.who.player.name === name).seat[0];
+assert(sideOf("Cy") === sideOf("Eve"), "cy and eve both asked for team 1 and are on it together");
+assert(sideOf("Dee") === sideOf("Fen"), "dee and fen are the other team");
+assert(sideOf("Cy") !== sideOf("Dee"), "and the two teams are opposed");
+assert(picked.find(s2 => s2.who.player.name === "Cy").partner === "Eve", "the matched frame names your partner");
+for (const s2 of picked) s2.l.s.close();
+console.log("ok  rengo: two who ask for the same team get it");
+
+/* Three people want the same team: the first two get it, the third keeps waiting
+   rather than being quietly moved onto a side they did not choose. */
+const CKEY = "crowd-" + Math.random().toString(36).slice(2, 8);
+const crowd = [];
+for (const who of [c, d, e]) {
+  const l = await open(`${ws}/api/lobby?token=${who.token}`);
+  await l.next(m => m.t === "lobby");
+  l.send({ t: "seek", size: 9, key: CKEY, rengo: true, team: 1 });
+  await l.next(m => m.t === "seek");
+  crowd.push({ who, l });
+}
+const lf = await open(`${ws}/api/lobby?token=${f.token}`);
+await lf.next(m => m.t === "lobby");
+lf.send({ t: "seek", size: 9, key: CKEY, rengo: true, team: 2 });
+const blocked = await lf.next(m => m.t === "seek");
+assert(blocked.seated === 4 && blocked.blocked === "team 1",
+  "four present, and the table says which team is over-subscribed");
+// Gus takes the empty side; the table goes ahead and the third team-1 seeker still waits.
+const lg2 = await open(`${ws}/api/lobby?token=${g.token}`);
+await lg2.next(m => m.t === "lobby");
+lg2.send({ t: "seek", size: 9, key: CKEY, rengo: true, team: 2 });
+const seatedNames = [];
+for (const ch3 of [crowd[0], crowd[1], { who: f, l: lf }, { who: g, l: lg2 }]) {
+  const m = await ch3.l.next(mm => mm.t === "matched");
+  seatedNames.push(ch3.who.player.name + ":" + m.seat);
+}
+assert(seatedNames.length === 4, "the table went ahead once somebody took the other side");
+/* Wait for the frame that says the table emptied rather than the first unread
+   one: this socket has a backlog from watching the table fill. */
+const stillWaiting = await crowd[2].l.next(m => m.t === "seek" && m.seated === 1);
+assert(stillWaiting.status === "waiting" && stillWaiting.blocked === null,
+  "the extra chooser was never reassigned, and sees the table empty again");
+for (const ch3 of crowd) ch3.l.s.close();
+lf.s.close(); lg2.s.close(); lg.s.close();
+for (const p2 of [c, d, e, f, g]) await j("/api/me", { method: "DELETE", headers: { authorization: `Bearer ${p2.token}` } });
+console.log("ok  rengo: an over-subscribed team waits rather than reseats anybody");
 
 // Leave: the test accounts must not linger on a real ladder.
 for (const p of [a, b]) {
