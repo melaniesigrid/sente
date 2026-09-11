@@ -14,6 +14,8 @@
    moves reads as a number that is not listening. The whole-rank label is the
    floor of that decimal, so the two can never disagree. Progress up the scale
    is measured by Glicko-2 in `src/engine/glicko.js`. */
+import { isProvisional } from "../engine/glicko.js";
+
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
 /** OGS's two constants. Do not tune these: they are what makes the scale shared. */
@@ -145,3 +147,9 @@ export function nextBelt(rating) {
 
 /** Atari hints are training wheels: white and yellow belts get them, orange and up read for themselves. */
 export const hintsForBelt = (belt) => belt.id === "white" || belt.id === "yellow";
+
+/** Whether a player gets the training wheels, belt and certainty together. A new
+ *  account is seated at 10k — a green belt nobody has earned yet — so the wheels
+ *  stay on while the rank is still a guess, and come off when the rating has
+ *  settled somewhere orange or stronger. A weak belt keeps them either way. */
+export const hintsFor = (rating, rd) => isProvisional(rd) || hintsForBelt(beltOf(rating));

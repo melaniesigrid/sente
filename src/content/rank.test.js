@@ -1,9 +1,10 @@
 import { describe, it, expect } from "vitest";
 import {
   rankOf, preciseRankOf, gradeOf, rankValue, ratingOfValue, ratingOfRank, beltOf, nextBelt,
-  beltFloor, kyuFloor, hintsForBelt, BELTS, RANK_LADDER, stepRank, rankInRange,
+  beltFloor, kyuFloor, hintsForBelt, hintsFor, BELTS, RANK_LADDER, stepRank, rankInRange,
   rankWithHandicap, rankGain, MIN_RATING, MAX_RATING, DAN_RATING, RATING_A, RATING_C,
 } from "./rank.js";
+import { GLICKO } from "../engine/glicko.js";
 
 describe("the OGS scale", () => {
   it("is OGS's formula, number for number", () => {
@@ -106,10 +107,10 @@ describe("belts", () => {
   it("map kyu bands to belts and dan to black", () => {
     expect(beltOf(ratingOfRank("25k")).id).toBe("white");
     expect(beltOf(ratingOfRank("21k")).id).toBe("white");
-    expect(beltOf(ratingOfRank("20k")).id).toBe("yellow");   // the default profile
+    expect(beltOf(ratingOfRank("20k")).id).toBe("yellow");
     expect(beltOf(ratingOfRank("16k")).id).toBe("yellow");
     expect(beltOf(ratingOfRank("15k")).id).toBe("orange");
-    expect(beltOf(ratingOfRank("10k")).id).toBe("green");
+    expect(beltOf(ratingOfRank("10k")).id).toBe("green");   // the seed rank
     expect(beltOf(ratingOfRank("4k")).id).toBe("blue");
     expect(beltOf(DAN_RATING).id).toBe("black");
     expect(beltOf(ratingOfRank("5d")).id).toBe("black");
@@ -138,6 +139,13 @@ describe("belts", () => {
       if (belt.id === "black") expect(beltOf(floor)).toBe(belt);
       else if (belt.id !== "white") expect(beltOf(floor)).not.toBe(belt);
     }
+  });
+  it("keeps the training wheels on while the rank is still a guess", () => {
+    const seed = ratingOfRank("10k");                       // where a new account starts
+    expect(hintsForBelt(beltOf(seed))).toBe(false);         // green belt on paper
+    expect(hintsFor(seed, GLICKO.rd)).toBe(true);           // but nobody has proved it yet
+    expect(hintsFor(seed, GLICKO.minRd)).toBe(false);       // a settled 10k reads for themselves
+    expect(hintsFor(ratingOfRank("22k"), GLICKO.minRd)).toBe(true);  // a weak belt keeps them either way
   });
   it("gives training wheels to white and yellow only", () => {
     expect(hintsForBelt(beltOf(ratingOfRank("22k")))).toBe(true);

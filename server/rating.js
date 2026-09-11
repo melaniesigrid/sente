@@ -19,11 +19,11 @@
 import { GLICKO, updateGlicko, isProvisional } from "../src/engine/glicko.js";
 import { ratingOfRank, rankOf, preciseRankOf, MIN_RATING, MAX_RATING } from "../src/content/rank.js";
 
-/** Where an unrated player starts: 20 kyu, the same seat the browser gives a
- *  newcomer. Seeded stronger, a beginner watches the number fall for a dozen
- *  games, which is the one thing a ladder must never do; the wide deviation
- *  below is what carries a stronger newcomer up quickly instead. */
-export const DEFAULT_RATING = Math.round(ratingOfRank("20k"));
+/** Where an unrated player starts: 10 kyu, the same seat the browser gives a
+ *  newcomer and the one OGS gives a new account. The wide deviation below is
+ *  what carries a newcomer to their real strength quickly, up or down, in an
+ *  evening rather than a month. */
+export const DEFAULT_RATING = Math.round(ratingOfRank("10k"));
 export const DEFAULT_RD = GLICKO.rd;
 export const DEFAULT_VOL = GLICKO.vol;
 export const TAU = GLICKO.tau;

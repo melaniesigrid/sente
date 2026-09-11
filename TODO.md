@@ -159,9 +159,11 @@ Decisions made in Phase 3, the table slice (branch `feat/the-table`, 2026-09-10)
 - The rating scale is OGS's: `rank = ln(rating / 525) * 23.15`, rank 30 is 1 dan. Ranks
   are shown to a tenth, truncated so the decimal never disagrees with the whole rank.
 - Rating moves by Glicko-2, one game to a rating period. A rank with deviation over 160
-  is marked with a question mark. New players start at 20k, not at OGS's 1500: seeded
-  too strong, a beginner watches the number fall, which is the one thing a ladder must
-  never do.
+  is marked with a question mark. New players start at 10k, the seat OGS gives a new
+  account, in the browser and on the server alike; RD 350 carries them to their real
+  strength, up or down, inside an evening. Atari hints follow that uncertainty rather
+  than the belt alone, so a newcomer at a green belt they have not proved still gets
+  them (`hintsFor` in `src/content/rank.js`).
 - `server/rating.js` is now a thin use of `src/engine/glicko.js`, on the same scale.
   Stored ratings were migrated by rank; the registry carries `schema:version` and
   migrates once at wake-up, inside `blockConcurrencyWhile`.

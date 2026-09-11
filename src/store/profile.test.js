@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { sanitizeProfile, defaultProfile } from "./profile.js";
 import { DEFAULT_TYPEFACE } from "../content/typeface.js";
+import { rankOf } from "../content/rank.js";
+import { GLICKO, isProvisional } from "../engine/index.js";
 import { SYSTEM_THEME, HOUSE_THEME, DOJO_THEME } from "../theme/index.js";
 
 let warn;
@@ -14,6 +16,14 @@ describe("sanitizeProfile bookProgress", () => {
     expect(out.bookProgress).not.toBe(defaultProfile.bookProgress);
     expect(sanitizeProfile({ ...defaultProfile, bookProgress: [] }).bookProgress).toEqual({});
     expect(warn).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("the seed", () => {
+  it("seats a new player at 10k, unproven, the way OGS does", () => {
+    expect(rankOf(defaultProfile.rating)).toBe("10k");
+    expect(defaultProfile.rd).toBe(GLICKO.rd);
+    expect(isProvisional(defaultProfile.rd)).toBe(true);
   });
 });
 

@@ -17,7 +17,7 @@ import { MokuMark } from "../components/Moku.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
 import { playStone, playCapture, playBell, haptic } from "../components/sound.js";
 import {
-  rankOf, preciseRankOf, ratingOfRank, rankWithHandicap, beltOf, hintsForBelt,
+  rankOf, preciseRankOf, ratingOfRank, rankWithHandicap, beltOf, hintsFor, hintsForBelt,
   MIN_RATING, MAX_RATING,
 } from "../content/rank.js";
 import { startDuel, duelOutcome, recordDuel, duelResultText, duelShareText, duelShareUrl } from "../content/duel.js";
@@ -166,8 +166,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   /* ----- board facts (read-only, from the engine) ----- */
   const myAtari = useMemo(() => rec.phase === "playing" ? chainsInAtari(rec.board, mySide) : [], [rec.board, rec.phase, mySide]);
   const oppAtari = useMemo(() => rec.phase === "playing" ? chainsInAtari(rec.board, mySide === "b" ? "w" : "b") : [], [rec.board, rec.phase, mySide]);
-  const belt = beltOf(profile.rating);
-  const hints = hintsForBelt(belt);
+  const hints = hintsFor(profile.rating, profile.rd);
   const atariIdx = useMemo(
     () => (hints ? myAtari.flatMap(ch => ch.stones.map(([c, r]) => idx(rec.size, c, r))) : []),
     [hints, myAtari, rec.size],
@@ -677,7 +676,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
             <p className="eyebrow"><Award size={13} /> Promotion</p>
             <h3 className="result-headline">{ceremony.label}</h3>
             <BeltRibbon belt={ceremony} className="ceremony-belt" />
-            <p className="lesson-text">Now {preciseRankOf(profile.rating)}. {hintsForBelt(ceremony) ? "Atari hints stay on for one more belt." : "Atari hints come off from here: you read your own liberties now."}</p>
+            <p className="lesson-text">Now {preciseRankOf(profile.rating)}. {hintsFor(profile.rating, profile.rd) ? (hintsForBelt(ceremony) ? "Atari hints stay on for one more belt." : "Atari hints stay on until your rank has settled.") : "Atari hints come off from here: you read your own liberties now."}</p>
             <Btn primary onClick={() => setCeremony(null)}>Tie it tight</Btn>
           </Card>
         </div>

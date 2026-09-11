@@ -101,9 +101,9 @@ describe("what the server imports", () => {
 });
 
 describe("the scale the server rates on", () => {
-  it("seats a newcomer at 20 kyu, the same seat the browser gives one", () => {
-    expect(rankOf(DEFAULT_RATING)).toBe("20k");
-    expect(preciseRankOf(newRating().rating)).toBe("20.5k");
+  it("seats a newcomer at 10 kyu, the same seat the browser gives one", () => {
+    expect(rankOf(DEFAULT_RATING)).toBe("10k");
+    expect(preciseRankOf(newRating().rating)).toBe("10.4k");   // the rank centre, rounded to a whole rating
   });
 
   it("carries an old-scale player across at the rank they earned", () => {

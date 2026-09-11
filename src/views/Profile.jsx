@@ -5,7 +5,7 @@ import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { MokuMark } from "../components/Moku.jsx";
 import { useMoku, useMokuFacts } from "../components/mokuStore.js";
-import { TINTS, rankOf, preciseRankOf, beltOf, nextBelt, hintsForBelt, beltFloor } from "../content/rank.js";
+import { TINTS, rankOf, preciseRankOf, beltOf, nextBelt, hintsFor, hintsForBelt, beltFloor } from "../content/rank.js";
 import { MARKS } from "../store/profile.js";
 import { TYPEFACES, typefaceOf } from "../content/typeface.js";
 import { PALETTES, themeOf, themeVars, DOJO_THEME, SYSTEM_THEME } from "../theme/index.js";
@@ -139,8 +139,8 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
           </div>
           <div className="meter"><div className="meter-fill" style={{ width: `${pct}%`, background: next ? next.belt.color : belt.color }} /></div>
           <p className="fine" style={{ marginTop: 12 }}>
-            {hintsForBelt(belt)
-              ? "Training wheels: groups of yours in atari are ringed on the board. They come off at orange belt."
+            {hintsFor(profile.rating, profile.rd)
+              ? `Training wheels: groups of yours in atari are ringed on the board. They come off ${hintsForBelt(belt) ? "at orange belt" : "once your rank has settled"}.`
               : "No training wheels at this belt. You read your own liberties."}
           </p>
         </Card>
