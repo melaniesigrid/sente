@@ -1,11 +1,26 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useId } from "react";
 import {
   FIELD_N, SETTLED, freshField, advanceField, fieldSpent, fieldStones,
 } from "./fieldGame.js";
+import { StoneArt, Shine } from "./stoneArt.jsx";
 
 /* ----------------------- THE GROUND -----------------------
    The texture behind the front door's first and last bands: a go position,
-   blurred to where it is read as pattern first and a game second.
+   softened to where it is read as ground first and a game second.
+
+   It used to be blurred to thirteen pixels, which is a radius that turns a
+   stone into weather. The whole argument for spending a real engine on a
+   decoration is that a visitor can see it is a real game, and at that radius
+   nobody could -- it was a field of soft dots that happened to be computed
+   honestly. The blur is three now: enough that the field stays behind the
+   words and never competes with them, little enough that the stones are
+   stones, and little enough that a move landing is a thing you can watch.
+
+   Which is the second change. The stones are drawn the way the figures beside
+   the statements are drawn, off the same shared gradients, and a stone arriving
+   settles in rather than appearing between two frames. One move every couple of
+   seconds, in a position that really is being played: it is the slowest thing
+   on the page and the only one that is a game.
 
    It is the real engine playing itself, for the same reason the hero board is:
    this page is not allowed to show anything it cannot show for real, and a
@@ -28,14 +43,25 @@ import {
    - It is decoration and is addressed as such: aria-hidden, no pointer events,
      and nothing in it is announced. */
 
-const CELL = 44, MARGIN = 26;
+const CELL = 44, MARGIN = 26, R = 19;
 const SPAN = (FIELD_N - 1) * CELL + MARGIN * 2;
+/* The board is drawn into a frame half again its own size, so a band shows a
+   position rather than six boulders. The stones were the size of a fist when
+   the blur came off: at that scale five of them reach the words and the other
+   sixty are off the edge, which is a texture pretending to be a game. Pulled
+   back, most of the position is on the page, each stone is about the size it
+   would be on a real board across a table, and a move landing anywhere in it
+   has somewhere to land where it will be seen. */
+const VIEW = Math.round(SPAN * 1.5);
+const OFF = Math.round((VIEW - SPAN) / 2);
 const CHUNK = 8;          /* moves per frame while seeding */
-const TICK_MS = 3400;     /* a mood, not a demo */
+const TICK_MS = 2600;     /* a mood, not a demo, but a visible one */
 
 export function StoneField({ live = true }) {
   const [board, setBoard] = useState(null);
   const host = useRef(null);
+  const uid = useId().replace(/[:]/g, "");
+  const ids = { b: `fsb-${uid}`, w: `fsw-${uid}`, shine: `fss-${uid}` };
 
   useEffect(() => {
     const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -86,15 +112,29 @@ export function StoneField({ live = true }) {
     };
   }, [live]);
 
-  const at = (n) => MARGIN + n * CELL;
+  const at = (n) => OFF + MARGIN + n * CELL;
 
   return (
     <div className={`stone-field${board ? " ready" : ""}`} ref={host} aria-hidden="true">
       {board && (
-        <svg viewBox={`0 0 ${SPAN} ${SPAN}`} preserveAspectRatio="xMidYMid slice" focusable="false">
+        <svg viewBox={`0 0 ${VIEW} ${VIEW}`} preserveAspectRatio="xMidYMid slice" focusable="false">
+          <defs><StoneArt ids={ids} /></defs>
+          {/* Keyed by the point it sits on, which is what makes the arriving
+              visible: a stone that was not there last tick is a new element and
+              settles in, and one that was there is the same element and does
+              not move. A capture simply takes its element away. */}
           {fieldStones(board).map(s => (
-            <circle key={s.i} cx={at(s.c)} cy={at(s.r)} r={19}
-              className={s.colour === "b" ? "fs-b" : "fs-w"} />
+            <g key={s.i} className="fs-stone">
+              <circle cx={at(s.c)} cy={at(s.r)} r={R}
+                fill={`url(#${s.colour === "b" ? ids.b : ids.w})`} />
+              {/* A white stone on a pale ground is the same value as the
+                  ground: without an edge it is a hole in the field rather than
+                  a stone in it, and half the position simply does not arrive.
+                  The board does not need this because a board has lines under
+                  its stones to cut them out. This has none. */}
+              <circle cx={at(s.c)} cy={at(s.r)} r={R} className="fs-rim" />
+              <Shine x={at(s.c)} y={at(s.r)} r={R} id={ids.shine} className="fs-shine" />
+            </g>
           ))}
         </svg>
       )}

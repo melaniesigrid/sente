@@ -35,6 +35,23 @@ export const en = {
     about: "About Joseki",
     built: "built with ♥",
   },
+  /* The journal: what shipped, and what we think about how it is built. The
+     writing itself is not here -- a note lives in content/journal.js and a
+     release is read out of CHANGELOG.md. These are the words around it. */
+  journal: {
+    nav: "Journal",
+    label: "What we have been doing",
+    titleA: "The",
+    titleEm: "journal",
+    lede: "Everything that has shipped, straight out of the changelog, and {notes} longer notes on how the thing is built. {releases} releases so far.",
+    english: "The notes are written in English and are not translated. A note is somebody's writing rather than a label, and we would rather hand you the real one than a machine's version of it. Everything else on this screen follows the language you chose.",
+    note: "Note",
+    release: "Release",
+    read: "Read it",
+    back: "All entries",
+    changes: { one: "{count} change", other: "{count} changes" },
+    footLink: "Journal",
+  },
   error: {
     title: "Something slipped",
     body: "This part of Joseki hit an error it could not recover from. Your profile and any saved game are untouched.",

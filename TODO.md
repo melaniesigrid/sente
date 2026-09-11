@@ -1513,3 +1513,35 @@ on a figure: a real shape from the game, set at the size of the words.
 Still open: nothing blocking. If a ninth shape is ever wanted, the crane's nest and the
 snapback both need a search to prove rather than a count, which is why they are not here.
 
+## The journal, and the field turned up (done, branch `feat/journal`)
+
+Two things a front door was missing: a record of what has been built, and a ground
+behind the hero that a visitor can see is a real game.
+
+- [x] `src/content/journal.js`: the shelf. Releases are not authored there, they are
+      parsed out of `CHANGELOG.md` at build time, so the only way to publish a release
+      note is to have shipped the release and nothing can claim a version the repository
+      does not have. Four longer notes are authored as data, each naming the modules it
+      is about (2026-09-11).
+- [x] `journal.test.js` counts the release headings in the file and holds the parser to
+      them, checks every module a note names exists, and refuses a body block the view
+      cannot set. The headline item is promoted out of the release list rather than
+      printed twice, which is also tested.
+- [x] `src/views/Journal.jsx`: a shelf and a page per entry, set as reading at a 66
+      character measure. It holds no sentence of its own and renders no markup: a
+      changelog line arrives already split into a bold lead, plain text and code spans.
+      Reached from the footer beside About, and from the roadmap section of the front
+      door, which now says how much has already shipped.
+- [x] The chrome is translated in both catalogues. The notes are English and the screen
+      says so: a machine-translated essay on a site this careful about words would be
+      worse than an honest English one.
+- [x] The stone field behind the hero and the closing band came down from a 13px blur to
+      2px, was pulled back to half again its own size so a band shows a position rather
+      than six boulders, and a stone now settles in on the move it is played. White
+      stones got a rim: on a pale ground, without an edge, half the position was a hole
+      in the field rather than a stone in it. The drawing of a stone is shared with the
+      figures in `src/components/stoneArt.jsx`.
+
+Still open: nothing blocking. A note is a file in `journal.js` and a release writes
+itself, so the next entry is a commit either way.
+

@@ -18,6 +18,7 @@ import { PALETTES } from "../theme/palettes.js";
 import { dayKey } from "../content/kata.js";
 import { LANDING_STATEMENTS } from "../content/plain.js";
 import { RECORD, RECORD_DEK, RECORD_STANDFIRST, SOURCES } from "../content/press.js";
+import { COUNTS } from "../content/journal.js";
 
 /* ----------------------- THE FRONT DOOR -----------------------
    Everything a visitor sees before they have played a stone. It is a different
@@ -331,6 +332,16 @@ export function Landing({ profile, onEnter, go }) {
             <li><Sparkles size={15} /> A spaced-repetition tsumego queue that knows what you keep missing</li>
           </ul>
         </div>
+        {/* The other half of "in the open": what is still to come is only half a
+            promise without a record of what already arrived, and the journal is
+            read straight out of the changelog, so this link goes to the thing
+            itself rather than to a page about it. */}
+        <p className="lp-after reveal">
+          <button className="lp-inline" onClick={() => go("journal")}>
+            <span>{`Read what has already shipped: ${COUNTS.releases} releases and ${COUNTS.notes} notes`}</span>
+            <ArrowRight size={15} strokeWidth={2.4} />
+          </button>
+        </p>
       </section>
 
       <Band lines={LANDING_STATEMENTS.begin} figure="begin" center />

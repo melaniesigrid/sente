@@ -35,6 +35,23 @@ export const es = {
     about: "Sobre Joseki",
     built: "hecho con ♥",
   },
+  /* El diario: lo que se ha publicado y lo que pensamos sobre cómo está hecho.
+     La escritura en sí no está aquí: una nota vive en content/journal.js y una
+     versión se lee de CHANGELOG.md. Estas son las palabras de alrededor. */
+  journal: {
+    nav: "Diario",
+    label: "En qué hemos andado",
+    titleA: "El",
+    titleEm: "diario",
+    lede: "Todo lo que se ha publicado, tal como sale del registro de cambios, y {notes} notas largas sobre cómo está hecho esto. {releases} versiones hasta ahora.",
+    english: "Las notas están escritas en inglés y no se traducen. Una nota es lo que alguien escribió, no una etiqueta, y preferimos darte la de verdad antes que la versión de una máquina. Todo lo demás en esta pantalla sigue el idioma que elegiste.",
+    note: "Nota",
+    release: "Versión",
+    read: "Leerla",
+    back: "Todas las entradas",
+    changes: { one: "{count} cambio", other: "{count} cambios" },
+    footLink: "Diario",
+  },
   error: {
     title: "Algo se nos ha escapado",
     body: "Esta parte de Joseki ha dado con un error del que no ha sabido volver. Tu perfil y cualquier partida guardada siguen intactos.",
