@@ -205,7 +205,7 @@ export function PlayView({ profile, setProfile, notify, resume }) {
     );
   }
   if (session.mode.kind === "pair") {
-    return <PairGame mode={session.mode} onExit={() => setSession(null)} profile={profile} notify={notify} />;
+    return <PairGame mode={session.mode} initial={session.record} onExit={() => setSession(null)} profile={profile} notify={notify} />;
   }
   if (session.mode.kind === "online") {
     return <OnlineGame gameId={session.mode.gameId} onExit={() => setSession(null)} profile={profile} notify={notify} />;

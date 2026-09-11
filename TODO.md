@@ -1329,8 +1329,19 @@ duel, a master game and a coached game move no rating.
       opponent persona and the partner rank; `src/views/PairGame.jsx` plays it. A view
       of its own rather than a fourth branch inside `Game.jsx`, which already carries
       duel, master and coaching. A lobby card to sit down at.
-- [ ] A3: the finish. Resume a saved pair game, SGF with four names, telemetry, Moku's
-      reactions, the keyboard, review.
+- [x] A3: the finish (branch `feat/rengo-resume`). A pair table survives a reload, is
+      remembered in the ring buffer under its own kind, and answers P and U. SGF with
+      four names and Moku's reactions already landed with A2.
+      - The saved mode carries `partnerRank`. Without it a resumed table would seat a
+        partner of a different strength than the one you left playing with, which is the
+        whole character of the game; a blob that lost it is dropped rather than guessed at.
+      - Only the opponent id and the two ranks are stored. The roster is rebuilt from them
+        on the way back in, so a resumed table can never seat a partner that today's
+        personas disagree with.
+      - Telemetry kind `"pair"`. `suggestLevel` reads `"rated"` alone, so a pair game can
+        never move the level the lobby suggests: a 7 dan played half of it.
+      - Review of a finished pair game is still open, and belongs with the analysis work
+        rather than here.
 
 **Phase B: online pair go (server)**
 - [x] B1: `server/room.js` carries a roster instead of `seats: { b, w }` and validates
