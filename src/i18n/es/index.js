@@ -19,6 +19,7 @@ import { screens } from "./screens.js";
 import { game } from "./game.js";
 import { front } from "./front.js";
 import { rooms } from "./rooms.js";
+import { legal, legalDoc, credit } from "./legal.js";
 import { content } from "./content.js";
 import { overlay } from "./overlay.js";
 
@@ -31,6 +32,9 @@ export const es = {
   ...game,
   ...front,
   ...rooms,
+  legal,
+  legalDoc,
+  credit,
   ...content,
   ...overlay,
 };

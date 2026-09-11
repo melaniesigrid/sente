@@ -6,6 +6,7 @@ import { LIBRARY } from "../content/library.js";
 import { WELCOME_LESSON } from "../content/welcome.js";
 import { localize } from "../content/translate.js";
 import { TONES, RULES, STONE_RULE } from "../theme/tokens.js";
+import { DOCUMENTS, CREDITS } from "../content/legal.js";
 import {
   BASE_LOCALE, SYSTEM_LOCALE, LOCALES, CATALOGUES, isLocaleId, localeOf, resolveLocale,
   makeT, flatten, interpolate, pluralCategory,
@@ -19,7 +20,7 @@ import {
    its line. `lesson.` is not, and cannot be — the library is translated a file
    at a time and an untranslated lesson is simply still in English — so what is
    checked there is that every key names something real. */
-const OVERLAYS = ["room.", "stones.", "type.", "belt.", "lesson.", "tone.", "rule."];
+const OVERLAYS = ["room.", "stones.", "type.", "belt.", "lesson.", "tone.", "rule.", "legalDoc.", "credit."];
 const isOverlay = (key) => OVERLAYS.some(p => key.startsWith(p));
 const others = LOCALES.filter(l => l.id !== BASE_LOCALE);
 const HOLE = /\{(\w+)\}/g;
@@ -202,12 +203,22 @@ describe.each(others)("$name is complete", (locale) => {
       // The audit prints one row per rule, plus the stones and the two
       // closeness rows, which share one reason between them.
       rule: [...RULES.map(r => r.id), STONE_RULE.id, "close-light", "close-dark", "closeness"],
+      legalDoc: DOCUMENTS.map(d => d.id),
+      credit: CREDITS.map(c => c.id),
     };
     for (const key of [...mine.keys()].filter(isOverlay)) {
       const [ns, id] = key.split(".");
       expect(ids[ns], `${locale.id}: ${key}`).toContain(id);
+      /* An overlay has no holes, because there is nobody to fill them — except
+         the legal documents, which are written around a handful of constants
+         and are handed exactly these. */
+      const allowed = key.startsWith("legalDoc.") || key.startsWith("credit.")
+        ? new Set(["product", "studio", "contact", "repo", "copyright"])
+        : new Set();
       for (const line of lines(mine.get(key))) {
-        expect(holesIn(line).size, `${locale.id}: ${key} has a hole nothing fills`).toBe(0);
+        for (const hole of holesIn(line)) {
+          expect(allowed.has(hole), `${locale.id}: ${key} fills {${hole}}, which nothing hands it`).toBe(true);
+        }
       }
     }
   });

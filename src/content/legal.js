@@ -34,6 +34,10 @@ export const COPYRIGHT = `© ${COPYRIGHT_YEAR} ${STUDIO}`;
  *  legal document with no date is a document nobody can tell they have read
  *  before. Move it in the same commit that changes a word of the text. */
 export const UPDATED = "10 September 2026";
+/** The same day, machine-readable, so each language can set it its own way:
+ *  "10 September 2026" in English, "10 de septiembre de 2026" in Spanish. The
+ *  two are held in step by `legal.test.js`. */
+export const UPDATED_ISO = "2026-09-10";
 
 /* ---------------------------------------------------------------- credits */
 /* Everything in the build that somebody else made, with the terms it comes
