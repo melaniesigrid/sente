@@ -22,6 +22,9 @@ import { plain, statement, moku, ruleset, preset, persona } from "./content.js";
 import { tier, track, book, series, problem, shape } from "./library.js";
 import { lessons1 } from "./lessons1.js";
 import { lessons2 } from "./lessons2.js";
+import { lessons3 } from "./lessons3.js";
+import { lessons4 } from "./lessons4.js";
+import { lessons5 } from "./lessons5.js";
 
 export const de = {
   ...shell,
@@ -52,5 +55,5 @@ export const de = {
   shape,
   /* The lessons arrive a tier at a time, so this one key is assembled rather
      than spread. */
-  lesson: { ...lessons1, ...lessons2 },
+  lesson: { ...lessons1, ...lessons2, ...lessons3, ...lessons4, ...lessons5 },
 };
