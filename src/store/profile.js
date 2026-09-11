@@ -6,6 +6,7 @@ import { GLICKO } from "../engine/index.js";
 import { DEFAULT_TYPEFACE, typefaceOf } from "../content/typeface.js";
 import { SYSTEM_THEME, isThemeId, sanitizePalette, AUTO_STONES, isStoneId } from "../theme/index.js";
 import { SYSTEM_LOCALE, isLocaleId } from "../i18n/index.js";
+import { parseCardKey, sanitizeEntry } from "../content/recall.js";
 
 export const STORE_KEY = "sente-profile-v3";
 /** v2 held ratings on the old 100-points-per-rank scale. v3 is OGS's scale, so
@@ -34,6 +35,7 @@ export const defaultProfile = {
   duelStarted: "", duelDate: "", duelResult: "", duelMoves: 0,  // daily duel: day started, day finished, code ("B+3.5")
   duelPlayed: 0, duelWins: 0, duelStreak: 0, duelBestStreak: 0,
   bookProgress: {},                          // { [lessonId]: { stops, score, total } } from replay lessons
+  recall: {},                                // { [lessonId#step]: { box, due } } spaced repetition, src/content/recall.js
 };
 
 const isCount = (n) => Number.isInteger(n) && n >= 0;
@@ -52,6 +54,18 @@ function sanitizeBookProgress(value) {
 
 /** How the last stone played is marked. A preference, not a rule: some readers want
  *  the dot, some the ring around the stone, and some want the board left alone. */
+/** A recall schedule, keeping only entries of the right shape. Unknown card
+ *  keys are harmless: `scheduledCards` drops any whose lesson or step is gone. */
+function sanitizeRecall(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const out = {};
+  for (const [key, entry] of Object.entries(value)) {
+    const clean = parseCardKey(key) && sanitizeEntry(entry);
+    if (clean) out[key] = clean;
+  }
+  return out;
+}
+
 export const MARKS = ["dot", "ring", "none"];
 
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -78,6 +92,7 @@ const validField = (key, value, raw) => {
   if (key === "stones") return typeof value === "string" && isStoneId(value);
   if (typeof def === "string") return typeof value === "string";
   if (key === "bookProgress") return sanitizeBookProgress(value) !== null;
+  if (key === "recall") return sanitizeRecall(value) !== null;
   return false;
 };
 
@@ -95,6 +110,7 @@ export function sanitizeProfile(raw) {
     if (!validField(key, raw[key], raw)) { bad.push(key); continue; }
     if (key === "dojo") out[key] = raw[key] === null ? null : sanitizePalette(raw[key]);
     else if (key === "bookProgress") out[key] = sanitizeBookProgress(raw[key]);
+    else if (key === "recall") out[key] = sanitizeRecall(raw[key]);
     // The three rating numbers are clamped rather than rejected: a rating off the
     // ladder is still a rating, just an impossible one, and the nearest real rank
     // is a kinder answer than resetting a player to the seed rank.

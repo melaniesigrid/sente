@@ -653,7 +653,28 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       volume is the Classic Joseki already ships), Gokyo Shumyo (Hayashi Genbi, 1812, 520
       tesuji), Igo Hatsuyoron (Inoue Dosetsu Inseki, 1713, 183 hard problems).
 - [ ] Tsumego graded 30k → 5k with categories and a daily set (reuses the verifier).
-- [ ] Spaced repetition: finished quiz steps enter a recall queue; "Review five" card on Home.
+- [x] Spaced repetition (2026-09-11, branch `feat/recall`): finished quiz steps enter a
+      recall queue, and Home carries the Review card. `src/content/recall.js` is the
+      scheduler — pure, dates as day keys, the library passed in — and `src/views/Recall.jsx`
+      is the sitting, played through the library's own step reducer so a question behaves
+      exactly as it did in the lesson.
+      Decisions: a card is one `quiz` or `choice` step of a finished lesson, because those
+      are the two types that ask one question with one right answer; a sequence, a count or
+      a replay is a lesson in itself and grading one on a first try would grade the wrong
+      thing. Six Leitner boxes at 1, 2, 4, 8, 16 and 32 days. Recalled means first try and
+      unaided — a second guess is a card read off the board rather than remembered — and a
+      miss or a Show me sends the card back to the first box. A card is never due the day it
+      was answered, right or wrong: a question answered again within the hour is answered
+      out of the last minute. The lesson is named on the card but never quoted, since its
+      teaching text is the answer. Home shows the card only once there is a queue, and Learn
+      shows it above Continue, because a question that is due is the one thing there about
+      to be forgotten. The schedule is `profile.recall`, sanitised like every other stored
+      field; a key whose lesson or step was renamed away is dropped, not repaired.
+- [ ] The sitting is five cards and then it stops. Decide whether a learner who wants to
+      keep going gets a second helping, or whether the cap is the feature.
+- [ ] Tsumego and the weekly problem are answered questions too, and neither enters the
+      queue. They have their own ids rather than lesson steps, so the card key would have
+      to grow a kind.
 - [ ] Joseki and opening library for 9×9 and 19×19.
 
 ## Phase 6 — Masters and books
@@ -785,9 +806,10 @@ Open:
       named room names the set it was designed around, a dojo room keeps the set it was
       started from, and a player may override all of it for every room at once.
       `stones.test.js` holds all eighty room-and-set boards to the floor the dojo prints.
-- [ ] The dojo picks its own set: a built room inherits the set it was started from but
-      cannot change it without changing the override for every room. The tone list is the
-      obvious place for it, beside the six colours.
+- [x] The dojo builds from the drawer (`src/theme/swatches.js`): no eyedropper and no hex
+      field, only the colours the named rooms already use for that role, indexed per tone and
+      sorted light to dark. The two lights are always derived, and the panel picks the room's
+      own stones beside the tones rather than inheriting whatever it was started from.
 - [ ] Dark variant of the stone palette.
 - [x] Sound and haptic feedback on stone placement (opt-in, synthesised, no assets).
 - [ ] Self-host fonts instead of the Google Fonts `@import`.

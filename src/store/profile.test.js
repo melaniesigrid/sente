@@ -20,6 +20,31 @@ describe("sanitizeProfile bookProgress", () => {
   });
 });
 
+describe("sanitizeProfile recall", () => {
+  it("keeps well-shaped cards, drops malformed keys and entries", () => {
+    const out = sanitizeProfile({
+      ...defaultProfile,
+      recall: {
+        "atari-escape#2": { box: 1, due: "2026-09-20" },
+        "no-step": { box: 0, due: "2026-09-20" },      // not a card key
+        "atari-escape#x": { box: 0, due: "2026-09-20" },
+        "atari-escape#3": { box: 0, due: "soon" },     // not a day key
+        "atari-escape#4": "x",
+      },
+    });
+    expect(out.recall).toEqual({ "atari-escape#2": { box: 1, due: "2026-09-20" } });
+  });
+
+  it("resets a schedule that is not an object, and says so once", () => {
+    expect(sanitizeProfile({ ...defaultProfile, recall: [] }).recall).toEqual({});
+    expect(warn).toHaveBeenCalledTimes(1);
+  });
+
+  it("ships empty, so a profile that has never learned anything is asked nothing", () => {
+    expect(defaultProfile.recall).toEqual({});
+  });
+});
+
 describe("the seed", () => {
   it("seats a new player at 10k, unproven, the way OGS does", () => {
     expect(rankOf(defaultProfile.rating)).toBe("10k");
