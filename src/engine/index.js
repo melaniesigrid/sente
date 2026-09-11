@@ -29,6 +29,10 @@ export {
   atMove, moveNumbers, captureMoves, nextCapture, prevCapture,
   reviewLength, clampMove, markerAt, reviewLabel, playedMoves,
 } from "./review.js";
+export {
+  SEAT_IDS, RosterError, colorOfSeat, partnerSeat, createRoster, isPair, rosterSeats,
+  teamSeats, rotationOf, seatAt, seatToPlay, canSeatPlay, humanSeats, rosterPlayers,
+} from "./rengo.js";
 export { aiChooseMove, aiChooseMoveForRecord } from "./ai.js";
 export { RANKS, inverseRank, encodeInputs } from "./kata/features.js";
 export { choosePolicyMove, keepSet } from "./kata/policy.js";
