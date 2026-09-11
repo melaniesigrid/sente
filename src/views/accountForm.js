@@ -38,7 +38,7 @@ export const errorText = (reason) => ACCOUNT_ERRORS[reason] ?? `Something went w
  *  to bottom.
  *
  *  "forgot" asks for an address and nothing else. "reset" asks for a password
- *  and nothing else — its address comes back from the server with the link,
+ *  and nothing else: its address comes back from the server with the link,
  *  because the browser needs it to derive the key and the person following a
  *  link from their own inbox should not have to type it again. */
 export function formProblem(mode, fields) {
@@ -49,7 +49,7 @@ export function formProblem(mode, fields) {
   if (mode === "password" && !oldPassword) return "Your current password, first";
   if (mode !== "signin") {
     const problem = passwordProblem(password);
-    if (problem === "password-short") return `A password is ${MIN_PASSWORD} characters or more — a short sentence is easier to remember than a short password`;
+    if (problem === "password-short") return `A password is ${MIN_PASSWORD} characters or more. A short sentence is easier to remember than a short password`;
     if (problem) return "Choose a password";
     if (confirm !== password) return "The two passwords are not the same";
   } else if (!password) {
@@ -59,7 +59,7 @@ export function formProblem(mode, fields) {
 }
 
 /** Rough, honest feedback on a password: how long it is against how long it
- *  wants to be. Not a strength meter with a colour and a lie about entropy —
+ *  wants to be. Not a strength meter with a colour and a lie about entropy,
  *  just the one thing that actually matters, said once. */
 export function passwordNote(password) {
   if (!password) return null;

@@ -88,8 +88,8 @@ export function PlayView({ profile, setProfile, notify, resume }) {
         <ScreenHeader
           label="Sit down"
           title={<>Find a <em>game</em>.</>}
-          lede="Play another person over the network, take on a house opponent — each with
-                their own style and table talk — or hand the device across the table for a
+          lede="Play another person over the network, take on a house opponent, each with
+                their own style and table talk, or hand the device across the table for a
                 face-to-face game. House players adapt to the level you pick, from 25 kyu
                 to 9 dan, and play any board." />
         <Statement lines={statementFor("play")} figure="play">{plainFor("play")}</Statement>
@@ -112,7 +112,7 @@ export function PlayView({ profile, setProfile, notify, resume }) {
               a suggestion and it reads like one: it says what it counted, so a
               player who disagrees has the number to disagree with, and it can be
               waved off without taking it. Nothing here changes the level on its
-              own — the house players adapt to whatever they are asked to play,
+              own: the house players adapt to whatever they are asked to play,
               and being moved without asking is the opposite of that. */}
           {suggestion && dismissed !== suggestion.to && (
             <div className="level-nudge">

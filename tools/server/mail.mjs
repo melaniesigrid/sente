@@ -7,7 +7,7 @@
 // post, and there is no mailbox here to read. So it mints them through the
 // operator route (POST /api/admin/mail/:kind/:id), which hands back exactly
 // the link the letter would have carried without sending anything. That route
-// needs ADMIN_TOKEN — `npx wrangler secret put ADMIN_TOKEN` for a deployment,
+// needs ADMIN_TOKEN: `npx wrangler secret put ADMIN_TOKEN` for a deployment,
 // or a line in `.dev.vars` for `npm run dev:server`.
 //
 // The password is stretched here exactly as the browser stretches it, because

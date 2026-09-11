@@ -22,8 +22,8 @@ export function resultLine(result) {
   if (result.method === "resign") return `${side(result.winner)} wins by resignation`;
   if (result.method === "time") return `${side(result.winner)} wins on time`;
   const { b, w } = result.score.totals;
-  if (result.winner === null) return `Jigo — ${b} : ${w}`;
-  return result.winner === "b" ? `Black wins — ${b} : ${w}` : `White wins — ${w} : ${b}`;
+  if (result.winner === null) return `Jigo · ${b} : ${w}`;
+  return result.winner === "b" ? `Black wins · ${b} : ${w}` : `White wins · ${w} : ${b}`;
 }
 
 /** The status pill. `personaName` is null for pass-and-play. `loading` is the

@@ -95,7 +95,7 @@ export const PullQuote = ({ children, label = "In plain words", size = "" }) => 
    The same idea as the pull quote, in six words instead of sixty, and set as
    large as the screen will bear. A screen carries one quotation and one
    statement: the quotation is Zhang Ni's voice (`Passage`), set in the italic,
-   and the statement is the house's, set in the display face — because two
+   and the statement is the house's, set in the display face, because two
    blocks of the same italic stacked together read as one long quote nobody
    finishes, which is the bug this replaced.
 

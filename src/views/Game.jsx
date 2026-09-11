@@ -272,7 +272,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   /* The clock. Running out of time is a rule, so the flag goes through the engine's
      `timeout` and settles through the same `conclude` a resignation does: a loss on
      time is rated exactly like a loss by resignation. Against a house player only
-     the human is timed — see `useClock` for why. */
+     the human is timed; see `useClock` for why. */
   const onFlag = useCallback((color) => {
     if (rec.phase === "ended") return;
     setRec(conclude(timeout(rec, color), rec));
@@ -446,7 +446,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   };
 
   /* P passes, U takes back. Both go through the same handlers the buttons use, so
-     every guard on them holds for the keyboard too — a duel still refuses an undo,
+     every guard on them holds for the keyboard too: a duel still refuses an undo,
      and neither fires while a house player is thinking. Typing in the chat box is
      typing, not a shortcut. */
   useEffect(() => {
@@ -682,7 +682,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
             </Card>
           ) : (
             <Card inset>
-              <p className="fine">Face-to-face games are unrated. Pass the device after each move — and settle disputes the traditional way: another game.</p>
+              <p className="fine">Face-to-face games are unrated. Pass the device after each move, and settle disputes the traditional way: another game.</p>
             </Card>
           )}
         </div>

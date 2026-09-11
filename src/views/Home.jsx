@@ -43,10 +43,10 @@ export function Home({ profile, go, onResume }) {
   // One line naming the next honest thing to do, so the dashboard opens on a
   // suggestion rather than on a wall of numbers.
   const nudge = !games
-    ? "Nothing played yet. A house player is waiting whenever you are \u2014 nine lines is plenty for a first game."
+    ? "Nothing played yet. A house player is waiting whenever you are. Nine lines is plenty for a first game."
     : lessonsDone < LESSONS.length
       ? `${LESSONS.length - lessonsDone} ${LESSONS.length - lessonsDone === 1 ? "lesson" : "lessons"} still ahead of you, and the ladder is open all day.`
-      : "Every lesson read. What is left is games \u2014 and the reading that comes with them.";
+      : "Every lesson read. What is left is games, and the reading that comes with them.";
   if (opened) {
     return <Review record={opened} profile={profile} onExit={() => setOpened(null)} />;
   }

@@ -11,7 +11,7 @@ import { reviewLength } from "../engine/index.js";
    Every failure has a name and a message the reader can act on. Nothing here says
    "invalid file"; it says which byte, or which move, or which board size.
 
-   The engine does the parsing and the legality checking — `recordFromSgf` replays
+   The engine does the parsing and the legality checking; `recordFromSgf` replays
    the moves through the same transitions a live game uses, so a file that claims an
    illegal move is refused rather than shown as a position that could never exist. */
 
@@ -35,7 +35,7 @@ export function readSgf(text, name = "the file") {
   }
 
   // Syntax first, on its own, so a file that parses but claims an impossible move can
-  // be told apart from one that is simply malformed — structurally, rather than by
+  // be told apart from one that is simply malformed: structurally, rather than by
   // reading the wording of the engine's message. `recordFromSgf` reports both as an
   // `SgfParseError`, and the two deserve different sentences.
   let parsed = true;
@@ -57,7 +57,7 @@ export function readSgf(text, name = "the file") {
       const why = e instanceof IllegalMoveError ? e.reason : plain(e);
       return {
         ok: false, reason: "illegal",
-        message: `${name} reads as SGF but claims a move Joseki's rules refuse — ${why}. It has not been opened: a position that could not happen is not worth showing.`,
+        message: `${name} reads as SGF but claims a move Joseki's rules refuse: ${why}. It has not been opened: a position that could not happen is not worth showing.`,
       };
     }
     if (e instanceof SgfParseError) {
@@ -88,5 +88,5 @@ export function importSummary(record) {
   const parts = [`${record.size}×${record.size}`, `${reviewLength(record)} moves`];
   if (record.handicap) parts.push(`${record.handicap} stones`);
   parts.push(`komi ${record.komi}`);
-  return [who, parts.join(" · ")].filter(Boolean).join(" — ");
+  return [who, parts.join(" · ")].filter(Boolean).join(", ");
 }

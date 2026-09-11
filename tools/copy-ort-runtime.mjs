@@ -3,7 +3,7 @@
 
    The network runs in a worker (`ort.env.wasm.proxy`, see src/engine/kata/net.js).
    Left to itself the bundler hands that worker the app's entry chunk, which reaches
-   for `document` and dies, and the session silently falls back to the main thread —
+   for `document` and dies, and the session silently falls back to the main thread,
    which is the freeze this was meant to remove. Pointing `wasmPaths` at a plain URL
    takes the bundler out of the question entirely.
 

@@ -9,7 +9,7 @@ import { useState, useEffect } from "react";
 const QUERY = "(prefers-color-scheme: dark)";
 
 /** True when the device asks for a dark interface. False anywhere the query is
- *  unavailable — a very old browser, or a test — which lands on the light room,
+ *  unavailable (a very old browser, or a test) which lands on the light room,
  *  the same place the app has always started. */
 export function usePrefersDark() {
   const [dark, setDark] = useState(

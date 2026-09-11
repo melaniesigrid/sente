@@ -4,8 +4,8 @@
    src/theme/index.js.
 
      LOCALES         the languages we ship, as data
-     BASE_LOCALE     "en" — what everything is authored in, and the floor
-     SYSTEM_LOCALE   "system" — follow the device; a pointer, not a language
+     BASE_LOCALE     "en": what everything is authored in, and the floor
+     SYSTEM_LOCALE   "system": follow the device; a pointer, not a language
      resolveLocale   a stored id + the device's languages -> the id to read in
      localeOf        an id -> the language
      isLocaleId      may a profile hold this id

@@ -146,8 +146,8 @@ describe("the words at a pair table", () => {
   });
   it("gives way to the result and to the count", () => {
     const r = seat();
-    expect(pairStatus({ roster: r, seatId: "b1", phase: "ended", result: {}, resultLine: "Black wins — 44 : 40" }))
-      .toBe("Black wins — 44 : 40");
+    expect(pairStatus({ roster: r, seatId: "b1", phase: "ended", result: {}, resultLine: "Black wins · 44 : 40" }))
+      .toBe("Black wins · 44 : 40");
     expect(pairStatus({ roster: r, seatId: null, phase: "scoring" })).toBe("Mark dead stones, then accept");
   });
   it("attributes a move to a player and a colour both", () => {

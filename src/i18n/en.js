@@ -4,10 +4,10 @@
    English line, so an unfinished language is a page with some English on it and
    never a page with a hole in it.
 
-   Nesting is for whoever edits this — a screen's lines sit together, and a diff
+   Nesting is for whoever edits this: a screen's lines sit together, and a diff
    that touches one screen touches one block. The caller sees dotted keys.
 
-   Prose that lives in a data file — a room's note, a stone set's, a pairing's —
+   Prose that lives in a data file (a room's note, a stone set's, a pairing's)
    is NOT repeated here. The data file is the English; a translation overlays it
    by id under `room.`, `stones.` and `type.`, and `i18n.test.js` holds those
    namespaces complete against the data rather than against this file. */
@@ -55,7 +55,7 @@ export const en = {
     sub: "Everything here changes how Joseki looks and nothing here changes how it plays. Pick the language, pick the room, pick the stones you want to play with, pick the type. Every swatch is drawn in the thing it is offering, so choose by looking.",
     words: {
       head: "The words",
-      note: "Joseki is written in English and read back to you in your own language. A language that is still being translated falls back to the English line rather than leaving a gap, so nothing is ever missing from a screen — some of it is simply still in English.",
+      note: "Joseki is written in English and read back to you in your own language. A language that is still being translated falls back to the English line rather than leaving a gap, so nothing is ever missing from a screen: some of it is simply still in English.",
       pick: "Language: {name}",
       system: "Your device",
       systemName: "Follow this device",
@@ -89,6 +89,6 @@ export const en = {
       note: "Each pairing sets the headings, the serif that carries the sayings, the body text and the small labels; the palette and the shadows never move.",
       pick: "Typeface {name}",
     },
-    device: "The language, the room, the stones and the pairing live on this device, beside your profile. They are preferences rather than account settings — a borrowed laptop keeps its own.",
+    device: "The language, the room, the stones and the pairing live on this device, beside your profile. They are preferences rather than account settings: a borrowed laptop keeps its own.",
   },
 };

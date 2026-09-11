@@ -38,8 +38,8 @@ export function themeVars(id, custom = null, stones = AUTO_STONES) {
   return tokensFor(withStones(themeOf(id, custom), stones));
 }
 
-/** A palette with the stones a player asked for. `auto` — and anything
- *  unrecognised — leaves the room's own set alone, which is how a room keeps
+/** A palette with the stones a player asked for. `auto`, and anything
+ *  unrecognised, leaves the room's own set alone, which is how a room keeps
  *  being played with the stones it was designed around. */
 export function withStones(theme, stones) {
   return stones && stones !== AUTO_STONES && isStoneId(stones) ? { ...theme, stones } : theme;

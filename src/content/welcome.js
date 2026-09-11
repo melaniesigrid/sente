@@ -24,13 +24,13 @@ export const WELCOME_LESSON = {
     {
       type: "info",
       setup: { b: [pt(2, 6), pt(4, 4)], w: [pt(6, 2), pt(4, 5)] },
-      text: "Stones sit on the crossings, not in the squares. Black plays first, then White, one stone at a time. A stone that has been played never moves again — the board only ever gains stones, or loses them all at once when they are captured.",
+      text: "Stones sit on the crossings, not in the squares. Black plays first, then White, one stone at a time. A stone that has been played never moves again: the board only ever gains stones, or loses them all at once when they are captured.",
     },
     {
       type: "info",
       setup: { b: [pt(4, 4)] },
       marks: [pt(3, 4), pt(5, 4), pt(4, 3), pt(4, 5)],
-      text: "A stone breathes through the empty points beside it, along the lines. This one has four. On the edge it would have three, in the corner two. Take away the last one and the stone comes off the board — that is the only rule you need to hold on to.",
+      text: "A stone breathes through the empty points beside it, along the lines. This one has four. On the edge it would have three, in the corner two. Take away the last one and the stone comes off the board. That is the only rule you need to hold on to.",
     },
     {
       type: "quiz",
@@ -48,7 +48,7 @@ export const WELCOME_LESSON = {
         b: [pt(2, 0), pt(2, 1), pt(2, 2), pt(1, 3), pt(0, 3)],
         w: [pt(6, 8), pt(6, 7), pt(7, 6), pt(8, 6)],
       },
-      text: "Captures are how you argue. Territory is how you win. At the end, each side counts the empty points it has walled off — Black in the top left here, White in the bottom right — and the larger share takes the game. You now know enough to play one.",
+      text: "Captures are how you argue. Territory is how you win. At the end, each side counts the empty points it has walled off (Black in the top left here, White in the bottom right) and the larger share takes the game. You now know enough to play one.",
     },
   ],
 };

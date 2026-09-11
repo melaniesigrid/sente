@@ -5,7 +5,7 @@
 ## What it is
 
 Pair go (rengo) is go with four players: two to a team, one team Black and one team
-White, and the four of them take turns in a fixed rotation — Black, White, Black's
+White, and the four of them take turns in a fixed rotation: Black, White, Black's
 partner, White's partner, back to Black. Partners may not consult. Every player
 inherits whatever their partner just did and has to make sense of it.
 
@@ -23,14 +23,14 @@ shortcut.
 A hint answers the question you already knew to ask. A partner answers the questions
 you did not know were there: it plays the move you would not have found, in *your*
 game, against *your* mistake, and then hands the position back and makes you live in
-it. You learn what a 7 dan does with a position you built — which is the oldest way
+it. You learn what a 7 dan does with a position you built, which is the oldest way
 anyone has ever learned this game, and the reason pair go with a stronger partner is
 a teaching format and not a novelty.
 
 It also fails honestly. A hint system that is wrong teaches you wrong. A partner that
 is wrong just loses the game with you.
 
-Reviewing the finished game — asking *why* the partner played there — is a separate
+Reviewing the finished game (asking *why* the partner played there) is a separate
 feature and out of scope here. This design must not grow an analysis engine.
 
 ## The seat model
@@ -54,9 +54,9 @@ who is allowed to fill it.
 
 | | b1 | w1 | b2 | w2 |
 |---|---|---|---|---|
-| Phase A — pair go vs a bot team | you | bot | bot partner | bot partner |
-| Phase B — online pair go | you | remote human | your bot partner | their bot partner |
-| Phase C — four humans | you | remote | remote | remote |
+| Phase A: pair go vs a bot team | you | bot | bot partner | bot partner |
+| Phase B: online pair go | you | remote human | your bot partner | their bot partner |
+| Phase C: four humans | you | remote | remote | remote |
 
 Two consequences worth naming, because they are what make the model worth having:
 
@@ -89,8 +89,8 @@ mean a single thing, on evidence about two people.
 
 There are only two honest shapes, and both are refused for now:
 
-- **A rating on the standing pair.** This would genuinely mean something — it is how
-  doubles ratings work in other games — but it needs a *standing pair*: two people who
+- **A rating on the standing pair.** This would genuinely mean something (it is how
+  doubles ratings work in other games), but it needs a *standing pair*: two people who
   sign up as a partnership and keep it. Joseki has no such object, and inventing one to
   carry a number is the wrong order to do it in. If people start playing regularly with
   the same partner, build the partnership first and the number second.
@@ -114,7 +114,7 @@ One roster model covers all three. Each row changes only who occupies a seat.
 
 ## Phases
 
-### Phase A — pair go against a bot team *(client only)*
+### Phase A: pair go against a bot team *(client only)*
 
 You and a 7 dan partner against a house player and its 7 dan partner. No server, no
 second human. Ships as three PRs:
@@ -123,12 +123,12 @@ second human. Ships as three PRs:
   tested, exported through `src/engine/index.js`. No UI. Ships dark.
 - **A2 · the table.** `src/content/rengo.js` (building a roster from your profile, the
   opponent persona and the partner rank) and `src/views/PairGame.jsx`, a view of its
-  own rather than another branch inside `Game.jsx` — the four-seat header, two bots
+  own rather than another branch inside `Game.jsx`: the four-seat header, two bots
   taking turns, scoring and the result card. A lobby card to sit down at.
 - **A3 · the finish.** Resume a saved pair game, SGF with four player names, telemetry,
   Moku's reactions, the keyboard, review.
 
-### Phase B — online pair go *(server)*
+### Phase B: online pair go *(server)*
 
 Two humans, each with their own bot partner.
 
@@ -137,7 +137,7 @@ Two humans, each with their own bot partner.
   the same code path, and rooms stored before the roster are migrated on read.
 
   Four rules turned out to differ at a four-seat table, and all four are the same
-  question — *what binds a team, and what binds a chair?*
+  question: *what binds a team, and what binds a chair?*
 
   | | two seats | four seats |
   |---|---|---|
@@ -147,7 +147,7 @@ Two humans, each with their own bot partner.
   | resign / accept | you | **either partner**, binding the team |
 
   The undo rule is the one worth arguing with. One move back at a pair table would
-  hand the board to your *partner*, in the middle of a round nobody finished — so the
+  hand the board to your *partner*, in the middle of a round nobody finished, so the
   unit of a take-back is the round, which lands the asker back in their own chair, and
   that is why it is asked for on your own turn rather than off it.
 
@@ -159,14 +159,14 @@ Two humans, each with their own bot partner.
   no new infrastructure. The cost is that a team's partner needs that team's device
   online, which the lobby states before you sit down.
 
-  A bot seat carries `runBy` — the player id whose browser answers for it — and that one
+  A bot seat carries `runBy` (the player id whose browser answers for it), and that one
   field is the whole mechanism. On top of it sits the rule that keeps clients honest:
 
   > A move is applied as whichever seat is **actually to play**, when the sender controls
   > it. A client never names the chair it means, and so can never name the wrong one.
 
-  Everything that is not a move — chat, resigning, accepting the count, asking for an
-  undo — speaks from the sender's own chair, because those are theirs and not their
+  Everything that is not a move (chat, resigning, accepting the count, asking for an
+  undo) speaks from the sender's own chair, because those are theirs and not their
   partner's. A player who controls two seats and is to play in neither falls back to
   their own chair, so the refusal reads "not your turn" rather than "you are nobody".
 
@@ -179,10 +179,10 @@ Two humans, each with their own bot partner.
 - **B3 · four chairs are fragile.** Disconnection, reconnection and an abandoned seat
   in a four-seat room; spectating a pair game.
 
-### Phase C — four humans *(true rengo)*
+### Phase C: four humans *(true rengo)*
 
 - **C1 · all-human rosters.** ✅ Four human seats; no partner bot. The seat model did
-  not change at all — what changed is that **no seat carries a runner**.
+  not change at all; what changed is that **no seat carries a runner**.
 
   That turned out to be the one real hazard in the whole phase. B2 gave a bot partner a
   `runBy` so the partnering player's browser could answer for it; applied to a *human*
@@ -191,15 +191,15 @@ Two humans, each with their own bot partner.
   trusting the caller, and the test that says so is the most important one in
   `server/room.test.js`.
 
-  Four seekers fill a table in arrival order — b1, w1, b2, w2 — so the first two to
+  Four seekers fill a table in arrival order (b1, w1, b2, w2), so the first two to
   arrive lead the teams and the next two partner them. Arbitrary, but arbitrary in the
   open: everybody can see the rule, and nobody is quietly put on the stronger side.
 
   The no-team-chat rule needed no work at all. Chat has been one room-wide conversation
-  since B1, because a private line to your partner is exactly what the rule forbids —
+  since B1, because a private line to your partner is exactly what the rule forbids,
   which is what it looks like when a social rule is designed into a protocol instead of
   being asked of the people using it.
-- **C2 · seating a team.** ✅ A rengo seek may name a team — 1 or 2 — so two people who
+- **C2 · seating a team.** ✅ A rengo seek may name a team, 1 or 2, so two people who
   agree on a rendezvous word and pick the same side are partners. That is the whole invite
   mechanism: no friend list, no accounts, no second protocol, and it reuses the private
   rendezvous an ordinary game already has.
@@ -209,7 +209,7 @@ Two humans, each with their own bot partner.
   people who did not mind are dealt **alternately** rather than filling one team (filling
   team 1 first would partner the first two arrivals with each other, breaking the
   arrival-order promise C1 makes); and if three people want the same side, the first two
-  get it and the third **keeps waiting rather than being quietly moved** — being put on a
+  get it and the third **keeps waiting rather than being quietly moved**: being put on a
   team you did not choose is the one thing naming a team is meant to prevent. The lobby
   says so out loud, because four people present and not playing otherwise reads as broken.
 

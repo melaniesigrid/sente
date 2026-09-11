@@ -5,7 +5,7 @@ import { useT, useLocale, useDeviceLanguages } from "./langStore.js";
 import { saveProfile } from "../store/profile.js";
 
 /* ----------------------- THE LANGUAGE, IN THE CHROME -----------------------
-   The language lived on the Look screen, one press from anywhere — which is
+   The language lived on the Look screen, one press from anywhere, which is
    the right place for the room and the stones and the type, and the wrong one
    for this. The Look screen has to be found, and it is labelled in the
    language you are trying to leave. A reader who opens the front door and

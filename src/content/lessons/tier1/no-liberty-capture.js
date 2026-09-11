@@ -18,15 +18,15 @@ export default {
       type: "info",
       setup: shape,
       marks: [pt(1, 1)],
-      text: "Suicide is illegal — you may not play a stone that ends its own chain with zero liberties. But there is one glorious exception.",
+      text: "Suicide is illegal: you may not play a stone that ends its own chain with zero liberties. But there is one glorious exception.",
     },
     {
       type: "quiz",
       setup: shape,
       toPlay: "b",
       answers: [pt(1, 1)],
-      text: "The marked point is White's last liberty. Black to play — the move looks like suicide, but captures resolve first.",
-      success: "Five stones captured. Removal of the opponent happens before your own liberties are counted — the point was never suicide at all.",
+      text: "The marked point is White's last liberty. Black to play. The move looks like suicide, but captures resolve first.",
+      success: "Five stones captured. Removal of the opponent happens before your own liberties are counted, so the point was never suicide at all.",
       hint: "Count White's liberties before you count your own.",
     },
     {

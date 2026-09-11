@@ -4,7 +4,7 @@ import { atMove, play, IllegalMoveError, reviewLength } from "../engine/index.js
    Exploring from a position in review: "what if he had answered here instead?"
 
    A line is scratch. It is never written into the record, never saved, and never
-   exported — the game that was played is the game that was played, and a reader
+   exported: the game that was played is the game that was played, and a reader
    wondering about an alternative must not be able to quietly rewrite history. So
    this holds its own record, built by replaying the real one to the branch point
    and playing on from there, and throws it away when you leave.
@@ -13,8 +13,8 @@ import { atMove, play, IllegalMoveError, reviewLength } from "../engine/index.js
    with the same named reason, because a variation full of illegal moves would teach
    the wrong thing.
 
-   This is half of the roadmap's "variation tree". The other half — reading the
-   branches an imported SGF already contains, and navigating between stored lines —
+   This is half of the roadmap's "variation tree". The other half (reading the
+   branches an imported SGF already contains, and navigating between stored lines)
    needs the record to carry more than one line and is still open. */
 
 /** Begin exploring from move `n` of `rec`. */
@@ -53,7 +53,7 @@ export function lineLabel(line) {
 }
 
 /** Whether a position can be explored at all: a line needs somebody to move, and a
- *  game that has ended is over — you branch from a position inside it, not from the
+ *  game that has ended is over: you branch from a position inside it, not from the
  *  result. `n` past the last move is clamped by `atMove`, so only the phase matters. */
 export function canBranch(rec, n) {
   return atMove(rec, n).phase === "playing" && reviewLength(rec) > 0;

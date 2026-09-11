@@ -12,7 +12,7 @@
 
    How it works. Google serves a different stylesheet depending on what the
    asking browser supports, so we ask as a recent Chrome and get woff2 with
-   variable axes — one file per family and style rather than one per weight.
+   variable axes: one file per family and style rather than one per weight.
    Every @font-face it returns is kept as written, `src` repointed at the local
    copy and `unicode-range` preserved exactly: the range is what lets a browser
    skip downloading latin-ext for a page with no accented characters in it, and
@@ -94,8 +94,8 @@ async function main() {
      times, would make self-hosting four times heavier than the CDN it replaced,
      for no glyph anybody would ever see. So faces are grouped by the file they
      actually point at, and a group spanning several weights is declared as the
-     range it really is. Where Google instances the axis instead — Fraunces
-     returns a different file per weight — the URLs differ and nothing merges. */
+     range it really is. Where Google instances the axis instead (Fraunces
+     returns a different file per weight) the URLs differ and nothing merges. */
   const groups = new Map();
   for (const face of faces) {
     const src = field(face.block, "src");

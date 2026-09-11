@@ -45,7 +45,7 @@ export default {
       answers: [pt(4, 5)],
       text: "Black to play. Take it.",
       hint: "Fill the white stone's last liberty from below.",
-      success: "That is a ponnuki: four stones around a hole. There is no cutting point anywhere in it, the hole is an eye — White playing there now is refused as suicide — and the four stones push outward in four directions at once.",
+      success: "That is a ponnuki: four stones around a hole. There is no cutting point anywhere in it, the hole is an eye (White playing there now is refused as suicide) and the four stones push outward in four directions at once.",
     },
     {
       type: "count",
@@ -53,7 +53,7 @@ export default {
       question: "How many liberties do the four stones have between them, not counting the eye in the middle?",
       answer: 8, tolerance: 0,
       hint: "Three liberties each on the outside, four stones, and none of them shared.",
-      success: "Eight, and the eye makes nine. That is what the proverb is pricing: a group that cannot be cut, cannot be put in atari in one move, and already has half its life. The thirty is a proverb, not a measurement — nobody has ever scored a ponnuki — and what it means in practice is that you should be pleased to give up a stone to build one.",
+      success: "Eight, and the eye makes nine. That is what the proverb is pricing: a group that cannot be cut, cannot be put in atari in one move, and already has half its life. The thirty is a proverb, not a measurement (nobody has ever scored a ponnuki) and what it means in practice is that you should be pleased to give up a stone to build one.",
       wrongText: "Count the outside of the shape rather than the shape. Each of the four stones has three empty points of its own, and the middle belongs to all of them.",
     },
     {

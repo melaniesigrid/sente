@@ -31,8 +31,8 @@ const BOARD_PX = { 9: 460, 13: 560, 19: 680 };
    This is a view of its own rather than a fourth branch inside `Game.jsx`,
    which already carries a duel, a master and a coach. The two views share the
    engine, the board, the result card and the status text; what differs is the
-   one question a pair table asks that an ordinary table does not — *which of
-   the four is to move* — and that question is answered by `seatToPlay`, a pure
+   one question a pair table asks that an ordinary table does not (*which of
+   the four is to move*) and that question is answered by `seatToPlay`, a pure
    function of how many moves have been played. There is no seat state here to
    fall out of step with the record, which is why undo can take four moves back
    without anybody having to remember where the rotation was.
@@ -45,9 +45,9 @@ const BOARD_PX = { 9: 460, 13: 560, 19: 680 };
    The table is unrated and says so before the first stone. A win in which a
    7 dan played half your moves is evidence about the pair, not about you.
 
-   No clock, in this first version. Timing a *team* is a real question — one
+   No clock, in this first version. Timing a *team* is a real question (one
    clock for two players, or two, and what byo-yomi means when your partner
-   burned it — and guessing at it would be worse than leaving it off and
+   burned it) and guessing at it would be worse than leaving it off and
    saying so. */
 export function PairGame({ mode, onExit, profile, notify }) {
   const partnerRank = mode.partnerRank ?? PARTNER_RANK;
@@ -406,8 +406,8 @@ export function PairGame({ mode, onExit, profile, notify }) {
             </div>
             {/* No input box, and the reason is a rule and not an omission. */}
             <p className="fine">
-              There is nothing to type here. Partners may not consult in pair go — that is
-              the rule the game is built on — so {roster.b2.name} will not take a question
+              There is nothing to type here. Partners may not consult in pair go (that is
+              the rule the game is built on) so {roster.b2.name} will not take a question
               and you would not be allowed to ask one.
             </p>
           </Card>
@@ -419,7 +419,7 @@ export function PairGame({ mode, onExit, profile, notify }) {
               partner. {roster.b2.name} plays your team's other half at {partnerRank} and
               will not tell you what to play: what it has to teach, it teaches by playing it.
             </p>
-            <p className="fine">No clock at a pair table yet — timing a team is its own question, and guessing at it would be worse than leaving it off.</p>
+            <p className="fine">No clock at a pair table yet: timing a team is its own question, and guessing at it would be worse than leaving it off.</p>
           </Card>
         </div>
       </div>

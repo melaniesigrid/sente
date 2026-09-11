@@ -1,7 +1,7 @@
 /* ----------------------- LOCALES (the languages, as data) -----------------------
    A language is data, the way a room and a pairing are: an id, the name it calls
    itself, and the BCP-47 tag the browser and Intl speak. Adding one is adding an
-   entry here and a catalogue beside it — nothing in a view changes.
+   entry here and a catalogue beside it: nothing in a view changes.
 
    `endonym` is the name in that language, because a language picker is the one
    list a reader may not be able to read: somebody looking for Spanish is looking
@@ -40,7 +40,7 @@ export function localeOf(id) {
  *  Pure on purpose, like `resolveTheme`: the caller reads `navigator.languages`
  *  and hands the list in, so this module still knows nothing about a browser.
  *  The device is asked in its own order of preference, and only the primary
- *  subtag is matched — a reader who asked for `es-419` wants Spanish, and we do
+ *  subtag is matched: a reader who asked for `es-419` wants Spanish, and we do
  *  not ship a Latin American cut to tell them apart from a reader in Madrid. */
 export function resolveLocale(id, deviceTags = []) {
   if (id !== SYSTEM_LOCALE) return byId.has(id) ? id : BASE_LOCALE;

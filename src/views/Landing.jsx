@@ -24,7 +24,7 @@ import { RECORD, RECORD_DEK, RECORD_STANDFIRST, SOURCES } from "../content/press
    job from the dashboard behind it: the dashboard answers "what should I do
    next", and this answers "what is this, and why would I stay".
 
-   The rules of the house still apply. No colour and no family is named here —
+   The rules of the house still apply. No colour and no family is named here:
    the landing is set in the same tokens as every other screen, so it changes
    room and pairing with the rest of the app. The neumorphism is the same two
    shadows. The icons are Lucide.
@@ -57,12 +57,12 @@ const PRIMER = [
 const PATH = [
   { n: "01", title: "Learn the shape of it", body: "Twenty minutes and four lessons is enough to play a whole game and understand why you won it." },
   { n: "02", title: "Play a house player", body: "Start on nine lines against somebody a rank or two below you. Lose a few. That is the method, not a detour from it." },
-  { n: "03", title: "Read something every day", body: "One tsumego, one saying, one game. The rank follows on its own — it is the only part you do not have to work at." },
+  { n: "03", title: "Read something every day", body: "One tsumego, one saying, one game. The rank follows on its own: it is the only part you do not have to work at." },
 ];
 
 
 /* A statement, given a whole band of the page. Full-bleed, one idea, and the
-   three lines rise as the band is reached rather than on mount — see the
+   three lines rise as the band is reached rather than on mount; see the
    `.statement.lp` block in the stylesheet for why that gate exists.
 
    The band is sunken: it is the darker step in the page's alternation, and it
@@ -115,7 +115,7 @@ export function Landing({ profile, onEnter, go }) {
     {
       icon: BookOpen,
       title: `The Classic in ${CHAPTERS.length} chapters`,
-      body: `${CLASSIC.author}'s ${CLASSIC.era} treatise runs through the whole app — a saying at the door, a chapter beside the lesson it belongs to, the nine levels on your profile.`,
+      body: `${CLASSIC.author}'s ${CLASSIC.era} treatise runs through the whole app: a saying at the door, a chapter beside the lesson it belongs to, the nine levels on your profile.`,
       to: "learn",
     },
     {
@@ -127,7 +127,7 @@ export function Landing({ profile, onEnter, go }) {
     {
       icon: Scale,
       title: `${rules} rulesets, ${rooms} rooms`,
-      body: "AGA, Japanese, Chinese and New Zealand — scoring, komi and handicap compensation each done the way its own book says. Then set the room and the type to suit your eyes.",
+      body: "AGA, Japanese, Chinese and New Zealand: scoring, komi and handicap compensation each done the way its own book says. Then set the room and the type to suit your eyes.",
       to: "profile",
     },
   ];
@@ -166,7 +166,7 @@ export function Landing({ profile, onEnter, go }) {
           </div>
         </div>
         <div className="lp-hero-board lp-enters">
-          {/* the real engine, playing itself — not a recording */}
+          {/* the real engine, playing itself, not a recording */}
           <div className="lp-board-well" aria-hidden="true"><MiniSelfPlay sizePx={380} /></div>
           <p className="lp-board-note">Joseki&rsquo;s own engine, playing itself, right now.</p>
         </div>
@@ -184,7 +184,7 @@ export function Landing({ profile, onEnter, go }) {
         <h2 className="lp-h2 reveal">Two players. One board.<br />Hold more of it than they do.</h2>
         <p className="lp-lede reveal">
           Go is four thousand years old and its rules fit on a napkin. What takes a
-          lifetime is not the rules — it is everything they turn out to imply.
+          lifetime is not the rules: it is everything they turn out to imply.
         </p>
         <div className="lp-grid3">
           {PRIMER.map((c, i) => (
@@ -227,7 +227,7 @@ export function Landing({ profile, onEnter, go }) {
       {/* ------------------------------------------------- the record */}
       {/* The one section set as a page rather than as an interface. Every
           column is answerable to a numbered line in the rail underneath it,
-          and the test beside press.js fails the build if one is not — which
+          and the test beside press.js fails the build if one is not, which
           is the only thing that makes a marketing section on this site
           defensible at all. */}
       <section className="lp-section wide" id="record">
@@ -285,7 +285,7 @@ export function Landing({ profile, onEnter, go }) {
         </div>
         <p className="lp-lede reveal center">
           The thirteen chapters are threaded through the app rather than filed in a
-          corner of it — a line at the door each day, and the chapter that belongs to
+          corner of it: a line at the door each day, and the chapter that belongs to
           a lesson sitting beside the lesson.
         </p>
       </section>
