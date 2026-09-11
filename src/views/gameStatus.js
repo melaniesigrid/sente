@@ -111,6 +111,19 @@ export function resultCard(result, t = EN) {
   return { headline: t(`game.wins.${result.winner}`), sub: t("game.howMargin", { margin: result.margin }), rows };
 }
 
+/** A finished game in one sentence: "Black wins by resignation", "Jigo".
+ *  Review's header wants the margin rather than the two totals, which is the
+ *  one place that differs from `resultLine`. */
+export function resultSentence(result, t = EN) {
+  if (!result) return null;
+  if (result.winner === null) return t("game.jigoHead");
+  const wins = t(`game.wins.${result.winner}`);
+  const how = result.method === "resign" ? t("game.howResign")
+    : result.method === "time" ? t("game.howTime")
+      : t("game.howMargin", { margin: result.margin });
+  return t("game.by", { winner: wins, how });
+}
+
 /** Text for the rating line under the result, or null for an unrated game. */
 export function ratingLine(delta, t = EN) {
   if (!delta || typeof delta !== "object") return null;

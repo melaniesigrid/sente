@@ -5,6 +5,7 @@ import { BELTS } from "../content/rank.js";
 import { LIBRARY } from "../content/library.js";
 import { WELCOME_LESSON } from "../content/welcome.js";
 import { localize } from "../content/translate.js";
+import { TONES, RULES, STONE_RULE } from "../theme/tokens.js";
 import {
   BASE_LOCALE, SYSTEM_LOCALE, LOCALES, CATALOGUES, isLocaleId, localeOf, resolveLocale,
   makeT, flatten, interpolate, pluralCategory,
@@ -18,7 +19,7 @@ import {
    its line. `lesson.` is not, and cannot be — the library is translated a file
    at a time and an untranslated lesson is simply still in English — so what is
    checked there is that every key names something real. */
-const OVERLAYS = ["room.", "stones.", "type.", "belt.", "lesson."];
+const OVERLAYS = ["room.", "stones.", "type.", "belt.", "lesson.", "tone.", "rule."];
 const isOverlay = (key) => OVERLAYS.some(p => key.startsWith(p));
 const others = LOCALES.filter(l => l.id !== BASE_LOCALE);
 const HOLE = /\{(\w+)\}/g;
@@ -162,6 +163,14 @@ describe.each(others)("$name is complete", (locale) => {
     }
     for (const f of TYPEFACES) expect(mine.get(`type.${f.id}.note`), `${locale.id}: type.${f.id}`).toBeTruthy();
     for (const b of BELTS) expect(mine.get(`belt.${b.id}.label`), `${locale.id}: belt.${b.id}`).toBeTruthy();
+    for (const tone of TONES) {
+      expect(mine.get(`tone.${tone.key}.label`), `${locale.id}: tone.${tone.key}.label`).toBeTruthy();
+      expect(mine.get(`tone.${tone.key}.role`), `${locale.id}: tone.${tone.key}.role`).toBeTruthy();
+    }
+    for (const r of [...RULES, STONE_RULE]) {
+      expect(mine.get(`rule.${r.id}.label`), `${locale.id}: rule.${r.id}.label`).toBeTruthy();
+      expect(mine.get(`rule.${r.id}.why`), `${locale.id}: rule.${r.id}.why`).toBeTruthy();
+    }
   });
 
   /* A stale key is worse than a missing one: it looks translated and shows
@@ -189,6 +198,10 @@ describe.each(others)("$name is complete", (locale) => {
       type: TYPEFACES.map(f => f.id),
       belt: BELTS.map(b => b.id),
       lesson: [...LIBRARY.map(l => l.id), WELCOME_LESSON.id],
+      tone: TONES.map(t2 => t2.key),
+      // The audit prints one row per rule, plus the stones and the two
+      // closeness rows, which share one reason between them.
+      rule: [...RULES.map(r => r.id), STONE_RULE.id, "close-light", "close-dark", "closeness"],
     };
     for (const key of [...mine.keys()].filter(isOverlay)) {
       const [ns, id] = key.split(".");

@@ -1,4 +1,7 @@
 import { atMove, play, IllegalMoveError, reviewLength } from "../engine/index.js";
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
+
+const EN = makeT(BASE_LOCALE);
 
 /* ----------------------- TRYING A LINE -----------------------
    Exploring from a position in review: "what if he had answered here instead?"
@@ -45,11 +48,23 @@ export function backInLine(rec, line) {
 }
 
 /** How deep the line is, and where it left the game. */
-export function lineLabel(line) {
+export function lineLabel(line, t = EN) {
   const n = line.moves.length;
-  const from = line.base === 0 ? "the start" : `move ${line.base}`;
-  if (n === 0) return `Trying a line from ${from}`;
-  return `Trying a line · ${n} move${n === 1 ? "" : "s"} from ${from}`;
+  const from = line.base === 0 ? t("review.fromStart") : t("review.fromMove", { n: line.base });
+  if (n === 0) return t("review.trying", { from });
+  return t("review.tryingMoves", { moves: t("review.lineMoves", { count: n }), from });
+}
+
+/** What position review is looking at, in words. The engine has `reviewLabel`
+ *  for the same job, but the engine is not the place for a sentence: it has to
+ *  be able to run on a server that has no reader, and a side is a clause here
+ *  rather than a noun to drop in. Same data, said by the view. */
+export function reviewLabelText(rec, n, t = EN) {
+  const at = clampMove(rec, n);
+  if (at === 0) return t("review.start");
+  const mv = playedMoves(rec)[at - 1];
+  const side = t(`game.side.${mv.color}`);
+  return t(mv.type === "pass" ? "review.labelPass" : "review.label", { n: at, side });
 }
 
 /** Whether a position can be explored at all: a line needs somebody to move, and a
