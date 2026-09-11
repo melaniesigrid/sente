@@ -997,11 +997,22 @@ ${FONT_FACES}
 @media (max-width: 760px) { .moku-bubble { max-width: 180px; font-size: 15px; } .moku-off { opacity: .6; } .moku-dock .moku { width: 68px; height: 68px; } }
 
 .moku .moku-stone { filter: drop-shadow(3px 3px 4px rgba(var(--sh-ink),.45)) drop-shadow(-2px -2px 3px rgba(var(--sh-lite),.55)); }
-.moku .moku-body, .moku .moku-eyes, .moku .moku-pupils, .moku .moku-brow, .moku .moku-ko { transform-origin: center; transform-box: fill-box; }
+.moku .moku-body, .moku .moku-eyes, .moku .moku-pupils, .moku .moku-brow, .moku .moku-mouth, .moku .moku-ko { transform-origin: center; transform-box: fill-box; }
 .moku .moku-eyes { animation: moku-blink 5.5s ease-in-out infinite; }
 @keyframes moku-blink { 0%, 90%, 100% { transform: scaleY(1); } 93%, 96% { transform: scaleY(.08); } }
 .moku .moku-brow { fill: none; stroke: var(--cream); stroke-width: 2.2; stroke-linecap: round; opacity: 0; transition: opacity .2s ease, transform .2s ease; }
 .moku .moku-ko { fill: none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 4 5; opacity: 0; transition: opacity .2s ease; }
+/* Laska's two mouths: the smile is on by default, the open one waits for a reason,
+   and the same smile turned over is the frown — no third curve was drawn. */
+.moku .moku-mouth { fill: none; stroke: var(--cream); stroke-linecap: round; transition: opacity .2s ease, transform .2s ease; }
+.moku .moku-mouth-idle { stroke-width: 1.98; }
+.moku .moku-mouth-cheer { stroke-width: 2.14; opacity: 0; }
+.moku[data-state="capture"] .moku-mouth-idle, .moku[data-state="win"] .moku-mouth-idle,
+.moku[data-state="promoted"] .moku-mouth-idle, .moku[data-state="hunting"] .moku-mouth-idle { opacity: 0; }
+.moku[data-state="capture"] .moku-mouth-cheer, .moku[data-state="win"] .moku-mouth-cheer,
+.moku[data-state="promoted"] .moku-mouth-cheer, .moku[data-state="hunting"] .moku-mouth-cheer { opacity: 1; }
+.moku[data-state="atari"] .moku-mouth-idle, .moku[data-state="captured"] .moku-mouth-idle,
+.moku[data-state="loss"] .moku-mouth-idle { transform: scaleY(-1); }
 
 .moku[data-state="idle"] .moku-body, .moku[data-state="home"] .moku-body, .moku[data-state="lobby"] .moku-body,
 .moku[data-state="learn"] .moku-body, .moku[data-state="tsumego"] .moku-body, .moku[data-state="ladder"] .moku-body,
