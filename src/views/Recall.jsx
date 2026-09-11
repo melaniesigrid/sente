@@ -10,9 +10,11 @@ import { LIBRARY, trackByKey } from "../content/library.js";
 import { dayKey } from "../content/kata.js";
 import { BOXES, SESSION_SIZE, dueCards, grade, recallSummary } from "../content/recall.js";
 import { saveProfile } from "../store/profile.js";
-import { initStep, stepReducer, marksFor, boardLocked, canReveal } from "./lessonStep.js";
+import { initStep, stepReducer, marksFor, boardLocked, canReveal, withHouseWords } from "./lessonStep.js";
 import { Response } from "./Learn.jsx";
 import { useT } from "../components/langStore.js";
+import { localizeLesson } from "../content/translate.js";
+import { localizeTrack } from "../content/library.js";
 
 /* ----------------------- RECALL -----------------------
    A sitting of up to five questions the learner has already answered once,
@@ -32,22 +34,25 @@ const reducedMotion = () =>
 
 /** A card's name: the lesson it came from, and which of that lesson's
  *  questions it is, since one lesson often sends several. */
-const cardName = (card) =>
-  (card.lesson.steps.filter(s => s.type === "quiz" || s.type === "choice").length > 1
-    ? `${card.lesson.title}, question ${card.ordinal}`
-    : card.lesson.title);
+const cardName = (card, t) => {
+  const lesson = localizeLesson(card.lesson, t);
+  return lesson.steps.filter(s => s.type === "quiz" || s.type === "choice").length > 1
+    ? t("recall.cardQuestion", { title: lesson.title, n: card.ordinal })
+    : lesson.title;
+};
 
 /** Plain words for how far away a card has just been pushed. The count is
  *  exact: rounding eight days up to a week would be telling the learner
  *  something the schedule is not going to do. */
-const comesBack = (box) => {
+const comesBack = (box, t) => {
   const days = BOXES[Math.min(box, BOXES.length - 1)];
-  return days === 1 ? "tomorrow" : `in ${days} days`;
+  return days === 1 ? t("recall.tomorrow") : t("recall.inDays", { count: days });
 };
 
 /** One card, played through the library's own step reducer. */
-function CardPlayer({ card, n, of, onGraded }) {
-  const { lesson, step } = card;
+function CardPlayer({ card, n, of, onGraded, t }) {
+  const lesson = useMemo(() => withHouseWords(localizeLesson(card.lesson, t), t), [card.lesson, t]);
+  const step = lesson.steps[card.stepIndex];
   const [state, setState] = useState(() => initStep(lesson, step));
   const [hintOpen, setHintOpen] = useState(false);
   const [graded, setGraded] = useState(null);
@@ -92,8 +97,8 @@ function CardPlayer({ card, n, of, onGraded }) {
         <Card className="lesson-card-body">
           <div className="prob-head">
             <span className="rank-chip">{lesson.rank}</span>
-            <span className="theme-chip">{trackByKey(lesson.track)?.name}</span>
-            <span className="theme-chip"><BrainCircuit size={11} /> card {n} of {of}</span>
+            <span className="theme-chip">{localizeTrack(trackByKey(lesson.track), t)?.name}</span>
+            <span className="theme-chip"><BrainCircuit size={11} /> {t("recall.card", { n, of })}</span>
           </div>
           {/* The lesson is named, never quoted: which lesson this came from is
               worth knowing, and its teaching text would be the answer. */}
@@ -104,29 +109,31 @@ function CardPlayer({ card, n, of, onGraded }) {
             <div className="hint-block">
               <button type="button" className="hint-toggle" onClick={() => setHintOpen(true)}
                 disabled={hintOpen} aria-expanded={hintOpen}>
-                <Lightbulb size={14} /> <span>Hint</span>
+                <Lightbulb size={14} /> <span>{t("recall.hint")}</span>
               </button>
               {hintOpen && <p className="fine hint-text">{step.hint}</p>}
             </div>
           )}
 
           <div className="log reserve" aria-live="polite">
-            {state.log.map((entry, i) => <Response key={i} entry={entry} />)}
+            {state.log.map((entry, i) => <Response key={i} entry={entry} t={t} />)}
           </div>
 
           <div className="lesson-foot">
             {graded === null ? <span /> : (
               <span className={`fine ${graded ? "success-row" : "wrong-row"}`}>
                 {graded ? <Check size={14} /> : <X size={14} />}
-                {graded ? `Recalled. Back ${comesBack(card.box + 1)}.` : `Back ${comesBack(0)}, from the first box.`}
+                {graded
+                  ? t("recall.recalled", { when: comesBack(card.box + 1, t) })
+                  : t("recall.missed", { when: comesBack(0, t) })}
               </span>
             )}
             <div className="row">
               {state.status === "review" && (
-                <Btn icon={RotateCcw} small onClick={() => dispatch({ type: "reset" })}>Try again</Btn>
+                <Btn icon={RotateCcw} small onClick={() => dispatch({ type: "reset" })}>{t("recall.tryAgain")}</Btn>
               )}
               {canReveal(step, state) && (
-                <Btn icon={Eye} small onClick={() => dispatch({ type: "reveal" })}>Show me</Btn>
+                <Btn icon={Eye} small onClick={() => dispatch({ type: "reveal" })}>{t("recall.showMe")}</Btn>
               )}
             </div>
           </div>
@@ -160,10 +167,9 @@ export function RecallView({ profile, setProfile, go }) {
 
   const header = (
     <ScreenHeader
-      label="Recall"
-      title={<>Remember it <em>cold</em>.</>}
-      lede="Questions you have answered before, asked again at widening intervals. A lesson
-            is read once; a question is answered until it is known." />
+      label={t("recall.label")}
+      title={<>{t("recall.titleBefore")}<em>{t("recall.titleEm")}</em>{t("recall.titleAfter")}</>}
+      lede={t("recall.lede")} />
   );
 
   if (!cards.length) {
@@ -173,14 +179,21 @@ export function RecallView({ profile, setProfile, go }) {
         <Statement lines={statementFor("recall", t)}>{plainFor("recall", t)}</Statement>
         <Card inset className="resume-card">
           <div className="resume-copy">
-            <div className="stat-head"><CalendarClock size={15} /><span>Nothing due today</span></div>
+            <div className="stat-head"><CalendarClock size={15} /><span>{t("recall.nothingDue")}</span></div>
             <span className="fine">
               {summary.total === 0
-                ? "Finish a lesson and its questions join the queue. Nothing is asked back on the day it was answered."
-                : `${summary.total} ${summary.total === 1 ? "card is" : "cards are"} waiting their turn${summary.nextIn === null ? "" : `; the next comes back ${summary.nextIn <= 1 ? "tomorrow" : `in ${summary.nextIn} days`}`}.`}
+                ? t("recall.emptyFirst")
+                : [
+                  t("recall.waiting", { count: summary.total }),
+                  summary.nextIn === null
+                    ? null
+                    : t("recall.nextBack", {
+                      when: summary.nextIn <= 1 ? t("recall.tomorrow") : t("recall.inDays", { count: summary.nextIn }),
+                    }),
+                ].filter(Boolean).join(" ")}
             </span>
           </div>
-          <Btn icon={GraduationCap} primary small onClick={() => go("learn")}>The library</Btn>
+          <Btn icon={GraduationCap} primary small onClick={() => go("learn")}>{t("recall.library")}</Btn>
         </Card>
         <Passage context="learn" />
       </div>
@@ -194,25 +207,26 @@ export function RecallView({ profile, setProfile, go }) {
         {header}
         <Card className="lesson-card-body">
           <div className="row spread">
-            <h3 className="lesson-head">{kept} of {results.length} recalled</h3>
-            <Pill icon={Check} tone={kept === results.length ? "win" : undefined}>Sitting done</Pill>
+            <h3 className="lesson-head">{t("recall.keptHead", { kept, total: results.length })}</h3>
+            <Pill icon={Check} tone={kept === results.length ? "win" : undefined}>{t("recall.sittingDone")}</Pill>
           </div>
           <p className="lesson-text">
-            {kept === results.length
-              ? "Every one, first try. They all move a box further out."
-              : "The ones you worked out start again at a day. That is what they are for: a question you had to reason through is a question that has not settled yet."}
+            {kept === results.length ? t("recall.allKept") : t("recall.someMissed")}
           </p>
           <ul className="recap">
             {results.map(r => (
               <li key={r.key} className={r.recalled ? "" : "shown"}>
                 {r.recalled ? <Check size={14} /> : <RotateCcw size={14} />}
-                <span>{cardName(r.card)} — back {r.recalled ? comesBack(r.card.box + 1) : comesBack(0)}</span>
+                <span>{t("recall.recapLine", {
+                  name: cardName(r.card, t),
+                  when: r.recalled ? comesBack(r.card.box + 1, t) : comesBack(0, t),
+                })}</span>
               </li>
             ))}
           </ul>
           <div className="lesson-foot">
-            <Btn icon={GraduationCap} small onClick={() => go("learn")}>The library</Btn>
-            <Btn icon={ChevronRight} small primary onClick={() => go("home")}>Done</Btn>
+            <Btn icon={GraduationCap} small onClick={() => go("learn")}>{t("recall.library")}</Btn>
+            <Btn icon={ChevronRight} small primary onClick={() => go("home")}>{t("recall.done")}</Btn>
           </div>
         </Card>
       </div>
@@ -223,13 +237,13 @@ export function RecallView({ profile, setProfile, go }) {
   return (
     <div className="stack arrives">
       {header}
-      <CardPlayer key={card.key} card={card} n={i + 1} of={cards.length} onGraded={onGraded} />
+      <CardPlayer key={card.key} card={card} n={i + 1} of={cards.length} onGraded={onGraded} t={t} />
       <div className="row spread">
-        <span className="fine">{summary.due} due today · {summary.known} known cold · {summary.total} in the queue</span>
+        <span className="fine">{t("recall.counts", { due: summary.due, known: summary.known, total: summary.total })}</span>
         <Btn icon={ChevronRight} small primary
           disabled={!results.some(r => r.key === card.key)}
           onClick={() => setI(n => n + 1)}>
-          {i === cards.length - 1 ? "Finish" : "Next card"}
+          {i === cards.length - 1 ? t("recall.finish") : t("recall.next")}
         </Btn>
       </div>
     </div>
