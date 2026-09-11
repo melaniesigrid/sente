@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Palette, Circle, Type, Hammer, Check, TriangleAlert, Languages } from "lucide-react";
+import { Palette, Circle, Type, Hammer, Check, TriangleAlert } from "lucide-react";
 import { boardFromRows } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
 import { Card } from "../components/ui.jsx";
@@ -7,8 +7,7 @@ import { TYPEFACES, typefaceOf } from "../content/typeface.js";
 import { SYSTEM_THEME, themeOf, themeVars, stoneSetOf, auditPalette } from "../theme/index.js";
 import { STONE_RULE } from "../theme/tokens.js";
 import { roomsFor, setsFor, setName } from "./look.js";
-import { LOCALES, SYSTEM_LOCALE, localeOf, resolveLocale } from "../i18n/index.js";
-import { useT, useLocale, useDeviceLanguages } from "../components/langStore.js";
+import { useT } from "../components/langStore.js";
 import { saveProfile } from "../store/profile.js";
 
 /* ----------------------- THE LOOK OF THE PLACE -----------------------
@@ -24,12 +23,12 @@ import { saveProfile } from "../store/profile.js";
    stone plate wears the room you are standing in with that set on it — so the
    choosing is done by looking rather than by reading names.
 
-   The words come first, above the room, because they are the one choice on
-   this page that decides whether the rest of it can be read at all.
+   The language is not here. It is in the top bar, because it is the one
+   choice that has to be findable by somebody who cannot read the screen they
+   are standing on, and this page is a screen you have to find first.
 
    No rule lives here. The sets are src/theme/stones.js, the rooms are
-   palettes.js, the languages are src/i18n/locales.js, and the one number this
-   page prints is auditPalette's. */
+   palettes.js, and the one number this page prints is auditPalette's. */
 
 /* Enough of a middlegame to judge two stones against each other: stones in
    contact, a shape or two worth reading, and empty board left over to see the
@@ -50,9 +49,7 @@ export function LookView({ profile, setProfile, go, room }) {
   const commit = (patch) => setProfile(p => { const np = { ...p, ...patch }; saveProfile(np); return np; });
 
   const t = useT();
-  const locale = useLocale();
-  const devices = useDeviceLanguages();
-  const { dojo, stones, theme, typeface, locale: chosenLocale } = profile;
+  const { dojo, stones, theme, typeface } = profile;
   const rooms = useMemo(() => roomsFor(dojo, room, t), [dojo, room, t]);
   const sets = useMemo(() => setsFor(room, dojo, t), [room, dojo, t]);
   const board = useMemo(() => boardFromRows(ROWS), []);
@@ -82,39 +79,6 @@ export function LookView({ profile, setProfile, go, room }) {
         <h1 className="look-title">{t("look.title")}</h1>
         <p className="look-sub">{t("look.sub")}</p>
       </div>
-
-      {/* The words. A language picker is the one list a reader may not be able
-          to read, so every language names itself in its own words and the plate
-          is never translated into the language you are trying to leave. */}
-      <Card>
-        <div className="stat-head"><Languages size={16} /><span>{t("look.words.head")}</span></div>
-        <p className="fine" style={{ marginTop: 6 }}>{t("look.words.note")}</p>
-        <div className="type-row">
-          <button className={`type-btn ${chosenLocale === SYSTEM_LOCALE ? "active" : ""}`}
-            onClick={() => commit({ locale: SYSTEM_LOCALE })}
-            aria-pressed={chosenLocale === SYSTEM_LOCALE}
-            aria-label={t("look.words.pick", { name: t("look.words.systemName") })}>
-            <span className="type-sample lang-sample">{t("look.words.system")}</span>
-            <span className="type-name">{t("look.words.systemName")}</span>
-          </button>
-          {LOCALES.map(l => (
-            <button key={l.id}
-              lang={l.tag}
-              className={`type-btn ${chosenLocale === l.id ? "active" : ""}`}
-              onClick={() => commit({ locale: l.id })}
-              aria-pressed={chosenLocale === l.id}
-              aria-label={t("look.words.pick", { name: l.endonym })}>
-              <span className="type-sample lang-sample">{l.endonym}</span>
-              <span className="type-name">{l.tag}</span>
-            </button>
-          ))}
-        </div>
-        <p className="fine type-note">
-          {chosenLocale === SYSTEM_LOCALE
-            ? t("look.words.systemNote", { language: localeOf(resolveLocale(SYSTEM_LOCALE, devices)).endonym })
-            : t("look.words.chosen", { language: locale.endonym })}
-        </p>
-      </Card>
 
       <Card>
         <div className="stat-head"><Palette size={16} /><span>{t("look.room.head")}</span></div>

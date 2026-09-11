@@ -16,8 +16,8 @@
       wrong line must not take the screen down with it. */
 import { BASE_LOCALE, localeOf } from "./locales.js";
 import { interpolate, isPlural, pickForm } from "./format.js";
-import { en } from "./en.js";
-import { es } from "./es.js";
+import { en } from "./en/index.js";
+import { es } from "./es/index.js";
 
 /** The catalogues we ship, by locale id. A language in LOCALES with no
  *  catalogue here is a language that reads entirely in English, which the
