@@ -1113,7 +1113,10 @@ that is honestly still English.
       for what counts as prose, and a test holds it against what the library actually uses.
       The welcome demo is the first lesson translated, because it is the first thing
       anybody reads.
-- [ ] Spanish: review mode, the dojo and the small print.
+- [x] Spanish: review mode and the dojo, including the theme contract's own words — the
+      tones and the contrast rules in `tokens.js` are overlaid by key, so the numbers a
+      designer reads while breaking a rule are explained in their language.
+- [ ] Spanish: the small print, and the three documents it renders.
 - [ ] Spanish: online play — the lobby, the game, the account gate, the letters.
 - [ ] Spanish: the content prose. Lessons, personas, Moku, the plain-words statements, the
       books, the legal documents, and the Classic's thirteen chapters, in that order.

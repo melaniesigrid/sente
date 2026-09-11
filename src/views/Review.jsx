@@ -4,12 +4,13 @@ import {
   GitBranch, Undo2, CornerUpLeft,
 } from "lucide-react";
 import { Btn, Pill } from "../components/ui.jsx";
-import { startLine, playInLine, backInLine, lineLabel, canBranch } from "./reviewLine.js";
-import { refusalText } from "./gameStatus.js";
+import { startLine, playInLine, backInLine, lineLabel, canBranch, reviewLabelText } from "./reviewLine.js";
+import { refusalText, resultSentence } from "./gameStatus.js";
+import { useT } from "../components/langStore.js";
 import { Board } from "../components/Board.jsx";
 import {
   atMove, moveNumbers, captureMoves, nextCapture, prevCapture,
-  reviewLength, clampMove, markerAt, reviewLabel, resultText, toSgf, lastMoveIndex,
+  reviewLength, clampMove, markerAt, toSgf, lastMoveIndex,
 } from "../engine/index.js";
 
 /* ----------------------- REVIEW -----------------------
@@ -28,6 +29,7 @@ import {
 const BOARD_PX = { 9: 460, 13: 560, 19: 680 };
 
 export function Review({ record, onExit, onRematch, profile = {} }) {
+  const t = useT();
   const total = reviewLength(record);
   const [n, setN] = useState(total);
   const [showNumbers, setShowNumbers] = useState(false);
@@ -76,7 +78,7 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
   const onTry = (c, r) => {
     const from = line ?? startLine(record, n);
     const res = playInLine(from, c, r);
-    if (res.error) { setRefused(refusalText(res.error) ?? "That move is not legal here."); return; }
+    if (res.error) { setRefused(refusalText(res.error, t) ?? t("review.illegal")); return; }
     setRefused(null);
     setLine(res.line);
   };
@@ -99,13 +101,13 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
   return (
     <div className="stack">
       <div className="row spread">
-        <Btn icon={ChevronLeft} small onClick={onExit}>Back</Btn>
-        <span className="review-result">{resultText(record) ?? "Unfinished game"}</span>
+        <Btn icon={ChevronLeft} small onClick={onExit}>{t("review.back")}</Btn>
+        <span className="review-result">{resultSentence(record.result, t) ?? t("review.unfinished")}</span>
       </div>
       <div className="play-wrap">
         <div className="board-col stack-sm">
           <Pill icon={line ? GitBranch : Hash} tone={line ? "win" : ""}>
-            {line ? lineLabel(line) : `${reviewLabel(record, n)}${capHere ? ` · ${capHere.stones} captured` : ""}`}
+            {line ? lineLabel(line, t) : reviewLabelText(record, n, t) + (capHere ? ` · ${t("review.captured", { count: capHere.stones })}` : "")}
           </Pill>
           <Board board={(line ? line.record : at).board}
             lastMove={line ? lastMoveIndex(line.record) : marker}
@@ -117,34 +119,34 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
           {refused && <p className="review-refused" role="alert">{refused}</p>}
           {line ? (
             <div className="row review-controls">
-              <Btn icon={Undo2} small onClick={undoTry}>Take back</Btn>
+              <Btn icon={Undo2} small onClick={undoTry}>{t("review.takeBack")}</Btn>
               <Btn icon={CornerUpLeft} small primary onClick={() => { setLine(null); setRefused(null); }}>
-                Back to the game
+                {t("review.backToGame")}
               </Btn>
             </div>
           ) : null}
           <input className="review-scrub" type="range" min={0} max={total} value={n}
-            aria-label="Move" onChange={(e) => go(Number(e.target.value))} />
+            aria-label={t("review.move")} onChange={(e) => go(Number(e.target.value))} />
           <div className="row review-controls">
-            <Btn icon={ChevronsLeft} small label="Start" onClick={() => go(0)} disabled={n === 0} />
-            <Btn icon={SkipBack} small label="Previous capture" onClick={() => go(back.move)} disabled={!back} />
-            <Btn icon={ChevronLeft} small label="Back one move" onClick={() => go((c) => c - 1)} disabled={n === 0} />
+            <Btn icon={ChevronsLeft} small label={t("review.start")} onClick={() => go(0)} disabled={n === 0} />
+            <Btn icon={SkipBack} small label={t("review.prevCapture")} onClick={() => go(back.move)} disabled={!back} />
+            <Btn icon={ChevronLeft} small label={t("review.backOne")} onClick={() => go((c) => c - 1)} disabled={n === 0} />
             <span className="review-count" aria-live="polite">{n} / {total}</span>
-            <Btn icon={ChevronRight} small label="Forward one move" onClick={() => go((c) => c + 1)} disabled={n === total} />
-            <Btn icon={SkipForward} small label="Next capture" onClick={() => go(fwd.move)} disabled={!fwd} />
-            <Btn icon={ChevronsRight} small label="End" onClick={() => go(total)} disabled={n === total} />
+            <Btn icon={ChevronRight} small label={t("review.forwardOne")} onClick={() => go((c) => c + 1)} disabled={n === total} />
+            <Btn icon={SkipForward} small label={t("review.nextCapture")} onClick={() => go(fwd.move)} disabled={!fwd} />
+            <Btn icon={ChevronsRight} small label={t("review.end")} onClick={() => go(total)} disabled={n === total} />
           </div>
           <div className="row review-controls">
             <Btn icon={Hash} small onClick={() => setShowNumbers((s) => !s)}>
-              {showNumbers ? "Hide numbers" : "Move numbers"}
+              {t(showNumbers ? "review.hideNumbers" : "review.moveNumbers")}
             </Btn>
-            <Btn icon={Download} small onClick={downloadSgf}>SGF</Btn>
-            {onRematch && <Btn icon={Swords} small onClick={onRematch}>Play again</Btn>}
+            <Btn icon={Download} small onClick={downloadSgf}>{t("review.sgf")}</Btn>
+            {onRematch && <Btn icon={Swords} small onClick={onRematch}>{t("review.playAgain")}</Btn>}
           </div>
           <p className="fine">
-            {branchable ? "Play on the board to try a line — it is never saved into the game. " : ""}
-            Arrows walk a move, up and down jump ten, Home and End go to the ends, N toggles
-            numbers. {caps.length === 0 ? "Nothing was captured in this game." : `${caps.length} capture${caps.length === 1 ? "" : "s"} in this game.`}
+            {branchable ? t("review.tryLine") : ""}
+            {t("review.keys")}{" "}
+            {caps.length === 0 ? t("review.noCaptures") : t("review.captures", { count: caps.length })}
           </p>
         </div>
       </div>

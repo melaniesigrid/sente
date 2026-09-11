@@ -9,6 +9,8 @@ import {
   themeVars, paletteFrom, auditPalette, completeTones, deriveLights, isDark,
   swatchesFor, roomsNamed, stonesOf,
 } from "../theme/index.js";
+import { useT } from "../components/langStore.js";
+import { setName } from "./look.js";
 
 /* ----------------------- THE DOJO (build your own room) -----------------------
    A palette is six colours and a set of consequences, and the consequences are
@@ -51,6 +53,7 @@ const PICKED = TONES.filter(t => t.key !== "light" && t.key !== "dark");
 const DERIVED = TONES.filter(t => t.key === "light" || t.key === "dark");
 
 export function DojoView({ profile, setProfile, notify, go, room }) {
+  const t = useT();
   const saved = profile.dojo;
   const [draft, setDraft] = useState(
     () => saved || paletteFrom(room === DOJO_THEME ? HOUSE_THEME : room),
@@ -91,12 +94,12 @@ export function DojoView({ profile, setProfile, notify, go, room }) {
 
   const apply = () => {
     setProfile(p => ({ ...p, dojo: palette, theme: DOJO_THEME }));
-    notify({ kind: "good", text: live ? "Dojo updated." : "Your dojo is live. Every screen wears it now." });
+    notify({ kind: "good", text: t(live ? "dojo.updated" : "dojo.liveNow") });
   };
   const startOver = () => setDraft(paletteFrom(HOUSE_THEME));
   const clear = () => {
     setProfile(p => ({ ...p, dojo: null, theme: HOUSE_THEME }));
-    notify({ kind: "info", text: "Dojo cleared. Back to house." });
+    notify({ kind: "info", text: t("dojo.cleared") });
   };
 
   /* A palette built here is meant to graduate: if it is good enough to keep, it
@@ -118,26 +121,20 @@ export function DojoView({ profile, setProfile, notify, go, room }) {
       "},",
     ].join("\n");
     if (!navigator.clipboard) {
-      notify({ kind: "bad", text: "This browser will not hand over the clipboard." });
+      notify({ kind: "bad", text: t("dojo.noClipboard") });
       return;
     }
     navigator.clipboard.writeText(lines).then(
-      () => notify({ kind: "good", text: "Copied. Paste it into src/theme/palettes.js." }),
-      () => notify({ kind: "bad", text: "Could not reach the clipboard." }),
+      () => notify({ kind: "good", text: t("dojo.copied") }),
+      () => notify({ kind: "bad", text: t("dojo.copyFailed") }),
     );
   };
 
   return (
     <div className="stack">
       <div className="dojo-head">
-        <h1 className="dojo-title">Build your own dojo</h1>
-        <p className="dojo-sub">
-          Six colours make a room, and every colour offered here is one Joseki already plays
-          in somewhere: take this room's ground, that room's mark, and the stones from a
-          third. The board moves with them as you go — stones, grid, shadows and all.
-          Nothing is saved until you say so, and the numbers below are the same ones the
-          build checks.
-        </p>
+        <h1 className="dojo-title">{t("dojo.title")}</h1>
+        <p className="dojo-sub">{t("dojo.sub")}</p>
       </div>
 
       <div className="dojo" style={vars}>
@@ -145,18 +142,18 @@ export function DojoView({ profile, setProfile, notify, go, room }) {
           <div className="dojo-bar">
             <Wordmark />
             <span className="dojo-nav">
-              <span className="dojo-nav-btn on">Play</span>
-              <span className="dojo-nav-btn">Learn</span>
-              <span className="dojo-nav-btn">Ladder</span>
+              <span className="dojo-nav-btn on">{t("nav.play")}</span>
+              <span className="dojo-nav-btn">{t("nav.learn")}</span>
+              <span className="dojo-nav-btn">{t("nav.ladder")}</span>
             </span>
           </div>
           <Board board={board} onPlay={play} lastMove={last} sizePx={420} />
           <div className="dojo-controls">
             <span className="status-pill">
               <span className={`dot dot-${turn}`} />
-              {turn === "b" ? "Black" : "White"} to play
+              {t(turn === "b" ? "game.status.toPlayB" : "game.status.toPlayW")}
             </span>
-            <button className="btn btn-sm" onClick={resetBoard}>Reset board</button>
+            <button className="btn btn-sm" onClick={resetBoard}>{t("dojo.resetBoard")}</button>
           </div>
         </div>
 
@@ -167,8 +164,8 @@ export function DojoView({ profile, setProfile, notify, go, room }) {
               className="dojo-name"
               value={palette.name || ""}
               onChange={e => set("name", e.target.value.slice(0, 40))}
-              aria-label="Name this room"
-              placeholder="Name this room"
+              aria-label={t("dojo.nameRoom")}
+              placeholder={t("dojo.nameRoom")}
             />
           </div>
 
@@ -179,17 +176,17 @@ export function DojoView({ profile, setProfile, notify, go, room }) {
               return (
                 <div className="tone" key={tone.key}>
                   <span className="tone-meta">
-                    <span className="tone-name">{tone.label}</span>
-                    <span className="tone-role">{tone.role}</span>
+                    <span className="tone-name">{t(`tone.${tone.key}.label`, null, tone.label)}</span>
+                    <span className="tone-role">{t(`tone.${tone.key}.role`, null, tone.role)}</span>
                   </span>
-                  <div className="swatch-row" role="radiogroup" aria-label={tone.label}>
+                  <div className="swatch-row" role="radiogroup" aria-label={t(`tone.${tone.key}.label`, null, tone.label)}>
                     {swatchesFor(tone.key).map(s => (
                       <button
                         key={s.hex}
                         type="button"
                         role="radio"
                         aria-checked={s.hex === value}
-                        aria-label={`${tone.label} from ${roomsNamed(s.rooms)}`}
+                        aria-label={t("dojo.swatch", { tone: t(`tone.${tone.key}.label`, null, tone.label), rooms: roomsNamed(s.rooms) })}
                         title={`${roomsNamed(s.rooms)} · ${s.hex}`}
                         className={`swatch ${s.hex === value ? "on" : ""}`}
                         style={{ background: s.hex }}
@@ -199,8 +196,8 @@ export function DojoView({ profile, setProfile, notify, go, room }) {
                   </div>
                   <span className="tone-from">
                     {chosen
-                      ? `Worn by ${roomsNamed(chosen.rooms)}`
-                      : `Hand-mixed ${value}, from a room built before the drawer`}
+                      ? t("dojo.wornBy", { rooms: roomsNamed(chosen.rooms) })
+                      : t("dojo.handMixed", { hex: value })}
                   </span>
                 </div>
               );
@@ -210,26 +207,19 @@ export function DojoView({ profile, setProfile, notify, go, room }) {
           <div className="tone-derived">
             <span className="tone-derived-plate">
               {DERIVED.map(tone => (
-                <span key={tone.key} className="tone-chip" style={{ background: palette[tone.key] }} title={tone.label} />
+                <span key={tone.key} className="tone-chip" style={{ background: palette[tone.key] }}
+                  title={t(`tone.${tone.key}.label`, null, tone.label)} />
               ))}
             </span>
             <span className="tone-meta">
-              <span className="tone-name">Highlight and shadow <em>· derived</em></span>
-              <span className="tone-role">
-                Both are worked out from the ground, and neither is a choice: a raised thing
-                looks lit rather than outlined only while its two lights stay within reach of
-                the paper they sit on. Move the ground and they move with it.
-              </span>
+              <span className="tone-name">{t("dojo.derivedName")} <em>{t("dojo.derivedEm")}</em></span>
+              <span className="tone-role">{t("dojo.derivedRole")}</span>
             </span>
           </div>
 
           <div className="dojo-stones">
-            <div className="stat-head"><Circle size={15} /><span>The stones</span></div>
-            <p className="fine">
-              Every room names the set it is played with, this one included. Two colours make a
-              set; the lit crown, the rim where the surface turns away and the seating a dark
-              board asks for are cut from those two.
-            </p>
+            <div className="stat-head"><Circle size={15} /><span>{t("dojo.stonesHead")}</span></div>
+            <p className="fine">{t("dojo.stonesNote")}</p>
             <div className="stone-row">
               {STONE_SETS.map(s => (
                 <button key={s.id}
@@ -238,63 +228,56 @@ export function DojoView({ profile, setProfile, notify, go, room }) {
                   className={`stone-btn ${palette.stones === s.id ? "active" : ""}`}
                   onClick={() => set("stones", s.id)}
                   aria-pressed={palette.stones === s.id}
-                  aria-label={`Stones: ${s.name}`}
+                  aria-label={t("look.stones.pick", { name: setName(s, t) })}
                 >
                   <span className="stone-plate">
                     <span className="theme-stone b" />
                     <span className="theme-stone w" />
                   </span>
-                  <span className="stone-name">{s.name}</span>
+                  <span className="stone-name">{setName(s, t)}</span>
                 </button>
               ))}
             </div>
-            <p className="fine type-note">{stonesOf(palette.stones).note}</p>
+            <p className="fine type-note">{t(`stones.${palette.stones}.note`, null, stonesOf(palette.stones).note)}</p>
           </div>
 
           <div className="audit">
-            <div className="stat-head"><span>What the rules say</span></div>
+            <div className="stat-head"><span>{t("dojo.auditHead")}</span></div>
             {audit.map(row => (
               <div className={`audit-row ${row.pass ? "pass" : "fail"}`} key={row.id}>
                 <span className="audit-mark">{row.pass ? <Check size={14} /> : <TriangleAlert size={14} />}</span>
-                <span className="audit-label">{row.label}</span>
+                <span className="audit-label">{t(`rule.${row.id}.label`, null, row.label)}</span>
                 <span className="audit-num">{row.ratio.toFixed(2)}:1</span>
-                <span className="audit-min">{row.closeness ? `max ${row.min}` : `min ${row.min}`}</span>
-                {!row.pass && <span className="audit-why">{row.why}</span>}
+                <span className="audit-min">{t(row.closeness ? "dojo.auditMax" : "dojo.auditMin", { n: row.min })}</span>
+                {!row.pass && <span className="audit-why">{t(row.closeness ? "rule.closeness.why" : `rule.${row.id}.why`, null, row.why)}</span>}
               </div>
             ))}
           </div>
 
           <div className="dojo-actions">
             <button className="btn btn-accent" onClick={apply} disabled={failing.length > 0}>
-              <Hammer size={15} /> {live ? "Update the dojo" : "Wear it"}
+              <Hammer size={15} /> {t(live ? "dojo.update" : "dojo.wear")}
             </button>
-            <button className="btn btn-sm" onClick={copyAsCode}><Copy size={14} /> Copy as code</button>
-            <button className="btn btn-sm" onClick={startOver}><RotateCcw size={14} /> Start over</button>
-            {saved && <button className="btn btn-sm" onClick={clear}><Trash2 size={14} /> Clear</button>}
+            <button className="btn btn-sm" onClick={copyAsCode}><Copy size={14} /> {t("dojo.copyCode")}</button>
+            <button className="btn btn-sm" onClick={startOver}><RotateCcw size={14} /> {t("dojo.startOver")}</button>
+            {saved && <button className="btn btn-sm" onClick={clear}><Trash2 size={14} /> {t("dojo.clear")}</button>}
           </div>
           {failing.length > 0 && (
-            <p className="fine dojo-block">
-              {failing.length === 1 ? "One rule is broken" : `${failing.length} rules are broken`}, so this
-              room cannot be worn yet. Every named room in Joseki clears all six.
-            </p>
+            <p className="fine dojo-block">{t("dojo.blocked", { count: failing.length })}</p>
           )}
           {overridden && (
             <p className="fine">
-              You are playing every room with {stonesOf(profile.stones).name.toLowerCase()}, chosen on{" "}
-              <button className="link-btn" onClick={() => go("look")}>the look page</button>, so those
-              are the stones you will see once this room is worn. Set them back to the room’s own
-              there and this set follows the dojo.
+              {t("dojo.overriddenBefore", { stones: setName(stonesOf(profile.stones), t).toLowerCase() })}
+              <button className="link-btn" onClick={() => go("look")}>{t("dojo.overriddenLink")}</button>
+              {t("dojo.overriddenAfter")}
             </p>
           )}
         </div>
       </div>
 
       <Card>
-        <div className="stat-head"><span>Start from a room</span></div>
-        <p className="fine" style={{ marginTop: 6 }}>
-          Loads that palette into the controls above, stones and all. It does not change what
-          you are wearing.
-        </p>
+        <div className="stat-head"><span>{t("dojo.startFrom")}</span></div>
+        <p className="fine" style={{ marginTop: 6 }}>{t("dojo.startFromNote")}</p>
         <div className="theme-row">
           {PALETTES.map((p, i) => (
             <button key={p.id}

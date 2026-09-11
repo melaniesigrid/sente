@@ -18,6 +18,7 @@ import { look } from "./look.js";
 import { screens } from "./screens.js";
 import { game } from "./game.js";
 import { front } from "./front.js";
+import { rooms } from "./rooms.js";
 import { content } from "./content.js";
 import { overlay } from "./overlay.js";
 
@@ -29,6 +30,7 @@ export const es = {
   ...screens,
   ...game,
   ...front,
+  ...rooms,
   ...content,
   ...overlay,
 };

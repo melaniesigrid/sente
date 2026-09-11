@@ -17,6 +17,7 @@ import { look } from "./look.js";
 import { screens } from "./screens.js";
 import { game } from "./game.js";
 import { front } from "./front.js";
+import { rooms } from "./rooms.js";
 
 /** One catalogue, assembled from its parts. The parts never share a top-level
  *  key, so the spread is a join and never an override. */
@@ -26,4 +27,5 @@ export const en = {
   ...screens,
   ...game,
   ...front,
+  ...rooms,
 };
