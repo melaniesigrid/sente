@@ -21,6 +21,7 @@ export const SYSTEM_LOCALE = "system";
 export const LOCALES = [
   { id: "en", tag: "en", name: "English", endonym: "English" },
   { id: "es", tag: "es", name: "Spanish", endonym: "Español" },
+  { id: "fr", tag: "fr", name: "French", endonym: "Français" },
 ];
 
 const byId = new Map(LOCALES.map(l => [l.id, l]));
