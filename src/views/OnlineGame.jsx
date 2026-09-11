@@ -99,6 +99,8 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
   );
   const resultKind = over && color ? (over.winner === null ? "jigo" : over.winner === color ? "win" : "loss") : null;
   useMokuFacts({ view: "game", phase: rec ? rec.phase : "playing", thinking: false, myAtari: myAtari.length, oppAtari: 0, ko: !!(rec && rec.koPoint !== null), moment: null, result: resultKind, promoted: null, seed: rec ? rec.moves.length : 0 });
+  const blackLead = room ? lead(room, "b") : null;
+  const whiteLead = room ? lead(room, "w") : null;
 
   const send = (frame) => { if (!sock.current || !sock.current.send(frame)) notify({ icon: "info", text: "Not connected" }); };
 
@@ -158,7 +160,8 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
   const tone = over && color ? (over.winner === color ? "win" : over.winner === null ? "" : "loss") : "";
   const boardDisabled = !room || !seat || !!over || conn !== "open" || (!scoring && !myTurn);
   const mine = seat ? room.seats[seat] : null;
-  const theirs = color ? lead(room, color === "b" ? "w" : "b") : null;
+  const theirs = color ? (color === "b" ? whiteLead : blackLead) : null;
+  const partner = room && seat && room.pair ? seatName(room, partnerSeat(seat)) : "";
   const settled = settledLine(room, seat);
 
   if (gone) {
@@ -177,13 +180,13 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
         {room && (
           <div className="vs-strip">
             <div className="vs-side">
-              <Avatar name={lead(room, "b").name} tint={lead(room, "b").tint} size={34} src={faceOf(lead(room, "b"))} />
-              <div className="vs-meta"><strong>{teamName(room, "b")}</strong><RankBadge rating={lead(room, "b").rating} size="sm" /></div>
+              {blackLead && <Avatar name={blackLead.name} tint={blackLead.tint} size={34} src={faceOf(blackLead)} />}
+              <div className="vs-meta"><strong>{teamName(room, "b")}</strong>{blackLead && <RankBadge rating={blackLead.rating} size="sm" />}</div>
             </div>
             <span className="vs-x">vs</span>
             <div className="vs-side">
-              <div className="vs-meta right"><strong>{teamName(room, "w")}</strong><RankBadge rating={lead(room, "w").rating} size="sm" /></div>
-              <Avatar name={lead(room, "w").name} tint={lead(room, "w").tint} size={34} src={faceOf(lead(room, "w"))} />
+              <div className="vs-meta right"><strong>{teamName(room, "w")}</strong>{whiteLead && <RankBadge rating={whiteLead.rating} size="sm" />}</div>
+              {whiteLead && <Avatar name={whiteLead.name} tint={whiteLead.tint} size={34} src={faceOf(whiteLead)} />}
             </div>
           </div>
         )}
@@ -226,9 +229,9 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
           {card && (
             <Card className={`result-card ${tone}`}>
               <div className="bow-row" aria-hidden="true">
-                <Avatar name={lead(room, "b").name} tint={lead(room, "b").tint} size={44} className="bow" src={faceOf(lead(room, "b"))} />
+                {blackLead && <Avatar name={blackLead.name} tint={blackLead.tint} size={44} className="bow" src={faceOf(blackLead)} />}
                 <span className="bow-word">rei</span>
-                <Avatar name={lead(room, "w").name} tint={lead(room, "w").tint} size={44} className="bow bow-late" src={faceOf(lead(room, "w"))} />
+                {whiteLead && <Avatar name={whiteLead.name} tint={whiteLead.tint} size={44} className="bow bow-late" src={faceOf(whiteLead)} />}
               </div>
               <div className="result-head">
                 <h3 className="result-headline">{card.headline}</h3>
@@ -295,7 +298,7 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
             <Card inset>
               <p className="fine">
                 You are {color === "b" ? "Black" : "White"}
-                {room.pair ? ` with ${seatName(room, partnerSeat(seat))}` : ""} against {teamName(room, color === "b" ? "w" : "b")}.
+                {partner ? ` with ${partner}` : ""} against {teamName(room, color === "b" ? "w" : "b")}.
                 {room.pair ? " Partners may not consult, so there is no line to your partner and there is not meant to be." : ""}
                 {" "}There is no clock yet; leave the table and come back from the lobby whenever you like.
               </p>
