@@ -78,7 +78,7 @@ lessons across six tiers; content is authored tier by tier so each tier ships co
 ### Tier 3 Journeyman (15k–10k, 13x13 and 19x19)
 - `liberty-race` 14k tactics: counting liberties in a capturing race, outside first (exists)
 - `throw-in` 13k tactics: reducing eyes with a throw-in
-- `seki` 13k life: mutual life
+- `seki` 13k life: mutual life (exists)
 - `ko-threats` 12k life: fighting a ko, what counts as a threat
 - `cutting-points` 13k shape: counting cuts, when a peep is a threat
 - `thickness` 12k shape: walls, influence, not making territory from thickness

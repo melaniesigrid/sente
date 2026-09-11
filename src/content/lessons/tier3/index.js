@@ -9,9 +9,10 @@ import fundamentalsLadder from "./fundamentals-ladder.js";
 import fundamentalsHaneAtTheHead from "./fundamentals-hane-at-the-head.js";
 import marvelsNet from "./marvels-net.js";
 import libertyRace from "./liberty-race.js";
+import seki from "./seki.js";
 
 export const TIER3 = [
   classicTerritory, classicConflict, classicEmptiness, classicMiscellany,
   fundamentalsLadder, fundamentalsHaneAtTheHead,
-  marvelsNet, libertyRace,
+  marvelsNet, libertyRace, seki,
 ];

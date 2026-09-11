@@ -238,6 +238,16 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       moves, and all four of its points kill; bent three behaves exactly like straight three
       with the bend as its centre. Both quiz refutations were played out — Black on an end,
       White in the middle captures the stone and comes out with two eyes.
+- [x] `seki` (2026-09-11, 3 / 13k, life): the sequel to `liberty-race` and its exception.
+      There the rule is to fill your opponent's outside liberties and leave the shared ones;
+      here there are no outside liberties at all and the rule runs out. Found by filtering
+      the same corner enumeration the other way — positions where the race solver returns a
+      draw from both sides and every legal move inside loses for whoever plays it. Five
+      survived; this is the most symmetrical: six white stones and four black, two liberties
+      each, the same two, and Black filling one makes a five-stone chain that White takes
+      whole. Cites the Dunhuang manuscript, the sixth-century scroll that is the oldest
+      surviving go manual, whose last section sorts problems into four kinds with ko and seki
+      as one of them.
 - [ ] The rest of the Fundamentals: chapter two's cutting and connecting (do not peep where
       you can cut), chapter five's thickness, chapter ten's shortage of liberties and the
       snapback as bait, chapter seven on how to study joseki.
