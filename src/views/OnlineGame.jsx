@@ -3,7 +3,9 @@ import {
   ChevronLeft, Flag, RotateCcw, Trophy, CircleDot, Scale, MessageCircle, Send, Handshake, Check, X,
   Download, Eye, Link as LinkIcon, WifiOff,
 } from "lucide-react";
-import { scoreBoard, chainsInAtari, idx, lastMoveIndex, toSgf } from "../engine/index.js";
+import {
+  scoreBoard, chainsInAtari, idx, lastMoveIndex, toSgf, colorOfSeat, canSeatPlay, partnerSeat,
+} from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
 import { Card, Btn, Pill, Avatar, RankBadge } from "../components/ui.jsx";
 import { avatarUrl } from "../net/avatar.js";
@@ -13,9 +15,14 @@ import { beltOf, hintsForBelt } from "../content/rank.js";
 import { gameSocket, SERVER_URL } from "../net/api.js";
 import { loadAccount } from "../store/account.js";
 import { refusalText, resignLabel, resultCard, RESIGN_CONFIRM_MS } from "./gameStatus.js";
-import { onlineStatus, settledLine, onlineCaption } from "./onlineStatus.js";
+import { onlineStatus, settledLine, onlineCaption, teamName } from "./onlineStatus.js";
 
-const seatName = (room, c) => room.seats[c].name;
+/* `seat` in this view is a seat id ("b1", "w1", "b2", "w2"), which is what the
+   server now hands out: at a pair table a colour names two people, and the one
+   thing this view must never get wrong is which of them is you. `color` below is
+   the colour that seat plays, for everything the rules care about. */
+const seatName = (room, id) => (room.seats[id] ? room.seats[id].name : "");
+const lead = (room, c) => room.seats[c + "1"];
 /* A seat carries the stamp its owner's picture last changed at, so the table
    can draw a face without asking the server who is sitting there. */
 const faceOf = (seat) => avatarUrl(SERVER_URL, seat.id, seat.avatarAt);
@@ -80,16 +87,17 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
   const rec = room ? room.record : null;
   const over = rec && rec.phase === "ended" ? rec.result : null;
   const scoring = rec && rec.phase === "scoring";
-  const myTurn = !!(rec && seat && rec.phase === "playing" && rec.toPlay === seat);
+  const color = seat ? colorOfSeat(seat) : null;
+  const myTurn = !!(rec && seat && rec.phase === "playing" && canSeatPlay(room.seats, rec, seat));
   const belt = beltOf(profile.rating);
   const hints = hintsForBelt(belt) && !!seat;
-  const myAtari = useMemo(() => (rec && rec.phase === "playing" && seat ? chainsInAtari(rec.board, seat) : []), [rec, seat]);
+  const myAtari = useMemo(() => (rec && rec.phase === "playing" && color ? chainsInAtari(rec.board, color) : []), [rec, color]);
   const atariIdx = useMemo(() => (hints ? myAtari.flatMap(ch => ch.stones.map(([c, r]) => idx(rec.size, c, r))) : []), [hints, myAtari, rec]);
   const preview = useMemo(
     () => (scoring ? scoreBoard(rec.board, { dead: rec.dead, komi: rec.komi, handicap: rec.handicap }) : null),
     [scoring, rec],
   );
-  const resultKind = over && seat ? (over.winner === null ? "jigo" : over.winner === seat ? "win" : "loss") : null;
+  const resultKind = over && color ? (over.winner === null ? "jigo" : over.winner === color ? "win" : "loss") : null;
   useMokuFacts({ view: "game", phase: rec ? rec.phase : "playing", thinking: false, myAtari: myAtari.length, oppAtari: 0, ko: !!(rec && rec.koPoint !== null), moment: null, result: resultKind, promoted: null, seed: rec ? rec.moves.length : 0 });
 
   const send = (frame) => { if (!sock.current || !sock.current.send(frame)) notify({ icon: "info", text: "Not connected" }); };
@@ -114,8 +122,13 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
     setConfirmResign(false);
     send({ t: "resign" });
   };
-  const undoAsk = !!(room && room.undo && room.undo.by !== seat && seat);
-  const canAskUndo = !!(seat && rec && rec.phase === "playing" && !room.undo && rec.toPlay !== seat && rec.moves.length > 0);
+  // The other team asked; your own partner asking is not a question for you.
+  const undoAsk = !!(room && room.undo && seat && colorOfSeat(room.undo.by) !== color);
+  /* At an ordinary table you ask while the opponent is to play; at a pair table
+     the ask takes back the whole rotation, so you ask while it is your own turn.
+     Both rules live on the server; this only keeps the button honest. */
+  const canAskUndo = !!(seat && rec && rec.phase === "playing" && !room.undo
+    && (room.pair ? myTurn : !myTurn) && rec.moves.length >= (room.pair ? 4 : 1));
 
   const sendChat = () => {
     const t = draft.trim();
@@ -142,10 +155,10 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
 
   const status = onlineStatus({ room, seat, conn });
   const card = over ? resultCard(over) : null;
-  const tone = over && seat ? (over.winner === seat ? "win" : over.winner === null ? "" : "loss") : "";
+  const tone = over && color ? (over.winner === color ? "win" : over.winner === null ? "" : "loss") : "";
   const boardDisabled = !room || !seat || !!over || conn !== "open" || (!scoring && !myTurn);
   const mine = seat ? room.seats[seat] : null;
-  const theirs = seat ? room.seats[seat === "b" ? "w" : "b"] : null;
+  const theirs = color ? lead(room, color === "b" ? "w" : "b") : null;
   const settled = settledLine(room, seat);
 
   if (gone) {
@@ -164,13 +177,13 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
         {room && (
           <div className="vs-strip">
             <div className="vs-side">
-              <Avatar name={room.seats.b.name} tint={room.seats.b.tint} size={34} src={faceOf(room.seats.b)} />
-              <div className="vs-meta"><strong>{room.seats.b.name}</strong><RankBadge rating={room.seats.b.rating} size="sm" /></div>
+              <Avatar name={lead(room, "b").name} tint={lead(room, "b").tint} size={34} src={faceOf(lead(room, "b"))} />
+              <div className="vs-meta"><strong>{teamName(room, "b")}</strong><RankBadge rating={lead(room, "b").rating} size="sm" /></div>
             </div>
             <span className="vs-x">vs</span>
             <div className="vs-side">
-              <div className="vs-meta right"><strong>{room.seats.w.name}</strong><RankBadge rating={room.seats.w.rating} size="sm" /></div>
-              <Avatar name={room.seats.w.name} tint={room.seats.w.tint} size={34} src={faceOf(room.seats.w)} />
+              <div className="vs-meta right"><strong>{teamName(room, "w")}</strong><RankBadge rating={lead(room, "w").rating} size="sm" /></div>
+              <Avatar name={lead(room, "w").name} tint={lead(room, "w").tint} size={34} src={faceOf(lead(room, "w"))} />
             </div>
           </div>
         )}
@@ -190,8 +203,8 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
           )}
           {seat && !over && (scoring ? (
             <div className="row">
-              <Btn icon={Check} small primary onClick={() => send({ t: "accept" })} disabled={room.accepted === seat}>
-                {room.accepted === seat ? "Accepted" : "Accept score"}
+              <Btn icon={Check} small primary onClick={() => send({ t: "accept" })} disabled={room.accepted === color}>
+                {room.accepted === color ? "Accepted" : "Accept score"}
               </Btn>
               <Btn icon={Handshake} small onClick={onResign} disabled={!canResign}>{resignLabel(confirmResign)}</Btn>
             </div>
@@ -213,9 +226,9 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
           {card && (
             <Card className={`result-card ${tone}`}>
               <div className="bow-row" aria-hidden="true">
-                <Avatar name={room.seats.b.name} tint={room.seats.b.tint} size={44} className="bow" src={faceOf(room.seats.b)} />
+                <Avatar name={lead(room, "b").name} tint={lead(room, "b").tint} size={44} className="bow" src={faceOf(lead(room, "b"))} />
                 <span className="bow-word">rei</span>
-                <Avatar name={room.seats.w.name} tint={room.seats.w.tint} size={44} className="bow bow-late" src={faceOf(room.seats.w)} />
+                <Avatar name={lead(room, "w").name} tint={lead(room, "w").tint} size={44} className="bow bow-late" src={faceOf(lead(room, "w"))} />
               </div>
               <div className="result-head">
                 <h3 className="result-headline">{card.headline}</h3>
@@ -280,7 +293,12 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
           </Card>
           {mine && theirs && !over && (
             <Card inset>
-              <p className="fine">You are {seat === "b" ? "Black" : "White"} against {theirs.name}. There is no clock yet; leave the table and come back from the lobby whenever you like.</p>
+              <p className="fine">
+                You are {color === "b" ? "Black" : "White"}
+                {room.pair ? ` with ${seatName(room, partnerSeat(seat))}` : ""} against {teamName(room, color === "b" ? "w" : "b")}.
+                {room.pair ? " Partners may not consult, so there is no line to your partner and there is not meant to be." : ""}
+                {" "}There is no clock yet; leave the table and come back from the lobby whenever you like.
+              </p>
             </Card>
           )}
         </div>

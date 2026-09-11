@@ -98,9 +98,28 @@ second human. Ships as three PRs:
 
 Two humans, each with their own bot partner.
 
-- **B1 · rooms with rosters.** `server/room.js` carries a roster instead of
+- **B1 · rooms with rosters.** ✅ `server/room.js` carries a roster instead of
   `seats: { b, w }`, and validates the seat as well as the colour. A two-seat room is
-  the same code path, so existing online games migrate rather than fork.
+  the same code path, and rooms stored before the roster are migrated on read.
+
+  Four rules turned out to differ at a four-seat table, and all four are the same
+  question — *what binds a team, and what binds a chair?*
+
+  | | two seats | four seats |
+  |---|---|---|
+  | may move | the colour to play | the **seat** to play (`canSeatPlay`) |
+  | undo | one move, asked while the opponent is to play | the **whole rotation**, asked on your own turn |
+  | who answers an undo | the opponent | **either** opponent; never your own partner |
+  | resign / accept | you | **either partner**, binding the team |
+
+  The undo rule is the one worth arguing with. One move back at a pair table would
+  hand the board to your *partner*, in the middle of a round nobody finished — so the
+  unit of a take-back is the round, which lands the asker back in their own chair, and
+  that is why it is asked for on your own turn rather than off it.
+
+  Chat stays one room-wide conversation. There is no team channel and there must not
+  be: a private line to your partner is precisely what "partners may not consult"
+  forbids, so the protocol has nowhere to put one.
 - **B2 · seating four.** Matchmaking for a pair table, and the invite link that seats a
   partner. **Each human's browser runs their own bot partner** and submits its move
   like any other: no KataGo on the server, no new infrastructure. The cost is that a
