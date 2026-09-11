@@ -1013,6 +1013,29 @@ ${FONT_FACES}
 /* A language names itself in words, not in one letter, so its plate is set at
    reading size rather than at specimen size. */
 .lang-sample { font-size: 20px; line-height: 1.2; }
+
+/* The language menu in the top bar. The button carries the tag of the language
+   in force, so a reader who landed in the wrong one can see that they did. */
+.lang-menu { position: relative; }
+.lang-btn { display: flex; align-items: center; gap: 6px; width: auto; padding: 0 11px; }
+.lang-tag { font: 700 12px var(--font-body); letter-spacing: .1em; text-transform: uppercase; }
+.lang-btn.open { box-shadow: var(--sink-sm); }
+.lang-pop {
+  position: absolute; top: calc(100% + 10px); right: 0; z-index: 40;
+  display: flex; flex-direction: column; gap: 2px; min-width: 220px;
+  background: var(--ground); border-radius: var(--r); box-shadow: var(--raise);
+  padding: 8px;
+}
+.lang-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  border: 0; background: transparent; color: var(--ink); cursor: pointer;
+  font: 600 14px var(--font-body); text-align: left;
+  padding: 9px 11px; border-radius: 12px;
+}
+.lang-item:hover { box-shadow: var(--raise-sm); }
+.lang-item.on { box-shadow: var(--sink-sm); color: var(--accent-ink); }
+.lang-item-name { display: flex; flex-direction: column; gap: 2px; }
+@media (max-width: 760px) { .lang-tag { display: none; } .lang-btn { padding: 0; } }
 .type-name { color: var(--ink-2); font: 700 12px var(--font-body); letter-spacing: .11em; text-transform: uppercase; }
 .type-btn.active .type-name { opacity: 1; }
 .type-note { margin-top: 14px; }

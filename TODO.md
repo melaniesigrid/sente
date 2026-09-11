@@ -1082,8 +1082,11 @@ that is honestly still English.
       `navigator.languages`, the way prefersDark.js is for the media query.
 - [x] `profile.locale`, `system` by default: the words follow the device unless the player
       says otherwise, exactly as the room does.
-- [x] The language picker, at the head of the look page, above the room — it is the one
-      choice on that page that decides whether the rest of it can be read.
+- [x] The language picker moved to the top bar (2026-09-11), beside the look: it is the one
+      choice that must be findable by somebody who cannot read the screen they are standing
+      on, and a settings screen is a screen you have to find first. The look page says where
+      it went. Catalogues split into `src/i18n/<locale>/` parts so content prose can land
+      without making one file unreadable.
 - [x] Spanish: the shell (nav, top bar, footer, the crash card) and the whole look page,
       including the notes the theme and typeface data files hold.
 - [x] Spanish: the dashboard and the lobby — `Home`, `Play`, the duel card, the SGF opener.
@@ -1104,8 +1107,13 @@ that is honestly still English.
 - [ ] Spanish: the content prose — Moku's lines, the personas, the welcome copy, the
       commentary. The Classic's thirteen chapters are a translation problem of their own
       and are the last thing to touch, not the first.
-- [ ] French, the same slices in the same order. Cheap after Spanish: the keys exist, so
-      each PR is a catalogue file and a test run.
+- [ ] Spanish: the rest of the screens — the landing page, onboarding, online play, the
+      small print, review mode, the dojo.
+- [ ] Spanish: the content prose. Lessons, personas, Moku, the plain-words statements, the
+      books, the legal documents, and the Classic's thirteen chapters, in that order.
+- [ ] French, every slice above. Cheap after Spanish: the keys exist, so each PR is a
+      catalogue file and a test run.
+- [ ] German, the same.
 
 Decisions made in Phase 7 (change deliberately, not by accident):
 - English lives in `en.js`, except for prose that a data file already owns — a room's note,

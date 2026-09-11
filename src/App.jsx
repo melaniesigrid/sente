@@ -27,8 +27,9 @@ import { typefaceVars } from "./content/typeface.js";
 import { themeVars, resolveTheme } from "./theme/index.js";
 import { usePrefersDark } from "./components/prefersDark.js";
 import { LangProvider } from "./components/lang.jsx";
+import { LangMenu } from "./components/LangMenu.jsx";
 import { useLang } from "./components/langStore.js";
-import { defaultProfile, loadProfile, needsOnboarding } from "./store/profile.js";
+import { defaultProfile, loadProfile, needsOnboarding, saveProfile } from "./store/profile.js";
 import { Home } from "./views/Home.jsx";
 import { Welcome } from "./views/Welcome.jsx";
 import { Landing } from "./views/Landing.jsx";
@@ -108,6 +109,11 @@ export default function JosekiApp() {
   }, []);
 
   const go = useCallback((v, p = null) => { setResume(null); setParams(p); setView(v); }, []);
+  /* The one preference the shell owns, because the control that sets it lives
+     in the shell. Everything else on the profile is set from a screen. */
+  const setLocale = useCallback((locale) => {
+    setProfile(p => { const np = { ...p, locale }; saveProfile(np); return np; });
+  }, []);
   const resumeGame = useCallback((session) => { setResume(session); setView("play"); }, []);
   const home = useCallback(() => go("home"), [go]);
   // Spent or abandoned, the token leaves the address bar either way.
@@ -147,6 +153,10 @@ export default function JosekiApp() {
             than a screen you visit, but it is one press from anywhere, which is
             what a thing you try on wants. */}
         <div className="topbar-you">
+          {/* The words, then the look, then you. The language is one press from
+              anywhere because a reader who landed in the wrong one cannot go
+              looking for a settings screen they cannot read. */}
+          <LangMenu locale={profile.locale} onPick={setLocale} />
           <button className="icon-btn look-btn" onClick={() => go("look")}
             aria-label={t("topbar.look")} aria-current={view === "look" ? "page" : undefined}>
             <Palette size={17} />
