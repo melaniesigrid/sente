@@ -1379,10 +1379,26 @@ duel, a master game and a coached game move no rating.
       spectating a pair game.
 
 **Phase C — four humans (true rengo)**
-- [ ] C1: all-human rosters. The one new rule is a social one the interface has to
-      keep: partners may not consult, so a live pair game has no team-only chat.
-- [ ] C2: invite a friend to your team, matchmake pairs against pairs, and decide
-      whether a team rating is a number Joseki is willing to stand behind.
+- [x] C1: all-human rosters (branch `feat/rengo-four`). The seat model did not change
+      at all; what changed is that no seat carries a runner. Decisions made while
+      building it:
+      - A human seat may never carry `runBy`. A bot partner is run by the browser of
+        the player it partners; a person plays their own moves. A `runBy` on a human
+        seat would hand a player their partner's chair, which is the one thing pair go
+        forbids — `seat()` now strips it rather than trusting the caller.
+      - Four seekers fill a table in arrival order: b1, w1, b2, w2, so the first two to
+        arrive lead the teams and the next two partner them. Arbitrary, but arbitrary in
+        the open — nobody is quietly put on the stronger side.
+      - Three queues that never see each other: an ordinary seek, a bot-partner pair
+        seek, and a rengo seek waiting for three more people.
+      - Still unrated. Four humans could carry a team rating, but that is a different
+        number with a different meaning and it is not being smuggled in under the
+        single-player one. That is C2's question, not C1's.
+      - The no-team-chat rule needed no work: chat has been one room-wide conversation
+        since B1, because a private line to your partner is what the rule forbids.
+- [ ] C2: invite a friend to your team (choose which team a named friend joins), and
+      decide whether a team rating is a number Joseki is willing to stand behind. The
+      rendezvous word already gets four people who agree on it to the same table.
 
 Open, deliberately: whether a handicap between *teams* means anything (Phase A offers
 even games only), and whether a partner may ever resign or accept a score for you

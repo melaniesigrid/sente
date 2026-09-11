@@ -4,7 +4,7 @@ import {
   seatAsk, seatWeights, seatPersona, seatRating, teamLine, pairCaption, pairStatus, seatLine,
 } from "./rengo.js";
 import { PERSONAS } from "./personas.js";
-import { rosterSeats, isPair, rosterPlayers, seatToPlay } from "../engine/rengo.js";
+import { rosterSeats, isPair, rosterPlayers, seatToPlay, DEFAULT_PARTNER_RANK } from "../engine/rengo.js";
 import { createGame, play } from "../engine/record.js";
 import { ratingOfRank, rankOf } from "./rank.js";
 
@@ -14,6 +14,11 @@ const seat = (partnerRank = PARTNER_RANK) =>
   pairRoster({ profile, persona: tetsu, rank: "12k", partnerRank });
 
 describe("the partner rank", () => {
+  it("is the engine's number, not a second copy of it", () => {
+    // The server seats an online pair table and may import from the engine alone,
+    // so the constant lives there. Two "7d"s that drift apart is the failure.
+    expect(PARTNER_RANK).toBe(DEFAULT_PARTNER_RANK);
+  });
   it("defaults to a player worth watching and offers a range of them", () => {
     expect(PARTNER_RANK).toBe("7d");
     expect(PARTNER_RANKS).toContain(PARTNER_RANK);

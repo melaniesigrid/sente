@@ -60,8 +60,8 @@ export function createRoom({
   if (!SIZES.includes(size)) throw new RangeError(`bad size ${size}`);
   const seats = createRoster({
     b1: seat(black), w1: seat(white),
-    ...(blackPartner ? { b2: seat({ ...blackPartner, runBy: blackPartner.runBy ?? black.id }) } : {}),
-    ...(whitePartner ? { w2: seat({ ...whitePartner, runBy: whitePartner.runBy ?? white.id }) } : {}),
+    ...(blackPartner ? { b2: partnerOf(blackPartner, black) } : {}),
+    ...(whitePartner ? { w2: partnerOf(whitePartner, white) } : {}),
   });
   const pair = isPair(seats);
   const record = createGame({ size, komi, handicap, players: roomPlayers(seats) });
@@ -83,17 +83,32 @@ export function createRoom({
    online partner is played by the device of the person it is partnering, and
    submitted over their socket like any other move. The cost is stated at the
    table: a team's partner needs that team's device online. */
-const seat = (p) => ({
-  kind: p.kind === "bot" ? "bot" : "human",
-  id: p.id, name: p.name, tint: p.tint ?? "eucalyptus",
-  rating: p.rating, rd: p.rd,
-  ...(p.rank ? { rank: p.rank } : {}),
-  ...(p.runBy ? { runBy: p.runBy } : {}),
-  ...(p.avatarAt !== undefined ? { avatarAt: p.avatarAt } : {}),
-});
+const seat = (p) => {
+  const bot = p.kind === "bot";
+  return {
+    kind: bot ? "bot" : "human",
+    id: p.id, name: p.name, tint: p.tint ?? "eucalyptus",
+    rating: p.rating, rd: p.rd,
+    ...(p.rank ? { rank: p.rank } : {}),
+    // Only a bot has a runner. A person plays their own moves, and a `runBy` on a
+    // human seat would hand their chair to their partner - which in pair go is not
+    // a convenience, it is the one thing the game forbids.
+    ...(bot && p.runBy ? { runBy: p.runBy } : {}),
+    ...(p.avatarAt !== undefined ? { avatarAt: p.avatarAt } : {}),
+  };
+};
+
+/* A partner seat. A bot partner defaults to being run by the browser of the
+   player it partners; a human partner is just another person at the board and
+   is given no runner at all. */
+const partnerOf = (p, lead) => seat(p.kind === "bot" ? { ...p, runBy: p.runBy ?? lead.id } : p);
 
 /** Is this a four-seat table? */
 export const isPairRoom = (room) => !!room.pair || isPair(room.seats);
+
+/** A pair table with nobody but people at it: rengo as it is actually played. */
+export const isAllHuman = (room) =>
+  Object.keys(room.seats).every((id) => room.seats[id].kind === "human");
 
 /** The seat that leads a team: the one an ordinary two-seat room calls "b" or "w". */
 export const leadSeat = (room, color) => room.seats[color + "1"];

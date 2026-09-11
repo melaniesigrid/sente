@@ -181,8 +181,76 @@ assert(pfin.room.record.result.winner === "b", "dee resigned, cy's pair wins");
 const pgames = await j("/api/games", { headers: { authorization: `Bearer ${c.token}` } });
 assert(pgames[0].pair === true && pgames[0].teams.b.length === 2, "the lobby lists it as a pair table");
 for (const ch2 of [lc, ld, le, gc, gd]) ch2.s.close();
-for (const p2 of [c, d, e]) await j("/api/me", { method: "DELETE", headers: { authorization: `Bearer ${p2.token}` } });
 console.log("ok  pair go: four seats over the wire");
+
+/* ----- rengo: four people and no house players -----
+   The seat model does not change at all. What changes is that no seat carries a
+   runner, so nobody may touch anybody else's chair - which is the rule of pair go
+   rather than a policy Joseki invented. */
+const f = await j("/api/register", { method: "POST", body: JSON.stringify({ name: "Fen", tint: "sky" }) });
+const g = await j("/api/register", { method: "POST", body: JSON.stringify({ name: "Gus", tint: "coral" }) });
+const RKEY = "rengo-" + Math.random().toString(36).slice(2, 8);
+const four = [];
+for (const who of [c, d, e, f]) {
+  const l = await open(`${ws}/api/lobby?token=${who.token}`);
+  await l.next(m => m.t === "lobby");
+  four.push({ who, l });
+}
+for (let i = 0; i < 3; i++) {
+  four[i].l.send({ t: "seek", size: 9, key: RKEY, rengo: true });
+  const st2 = await four[i].l.next(m => m.t === "seek" && m.seated === i + 1);
+  assert(st2.status === "waiting" && st2.of === 4, `rengo table fills: ${i + 1} of 4`);
+}
+// A bot-partner seek on the same word must not be swallowed into the rengo table.
+const lg = await open(`${ws}/api/lobby?token=${g.token}`);
+await lg.next(m => m.t === "lobby");
+lg.send({ t: "seek", size: 9, key: RKEY, pair: { rank: "7d" } });
+assert((await lg.next(m => m.t === "seek")).status === "waiting", "a bot-partner seek never joins a rengo table");
+lg.send({ t: "cancel" });
+await lg.next(m => m.t === "seek" && m.status === "idle");
+
+four[3].l.send({ t: "seek", size: 9, key: RKEY, rengo: true });
+for (const s2 of four) {
+  const m = await s2.l.next(mm => mm.t === "matched");
+  s2.seat = m.seat;
+  s2.gameId = m.gameId;
+  s2.partner = m.partner.name;
+  assert(m.rengo === true, `${s2.who.player.name} matched into a rengo table`);
+}
+assert(four.map(s2 => s2.seat).join() === "b1,w1,b2,w2", "seats go in arrival order");
+assert(four[0].partner === four[2].who.player.name, "the first to arrive is partnered with the third");
+const rgid = four[0].gameId;
+assert(four.every(s2 => s2.gameId === rgid), "all four at the same table");
+
+for (const s2 of four) {
+  s2.g = await open(`${ws}/api/game/${rgid}/ws?token=${s2.who.token}`);
+  await s2.g.next(m => m.t === "state");
+  const seatFrame = await s2.g.next(m => m.t === "seat");
+  assert(seatFrame.seat === s2.seat && seatFrame.runs.length === 0,
+    `${s2.who.player.name} holds ${s2.seat} and runs nobody: a person plays their own moves`);
+}
+const rst = await j(`/api/game/${rgid}`);
+assert(rst.record.players.b.includes(" & ") && rst.rated === false, "two names a side, and unrated");
+
+/* Each of the four plays their own turn, and only their own. Before each move the
+   *partner* of whoever is up tries it first: same team, same colour, wrong person.
+   That is the refusal four-human rengo exists to make. */
+for (let i = 0; i < 4; i++) {
+  const up = four[i];
+  const mate = four.find(s2 => s2 !== up && s2.seat[0] === up.seat[0]);
+  mate.g.send({ t: "play", c: 8, r: 8 });
+  assert((await mate.g.next(m => m.t === "error")).reason === "wrong-turn",
+    `${mate.who.player.name} cannot play in their partner ${up.who.player.name}'s turn`);
+  up.g.send({ t: "play", c: i, r: 0 });
+  for (const s2 of four) await s2.g.next(m => m.t === "state");
+}
+const rfin = await j(`/api/game/${rgid}`);
+assert(rfin.record.moves.length === 4, "one full round: four people, four moves");
+assert(rfin.record.moves.map(m => m.color).join() === "b,w,b,w", "and the colours alternated");
+for (const s2 of four) { s2.g.s.close(); s2.l.s.close(); }
+lg.s.close();
+for (const p2 of [c, d, e, f, g]) await j("/api/me", { method: "DELETE", headers: { authorization: `Bearer ${p2.token}` } });
+console.log("ok  rengo: four people, nobody plays anybody else's moves");
 
 // Leave: the test accounts must not linger on a real ladder.
 for (const p of [a, b]) {

@@ -734,7 +734,8 @@ export class Registry extends DurableObject {
       /* A pair seek names the partner rank it wants. A pair table is never rated,
          so the flag is forced here rather than trusted from the frame. */
       const pair = msg.pair && typeof msg.pair.rank === "string" ? { rank: msg.pair.rank.slice(0, 3) } : null;
-      await this.seek(id, size, pair ? false : rated, cleanKey(msg.key), pair);
+      const rengo = msg.rengo === true;
+      await this.seek(id, size, pair || rengo ? false : rated, cleanKey(msg.key), pair, rengo);
     } else if (msg.t === "cancel") {
       await this.ctx.storage.delete(`seek:${id}`);
       send(ws, { t: "seek", status: "idle" });
@@ -757,19 +758,21 @@ export class Registry extends DurableObject {
   /** Look for an opponent, or wait to be found. `key` is an optional rendezvous
    *  word: seeks carrying one match only each other, so two people who agree on a
    *  word meet however busy the lobby is, and an open seek never swallows them. */
-  async seek(id, size, rated, key = null, pair = null) {
+  async seek(id, size, rated, key = null, pair = null, rengo = false) {
     const me = await this.ctx.storage.get(`player:${id}`);
     if (!me) return;
     /* A pair seek only ever meets another pair seek. Sitting down expecting a
        partner and getting an ordinary game (or the reverse) is not a near miss,
-       it is a different game, so the two queues never see each other. */
-    const want = pair ? { rank: pair.rank } : null;
+       it is a different game, so the queues never see each other. A rengo seek
+       is a third queue for the same reason: it is waiting for three people. */
+    const want = rengo ? null : pair ? { rank: pair.rank } : null;
     const seeks = await this.ctx.storage.list({ prefix: "seek:" });
+    if (rengo) return this.#seekRengo(id, me, size, key, seeks);
     let match = null;
     for (const [k, s] of seeks) {
       if (k === `seek:${id}`) continue;
       if ((s.key ?? null) !== key) continue;
-      if (!!s.pair !== !!want) continue;
+      if (!!s.pair !== !!want || s.rengo) continue;
       if (s.size === size && s.rated === rated && this.ctx.getWebSockets(s.id).length) { match = s; break; }
     }
     if (!match) {
@@ -800,6 +803,59 @@ export class Registry extends DurableObject {
     const extra = partners ? { pair: true, partnerRank: (match.pair ?? want).rank } : {};
     this.tell(match.id, { t: "matched", gameId, color: "b", opponent: seatOf(me), size, ...extra });
     this.tell(id, { t: "matched", gameId, color: "w", opponent: seatOf(opp), size, ...extra });
+    await this.broadcastLobby();
+  }
+
+  /* Four people, no house players: rengo as it is actually played.
+     Seats go in arrival order - b1, w1, b2, w2 - so the first two to arrive lead
+     the two teams and the next two partner them in order. It is arbitrary, but it
+     is arbitrary in the open: everybody can see the rule, and nobody is quietly
+     put on the stronger side.
+
+     Still unrated. Four humans could carry a team rating one day, but a team
+     rating is a different number with a different meaning and it is not being
+     smuggled in under the single-player one. */
+  async #seekRengo(id, me, size, key, seeks) {
+    const waiting = [];
+    for (const [k, s] of seeks) {
+      if (k === `seek:${id}`) continue;
+      if ((s.key ?? null) !== key || !s.rengo || s.size !== size) continue;
+      if (this.ctx.getWebSockets(s.id).length) waiting.push(s);
+    }
+    waiting.sort((a, b) => a.at - b.at);
+    if (waiting.length < 3) {
+      const mine = { id, size, rated: false, key, rengo: true, at: Date.now() };
+      await this.ctx.storage.put(`seek:${id}`, mine);
+      const seated = waiting.length + 1;
+      // Everybody still waiting is told how full the table is, including the newcomer.
+      for (const s of [...waiting, mine]) {
+        this.tell(s.id, { t: "seek", status: "waiting", size, rated: false, key, rengo: true, seated, of: 4 });
+      }
+      await this.broadcastLobby();
+      return;
+    }
+    const table = [...waiting.slice(0, 3), { id, at: Date.now() }];
+    await this.ctx.storage.delete(table.map((s) => `seek:${s.id}`));
+    const people = [];
+    for (const s of table) {
+      const p = s.id === id ? me : await this.ctx.storage.get(`player:${s.id}`);
+      if (!p) return;                 // somebody left between the check and here
+      people.push(p);
+    }
+    const gameId = "g_" + randomHex(6);
+    const asSeat = (p) => ({ id: p.id, name: p.name, tint: p.tint, rating: Math.round(p.rating), rd: Math.round(p.rd), avatarAt: p.avatarAt ?? null });
+    const stub = this.env.ROOM.get(this.env.ROOM.idFromName(gameId));
+    const [b1, w1, b2, w2] = people;
+    await stub.create({
+      id: gameId, size, rated: false,
+      black: asSeat(b1), white: asSeat(w1),
+      blackPartner: asSeat(b2), whitePartner: asSeat(w2),
+    });
+    const seats = ["b1", "w1", "b2", "w2"];
+    people.forEach((p, i) => this.tell(p.id, {
+      t: "matched", gameId, size, seat: seats[i], color: seats[i][0], rengo: true,
+      partner: asSeat(people[i < 2 ? i + 2 : i - 2]),
+    }));
     await this.broadcastLobby();
   }
 

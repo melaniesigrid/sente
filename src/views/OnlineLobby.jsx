@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Radio, X, Play, Eye, LogOut, DoorOpen, Mail, Users } from "lucide-react";
+import { Radio, X, Play, Eye, LogOut, DoorOpen, Mail, Users, UsersRound } from "lucide-react";
 import { Card, Btn, Avatar, RankBadge } from "../components/ui.jsx";
 import { api, lobbySocket, serverEnabled, SERVER_URL } from "../net/api.js";
 import { loadAccount, saveAccount, clearAccount } from "../store/account.js";
@@ -56,7 +56,7 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
       onStatus: setConn,
       onFrame: (f) => {
         if (f.t === "lobby") setLobby({ online: f.online, seeking: f.seeking });
-        else if (f.t === "seek") setSeek(f.status === "waiting" ? { size: f.size, key: f.key, pair: f.pair ?? null } : null);
+        else if (f.t === "seek") setSeek(f.status === "waiting" ? { size: f.size, key: f.key, pair: f.pair ?? null, rengo: !!f.rengo, seated: f.seated, of: f.of } : null);
         else if (f.t === "matched") {
           setSeek(null);
           notify({ icon: "trophy", text: `Matched with ${f.opponent.name} · you play ${f.color === "b" ? "Black" : "White"}` });
@@ -71,9 +71,9 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
   /* A pair seek names the partner rank it wants and only ever meets another pair
      seek: sitting down expecting a partner and getting an ordinary game is not a
      near miss, it is a different game. */
-  const findGame = (pair = null) => {
-    const frame = { t: "seek", size, key, ...(pair ? { pair } : {}) };
-    if (sock.current && sock.current.send(frame)) setSeek({ size, key, pair });
+  const findGame = (opts = null) => {
+    const frame = { t: "seek", size, key, ...(opts ?? {}) };
+    if (sock.current && sock.current.send(frame)) setSeek({ size, key, ...(opts ?? {}) });
   };
   const cancel = () => { if (sock.current) sock.current.send({ t: "cancel" }); setSeek(null); };
   const signOut = async () => {
@@ -122,7 +122,9 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
         <div className="seek-state" role="status">
           <Radio size={16} className="pulse" />
           <span>
-            {seek.pair
+            {seek.rengo
+              ? `${seek.seated ?? 1} of 4 seated on ${seek.size}×${seek.size}. Four people, no house players: the first two to arrive lead the teams and the next two partner them.`
+              : seek.pair
               ? `Looking for another pair player on ${seek.size}×${seek.size}. You will each get a ${seek.pair.rank} partner, and the four of you take turns.`
               : seek.key
                 ? `Waiting at “${seek.key}” on ${seek.size}×${seek.size}. Whoever types the same word sits down opposite you.`
@@ -144,13 +146,26 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
               browser, which is the one thing about it a player has to be told:
               their half of your team stops when your device does. */}
           <div className="row">
-            <Btn icon={Users} small onClick={() => findGame({ rank: DEFAULT_PARTNER_RANK })} disabled={conn !== "open"}>
+            <Btn icon={Users} small onClick={() => findGame({ pair: { rank: DEFAULT_PARTNER_RANK } })} disabled={conn !== "open"}>
               Find a pair game on {size}×{size}
             </Btn>
             <span className="fine">
               You and a {DEFAULT_PARTNER_RANK} partner against another player and theirs, taking turns.
               Unrated. Each partner runs in the browser of the player it partners, so it plays
               for as long as that player is at the table.
+            </span>
+          </div>
+          {/* Rengo as it is actually played: four people and no house players.
+              It waits for three others, so it says how full the table is. */}
+          <div className="row">
+            <Btn icon={UsersRound} small onClick={() => findGame({ rengo: true })} disabled={conn !== "open"}>
+              Find four for rengo on {size}×{size}
+            </Btn>
+            <span className="fine">
+              Four people, two to a team, taking turns in one rotation. Unrated: a team
+              result is a different number from a player's rank, and Joseki will not put
+              one on the screen it cannot stand behind. Partners may not consult, so there
+              is no line to your partner and there is not meant to be.
             </span>
           </div>
           <p className="fine">

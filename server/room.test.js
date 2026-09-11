@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   createRoom, applyMessage, seatOf, reviveRoom, outcome, isPairRoom, leadSeat, controls, actingSeat,
+  isAllHuman,
 } from "./room.js";
 
 const A = { id: "a", name: "Ada", tint: "coral", rating: 1500, rd: 350 };
@@ -391,5 +392,62 @@ describe("a partner run by a browser", () => {
   it("survives a revive with the runners intact", () => {
     const back = reviveRoom(JSON.parse(JSON.stringify(online())));
     expect(controls(back, "a")).toEqual(["b1", "b2"]);
+  });
+});
+
+describe("four humans", () => {
+  /* Rengo as it is actually played. The seat model does not change at all: what
+     changes is that no seat has a runner, so nobody may touch anybody else's
+     chair - which is the rule of pair go rather than a policy Joseki invented. */
+  const four = () => createRoom({
+    id: "g6", size: 9, black: A, white: B, blackPartner: C, whitePartner: D,
+  });
+
+  it("seats four people and no bots", () => {
+    const r = four();
+    expect(isPairRoom(r)).toBe(true);
+    expect(isAllHuman(r)).toBe(true);
+    expect(Object.keys(r.seats).map((id) => r.seats[id].kind)).toEqual(["human", "human", "human", "human"]);
+  });
+
+  it("gives a human partner no runner, so nobody plays anybody else's moves", () => {
+    const r = four();
+    // The single most important assertion in this file: a `runBy` on a human seat
+    // would hand a player their partner's chair, which is the one thing pair go
+    // forbids and the one thing a bot partner is allowed.
+    for (const id of ["b1", "w1", "b2", "w2"]) expect(r.seats[id].runBy).toBeUndefined();
+    expect(controls(r, "a")).toEqual(["b1"]);
+    expect(controls(r, "c")).toEqual(["b2"]);
+  });
+
+  it("refuses a player who tries to move in their partner's turn", () => {
+    let r = four();
+    r = applyMessage(r, actingSeat(r, "a", "play"), { t: "play", c: 2, r: 2 }).room;
+    r = applyMessage(r, actingSeat(r, "b", "play"), { t: "play", c: 6, r: 6 }).room;
+    // Cy is up. Ada is on Cy's team and is not Cy.
+    expect(actingSeat(r, "a", "play")).toBe("b1");
+    const out = applyMessage(r, actingSeat(r, "a", "play"), { t: "play", c: 4, r: 4 });
+    expect(frames(out, "error")[0]).toMatchObject({ reason: "wrong-turn", expected: "b2" });
+    expect(applyMessage(r, actingSeat(r, "c", "play"), { t: "play", c: 4, r: 4 }).room.record.moves).toHaveLength(3);
+  });
+
+  it("is unrated: a team result is not a claim about any one of the four", () => {
+    const r = createRoom({ id: "g7", size: 9, black: A, white: B, blackPartner: C, whitePartner: D, rated: true });
+    expect(r.rated).toBe(false);
+    expect(outcome(applyMessage(r, "w2", { t: "resign" }).room)).toMatchObject({ rated: false, pair: true });
+  });
+
+  it("lets any of the four end it, and any two of opposite teams settle the count", () => {
+    let r = applyMessage(four(), "b1", { t: "pass" }).room;
+    r = applyMessage(r, "w1", { t: "pass" }).room;
+    expect(r.record.phase).toBe("scoring");
+    r = applyMessage(r, "b2", { t: "accept" }).room;
+    expect(r.accepted).toBe("b");
+    r = applyMessage(r, "w2", { t: "accept" }).room;
+    expect(r.record.phase).toBe("ended");
+  });
+
+  it("names all four on the record", () => {
+    expect(four().record.players).toEqual({ b: "Ada & Cy", w: "Bea & Dee" });
   });
 });

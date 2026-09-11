@@ -78,6 +78,17 @@ versions of this reason, and this is the largest version of it. Phase C — four
 no bots — could be rated with a team rating one day, but a team rating is a different
 number with a different meaning and it is not being smuggled in under this one.
 
+## Where it stands
+
+| | mode | phase | state |
+|---|---|---|---|
+| offline | you + a 7 dan vs a persona + its 7 dan | A | ✅ |
+| online | two people, each with their own 7 dan | B | ✅ |
+| online | four people, no bots | C1 | ✅ |
+| online | invite a named friend onto your team | C2 | open |
+
+One roster model covers all three. Each row changes only who occupies a seat.
+
 ## Phases
 
 ### Phase A — pair go against a bot team *(client only)*
@@ -147,9 +158,24 @@ Two humans, each with their own bot partner.
 
 ### Phase C — four humans *(true rengo)*
 
-- **C1 · all-human rosters.** Four human seats; no partner bot. The one new rule is a
-  social one that the interface has to keep: partners may not consult, so a pair game
-  has no team-only chat while it is live.
+- **C1 · all-human rosters.** ✅ Four human seats; no partner bot. The seat model did
+  not change at all — what changed is that **no seat carries a runner**.
+
+  That turned out to be the one real hazard in the whole phase. B2 gave a bot partner a
+  `runBy` so the partnering player's browser could answer for it; applied to a *human*
+  partner the same field would hand a player their partner's chair, which is precisely
+  what pair go forbids. `seat()` now strips `runBy` from every human seat rather than
+  trusting the caller, and the test that says so is the most important one in
+  `server/room.test.js`.
+
+  Four seekers fill a table in arrival order — b1, w1, b2, w2 — so the first two to
+  arrive lead the teams and the next two partner them. Arbitrary, but arbitrary in the
+  open: everybody can see the rule, and nobody is quietly put on the stronger side.
+
+  The no-team-chat rule needed no work at all. Chat has been one room-wide conversation
+  since B1, because a private line to your partner is exactly what the rule forbids —
+  which is what it looks like when a social rule is designed into a protocol instead of
+  being asked of the people using it.
 - **C2 · seating a team.** Invite a friend to your team, matchmake pairs against pairs,
   and decide whether a team rating is a number Joseki is willing to stand behind.
 
