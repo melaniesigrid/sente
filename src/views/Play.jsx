@@ -17,6 +17,7 @@ import { loadSession } from "./session.js";
 import { Game } from "./Game.jsx";
 import { OnlineCard } from "./OnlineLobby.jsx";
 import { OnlineGame } from "./OnlineGame.jsx";
+import { useT } from "../components/langStore.js";
 
 /* ----------------------- PLAY (lobby) -----------------------
    `resume` is `{ mode, record }` from the Home card; it seeds the first
@@ -41,6 +42,7 @@ function linkedGame() {
 }
 
 export function PlayView({ profile, setProfile, notify, resume }) {
+  const t = useT();
   // session: null | { mode: {kind:'bot', persona, rank, size, handicap} | {kind:'local', size, handicap}
   //                  | {kind:'online', gameId} | duel, record? }
   const [session, setSession] = useState(() => resume || linkedGame());
@@ -71,47 +73,45 @@ export function PlayView({ profile, setProfile, notify, resume }) {
     return (
       <div className="stack arrives">
         <ScreenHeader
-          label="Sit down"
-          title={<>Find a <em>game</em>.</>}
-          lede="Play another person over the network, take on a house opponent — each with
-                their own style and table talk — or hand the device across the table for a
-                face-to-face game. House players adapt to the level you pick, from 25 kyu
-                to 9 dan, and play any board." />
+          label={t("play.label")}
+          title={<>{t("play.titleBefore")}<em>{t("play.titleEm")}</em>{t("play.titleAfter")}</>}
+          lede={t("play.lede")} />
         <Statement lines={statementFor("play")}>{plainFor("play")}</Statement>
         <Passage context="play" />
         <OnlineCard profile={profile} notify={notify} onPlay={setSession} size={table.size} />
         <DuelCard profile={profile} today={today} mode={duelMode(PERSONAS, today)}
           saved={saved && saved.mode.kind === "duel" ? saved : null} onPlay={setSession} />
-        <div className="rank-picker neu-card" role="group" aria-label="Level to play at">
+        <div className="rank-picker neu-card" role="group" aria-label={t("play.levelGroup")}>
           <div className="rank-picker-label">
-            <strong>Play at</strong>
-            <span className="fine">{rank === myRank ? "your level" : `you are ${myRank}`}</span>
+            <strong>{t("play.playAt")}</strong>
+            <span className="fine">{rank === myRank ? t("play.yourLevel") : t("play.youAre", { rank: myRank })}</span>
           </div>
           <div className="rank-picker-controls">
-            <Btn icon={Minus} small label="One rank weaker" disabled={rank === first} onClick={() => setRank(stepRank(rank, -1))} />
+            <Btn icon={Minus} small label={t("play.weaker")} disabled={rank === first} onClick={() => setRank(stepRank(rank, -1))} />
             <RankBadge rating={ratingOfRank(rank)} size="lg" />
-            <Btn icon={Plus} small label="One rank stronger" disabled={rank === last} onClick={() => setRank(stepRank(rank, 1))} />
-            {rank !== myRank && <Btn icon={Home} small onClick={() => setRank(myRank)}>My level</Btn>}
+            <Btn icon={Plus} small label={t("play.stronger")} disabled={rank === last} onClick={() => setRank(stepRank(rank, 1))} />
+            {rank !== myRank && <Btn icon={Home} small onClick={() => setRank(myRank)}>{t("play.myLevel")}</Btn>}
           </div>
         </div>
-        <div className="rank-picker neu-card table-picker" role="group" aria-label="The table">
+        <div className="rank-picker neu-card table-picker" role="group" aria-label={t("play.tableGroup")}>
           <div className="rank-picker-label">
-            <strong>The table</strong>
+            <strong>{t("play.table")}</strong>
             <span className="fine">
-              {set.name} {set.scoring} · komi {komi}{table.komi === null ? "" : ", your own"}
-              {table.handicap ? ` · White plays first · rated as ${ratedAs}` : ""}
-              {clock ? ` · ${presetText(clock)}` : ""}
+              {t("play.tableKomi", { rules: set.name, scoring: set.scoring, komi })}
+              {table.komi === null ? "" : t("play.tableOwn")}
+              {table.handicap ? t("play.tableHandicap", { rank: ratedAs }) : ""}
+              {clock ? t("play.tableClock", { clock: presetText(clock) }) : ""}
             </span>
           </div>
           <div className="rank-picker-controls">
-            <div className="rank-picker-controls" role="group" aria-label="Rules">
-              <Btn icon={Minus} small label="Previous ruleset" disabled={ri <= 0}
+            <div className="rank-picker-controls" role="group" aria-label={t("play.rulesGroup")}>
+              <Btn icon={Minus} small label={t("play.prevRules")} disabled={ri <= 0}
                 onClick={() => setTable({ rules: RULESET_IDS[ri - 1] })} />
               <span className="handicap-num" aria-live="polite" title={set.blurb}>{set.name}</span>
-              <Btn icon={Plus} small label="Next ruleset" disabled={ri >= RULESET_IDS.length - 1}
+              <Btn icon={Plus} small label={t("play.nextRules")} disabled={ri >= RULESET_IDS.length - 1}
                 onClick={() => setTable({ rules: RULESET_IDS[ri + 1] })} />
             </div>
-            <div className="seg" role="radiogroup" aria-label="Board size">
+            <div className="seg" role="radiogroup" aria-label={t("play.sizeGroup")}>
               {SIZES.map(n => (
                 <button key={n} type="button" role="radio" aria-checked={table.size === n}
                   className={`seg-btn ${table.size === n ? "active" : ""}`} onClick={() => setTable({ size: n })}>
@@ -119,21 +119,21 @@ export function PlayView({ profile, setProfile, notify, resume }) {
                 </button>
               ))}
             </div>
-            <div className="rank-picker-controls" role="group" aria-label="Komi">
-              <Btn icon={Minus} small label="Less komi" disabled={ki <= 0}
+            <div className="rank-picker-controls" role="group" aria-label={t("play.komiGroup")}>
+              <Btn icon={Minus} small label={t("play.lessKomi")} disabled={ki <= 0}
                 onClick={() => setTable({ komi: KOMI_STEPS[ki - 1] })} />
-              <span className="handicap-num" aria-live="polite">{komi} komi</span>
-              <Btn icon={Plus} small label="More komi" disabled={ki >= KOMI_STEPS.length - 1}
+              <span className="handicap-num" aria-live="polite">{t("play.komiNum", { komi })}</span>
+              <Btn icon={Plus} small label={t("play.moreKomi")} disabled={ki >= KOMI_STEPS.length - 1}
                 onClick={() => setTable({ komi: KOMI_STEPS[ki + 1] })} />
               {table.komi !== null && komi !== owed
-                && <Btn icon={Home} small onClick={() => setTable({ komi: null })}>Default</Btn>}
+                && <Btn icon={Home} small onClick={() => setTable({ komi: null })}>{t("play.komiDefault")}</Btn>}
             </div>
-            <div className="rank-picker-controls" role="group" aria-label="Handicap stones">
-              <Btn icon={Minus} small label="Fewer handicap stones" disabled={hi <= 0} onClick={() => setTable({ handicap: HANDICAPS[hi - 1] })} />
-              <span className="handicap-num" aria-live="polite">{table.handicap ? `${table.handicap} stones` : "No handicap"}</span>
-              <Btn icon={Plus} small label="More handicap stones" disabled={hi >= HANDICAPS.length - 1} onClick={() => setTable({ handicap: HANDICAPS[hi + 1] })} />
+            <div className="rank-picker-controls" role="group" aria-label={t("play.handicapGroup")}>
+              <Btn icon={Minus} small label={t("play.fewerStones")} disabled={hi <= 0} onClick={() => setTable({ handicap: HANDICAPS[hi - 1] })} />
+              <span className="handicap-num" aria-live="polite">{table.handicap ? t("play.stones", { count: table.handicap }) : t("play.noHandicap")}</span>
+              <Btn icon={Plus} small label={t("play.moreStones")} disabled={hi >= HANDICAPS.length - 1} onClick={() => setTable({ handicap: HANDICAPS[hi + 1] })} />
             </div>
-            <div className="seg" role="radiogroup" aria-label="Time control">
+            <div className="seg" role="radiogroup" aria-label={t("play.clockGroup")}>
               {CLOCK_PRESETS.map(p => (
                 <button key={p.id} type="button" role="radio" aria-checked={table.clock === p.id}
                   className={`seg-btn ${table.clock === p.id ? "active" : ""}`} onClick={() => setTable({ clock: p.id })}>
@@ -155,7 +155,7 @@ export function PlayView({ profile, setProfile, notify, resume }) {
                 <RankBadge rating={ratingOfRank(rank)} />
               </div>
               <p className="persona-bio">{p.bio}</p>
-              <span className="persona-cta"><Play size={13} /> {rankInRange(rank, p.range) ? `Challenge at ${rank} · at home here` : `Challenge at ${rank}`}</span>
+              <span className="persona-cta"><Play size={13} /> {t(rankInRange(rank, p.range) ? "play.challengeHome" : "play.challenge", { rank })}</span>
             </button>
           ))}
         </div>
@@ -163,12 +163,12 @@ export function PlayView({ profile, setProfile, notify, resume }) {
           <div className="persona-top">
             <div className="avatar duo"><Users size={22} strokeWidth={2} /></div>
             <div>
-              <h3>Pass & play</h3>
-              <p className="persona-tag">Two players, one board</p>
+              <h3>{t("play.passPlay")}</h3>
+              <p className="persona-tag">{t("play.passTag")}</p>
             </div>
           </div>
-          <p className="persona-bio">The original multiplayer. Black and White share the device; the ladder sits this one out.</p>
-          <span className="persona-cta"><Handshake size={13} /> Sit down</span>
+          <p className="persona-bio">{t("play.passBio")}</p>
+          <span className="persona-cta"><Handshake size={13} /> {t("play.sitDown")}</span>
         </button>
         <MastersRow onSit={(mode) => setSession({ mode: { ...mode, clock } })} />
       </div>

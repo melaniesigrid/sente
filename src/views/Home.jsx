@@ -19,9 +19,11 @@ import { LIBRARY } from "../content/library.js";
 import { OpenSgf } from "../components/OpenSgf.jsx";
 import { Review } from "./Review.jsx";
 import { loadSession } from "./session.js";
+import { useT } from "../components/langStore.js";
 
 /* ----------------------- HOME ----------------------- */
 export function Home({ profile, go, onResume }) {
+  const t = useT();
   // A game opened from a file. Review takes the whole view while it is open, the
   // same way it does from a finished game.
   const [opened, setOpened] = useState(null);
@@ -39,14 +41,14 @@ export function Home({ profile, go, onResume }) {
   const streak = liveStreak(profile, today);
   const recall = recallSummary(LIBRARY, profile.recall, today);
   useMokuFacts({ view: "home", seed: games });
-  const greeting = games ? "Welcome back" : "Welcome to the board";
+  const greeting = t(games ? "home.greetingBack" : "home.greetingNew");
   // One line naming the next honest thing to do, so the dashboard opens on a
   // suggestion rather than on a wall of numbers.
   const nudge = !games
-    ? "Nothing played yet. A house player is waiting whenever you are \u2014 nine lines is plenty for a first game."
+    ? t("home.nudgeNone")
     : lessonsDone < LESSONS.length
-      ? `${LESSONS.length - lessonsDone} ${LESSONS.length - lessonsDone === 1 ? "lesson" : "lessons"} still ahead of you, and the ladder is open all day.`
-      : "Every lesson read. What is left is games \u2014 and the reading that comes with them.";
+      ? t("home.nudgeLessons", { count: LESSONS.length - lessonsDone })
+      : t("home.nudgeDone");
   if (opened) {
     return <Review record={opened} profile={profile} onExit={() => setOpened(null)} />;
   }
@@ -59,12 +61,12 @@ export function Home({ profile, go, onResume }) {
           <h1 className="display">{profile.name}.</h1>
           <div className="row dash-rank">
             <RankBadge rating={profile.rating} rd={profile.rd} size="lg" precise />
-            <span className="fine">{games ? `${profile.wins} of ${games} won` : "no games played yet"}</span>
+            <span className="fine">{games ? t("home.wonOf", { wins: profile.wins, games }) : t("home.noGames")}</span>
           </div>
           <p className="lede">{nudge}</p>
           <div className="row">
-            <Btn icon={Swords} primary onClick={() => go("play")}>Find a game</Btn>
-            <Btn icon={GraduationCap} onClick={() => go("learn")}>Keep learning</Btn>
+            <Btn icon={Swords} primary onClick={() => go("play")}>{t("home.findGame")}</Btn>
+            <Btn icon={GraduationCap} onClick={() => go("learn")}>{t("home.keepLearning")}</Btn>
           </div>
         </div>
         <div className="hero-board" aria-hidden="true">
@@ -78,13 +80,17 @@ export function Home({ profile, go, onResume }) {
       {saved && (
         <Card inset className="resume-card">
           <div className="resume-copy">
-            <div className="stat-head"><Play size={16} /><span>Resume last game</span></div>
-            <strong>vs {saved.opponent}</strong>
-            <span className="fine">{saved.record.size}×{saved.record.size} · {saved.record.moves.length} {saved.record.moves.length === 1 ? "move" : "moves"} played · {saved.record.toPlay === "b" ? "Black" : "White"} to move</span>
+            <div className="stat-head"><Play size={16} /><span>{t("home.resume.head")}</span></div>
+            <strong>{t("home.resume.vs", { name: saved.opponent })}</strong>
+            <span className="fine">{t("home.resume.detail", {
+              size: saved.record.size,
+              moves: t("home.resume.moves", { count: saved.record.moves.length }),
+              toPlay: t(saved.record.toPlay === "b" ? "home.resume.toPlayB" : "home.resume.toPlayW"),
+            })}</span>
           </div>
           <div className="row">
-            <Btn icon={Play} primary small onClick={() => onResume({ mode: saved.mode, record: saved.record })}>Resume</Btn>
-            <Btn icon={Trash2} small onClick={discard}>Discard</Btn>
+            <Btn icon={Play} primary small onClick={() => onResume({ mode: saved.mode, record: saved.record })}>{t("home.resume.resume")}</Btn>
+            <Btn icon={Trash2} small onClick={discard}>{t("home.resume.discard")}</Btn>
           </div>
         </Card>
       )}
@@ -92,13 +98,16 @@ export function Home({ profile, go, onResume }) {
       {kata && (
         <button className={`neu-card tile kata-card ${kataDone ? "done" : ""}`} onClick={() => go("tsumego", { problemId: kata.id })}>
           <div className="kata-copy">
-            <div className="stat-head"><CalendarCheck size={16} /><span>Kata of the day</span></div>
+            <div className="stat-head"><CalendarCheck size={16} /><span>{t("home.kata.head")}</span></div>
             <strong className="kata-title">{kata.title}</strong>
-            <span className="fine">{kata.rank} · {kata.theme} · {kataDone ? "attended today" : "one problem, every day"}</span>
+            <span className="fine">{t("home.kata.meta", {
+              rank: kata.rank, theme: kata.theme,
+              state: t(kataDone ? "home.kata.attended" : "home.kata.daily"),
+            })}</span>
           </div>
           <div className="kata-streak">
             <Flame size={16} />
-            <span className="stat-num">{streak}<em>{streak === 1 ? "day" : "days"}</em></span>
+            <span className="stat-num">{streak}<em>{t("home.kata.days", { count: streak })}</em></span>
           </div>
         </button>
       )}
@@ -109,18 +118,19 @@ export function Home({ profile, go, onResume }) {
       {recall.total > 0 && (
         <button className={`neu-card tile kata-card ${recall.due === 0 ? "done" : ""}`} onClick={() => go("recall")}>
           <div className="kata-copy">
-            <div className="stat-head"><BrainCircuit size={16} /><span>Recall</span></div>
+            <div className="stat-head"><BrainCircuit size={16} /><span>{t("home.recall.head")}</span></div>
             <strong className="kata-title">
-              {recall.due === 0 ? "Nothing due today" : `Review ${recall.session}`}
+              {recall.due === 0 ? t("home.recall.nothing") : t("home.recall.review", { count: recall.session })}
             </strong>
             <span className="fine">
               {recall.due === 0
-                ? `${recall.total} ${recall.total === 1 ? "card" : "cards"} waiting their turn${recall.nextIn === null ? "" : ` · next ${recall.nextIn <= 1 ? "tomorrow" : `in ${recall.nextIn} days`}`}`
-                : `${recall.due} of ${recall.total} due · questions you have answered before`}
+                ? t("home.recall.waiting", { count: recall.total })
+                  + (recall.nextIn === null ? "" : " · " + t(recall.nextIn <= 1 ? "home.recall.nextTomorrow" : "home.recall.nextIn", { days: recall.nextIn }))
+                : t("home.recall.due", { due: recall.due, total: recall.total })}
             </span>
           </div>
           <div className="kata-streak">
-            <span className="stat-num">{recall.known}<em>known</em></span>
+            <span className="stat-num">{recall.known}<em>{t("home.recall.known")}</em></span>
           </div>
         </button>
       )}
@@ -130,18 +140,18 @@ export function Home({ profile, go, onResume }) {
 
       <div className="grid3">
         <button className="neu-card tile" onClick={() => go("learn")}>
-          <div className="stat-head"><GraduationCap size={17} /><span>Lessons</span></div>
+          <div className="stat-head"><GraduationCap size={17} /><span>{t("home.tiles.lessons")}</span></div>
           <div className="stat-num">{lessonsDone}<em>/{LESSONS.length}</em></div>
           <div className="meter"><div className="meter-fill" style={{ width: `${lessonPct}%` }} /></div>
         </button>
         <button className="neu-card tile" onClick={() => go("tsumego")}>
-          <div className="stat-head"><Target size={17} /><span>Tsumego</span></div>
+          <div className="stat-head"><Target size={17} /><span>{t("home.tiles.tsumego")}</span></div>
           <div className="stat-num">{profile.problemsDone.length}<em>/{PROBLEMS.length}</em></div>
           <div className="meter"><div className="meter-fill" style={{ width: `${probPct}%` }} /></div>
         </button>
         <button className="neu-card tile" onClick={() => go("profile")}>
-          <div className="stat-head"><Trophy size={17} /><span>Your rank</span></div>
-          <div className="stat-num">{preciseRankOf(profile.rating)}<em>· {profile.wins}/{games} won</em></div>
+          <div className="stat-head"><Trophy size={17} /><span>{t("home.tiles.rank")}</span></div>
+          <div className="stat-num">{preciseRankOf(profile.rating)}<em>{t("home.tiles.won", { wins: profile.wins, games })}</em></div>
           <div className="meter"><div className="meter-fill" style={{ width: `${games ? (profile.wins / games) * 100 : 0}%` }} /></div>
         </button>
       </div>

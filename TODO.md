@@ -1086,7 +1086,10 @@ that is honestly still English.
       choice on that page that decides whether the rest of it can be read.
 - [x] Spanish: the shell (nav, top bar, footer, the crash card) and the whole look page,
       including the notes the theme and typeface data files hold.
-- [ ] Spanish: home, play, the lobby and the game (`Home`, `Play`, `Game`, `gameStatus`).
+- [x] Spanish: the dashboard and the lobby — `Home`, `Play`, the duel card, the SGF opener.
+      The clock presets, the ruleset names and the personas' bios on those screens are data
+      prose and wait for the content slice.
+- [ ] Spanish: the game itself (`Game`, `gameStatus`, the clock, the result card).
 - [ ] Spanish: learn, the library, tsumego, the ladder, the profile.
 - [ ] Spanish: the landing page, onboarding, the small print, the letters.
 - [ ] Spanish: the content prose — Moku's lines, the personas, the welcome copy, the
