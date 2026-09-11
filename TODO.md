@@ -953,8 +953,8 @@ A weekend each:
       taken (the AI's capture/rescue evaluators find these). Feeds spaced repetition.
 - [ ] Déjà vu: keep every Zobrist hash you have ever seen locally; the board whispers
       "you have been here before, and lost". A personal opening book with no engine.
-- [ ] Rengo with the bots: pair go, you and Hoshi against Tetsu and Yuki, alternating
-      seats. `GameRecord` does not care who chose a move; it is a seat rotation in Game.
+- [x] Rengo with the bots: promoted out of the parking lot into Phase 8 (pair go), where
+      it grew a seat model, a roadmap to four humans and a design record.
 - [ ] One-colour go: render every stone the same colour, rules untouched, one Board prop.
       A real pro training method.
 
@@ -1208,6 +1208,58 @@ Decisions made in Phase 7 (change deliberately, not by accident):
   served in. It is what a screen reader picks a voice from.
 - A missing key returns the key itself and warns once in development. Visible in a
   screenshot, harmless to a player, and never a crash.
+
+## Phase 8 — Pair go
+
+Full design: `docs/designs/pair-go.md`. Four seats, one human and one 7 dan house
+player to a team, taking turns. The partner is silent: no hints, no marked candidates,
+no explanations while the game is live. You learn by watching a 7 dan play its half of
+a position you made, which is how anyone has ever learned this game.
+
+Everything rests on one idea: a game has seats, and a seat has an occupant. The
+`GameRecord` does not change — who plays next is a pure function of `moves.length`, so
+undo rewinds the seat for free and the server refuses a wrong-seat move with the same
+call the client greys the board with. A two-seat roster is an ordinary game; a
+four-seat roster is pair go.
+
+Pair go is unrated in every phase and says so at the table. A win in which a 7 dan
+played half your moves is evidence about the pair, not about you — the same reason a
+duel, a master game and a coached game move no rating.
+
+**Phase A — against a bot team (client only)**
+- [x] A1: `src/engine/rengo.js` — roster, rotation, `seatAt`, `canSeatPlay`, pure and
+      tested, exported through `index.js`. No UI; ships dark.
+- [ ] A2: the table — `src/content/rengo.js` builds a roster from your profile, the
+      opponent persona and the partner rank; `src/views/PairGame.jsx` plays it. A view
+      of its own rather than a fourth branch inside `Game.jsx`, which already carries
+      duel, master and coaching. A lobby card to sit down at.
+- [ ] A3: the finish — resume a saved pair game, SGF with four names, telemetry, Moku's
+      reactions, the keyboard, review.
+
+**Phase B — online pair go (server)**
+- [ ] B1: `server/room.js` carries a roster instead of `seats: { b, w }` and validates
+      the seat as well as the colour. A two-seat room is the same code path, so the
+      games already running migrate rather than fork.
+- [ ] B2: matchmaking for a pair table and the invite link that seats a partner. Each
+      human's browser runs their own bot partner and submits its move like any other:
+      no KataGo on the server. The cost is that a team's partner needs that team's
+      device online, and the table says so.
+- [ ] B3: disconnection, reconnection and an abandoned seat in a four-seat room;
+      spectating a pair game.
+
+**Phase C — four humans (true rengo)**
+- [ ] C1: all-human rosters. The one new rule is a social one the interface has to
+      keep: partners may not consult, so a live pair game has no team-only chat.
+- [ ] C2: invite a friend to your team, matchmake pairs against pairs, and decide
+      whether a team rating is a number Joseki is willing to stand behind.
+
+Open, deliberately: whether a handicap between *teams* means anything (Phase A offers
+even games only), and whether a partner may ever resign or accept a score for you
+(Phase A says no — ending a game is the human's decision in every seat a human sits in).
+
+Out of scope, and named here so it does not creep in: reviewing the finished game and
+asking *why* the partner played there. Analysis is its own feature for every kind of
+game, not a wing of this one.
 
 ## Principles (do not trade away)
 
