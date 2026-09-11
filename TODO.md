@@ -205,6 +205,18 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       is the subject and the naming. `content/marvels.js` carries the citation.
       Also fixed: `fundamentals` was never added to `SERIES`, so the verifier's
       registered-series assertion had been failing on all four Kageyama lessons.
+- [x] `liberty-race` (2026-09-11, 3 / 14k, tactics): the syllabus's capturing race, and the
+      first lesson whose position was found rather than drawn. Every arrangement of black and
+      white stones in a three-by-four corner box was enumerated and filtered for a genuine
+      race — Black to play wins, White to play wins — with exactly one shared liberty, exactly
+      one winning move, and no move that merely draws; two positions survived and this is the
+      smaller. Both chains have two liberties and share one of them, so the three empty points
+      give three verdicts: fill White's outside liberty and White's six stones come off, fill
+      the shared one and Black dies, fill Black's own and Black dies. A race solver (whichever
+      chain is captured first wins, both sides allowed to pass) confirmed all three to twelve
+      plies. The scratch solvers — net, life-and-death, and race — are the reusable half of
+      this work; the rule in `.claude/rules/lessons.md` is that positions are searched, not
+      hand-written, and these are what does the searching.
 - [ ] The rest of the Fundamentals: chapter two's cutting and connecting (do not peep where
       you can cut), chapter five's thickness, chapter ten's shortage of liberties and the
       snapback as bait, chapter seven on how to study joseki.
