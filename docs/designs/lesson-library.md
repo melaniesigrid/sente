@@ -154,6 +154,81 @@ Chinese, in the house voice. The original is public domain; modern translations 
 none is quoted. `library.test.js` verifies series lessons like any other; `classic.test.js`
 checks that every chapter has its lesson and that the sayings keep the voice.
 
+## Book: The Book of Shapes
+
+Added 2026-09-11. The shelf's shape book, and the first one Joseki wrote rather than inherited.
+It is a catalogue rather than a collection: `src/content/shapes.js` holds one article per
+shape, and every article has the same three parts in the same order.
+
+- **buys** — what the shape is for, stated as a purchase rather than a virtue.
+- **costs** — what you gave up to have it. Every shape gives something up.
+- **breaks** — the position in which the bargain is a bad one.
+
+The third part is the reason the book exists. Shape books stop after the first, which is why a
+5 kyu who can name the tiger's mouth still plays one into a capturing race. Nine articles ship;
+five of them have a lesson and four are catalogue-only, which is open work rather than a gap
+(`lessonId: null` says so). The bamboo-joint article points at the proverb lesson that already
+existed, so the two books cross-reference instead of duplicating.
+
+| Article | Lesson | Tier / rank | Track |
+|---------|--------|-------------|-------|
+| The tiger's mouth | `shape-tigers-mouth` | 3 / 14k | shape |
+| The ponnuki | `shape-ponnuki` | 3 / 12k | shape |
+| The knight's move | `shape-keima-waist` | 4 / 9k | tactics |
+| The two-space extension | `shape-two-space-extension` | 4 / 7k | shape |
+| The three connections | `shape-three-connections` | 5 / 4k | shape |
+| The bamboo joint | `proverb-bamboo-joint` (Proverbs) | 2 / 17k | shape |
+| The empty triangle, the large knight's move, the dumpling | — | — | — |
+
+**Every number in the book was measured before it was written.** `shapes.test.js` re-derives
+each of them from the engine on every run, so an article and its lesson cannot drift apart:
+the stone in a tiger's mouth has one liberty and the point becomes a real eye once it is eaten
+(the engine refuses the next stone there as suicide); a ponnuki has eight liberties in the
+middle of the board and six in the corner; the wedge into a two-space extension has two
+liberties and dies, and six liberties and lives when a stone stands behind it; the solid
+connection is one chain of nine, the bamboo joint two of six, the tiger's mouth three chains of
+six, four and four. The last of those is the point of the lesson — ten liberties spread over
+two chains lose a capturing race to nine in one.
+
+Sources are the standard shape literature and the traditional names; no modern translation is
+quoted and no diagram is reproduced. The proverbs are Joseki's own renderings, as in the
+Classic. Shape vocabulary itself is nobody's property.
+
+## Tier 6 Dan: what is authored
+
+Added 2026-09-11. Four of the eight from the syllabus, and the tier has its own rule: it is the
+one tier where a lesson may be mostly argument. The engine proves a capture and cannot prove a
+judgement, so a Dan lesson verifies what can be verified, states the rest as judgement, and
+says in its header comment which is which. That is the same footing the problem of the week
+stands on.
+
+| Lesson | Rank | Track | What the engine proved |
+|--------|------|-------|------------------------|
+| `aji-and-timing` | 1d | middle | Legality only; the whole lesson is judgement and says so |
+| `life-and-death-tesuji` | 2d | life | Exhaustive search: the 2-2 point is the only kill |
+| `thickness-into-points` | 2d | judgement | Legality only; amashi is a counting opinion |
+| `ko-as-strategy` | 3d | life | The ko is a ko: one liberty, capture, recapture refused |
+
+Still open: `professional-openings` (1d), `endgame-counting` in miai values (2d),
+`whole-board-thinking` (3d), and `studying-with-analysis` (4d), which waits on Phase 4.
+
+`life-and-death-tesuji` is worth a note because it is the pattern the rest of Tier 6 should
+follow. It teaches that the rectangular six in the corner dies, against the proverb that six
+points in the corner live, and the claim is not asserted: an exhaustive search over the eye
+space, generous to the defender (passes allowed both ways, a repeated position counted as
+survival), reports that White lives moving first, dies to Black's 2-2 placement, and lives
+against every other black move in the space. The same search runs in `problems.test.js` over
+the three classical shapes added there.
+
+## Problems have a verifier now
+
+`problems.test.js`, added 2026-09-11 with six new problems (p7 to p12). The lessons have been
+verified in CI since the library shipped and the problems never were, which was backwards: a
+problem is a claim that one move is the answer, and that is the most checkable claim in the
+repository. The test checks legality, house voice and rising difficulty over the whole set, and
+searches the three life-and-death problems exhaustively — the stated answer must kill and no
+other point in the eye space may.
+
 ## Content model
 
 Lessons are data in `src/content/lessons/<tier>/<id>.js`, gathered by `src/content/library.js`.

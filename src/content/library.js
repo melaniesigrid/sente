@@ -9,6 +9,7 @@ import { TIER3 } from "./lessons/tier3/index.js";
 import { TIER4 } from "./lessons/tier4/index.js";
 import { TIER5 } from "./lessons/tier5/index.js";
 import { TIER6 } from "./lessons/tier6/index.js";
+import { SHAPES_BOOK } from "./shapes.js";
 
 export const TIERS = [
   { id: 1, name: "Foundations", ranks: "30k–20k", from: "30k", to: "20k",
@@ -44,6 +45,7 @@ export const TRACKS = [
 /** The shelf: a book is a grouping over lessons that carry `book: <id>`. Lessons keep
  *  their tier and rank; the shelf is another way in. */
 export const BOOKS = [
+  { id: SHAPES_BOOK.id, name: SHAPES_BOOK.title, blurb: SHAPES_BOOK.blurb },
   { id: "proverbs", name: "The Proverbs", blurb: "Folk wisdom as kata: a fixed form drilled until it can be broken on purpose." },
   { id: "masters", name: "Games of the Masters", blurb: "Guess the move across a famous game, then sit across from him." },
   { id: "classic", name: "The Classic of Weiqi in Thirteen Chapters", blurb: "Zhang Ni, c. 1050, in original words, one verified position per maxim.",
