@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Play, Users, Handshake, Minus, Plus, Home } from "lucide-react";
+import { Play, Users, Handshake, Minus, Plus, Home, TrendingUp, TrendingDown, X } from "lucide-react";
 import { Avatar, RankBadge, Btn, Statement } from "../components/ui.jsx";
 import { ScreenHeader } from "../components/ScreenHeader.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
@@ -11,6 +11,8 @@ import { SIZES, defaultKomi, RULESET_IDS, rulesetOf } from "../engine/index.js";
 import { loadLobby, saveLobby, HANDICAPS, KOMI_STEPS } from "../store/lobby.js";
 import { duelMode } from "../content/duel.js";
 import { dayKey } from "../content/kata.js";
+import { suggestLevel, suggestionText } from "../content/level.js";
+import { loadTelemetry } from "../store/telemetry.js";
 import { CLOCK_PRESETS, presetById, presetText } from "../content/clockFace.js";
 import { MastersRow } from "../components/MastersRow.jsx";
 import { loadSession } from "./session.js";
@@ -47,9 +49,20 @@ export function PlayView({ profile, setProfile, notify, resume }) {
   // The level the next game is played at. Starts at the player's own rank; every house
   // player adapts to it, so nobody has to "graduate" to an opponent.
   const myRank = rankOf(profile.rating);
-  const [rank, setRank] = useState(myRank);
   const [table, setTableState] = useState(loadLobby);
   const setTable = (patch) => setTableState(t => { const n = { ...t, ...patch }; saveLobby(n); return n; });
+  /* The level rides on the table, so it survives a reload the way the board
+     does. `null` there means "my level, whatever it is now": a remembered rank
+     would otherwise freeze a player at the strength they were the first time
+     they touched the stepper. Stepping it is a deliberate act and is kept. */
+  const rank = table.rank ?? myRank;
+  const setRank = (r) => setTable({ rank: r === myRank ? null : r });
+  /* What the device's own ring buffer says about this level. Read once per
+     visit to the lobby rather than per render: it is a file on disk, and it
+     cannot change while the lobby is on screen. */
+  const log = useMemo(() => (session ? [] : loadTelemetry()), [session]);
+  const suggestion = suggestLevel(log, rank);
+  const [dismissed, setDismissed] = useState(null);
   const today = dayKey();
   // The saved table is re-read whenever the lobby shows, so leaving a duel mid-game is reflected.
   const saved = useMemo(() => (session ? null : loadSession({ today, profile })), [session, today, profile]);
@@ -93,6 +106,20 @@ export function PlayView({ profile, setProfile, notify, resume }) {
             <Btn icon={Plus} small label="One rank stronger" disabled={rank === last} onClick={() => setRank(stepRank(rank, 1))} />
             {rank !== myRank && <Btn icon={Home} small onClick={() => setRank(myRank)}>My level</Btn>}
           </div>
+          {/* What the last few even games at this level actually went like. It is
+              a suggestion and it reads like one: it says what it counted, so a
+              player who disagrees has the number to disagree with, and it can be
+              waved off without taking it. Nothing here changes the level on its
+              own — the house players adapt to whatever they are asked to play,
+              and being moved without asking is the opposite of that. */}
+          {suggestion && dismissed !== suggestion.to && (
+            <div className="level-nudge">
+              {suggestion.won ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+              <span className="fine">{suggestionText(suggestion)}</span>
+              <Btn small onClick={() => setRank(suggestion.to)}>Play {suggestion.to}</Btn>
+              <Btn icon={X} small label="Keep this level" onClick={() => setDismissed(suggestion.to)} />
+            </div>
+          )}
         </div>
         <div className="rank-picker neu-card table-picker" role="group" aria-label="The table">
           <div className="rank-picker-label">

@@ -156,8 +156,10 @@ each fixed in its own commit:
       five rated games stand behind it. The privacy notice enumerates it. The three
       storage functions survive a browser that refuses storage or has none, and are
       tested against a stub of the browser contract rather than by adding jsdom.
-- [ ] Actually use it: `byBot` is the input to calibration, and nothing reads it yet.
-      The Calibrate item under House players is the other half of this one.
+- [x] Something reads it (2026-09-11): `src/content/level.js` turns the log into a level
+      suggestion in the lobby. `byBot` is still only shown on the profile; calibration
+      proper — adjusting `profile.temperature` against real win rates — is still open
+      under House players.
 
 Decisions made in Phase 3, the table slice (branch `feat/the-table`, 2026-09-10):
 - Komi is what the board is owed: 5.5 on 9x9, 6.5 on 13x13, 7.5 on 19x19 under area
@@ -349,8 +351,18 @@ imitates a rank: Hoshi 20k, Tetsu 15k, Yuki 10k, Ren 5k, Sora 1k, Kaede 2d, Tats
       policy one temperature notch per rank.
 - [ ] Human opponent rank is passed as the network's "opponent" profile; use the real
       rating once ratings are server-side.
-- [ ] Remember the last chosen level per player, and suggest a level after a few wins
-      or losses in a row.
+- [x] Remember the last chosen level, and suggest one after a run (2026-09-11, branch
+      `feat/level-memory`). The level rides on the lobby table, so it survives a reload;
+      `rank: null` means "my level, whatever it is now" on the same terms `komi: null`
+      means "what this board is owed", because a remembered rank would otherwise freeze a
+      player at the strength they were the first time they touched the stepper.
+      `src/content/level.js` reads the ring buffer and suggests a level after three in a
+      row. What counts as evidence is the design: rated games only, at that level only,
+      even games only — a handicap changes the strength of the opponent, which is the
+      thing being measured — and only the most recent run, so one loss clears a winning
+      streak. Three is the threshold: two is a coin, and by four the player has worked it
+      out themselves. It suggests and does not act, and the line says what it counted, so
+      a player who disagrees has the number to disagree with.
 - [ ] Dan bots with a small search (KataGo blends human policy with its own value) once
       there is a server; the raw policy is a few stones weaker than the rank it imitates
       at dan level, which the bios do not yet say.
