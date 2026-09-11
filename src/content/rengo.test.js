@@ -11,7 +11,7 @@ import { ratingOfRank, rankOf } from "./rank.js";
 const profile = { name: "Mel", tint: "mint", rating: ratingOfRank("12k"), rd: 60 };
 const tetsu = PERSONAS.find((p) => p.id === "tetsu");
 const seat = (partnerRank = PARTNER_RANK) =>
-  pairRoster({ profile, persona: tetsu, rank: "12k", partnerRank });
+  pairRoster({ profile, persona: tetsu, partnerRank });
 
 describe("the partner rank", () => {
   it("is the engine's number, not a second copy of it", () => {
@@ -53,8 +53,20 @@ describe("pairRoster", () => {
     expect(r.b1).toMatchObject({ kind: "human", name: "Mel", rank: rankOf(profile.rating), you: true });
     for (const id of ["w1", "b2", "w2"]) expect(r[id].kind).toBe("bot");
   });
-  it("seats the opponent you picked, at the level the lobby is set to", () => {
+  it("seats the opponent you picked, playing at your level", () => {
     expect(seat().w1).toMatchObject({ name: tetsu.name, rank: "12k", personaId: "tetsu" });
+  });
+  it("mirrors the two teams: your opposite number is always at your own rank", () => {
+    /* The opposing side is not a pair of dan players. It is your opposite number
+       and their partner, exactly as your side is, and that is what makes the
+       table a game rather than an exhibition. It is a rule, not a default, so a
+       different profile moves the seat with it. */
+    for (const label of ["25k", "12k", "4k", "1d", "6d"]) {
+      const r = pairRoster({ profile: { ...profile, rating: ratingOfRank(label) }, persona: tetsu });
+      expect(r.w1.rank).toBe(label);
+      expect(r.b1.rank).toBe(label);
+      expect(r.b2.rank).toBe(r.w2.rank);
+    }
   });
   it("gives both partners the same strength: a stronger partner on one side is a handicap nobody agreed to", () => {
     const r = seat();
@@ -64,7 +76,7 @@ describe("pairRoster", () => {
   it("never seats the opponent as a partner, and never the same house player twice", () => {
     // Kaede is at home at 7d, so picking her as the opponent is the case that would collide.
     const kaede = PERSONAS.find((p) => p.id === "kaede");
-    const r = pairRoster({ profile, persona: kaede, rank: "3d", partnerRank: "7d" });
+    const r = pairRoster({ profile, persona: kaede, partnerRank: "7d" });
     const ids = ["w1", "b2", "w2"].map((id) => r[id].personaId);
     expect(new Set(ids).size).toBe(3);
     expect(ids.filter((id) => id === "kaede")).toHaveLength(1);
@@ -80,8 +92,10 @@ describe("pairRoster", () => {
 });
 
 describe("rosterFromSaved", () => {
-  it("rebuilds the same four from ids and ranks alone", () => {
-    const saved = { personaId: "tetsu", rank: "12k", partnerRank: "7d" };
+  it("rebuilds the same four from the persona id and the partner rank alone", () => {
+    // Your opposite number's level is not stored: it is not a choice, it is
+    // whatever your level is when you sit back down.
+    const saved = { personaId: "tetsu", partnerRank: "7d" };
     expect(rosterFromSaved(saved, profile)).toEqual(seat());
   });
   it("gives up rather than guess when the house player has gone", () => {
@@ -130,9 +144,10 @@ describe("the words at a pair table", () => {
     expect(teamLine(seat(), "b")).toMatch(/^Mel & \w+$/);
   });
   it("says unrated in the caption, not in a footnote", () => {
-    const line = pairCaption({ size: 19, komi: 7.5, partnerRank: "7d" });
+    const line = pairCaption({ size: 19, komi: 7.5, partnerRank: "7d", myRank: "12k" });
     expect(line).toContain("unrated");
-    expect(line).toContain("partner at 7d");
+    expect(line).toContain("partners at 7d");
+    expect(line).toContain("12k each side");
     expect(line).toContain("19×19");
   });
   it("says whose move it is by name, because a colour names two people here", () => {

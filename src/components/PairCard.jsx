@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Users, Minus, Plus, Play } from "lucide-react";
 import { Avatar, RankBadge, Btn } from "./ui.jsx";
 import { personasFor } from "../content/personas.js";
-import { ratingOfRank } from "../content/rank.js";
+import { ratingOfRank, rankOf } from "../content/rank.js";
 import { pairRoster, PARTNER_RANK, PARTNER_RANKS, teamLine } from "../content/rengo.js";
 
 /* ----------------------- THE PAIR TABLE (lobby card) -----------------------
@@ -15,11 +15,16 @@ import { pairRoster, PARTNER_RANK, PARTNER_RANKS, teamLine } from "../content/re
    only control here, and it names what it is buying: a 9 dan will play moves
    you cannot yet read, a 1 dan plays moves you can still follow. Both are worth
    a game; which one is worth *this* game is not something the lobby can know. */
-export function PairCard({ profile, rank, onPlay }) {
+export function PairCard({ profile, onPlay }) {
   const [partnerRank, setPartnerRank] = useState(PARTNER_RANK);
   const pi = PARTNER_RANKS.indexOf(partnerRank);
-  const persona = personasFor(rank)[0];
-  const roster = pairRoster({ profile, persona, rank, partnerRank });
+  /* The character opposite is chosen for your own level, not the lobby's stepper,
+     because at a pair table they are standing in for you: the two teams are the
+     same shape and the same strength, and the level picker is about a game you
+     play alone. */
+  const myRank = rankOf(profile.rating);
+  const persona = personasFor(myRank)[0];
+  const roster = pairRoster({ profile, persona, partnerRank });
   const seats = ["b1", "b2", "w1", "w2"];
   return (
     <div className="neu-card pair-card">
@@ -31,7 +36,8 @@ export function PairCard({ profile, rank, onPlay }) {
         </div>
       </div>
       <p className="persona-bio">
-        You and a {partnerRank} house player against {persona.name} and one of their own.
+        You and a {partnerRank} house player against {persona.name}, who plays at your
+        level, and one of their own.
         The four of you take turns in one rotation and nobody plays twice running, so
         every move you make is answered by an opponent and then built on by a player
         far stronger than you, in your game, on your mistake. Your partner is silent:
@@ -57,7 +63,7 @@ export function PairCard({ profile, rank, onPlay }) {
         <span className="handicap-num" aria-live="polite">Partners at {partnerRank}</span>
         <Btn icon={Plus} small label="A stronger partner" disabled={pi >= PARTNER_RANKS.length - 1}
           onClick={() => setPartnerRank(PARTNER_RANKS[pi + 1])} />
-        <Btn icon={Play} small primary onClick={() => onPlay({ kind: "pair", persona, rank, partnerRank })}>
+        <Btn icon={Play} small primary onClick={() => onPlay({ kind: "pair", persona, partnerRank })}>
           Sit down
         </Btn>
       </div>
