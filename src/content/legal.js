@@ -175,8 +175,9 @@ const TERMS = {
    key, never the password) · server/mail.js (the two letters) ·
    server/ratelimit.js and `claimedFrom` (the address bucket) ·
    server/rollup.js (the daily tally and how long it is kept) ·
-   src/store/*.js (the four local keys) · src/content/typeface.js (the Google
-   Fonts import, the one third party the browser talks to on its own). */
+   src/store/*.js (the four local keys) · src/styles/googleFaces.js (the text
+   faces, self-hosted since 11 September 2026, so there is no longer a third
+   party the browser talks to on its own). */
 const PRIVACY = {
   id: "privacy",
   title: "Privacy",
@@ -219,12 +220,11 @@ const PRIVACY = {
     },
     {
       heading: "Who else sees any of it",
-      paras: ["Three companies, all of them in the way of the page rather than interested in it."],
+      paras: ["Two companies, both of them in the way of the page rather than interested in it."],
       list: [
         "Cloudflare runs the game server and posts the two letters. Everything the server keeps sits on their network, which spans countries outside Canada.",
         "GitHub serves the app itself, through GitHub Pages, and their servers see the request that fetches it.",
-        "Google Fonts serves five typefaces. Fetching them tells Google the address the request came from, the same way a font served from anywhere else would.",
-        "Nobody else. There is no fourth party, and no arrangement with one.",
+        "Nobody else. Every typeface is served from Joseki itself rather than from a font CDN, so opening a page here tells no third party that you did. There is no third party, and no arrangement with one.",
       ],
     },
     {

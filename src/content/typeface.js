@@ -32,24 +32,27 @@
    and a faux oblique on a hairline didone or on a script is the tell of a page
    nobody set: only the Google faces, which ship a real italic, are asked for one.
 
-   Display faces come from the Typecase library; body faces are Google-hosted
-   text families, because a UI body face needs four real weights and accents and
-   the Typecase text cuts are demo cuts without them. Every display face here was
+   Display faces come from the Typecase library; body faces are Google's open
+   text families, self-hosted like everything else, because a UI body face needs
+   four real weights and accents and the Typecase text cuts are demo cuts
+   without them. Every display face here was
    checked for digits: Joseki sets ranks, ratings and lesson numbers in the display
    face, so a face missing 0-9 could not be used however handsome it was.
 
    `house` is the design system as drawn and stays the default. */
 
-/** Google families the body side needs, in one lazy stylesheet: a browser only
- *  fetches the files for a family something on the page actually renders. */
-export const GOOGLE_IMPORT =
-  "@import url('https://fonts.googleapis.com/css2?" +
-  "family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,560;0,9..144,640;1,9..144,420" +
-  "&family=Hanken+Grotesk:wght@400;500;600;700" +
-  "&family=Instrument+Sans:wght@400;500;600;700" +
-  "&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400" +
-  "&family=Courier+Prime:ital,wght@0,400;0,700;1,400" +
-  "&display=swap');";
+/** The text families the body side needs. They used to arrive as an @import to
+ *  fonts.googleapis.com, which made Google's CDN the one third party a reader's
+ *  browser talked to on its own, on every visit, before a stone was placed.
+ *  They are served from here now: the files are in src/fonts/google and the
+ *  @font-face blocks in src/styles/googleFaces.js, both written by
+ *  tools/fonts/fetch.mjs. The weights and axes each one is cut at live in that
+ *  tool; this is the list of names, which is what a pairing refers to.
+ *  All five are under the Open Font Licence, which is what makes hosting them
+ *  here allowed as well as polite. */
+export const GOOGLE_FAMILIES = [
+  "Fraunces", "Hanken Grotesk", "Instrument Sans", "Newsreader", "Courier Prime",
+];
 
 /* ----------------------- THE TYPED VOICE -----------------------
    A passage is typed, not set. Sente's renderings are one person at a machine

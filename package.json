@@ -10,6 +10,7 @@
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview",
+    "fonts": "node tools/fonts/fetch.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "dev:server": "wrangler dev",
