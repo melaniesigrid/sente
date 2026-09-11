@@ -1153,9 +1153,12 @@ that is honestly still English.
       **Spanish is finished: every screen and every word of content.**
 - [ ] Spanish: the content prose. Lessons, personas, Moku, the plain-words statements, the
       books, the legal documents, and the Classic's thirteen chapters, in that order.
-- [ ] French, every slice above. Cheap after Spanish: the keys exist, so each PR is a
-      catalogue file and a test run.
-- [ ] German, the same.
+- [x] French: every screen, and the design system's own words. A language cannot arrive
+      half-built — the parity test holds a catalogue to English's whole key set, and the
+      room, stone, pairing and belt overlays complete against the data — so the first
+      French PR is the entire UI rather than a corner of it.
+- [ ] French: the content — the voices, the library's furniture, the lessons, the Classic.
+- [ ] German, the same two slices.
 
 Decisions made in Phase 7 (change deliberately, not by accident):
 - English lives in `en.js`, except for prose that a data file already owns — a room's note,
