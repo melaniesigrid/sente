@@ -1325,7 +1325,7 @@ duel, a master game and a coached game move no rating.
 **Phase A — against a bot team (client only)**
 - [x] A1: `src/engine/rengo.js` — roster, rotation, `seatAt`, `canSeatPlay`, pure and
       tested, exported through `index.js`. No UI; ships dark.
-- [ ] A2: the table — `src/content/rengo.js` builds a roster from your profile, the
+- [x] A2: the table — `src/content/rengo.js` builds a roster from your profile, the
       opponent persona and the partner rank; `src/views/PairGame.jsx` plays it. A view
       of its own rather than a fourth branch inside `Game.jsx`, which already carries
       duel, master and coaching. A lobby card to sit down at.
@@ -1333,9 +1333,25 @@ duel, a master game and a coached game move no rating.
       reactions, the keyboard, review.
 
 **Phase B — online pair go (server)**
-- [ ] B1: `server/room.js` carries a roster instead of `seats: { b, w }` and validates
-      the seat as well as the colour. A two-seat room is the same code path, so the
-      games already running migrate rather than fork.
+- [x] B1: `server/room.js` carries a roster instead of `seats: { b, w }` and validates
+      the seat as well as the colour (branch `feat/rengo-rooms`). A two-seat room is the
+      same code path, and rooms stored before the roster are migrated on read — the two
+      chairs become the two lead seats, which is what they always were. Decisions made
+      while building it:
+      - The turn check is `canSeatPlay`, the same call the client greys the board with.
+        A colour check would let a player move in their own partner's turn, which is the
+        one way a four-seat room can go wrong that a two-seat room cannot.
+      - A pair room is unrated on the server, whoever asks for it. The client saying so
+        is a promise; the server refusing is the thing that makes it true.
+      - An undo at a pair table takes back the whole rotation and is asked for on your
+        own turn — the opposite of the two-seat rule, because one move back would hand
+        the board to your partner mid-round. Either opponent may answer; your own
+        partner may not grant it.
+      - Resigning and accepting the count bind the team, and either partner may do
+        either. Chat stays one room-wide conversation with no team channel: partners may
+        not consult, so the protocol has nowhere to put a private line to your partner.
+      - The client's `seat` is a seat id now, not a colour, and the status pill names the
+        player to move rather than the colour — at a pair table a colour is two people.
 - [ ] B2: matchmaking for a pair table and the invite link that seats a partner. Each
       human's browser runs their own bot partner and submits its move like any other:
       no KataGo on the server. The cost is that a team's partner needs that team's
