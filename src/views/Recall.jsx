@@ -12,6 +12,7 @@ import { BOXES, SESSION_SIZE, dueCards, grade, recallSummary } from "../content/
 import { saveProfile } from "../store/profile.js";
 import { initStep, stepReducer, marksFor, boardLocked, canReveal } from "./lessonStep.js";
 import { Response } from "./Learn.jsx";
+import { useT } from "../components/langStore.js";
 
 /* ----------------------- RECALL -----------------------
    A sitting of up to five questions the learner has already answered once,
@@ -137,6 +138,7 @@ function CardPlayer({ card, n, of, onGraded }) {
 
 /* ----------------------- THE SITTING ----------------------- */
 export function RecallView({ profile, setProfile, go }) {
+  const t = useT();
   const today = dayKey();
   /* The five are chosen once, as the sitting opens. Grading rewrites the
      schedule underneath, and a queue that re-sorted itself after every answer
@@ -168,7 +170,7 @@ export function RecallView({ profile, setProfile, go }) {
     return (
       <div className="stack arrives">
         {header}
-        <Statement lines={statementFor("recall")}>{plainFor("recall")}</Statement>
+        <Statement lines={statementFor("recall", t)}>{plainFor("recall", t)}</Statement>
         <Card inset className="resume-card">
           <div className="resume-copy">
             <div className="stat-head"><CalendarClock size={15} /><span>Nothing due today</span></div>

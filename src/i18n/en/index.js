@@ -21,6 +21,7 @@ import { rooms } from "./rooms.js";
 import { legal } from "./legal.js";
 import { online } from "./online.js";
 import { account } from "./account.js";
+import { voice } from "./voice.js";
 
 /** One catalogue, assembled from its parts. The parts never share a top-level
  *  key, so the spread is a join and never an override. */
@@ -34,4 +35,5 @@ export const en = {
   legal,
   online,
   account,
+  voice,
 };

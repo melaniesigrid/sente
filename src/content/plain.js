@@ -7,6 +7,10 @@
    House voice: short, ordinary words, no exclamation marks, nothing claimed
    that the app does not do. Pure data; nothing here touches React. */
 
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
+
+const EN = makeT(BASE_LOCALE);
+
 export const PLAIN_WORDS = {
   home: "Go is two people taking turns to claim ground with stones. A stone is only captured when its group has no empty point left beside it, and the winner is whoever holds more of the board when both sides agree there is nothing left to take.",
   play: "Every opponent here is either a person over the network or a house player, and a house player is a bot. They are labelled that way everywhere, they play at the level the label says, and none of them is a person pretending otherwise.",
@@ -18,8 +22,9 @@ export const PLAIN_WORDS = {
 };
 
 /** The plain-words line for a screen, or null where there is none. */
-export function plainFor(key) {
-  return PLAIN_WORDS[key] || null;
+export function plainFor(key, t = EN) {
+  const line = PLAIN_WORDS[key];
+  return line ? t(`plain.${key}`, null, line) : null;
 }
 
 /* ----------------------- THE STATEMENT -----------------------
@@ -45,6 +50,7 @@ export const STATEMENTS = {
 };
 
 /** The three statement lines for a screen, or null where there are none. */
-export function statementFor(key) {
-  return STATEMENTS[key] || null;
+export function statementFor(key, t = EN) {
+  const lines = STATEMENTS[key];
+  return lines ? lines.map((line, i) => t(`statement.${key}.${i}`, null, line)) : null;
 }

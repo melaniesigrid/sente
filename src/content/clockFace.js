@@ -9,6 +9,10 @@
    while there is main time, the current period once byo-yomi has started. A player
    with six periods in hand is not in trouble, and the face should not shout. */
 
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
+
+const EN = makeT(BASE_LOCALE);
+
 export const PRESSURES = ["calm", "low", "urgent"];
 
 /* The clocks a game can be set to. One of each kind the engine knows plus none at
@@ -81,11 +85,20 @@ export function faceOf(clock, color) {
 
 /** The one-line preset description shown where a game is set up, e.g.
  *  "10 min + 3 x 30 s" — the same words the lobby and the result card use. */
-export function presetText(preset) {
-  if (!preset) return "No clock";
+export function presetText(preset, t = EN) {
+  if (!preset) return t("voice.clock.none");
   const mins = Math.round((preset.mainMs ?? 0) / 60_000);
-  const main = `${mins} min`;
-  if (preset.type === "byoyomi") return `${main} + ${preset.periods} x ${Math.round(preset.periodMs / 1000)} s`;
-  if (preset.type === "fischer") return `${main} + ${Math.round((preset.incrementMs ?? 0) / 1000)} s / move`;
+  const main = t("voice.clock.main", { mins });
+  if (preset.type === "byoyomi") {
+    return t("voice.clock.byoyomi", { main, periods: preset.periods, seconds: Math.round(preset.periodMs / 1000) });
+  }
+  if (preset.type === "fischer") {
+    return t("voice.clock.fischer", { main, seconds: Math.round((preset.incrementMs ?? 0) / 1000) });
+  }
   return main;
+}
+
+/** What a preset is called on its button. */
+export function presetShort(entry, t = EN) {
+  return t(`preset.${entry.id}.short`, null, entry.short);
 }

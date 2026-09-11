@@ -66,7 +66,10 @@ export function captionText({ size, komi, handicap = 0, rules, rated, duel = fal
   // The ruleset is named rather than assumed: the same board can land on a
   // different winner by half a point under a different count.
   parts.push(
-    t("game.caption.rules", { rules: set.name, scoring: set.scoring }),
+    t("game.caption.rules", {
+      rules: t(`ruleset.${set.id}.name`, null, set.name),
+      scoring: t(`ruleset.${set.id}.scoring`, null, set.scoring),
+    }),
     t("game.caption.komi", { komi }),
     t("game.caption.superko"),
   );

@@ -22,6 +22,7 @@ import { rooms } from "./rooms.js";
 import { legal, legalDoc, credit } from "./legal.js";
 import { online } from "./online.js";
 import { account } from "./account.js";
+import { voice, plain, statement, moku, ruleset, preset, persona } from "./voice.js";
 import { content } from "./content.js";
 import { overlay } from "./overlay.js";
 
@@ -37,6 +38,13 @@ export const es = {
   legal,
   online,
   account,
+  voice,
+  plain,
+  statement,
+  moku,
+  ruleset,
+  preset,
+  persona,
   legalDoc,
   credit,
   ...content,

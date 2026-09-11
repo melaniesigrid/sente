@@ -1,6 +1,7 @@
 import { useContext, useMemo, useState, useCallback } from "react";
 import { X } from "lucide-react";
 import { mokuState } from "../content/moku.js";
+import { useT } from "./langStore.js";
 import { MokuCtx } from "./mokuStore.js";
 
 /* ----------------------- MOKU (mascot) -----------------------
@@ -36,9 +37,10 @@ export function MokuProvider({ view, children }) {
   const setOff = useCallback((v) => { writeOff(v); setOffState(v); }, []);
   const report = useCallback((f) => setFacts(f), []);
   const clear = useCallback(() => setFacts(null), []);
+  const t = useT();
   const resolved = useMemo(
-    () => mokuState(facts ?? { view: VIEW_FACT[view] ?? "home", seed: visits }),
-    [facts, view, visits],
+    () => mokuState(facts ?? { view: VIEW_FACT[view] ?? "home", seed: visits }, t),
+    [facts, view, visits, t],
   );
   const value = useMemo(() => ({ ...resolved, off, setOff, report, clear }), [resolved, off, setOff, report, clear]);
   return <MokuCtx.Provider value={value}>{children}</MokuCtx.Provider>;

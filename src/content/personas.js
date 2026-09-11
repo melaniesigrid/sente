@@ -1,4 +1,13 @@
 import { RANK_LADDER } from "./rank.js";
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
+import { localize } from "./translate.js";
+
+const EN = makeT(BASE_LOCALE);
+
+/** A house player in the language in force: its tagline, its bio and every
+ *  line of its table talk. The name is a name and stays one. */
+export const localizePersona = (p, t = EN) => localize(p, `persona.${p.id}`, t);
+
 
 /* ----------------------- HOUSE PLAYERS -----------------------
    Labeled honestly as bots everywhere they appear. A persona is a personality,

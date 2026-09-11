@@ -1126,9 +1126,12 @@ that is honestly still English.
 - [x] Spanish: the account gate, the profile card and the two letters. Every reason the
       server can refuse with lives in the catalogue now, so a language answers for all of
       them, and `accountForm.test.js` checks that in each language rather than in English.
-- [ ] Spanish: the content prose — the plain-words statements, Moku, the personas, the
-      problems, the commentary, the books and tracks, then the lessons, and the Classic's
-      thirteen chapters last.
+- [x] Spanish: the house's voices — the plain-words gloss and statement on every screen,
+      Moku's whole vocabulary, all seven house players' taglines, bios and table talk, the
+      rulesets, the clock presets and the duel result line.
+- [ ] Spanish: the tsumego, the commentary, the tracks, the tiers and the books.
+- [ ] Spanish: the lessons, tier by tier.
+- [ ] Spanish: the Classic's thirteen chapters, the preface and the thirty-two names.
 - [ ] Spanish: the content prose. Lessons, personas, Moku, the plain-words statements, the
       books, the legal documents, and the Classic's thirteen chapters, in that order.
 - [ ] French, every slice above. Cheap after Spanish: the keys exist, so each PR is a

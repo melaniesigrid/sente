@@ -89,12 +89,15 @@ export const Toggle = ({ on, onChange, label }) => (
    modern words, labelled as a gloss so it is never taken for a quotation of
    the text beside it. `label` names the register; the default suits the book.
    `size` is "sm" for a card corner, default for a page. */
-export const PullQuote = ({ children, label = "In plain words", size = "" }) => (
-  <aside className={`pull-quote ${size}`.trim()}>
-    <p className="pull-line">{children}</p>
-    <span className="pull-label">{label}</span>
-  </aside>
-);
+export const PullQuote = ({ children, label = null, size = "" }) => {
+  const t = useT();
+  return (
+    <aside className={`pull-quote ${size}`.trim()}>
+      <p className="pull-line">{children}</p>
+      <span className="pull-label">{label ?? t("voice.plainLabel")}</span>
+    </aside>
+  );
+};
 
 /* ----------------------- A STATEMENT -----------------------
    The same idea as the pull quote, in six words instead of sixty, and set as
@@ -114,7 +117,8 @@ export const PullQuote = ({ children, label = "In plain words", size = "" }) => 
    flourish and never the content: the whole statement is the paragraph's
    accessible name from the first frame, the animated spans are hidden from a
    reader, and less motion means the lines are simply already up. */
-export const Statement = ({ lines, children, label = "In plain words" }) => {
+export const Statement = ({ lines, children, label = null }) => {
+  const t = useT();
   if (!lines || lines.length === 0) return null;
   return (
     <section className="statement">
@@ -127,7 +131,7 @@ export const Statement = ({ lines, children, label = "In plain words" }) => {
       </p>
       {children ? (
         <p className="statement-gloss">
-          <span className="pull-label">{label}</span>
+          <span className="pull-label">{label ?? t("voice.plainLabel")}</span>
           <span>{children}</span>
         </p>
       ) : null}

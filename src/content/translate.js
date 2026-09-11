@@ -28,6 +28,8 @@ export const TEXT_FIELDS = new Set([
   "question", "commentary", "line", "analogy", "name", "blurb", "note",
   "label", "prompt", "explain", "tagline", "bio", "theme", "identity",
   "trains", "era", "partial", "heading", "paras", "list", "terms",
+  // A persona's table talk: each is a list of lines it might say.
+  "greet", "botCapture", "userCapture", "reply", "win", "loss",
 ]);
 
 /** Fields that name a thing rather than describe it, and are never translated:

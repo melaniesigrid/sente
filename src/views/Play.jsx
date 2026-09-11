@@ -5,13 +5,13 @@ import { ScreenHeader } from "../components/ScreenHeader.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { DuelCard } from "../components/DuelCard.jsx";
-import { personasFor, PERSONAS } from "../content/personas.js";
+import { personasFor, PERSONAS, localizePersona } from "../content/personas.js";
 import { rankOf, ratingOfRank, stepRank, rankInRange, rankWithHandicap, RANK_LADDER } from "../content/rank.js";
 import { SIZES, defaultKomi, RULESET_IDS, rulesetOf } from "../engine/index.js";
 import { loadLobby, saveLobby, HANDICAPS, KOMI_STEPS } from "../store/lobby.js";
 import { duelMode } from "../content/duel.js";
 import { dayKey } from "../content/kata.js";
-import { CLOCK_PRESETS, presetById, presetText } from "../content/clockFace.js";
+import { CLOCK_PRESETS, presetById, presetText, presetShort } from "../content/clockFace.js";
 import { MastersRow } from "../components/MastersRow.jsx";
 import { loadSession } from "./session.js";
 import { Game } from "./Game.jsx";
@@ -76,7 +76,7 @@ export function PlayView({ profile, setProfile, notify, resume }) {
           label={t("play.label")}
           title={<>{t("play.titleBefore")}<em>{t("play.titleEm")}</em>{t("play.titleAfter")}</>}
           lede={t("play.lede")} />
-        <Statement lines={statementFor("play")}>{plainFor("play")}</Statement>
+        <Statement lines={statementFor("play", t)}>{plainFor("play", t)}</Statement>
         <Passage context="play" />
         <OnlineCard profile={profile} notify={notify} onPlay={setSession} size={table.size} />
         <DuelCard profile={profile} today={today} mode={duelMode(PERSONAS, today)}
@@ -97,17 +97,22 @@ export function PlayView({ profile, setProfile, notify, resume }) {
           <div className="rank-picker-label">
             <strong>{t("play.table")}</strong>
             <span className="fine">
-              {t("play.tableKomi", { rules: set.name, scoring: set.scoring, komi })}
+              {t("play.tableKomi", {
+                rules: t(`ruleset.${set.id}.name`, null, set.name),
+                scoring: t(`ruleset.${set.id}.scoring`, null, set.scoring),
+                komi,
+              })}
               {table.komi === null ? "" : t("play.tableOwn")}
               {table.handicap ? t("play.tableHandicap", { rank: ratedAs }) : ""}
-              {clock ? t("play.tableClock", { clock: presetText(clock) }) : ""}
+              {clock ? t("play.tableClock", { clock: presetText(clock, t) }) : ""}
             </span>
           </div>
           <div className="rank-picker-controls">
             <div className="rank-picker-controls" role="group" aria-label={t("play.rulesGroup")}>
               <Btn icon={Minus} small label={t("play.prevRules")} disabled={ri <= 0}
                 onClick={() => setTable({ rules: RULESET_IDS[ri - 1] })} />
-              <span className="handicap-num" aria-live="polite" title={set.blurb}>{set.name}</span>
+              <span className="handicap-num" aria-live="polite"
+                title={t(`ruleset.${set.id}.blurb`, null, set.blurb)}>{t(`ruleset.${set.id}.name`, null, set.name)}</span>
               <Btn icon={Plus} small label={t("play.nextRules")} disabled={ri >= RULESET_IDS.length - 1}
                 onClick={() => setTable({ rules: RULESET_IDS[ri + 1] })} />
             </div>
@@ -137,14 +142,14 @@ export function PlayView({ profile, setProfile, notify, resume }) {
               {CLOCK_PRESETS.map(p => (
                 <button key={p.id} type="button" role="radio" aria-checked={table.clock === p.id}
                   className={`seg-btn ${table.clock === p.id ? "active" : ""}`} onClick={() => setTable({ clock: p.id })}>
-                  {p.short}
+                  {presetShort(p, t)}
                 </button>
               ))}
             </div>
           </div>
         </div>
         <div className="grid3">
-          {personasFor(rank).map(p => (
+          {personasFor(rank).map(localized => localizePersona(localized, t)).map(p => (
             <button key={p.id} className="neu-card persona-card" onClick={() => sit({ kind: "bot", persona: p, rank })}>
               <div className="persona-top">
                 <Avatar name={p.name} tint={p.tint} size={52} bot />

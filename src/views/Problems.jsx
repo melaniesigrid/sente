@@ -63,7 +63,7 @@ export function ProblemsView({ profile, setProfile, initialId }) {
         label={t("tsumego.label")}
         title={<>{t("tsumego.titleBefore")}<em>{t("tsumego.titleEm")}</em>{t("tsumego.titleAfter")}</>}
         lede={t("tsumego.lede")} />
-      <Statement lines={statementFor("tsumego")}>{plainFor("tsumego")}</Statement>
+      <Statement lines={statementFor("tsumego", t)}>{plainFor("tsumego", t)}</Statement>
       <Passage context="tsumego" />
       <div className="prob-tabs" role="tablist">
         {PROBLEMS.map((p, i) => {
