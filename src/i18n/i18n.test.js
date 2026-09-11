@@ -39,6 +39,10 @@ const others = LOCALES.filter(l => l.id !== BASE_LOCALE);
 const HOLE = /\{(\w+)\}/g;
 const holesIn = (line) => new Set([...String(line).matchAll(HOLE)].map(m => m[1]));
 const lines = (entry) => (typeof entry === "string" ? [entry] : Object.values(entry));
+/* The field names that carry prose rather than data. Kept in step with
+   `TEXT_FIELDS` by `translate.test.js`; named here as a path suffix because a
+   flattened key ends in the field it came from. */
+const PROSE = /\.(title|subtitle|plain|text|hint|success|wrongText|question|commentary|line|analogy|partial)$/;
 
 describe("locales", () => {
   it("ships a catalogue for every language it offers", () => {
@@ -205,6 +209,26 @@ describe.each(others)("$name is complete", (locale) => {
     }
     for (const key of keys) {
       expect(reached.has(key), `${locale.id}: ${key} reaches no lesson field`).toBe(true);
+    }
+  });
+
+  /* A lesson is translated whole or not at all. Half a lesson is the one
+     shape the fall-through does not forgive: a step in one language and the
+     next step in another, inside a single board somebody is working through. */
+  it("finishes any lesson it starts", () => {
+    const t = makeT(locale.id);
+    const started = new Set(
+      [...mine.keys()].filter(k => k.startsWith("lesson.")).map(k => k.split(".")[1]),
+    );
+    for (const lesson of [...LIBRARY, WELCOME_LESSON]) {
+      if (!started.has(lesson.id)) continue;
+      const before = flatten({ [lesson.id]: lesson });
+      const after = flatten({ [lesson.id]: localize(lesson, `lesson.${lesson.id}`, t) });
+      for (const [key, value] of before) {
+        if (typeof value !== "string" || !PROSE.test(key)) continue;
+        expect(after.get(key), `${locale.id}: ${key} is still English in a lesson that is otherwise translated`)
+          .not.toBe(value);
+      }
     }
   });
 

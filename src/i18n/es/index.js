@@ -24,11 +24,13 @@ import { online } from "./online.js";
 import { account } from "./account.js";
 import { voice, plain, statement, moku, ruleset, preset, persona } from "./voice.js";
 import { tier, track, book, series, problem, shape } from "./library.js";
+import { lessons1 } from "./lessons1.js";
 import { content } from "./content.js";
 import { overlay } from "./overlay.js";
 
 /** One catalogue, assembled from its parts. The parts never share a top-level
- *  key, so the spread is a join and never an override. */
+ *  key, so the spread is a join and never an override — except `lesson`, which
+ *  is assembled from every file that carries one. */
 export const es = {
   ...shell,
   ...look,
@@ -54,6 +56,8 @@ export const es = {
   shape,
   legalDoc,
   credit,
-  ...content,
   ...overlay,
+  /* The lessons arrive a file at a time, so this one key is assembled rather
+     than spread: `content.js` holds the welcome demo, and each tier its own. */
+  lesson: { ...content.lesson, ...lessons1 },
 };
