@@ -1159,7 +1159,9 @@ that is honestly still English.
       French PR is the entire UI rather than a corner of it.
 - [x] French: the content — the voices, the library's furniture, all thirty-two lessons and
       the whole Classic. **French is finished: every screen and every word of content.**
-- [ ] German, the same two slices.
+- [x] German: every screen, and the design system's own words. Same rule as French: a
+      language arrives whole or not at all.
+- [ ] German: the content — the voices, the library's furniture, the lessons, the Classic.
 
 Decisions made in Phase 7 (change deliberately, not by accident):
 - English lives in `en.js`, except for prose that a data file already owns — a room's note,

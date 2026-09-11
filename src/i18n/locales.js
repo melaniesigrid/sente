@@ -22,6 +22,7 @@ export const LOCALES = [
   { id: "en", tag: "en", name: "English", endonym: "English" },
   { id: "es", tag: "es", name: "Spanish", endonym: "Español" },
   { id: "fr", tag: "fr", name: "French", endonym: "Français" },
+  { id: "de", tag: "de", name: "German", endonym: "Deutsch" },
 ];
 
 const byId = new Map(LOCALES.map(l => [l.id, l]));
