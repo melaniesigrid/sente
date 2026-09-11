@@ -23,6 +23,14 @@
    persona or a profile is - anything beyond `kind`, `name` and `rank` rides
    along verbatim, the way `players` does on the record. */
 
+/** How strong an AI partner plays unless somebody says otherwise.
+ *
+ *  It lives here rather than with the personas because the server needs it too -
+ *  a pair table is seated by the Registry - and the server may import from the
+ *  engine and from nowhere else. One constant, one meaning, on both sides of the
+ *  wire: the alternative is two "7d"s that drift apart without anybody noticing. */
+export const DEFAULT_PARTNER_RANK = "7d";
+
 /** Seat ids in rotation order, black first. */
 export const SEAT_IDS = ["b1", "w1", "b2", "w2"];
 
