@@ -26,6 +26,7 @@ describe("onlineStatus", () => {
     const r = fresh();
     r.seats = {};
     expect(onlineStatus({ room: r, seat: "b1", conn: "open" })).toBe("Black to move");
+    expect(onlineStatus({ room: r, seat: null, conn: "open" })).toBe("Black to move");
   });
   it("covers undo asks and the two-sided count", () => {
     let r = step(fresh(), "b1", { t: "play", c: 2, r: 2 });

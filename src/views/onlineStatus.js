@@ -41,8 +41,9 @@ export function onlineStatus({ room, seat, conn }) {
     return `${asker ? asker.name : side(colorOfSeat(room.undo.by))} asks for an undo`;
   }
   const up = seatToPlay(room.seats, rec);
-  if (!seat) return up ? `${room.seats[up].name} to move` : `${side(rec.toPlay)} to move`;
-  return canSeatPlay(room.seats, rec, seat) ? "Your move" : up ? `${room.seats[up].name} to move` : `${side(rec.toPlay)} to move`;
+  const next = up ? room.seats[up] : null;
+  if (!seat) return next ? `${next.name} to move` : `${side(rec.toPlay)} to move`;
+  return canSeatPlay(room.seats, rec, seat) ? "Your move" : next ? `${next.name} to move` : `${side(rec.toPlay)} to move`;
 }
 
 /** "+12" / "−9" line for a settled room from `seat`'s side, or null. A pair
