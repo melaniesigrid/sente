@@ -136,6 +136,39 @@ each fixed in its own commit:
       flow, and the footer keeps an "About Joseki" link back. Section labels and the
       saying are typed as they are scrolled to (`components/Typed.jsx`), the hero
       arrives a beat at a time, and the roadmap moved off the dashboard onto it.
+- [x] The front door, set large (2026-09-11, branches `feat/landing-statements`,
+      `feat/stone-field`, `feat/landing-copy`, `feat/press-record`). Four pieces, in
+      that order. The `Statement` block — capitals, the quote italic, then the same
+      words drawn as an outline — became the page's section break at up to 148px, and
+      its rise is gated on the scroll rather than on mount so four of them down one
+      page do not all play above the fold. The hero and the closing call sit on a
+      `StoneField`: a real 19x19 game the engine plays against itself, blurred until
+      it reads as pattern. The saying of the day is set larger than the headings it
+      was losing to, the hero lede is cut, and one pull carries the house voice at
+      half a statement's size. And The Record: a broadsheet on the game itself, with
+      a rail of sources that `press.test.js` enforces.
+      Full plan and the reasoning: `docs/designs/landing-with-flare.md`.
+
+Decisions made on the front door (2026-09-11):
+- Go is **not** the last game to fall to a machine, and the page says so where the
+  boast would have gone. Shogi's reigning Meijin lost to Ponanza in May 2017, fourteen
+  months after Seoul. The statement over The Record reads "Nineteen years after chess".
+- A marketing claim is held to the same rule as a master's eval number: measured, never
+  claimed. `src/content/press.js` carries a source per column and the test fails the
+  build on a column that cannot point at one, on a source nothing cites, and on the
+  removal of the column that refuses a claim.
+- The one-in-ten-thousand figure is printed against move 78, not move 37. The move 37
+  version traces to a documentary and secondary reporting; the move 78 version is
+  Hassabis reading AlphaGo's logs.
+- A texture never sits directly under a raised or a sunken thing — the two shadows stop
+  reading as light the moment it does. The field is a layer under a band, and the hero's
+  board well now carries its own ground because it had none.
+- The field is the engine, not a drawing. A move costs about two milliseconds on 19
+  lines; the seed is taken eight moves to an animation frame after first paint, and the
+  interval stops on a hidden tab and an off-screen band. The observer only ever stops
+  it, so a browser without one keeps playing rather than showing an empty band.
+- The landing still uses no `t()`. New copy is deliberately not wired into the catalog
+  while the i18n stack is merging bottom-up; it goes in one pass after that lands.
 - [x] Keyboard (2026-09-10, branch `feat/table-keys`): P passes and U takes back at the
       table, both through the same handlers the buttons use so every guard holds; the
       caption says so. In review: left and right walk a move, up and down jump ten,
