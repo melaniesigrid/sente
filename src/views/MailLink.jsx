@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Mail, KeyRound, Loader, Check } from "lucide-react";
 import { Card, Btn } from "../components/ui.jsx";
 import { api } from "../net/api.js";
 import { saveAccount } from "../store/account.js";
 import { formProblem, passwordNote, errorText } from "./accountForm.js";
+import { useT } from "../components/langStore.js";
 
 /* ----------------------- A LINK FROM A LETTER -----------------------
    Joseki sends two letters and each carries one link back here: `?verify=` to
@@ -16,6 +17,7 @@ import { formProblem, passwordNote, errorText } from "./accountForm.js";
    been spent should not sit in browser history, and reloading the page should
    not try to spend it a second time. */
 export function MailLinkView({ link, notify, onSignedIn, onDone }) {
+  const t = useT();
   return (
     <Card className="online-card">
       <div className="persona-top">
@@ -23,8 +25,8 @@ export function MailLinkView({ link, notify, onSignedIn, onDone }) {
           {link.kind === "verify" ? <Mail size={22} strokeWidth={2} /> : <KeyRound size={22} strokeWidth={2} />}
         </div>
         <div>
-          <h3>{link.kind === "verify" ? "Confirming your address" : "A new password"}</h3>
-          <p className="persona-tag">From the letter Joseki sent you</p>
+          <h3>{t(link.kind === "verify" ? "account.mail.verifyTitle" : "account.mail.resetTitle")}</h3>
+          <p className="persona-tag">{t("account.mail.from")}</p>
         </div>
       </div>
       {link.kind === "verify"
@@ -37,21 +39,24 @@ export function MailLinkView({ link, notify, onSignedIn, onDone }) {
 /** Confirming an address is one call with nothing to fill in, so it happens on
  *  arrival and the card only reports what happened. */
 function Confirming({ token, onDone }) {
+  const t = useT();
+  const tRef = useRef(t);
+  useEffect(() => { tRef.current = t; }, [t]);
   const [state, setState] = useState({ at: "working" });
 
   useEffect(() => {
     let live = true;
     api.confirmEmail(token)
       .then(r => { if (live) setState({ at: "done", name: r.name, email: r.email }); })
-      .catch(e => { if (live) setState({ at: "failed", why: errorText(e.reason) }); });
+      .catch(e => { if (live) setState({ at: "failed", why: errorText(e.reason, tRef.current) }); });
     return () => { live = false; };
   }, [token]);
 
   if (state.at === "working") {
     return (
       <>
-        <p className="persona-bio">Just a moment.</p>
-        <div className="row"><Btn icon={Loader} small disabled>Confirming…</Btn></div>
+        <p className="persona-bio">{t("account.mail.moment")}</p>
+        <div className="row"><Btn icon={Loader} small disabled>{t("account.mail.confirming")}</Btn></div>
       </>
     );
   }
@@ -59,23 +64,16 @@ function Confirming({ token, onDone }) {
     return (
       <>
         <p className="gate-problem" role="alert">{state.why}</p>
-        <p className="fine">
-          A confirmation link works once and lasts a week. If this one has been used already
-          then so has the address, and there is nothing left to do. If it has not, the lobby
-          will offer you another.
-        </p>
-        <div className="row"><Btn icon={Check} primary small onClick={onDone}>Carry on</Btn></div>
+        <p className="fine">{t("account.mail.confirmFailed")}</p>
+        <div className="row"><Btn icon={Check} primary small onClick={onDone}>{t("account.mail.carryOn")}</Btn></div>
       </>
     );
   }
   return (
     <>
-      <p className="persona-bio">
-        {state.email} is confirmed. It is a proved way back to your handle now, not only a way
-        to sign in from another device.
-      </p>
-      <div className="row"><Btn icon={Check} primary small onClick={onDone}>Carry on</Btn></div>
-      <p className="fine">Nothing else to do. Close this, or go and find a game.</p>
+      <p className="persona-bio">{t("account.mail.confirmed", { email: state.email })}</p>
+      <div className="row"><Btn icon={Check} primary small onClick={onDone}>{t("account.mail.carryOn")}</Btn></div>
+      <p className="fine">{t("account.mail.nothingElse")}</p>
     </>
   );
 }
@@ -85,6 +83,9 @@ function Confirming({ token, onDone }) {
  *  use exactly the form the server holds, and somebody following a link out of
  *  their own inbox has already said which address they mean. */
 function Resetting({ token, notify, onSignedIn, onDone }) {
+  const t = useT();
+  const tRef = useRef(t);
+  useEffect(() => { tRef.current = t; }, [t]);
   const [target, setTarget] = useState(null);       // { email, name }, once the token checks out
   const [why, setWhy] = useState(null);             // why it did not
   const [password, setPassword] = useState("");
@@ -96,13 +97,13 @@ function Resetting({ token, notify, onSignedIn, onDone }) {
     let live = true;
     api.resetTarget(token)
       .then(t => { if (live) setTarget(t); })
-      .catch(e => { if (live) setWhy(errorText(e.reason)); });
+      .catch(e => { if (live) setWhy(errorText(e.reason, tRef.current)); });
     return () => { live = false; };
   }, [token]);
 
   const submit = async () => {
     if (busy || !target) return;
-    const problem = formProblem("reset", { email: target.email, password, confirm });
+    const problem = formProblem("reset", { email: target.email, password, confirm }, t);
     if (problem) { setShown(problem); return; }
     setShown(null);
     setBusy(true);
@@ -110,10 +111,10 @@ function Resetting({ token, notify, onSignedIn, onDone }) {
       const { token: session, player } = await api.resetPassword(token, target.email, password);
       saveAccount({ token: session, player });
       onSignedIn({ token: session, player });
-      notify({ icon: "medal", text: `Welcome back, ${player.name}` });
+      notify({ icon: "medal", text: t("account.gate.welcomeBack", { name: player.name }) });
       onDone();
     } catch (e) {
-      setShown(errorText(e.reason));
+      setShown(errorText(e.reason, t));
       setBusy(false);
     }
   };
@@ -122,42 +123,35 @@ function Resetting({ token, notify, onSignedIn, onDone }) {
     return (
       <>
         <p className="gate-problem" role="alert">{why}</p>
-        <p className="fine">
-          A way back in works once and lasts an hour, which is short on purpose: it is a key to
-          an account, sitting in an inbox. Ask for another from the sign-in card.
-        </p>
-        <div className="row"><Btn icon={Check} primary small onClick={onDone}>Back to the lobby</Btn></div>
+        <p className="fine">{t("account.mail.resetFailed")}</p>
+        <div className="row"><Btn icon={Check} primary small onClick={onDone}>{t("account.mail.backToLobby")}</Btn></div>
       </>
     );
   }
-  if (!target) return <p className="persona-bio">Checking the link…</p>;
+  if (!target) return <p className="persona-bio">{t("account.mail.checking")}</p>;
 
   return (
     <>
-      <p className="persona-bio">
-        Choose a new password for {target.email}. Everything else signed in to this account is
-        signed out when you do, so a device you no longer have goes with it.
-      </p>
+      <p className="persona-bio">{t("account.mail.choose", { email: target.email })}</p>
       <div className="gate-fields">
         <input className="chat-input" type="password" value={password}
-          placeholder="A new password, ten characters or more" autoComplete="new-password"
-          onChange={e => setPassword(e.target.value)} aria-label="New password" />
+          placeholder={t("account.mail.newPassword")} autoComplete="new-password"
+          onChange={e => setPassword(e.target.value)} aria-label={t("account.mail.newPasswordLabel")} />
         <input className="chat-input" type="password" value={confirm}
-          placeholder="The same password again" autoComplete="new-password"
+          placeholder={t("account.gate.again")} autoComplete="new-password"
           onChange={e => setConfirm(e.target.value)} onKeyDown={e => e.key === "Enter" && submit()}
-          aria-label="Confirm the new password" />
+          aria-label={t("account.mail.confirmNew")} />
       </div>
-      {passwordNote(password) && <p className="fine">{passwordNote(password)}</p>}
+      {passwordNote(password, t) && <p className="fine">{passwordNote(password, t)}</p>}
       {shown && <p className="gate-problem" role="alert">{shown}</p>}
       <div className="row">
         <Btn icon={busy ? Loader : KeyRound} primary small onClick={submit} disabled={busy}>
-          {busy ? "Working…" : "Set it and sign in"}
+          {t(busy ? "account.gate.working" : "account.mail.setIt")}
         </Btn>
-        <Btn small onClick={onDone} disabled={busy}>Not now</Btn>
+        <Btn small onClick={onDone} disabled={busy}>{t("account.mail.notNow")}</Btn>
       </div>
       <p className="fine">
-        This takes a second: the browser does the work of proving the password so the server
-        never has to hold it.
+        {t("account.mail.resetFine")}
       </p>
     </>
   );

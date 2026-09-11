@@ -15,6 +15,7 @@ import { loadAccount } from "../store/account.js";
 import { refusalText, resignLabel, resultCard, RESIGN_CONFIRM_MS } from "./gameStatus.js";
 import { onlineStatus, settledLine, onlineCaption } from "./onlineStatus.js";
 import { useT } from "../components/langStore.js";
+import { lineOr } from "../i18n/index.js";
 
 const seatName = (room, c) => room.seats[c].name;
 /* A seat carries the stamp its owner's picture last changed at, so the table
@@ -304,6 +305,4 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
 
 /* The server's refusals, by the name it gives them. Unknown reasons fall
    through to the reason itself rather than to a shrug. */
-const refusalWords = (reason, t) => t(`online.error.${reason}`) === `online.error.${reason}`
-  ? reason
-  : t(`online.error.${reason}`);
+const refusalWords = (reason, t) => lineOr(t, `online.error.${reason}`, reason);
