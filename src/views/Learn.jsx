@@ -22,6 +22,7 @@ import { rankOf } from "../content/rank.js";
 import { modelReady, kataChooseMoveForRecord, profileForRank } from "../engine/index.js";
 import { initStep, stepReducer, marksFor, boardLocked, canReveal, recordAtStop, coordLabel, VERDICT_LABELS } from "./lessonStep.js";
 import { useT } from "../components/langStore.js";
+import { localizeLesson, lessonField } from "../content/translate.js";
 
 /* ----------------------- LESSON PLAYER -----------------------
    Thin: all step behaviour lives in lessonStep.js. This component draws the
@@ -72,9 +73,12 @@ function crossingNote(lesson, next, t) {
    uses: same step behaviour, same timings, same board. `exitLabel` is the only thing
    it needs to say differently — a first-time visitor has never seen a library. */
 
-export function LessonPlayer({ lesson, nextLesson, onDone, onExit, onOpenNext, rank, onProgress, exitLabel = null }) {
+export function LessonPlayer({ lesson: authored, nextLesson, onDone, onExit, onOpenNext, rank, onProgress, exitLabel = null }) {
   const t = useT();
   const exitWord = exitLabel ?? t("learn.library");
+  /* The lesson in the reader's language. Memoised on the pair, so a lesson
+     nobody has translated costs one identity check and no copying. */
+  const lesson = useMemo(() => localizeLesson(authored, t), [authored, t]);
   const saved = SESSIONS.get(lesson.id);
   const [stepIdx, setStepIdx] = useState(saved?.stepIdx ?? 0);
   const [maxIdx, setMaxIdx] = useState(saved?.maxIdx ?? 0);
@@ -199,7 +203,7 @@ export function LessonPlayer({ lesson, nextLesson, onDone, onExit, onOpenNext, r
                 <Btn icon={BookOpen} small onClick={onExit}>{exitWord}</Btn>
                 {nextLesson && (
                   <Btn icon={ChevronRight} small primary onClick={() => onOpenNext(nextLesson)}>
-                    {t("learn.nextLesson", { title: nextLesson.title })}
+                    {t("learn.nextLesson", { title: lessonField(nextLesson, "title", t) })}
                   </Btn>
                 )}
               </div>
@@ -337,8 +341,8 @@ function LessonCard({ lesson, done, onOpen }) {
     <button className="neu-card lesson-card" onClick={() => onOpen(lesson)}>
       <div className="lesson-num">{lesson.rank}</div>
       <div className="lesson-meta">
-        <h3>{lesson.title}</h3>
-        <p>{lesson.subtitle}</p>
+        <h3>{lessonField(lesson, "title", t)}</h3>
+        <p>{lessonField(lesson, "subtitle", t)}</p>
         <p className="lesson-chips"><Clock size={12} /> {t("learn.minutes", { min: lesson.minutes, track: trackByKey(lesson.track)?.name })}</p>
       </div>
       <div className={`lesson-state ${done ? "done" : ""}`}>
@@ -562,11 +566,11 @@ export function LearnView({ profile, setProfile, go }) {
       {pending && (
         <Card inset className="resume-card">
           <div className="resume-copy">
-            <div className="stat-head"><Lock size={15} /><span>{t("learn.gate.head", { title: pending.lesson.title })}</span></div>
-            <span className="fine">{t("learn.gate.body", { list: pending.missing.map(l => l.title).join(", ") })}</span>
+            <div className="stat-head"><Lock size={15} /><span>{t("learn.gate.head", { title: lessonField(pending.lesson, "title", t) })}</span></div>
+            <span className="fine">{t("learn.gate.body", { list: pending.missing.map(l => lessonField(l, "title", t)).join(", ") })}</span>
           </div>
           <div className="row">
-            <Btn icon={Play} primary small onClick={() => { setPending(null); setActive(pending.missing[0].id); }}>{t("learn.gate.startWith", { title: pending.missing[0].title })}</Btn>
+            <Btn icon={Play} primary small onClick={() => { setPending(null); setActive(pending.missing[0].id); }}>{t("learn.gate.startWith", { title: lessonField(pending.missing[0], "title", t) })}</Btn>
             <Btn small onClick={() => { setPending(null); setActive(pending.lesson.id); }}>{t("learn.gate.anyway")}</Btn>
           </div>
         </Card>
@@ -590,7 +594,7 @@ export function LearnView({ profile, setProfile, go }) {
         <Card inset className="resume-card">
           <div className="resume-copy">
             <div className="stat-head"><Play size={15} /><span>{t("learn.continueHead")}</span></div>
-            <strong>{continueLesson.title}</strong>
+            <strong>{lessonField(continueLesson, "title", t)}</strong>
             <span className="fine">{t("learn.continueMeta", { rank: continueLesson.rank, min: continueLesson.minutes, track: trackByKey(continueLesson.track)?.name })}</span>
           </div>
           <Btn icon={Play} primary small onClick={() => open(continueLesson)}>{t("learn.recall.start")}</Btn>

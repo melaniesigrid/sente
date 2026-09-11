@@ -17,6 +17,8 @@ import { shell } from "./shell.js";
 import { look } from "./look.js";
 import { screens } from "./screens.js";
 import { game } from "./game.js";
+import { front } from "./front.js";
+import { content } from "./content.js";
 import { overlay } from "./overlay.js";
 
 /** One catalogue, assembled from its parts. The parts never share a top-level
@@ -26,5 +28,7 @@ export const es = {
   ...look,
   ...screens,
   ...game,
+  ...front,
+  ...content,
   ...overlay,
 };
