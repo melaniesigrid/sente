@@ -205,6 +205,33 @@ Decisions made on the floors (2026-09-11):
   1920x1080 laptop at 200% scaling lands in the middle of it at 960. The hero no longer
   wraps at all: two columns down to 880 with the display sized off its column and the
   board drawing smaller, one column with the board first below that.
+
+- [x] The language is in the header (2026-09-11, branch `feat/lang-in-header`). A pill in
+      the right-hand cluster on every screen, the front door included, carrying the tag of
+      the language actually in force (`components/LangPill.jsx`). It writes
+      `profile.locale` through the same `saveProfile` the Look screen writes it through,
+      so the two controls are two views of one setting and neither can drift.
+
+Decisions made on the language pill (2026-09-11):
+- It is lifted out of the Look screen because it is the only one of that screen's four
+  choices that decides whether the other three can be read. The Look screen has to be
+  found, and it is labelled in the language you are trying to leave — a reader who opens
+  the front door and cannot read it has no way of knowing a palette icon is where their
+  own language is kept.
+- The pill prints the language being *read*, not the id being stored: somebody following
+  their device sees EN because the words in front of them are English. Which of the two
+  got them there is the menu's business, and that is where the tick goes.
+- The tag and not the endonym, because a header has room for two letters and the two
+  letters are the same in every language. Every row in the menu names itself in its own
+  words, at reading size, and carries its own `lang` — this is the one list a reader may
+  not be able to read, so nothing in it is small or clever.
+- Moku's bubble is sized to the margin it stands in. It was a flat 250px in a dock pinned
+  bottom left against a 1100px centred column, so on a 1440px screen it spoke straight
+  across the page: over the statement on the dashboard, over "NONE PRETENDING" in the
+  lobby, and over the first room swatch on the Look screen, which is a control. A mascot
+  with an off switch is chrome, and chrome does not cover what it sits beside. Clear from
+  1440 up; below about 1400 the gutter is narrower than a readable line, so the overlap
+  is reduced rather than gone.
 - [x] Keyboard (2026-09-10, branch `feat/table-keys`): P passes and U takes back at the
       table, both through the same handlers the buttons use so every guard holds; the
       caption says so. In review: left and right walk a move, up and down jump ten,
