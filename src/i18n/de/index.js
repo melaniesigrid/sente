@@ -20,6 +20,8 @@ import { voice } from "./voice.js";
 import { room, stones, type, belt } from "./overlay.js";
 import { plain, statement, moku, ruleset, preset, persona } from "./content.js";
 import { tier, track, book, series, problem, shape } from "./library.js";
+import { lessons1 } from "./lessons1.js";
+import { lessons2 } from "./lessons2.js";
 
 export const de = {
   ...shell,
@@ -48,4 +50,7 @@ export const de = {
   series,
   problem,
   shape,
+  /* The lessons arrive a tier at a time, so this one key is assembled rather
+     than spread. */
+  lesson: { ...lessons1, ...lessons2 },
 };
