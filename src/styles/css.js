@@ -808,6 +808,129 @@ ${FONT_FACES}
 .pull-quote.sm .pull-label { font-size: 12.5px; }
 .pull-label { color: var(--ink-2); font-family: var(--font-body); font-style: normal; font-size: 14px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
 
+/* A line under a card that sends a reader somewhere else. It is a button
+   because it goes to a screen rather than to a URL, and it is set as a
+   sentence rather than as a control because that is what it is: the last line
+   of the section, with an arrow on it. */
+.lp-after { margin: 18px 0 0; }
+.lp-inline {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  border: 0; background: none; padding: 0 0 2px;
+  color: var(--accent-ink); font-family: var(--font-body);
+  font-size: 14.5px; font-weight: 700; letter-spacing: .02em;
+  border-bottom: 1px solid transparent;
+}
+.lp-inline:hover { border-bottom-color: var(--accent-ink); gap: 12px; }
+.lp-inline span, .lp-inline svg { transition: all .18s ease; }
+
+/* ---- the journal: what shipped, and what we think ----
+   Two kinds of entry on one shelf and a page for each, set as reading rather
+   than as an interface. The measure is held at 66 characters for the same
+   reason the small print holds 68: a line a person can follow to its end.
+
+   A release and a note are told apart by a chip and by nothing else. They are
+   the same size on the shelf on purpose -- a release is not a lesser thing
+   than an essay about a release, and the day we start setting the changelog
+   smaller is the day it stops being read. */
+.jr { display: flex; flex-direction: column; gap: 22px; }
+.jr-note-en { position: relative; }
+.jr-note-en p {
+  margin: 0; max-width: 62ch; color: var(--ink-2);
+  font-size: 14.5px; line-height: 1.62;
+}
+.jr-shelf { display: flex; flex-direction: column; gap: 16px; }
+
+/* One entry on the shelf. It is a button because it goes somewhere, and it
+   carries the raise every other card on the site carries. */
+.jr-card {
+  display: flex; flex-direction: column; gap: 9px; align-items: flex-start;
+  text-align: left; width: 100%; cursor: pointer; padding: 22px 24px;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.jr-card:hover { transform: translateY(-2px); }
+/* The date ranges right, which is what makes a shelf scannable by when
+   rather than by what. */
+.jr-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; width: 100%; }
+.jr-chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px;
+  border-radius: 999px; box-shadow: var(--sink-sm);
+  font-family: var(--font-body); font-size: 12px; font-weight: 700;
+  letter-spacing: .09em; text-transform: uppercase; color: var(--ink-2);
+}
+.jr-chip.note { color: var(--accent-ink); }
+.jr-kicker {
+  font-family: var(--font-body); font-size: 12.5px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3);
+}
+.jr-date {
+  font-family: var(--font-caption); font-size: 13px; color: var(--ink-3);
+  margin-left: auto;
+}
+.jr-title {
+  margin: 0; font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: clamp(21px, 2.6vw, 27px); line-height: 1.2; letter-spacing: -.01em;
+  color: var(--ink);
+}
+.jr-dek { margin: 0; max-width: 66ch; font-size: 15.5px; line-height: 1.62; color: var(--ink-2); }
+.jr-more {
+  display: inline-flex; align-items: center; gap: 7px; margin-top: 4px;
+  color: var(--accent-ink); font-family: var(--font-body);
+  font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+}
+.jr-card:hover .jr-more { gap: 11px; }
+.jr-more span, .jr-more svg { transition: all .18s ease; }
+
+/* ---- one entry, set as a page ---- */
+.jr-back {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: 999px; box-shadow: var(--raise-sm);
+  font-family: var(--font-body); font-size: 13px; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2);
+  cursor: pointer;
+}
+.jr-back:hover { color: var(--accent-ink); }
+.jr-back:active { box-shadow: var(--sink-sm); }
+.jr-head { display: flex; flex-direction: column; gap: 12px; max-width: 66ch; }
+.jr-mast {
+  margin: 0; font-family: var(--font-display); font-weight: var(--w-display);
+  font-size: clamp(30px, 5.4vw, 56px); line-height: 1.04;
+  letter-spacing: calc(-0.02em + var(--display-tracking)); color: var(--ink);
+}
+/* The standfirst is the one line in the italic: it is the piece introducing
+   itself, which is the same job the sayings do everywhere else. */
+.jr-standfirst {
+  margin: 0; max-width: 60ch; color: var(--ink-2);
+  font-family: var(--font-quote); font-style: var(--quote-style);
+  font-size: clamp(17px, 2vw, 21px); line-height: 1.45;
+}
+.jr-piece { display: flex; flex-direction: column; max-width: 66ch; }
+.jr-section { margin-top: 18px; }
+.jr-h {
+  margin: 26px 0 10px; font-family: var(--font-display);
+  font-weight: var(--w-display-strong); font-size: clamp(19px, 2.2vw, 23px);
+  line-height: 1.25; color: var(--ink);
+}
+.jr-piece > .jr-h:first-child, .jr-section:first-child .jr-h { margin-top: 8px; }
+.jr-p { margin: 0 0 14px; font-size: 16px; line-height: 1.7; color: var(--ink); }
+.jr-list { margin: 0; padding-left: 20px; }
+.jr-item { margin-bottom: 11px; font-size: 15.5px; line-height: 1.66; }
+.jr-item strong { font-weight: 700; }
+/* A path in a release note is set in the typewriter, the same machine a
+   passage from the Classic is typed on. It is the one face here that is not
+   the pairing's, and it is not the pairing's because a filename is not prose. */
+.jr-item code, .jr-about code {
+  font-family: var(--font-typewriter); font-size: .92em; color: var(--ink-2);
+}
+.jr-about {
+  margin: 22px 0 0; padding-top: 14px; border-top: 1px solid var(--grid);
+  font-size: 13px; line-height: 1.7; color: var(--ink-3);
+}
+@media (max-width: 620px) {
+  .jr-card { padding: 18px 18px; }
+  .jr-date { margin-left: 0; }
+  .jr-p { font-size: 15.5px; }
+}
+
 /* ---- a statement: the house voice, set as large as the screen will bear ----
    The screen's one idea in three lines, ruled off top and bottom like a page
    turning. A passage is the classical voice in the italic; this is ours in the
@@ -1737,24 +1860,49 @@ ${FONT_FACES}
   position: absolute; inset: 0; z-index: 0; overflow: hidden;
   pointer-events: none; opacity: 0; transition: opacity 1.4s ease;
 }
-.stone-field.ready { opacity: .62; }
-.stone-field svg { width: 100%; height: 100%; display: block; filter: blur(13px); }
-.stone-field .fs-b { fill: var(--stone-b-2); }
-.stone-field .fs-w { fill: var(--stone-w-2); }
-/* the ground, closing back over the field at the edges */
+.stone-field.ready { opacity: .38; }
+/* Three, not thirteen. A radius that hides the stones takes the point of the
+   field with it: the argument for spending a real engine on a decoration is
+   that it can be seen to be a real game. Three softens the field enough to keep
+   it behind the words and leaves a stone looking like a stone. */
+.stone-field svg { width: 100%; height: 100%; display: block; filter: blur(2px); }
+/* A stone that was not on the board last tick settles in; one that was is the
+   same element and is not touched. That is the whole of the motion, and it is
+   the position being played rather than an effect over it. */
+.stone-field .fs-rim { fill: none; stroke: rgba(var(--sh-ink),.16); stroke-width: 2px; }
+.stone-field .fs-stone {
+  transform-box: fill-box; transform-origin: center;
+  animation: fs-land .6s cubic-bezier(.16, 1, .3, 1) both;
+}
+@keyframes fs-land {
+  from { opacity: 0; transform: scale(.45); }
+  to { opacity: 1; transform: none; }
+}
+/* The ground, closing back over the field at the edges so it has no border and
+   never ends on a line. It used to close at a third of the way out, which was
+   the right number for a thirteen-pixel blur and the wrong one for a three: it
+   left the position showing only in the middle of the band, where the words
+   are, and hid it everywhere there was room for it. It closes at three quarters
+   now: the field reaches most of the way out and only softens into the ground
+   at the very edge, which is what puts enough of the position on the page for a
+   stone landing in it to be something a visitor can actually catch. */
 .stone-field::after {
   content: ""; position: absolute; inset: -2px;
-  background: radial-gradient(farthest-side at 50% 50%, transparent 34%, var(--ground) 100%);
+  background: radial-gradient(farthest-side at 50% 50%, transparent 76%, var(--ground) 100%);
 }
-/* A phone gets a smaller blur, because the field is scaled down with it and a
-   13px radius on a 380px band is fog rather than stones. */
+/* A phone gets a smaller blur again, because the field is scaled down with it
+   and a radius drawn for a wide band is fog on a narrow one. */
 @media (max-width: 620px) {
-  .stone-field svg { filter: blur(9px); }
-  .stone-field.ready { opacity: .42; }
+  .stone-field svg { filter: blur(1.5px); }
+  .stone-field.ready { opacity: .38; }
 }
 /* Reduced motion still gets the picture (StoneField holds one settled
-   position rather than playing) but not the fade onto the page. */
-@media (prefers-reduced-motion: reduce) { .stone-field { transition: none; } }
+   position rather than playing) but not the fade onto the page, and no stone
+   settles in: the position is simply there. */
+@media (prefers-reduced-motion: reduce) {
+  .stone-field { transition: none; }
+  .stone-field .fs-stone { animation: none; }
+}
 
 /* ---- the floors ----
    One flat ground from the top of the page to the bottom made every section

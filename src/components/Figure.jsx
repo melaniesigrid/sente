@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState, useId } from "react";
 import { figureFor, figureLives } from "../content/figures.js";
+import { StoneArt, Shine } from "./stoneArt.jsx";
 
 /* ----------------------- THE FIGURE, SET LARGE -----------------------
    A shape out of the game, drawn at the size of the thing it stands behind.
@@ -57,13 +58,7 @@ function Stone({ x, y, r, colour, laid, gone, sheen, ids }) {
       {/* the rim the light catches as the surface turns away, and the highlight
           it catches where the surface faces it */}
       <circle cx={x} cy={y} r={r * 0.985} fill="none" className="fig-rim" strokeWidth={r * 0.06} />
-      <ellipse
-        className="fig-shine"
-        cx={x - r * 0.3} cy={y - r * 0.34}
-        rx={r * 0.31} ry={r * 0.2}
-        fill={`url(#${ids.shine})`}
-        transform={`rotate(-34 ${x - r * 0.3} ${y - r * 0.34})`}
-      />
+      <Shine x={x} y={y} r={r} id={ids.shine} />
     </g>
   );
 }
@@ -156,21 +151,7 @@ export function Figure({ screen, figure, at = "right", className = "" }) {
     >
       <svg viewBox={`0 0 ${span} ${span}`} focusable="false" preserveAspectRatio="xMidYMid meet">
         <defs>
-          <radialGradient id={ids.b} cx="0.36" cy="0.34" r="0.85">
-            <stop offset="0%" stopColor="var(--stone-b-1)" />
-            <stop offset="55%" stopColor="var(--stone-b-2)" />
-            <stop offset="100%" stopColor="var(--stone-b-3)" />
-          </radialGradient>
-          <radialGradient id={ids.w} cx="0.36" cy="0.34" r="0.85">
-            <stop offset="0%" stopColor="var(--stone-w-1)" />
-            <stop offset="60%" stopColor="var(--stone-w-2)" />
-            <stop offset="100%" stopColor="var(--stone-w-3)" />
-          </radialGradient>
-          <radialGradient id={ids.shine} cx="0.5" cy="0.5" r="0.5">
-            <stop offset="0%" stopColor="rgba(var(--sh-lite),.82)" />
-            <stop offset="52%" stopColor="rgba(var(--sh-lite),.26)" />
-            <stop offset="100%" stopColor="rgba(var(--sh-lite),0)" />
-          </radialGradient>
+          <StoneArt ids={ids} />
           {/* The lines end sooner than the stones do. The block's own mask is
               sized to carry every stone at full strength, which leaves the grid
               running on past the shape to a corner, and a grid that stops on a

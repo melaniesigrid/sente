@@ -44,6 +44,7 @@ import { LookView } from "./views/Look.jsx";
 import { MailLinkView } from "./views/MailLink.jsx";
 import { LegalView } from "./views/Legal.jsx";
 import { DOCUMENTS, COPYRIGHT } from "./content/legal.js";
+import { JournalView } from "./views/Journal.jsx";
 import { linkFromQuery, forgetLink } from "./views/letterLink.js";
 
 /* ----------------------- APP SHELL ----------------------- */
@@ -97,10 +98,11 @@ export default function JosekiApp() {
   }, []);
   // Derived, not stored: finishing the flow sets `onboarded` on the profile, which
   // flips this on its own. One source of truth, and no effect to keep in step. The
-  // front door and the small print are the two screens it does not cover: a visitor
-  // who wants to read the terms before giving a name is the visitor they are for.
+  // front door, the small print and the journal are the screens it does not
+  // cover: a visitor who wants to read the terms, or what we have been building,
+  // before giving a name is exactly the visitor they are for.
   const welcoming = profileRead && view !== "landing" && view !== "legal" && view !== "look"
-    && needsOnboarding(profile);
+    && view !== "journal" && needsOnboarding(profile);
 
   const notify = useCallback((t) => {
     setToast(t);
@@ -199,6 +201,7 @@ export default function JosekiApp() {
           {view === "look" && <LookView profile={profile} setProfile={setProfile} go={go} room={room} />}
           {view === "dojo" && <DojoView profile={profile} setProfile={setProfile} notify={notify} go={go} room={room} />}
           {view === "legal" && <LegalView docId={params ? params.docId : null} onPick={(id) => go("legal", { docId: id })} />}
+          {view === "journal" && <JournalView entryId={params ? params.entryId : null} go={go} />}
           </>)}
         </ErrorBoundary>
       </main>
@@ -207,7 +210,7 @@ export default function JosekiApp() {
           being kept company on yet, and a bubble there only fights the headline. The
           small print is the other one: reference material is read, not sat with, and
           the dock lands on the left edge of a 68ch measure. */}
-      {view !== "landing" && view !== "legal" && <MokuDock />}
+      {view !== "landing" && view !== "legal" && view !== "journal" && <MokuDock />}
       <footer className="foot">
         {/* The footer takes the letters alone. The mark would have to be
             smaller here than it can survive, and a mark nobody can read is
@@ -217,7 +220,13 @@ export default function JosekiApp() {
           <span>&middot; {t("brand.tagline")}</span>
         </span>
         <span className="foot-line">{footSaying.text}</span>
-        <button className="foot-link" onClick={() => setView("landing")}>{t("foot.about")}</button>
+        <span className="foot-legal">
+          <button className="foot-link" onClick={() => setView("landing")}>{t("foot.about")}</button>
+          <span className="foot-sep" aria-hidden="true">·</span>
+          {/* What shipped and what we think, beside the about link rather than
+              in the nav: the nav is for playing. */}
+          <button className="foot-link" onClick={() => go("journal")}>{t("journal.footLink")}</button>
+        </span>
         {/* The small print, reachable from every screen and never from anywhere
             else. A reader looking for the terms looks at the bottom of the page,
             so that is the only place they are asked to look. */}
