@@ -1157,7 +1157,8 @@ that is honestly still English.
       half-built — the parity test holds a catalogue to English's whole key set, and the
       room, stone, pairing and belt overlays complete against the data — so the first
       French PR is the entire UI rather than a corner of it.
-- [ ] French: the content — the voices, the library's furniture, the lessons, the Classic.
+- [x] French: the content — the voices, the library's furniture, all thirty-two lessons and
+      the whole Classic. **French is finished: every screen and every word of content.**
 - [ ] German, the same two slices.
 
 Decisions made in Phase 7 (change deliberately, not by accident):
