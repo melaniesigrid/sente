@@ -19,6 +19,8 @@
    the comment above them naming the modules they were read from, so the next
    person to change that code can find the sentence it makes false. */
 
+import { hashString } from "../engine/index.js";
+
 /** Who runs this, what it is called, and how to reach a person. */
 export const STUDIO = "Northbound Software Studio";
 export const PRODUCT = "Joseki";
@@ -30,10 +32,27 @@ export const REPO = "https://github.com/melaniesigrid/sente";
 export const COPYRIGHT_YEAR = 2026;
 export const COPYRIGHT = `© ${COPYRIGHT_YEAR} ${STUDIO}`;
 
-/** The day these documents last said something different. Shown on each one: a
- *  legal document with no date is a document nobody can tell they have read
- *  before. Move it in the same commit that changes a word of the text. */
-export const UPDATED = "11 September 2026";
+/* ----------------------- THE REVISION -----------------------
+   The day these documents last said something different, and a fingerprint of
+   what they said on that day. Shown on each one: a legal document with no date
+   is a document nobody can tell they have read before.
+
+   The two live in one object on purpose. A date moved by hand is a date that
+   gets forgotten, and a notice dated three weeks before the sentence it
+   contains is worse than an undated one — it is a document actively claiming
+   it has not changed. `legal.test.js` recomputes the stamp from the prose and
+   fails when it disagrees with the one checked in here, printing the stamp it
+   wanted, so the fix is: move the date, paste the stamp, done. The suite
+   cannot know what a commit touched, so it cannot force the date to move on
+   its own; what it can do is make it impossible to change a word without
+   being stopped and handed the line where the date lives. */
+export const REVISION = {
+  updated: "11 September 2026",
+  stamp: "a2e9c842",
+};
+
+/** The day the documents last changed. */
+export const UPDATED = REVISION.updated;
 
 /* ---------------------------------------------------------------- credits */
 /* Everything in the build that somebody else made, with the terms it comes
@@ -291,4 +310,33 @@ export const DOCUMENTS = [TERMS, PRIVACY, NOTICES];
  *  a blank page. */
 export function documentById(id) {
   return DOCUMENTS.find(d => d.id === id) ?? DOCUMENTS[0];
+}
+
+/* ----------------------- THE FINGERPRINT -----------------------
+   Every word a reader reads, in the order they read it, as one string. Titles,
+   blurbs, headings, paragraphs and the credit rows — a credit that changed is
+   a document that changed, so the rows are in. What is deliberately out is the
+   revision itself: the date is what the stamp exists to protect, and a stamp
+   that covered its own date would change every time the date moved and so
+   could never disagree with it. */
+export function documentText() {
+  const parts = [];
+  for (const doc of DOCUMENTS) {
+    parts.push(doc.id, doc.title, doc.blurb ?? "");
+    for (const group of doc.credits ?? []) {
+      parts.push(group.title, group.note);
+      for (const item of group.items) parts.push(item.what, item.who, item.terms);
+    }
+    for (const section of doc.sections) {
+      parts.push(section.heading, ...section.paras);
+    }
+  }
+  return parts.join("\n");
+}
+
+/** The fingerprint of the prose as it stands, as eight hex digits. Not a
+ *  security hash and not asked to be one: it is here to catch a person, not an
+ *  attacker, and a person cannot edit a paragraph without moving it. */
+export function documentStamp() {
+  return hashString(documentText()).toString(16).padStart(8, "0");
 }
