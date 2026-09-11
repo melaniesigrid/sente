@@ -154,6 +154,64 @@ Chinese, in the house voice. The original is public domain; modern translations 
 none is quoted. `library.test.js` verifies series lessons like any other; `classic.test.js`
 checks that every chapter has its lesson and that the sayings keep the voice.
 
+## Series: Lessons in the Fundamentals
+
+Added 2026-09-11. The second series, after Toshiro Kageyama's *Lessons in the Fundamentals
+of Go* (Ishi Press, 1978). Lessons opt in with `series: "fundamentals"` and number
+themselves with the book's own chapter numbers, so the series reads in book order however
+it is spread across tiers:
+
+| Chapter | Lesson | Tier / rank | Track |
+|---------|--------|-------------|-------|
+| 1 Ladders and Nets | `fundamentals-ladder` | 3 / 14k | tactics |
+| 4 The Struggle to Get Ahead | `fundamentals-hane-at-the-head` | 3 / 12k | shape |
+| 8 Good Shape and Bad | `fundamentals-empty-triangle` | 4 / 9k | shape |
+| 11 Endgame Pointers | `fundamentals-endgame-sente` | 5 / 2k | endgame |
+
+The chapter numbers are not consecutive because the book has eleven chapters and this is
+four of them; the gaps are the open work, not a numbering mistake.
+
+**Rights.** The Classic is public domain and Kageyama's book is not. Nothing of it is
+reproduced: no sentence of his prose, no diagram, no problem position. What the lessons
+carry is the argument — ladders must be read to the end, the hane at the head of two stones
+gets you in front, an empty triangle is a stone that bought no liberty, the first-line hane
+is worth about a komi — and the principles of go are not anybody's property. The positions
+were built here and checked with the engine, the words are the house voice, and
+`src/content/fundamentals.js` holds `KAGEYAMA_SOURCE` so every lesson cites the book it
+came from. A reader who likes these should buy it.
+
+Every number a Fundamentals lesson states was measured before it was written: liberty
+counts from `chainAt`, the two ladders replayed move by move, and the four-point endgame
+swing from `scoreBoard` under AGA, Japanese and Chinese rules. The verifier replays the
+sequences on every `npm test`, but it does not check counted answers — those were checked
+by hand against the engine, which is the rule in `.claude/rules/lessons.md`.
+
+## Series: Gateway to All Marvels
+
+Added 2026-09-11. The third series, after the *Xuanxuan Qijing* (Gateway to All Marvels),
+compiled in 1349 by Yan Defu and Yan Tianzhang: the oldest go problem collection still in
+working use, and the ancestor of the Gokyo Shumyo, the Guanzi Pu and the Igo Hatsuyoron.
+Lessons opt in with `series: "marvels"` and number themselves in teaching order.
+
+| Technique | Lesson | Tier / rank | Track |
+|-----------|--------|-------------|-------|
+| 1 The Net | `marvels-net` | 3 / 13k | tactics |
+
+The series exists because the library was long on principles and short on named techniques.
+The Classic argues about how to think; the Fundamentals argues about what to take seriously;
+this one is a catalogue of things you can do with your hands. The Gateway's own habit is to
+give every problem an allusive name, on the theory that a technique you can name is one you
+can look for, and the series keeps that habit.
+
+**Rights.** The book is seven hundred years old and out of copyright everywhere, so the
+series can name its source without hedging. It still does not reproduce the book's problems.
+The Gateway's positions are delicate, most modern printings of them are somebody's
+reconstruction, and a half-remembered diagram would be worse than none: what is taken is the
+subject and the naming, not the diagrams. Every position is built here and proved with the
+engine — for `marvels-net`, an exhaustive scan of every legal black move found exactly one
+that holds White, both ataris were played out and shown to fail, and both escape lines were
+replayed to a single liberty.
+
 ## Content model
 
 Lessons are data in `src/content/lessons/<tier>/<id>.js`, gathered by `src/content/library.js`.

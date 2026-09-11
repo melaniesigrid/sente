@@ -5,5 +5,12 @@ import classicTerritory from "./classic-territory.js";
 import classicConflict from "./classic-conflict.js";
 import classicEmptiness from "./classic-emptiness.js";
 import classicMiscellany from "./classic-miscellany.js";
+import fundamentalsLadder from "./fundamentals-ladder.js";
+import fundamentalsHaneAtTheHead from "./fundamentals-hane-at-the-head.js";
+import marvelsNet from "./marvels-net.js";
 
-export const TIER3 = [classicTerritory, classicConflict, classicEmptiness, classicMiscellany];
+export const TIER3 = [
+  classicTerritory, classicConflict, classicEmptiness, classicMiscellany,
+  fundamentalsLadder, fundamentalsHaneAtTheHead,
+  marvelsNet,
+];

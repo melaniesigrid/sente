@@ -7,87 +7,6 @@ Full reasoning: `docs/designs/classiest-go-server.md` (CEO review, 2026-09-09).
 Priority order. Check items off as they land. Phases are sequential; items inside a phase
 are ordered too.
 
-## Phase 0 — Foundation (done)
-
-- [x] Extract the pure engine and AI into `src/engine/` (go.js, ai.js)
-- [x] Vitest suite for the engine: capture, suicide, ko, multi-group capture, scoring
-- [x] Fix the `no-unused-expressions` warning at `Board`
-- [x] GitHub Actions CI: install, lint, test, build
-
-## Phase 1 — Rules kernel (done, branch `feat/rules-kernel`)
-
-Everything downstream stands on this. Pure modules only; no React. Views import through
-`src/engine/index.js`, never internals.
-
-- [x] Size-parametric board: `createBoard(size)`, `idx/inB` take size, star points computed
-      per size (9, 13, 19). Remove the exported `N` constant and every caller of it.
-- [x] `tryPlay` returns a reason on failure (`occupied`, `ko`, `superko`, `suicide`) instead
-      of `null`, so the UI can say why a move was refused.
-- [x] Positional superko via Zobrist hashing; history of hashes lives on the record.
-- [x] `GameRecord`: immutable move list + state machine (`playing → scoring → ended`, with
-      `play / pass / resign / markDead / accept / undo`). Illegal transitions throw named
-      errors. JSON-serialisable and replayable; this is the future socket protocol.
-- [x] Dead-stone marking and final area scoring with komi and handicap; territory map for
-      the overlay.
-- [x] Handicap placement for 9/13/19 (2 to 9 stones) with fixed komi rules.
-- [x] Clock module (pure): absolute, byo-yomi, Fischer. `tick(ms)` returns a new state and
-      a named `expired` event; no timers inside the engine.
-- [x] SGF import/export (`sgf.js`): FF[4] subset (SZ, KM, HA, AB/AW, B/W, C, variations).
-      Named `SgfParseError` with offset. Input capped at 256 KB; never eval.
-- [x] House-player AI works on any size and can read a `GameRecord`.
-- [x] Tests: superko cycle, 13x13 and 19x19 capture/scoring, every record transition
-      (legal and illegal), SGF round-trip on real games, byo-yomi period consumption,
-      dead-stone scoring against known positions. 139 engine tests.
-
-Decisions made in Phase 1 (change deliberately, not by accident):
-- Board is `{ size, cells }`; `cells` is flat row-major. `go.js` is gone.
-- Komi defaults by board size (5.5 / 6.5 / 7.5 for 9 / 13 / 19), or 0.5 with a handicap
-  (revised in Phase 3; it was a flat 7.5 here). Area scoring gives white one point per
-  handicap stone after the first (AGA convention).
-- `undo` is allowed from `playing` and `scoring` (scoring undo returns to playing and
-  clears dead marks); never from `ended`.
-- SGF variations are parsed and kept on `parseSgf(...).tree` but the record only holds
-  the main line; `toSgf` writes the main line. Variation trees are Phase 3 review work.
-- `RE[B+R]`/`W+R` on import becomes a resignation; a scored `RE` is not applied because
-  the dead stones are unknown. The game is left in whatever phase the moves reached.
-
-## Phase 2 — Split the app (done, branch `feat/rules-kernel`)
-
-- [x] Split `src/App.jsx` into `content/` (personas, lessons, problems), `components/`
-      (Board, Card, Btn, Pill, Avatar, RankBadge), `views/` (Home, Play, Game, Rankings,
-      Profile, Learn, Problems), `styles/` (CSS). Keep section banners.
-- [x] `Game` becomes a thin adapter over `GameRecord`; no rules logic left in views.
-- [x] Persist the in-progress record to localStorage on every move; Home shows a
-      "Resume last game" card.
-- [x] Error boundary around views.
-- [x] Deploy preview on GitHub Pages via Actions.
-
-Decisions made in Phase 2:
-- Two passes put the record in `scoring` and `Game` accepts the score immediately with
-  no dead stones, through `acceptScore`. Phase 3 inserts the ceremony at that seam.
-- Komi in play is the record default, 7.5 (was 5.5 in the old view). Rated results
-  against house players therefore shift slightly toward White compared to before.
-- Undo is disabled once a game has ended. The old view let you undo after the result
-  had already been applied to your rating, which was dishonest.
-- Refused moves toast once (ko, superko, suicide); occupied points stay silent.
-- The saved game is one slot, `sente-game`, versioned; loading replays the log through
-  the engine and discards anything that does not replay. Ended games are never stored.
-- `Game` still hard-codes 9x9 (`BOARD_SIZE`); the lobby chooses sizes in Phase 3.
-- `src/store/` is a fourth folder for localStorage because both Game and Home need the
-  game slot; views still reach the engine only through `src/engine/index.js`.
-
-Browser QA on the split (eight flows, all passed) surfaced three pre-existing findings,
-each fixed in its own commit:
-- `Game.conclude` ran `saveProfile` and `notify` inside the `setProfile` updater, which
-  StrictMode double-invokes. Now computed from the current profile prop, saved and
-  toasted once, and only on the transition into `ended`.
-- No way to resign a bot game (a bot move always resets the pass count). Added a Resign
-  button with a two-step confirm ("Confirm resign?" for 3 s), recorded through the
-  record's `resign` and rated as a loss. Checked off under Phase 3.
-- `loadProfile` merged stored JSON over the defaults untyped, so a null array crashed
-  Home permanently. `sanitizeProfile` validates per field against the default's type
-  (known tints included), falls back per field and warns once naming what it reset.
-
 ## Phase 3 — Play like a real server
 
 - [x] Lobby: choose 9/13/19, handicap and komi (branch `feat/board-sizes`, 2026-09-10);
@@ -138,66 +57,6 @@ Decisions made in Phase 3, lobby slice (branch `feat/board-sizes`):
 - The daily duel stays 9x9 (`DUEL_SIZE`) and its host is the seeded heuristic player, not
   the human network: results only compare if every device gets the same reply.
 - The board is drawn at 460, 560 or 680 px for 9, 13, 19; the stone scale never changes.
-
-## Delight (done 2026-09-09, branch `feat/rules-kernel`)
-
-Small moments that make the table feel alive, all built on engine facts:
-
-- [x] Moku, the mascot: a black stone with two eyes (one eye is dead). Every expression is a
-      board fact resolved in `content/moku.js` (pure, tested): atari, ko, a capture, a loss,
-      scoring, a promotion. Dismissable from the dock, remembered per device, restorable
-      from Profile. Motion is CSS keyed on `data-state` and honours reduced motion.
-- [x] Belts (the dojo): kyu bands wear white, yellow, orange, green and blue; dan wears
-      black. Derived from the rating (`beltOf`), never stored. Rank badges carry a belt
-      stripe; Profile shows the tied belt and the rating to the next one.
-- [x] Promotion ceremony: winning into a new belt opens a card with the belt, Moku in a sash
-      and what changes at that belt. A rank change inside a belt stays a toast.
-- [x] Atari training wheels: white and yellow belts see a soft ring on their own groups
-      with one liberty (`chainsInAtari` in the engine). Orange belt and up read for
-      themselves. The caption on the table says when hints are on.
-- [x] Capture moments: lifted stones dissolve on the board; Moku hops or sinks; an
-      opt-in synthesised click per stone, a soft note per capture, a bell at the end.
-- [x] Kata of the day: one tsumego per calendar day for everyone (`content/kata.js`),
-      a Home card that opens it, attendance streak with a best, shown on Profile.
-
-Decisions:
-- Belt boundaries follow `rankOf` exactly (`kyuFloor`), so a belt can never disagree
-  with the rank on the badge.
-- House players have no opinion on life and death. While scoring, the card says the
-  player's marking stands; in pass-and-play it asks both players to agree first.
-- Moku speaks one line at a time, never blocks anything, and has no mood: if nothing
-  on the board changed, it says nothing new.
-- Sound is a profile field (opt-in, default off). Moku's off switch is a device
-  preference in localStorage, like Pip's in ZipQuarry.
-
-## House players (done 2026-09-09, branch `feat/kata-bots`)
-
-The heuristic bots played one-ply captures and felt random. House players now run
-KataGo's human-style network (`b18c384nbt-humanv0`, MIT) in the browser and each one
-imitates a rank: Hoshi 20k, Tetsu 15k, Yuki 10k, Ren 5k, Sora 1k, Kaede 2d, Tatsuo 5d.
-
-- [x] `src/engine/kata/`: KataGo board port (chains, ladders, Benson), v7 input features
-      checked plane-for-plane against KataGo's Python, metadata row for rank profiles,
-      policy picker with temperature and a pass rule, ONNX Runtime Web loader.
-- [x] `tools/kata/export_human.py` exports the checkpoint to ONNX with fp16 weights and
-      fp32 compute (53 MB, in `public/models/`). `gen_fixtures.py` regenerates fixtures.
-- [x] Game preloads the network when a bot game opens, shows download progress in the
-      status pill, and falls back to the heuristic player if the network cannot load.
-- [ ] Calibrate: bot-vs-bot ladder and real-game win rates; adjust `profile.temperature`
-      or nudge a persona's rank if it plays a stone stronger or weaker than its badge.
-- [ ] WebGPU backend (needs the jsep runtime, 28 MB) for 19x19 speed; WASM is single
-      threaded on Pages (no cross-origin isolation headers).
-- [x] Every house player adapts to any level: the lobby's rank picker (25k to 9d,
-      defaulting to your own rank) sets the rank the network imitates; personas are
-      personalities with a home range, ordered by fit. Ranks below 20k soften the 20k
-      policy one temperature notch per rank.
-- [ ] Human opponent rank is passed as the network's "opponent" profile; use the real
-      rating once ratings are server-side.
-- [ ] Remember the last chosen level per player, and suggest a level after a few wins
-      or losses in a row.
-- [ ] Dan bots with a small search (KataGo blends human policy with its own value) once
-      there is a server; the raw policy is a few stones weaker than the rank it imitates
-      at dan level, which the bios do not yet say.
 
 ## Phase 4 — Multiplayer (server)
 
@@ -286,6 +145,13 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       Profile card says so instead of inventing a title. Chapter eleven's names carry
       `sure`, and only 16 of the 32 claim a modern term; the rest are shown as unidentified
       rather than guessed, since the chapter's own argument is that names must be set right.
+- [x] More of the book, and no line twice in a day (2026-09-10): the sayings were repeating
+      because the pool was thin and all three surfaces drew the same one. `content/classic.js`
+      now mines every chapter for lines it had left in the prose — 93 sayings, up from 56 —
+      and `sayingOfTheDay(key, surface)` gives Home, Learn and Landing their own line, a third
+      of the book apart, so a reader passing through all three reads three different chapters.
+      The after-game pools are wider too, and `Do not boast of a win` no longer answers every
+      outcome: it stays on the win and the shared board, where it is addressed to somebody.
       A chapter may now hold more than one lesson (`alsoLessonIds`, `lessonIdsForChapter`),
       so the series can grow past thirteen files.
 - [x] The sayings are typed, not set (2026-09-10): a quotation now comes out of a typewriter
@@ -310,6 +176,38 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       Learn's chapter bodies put one after the first paragraph; the Profile's nine levels card
       opens with chapter twelve's. `npm test` holds every gloss to the house voice and checks
       it is neither the one-line theme nor a saying the reader has already met.
+- [x] Lessons in the Fundamentals (2026-09-11): a second series, `fundamentals`, after
+      Kageyama's 1978 book. Four lessons, each proved by the engine before it was written:
+      `fundamentals-ladder` (3 / 14k, tactics) plays the ladder out to the corner in fifteen
+      moves, then adds one white stone eight points away and shows the same staircase ending
+      with White out on three liberties and four black chains on two apiece;
+      `fundamentals-hane-at-the-head` (3 / 12k, shape) the hane at the head of two stones and
+      the second line as the line of defeat; `fundamentals-empty-triangle` (4 / 9k, shape)
+      eight liberties against seven, and the sixth-liberty case that looks like the bad shape
+      and is not; `fundamentals-endgame-sente` (5 / 2k, endgame) the first-line hane and
+      connection, measured at four points by `scoreBoard` under territory and area scoring
+      alike. The book is in copyright, so none of its prose or diagrams is reproduced: the
+      principles are restated in the house voice on positions we built, and `content/
+      fundamentals.js` carries the citation and says why. Chapters are numbered as the book
+      numbers them (1, 4, 8, 11), so the series reads in book order across three tiers.
+- [x] Gateway to All Marvels (2026-09-11): a third series, `marvels`, after the *Xuanxuan
+      Qijing* of 1349 — the oldest problem collection still in use, and the ancestor of the
+      Gokyo Shumyo, the Guanzi Pu and the Igo Hatsuyoron. Where the Classic argues about how
+      to think and the Fundamentals about what to take seriously, this one is a catalogue of
+      named techniques, and it keeps the book's habit of naming them. First lesson:
+      `marvels-net` (3 / 13k, tactics), the sequel to the ladder — a cutting stone that
+      cannot be laddered, caught by a net instead. An exhaustive engine scan of every legal
+      black move found exactly one that holds White and it is not a contact move; both
+      ataris were played out and shown to leave White loose on two liberties, and both
+      escape lines were replayed to a single liberty. The book is public domain, so the
+      series names its source plainly, but it reproduces none of its problems: those
+      positions are delicate and most modern printings are reconstructions, so what is taken
+      is the subject and the naming. `content/marvels.js` carries the citation.
+      Also fixed: `fundamentals` was never added to `SERIES`, so the verifier's
+      registered-series assertion had been failing on all four Kageyama lessons.
+- [ ] The rest of the Fundamentals: chapter two's cutting and connecting (do not peep where
+      you can cut), chapter five's thickness, chapter ten's shortage of liberties and the
+      snapback as bait, chapter seven on how to study joseki.
 - [ ] The remaining named shapes of chapter thirteen as lessons: the five-point flower, and
       the two-by-three that lives in the open and dies in the corner.
 - [ ] Restore the Chinese characters for chapter eleven's thirty-two names from the original
@@ -318,9 +216,57 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
 - [ ] Spaced repetition: finished quiz steps enter a recall queue; "Review five" card on Home.
 - [ ] Joseki and opening library for 9×9 and 19×19.
 
+## Phase 6 — Problem of the week
+
+The Ten Rules of Weiqi (Wang Jixin, Tang dynasty) as a collectible set: one rule a week,
+one board that asks you to obey it, ten weeks to the whole set.
+
+- [x] `src/content/tenets.js`: the ten rules as data — four characters, the reading, Sente's
+      rendering, a plain-words gloss, and the library track each rule belongs to.
+- [x] `src/content/weeklies.js`: ten problems, one per rule, mostly whole-board sketches on
+      19x19 rather than corner tsumego. Each is one lesson step (`choice` or `quiz`), so the
+      player, the verdict vocabulary and the verifier are the ones the library already has.
+- [x] `src/content/weekly.js`: the ISO week key ("2026-W37"), the rotation, and what the
+      profile keeps. The kata is shuffled because it is a habit; the week cycles in the
+      book's order because it is a set.
+- [x] `src/views/Weekly.jsx` and a nav entry: the rule named first, the board under it, the
+      collection of ten below.
+- [x] Library lesson `ten-rules` (tier 4, judgement) teaching two of the ten and handing the
+      other eight to the weekly.
+- [ ] A Home card for the open week, next to the kata and the duel.
+- [ ] Finishing the set should be worth something — a mark on the profile, or the ten
+      rendered as a page you can read straight through.
+- [ ] The second turn of the cycle hands back the same ten boards. Either author a second
+      problem per rule, or say plainly that a rule you already hold is a re-read.
+
+Decisions made in Phase 6:
+- The rule is named before the board is shown. A rule you have to guess is a riddle; a rule
+  you are handed and then have to apply is a lesson.
+- Two things the engine cannot check are on the author: whether a move is really the biggest
+  on the board, and whether a group described as weak really is. The prose avoids point
+  counts it cannot back up, and `weekly.test.js` checks everything that is checkable — legal
+  setups, empty and legal option points, refutations and scripted lines that replay.
+- Solving marks the week (the streak) and adds the rule to the collection (the set). Solving
+  a rule you already hold still counts for the week.
+- The traditional text of rule 1 is 不得貪勝 and of rule 7 is 慎勿輕速; both are easy to
+  mis-transcribe. The characters in `tenets.js` are the standard ones.
+
 ## Design and polish (schedule after a design review)
 
 - [ ] Mobile layout pass: board sizing, nav collapse, touch targets.
+- [x] The look of the place is one screen (`src/views/Look.jsx`, 2026-09-10): rooms, stones
+      and pairings together, reached from the top bar. The profile keeps a sentence saying
+      what you are wearing and a strip of plates; it is no longer a place to choose.
+- [x] Stones are themed (`src/theme/stones.js`, 2026-09-10): eight sets, each two authored
+      colours, cut into crown/body/rim and seated into the board they are played on. Every
+      named room names the set it was designed around, and a player may override it for
+      every room at once. `stones.test.js` holds all ninety-six room-and-set boards to the
+      floor the dojo prints.
+- [x] The dojo builds from the drawer (`src/theme/swatches.js`, 2026-09-11): no eyedropper
+      and no hex field, only the colours the named rooms already use for that role, indexed
+      per tone and sorted light to dark. The two lights are always derived, and the dojo
+      picks its own stones — a built room names a set like every named room does, carried
+      through `sanitizePalette` and `paletteFrom`.
 - [ ] Dark variant of the stone palette.
 - [x] Sound and haptic feedback on stone placement (opt-in, synthesised, no assets).
 - [ ] Self-host fonts instead of the Google Fonts `@import`.
@@ -370,81 +316,54 @@ Bigger swings:
 - [ ] Capture Go onboarding: first capture wins on 7x7 against Hoshi, a two-line rule
       variant on the record, replacing the ten-move guided demo with a real game.
 
-## Typefaces (done 2026-09-10, branch `feat/board-sizes`)
+## Carried forward from shipped work
 
-Six pairings of the same design system, chosen in Profile and stored on the profile.
+Open follow-ups from phases that otherwise shipped. History for these lives in
+`docs/TODO-archive.md`.
 
-- [x] 2026-09-10 `galliard` is the whole Maison Galliard trio, the one three-part
-      family in the Typecase library: serif headings, script whispers, its own sans
-      for body and captions.
-- [x] 2026-09-10 Two avant garde pairings: Hoshi (Cocogoose Pro Thin, geometric and
-      tracked wide, quoting in its own light italic) and Vitrine (Qliesya didone over
-      Instrument Sans, sayings in Newsreader italic). Eight pairings now.
-- [x] 2026-09-10 The footer is signed: Melanie Baratto in Daenerys, one hand at one
-      size, outside the pairing system, drawn on once at load.
-- [x] 2026-09-10 No local cut is ever slanted by the browser any more. Wedge and
-      Signal were faux-obliquing single-style cuts; only the Google faces, which
-      ship a real italic, are asked for one.
-- [x] 2026-09-10 Captions have their own token, `--font-caption`. A script is a
-      display face: the footer, the bow words and Moku's bubble now take the body
-      face in a script pairing rather than 13px of handwriting.
-Display faces are borrowed from the Typecase library next door; body faces stay
-Google-hosted text families, because the Typecase text cuts have no weight axis.
-
-- [x] Type tokens in `CSS`: no family, weight, tracking or hero leading is named
-      directly any more; `src/App.jsx` sets them from `profile.typeface`.
-- [x] Pairings as data in `src/content/typeface.js`, house first and default.
-- [x] Local faces in `src/styles/fontfaces.js`, each with a measured `size-adjust`
-      onto Fraunces' optical size so a pairing changes voice, not layout.
-- [x] Picker in Profile, each option previewing its own display face with digits.
-
-Open:
-- [ ] Licensing: every borrowed face is a demo/personal-use cut (`src/fonts/LICENSES.md`).
-      Before a public deploy, buy the pairings worth keeping or swap them for OFL faces.
-      Only `house` and the three Google body families are clear today.
-- [ ] Convert the borrowed faces to woff2; the OTFs are 16-207 KB each and lazy, but
-      Kuigaf alone is 207 KB the first time Wedge is chosen.
+**House players**
+- [ ] Calibrate: bot-vs-bot ladder and real-game win rates; adjust `profile.temperature`
+      or nudge a persona's rank if it plays a stone stronger or weaker than its badge.
+- [ ] WebGPU backend (needs the jsep runtime, 28 MB) for 19x19 speed; WASM is single
+      threaded on Pages (no cross-origin isolation headers).
+- [ ] Human opponent rank is passed as the network's "opponent" profile; use the real
+      rating once ratings are server-side.
+- [ ] Remember the last chosen level per player, and suggest a level after a few wins
+      or losses in a row.
+- [ ] Dan bots with a small search (KataGo blends human policy with its own value) once
+      there is a server; the raw policy is a few stones weaker than the rank it imitates
+      at dan level, which the bios do not yet say.
+**Typefaces**
+- [x] Three pairings, not eight (2026-09-10). `house`, `kaya` and `vitrine` stay; Galliard
+      House, Wedge, Clubhouse, Signal and Hoshi are gone, and Kaya's ornament voice is
+      Fraunces' italic instead of the Bellique script — it carries the emphasised word in
+      the landing hero and the lesson numerals, and a script could not do that at reading
+      size. No script stands anywhere in the set now.
+- [ ] Licensing: the three borrowed cuts still shipping are Welorac, Qliesya and Daenerys,
+      all demo/personal-use (`src/fonts/LICENSES.md`). Buy them or swap for OFL faces before
+      a public deploy. Daenerys is the urgent one — no commercial use at all, and it signs
+      every page. Everything else in the set is OFL today.
+- [ ] Convert the two borrowed display cuts to woff2; the OTFs are lazy but Welorac and
+      Qliesya are still OTF, and woff2 would roughly halve each.
 - [ ] A pairing is a device preference stored in the profile; when accounts arrive,
       decide whether it syncs or stays local like the Moku toggle.
-
-## Palettes and the dojo (done 2026-09-10, branch `feat/board-sizes-local`)
-
-- [x] A theme is data: ground, the two lights every shadow is
-      cut from, ink, cream, accent. Eight of them — house, kaya, porcelain, damson (light);
-      lacquer, graphite, sumi, yohen (dark). Damson is pastel plum paper under a damson
-      mark, the one light room that is neither warm stone nor cool clay.
-- [x] The stylesheet names no colour outside its house-default block; the shell spreads
-      `themeVars(profile.theme)` beside `typefaceVars`, so no class is toggled and no
-      second stylesheet exists.
-- [x] Stone gradients and Moku's face read tokens, so a dark room can lift the black
-      stone's crown off the board without touching a component.
-- [x] Picker in Profile: every swatch is drawn in its own material.
-- [x] `theme.test.js` checks ink contrast, accent contrast against the house floor, and
-      that the highlight and the shadow stay close to the ground — the illusion.
-
-- [x] Restructured into `src/theme/` with `index.js` as the only import surface: `tokens.js`
-      (the contract), `palettes.js` (the named rooms), `derive.js` (four colours in, every
-      token out), `color.js` (the only module that knows how a colour is spelled).
-- [x] Dojo at `src/views/Dojo.jsx`, reached from the Profile palette card: a live board and
-      the six tones side by side, the contrast rules printed as they are broken, "wear it"
-      disabled until all six pass, and "copy as code" so a good room can graduate into
-      `palettes.js`. Stored as `profile.dojo`, sanitised like every other stored field.
-- [x] Focus rings are `--accent-ring` (32% on paper, 55% in a dark room), not 16% of the
-      accent — keyboard focus was invisible on Lacquer.
-- [x] Belts carry `--belt-edge`, a contour in the room's own ink, so the white belt no
-      longer vanishes on Porcelain nor the black one on Lacquer.
-- [x] The active nav item has an accent rule under it, so state never rests on hue alone
-      where the raise has less luminance to spend.
-- [x] Type scale floor raised from 9.5px to 12px across the stylesheet; the wordmark went
-      from clamp(20, 26) to clamp(28, 38) and the brand mark from 15px to 19px.
-
-- [x] `system` is the profile default and the first option in the picker: house when the
-      device asks for light, sumi when it asks for dark. `resolveTheme` is pure and takes the
-      answer as an argument; `usePrefersDark` in `src/components/prefersDark.js` is the only
-      thing in the app that reads the media query, and it keeps listening, so switching a
-      laptop to dark mode moves the room without a reload.
-
-Open:
+**Palettes and the dojo**
+- [x] Readable colour is derived, not hoped for (2026-09-10). Every room now emits
+      `--ink-2` (secondary text, solved to 4.5:1), `--ink-3` (incidental text, 3:1) and
+      `--accent-text` / `--danger-text` — the mark and the warning carried up to reading
+      contrast. The stylesheet dims no word with an opacity and colours no small word with
+      a mark; `src/styles/css.test.js` holds it there.
+- [x] Twelve rooms, not ten: Cinnabar (a light room led by a colour rather than a neutral)
+      and Foxfire (the only mark that sits above its own ink). Gilt and Lacquer are the
+      Jazz Age pair — ivory-and-deco-black, and black lacquer with gold leaf.
+- [ ] Five of the twelve marks (kaya, gilt, lacquer, graphite, yohen) sit in the amber
+      band, and `deriveDanger` puts every unauthored warning at hue ~12°. The set is
+      warmer than it reads on any one screen, and Cinnabar pushed it further that way.
+      A cool light room — the counterpart to prism on paper — would even it out.
+- [ ] The grid is the last unmeasured colour: `.grid-line` draws `--grid` at
+      `stroke-opacity: .38`, and territory marks and dead stones are opacities too. They
+      are graphics rather than text, but they carry meaning during scoring and nothing
+      holds them to 3:1 yet.
 - [ ] The seal tints in `rank.js` are still absolute values chosen against paper. The belts
       have a contour now; the tints only colour an avatar, so they hold, but they are the
       last absolute colours in the app.

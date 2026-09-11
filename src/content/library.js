@@ -47,6 +47,7 @@ export const TRACKS = [
 export const SERIES = [
   { key: "classic", name: "The Classic in Thirteen Chapters", by: "Zhang Ni, eleventh century" },
   { key: "fundamentals", name: "Lessons in the Fundamentals", by: "Toshiro Kageyama, 1978" },
+  { key: "marvels", name: "Gateway to All Marvels", by: "Yan Defu and Yan Tianzhang, 1349" },
 ];
 
 export const trackByKey = (key) => TRACKS.find(t => t.key === key) || null;
