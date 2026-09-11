@@ -28,6 +28,7 @@ import { chooseRemark, noteSpoken, PACING } from "../content/commentary.js";
 import {
   statusText, refusalText, captionText, resignLabel, resultCard, ratingLine, RESIGN_CONFIRM_MS,
 } from "./gameStatus.js";
+import { useT } from "../components/langStore.js";
 import { useClock } from "./useClock.js";
 
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
@@ -58,6 +59,7 @@ const HOUSE_RD = GLICKO.minRd;
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
 export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
+  const t = useT();
   const duel = mode.kind === "duel" ? mode : null;
   const persona = mode.kind === "bot" || duel ? mode.persona : null;
   /* A master is a house player with a corpus behind it: the loaded masters JSON
@@ -209,17 +211,17 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         const np = { ...profile, ...recordDuel(profile, duel.key, outcome) };
         setProfile(np);
         saveProfile(np);
-        notify({ icon: outcome.won ? "trophy" : "flag", text: `Daily duel · ${duelResultText(outcome.code)}` });
+        notify({ icon: outcome.won ? "trophy" : "flag", text: t("game.toast.duel", { result: duelResultText(outcome.code) }) });
       } else if (master) {
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
-        notify({ icon: won ? "trophy" : "flag", text: `${won ? "Victory" : "Defeat"} · unrated` });
+        notify({ icon: won ? "trophy" : "flag", text: t("game.toast.unrated", { outcome: t(won ? "game.toast.victory" : "game.toast.defeat") }) });
       } else if (persona && coaching) {
         // The coach spoke in this game, so the game moves no rating. Said plainly,
         // the way a duel and a master game say it.
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
-        notify({ icon: won ? "trophy" : "flag", text: `${won ? "Victory" : "Defeat"} · unrated, coached` });
+        notify({ icon: won ? "trophy" : "flag", text: t("game.toast.coached", { outcome: t(won ? "game.toast.victory" : "game.toast.defeat") }) });
       } else if (persona) {
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
@@ -243,12 +245,12 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         setDelta({ from: profile.rating, to: rating });
         const newRank = rankOf(rating), newBelt = beltOf(rating);
         if (won && newBelt !== oldBelt) setCeremony(newBelt);
-        else if (won && newRank !== oldRank) notify({ icon: "medal", text: `Promoted to ${newRank}` });
-        else notify({ icon: won ? "trophy" : "flag", text: `${won ? "Victory" : "Defeat"} · now ${preciseRankOf(rating)}` });
+        else if (won && newRank !== oldRank) notify({ icon: "medal", text: t("game.toast.promoted", { rank: newRank }) });
+        else notify({ icon: won ? "trophy" : "flag", text: t("game.toast.now", { outcome: t(won ? "game.toast.victory" : "game.toast.defeat"), rank: preciseRankOf(rating) }) });
       }
     }
     return next;
-  }, [persona, duel, master, botRank, profile, say, setProfile, notify, sound, coaching]);
+  }, [persona, duel, master, botRank, profile, say, setProfile, notify, sound, coaching, t]);
 
   /* The clock. Running out of time is a rule, so the flag goes through the engine's
      `timeout` and settles through the same `conclude` a resignation does: a loss on
@@ -357,7 +359,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       next = play(rec, c, r);
     } catch (e) {
       if (e instanceof IllegalMoveError) {
-        const text = refusalText(e.reason);
+        const text = refusalText(e.reason, t);
         if (text) notify({ icon: "info", text });
         return;
       }
@@ -491,16 +493,16 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   };
 
   const sendChat = () => {
-    const t = draft.trim();
-    if (!t || !persona) return;
-    setChat(c => [...c, { who: "you", text: t }]);
+    const line = draft.trim();
+    if (!line || !persona) return;
+    setChat(c => [...c, { who: "you", text: line }]);
     setDraft("");
     lastChatterMove.current = rec.moves.length;   // the coach waits out a conversation
     setTimeout(() => say(pick(persona.chat.reply)), 700 + Math.random() * 900);
   };
 
-  const status = statusText({ result: over, thinking, personaName: persona ? persona.name : null, turn, phase: rec.phase, loading });
-  const card = over ? resultCard(over) : null;
+  const status = statusText({ result: over, thinking, personaName: persona ? persona.name : null, turn, phase: rec.phase, loading }, t);
+  const card = over ? resultCard(over, t) : null;
   const boardDisabled = !!over || thinking || (!scoring && persona && turn !== "b");
 
   /* Review takes over the whole view rather than sitting beside the table: the board
@@ -516,17 +518,17 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   return (
     <div className="stack">
       <div className="row spread">
-        <Btn icon={ChevronLeft} small onClick={onExit}>Lobby</Btn>
+        <Btn icon={ChevronLeft} small onClick={onExit}>{t("game.lobby")}</Btn>
         <div className="vs-strip">
           <div className="vs-side">
             <Avatar name={profile.name} tint={profile.tint} size={34} />
-            <div className="vs-meta"><strong>{persona ? profile.name : "Black"}</strong>{persona && <RankBadge rating={profile.rating} rd={profile.rd} precise size="sm" />}<ClockFace clock={clock} color="b" active={!over && rec.phase === "playing" && turn === "b"} /></div>
+            <div className="vs-meta"><strong>{persona ? profile.name : t("game.side.b")}</strong>{persona && <RankBadge rating={profile.rating} rd={profile.rd} precise size="sm" />}<ClockFace clock={clock} color="b" active={!over && rec.phase === "playing" && turn === "b"} /></div>
           </div>
           <span className="vs-x">vs</span>
           <div className="vs-side">
             {persona
               ? <><div className="vs-meta right"><strong>{persona.name}</strong>{botRating !== null && <RankBadge rating={botRating} size="sm" />}<ClockFace clock={clock} color="w" timed={false} align="right" /></div><Avatar name={persona.name} tint={persona.tint} size={34} bot /></>
-              : <><div className="vs-meta right"><strong>White</strong><ClockFace clock={clock} color="w" active={!over && rec.phase === "playing" && turn === "w"} align="right" /></div><div className="avatar duo sm"><User size={15} /></div></>}
+              : <><div className="vs-meta right"><strong>{t("game.side.w")}</strong><ClockFace clock={clock} color="w" active={!over && rec.phase === "playing" && turn === "w"} align="right" /></div><div className="avatar duo sm"><User size={15} /></div></>}
           </div>
         </div>
       </div>
@@ -545,16 +547,16 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
             coordinates={profile.coordinates} mark={profile.lastMoveMark} />
           {scoring ? (
             <div className="row">
-              <Btn icon={Check} small primary onClick={onAccept}>Accept score</Btn>
-              <Btn icon={Undo2} small onClick={onResumePlay}>Keep playing</Btn>
-              <Btn icon={Handshake} small onClick={onResign} disabled={!canResign}>{resignLabel(confirmResign)}</Btn>
+              <Btn icon={Check} small primary onClick={onAccept}>{t("game.accept")}</Btn>
+              <Btn icon={Undo2} small onClick={onResumePlay}>{t("game.keepPlaying")}</Btn>
+              <Btn icon={Handshake} small onClick={onResign} disabled={!canResign}>{resignLabel(confirmResign, t)}</Btn>
             </div>
           ) : (
             <div className="row">
-              <Btn icon={Flag} small onClick={onPass} disabled={!!over}>Pass</Btn>
-              <Btn icon={RotateCcw} small onClick={onUndo} disabled={!canUndo}>Undo</Btn>
-              <Btn icon={Handshake} small onClick={onResign} disabled={!canResign}>{resignLabel(confirmResign)}</Btn>
-              {!duel && <Btn icon={RefreshCw} small onClick={reset}>New game</Btn>}
+              <Btn icon={Flag} small onClick={onPass} disabled={!!over}>{t("game.pass")}</Btn>
+              <Btn icon={RotateCcw} small onClick={onUndo} disabled={!canUndo}>{t("game.undo")}</Btn>
+              <Btn icon={Handshake} small onClick={onResign} disabled={!canResign}>{resignLabel(confirmResign, t)}</Btn>
+              {!duel && <Btn icon={RefreshCw} small onClick={reset}>{t("game.newGame")}</Btn>}
             </div>
           )}
         </div>
@@ -575,8 +577,8 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
               {card.rows.length > 0 && (
                 <div className="result-rows">
                   {card.rows.map(r => (
-                    <div key={r.side} className={`result-row ${r.winner ? "winner" : ""}`}>
-                      <span className={`dot ${r.side === "Black" ? "dot-b" : "dot-w"}`} />
+                    <div key={r.color} className={`result-row ${r.winner ? "winner" : ""}`}>
+                      <span className={`dot dot-${r.color}`} />
                       <span className="result-side">{r.side}</span>
                       <span className="result-detail">{r.detail}</span>
                       <span className="result-total">{r.total}</span>
@@ -586,48 +588,51 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
               )}
               <Passage context={resultKind || "any"} size="sm" />
               <p className="fine">
-                {duel ? "Daily duel, unrated. Everyone met this host on this board today; one attempt each."
-                  : master ? "Unrated. Agreement with a profile is not a strength, so this game moves no rating."
-                    : persona && coaching ? "Unrated. The coach spoke in this game, so it moves no rating."
-                      : persona ? ratingLine(delta) ?? "Rated against a house player." : "Unrated. Thank you both for the game."}
-                {over.method === "score" && rec.dead.length > 0 && ` · ${rec.dead.length} dead ${rec.dead.length === 1 ? "stone" : "stones"} removed`}
+                {duel ? t("game.noteDuel")
+                  : master ? t("game.noteMaster")
+                    : persona && coaching ? t("game.noteCoached")
+                      : persona ? ratingLine(delta, t) ?? t("game.noteRated") : t("game.noteLocal")}
+                {over.method === "score" && rec.dead.length > 0 && t("game.deadRemoved", { count: rec.dead.length })}
               </p>
               <div className="row">
                 {duel
                   ? <ShareDuelButton small text={duelShareText({ key: duel.key, personaName: persona.name, code: duelOutcome(rec).code, moves: duelOutcome(rec).moves, url: duelShareUrl(window.location) })} />
-                  : <Btn icon={RefreshCw} small primary onClick={reset}>Rematch</Btn>}
-                <Btn icon={History} small onClick={() => setReviewing(true)}>Review</Btn>
-                <Btn icon={Download} small onClick={downloadSgf}>SGF</Btn>
-                {duel && <Btn icon={ChevronLeft} small onClick={onExit}>Lobby</Btn>}
+                  : <Btn icon={RefreshCw} small primary onClick={reset}>{t("game.rematch")}</Btn>}
+                <Btn icon={History} small onClick={() => setReviewing(true)}>{t("game.review")}</Btn>
+                <Btn icon={Download} small onClick={downloadSgf}>{t("game.sgf")}</Btn>
+                {duel && <Btn icon={ChevronLeft} small onClick={onExit}>{t("game.lobby")}</Btn>}
               </div>
             </Card>
           )}
           {duel && hostLost && !over && (
             <Card inset className="caps">
-              <div className="stat-head"><Bot size={15} /><span>Host unreachable</span></div>
-              <p className="fine">{persona.name} plays through the human network and it could not answer just now. Nothing was decided and nothing is lost; ask again when you are back online.</p>
-              <div className="row"><Btn small primary icon={RefreshCw} onClick={() => { setHostLost(false); botTurn(rec); }}>Ask again</Btn></div>
+              <div className="stat-head"><Bot size={15} /><span>{t("game.hostLost.head")}</span></div>
+              <p className="fine">{t("game.hostLost.body", { name: persona.name })}</p>
+              <div className="row"><Btn small primary icon={RefreshCw} onClick={() => { setHostLost(false); botTurn(rec); }}>{t("game.hostLost.again")}</Btn></div>
             </Card>
           )}
           {scoring && preview && (
             <Card inset className="caps">
-              <div className="stat-head"><Scale size={15} /><span>Counting</span></div>
-              <div><span className="dot dot-b" /> Black {preview.totals.b} <span className="fine-inline">({preview.black.stones} stones + {preview.black.territory} territory)</span></div>
-              <div><span className="dot dot-w" /> White {preview.totals.w} <span className="fine-inline">({preview.white.stones} + {preview.white.territory} + {preview.white.komi} komi{preview.white.handicapBonus ? ` + ${preview.white.handicapBonus}` : ""})</span></div>
-              <p className="fine">Tap a stone to mark its whole group dead; tap again to revive it. {persona ? `${persona.name} is a bot with no opinion on life and death, so your marking stands.` : "Agree across the table before accepting."}</p>
+              <div className="stat-head"><Scale size={15} /><span>{t("game.counting.head")}</span></div>
+              <div><span className="dot dot-b" /> {t("game.counting.line", { side: t("game.side.b"), total: preview.totals.b })} <span className="fine-inline">{t("game.counting.bParts", { stones: preview.black.stones, territory: preview.black.territory })}</span></div>
+              <div><span className="dot dot-w" /> {t("game.counting.line", { side: t("game.side.w"), total: preview.totals.w })} <span className="fine-inline">{t("game.counting.wParts", {
+                stones: preview.white.stones, territory: preview.white.territory, komi: preview.white.komi,
+                handicap: preview.white.handicapBonus ? ` + ${preview.white.handicapBonus}` : "",
+              })}</span></div>
+              <p className="fine">{t("game.counting.tap")} {persona ? t("game.counting.botStands", { name: persona.name }) : t("game.counting.agree")}</p>
             </Card>
           )}
           {!over && !scoring && (
             <Card inset className="caps">
-              <div><span className="dot dot-b" /> Black captures: {rec.captures.b}</div>
-              <div><span className="dot dot-w" /> White captures: {rec.captures.w}</div>
-              <div className="fine">{captionText({ size: rec.size, komi: rec.komi, handicap: rec.handicap, rules: rec.rules, rated: !!persona && !duel && !master && !coaching, duel: !!duel })}{hints ? " · atari hints on" : ""}{!over ? " · P passes, U takes back" : ""}</div>
+              <div><span className="dot dot-b" /> {t("game.captures.b", { n: rec.captures.b })}</div>
+              <div><span className="dot dot-w" /> {t("game.captures.w", { n: rec.captures.w })}</div>
+              <div className="fine">{captionText({ size: rec.size, komi: rec.komi, handicap: rec.handicap, rules: rec.rules, rated: !!persona && !duel && !master && !coaching, duel: !!duel }, t)}{hints ? t("game.hintsOn") : ""}{!over ? t("game.keys") : ""}</div>
             </Card>
           )}
           {persona ? (
             <Card className="chat-card">
               <div className="chat-head">
-                <MessageCircle size={15} /><span>Table talk</span>
+                <MessageCircle size={15} /><span>{t("game.chat.head")}</span>
                 {!duel && !master && (
                   <button
                     type="button"
@@ -635,15 +640,13 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
                     onClick={askCoaching}
                     aria-disabled={!canCoach}
                     aria-pressed={coaching}
-                    title={coaching
-                      ? "The coach is on for this game, and this game is unrated."
-                      : "Have your opponent name the shapes you make. This game becomes unrated, for good."}
+                    title={t(coaching ? "game.chat.coachOnTitle" : "game.chat.coachOffTitle")}
                   >
                     <GraduationCap size={11} />
-                    {coaching ? "coaching on · unrated" : confirmCoach ? "unrate this game?" : "ask for coaching"}
+                    {t(coaching ? "game.chat.coachOn" : confirmCoach ? "game.chat.coachAsk" : "game.chat.coachOff")}
                   </button>
                 )}
-                <span className="bot-chip"><Bot size={11} /> {duel ? "today's host" : "house player"}</span>
+                <span className="bot-chip"><Bot size={11} /> {t(duel ? "game.chat.todayHost" : "game.chat.housePlayer")}</span>
               </div>
               <div className="chat-log" aria-live="polite">
                 {chat.map((m, i) => (
@@ -653,31 +656,31 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
               </div>
               <div className="chat-row">
                 <input
-                  className="chat-input" value={draft} placeholder="Say something…"
+                  className="chat-input" value={draft} placeholder={t("game.chat.placeholder")}
                   onChange={e => setDraft(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && sendChat()}
-                  aria-label="Chat message"
+                  aria-label={t("game.chat.label")}
                 />
-                <button className="chat-send" onClick={sendChat} aria-label="Send"><Send size={15} /></button>
+                <button className="chat-send" onClick={sendChat} aria-label={t("game.chat.send")}><Send size={15} /></button>
               </div>
             </Card>
           ) : (
             <Card inset>
-              <p className="fine">Face-to-face games are unrated. Pass the device after each move — and settle disputes the traditional way: another game.</p>
+              <p className="fine">{t("game.local")}</p>
             </Card>
           )}
         </div>
       </div>
 
       {ceremony && (
-        <div className="ceremony" role="dialog" aria-modal="true" aria-label={`Promoted to ${ceremony.label}`}>
+        <div className="ceremony" role="dialog" aria-modal="true" aria-label={t("game.ceremony.label", { belt: ceremony.label })}>
           <Card className="ceremony-card">
             <MokuMark state="promoted" sash={ceremony.color} size={120} />
-            <p className="eyebrow"><Award size={13} /> Promotion</p>
+            <p className="eyebrow"><Award size={13} /> {t("game.ceremony.head")}</p>
             <h3 className="result-headline">{ceremony.label}</h3>
             <BeltRibbon belt={ceremony} className="ceremony-belt" />
-            <p className="lesson-text">Now {preciseRankOf(profile.rating)}. {hintsFor(profile.rating, profile.rd) ? (hintsForBelt(ceremony) ? "Atari hints stay on for one more belt." : "Atari hints stay on until your rank has settled.") : "Atari hints come off from here: you read your own liberties now."}</p>
-            <Btn primary onClick={() => setCeremony(null)}>Tie it tight</Btn>
+            <p className="lesson-text">{t("game.ceremony.now", { rank: preciseRankOf(profile.rating) })} {hintsFor(profile.rating, profile.rd) ? t(hintsForBelt(ceremony) ? "game.ceremony.hintsBelt" : "game.ceremony.hintsSettling") : t("game.ceremony.hintsOff")}</p>
+            <Btn primary onClick={() => setCeremony(null)}>{t("game.ceremony.tie")}</Btn>
           </Card>
         </div>
       )}
