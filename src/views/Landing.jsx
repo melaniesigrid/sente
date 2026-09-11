@@ -67,12 +67,20 @@ const PATH = [
 
    The band is sunken: it is the darker step in the page's alternation, and it
    is darker by being pressed into the ground rather than by being painted, so
-   the rhythm is made of the same light as everything else. */
-function Band({ lines, center = false }) {
+   the rhythm is made of the same light as everything else.
+
+   Each band stands on a figure, and the four of them are chosen to answer the
+   words over them rather than to fill the space: the tiger's mouth under the
+   band about the rules, the ladder under the one about reading, the empty
+   triangle under the one about being honest with a beginner, the ponnuki under
+   the invitation. They alternate sides so that four bands down a long page
+   read as a rhythm and not as a margin. */
+function Band({ lines, figure, at = "right", center = false }) {
   return (
     <div className="lp-band sunk">
       <div className="lp-band-inner">
-        <Statement lines={lines} className={`lp reveal${center ? " center" : ""}`} />
+        <Statement lines={lines} figure={figure} at={at}
+          className={`lp reveal${center ? " center" : ""}`} />
       </div>
     </div>
   );
@@ -189,7 +197,7 @@ export function Landing({ profile, onEnter, go }) {
         </div>
       </section>
 
-      <Band lines={LANDING_STATEMENTS.rules} />
+      <Band lines={LANDING_STATEMENTS.rules} figure="rules" />
 
       {/* ------------------------------------------------- what is here */}
       {/* The star points, and the corner they mark, opening the top right. */}
@@ -214,7 +222,7 @@ export function Landing({ profile, onEnter, go }) {
         </div>
       </section>
 
-      <Band lines={LANDING_STATEMENTS.fell} />
+      <Band lines={LANDING_STATEMENTS.fell} figure="fell" at="left" />
 
       {/* ------------------------------------------------- the record */}
       {/* The one section set as a page rather than as an interface. Every
@@ -282,7 +290,7 @@ export function Landing({ profile, onEnter, go }) {
         </p>
       </section>
 
-      <Band lines={LANDING_STATEMENTS.honest} />
+      <Band lines={LANDING_STATEMENTS.honest} figure="honest" />
 
       {/* ---------------------------------------------------- the path */}
       {/* The corner, low and to the left, where a road starts. */}
@@ -325,7 +333,7 @@ export function Landing({ profile, onEnter, go }) {
         </div>
       </section>
 
-      <Band lines={LANDING_STATEMENTS.begin} center />
+      <Band lines={LANDING_STATEMENTS.begin} figure="begin" center />
 
       {/* -------------------------------------------------- final call */}
       <section className="lp-final lp-ground">
