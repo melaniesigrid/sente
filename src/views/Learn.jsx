@@ -21,6 +21,7 @@ import { dayKey } from "../content/kata.js";
 import { rankOf } from "../content/rank.js";
 import { modelReady, kataChooseMoveForRecord, profileForRank } from "../engine/index.js";
 import { initStep, stepReducer, marksFor, boardLocked, canReveal, recordAtStop, coordLabel, VERDICT_LABELS } from "./lessonStep.js";
+import { useT } from "../components/langStore.js";
 
 /* ----------------------- LESSON PLAYER -----------------------
    Thin: all step behaviour lives in lessonStep.js. This component draws the
@@ -58,20 +59,22 @@ export function Response({ entry }) {
 /* A lesson may lead out of its track, its tier, or its rank. Name the boundary it
    crosses, so the jump reads as the path continuing and not as a wrong turn. The welcome
    demo is not in the library, so it is told nothing about where the path goes. */
-function crossingNote(lesson, next) {
-  if (!next) return lessonById(lesson.id) ? "That was the last lesson in the library." : null;
+function crossingNote(lesson, next, t) {
+  if (!next) return lessonById(lesson.id) ? t("learn.crossing.last") : null;
   if (next.series && next.series === lesson.series)
-    return `Chapter ${next.chapter} of ${seriesByKey(next.series)?.name}`;
-  if (next.tier !== lesson.tier) return `${tierById(next.tier)?.name}, ${next.rank}`;
+    return t("learn.crossing.chapter", { n: next.chapter, series: seriesByKey(next.series)?.name });
+  if (next.tier !== lesson.tier) return t("learn.crossing.tier", { tier: tierById(next.tier)?.name, rank: next.rank });
   if (next.track !== lesson.track) return trackByKey(next.track)?.name || null;
-  return "Next in this track";
+  return t("learn.crossing.next");
 }
 
 /* Exported so the welcome flow can run its demo through the same player the library
    uses: same step behaviour, same timings, same board. `exitLabel` is the only thing
    it needs to say differently — a first-time visitor has never seen a library. */
 
-export function LessonPlayer({ lesson, nextLesson, onDone, onExit, onOpenNext, rank, onProgress, exitLabel = "Library" }) {
+export function LessonPlayer({ lesson, nextLesson, onDone, onExit, onOpenNext, rank, onProgress, exitLabel = null }) {
+  const t = useT();
+  const exitWord = exitLabel ?? t("learn.library");
   const saved = SESSIONS.get(lesson.id);
   const [stepIdx, setStepIdx] = useState(saved?.stepIdx ?? 0);
   const [maxIdx, setMaxIdx] = useState(saved?.maxIdx ?? 0);
@@ -110,7 +113,7 @@ export function LessonPlayer({ lesson, nextLesson, onDone, onExit, onOpenNext, r
         // Said once, kept for the rest of the step: the replay moves on, the line does not.
         setLevelNotes(ns => ns.some(n => n.stopIdx === stopIdx) ? ns : [...ns, {
           stopIdx,
-          text: `At your level (${rank}), a player here tends to play ${coordLabel(res.move[0], res.move[1], state.board.size)}.`,
+          text: t("learn.levelNote", { rank, point: coordLabel(res.move[0], res.move[1], state.board.size) }),
         }]);
       })
       .catch(() => {});
@@ -167,8 +170,8 @@ export function LessonPlayer({ lesson, nextLesson, onDone, onExit, onOpenNext, r
     return (
       <div className="stack lesson-player">
         <div className="row spread">
-          <Btn icon={ChevronLeft} small onClick={onExit}>{exitLabel}</Btn>
-          <Pill icon={Check} tone="win">Lesson complete</Pill>
+          <Btn icon={ChevronLeft} small onClick={onExit}>{exitWord}</Btn>
+          <Pill icon={Check} tone="win">{t("learn.complete")}</Pill>
         </div>
         <div className="play-wrap">
           <Board board={state.board} sizePx={600} marks={marksFor(step, state)} lastMove={state.lastMove} disabled />
@@ -180,7 +183,7 @@ export function LessonPlayer({ lesson, nextLesson, onDone, onExit, onOpenNext, r
               </div>
               <h3 className="lesson-head">{lesson.title}</h3>
               {lesson.plain && <PullQuote size="sm">{lesson.plain}</PullQuote>}
-              <p className="fine">What this taught you</p>
+              <p className="fine">{t("learn.taught")}</p>
               <ul className="recap">
                 {learned.map((l, i) => (
                   <li key={i} className={l.shown ? "shown" : ""}>
@@ -189,14 +192,14 @@ export function LessonPlayer({ lesson, nextLesson, onDone, onExit, onOpenNext, r
                   </li>
                 ))}
               </ul>
-              {crossingNote(lesson, nextLesson) && (
-                <p className="fine">{crossingNote(lesson, nextLesson)}</p>
+              {crossingNote(lesson, nextLesson, t) && (
+                <p className="fine">{crossingNote(lesson, nextLesson, t)}</p>
               )}
               <div className="lesson-foot">
-                <Btn icon={BookOpen} small onClick={onExit}>{exitLabel}</Btn>
+                <Btn icon={BookOpen} small onClick={onExit}>{exitWord}</Btn>
                 {nextLesson && (
                   <Btn icon={ChevronRight} small primary onClick={() => onOpenNext(nextLesson)}>
-                    Next: {nextLesson.title}
+                    {t("learn.nextLesson", { title: nextLesson.title })}
                   </Btn>
                 )}
               </div>
@@ -220,21 +223,25 @@ export function LessonPlayer({ lesson, nextLesson, onDone, onExit, onOpenNext, r
   return (
     <div className="stack lesson-player">
       <div className="row spread">
-        <Btn icon={ChevronLeft} small onClick={onExit}>{exitLabel}</Btn>
+        <Btn icon={ChevronLeft} small onClick={onExit}>{exitWord}</Btn>
         <div className="row">
           {replay && (
             <Pill icon={FastForward}>
-              Stop {Math.min(state.stopIdx + (state.status === "open" ? 1 : 0), step.stops.length)}/{step.stops.length} · {state.score} pts
+              {t("learn.stopPill", {
+                at: Math.min(state.stopIdx + (state.status === "open" ? 1 : 0), step.stops.length),
+                total: step.stops.length,
+                score: state.score,
+              })}
             </Pill>
           )}
-          <nav className="step-rail" aria-label="Lesson steps">
+          <nav className="step-rail" aria-label={t("learn.steps")}>
             {lesson.steps.map((_, i) => (
               <button key={i} type="button"
                 className={`step-seg ${states[i].status === "solved" ? "done" : ""} ${i <= maxIdx ? "visited" : ""} ${i === stepIdx ? "current" : ""}`}
                 onClick={() => i <= maxIdx && goto(i)}
                 disabled={i > maxIdx}
                 aria-current={i === stepIdx ? "step" : undefined}
-                aria-label={`Step ${i + 1} of ${lesson.steps.length}`} />
+                aria-label={t("learn.step", { n: i + 1, total: lesson.steps.length })} />
             ))}
           </nav>
         </div>
@@ -257,7 +264,7 @@ export function LessonPlayer({ lesson, nextLesson, onDone, onExit, onOpenNext, r
               <span className="theme-chip">{trackByKey(lesson.track)?.name}</span>
             </div>
             <h3 className="lesson-head">{lesson.title}</h3>
-            <p className="fine step-count">Step {stepIdx + 1} of {lesson.steps.length}</p>
+            <p className="fine step-count">{t("learn.step", { n: stepIdx + 1, total: lesson.steps.length })}</p>
             {step.type === "maxim" && (
               <>
                 <blockquote className="maxim-line"><Quote size={14} /> {step.line}</blockquote>
@@ -270,7 +277,7 @@ export function LessonPlayer({ lesson, nextLesson, onDone, onExit, onOpenNext, r
               <div className="hint-block">
                 <button type="button" className="hint-toggle" onClick={openHint}
                   disabled={hintOpen} aria-expanded={hintOpen}>
-                  <Lightbulb size={14} /> <span>Hint</span>
+                  <Lightbulb size={14} /> <span>{t("learn.hint")}</span>
                 </button>
                 {hintOpen && <p className="fine hint-text">{hintText}</p>}
               </div>
@@ -278,11 +285,11 @@ export function LessonPlayer({ lesson, nextLesson, onDone, onExit, onOpenNext, r
 
             {step.type === "count" && !solved && (
               <div className="chat-row count-row">
-                <input className="chat-input" inputMode="decimal" value={countDraft} placeholder="Your count"
-                  aria-label="Your count"
+                <input className="chat-input" inputMode="decimal" value={countDraft} placeholder={t("learn.countPlaceholder")}
+                  aria-label={t("learn.countPlaceholder")}
                   onChange={e => setCountDraft(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && dispatch({ type: "answer", value: countDraft })} />
-                <button className="chat-send" onClick={() => dispatch({ type: "answer", value: countDraft })} aria-label="Check"><Check size={15} /></button>
+                <button className="chat-send" onClick={() => dispatch({ type: "answer", value: countDraft })} aria-label={t("learn.check")}><Check size={15} /></button>
               </div>
             )}
 
@@ -291,28 +298,28 @@ export function LessonPlayer({ lesson, nextLesson, onDone, onExit, onOpenNext, r
               {levelNotes.map(n => <Response key={`lvl${n.stopIdx}`} entry={{ tone: "commentary", text: n.text }} />)}
               {state.status === "await" && (
                 <button type="button" className="log-next" onClick={() => dispatch({ type: "reply" })}>
-                  <span>Play the reply</span> <ChevronRight size={14} />
+                  <span>{t("learn.playReply")}</span> <ChevronRight size={14} />
                 </button>
               )}
             </div>
 
             <div className="lesson-foot">
-              <Btn icon={ChevronLeft} small onClick={back} disabled={stepIdx === 0}>Back</Btn>
+              <Btn icon={ChevronLeft} small onClick={back} disabled={stepIdx === 0}>{t("learn.back")}</Btn>
               <div className="row">
                 {replay && state.status === "busy" && !state.refutation && (
-                  <Btn icon={FastForward} small onClick={() => dispatch({ type: "advance" })}>Next move</Btn>
+                  <Btn icon={FastForward} small onClick={() => dispatch({ type: "advance" })}>{t("learn.nextMove")}</Btn>
                 )}
                 {state.status === "review" && (
-                  <Btn icon={RotateCcw} small onClick={() => dispatch({ type: "reset" })}>Try again</Btn>
+                  <Btn icon={RotateCcw} small onClick={() => dispatch({ type: "reset" })}>{t("learn.tryAgain")}</Btn>
                 )}
                 {resettable && state.status !== "review" && (
-                  <Btn icon={RotateCcw} small onClick={() => dispatch({ type: "reset" })} label="Reset position" />
+                  <Btn icon={RotateCcw} small onClick={() => dispatch({ type: "reset" })} label={t("learn.resetPosition")} />
                 )}
                 {canReveal(step, state) && (
-                  <Btn icon={Eye} small onClick={() => dispatch({ type: "reveal" })}>Show me</Btn>
+                  <Btn icon={Eye} small onClick={() => dispatch({ type: "reveal" })}>{t("learn.showMe")}</Btn>
                 )}
                 <Btn icon={isLast ? Check : ChevronRight} small primary onClick={next} disabled={!canGoNext}>
-                  {isLast ? "Complete lesson" : "Continue"}
+                  {t(isLast ? "learn.completeLesson" : "learn.continue")}
                 </Btn>
               </div>
             </div>
@@ -325,13 +332,14 @@ export function LessonPlayer({ lesson, nextLesson, onDone, onExit, onOpenNext, r
 
 /* ----------------------- LESSON CARD ----------------------- */
 function LessonCard({ lesson, done, onOpen }) {
+  const t = useT();
   return (
     <button className="neu-card lesson-card" onClick={() => onOpen(lesson)}>
       <div className="lesson-num">{lesson.rank}</div>
       <div className="lesson-meta">
         <h3>{lesson.title}</h3>
         <p>{lesson.subtitle}</p>
-        <p className="lesson-chips"><Clock size={12} /> {lesson.minutes} min · {trackByKey(lesson.track)?.name}</p>
+        <p className="lesson-chips"><Clock size={12} /> {t("learn.minutes", { min: lesson.minutes, track: trackByKey(lesson.track)?.name })}</p>
       </div>
       <div className={`lesson-state ${done ? "done" : ""}`}>
         {done ? <Check size={16} /> : <Play size={15} />}
@@ -345,18 +353,19 @@ function LessonCard({ lesson, done, onOpen }) {
    says so and takes no space beyond its line. Guess-the-move points come from
    `bookProgress`, the best run per study. */
 function Shelf({ profile, onOpen }) {
+  const t = useT();
   const rows = BOOKS.map(b => ({ book: b, lessons: lessonsInBook(b.id), progress: bookProgressFor(profile, b.id) }));
   return (
     <div className="stack-sm shelf">
-      <div className="stat-head track-head"><span>The shelf</span><span className="fine track-trains">Books as kata: forms drilled until they can be broken on purpose</span></div>
+      <div className="stat-head track-head"><span>{t("learn.shelf.head")}</span><span className="fine track-trains">{t("learn.shelf.note")}</span></div>
       {rows.map(({ book, lessons, progress }) => (
         <Card key={book.id} inset className="shelf-book">
           <div className="resume-copy">
             <div className="stat-head"><BookOpen size={15} /><span>{book.name}</span>
-              {progress.total > 0 && <span className="fine">{progress.score}/{progress.total} pts</span>}
+              {progress.total > 0 && <span className="fine">{t("learn.shelf.pts", { score: progress.score, total: progress.total })}</span>}
             </div>
             <span className="fine">{book.blurb}</span>
-            {lessons.length === 0 && <span className="fine">{book.note || "Not on the shelf yet."}</span>}
+            {lessons.length === 0 && <span className="fine">{book.note || t("learn.shelf.empty")}</span>}
           </div>
           {lessons.length > 0 && (
             <div className="grid2">
@@ -376,6 +385,7 @@ function Shelf({ profile, onOpen }) {
    as the chapter gives it, and say plainly which ones we cannot match to a
    modern term rather than inventing one. See NAMES in content/classic.js. */
 function NamesTable() {
+  const t = useT();
   const known = NAMES.filter(n => n.sure).length;
   return (
     <div className="names-block">
@@ -384,18 +394,13 @@ function NamesTable() {
           <div key={n.n} className={`name-cell ${n.sure ? "" : "unsure"}`}>
             <span className="name-word">{n.name}</span>
             <span className="name-modern">
-              {n.sure ? n.modern : n.modern ? `${n.modern} · uncertain` : "not identified"}
+              {n.sure ? n.modern : n.modern ? t("learn.names.uncertain", { modern: n.modern }) : t("learn.names.none")}
             </span>
             <span className="fine name-gloss">{n.text}</span>
           </div>
         ))}
       </div>
-      <p className="fine">
-        {known} of the thirty-two match a term the game still uses. The rest are
-        listed as the chapter lists them. The names arrive without their characters
-        and without tone marks, so some readings are uncertain, and a chapter that
-        argues names must be set right is the wrong place to guess.
-      </p>
+      <p className="fine">{t("learn.names.note", { known })}</p>
     </div>
   );
 }
@@ -438,6 +443,7 @@ function ChapterRow({ chapter, lessons, done, onOpen }) {
 }
 
 function ClassicCard({ done, onOpen }) {
+  const t = useT();
   const [openList, setOpenList] = useState(false);
   const lessons = lessonsInSeries(CLASSIC.key);
   const finished = lessons.filter(l => done(l.id)).length;
@@ -447,9 +453,9 @@ function ClassicCard({ done, onOpen }) {
       <Statement lines={statementFor("learn")}>{plainFor("learn")}</Statement>
       <Passage context="learn" />
       <div className="row spread">
-        <span className="fine">{finished}/{lessons.length} chapters read</span>
+        <span className="fine">{t("learn.classic.read", { done: finished, total: lessons.length })}</span>
         <Btn icon={openList ? ChevronLeft : BookOpen} small onClick={() => setOpenList(o => !o)}>
-          {openList ? "Close the book" : "Read the thirteen chapters"}
+          {t(openList ? "learn.classic.close" : "learn.classic.open")}
         </Btn>
       </div>
       {openList && (
@@ -476,6 +482,7 @@ function ClassicCard({ done, onOpen }) {
 
 /* ----------------------- LEARN (the library) ----------------------- */
 export function LearnView({ profile, setProfile, go }) {
+  const t = useT();
   const [active, setActive] = useState(null);      // lesson id being played
   const [pending, setPending] = useState(null);    // lesson with missing prereqs awaiting a decision
   const [tier, setTier] = useState(() => currentTierFor(profile));
@@ -541,27 +548,26 @@ export function LearnView({ profile, setProfile, go }) {
   return (
     <div className="stack arrives">
       <ScreenHeader className="with-aside"
-        label="The library"
-        title={<>Learn the <em>game</em>.</>}
-        lede="Every lesson is a live board you play on, not a diagram you look at. Nothing
-              moves on until the move is yours, and you can always walk it backwards.">
+        label={t("learn.label")}
+        title={<>{t("learn.titleBefore")}<em>{t("learn.titleEm")}</em>{t("learn.titleAfter")}</>}
+        lede={t("learn.lede")}>
         <div className="chat-row search-row">
           <Search size={15} className="search-icon" />
-          <input className="chat-input" value={query} placeholder="Search lessons or tracks"
-            aria-label="Search lessons" onChange={e => setQuery(e.target.value)} />
+          <input className="chat-input" value={query} placeholder={t("learn.searchPlaceholder")}
+            aria-label={t("learn.searchLabel")} onChange={e => setQuery(e.target.value)} />
         </div>
       </ScreenHeader>
-      <p className="lede">A graded library from 30 kyu to dan: six tiers, seven tracks, every position checked by the engine. Start where you are; nothing is locked.</p>
+      <p className="lede">{t("learn.sub")}</p>
 
       {pending && (
         <Card inset className="resume-card">
           <div className="resume-copy">
-            <div className="stat-head"><Lock size={15} /><span>Before {pending.lesson.title}</span></div>
-            <span className="fine">This lesson builds on {pending.missing.map(l => l.title).join(", ")}. You can start there, or open it anyway.</span>
+            <div className="stat-head"><Lock size={15} /><span>{t("learn.gate.head", { title: pending.lesson.title })}</span></div>
+            <span className="fine">{t("learn.gate.body", { list: pending.missing.map(l => l.title).join(", ") })}</span>
           </div>
           <div className="row">
-            <Btn icon={Play} primary small onClick={() => { setPending(null); setActive(pending.missing[0].id); }}>Start with {pending.missing[0].title}</Btn>
-            <Btn small onClick={() => { setPending(null); setActive(pending.lesson.id); }}>Open anyway</Btn>
+            <Btn icon={Play} primary small onClick={() => { setPending(null); setActive(pending.missing[0].id); }}>{t("learn.gate.startWith", { title: pending.missing[0].title })}</Btn>
+            <Btn small onClick={() => { setPending(null); setActive(pending.lesson.id); }}>{t("learn.gate.anyway")}</Btn>
           </div>
         </Card>
       )}
@@ -572,22 +578,22 @@ export function LearnView({ profile, setProfile, go }) {
       {!searching && recall.due > 0 && go && (
         <Card inset className="resume-card">
           <div className="resume-copy">
-            <div className="stat-head"><BrainCircuit size={15} /><span>Recall</span></div>
-            <strong>Review {recall.session}</strong>
-            <span className="fine">{recall.due} of {recall.total} due · questions from lessons you have finished</span>
+            <div className="stat-head"><BrainCircuit size={15} /><span>{t("learn.recall.head")}</span></div>
+            <strong>{t("learn.recall.review", { count: recall.session })}</strong>
+            <span className="fine">{t("learn.recall.due", { due: recall.due, total: recall.total })}</span>
           </div>
-          <Btn icon={BrainCircuit} primary small onClick={() => go("recall")}>Start</Btn>
+          <Btn icon={BrainCircuit} primary small onClick={() => go("recall")}>{t("learn.recall.start")}</Btn>
         </Card>
       )}
 
       {!searching && continueLesson && (
         <Card inset className="resume-card">
           <div className="resume-copy">
-            <div className="stat-head"><Play size={15} /><span>Continue</span></div>
+            <div className="stat-head"><Play size={15} /><span>{t("learn.continueHead")}</span></div>
             <strong>{continueLesson.title}</strong>
-            <span className="fine">{continueLesson.rank} · {continueLesson.minutes} min · {trackByKey(continueLesson.track)?.name}</span>
+            <span className="fine">{t("learn.continueMeta", { rank: continueLesson.rank, min: continueLesson.minutes, track: trackByKey(continueLesson.track)?.name })}</span>
           </div>
-          <Btn icon={Play} primary small onClick={() => open(continueLesson)}>Start</Btn>
+          <Btn icon={Play} primary small onClick={() => open(continueLesson)}>{t("learn.recall.start")}</Btn>
         </Card>
       )}
 
@@ -595,15 +601,17 @@ export function LearnView({ profile, setProfile, go }) {
 
       <div className="library">
         {!searching && (
-          <nav className="tier-rail" aria-label="Tiers">
-            {TIERS.map(t => {
-              const ls = lessonsInTier(t.id);
+          <nav className="tier-rail" aria-label={t("learn.tiers")}>
+            {TIERS.map(tr => {
+              const ls = lessonsInTier(tr.id);
               const n = ls.filter(l => done(l.id)).length;
               return (
-                <button key={t.id} className={`tier-btn ${t.id === tier ? "active" : ""}`}
-                  onClick={() => setTier(t.id)} aria-current={t.id === tier ? "true" : undefined}>
-                  <span className="tier-name">{t.id} · {t.name}</span>
-                  <span className="tier-sub">{t.ranks}{ls.length ? ` · ${n}/${ls.length}` : ""}</span>
+                <button key={tr.id} className={`tier-btn ${tr.id === tier ? "active" : ""}`}
+                  onClick={() => setTier(tr.id)} aria-current={tr.id === tier ? "true" : undefined}>
+                  <span className="tier-name">{t("learn.tierName", { id: tr.id, name: tr.name })}</span>
+                  <span className="tier-sub">{ls.length
+                    ? t("learn.tierSubDone", { ranks: tr.ranks, done: n, total: ls.length })
+                    : t("learn.tierSub", { ranks: tr.ranks })}</span>
                 </button>
               );
             })}
@@ -613,11 +621,14 @@ export function LearnView({ profile, setProfile, go }) {
           {!searching && (
             <div className="tier-head">
               <h3 className="prob-title">{tierInfo.name}</h3>
-              <p className="fine">"{tierInfo.identity}" · {tierInfo.ranks}{tierInfo.exit ? ` · Exit test: ${tierInfo.exit.label}` : " · Exit: analysis-backed review, later"}</p>
+              <p className="fine">{t("learn.tierIdentity", {
+                identity: tierInfo.identity, ranks: tierInfo.ranks,
+                exit: tierInfo.exit ? t("learn.tierExit", { label: tierInfo.exit.label }) : t("learn.tierExitLater"),
+              })}</p>
             </div>
           )}
           {grouped.length === 0 && (
-            <Card inset><p className="fine">{searching ? "Nothing matches that. Try a title or a track, like capture or life." : "This tier is not authored yet. The syllabus is in the design doc; lessons land tier by tier."}</p></Card>
+            <Card inset><p className="fine">{t(searching ? "learn.emptySearch" : "learn.emptyTier")}</p></Card>
           )}
           {grouped.map(g => (
             <div key={g.track.key} className="stack-sm">
