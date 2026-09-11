@@ -169,6 +169,42 @@ Decisions made on the front door (2026-09-11):
   it, so a browser without one keeps playing rather than showing an empty band.
 - The landing still uses no `t()`. New copy is deliberately not wired into the catalog
   while the i18n stack is merging bottom-up; it goes in one pass after that lands.
+
+- [x] Four floors, and the marks at section size (2026-09-11, branch
+      `feat/section-grounds`). The page was one flat ground from top to bottom, so
+      every section was the same room and a reader scrolling it had nothing to count.
+      It is now floored in four materials, alternating, with no two touching sections
+      sharing one: the blurred game (hero and the closing call, from `feat/stone-field`),
+      a board's ruling at StoneField's own 44px cell (the primer and the roadmap — the
+      two sections that are explaining, where a grid is a diagram), the star points
+      (a fine lattice with a heavier dot on every fourth crossing, which is how a board
+      is actually marked), and a sunken band for the statements. The Record keeps the
+      plain ground: it is a broadsheet, and newsprint is the one surface on the page
+      that earns being blank. The three brand marks run at up to 440px behind the
+      primer, the features, the saying, the path and the roadmap (`components/Decor.jsx`).
+
+Decisions made on the floors (2026-09-11):
+- The alternation is sunken, not painted. A darker section could have been a swatch;
+  instead the statement band is pressed into the page with the same two shadows turned
+  inward, so the page's rhythm is made of the light the rest of the design is lit by.
+- Every floor fades out at its edges rather than ending on a line, so a section has no
+  border and the page has no seams. The rule the fields already obeyed holds: a floor
+  is a layer under a band and never a texture under a raised thing — every card carries
+  its own `--ground` and occludes whatever it stands on.
+- A mark leaves by the side of the page, not the side of the text column
+  (`calc(50% - 50vw)`), and the landing is clipped at its own edge so a mark hanging off
+  the side never becomes a sideways scrollbar. Vertically a mark stays inside its own
+  section: one that spilled would cross the seam the floors were put in to make.
+- A stroke width is in viewBox units, so the corner's grid drawn to read at 32px is
+  fifty pixels thick at 440. Decor strokes are taken out of the scaling, and the width
+  goes on the drawn element rather than the group around it.
+- The hero's headline is what was breaking the hero. `lp-display` is sized off the
+  window, so at 960px "beautifully" is set at 80px and wants more column than it has;
+  the row wrapped and the board fell *under* the copy. Between the old 900px stacking
+  rule and that wrap was a hundred-odd pixels of layout nobody had designed — and a
+  1920x1080 laptop at 200% scaling lands in the middle of it at 960. The hero no longer
+  wraps at all: two columns down to 880 with the display sized off its column and the
+  board drawing smaller, one column with the board first below that.
 - [x] Keyboard (2026-09-10, branch `feat/table-keys`): P passes and U takes back at the
       table, both through the same handlers the buttons use so every guard holds; the
       caption says so. In review: left and right walk a move, up and down jump ten,
@@ -1011,7 +1047,7 @@ Google-hosted text families, because the Typecase text cuts have no weight axis.
 - [x] Pairings as data in `src/content/typeface.js`, house first and default.
 - [x] Local faces in `src/styles/fontfaces.js`, each with a measured `size-adjust`
       onto Fraunces' optical size so a pairing changes voice, not layout.
-- [x] Picker in Profile, each option previewing its own display face with digits.
+- [x] Picker in Profile, each option previewing its own display face with digits.
 - [x] 2026-09-10 Four voices, not one italic: `--font-quote` (passages, maxims,
       Moku, the result line) is always a serif, `--font-caption` (the footer, the
       bow words) takes the body face, and the scripts keep the ornament voice at
