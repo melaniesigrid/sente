@@ -858,6 +858,10 @@ ${FONT_FACES}
   letter-spacing: .09em; text-transform: uppercase; color: var(--ink-2);
 }
 .jr-chip.note { color: var(--accent-ink); }
+/* The blog reads as writing, like a note, because it is writing. What sets it
+   apart on the shelf is the mark, not another colour: a third colour in a row
+   of chips is a legend, and a shelf does not need a legend. */
+.jr-chip.blog { color: var(--accent-ink); }
 .jr-kicker {
   font-family: var(--font-body); font-size: 12.5px; font-weight: 700;
   letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3);
@@ -925,6 +929,28 @@ ${FONT_FACES}
   margin: 22px 0 0; padding-top: 14px; border-top: 1px solid var(--grid);
   font-size: 13px; line-height: 1.7; color: var(--ink-3);
 }
+/* A blog post ends the way a column on the front door ends, on a numbered rail
+   of what it rests on. Same rule, same treatment, so a reader who has read the
+   Record already knows what these numbers are for. */
+.jr-sources { margin: 24px 0 0; padding-top: 16px; border-top: 1px solid var(--grid); }
+.jr-sources-label {
+  margin: 0 0 10px; font-family: var(--font-body); font-size: 12px;
+  font-weight: 700; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--ink-3);
+}
+.jr-sources ol { margin: 0; padding: 0; list-style: none; counter-reset: jrsrc; }
+.jr-sources li {
+  position: relative; padding-left: 26px; margin-bottom: 9px;
+  font-family: var(--font-caption); font-style: var(--caption-style);
+  font-size: 13px; line-height: 1.6; color: var(--ink-3);
+}
+.jr-sources li::before {
+  counter-increment: jrsrc; content: counter(jrsrc);
+  position: absolute; left: 0; top: 0; font-family: var(--font-body);
+  font-style: normal; font-size: 12px; font-weight: 700; color: var(--accent-ink);
+}
+.jr-sources a { color: inherit; text-decoration-color: var(--hairline); text-underline-offset: 3px; }
+.jr-sources a:hover { text-decoration-color: var(--accent-ink); }
 @media (max-width: 620px) {
   .jr-card { padding: 18px 18px; }
   .jr-date { margin-left: 0; }
@@ -1749,8 +1775,19 @@ ${FONT_FACES}
   color: var(--ink-2); font-family: var(--font-caption); font-style: var(--caption-style);
   font-size: 13px; margin: 0 0 10px;
 }
+/* The headline the section opens on, and the one line here set larger than the
+   masthead. A broadsheet does not start on a paragraph. It starts on the line
+   somebody would read over a shoulder, and everything under it is the answer
+   to that line. */
+.lp-record-headline {
+  margin: clamp(20px, 2.8vw, 34px) 0 0; max-width: 18ch;
+  font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: clamp(34px, 6.4vw, 76px); line-height: .98;
+  letter-spacing: calc(-0.025em + var(--display-tracking));
+  color: var(--ink); text-wrap: balance;
+}
 .lp-record-dek {
-  margin: clamp(18px, 2.4vw, 28px) 0 0; max-width: 62ch;
+  margin: clamp(13px, 1.8vw, 20px) 0 0; max-width: 62ch;
   font-family: var(--font-quote); font-style: var(--quote-style);
   font-size: clamp(19px, 2.3vw, 26px); line-height: 1.42; color: var(--ink);
 }
@@ -1783,6 +1820,19 @@ ${FONT_FACES}
   float: left; font-family: var(--font-display); font-weight: var(--w-display-strong);
   font-size: 3.4em; line-height: .82; padding: .06em .09em 0 0; color: var(--ink);
 }
+/* A signed column ends on its signature, set in the caption italic and ruled
+   off short. It is the one column with no numbered line under it, so the
+   signature is doing the rail's job: it says who is answerable for this. */
+.lp-col-signed {
+  margin: 14px 0 0; padding-top: 10px;
+  border-top: 1px solid var(--hairline); max-width: 22ch;
+  font-family: var(--font-caption); font-style: var(--caption-style);
+  font-size: 13px; color: var(--ink-3);
+}
+/* "Signed," rather than a dash: the house has been taking em dashes out of
+   its prose all week and a decorative one in the stylesheet would be the same
+   mark coming back in through the door marked design. */
+.lp-col-signed::before { content: "Signed,\\00a0"; }
 .lp-figure {
   display: block; margin: 0 0 12px;
   font-family: var(--font-display); font-weight: var(--w-display);

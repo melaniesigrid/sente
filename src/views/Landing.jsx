@@ -17,7 +17,7 @@ import { RULESETS } from "../engine/rulesets.js";
 import { PALETTES } from "../theme/palettes.js";
 import { dayKey } from "../content/kata.js";
 import { LANDING_STATEMENTS } from "../content/plain.js";
-import { RECORD, RECORD_DEK, RECORD_STANDFIRST, SOURCES } from "../content/press.js";
+import { RECORD, RECORD_DEK, RECORD_HEADLINE, RECORD_STANDFIRST, RECORD_SOURCES } from "../content/press.js";
 import { COUNTS } from "../content/journal.js";
 
 /* ----------------------- THE FRONT DOOR -----------------------
@@ -237,6 +237,7 @@ export function Landing({ profile, onEnter, go }) {
             <h2 className="lp-record-mast">The Record</h2>
             <p className="lp-record-rule">{RECORD_STANDFIRST}</p>
           </div>
+          <h3 className="lp-record-headline reveal">{RECORD_HEADLINE}</h3>
           <p className="lp-record-dek reveal">{RECORD_DEK}</p>
           <div className="lp-columns">
             {RECORD.map((col, i) => (
@@ -252,13 +253,14 @@ export function Landing({ profile, onEnter, go }) {
                 {col.body.map((para, j) => (
                   <p key={j} className={i === 0 && j === 0 ? "lp-drop" : undefined}>{para}</p>
                 ))}
+                {col.signed ? <p className="lp-col-signed">{col.signed}</p> : null}
               </article>
             ))}
           </div>
           <div className="lp-sources reveal">
             <p className="lp-sources-label">Sources</p>
             <ol>
-              {SOURCES.map(s => (
+              {RECORD_SOURCES.map(s => (
                 <li key={s.id}>
                   <a href={s.url} target="_blank" rel="noreferrer">{s.title}</a>
                   {`. ${s.where}, ${s.year}.`}
