@@ -167,7 +167,7 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
 
       {account && <OnlineProfileCard account={account} setAccount={setAccount} notify={notify} />}
 
-      <Statement lines={statementFor("profile")}>{plainFor("profile")}</Statement>
+      <Statement lines={statementFor("profile")} figure="profile" at="left">{plainFor("profile")}</Statement>
       <Card className="passage-card"><Passage context="profile" /></Card>
 
       <div className="grid2">

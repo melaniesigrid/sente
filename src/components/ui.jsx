@@ -1,6 +1,7 @@
 import { Bot, Crown, Shield, Star } from "lucide-react";
 import { TINTS, rankOf, preciseRankOf, beltOf } from "../content/rank.js";
 import { isProvisional } from "../engine/index.js";
+import { Figure } from "./Figure.jsx";
 
 /* ----------------------- SHARED UI ----------------------- */
 export const Card = ({ children, className = "", inset, ...rest }) => (
@@ -104,14 +105,21 @@ export const PullQuote = ({ children, label = "In plain words", size = "" }) => 
    goes under them as `children`, small and in the body face, still carrying
    the label that says whose words they are.
 
+   A statement may stand on a figure (components/Figure.jsx): a real shape from
+   the game, played out by the engine, set at the size of the words and bleeding
+   off the side of the block. It is named by screen, so a screen keeps its shape
+   and coming back to it is coming back to the same room. Without one the block
+   is exactly what it was.
+
    The lines rise out of a mask on arrival, one after another. It is a
    flourish and never the content: the whole statement is the paragraph's
    accessible name from the first frame, the animated spans are hidden from a
    reader, and less motion means the lines are simply already up. */
-export const Statement = ({ lines, children, label = "In plain words", className = "" }) => {
+export const Statement = ({ lines, children, label = "In plain words", className = "", figure, at = "right" }) => {
   if (!lines || lines.length === 0) return null;
   return (
-    <section className={`statement${className ? ` ${className}` : ""}`}>
+    <section className={`statement${figure ? " has-fig" : ""}${className ? ` ${className}` : ""}`}>
+      {figure ? <Figure screen={figure} at={at} /> : null}
       <p className="statement-lines" aria-label={lines.join(" ")}>
         {lines.map((line, i) => (
           <span className="statement-mask" key={i} aria-hidden="true">

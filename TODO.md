@@ -1393,3 +1393,33 @@ The mark means sente, not "a stone": a move and the reply it forces. Three marks
       landing's closing call and as the boot splash in `index.html`. Reserved for those two:
       it is the first of the three to fail small.
 - [x] The favicon is the answer mark.
+
+## The figures (done, branch `feat/landing-pizzazz`)
+
+The statements were the largest type on the site and the only large type with nothing
+under them: Decor had put the brand marks behind a section and StoneField a blurred game
+behind a band, and between a logo and a texture there was no go. So a statement now stands
+on a figure — a real shape from the game, set at the size of the words.
+
+- [x] `src/content/figures.js`: eight shapes as move sequences, not pictures — ponnuki,
+      tiger's mouth, bamboo joint, ladder, ko, two eyes, empty triangle, net. Replayed
+      through `tryPlay`, so the ponnuki's hole is a stone the engine took off and the
+      ladder is twenty-two moves the engine played rather than a staircase somebody drew.
+- [x] `figures.test.js` puts every claim in every note to the engine: the tiger's mouth is
+      atari the moment it is filled, the bamboo joint answers a cut on either side, the ko
+      may not be taken back, neither eye of a living group can be played, the empty
+      triangle is one liberty worse than the same three stones in a line, and the ladder
+      ends in atari on the last line with every White move forced. The build stops if a
+      note and the engine ever disagree (2026-09-11).
+- [x] `src/components/Figure.jsx`: the room's stones off `--stone-*`, with the highlight
+      and lit rim a stone that size has, drawn in `--sh-lite`. The shape plays itself in
+      when it is scrolled to, one stone to the beat, and a captured stone leaves on the
+      move it was captured on. The light drifts across the shape on a slow loop, phased
+      by position so it reads as one wave and not a row of pulses.
+- [x] Every statement carries one, named by screen so a screen keeps its shape, alternating
+      sides down the front door. A centred band drops its figure to a watermark and a phone
+      pins it to the top of the block, clear of the plain-words sentence.
+
+Still open: nothing blocking. If a ninth shape is ever wanted, the crane's nest and the
+snapback both need a search to prove rather than a count, which is why they are not here.
+
