@@ -9,6 +9,19 @@ import { TIER3 } from "./lessons/tier3/index.js";
 import { TIER4 } from "./lessons/tier4/index.js";
 import { TIER5 } from "./lessons/tier5/index.js";
 import { TIER6 } from "./lessons/tier6/index.js";
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
+import { localize } from "./translate.js";
+
+const EN = makeT(BASE_LOCALE);
+
+/* The library's own furniture, in the language in force. A tier, a track, a
+   book and a series are each overlaid by the id they are found under, the same
+   way a lesson is. Ranks and ids are data and are never touched. */
+export const localizeTier = (x, t = EN) => localize(x, `tier.${x.id}`, t);
+export const localizeTrack = (x, t = EN) => (x ? localize(x, `track.${x.key}`, t) : x);
+export const localizeBook = (x, t = EN) => localize(x, `book.${x.id}`, t);
+export const localizeSeries = (x, t = EN) => (x ? localize(x, `series.${x.key}`, t) : x);
+
 
 export const TIERS = [
   { id: 1, name: "Foundations", ranks: "30k–20k", from: "30k", to: "20k",

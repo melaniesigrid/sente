@@ -23,6 +23,7 @@ import { modelReady, kataChooseMoveForRecord, profileForRank } from "../engine/i
 import { initStep, stepReducer, marksFor, boardLocked, canReveal, recordAtStop, coordLabel, VERDICT_LABELS } from "./lessonStep.js";
 import { useT } from "../components/langStore.js";
 import { localizeLesson, lessonField } from "../content/translate.js";
+import { localizeTrack, localizeTier, localizeBook, localizeSeries } from "../content/library.js";
 
 /* ----------------------- LESSON PLAYER -----------------------
    Thin: all step behaviour lives in lessonStep.js. This component draws the
@@ -63,9 +64,9 @@ export function Response({ entry }) {
 function crossingNote(lesson, next, t) {
   if (!next) return lessonById(lesson.id) ? t("learn.crossing.last") : null;
   if (next.series && next.series === lesson.series)
-    return t("learn.crossing.chapter", { n: next.chapter, series: seriesByKey(next.series)?.name });
-  if (next.tier !== lesson.tier) return t("learn.crossing.tier", { tier: tierById(next.tier)?.name, rank: next.rank });
-  if (next.track !== lesson.track) return trackByKey(next.track)?.name || null;
+    return t("learn.crossing.chapter", { n: next.chapter, series: localizeSeries(seriesByKey(next.series), t)?.name });
+  if (next.tier !== lesson.tier) return t("learn.crossing.tier", { tier: localizeTier(tierById(next.tier), t)?.name, rank: next.rank });
+  if (next.track !== lesson.track) return localizeTrack(trackByKey(next.track), t)?.name || null;
   return t("learn.crossing.next");
 }
 
@@ -183,7 +184,7 @@ export function LessonPlayer({ lesson: authored, nextLesson, onDone, onExit, onO
             <Card className="lesson-card-body">
               <div className="prob-head">
                 <span className="rank-chip">{lesson.rank}</span>
-                <span className="theme-chip">{trackByKey(lesson.track)?.name}</span>
+                <span className="theme-chip">{localizeTrack(trackByKey(lesson.track), t)?.name}</span>
               </div>
               <h3 className="lesson-head">{lesson.title}</h3>
               {lesson.plain && <PullQuote size="sm">{lesson.plain}</PullQuote>}
@@ -265,7 +266,7 @@ export function LessonPlayer({ lesson: authored, nextLesson, onDone, onExit, onO
           <Card className="lesson-card-body">
             <div className="prob-head">
               <span className="rank-chip">{lesson.rank}</span>
-              <span className="theme-chip">{trackByKey(lesson.track)?.name}</span>
+              <span className="theme-chip">{localizeTrack(trackByKey(lesson.track), t)?.name}</span>
             </div>
             <h3 className="lesson-head">{lesson.title}</h3>
             <p className="fine step-count">{t("learn.step", { n: stepIdx + 1, total: lesson.steps.length })}</p>
@@ -343,7 +344,7 @@ function LessonCard({ lesson, done, onOpen }) {
       <div className="lesson-meta">
         <h3>{lessonField(lesson, "title", t)}</h3>
         <p>{lessonField(lesson, "subtitle", t)}</p>
-        <p className="lesson-chips"><Clock size={12} /> {t("learn.minutes", { min: lesson.minutes, track: trackByKey(lesson.track)?.name })}</p>
+        <p className="lesson-chips"><Clock size={12} /> {t("learn.minutes", { min: lesson.minutes, track: localizeTrack(trackByKey(lesson.track), t)?.name })}</p>
       </div>
       <div className={`lesson-state ${done ? "done" : ""}`}>
         {done ? <Check size={16} /> : <Play size={15} />}
@@ -358,7 +359,7 @@ function LessonCard({ lesson, done, onOpen }) {
    `bookProgress`, the best run per study. */
 function Shelf({ profile, onOpen }) {
   const t = useT();
-  const rows = BOOKS.map(b => ({ book: b, lessons: lessonsInBook(b.id), progress: bookProgressFor(profile, b.id) }));
+  const rows = BOOKS.map(b => ({ book: localizeBook(b, t), lessons: lessonsInBook(b.id), progress: bookProgressFor(profile, b.id) }));
   return (
     <div className="stack-sm shelf">
       <div className="stat-head track-head"><span>{t("learn.shelf.head")}</span><span className="fine track-trains">{t("learn.shelf.note")}</span></div>
@@ -530,7 +531,7 @@ export function LearnView({ profile, setProfile, go }) {
   const results = useMemo(() => searchLibrary(query), [query]);
   const recall = recallSummary(LIBRARY, profile.recall, dayKey());
   const searching = query.trim().length > 0;
-  const tierInfo = TIERS.find(t => t.id === tier);
+  const tierInfo = TIERS.find(x => x.id === tier);
   const tierLessons = lessonsInTier(tier);
   const continueLesson = nextLessonFor(profile);
   const grouped = useMemo(() => TRACKS
@@ -595,7 +596,7 @@ export function LearnView({ profile, setProfile, go }) {
           <div className="resume-copy">
             <div className="stat-head"><Play size={15} /><span>{t("learn.continueHead")}</span></div>
             <strong>{lessonField(continueLesson, "title", t)}</strong>
-            <span className="fine">{t("learn.continueMeta", { rank: continueLesson.rank, min: continueLesson.minutes, track: trackByKey(continueLesson.track)?.name })}</span>
+            <span className="fine">{t("learn.continueMeta", { rank: continueLesson.rank, min: continueLesson.minutes, track: localizeTrack(trackByKey(continueLesson.track), t)?.name })}</span>
           </div>
           <Btn icon={Play} primary small onClick={() => open(continueLesson)}>{t("learn.recall.start")}</Btn>
         </Card>
@@ -606,7 +607,8 @@ export function LearnView({ profile, setProfile, go }) {
       <div className="library">
         {!searching && (
           <nav className="tier-rail" aria-label={t("learn.tiers")}>
-            {TIERS.map(tr => {
+            {TIERS.map(authored => {
+              const tr = localizeTier(authored, t);
               const ls = lessonsInTier(tr.id);
               const n = ls.filter(l => done(l.id)).length;
               return (
@@ -624,10 +626,12 @@ export function LearnView({ profile, setProfile, go }) {
         <div className="stack tier-body">
           {!searching && (
             <div className="tier-head">
-              <h3 className="prob-title">{tierInfo.name}</h3>
+              <h3 className="prob-title">{localizeTier(tierInfo, t).name}</h3>
               <p className="fine">{t("learn.tierIdentity", {
-                identity: tierInfo.identity, ranks: tierInfo.ranks,
-                exit: tierInfo.exit ? t("learn.tierExit", { label: tierInfo.exit.label }) : t("learn.tierExitLater"),
+                identity: localizeTier(tierInfo, t).identity, ranks: tierInfo.ranks,
+                exit: tierInfo.exit
+                  ? t("learn.tierExit", { label: localizeTier(tierInfo, t).exit.label })
+                  : t("learn.tierExitLater"),
               })}</p>
             </div>
           )}
@@ -636,7 +640,7 @@ export function LearnView({ profile, setProfile, go }) {
           )}
           {grouped.map(g => (
             <div key={g.track.key} className="stack-sm">
-              <div className="stat-head track-head"><span>{g.track.name}</span><span className="fine track-trains">{g.track.trains}</span></div>
+              <div className="stat-head track-head"><span>{localizeTrack(g.track, t).name}</span><span className="fine track-trains">{localizeTrack(g.track, t).trains}</span></div>
               <div className="grid2">
                 {g.lessons.map(l => <LessonCard key={l.id} lesson={l} done={done(l.id)} onOpen={open} />)}
               </div>

@@ -349,11 +349,11 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
        onPlay is a discrete event and the house player waits at least 380ms before its
        reply, so a render always lands between two coached moves. If that ever stopped
        holding, a stale map would repeat the same sentence rather than fall silent. */
-    const remark = chooseRemark(findings, { spoken, moveNumber, personaId: persona.id });
+    const remark = chooseRemark(findings, { spoken, moveNumber, personaId: persona.id }, t);
     if (!remark) return;
     say(remark.line);
     setSpoken(sp => noteSpoken(sp, remark.shapeId, moveNumber));
-  }, [coaching, persona, spoken, say]);
+  }, [coaching, persona, spoken, say, t]);
 
   const onPlay = (c, r) => {
     if (over || thinking) return;

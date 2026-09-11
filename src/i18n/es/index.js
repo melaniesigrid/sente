@@ -23,6 +23,7 @@ import { legal, legalDoc, credit } from "./legal.js";
 import { online } from "./online.js";
 import { account } from "./account.js";
 import { voice, plain, statement, moku, ruleset, preset, persona } from "./voice.js";
+import { tier, track, book, series, problem, shape } from "./library.js";
 import { content } from "./content.js";
 import { overlay } from "./overlay.js";
 
@@ -45,6 +46,12 @@ export const es = {
   ruleset,
   preset,
   persona,
+  tier,
+  track,
+  book,
+  series,
+  problem,
+  shape,
   legalDoc,
   credit,
   ...content,
