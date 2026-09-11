@@ -37,7 +37,18 @@ const LINES = {
   promoted: ["New belt. Tie it tight.", "Promoted. The board just got bigger."],
 };
 
-const pick = (list, seed = 0) => list[Math.abs(Math.floor(seed)) % list.length];
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
+
+const EN = makeT(BASE_LOCALE);
+
+/* One line out of a state's list, in the language in force. The index is
+   chosen from the English list, so a translation is read line for line and a
+   line nobody has reached is still the one that was written. */
+const pickLine = (state, seed, t) => {
+  const list = LINES[state] ?? LINES.idle;
+  const i = Math.abs(Math.floor(seed)) % list.length;
+  return t(`moku.${state}.${i}`, null, list[i]);
+};
 
 /** @param {object} f facts
  *  @param {string} [f.view]      home | play | learn | tsumego | ladder | profile
@@ -50,17 +61,17 @@ const pick = (list, seed = 0) => list[Math.abs(Math.floor(seed)) % list.length];
  *  @param {string|null} [f.result]  win | loss | jigo
  *  @param {string|null} [f.promoted] belt label just earned
  *  @param {number} [f.seed]      picks a line deterministically */
-export function mokuState(f = {}) {
+export function mokuState(f = {}, t = EN) {
   const seed = f.seed ?? 0;
-  const out = (state, line = pick(LINES[state] ?? LINES.idle, seed)) => ({ state, line });
-  if (f.promoted) return out("promoted", `${f.promoted}. Tie it tight.`);
+  const out = (state, line) => ({ state, line: line ?? pickLine(state, seed, t) });
+  if (f.promoted) return out("promoted", t("voice.moku.promotedBelt", { belt: f.promoted }));
   if (f.result) return out(f.result);
   if (f.phase === "scoring") return out("scoring");
   if (f.moment === "capture") return out("capture");
   if (f.moment === "captured") return out("captured");
   if (f.thinking) return out("watching");
   if (f.phase === "playing") {
-    if (f.myAtari > 0) return out("atari", f.myAtari > 1 ? `${f.myAtari} groups of yours are in atari.` : pick(LINES.atari, seed));
+    if (f.myAtari > 0) return out("atari", f.myAtari > 1 ? t("voice.moku.atariMany", { count: f.myAtari }) : undefined);
     if (f.ko) return out("ko");
     if (f.oppAtari > 0) return out("hunting");
     return out("idle");

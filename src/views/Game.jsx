@@ -29,6 +29,7 @@ import {
   statusText, refusalText, captionText, resignLabel, resultCard, ratingLine, RESIGN_CONFIRM_MS,
 } from "./gameStatus.js";
 import { useT } from "../components/langStore.js";
+import { localizePersona } from "../content/personas.js";
 import { useClock } from "./useClock.js";
 
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
@@ -61,7 +62,14 @@ const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const t = useT();
   const duel = mode.kind === "duel" ? mode : null;
-  const persona = mode.kind === "bot" || duel ? mode.persona : null;
+  /* The house player, in the reader's language: its table talk is its own
+     writing and is translated like a lesson, by id. Memoised so a line is not
+     re-read on every move. */
+  const authoredPersona = mode.kind === "bot" || duel ? mode.persona : null;
+  const persona = useMemo(
+    () => (authoredPersona ? localizePersona(authoredPersona, t) : null),
+    [authoredPersona, t],
+  );
   /* A master is a house player with a corpus behind it: the loaded masters JSON
      rides on the mode and goes straight to the engine's bot seam. It has no rank
      and no rating, because agreement with a year profile is not a strength and

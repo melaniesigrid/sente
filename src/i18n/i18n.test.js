@@ -7,6 +7,11 @@ import { WELCOME_LESSON } from "../content/welcome.js";
 import { localize } from "../content/translate.js";
 import { TONES, RULES, STONE_RULE } from "../theme/tokens.js";
 import { DOCUMENTS, CREDITS } from "../content/legal.js";
+import { PLAIN_WORDS, STATEMENTS } from "../content/plain.js";
+import { MOKU_STATES } from "../content/moku.js";
+import { PERSONAS } from "../content/personas.js";
+import { RULESET_IDS } from "../engine/rulesets.js";
+import { CLOCK_PRESETS } from "../content/clockFace.js";
 import {
   BASE_LOCALE, SYSTEM_LOCALE, LOCALES, CATALOGUES, isLocaleId, localeOf, resolveLocale,
   makeT, flatten, interpolate, pluralCategory,
@@ -20,7 +25,11 @@ import {
    its line. `lesson.` is not, and cannot be — the library is translated a file
    at a time and an untranslated lesson is simply still in English — so what is
    checked there is that every key names something real. */
-const OVERLAYS = ["room.", "stones.", "type.", "belt.", "lesson.", "tone.", "rule.", "legalDoc.", "credit."];
+const OVERLAYS = [
+  "room.", "stones.", "type.", "belt.", "tone.", "rule.",        // the design system
+  "lesson.", "legalDoc.", "credit.",                             // the documents and the library
+  "plain.", "statement.", "moku.", "ruleset.", "preset.", "persona.",  // the house's voices
+];
 const isOverlay = (key) => OVERLAYS.some(p => key.startsWith(p));
 const others = LOCALES.filter(l => l.id !== BASE_LOCALE);
 const HOLE = /\{(\w+)\}/g;
@@ -150,8 +159,11 @@ describe.each(others)("$name is complete", (locale) => {
     for (const [key, entry] of mine) {
       for (const line of lines(entry)) {
         expect(String(line).trim(), `${locale.id}: ${key}`).not.toBe("");
-        // House style: nothing here shouts.
-        expect(String(line), `${locale.id}: ${key}`).not.toContain("!");
+        /* House style: the app does not shout. A voice it is translating may —
+           Moku and the house players have exclamation marks in the English they
+           were written in, and flattening those would make a character quieter
+           in one language than in another. */
+        if (!isOverlay(key)) expect(String(line), `${locale.id}: ${key}`).not.toContain("!");
       }
     }
   });
@@ -205,6 +217,13 @@ describe.each(others)("$name is complete", (locale) => {
       rule: [...RULES.map(r => r.id), STONE_RULE.id, "close-light", "close-dark", "closeness"],
       legalDoc: DOCUMENTS.map(d => d.id),
       credit: CREDITS.map(c => c.id),
+      plain: Object.keys(PLAIN_WORDS),
+      statement: Object.keys(STATEMENTS),
+      // Moku also speaks on the screens she visits, which are not board states.
+      moku: [...MOKU_STATES, ...Object.keys(PLAIN_WORDS), "look"],
+      ruleset: RULESET_IDS,
+      preset: CLOCK_PRESETS.map(p2 => p2.id),
+      persona: PERSONAS.map(p2 => p2.id),
     };
     for (const key of [...mine.keys()].filter(isOverlay)) {
       const [ns, id] = key.split(".");

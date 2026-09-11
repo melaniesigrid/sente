@@ -74,7 +74,7 @@ export function Home({ profile, go, onResume }) {
         </div>
       </Card>
 
-      <Statement lines={statementFor("home")}>{plainFor("home")}</Statement>
+      <Statement lines={statementFor("home", t)}>{plainFor("home", t)}</Statement>
       <Card className="passage-card"><Passage context="home" size="lg" /></Card>
 
       {saved && (

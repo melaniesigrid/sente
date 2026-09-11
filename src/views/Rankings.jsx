@@ -42,7 +42,7 @@ export function RankingsView({ profile }) {
         label={t("ladder.label")}
         title={<>{t("ladder.titleBefore")}<em>{t("ladder.titleEm")}</em>{t("ladder.titleAfter")}</>}
         lede={t("ladder.lede")} />
-      <Statement lines={statementFor("ladder")}>{plainFor("ladder")}</Statement>
+      <Statement lines={statementFor("ladder", t)}>{plainFor("ladder", t)}</Statement>
       <Passage context="ladder" />
 
       {global !== false && (
