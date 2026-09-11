@@ -1,7 +1,15 @@
 import CHANGELOG from "../../CHANGELOG.md?raw";
+import { POSTS } from "./blog.js";
 
 /* ----------------------- THE JOURNAL -----------------------
-   Two kinds of writing, one shelf: what shipped, and what we think.
+   Three kinds of writing, one shelf: what shipped, what we think about the
+   thing we built, and what we think about the game.
+
+   The third kind is the blog, and it lives in `blog.js` rather than here
+   because it answers to a different rule. A note is about this repository and
+   names the modules it describes; a post is about the world and cites sources
+   the way the Record does. The shelf does not care about the difference. The
+   suites do, and that is the point of keeping them in separate files.
 
    The releases are not written here. They are read out of CHANGELOG.md at
    build time and parsed into entries, because a release note kept in two
@@ -237,16 +245,20 @@ export function bodySections(entry) {
     .filter(section => section.items.length > 0);
 }
 
-/** Everything on the shelf, newest first, with a note ahead of a release that
- *  landed the same day: a note is usually written about the release under it
- *  and reads oddly the other way round. */
+/** Where a kind sits among the entries of one day. Writing comes before the
+ *  release it was written about, because a note is usually about the release
+ *  under it and reads oddly the other way round, and the blog leads because it
+ *  is the piece somebody arriving from the front door was sent here to read. */
+const RANK = { blog: 0, note: 1, release: 2 };
+
+/** Everything on the shelf, newest first. */
 export const ENTRIES = [
+  ...POSTS.map(p => ({ ...p, kind: "blog" })),
   ...NOTES.map(n => ({ ...n, kind: "note" })),
   ...RELEASES.map(entryFor),
 ].sort((a, b) => {
   if (a.date !== b.date) return a.date < b.date ? 1 : -1;
-  if (a.kind !== b.kind) return a.kind === "note" ? -1 : 1;
-  return 0;
+  return RANK[a.kind] - RANK[b.kind];
 });
 
 /** The entry with this id, or null. It is called with whatever state a screen
@@ -257,6 +269,7 @@ export function entryById(id) {
 
 /** How many of each kind there are, counted rather than kept. */
 export const COUNTS = {
+  posts: POSTS.length,
   notes: NOTES.length,
   releases: RELEASES.length,
   entries: ENTRIES.length,

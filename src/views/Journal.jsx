@@ -1,17 +1,19 @@
 import { useEffect } from "react";
-import { ArrowLeft, ArrowRight, Tag, PenLine } from "lucide-react";
+import { ArrowLeft, ArrowRight, Tag, PenLine, Newspaper } from "lucide-react";
 import { ScreenHeader } from "../components/ScreenHeader.jsx";
 import { Card } from "../components/ui.jsx";
 import { useReveal } from "../components/reveal.js";
 import { useT } from "../components/langStore.js";
 import { ENTRIES, COUNTS, entryById, leadOf, segments, bodySections } from "../content/journal.js";
+import { sourcesOf } from "../content/blog.js";
 
 /* ----------------------- THE JOURNAL -----------------------
    What shipped, and what we think. One shelf, newest first, and a page for
    each entry.
 
    It holds no sentence of its own. Every word on this screen comes from
-   content/journal.js, and the releases there are read out of CHANGELOG.md, so
+   content/journal.js and content/blog.js, and the releases are read out of
+   CHANGELOG.md, so
    the only way to publish a release note is to have shipped the release. The
    chrome -- the labels, the two filter words, the back link -- is translated
    the ordinary way; the writing is English, which the shelf says out loud
@@ -40,6 +42,20 @@ function Line({ text }) {
   );
 }
 
+/** What kind of thing an entry is, said once. The shelf and the piece's own
+ *  header show the same chip, and a blog post is marked differently from a
+ *  note because it answers to a different rule: a note is about this code and
+ *  a post is about the world, with sources under it. */
+function Chip({ kind, t }) {
+  const Icon = kind === "release" ? Tag : kind === "blog" ? Newspaper : PenLine;
+  return (
+    <span className={`jr-chip ${kind}`}>
+      <Icon size={13} />
+      {t(`journal.${kind}`)}
+    </span>
+  );
+}
+
 /** The day something happened, written the long way. A journal is dated
  *  reading, and "2026-09-11" is a filename rather than a date. */
 function Day({ date, className = "jr-date" }) {
@@ -61,10 +77,7 @@ function Shelf({ entry, open, t }) {
   return (
     <button className="neu-card jr-card reveal" onClick={() => open(entry.id)}>
       <span className="jr-tags">
-        <span className={`jr-chip ${entry.kind}`}>
-          {entry.kind === "release" ? <Tag size={13} /> : <PenLine size={13} />}
-          {t(entry.kind === "release" ? "journal.release" : "journal.note")}
-        </span>
+        <Chip kind={entry.kind} t={t} />
         <span className="jr-kicker">{entry.kicker}</span>
         <Day date={entry.date} />
       </span>
@@ -82,8 +95,13 @@ function Shelf({ entry, open, t }) {
   );
 }
 
-/** A note, set as a page. */
-function Note({ entry }) {
+/** A note or a blog post, set as a page. The body is the same shape for both;
+ *  what is underneath it is not. A note ends on the modules it is about, and a
+ *  post ends on the sources it rests on, which is the same rail the Record
+ *  carries and for the same reason: a piece about the world has to point at
+ *  something. A note may cite too, and a post may name a file. */
+function Piece({ entry, t }) {
+  const sources = sourcesOf(entry);
   return (
     <article className="jr-piece">
       {entry.body.map((block, i) => (
@@ -91,11 +109,26 @@ function Note({ entry }) {
           ? <h3 key={i} className="jr-h">{block.h}</h3>
           : <p key={i} className="jr-p">{block.p}</p>
       ))}
-      <p className="jr-about">
-        {entry.about.map((path, i) => (
-          <span key={path}>{i ? " · " : ""}<code>{path}</code></span>
-        ))}
-      </p>
+      {sources.length > 0 && (
+        <div className="jr-sources">
+          <p className="jr-sources-label">{t("journal.sources")}</p>
+          <ol>
+            {sources.map(s => (
+              <li key={s.id}>
+                <a href={s.url} target="_blank" rel="noreferrer">{s.title}</a>
+                {`. ${s.where}, ${s.year}.`}
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+      {entry.about && entry.about.length > 0 && (
+        <p className="jr-about">
+          {entry.about.map((path, i) => (
+            <span key={path}>{i ? " · " : ""}<code>{path}</code></span>
+          ))}
+        </p>
+      )}
     </article>
   );
 }
@@ -139,17 +172,14 @@ export function JournalView({ entryId, go }) {
         </button>
         <header className="jr-head">
           <span className="jr-tags">
-            <span className={`jr-chip ${entry.kind}`}>
-              {entry.kind === "release" ? <Tag size={13} /> : <PenLine size={13} />}
-              {t(entry.kind === "release" ? "journal.release" : "journal.note")}
-            </span>
+            <Chip kind={entry.kind} t={t} />
             <span className="jr-kicker">{entry.kicker}</span>
             <Day date={entry.date} />
           </span>
           <h2 className="jr-mast">{entry.title}</h2>
           {entry.dek && <p className="jr-standfirst">{entry.dek}</p>}
         </header>
-        {entry.kind === "release" ? <Release entry={entry} /> : <Note entry={entry} />}
+        {entry.kind === "release" ? <Release entry={entry} /> : <Piece entry={entry} t={t} />}
       </div>
     );
   }
@@ -159,7 +189,7 @@ export function JournalView({ entryId, go }) {
       <ScreenHeader
         label={t("journal.label")}
         title={<>{t("journal.titleA")} <em>{t("journal.titleEm")}</em>.</>}
-        lede={t("journal.lede", { notes: COUNTS.notes, releases: COUNTS.releases })} />
+        lede={t("journal.lede", { posts: COUNTS.posts, notes: COUNTS.notes, releases: COUNTS.releases })} />
       {/* No figure on this screen. A figure is drawn to stand behind display
           type and bleed off the side of it; behind a paragraph in a trough it
           is a shape cut in half by a card edge, which is worse than no shape.

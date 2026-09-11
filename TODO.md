@@ -1545,6 +1545,7 @@ behind the hero that a visitor can see is a real game.
 Still open: nothing blocking. A note is a file in `journal.js` and a release writes
 itself, so the next entry is a commit either way.
 
+
 ## How a stone moves (done, branch `feat/stone-motion`)
 
 The stones were drawn well and behaved like fading circles. This is the motion, and
@@ -1571,3 +1572,57 @@ all of it is either something that happens on a board or nothing.
 - [x] Reduced motion checked under emulation: no landing, no pluck, no rings, and the
       board already ruled. The position is simply the position.
 
+
+## The Record opens on a question, and the blog takes the arithmetic (done, branch `feat/journal-lede`)
+
+The broadsheet on the front door was true and it was not inviting. It opened on
+2.08 x 10^170, which is the most interesting number in this game and the worst possible
+first thing to read, and it had no human being in it anywhere.
+
+- [x] The section opens on a headline: "The last game to fall to a machine?"
+      (`RECORD_HEADLINE`, `press.js`). A question, because the answer is no, and because
+      a page that prints the flattering version as a statement and takes it back three
+      paragraphs later has told the lie first. The test requires the question mark
+      (2026-09-11).
+- [x] A signed column from the founder, "The room we called 304": a go course inside an
+      applied mathematics curriculum, a delegation sent to the World Championship, and
+      the older students who ran the training on their own time because that is how a
+      field grows in a country too small to import one. It is the only column on the
+      page with a first person in it.
+- [x] A signed column is the one exception to the sources rule, and the exception is
+      written into `press.test.js` rather than left to judgement: a `signed` column
+      cites nobody, carries no `figure`, and must name who signed it. A recollection is
+      sourced by whoever is willing to put their name to it, and it may not borrow the
+      authority of the measured columns beside it. It also declines the transfer claim
+      out loud and points at the refusal column, which is the house rule holding under
+      the one kind of writing most likely to break it.
+- [x] `src/content/blog.js`: the third kind of writing. "Why go took nineteen years
+      longer than chess" carries what the column could not, which is the working. Tromp's
+      count, why width rather than depth is the problem, why chess's evaluation function
+      has no cheap equivalent on a board where a stone's worth depends on whether its
+      group lives, Monte Carlo sampling, and AlphaGo's policy and value networks making
+      the search smaller rather than bigger.
+- [x] A post answers to the Record's rule, not the journal's, and the two files are
+      separate so the two suites can say so. A note is about this repository and names
+      the modules it describes; a post is about the world and cites sources out of the
+      same list the Record cites from. `blog.test.js` fails a post that rests on nothing.
+- [x] The shelf grew a third kind (`kind: "blog"`, its own chip and the `Newspaper`
+      mark), the counts and both catalogues follow, and a post ends on the same numbered
+      rail the front door uses, because a reader who has read the Record already knows
+      what those numbers are for.
+- [x] `RECORD_SOURCES` is what the front door rails: the sources the columns actually
+      cite, in the order the list gives them. A source the blog needed and the Record
+      did not is a footnote to a page the reader is not on.
+
+Decisions:
+- The Record keeps the shogi correction and loses the big number. Those two are not the
+  same kind of honesty. One is a fact the page would rather not print; the other is a
+  fact the page could not explain in 150 words, and printing a number you cannot explain
+  is its own kind of advertising.
+- The signature is set as "Signed, the founder" and not with an em dash, because the
+  house has been taking em dashes out of its prose all week and a decorative one in the
+  stylesheet is the same mark coming back in through the door marked design.
+
+Still open: the landing still uses no `t()`, so the headline and the founder's column
+are English until the i18n pass reaches the front door. The blog chrome is translated;
+the post is not, for the reason the journal already states out loud.
