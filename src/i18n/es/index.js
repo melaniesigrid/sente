@@ -25,6 +25,7 @@ import { account } from "./account.js";
 import { voice, plain, statement, moku, ruleset, preset, persona } from "./voice.js";
 import { tier, track, book, series, problem, shape } from "./library.js";
 import { lessons1 } from "./lessons1.js";
+import { lessons2 } from "./lessons2.js";
 import { content } from "./content.js";
 import { overlay } from "./overlay.js";
 
@@ -59,5 +60,5 @@ export const es = {
   ...overlay,
   /* The lessons arrive a file at a time, so this one key is assembled rather
      than spread: `content.js` holds the welcome demo, and each tier its own. */
-  lesson: { ...content.lesson, ...lessons1 },
+  lesson: { ...content.lesson, ...lessons1, ...lessons2 },
 };
