@@ -30,7 +30,11 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
   const { token } = account;
   const [player, setPlayer] = useState(account.player);
   const [word, setWord] = useState("");             // a rendezvous word, or "" for anyone
-  const [seek, setSeek] = useState(null);           // null | { size, key, pair }
+  const [seek, setSeek] = useState(null);           // null | { size, key, pair, rengo }
+  /* Which team to join at a rengo table: null means "either". Two people who agree
+     on a rendezvous word and pick the same team are partners, and that is the whole
+     invite mechanism - no friend list, no accounts, no second protocol. */
+  const [team, setTeam] = useState(null);
   const [lobby, setLobby] = useState(null);         // { online, seeking }
   const [conn, setConn] = useState("connecting");
   const [tables, setTables] = useState([]);
@@ -56,7 +60,7 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
       onStatus: setConn,
       onFrame: (f) => {
         if (f.t === "lobby") setLobby({ online: f.online, seeking: f.seeking });
-        else if (f.t === "seek") setSeek(f.status === "waiting" ? { size: f.size, key: f.key, pair: f.pair ?? null, rengo: !!f.rengo, seated: f.seated, of: f.of } : null);
+        else if (f.t === "seek") setSeek(f.status === "waiting" ? { size: f.size, key: f.key, pair: f.pair ?? null, rengo: !!f.rengo, seated: f.seated, of: f.of, blocked: f.blocked ?? null } : null);
         else if (f.t === "matched") {
           setSeek(null);
           notify({ icon: "trophy", text: `Matched with ${f.opponent.name} · you play ${f.color === "b" ? "Black" : "White"}` });
@@ -123,7 +127,9 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
           <Radio size={16} className="pulse" />
           <span>
             {seek.rengo
-              ? `${seek.seated ?? 1} of 4 seated on ${seek.size}×${seek.size}. Four people, no house players: the first two to arrive lead the teams and the next two partner them.`
+              ? seek.blocked
+                ? `${seek.seated} of 4 seated on ${seek.size}×${seek.size}, but too many of you asked for ${seek.blocked}. Somebody has to take the other side before this table can start.`
+                : `${seek.seated ?? 1} of 4 seated on ${seek.size}×${seek.size}. Four people, no house players${team ? `, and you are holding a place on team ${team}` : ""}.`
               : seek.pair
               ? `Looking for another pair player on ${seek.size}×${seek.size}. You will each get a ${seek.pair.rank} partner, and the four of you take turns.`
               : seek.key
@@ -158,14 +164,24 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
           {/* Rengo as it is actually played: four people and no house players.
               It waits for three others, so it says how full the table is. */}
           <div className="row">
-            <Btn icon={UsersRound} small onClick={() => findGame({ rengo: true })} disabled={conn !== "open"}>
+            <Btn icon={UsersRound} small onClick={() => findGame({ rengo: true, ...(team ? { team } : {}) })} disabled={conn !== "open"}>
               Find four for rengo on {size}×{size}
             </Btn>
+            <div className="seg" role="radiogroup" aria-label="Which team to join">
+              {[[null, "Either side"], [1, "Team 1"], [2, "Team 2"]].map(([v, label]) => (
+                <button key={label} type="button" role="radio" aria-checked={team === v}
+                  className={`seg-btn ${team === v ? "active" : ""}`} onClick={() => setTeam(v)}>
+                  {label}
+                </button>
+              ))}
+            </div>
             <span className="fine">
-              Four people, two to a team, taking turns in one rotation. Unrated: a team
-              result is a different number from a player's rank, and Joseki will not put
-              one on the screen it cannot stand behind. Partners may not consult, so there
-              is no line to your partner and there is not meant to be.
+              Four people, two to a team, taking turns in one rotation. To play <em>with</em>
+              somebody rather than against them, agree on a word and both pick the same team;
+              pick either side and you are partnered with whoever is there. Unrated: a team
+              result is a different number from a player's rank, and Joseki will not put one
+              on the screen it cannot stand behind. Partners may not consult, so there is no
+              line to your partner and there is not meant to be.
             </span>
           </div>
           <p className="fine">

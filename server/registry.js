@@ -31,6 +31,7 @@ import { DurableObject } from "cloudflare:workers";
 import { newRating, rateGame, migrateRating } from "./rating.js";
 import { randomHex, sha256, cleanName, cleanTint, sameDigest } from "./http.js";
 import { DEFAULT_PARTNER_RANK } from "../src/engine/rengo.js";
+import { fillRengoTable, rengoProgress, teamOf } from "./seating.js";
 import { cleanKey, publicPlayer, hasPlayed, reseeded } from "./players.js";
 import { cleanEmail, cleanKey as cleanDerivedKey, privateFields, KDF } from "./accounts.js";
 import { cleanBio, cleanFacts, avatarProblem, profileOf } from "./profile.js";
@@ -735,7 +736,10 @@ export class Registry extends DurableObject {
          so the flag is forced here rather than trusted from the frame. */
       const pair = msg.pair && typeof msg.pair.rank === "string" ? { rank: msg.pair.rank.slice(0, 3) } : null;
       const rengo = msg.rengo === true;
-      await this.seek(id, size, pair || rengo ? false : rated, cleanKey(msg.key), pair, rengo);
+      // A team is a number from the client, so it is read through the same helper
+      // the matching uses rather than trusted to be 1 or 2.
+      const team = rengo ? teamOf(msg) : null;
+      await this.seek(id, size, pair || rengo ? false : rated, cleanKey(msg.key), pair, rengo, team);
     } else if (msg.t === "cancel") {
       await this.ctx.storage.delete(`seek:${id}`);
       send(ws, { t: "seek", status: "idle" });
@@ -758,7 +762,7 @@ export class Registry extends DurableObject {
   /** Look for an opponent, or wait to be found. `key` is an optional rendezvous
    *  word: seeks carrying one match only each other, so two people who agree on a
    *  word meet however busy the lobby is, and an open seek never swallows them. */
-  async seek(id, size, rated, key = null, pair = null, rengo = false) {
+  async seek(id, size, rated, key = null, pair = null, rengo = false, rengoTeam = null) {
     const me = await this.ctx.storage.get(`player:${id}`);
     if (!me) return;
     /* A pair seek only ever meets another pair seek. Sitting down expecting a
@@ -767,7 +771,7 @@ export class Registry extends DurableObject {
        is a third queue for the same reason: it is waiting for three people. */
     const want = rengo ? null : pair ? { rank: pair.rank } : null;
     const seeks = await this.ctx.storage.list({ prefix: "seek:" });
-    if (rengo) return this.#seekRengo(id, me, size, key, seeks);
+    if (rengo) return this.#seekRengo(id, me, size, key, seeks, rengoTeam);
     let match = null;
     for (const [k, s] of seeks) {
       if (k === `seek:${id}`) continue;
@@ -815,29 +819,32 @@ export class Registry extends DurableObject {
      Still unrated. Four humans could carry a team rating one day, but a team
      rating is a different number with a different meaning and it is not being
      smuggled in under the single-player one. */
-  async #seekRengo(id, me, size, key, seeks) {
+  async #seekRengo(id, me, size, key, seeks, team = null) {
+    const mine = { id, size, rated: false, key, rengo: true, at: Date.now(), ...(team ? { team } : {}) };
     const waiting = [];
     for (const [k, s] of seeks) {
       if (k === `seek:${id}`) continue;
       if ((s.key ?? null) !== key || !s.rengo || s.size !== size) continue;
       if (this.ctx.getWebSockets(s.id).length) waiting.push(s);
     }
-    waiting.sort((a, b) => a.at - b.at);
-    if (waiting.length < 3) {
-      const mine = { id, size, rated: false, key, rengo: true, at: Date.now() };
+    const all = [...waiting, mine];
+    /* Who sits where is a matching problem - people may name a team - so it is
+       done by a pure function that a test can drive without a network. */
+    const table = fillRengoTable(all);
+    if (!table) {
       await this.ctx.storage.put(`seek:${id}`, mine);
-      const seated = waiting.length + 1;
-      // Everybody still waiting is told how full the table is, including the newcomer.
-      for (const s of [...waiting, mine]) {
-        this.tell(s.id, { t: "seek", status: "waiting", size, rated: false, key, rengo: true, seated, of: 4 });
+      // Everybody still waiting is told how full the table is, including the newcomer,
+      // and told when four are present but the teams cannot be made up.
+      const progress = rengoProgress(all);
+      for (const s of all) {
+        this.tell(s.id, { t: "seek", status: "waiting", size, rated: false, key, rengo: true, ...progress });
       }
       await this.broadcastLobby();
       return;
     }
-    const table = [...waiting.slice(0, 3), { id, at: Date.now() }];
-    await this.ctx.storage.delete(table.map((s) => `seek:${s.id}`));
+    await this.ctx.storage.delete(table.order.map((s) => `seek:${s.id}`));
     const people = [];
-    for (const s of table) {
+    for (const s of table.order) {
       const p = s.id === id ? me : await this.ctx.storage.get(`player:${s.id}`);
       if (!p) return;                 // somebody left between the check and here
       people.push(p);
@@ -856,6 +863,17 @@ export class Registry extends DurableObject {
       t: "matched", gameId, size, seat: seats[i], color: seats[i][0], rengo: true,
       partner: asSeat(people[i < 2 ? i + 2 : i - 2]),
     }));
+    /* Somebody can be left over - three people wanted the same team and only two
+       of them could have it - and they are still waiting at a table that just
+       emptied. Tell them the new count rather than leaving a stale one on screen. */
+    const seatedIds = new Set(table.order.map((s) => s.id));
+    const left = all.filter((s) => !seatedIds.has(s.id));
+    if (left.length) {
+      const progress = rengoProgress(left);
+      for (const s of left) {
+        this.tell(s.id, { t: "seek", status: "waiting", size, rated: false, key, rengo: true, ...progress });
+      }
+    }
     await this.broadcastLobby();
   }
 
