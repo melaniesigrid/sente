@@ -1136,7 +1136,10 @@ that is honestly still English.
       at all, and `i18n.test.js` now holds that: half a lesson is the one shape the
       fall-through does not forgive, because it would put one step in one language and the
       next in another inside a single board.
-- [ ] Spanish: tiers 2 to 5, twenty-two lessons.
+- [x] Spanish: tier 2, seven lessons from 20k to 15k — four chapters of the Classic and
+      three proverbs. The Chinese terms keep their transliterations: a chapter arguing that
+      names must be set right is the last place to replace them.
+- [ ] Spanish: tiers 3 to 5, fifteen lessons.
 - [ ] Spanish: the Classic's thirteen chapters, the preface and the thirty-two names.
 - [ ] Spanish: the content prose. Lessons, personas, Moku, the plain-words statements, the
       books, the legal documents, and the Classic's thirteen chapters, in that order.
