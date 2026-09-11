@@ -560,7 +560,24 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
 - [ ] Tier 2 Apprentice and Tier 3 Journeyman authored (20 lessons, 9/13/19).
 - [ ] SGF authoring pipeline: build-time script turns SGF with comments into steps.
 - [ ] Tier 4 Craftsman and Tier 5 Master authored (20 lessons, 19x19).
-- [ ] Tier 6 Dan authored (8 lessons; the last needs Phase 4 analysis).
+- [ ] Tier 6 Dan authored (8 lessons; the last needs Phase 4 analysis). Four are in as of
+      2026-09-11: `aji-and-timing` (1d), `life-and-death-tesuji` (2d), `thickness-into-points`
+      (2d) and `ko-as-strategy` (3d). Still open: professional openings, endgame counting in
+      miai values, whole-board thinking, and reading an engine honestly. Tier 6's rule is that
+      a lesson may be mostly argument; it verifies what can be verified, states the rest as
+      judgement, and says which is which in its header.
+- [x] The Book of Shapes (2026-09-11): the shelf's shape book, and the first one written here
+      rather than inherited. `content/shapes.js` is a catalogue of nine articles with the same
+      three parts each — what the shape buys, what it costs, and the position where the bargain
+      is a bad one — and the third part is the reason it exists. Five lessons across tiers 3 to
+      5 (tiger's mouth, ponnuki, the waist of the knight's move, the two-space extension, the
+      three connections); the bamboo-joint article points at the Proverbs lesson that already
+      existed. `shapes.test.js` re-derives every number the prose states from the engine, so an
+      article and its lesson cannot drift apart.
+- [x] A verifier for the problems (2026-09-11): `problems.test.js`, plus six new problems, p7
+      to p12. Legality, house voice and rising difficulty over the whole set, and an exhaustive
+      life-and-death search over the three classical shapes: the stated answer must kill, and
+      no other point in the eye space may.
 - [x] The Classic in Thirteen Chapters (2026-09-10): Zhang Ni's eleventh-century treatise as a
       lesson series, one engine-verified lesson per chapter spread over tiers 2 to 5
       (`series`/`chapter` fields, `lessonsInSeries`), plus `content/classic.js` with the

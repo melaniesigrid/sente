@@ -8,5 +8,10 @@ import guanziFirstLineHane from "./guanzi-first-line-hane.js";
 import classicObserving from "./classic-observing.js";
 import classicFeelings from "./classic-feelings.js";
 import classicCorrectness from "./classic-correctness.js";
+import shapeKeimaWaist from "./shape-keima-waist.js";
+import shapeTwoSpaceExtension from "./shape-two-space-extension.js";
 
-export const TIER4 = [guanziGoteAlternates, guanziFirstLineHane, classicObserving, classicFeelings, classicCorrectness];
+export const TIER4 = [
+  guanziGoteAlternates, guanziFirstLineHane, classicObserving, classicFeelings, classicCorrectness,
+  shapeKeimaWaist, shapeTwoSpaceExtension,
+];
