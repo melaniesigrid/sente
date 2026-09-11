@@ -952,28 +952,34 @@ ${FONT_FACES}
 }
 .dojo-name:focus { outline: 0; box-shadow: var(--sink-sm), 0 0 0 2px var(--accent-ring); }
 
-.tone-list { display: flex; flex-direction: column; gap: 10px; }
-.tone { display: grid; grid-template-columns: 44px minmax(0, 1fr) 88px; gap: 12px; align-items: center; }
-.tone.auto { opacity: .62; }
-.tone-swatch { width: 44px; height: 44px; border-radius: 13px; box-shadow: var(--raise-sm), inset 0 0 0 1px var(--belt-edge); cursor: pointer; overflow: hidden; display: block; }
-.tone.auto .tone-swatch { cursor: default; }
-.tone-swatch input { opacity: 0; width: 100%; height: 100%; cursor: inherit; }
+/* Each tone is a row of the colours the house already ships for that role,
+   never a field: the eyedropper is what let somebody undo in one drag the
+   measuring every named room went through. The swatches run light to dark, so
+   a row reads as a run rather than as a list. */
+.tone-list { display: flex; flex-direction: column; gap: 16px; }
+.tone { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
 .tone-meta { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .tone-name { font: 700 12px var(--font-body); letter-spacing: .1em; text-transform: uppercase; }
 .tone-name em { color: var(--ink-2); font-style: normal; letter-spacing: .06em; }
 .tone-role { color: var(--ink-2); font-size: 12.5px; line-height: 1.4; }
-.tone-hex {
-  border: 0; background: transparent; color: var(--ink); width: 100%;
-  font: 600 13px ui-monospace, SFMono-Regular, Menlo, monospace;
-  padding: 9px 10px; border-radius: 11px; box-shadow: var(--sink-sm); text-align: center;
+.swatch-row { display: flex; flex-wrap: wrap; gap: 7px; }
+.swatch {
+  width: 34px; height: 34px; border: 0; padding: 0; border-radius: 11px; cursor: pointer;
+  box-shadow: var(--raise-sm), inset 0 0 0 1px var(--belt-edge);
+  transition: transform .12s ease;
 }
-.tone-hex:focus { outline: 0; box-shadow: var(--sink-sm), 0 0 0 2px var(--accent-ring); }
-.tone-hex:disabled { opacity: .7; }
+.swatch:hover { transform: translateY(-1px); }
+.swatch:focus-visible { outline: 0; box-shadow: var(--raise-sm), 0 0 0 2px var(--accent-ring); }
+.swatch.on { box-shadow: var(--sink-sm), inset 0 0 0 1px var(--belt-edge), 0 0 0 2px var(--accent-ring); transform: none; }
+.tone-from { color: var(--ink-2); font-size: 12px; }
 
-.dojo-toggle { display: flex; gap: 11px; align-items: flex-start; padding: 13px 15px; border-radius: 16px; box-shadow: var(--sink-sm); cursor: pointer; }
-.dojo-toggle input { margin-top: 3px; accent-color: var(--accent-ink); width: 16px; height: 16px; }
-.dojo-toggle-copy { display: flex; flex-direction: column; gap: 3px; }
-.dojo-toggle strong { font-size: 14px; }
+.tone-derived { display: flex; gap: 12px; align-items: flex-start; padding: 13px 15px; border-radius: 16px; box-shadow: var(--sink-sm); }
+.tone-derived-plate { display: flex; flex: 0 0 auto; }
+.tone-chip { width: 26px; height: 34px; border-radius: 11px; box-shadow: var(--raise-sm), inset 0 0 0 1px var(--belt-edge); }
+.tone-chip + .tone-chip { margin-left: -8px; }
+
+.dojo-stones { display: flex; flex-direction: column; gap: 8px; }
+.dojo-stones .stone-row { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); margin-top: 2px; }
 
 /* The audit. A broken rule says why on the spot: a number alone teaches nobody
    what to move next. */

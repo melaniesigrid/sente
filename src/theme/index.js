@@ -14,6 +14,7 @@
      paletteFrom     a named room, completed, ready to edit
      sanitizePalette untrusted stored data -> a palette or null
      TONES           what a palette is authored from, in editing order
+     SWATCHES        the drawer the dojo picks from: every tone the rooms use, by role
      STONE_SETS      the stone sets, as data; a room names one, a player overrides it
      stonesOf        a set id -> the set
      stoneSetOf      an id + the player's choice -> the set the board is played with
@@ -29,3 +30,4 @@ export { completeTones, tokensFor, deriveLights, deriveStoneB, stonesFor } from 
 export {
   STONE_SETS, AUTO_STONES, HOUSE_STONES, stonesOf, isStoneId, cutBlack, cutWhite,
 } from "./stones.js";
+export { SWATCHES, swatchesFor, isStockTone, roomsNamed } from "./swatches.js";

@@ -1,12 +1,13 @@
 import { useState, useMemo, useCallback } from "react";
-import { Palette, RotateCcw, Check, Copy, Hammer, TriangleAlert, Trash2 } from "lucide-react";
+import { Palette, RotateCcw, Check, Copy, Hammer, TriangleAlert, Trash2, Circle } from "lucide-react";
 import { boardFromRows, tryPlay } from "../engine/index.js";
 import { Wordmark } from "../components/Brand.jsx";
 import { Board } from "../components/Board.jsx";
 import { Card } from "../components/ui.jsx";
 import {
-  PALETTES, TONES, DOJO_THEME, HOUSE_THEME,
-  themeVars, paletteFrom, auditPalette, completeTones, deriveLights, isHex, isDark,
+  PALETTES, TONES, STONE_SETS, AUTO_STONES, HOUSE_STONES, DOJO_THEME, HOUSE_THEME,
+  themeVars, paletteFrom, auditPalette, completeTones, deriveLights, isDark,
+  swatchesFor, roomsNamed, stonesOf,
 } from "../theme/index.js";
 
 /* ----------------------- THE DOJO (build your own room) -----------------------
@@ -15,6 +16,14 @@ import {
    on the ground it will actually sit on. So this screen puts the board and the
    controls on the same page, in the palette being edited, and prints the rules
    as numbers while they are being broken.
+
+   Nothing here is typed. A colour is chosen from the drawer (theme/swatches.js)
+   — every value the named rooms use for that role — and the stones from the
+   eight sets in stones.js, because an eyedropper and a hex field asked a player
+   to redo work the design system had already done and measured. What is left is
+   the interesting half: whether House's ground can carry Cinnabar's mark, and
+   what that does to a white stone. The audit still has plenty to say, since a
+   stock colour is only proven against the room it was mixed for.
 
    No rule lives here. The contract is src/theme/tokens.js, the measurements are
    auditPalette, and the derivation of the two lights is deriveLights — this
@@ -36,35 +45,37 @@ const ROWS = [
   ".........",
 ];
 
-const PARTIAL_HEX = /^#[0-9a-f]{0,6}$/i;
+/* The two lights are arithmetic on the ground, so they are not offered: pick a
+   ground and they follow. Everything else is a choice from the drawer. */
+const PICKED = TONES.filter(t => t.key !== "light" && t.key !== "dark");
+const DERIVED = TONES.filter(t => t.key === "light" || t.key === "dark");
 
 export function DojoView({ profile, setProfile, notify, go, room }) {
   const saved = profile.dojo;
   const [draft, setDraft] = useState(
     () => saved || paletteFrom(room === DOJO_THEME ? HOUSE_THEME : room),
   );
-  const [autoLights, setAutoLights] = useState(!saved);
   const [board, setBoard] = useState(() => boardFromRows(ROWS));
   const [turn, setTurn] = useState("w");
   const [last, setLast] = useState(null);
 
-  /* The two lights follow the ground while auto is on, so someone dragging the
-     ground never has to think about the illusion: it stays intact under them. */
+  /* The two lights follow the ground, always, so someone moving the ground
+     never has to think about the illusion: it stays intact under them. */
   const palette = useMemo(() => {
-    if (!autoLights) return draft;
     const { light, dark } = deriveLights(draft.ground, draft.ink);
-    return { ...draft, light, dark };
-  }, [draft, autoLights]);
+    return { ...draft, light, dark, stones: draft.stones || HOUSE_STONES };
+  }, [draft]);
 
-  // The stones the player chose follow them in here too, so the board they are
-  // mixing a room against is the board they will actually play on.
-  const vars = useMemo(() => themeVars(DOJO_THEME, palette, profile.stones), [palette, profile.stones]);
-  const audit = useMemo(() => auditPalette(palette, profile.stones), [palette, profile.stones]);
+  /* The room is judged with its own stones, the way every named room is: the set
+     is part of what is being built here, not a preference laid over it. */
+  const vars = useMemo(() => themeVars(DOJO_THEME, palette, AUTO_STONES), [palette]);
+  const audit = useMemo(() => auditPalette(palette, AUTO_STONES), [palette]);
   // Ten more token sets, each two binary searches deep, and none of them moves
-  // while a colour is being dragged.
+  // while a colour is being chosen.
   const roomVars = useMemo(() => PALETTES.map(p => themeVars(p.id, null, profile.stones)), [profile.stones]);
   const failing = audit.filter(r => !r.pass);
   const live = profile.theme === DOJO_THEME;
+  const overridden = profile.stones && profile.stones !== AUTO_STONES;
 
   const set = useCallback((key, value) => setDraft(d => ({ ...d, [key]: value })), []);
 
@@ -82,28 +93,30 @@ export function DojoView({ profile, setProfile, notify, go, room }) {
     setProfile(p => ({ ...p, dojo: palette, theme: DOJO_THEME }));
     notify({ kind: "good", text: live ? "Dojo updated." : "Your dojo is live. Every screen wears it now." });
   };
-  const startOver = () => { setDraft(paletteFrom(HOUSE_THEME)); setAutoLights(true); };
+  const startOver = () => setDraft(paletteFrom(HOUSE_THEME));
   const clear = () => {
     setProfile(p => ({ ...p, dojo: null, theme: HOUSE_THEME }));
     notify({ kind: "info", text: "Dojo cleared. Back to house." });
   };
 
   /* A palette built here is meant to graduate: if it is good enough to keep, it
-     should become an entry in palettes.js like the named rooms. */
+     should become an entry in palettes.js like the named rooms. Only the four
+     authored tones, the warning and the stones are printed — the rest derives
+     there too. */
   const copyAsCode = () => {
     const t = completeTones(palette);
     const slug = (palette.name || "mine").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     const lines = [
       "{",
       `  id: "${slug || "mine"}",`,
+      `  stones: "${palette.stones}",`,
       `  name: "${palette.name || "Mine"}",`,
       `  mood: "${isDark(t) ? "Dark" : "Light"}",`,
       "  note: \"\",",
       `  ground: "${t.ground}", ink: "${t.ink}", accent: "${t.accent}", cream: "${t.cream}",`,
-      autoLights ? null : `  light: "${t.light}", dark: "${t.dark}",`,
       `  danger: "${t.danger}",`,
       "},",
-    ].filter(Boolean).join("\n");
+    ].join("\n");
     if (!navigator.clipboard) {
       notify({ kind: "bad", text: "This browser will not hand over the clipboard." });
       return;
@@ -119,9 +132,11 @@ export function DojoView({ profile, setProfile, notify, go, room }) {
       <div className="dojo-head">
         <h1 className="dojo-title">Build your own dojo</h1>
         <p className="dojo-sub">
-          Six colours make a room. Move them and the board moves with them — stones, grid,
-          shadows and all. Play a few stones while you work; nothing is saved until you say so,
-          and the numbers below are the same ones the build checks.
+          Six colours make a room, and every colour offered here is one Joseki already plays
+          in somewhere: take this room's ground, that room's mark, and the stones from a
+          third. The board moves with them as you go — stones, grid, shadows and all.
+          Nothing is saved until you say so, and the numbers below are the same ones the
+          build checks.
         </p>
       </div>
 
@@ -158,51 +173,83 @@ export function DojoView({ profile, setProfile, notify, go, room }) {
           </div>
 
           <div className="tone-list">
-            {TONES.map(tone => {
-              const derived = autoLights && (tone.key === "light" || tone.key === "dark");
+            {PICKED.map(tone => {
               const value = palette[tone.key];
+              const chosen = swatchesFor(tone.key).find(s => s.hex === value);
               return (
-                <div className={`tone ${derived ? "auto" : ""}`} key={tone.key}>
-                  <label className="tone-swatch" style={{ background: value }}>
-                    <input
-                      type="color"
-                      value={value}
-                      disabled={derived}
-                      onChange={e => set(tone.key, e.target.value.toLowerCase())}
-                      aria-label={tone.label}
-                    />
-                  </label>
+                <div className="tone" key={tone.key}>
                   <span className="tone-meta">
-                    <span className="tone-name">{tone.label}{derived && <em> · derived</em>}</span>
+                    <span className="tone-name">{tone.label}</span>
                     <span className="tone-role">{tone.role}</span>
                   </span>
-                  <input
-                    className="tone-hex"
-                    value={value}
-                    disabled={derived}
-                    spellCheck="false"
-                    aria-label={`${tone.label} hex`}
-                    onChange={e => {
-                      const v = e.target.value.trim().toLowerCase();
-                      if (PARTIAL_HEX.test(v)) set(tone.key, v);
-                    }}
-                    onBlur={() => { if (!isHex(palette[tone.key])) set(tone.key, draft[tone.key]); }}
-                  />
+                  <div className="swatch-row" role="radiogroup" aria-label={tone.label}>
+                    {swatchesFor(tone.key).map(s => (
+                      <button
+                        key={s.hex}
+                        type="button"
+                        role="radio"
+                        aria-checked={s.hex === value}
+                        aria-label={`${tone.label} from ${roomsNamed(s.rooms)}`}
+                        title={`${roomsNamed(s.rooms)} · ${s.hex}`}
+                        className={`swatch ${s.hex === value ? "on" : ""}`}
+                        style={{ background: s.hex }}
+                        onClick={() => set(tone.key, s.hex)}
+                      />
+                    ))}
+                  </div>
+                  <span className="tone-from">
+                    {chosen
+                      ? `Worn by ${roomsNamed(chosen.rooms)}`
+                      : `Hand-mixed ${value}, from a room built before the drawer`}
+                  </span>
                 </div>
               );
             })}
           </div>
 
-          <label className="dojo-toggle">
-            <input type="checkbox" checked={autoLights} onChange={e => setAutoLights(e.target.checked)} />
-            <span className="dojo-toggle-copy">
-              <strong>Derive the highlight and the shadow</strong>
-              <span className="fine">
-                Keeps both within reach of the ground, which is what makes a raised thing look
-                lit instead of outlined. Turn it off only to hand-mix them.
+          <div className="tone-derived">
+            <span className="tone-derived-plate">
+              {DERIVED.map(tone => (
+                <span key={tone.key} className="tone-chip" style={{ background: palette[tone.key] }} title={tone.label} />
+              ))}
+            </span>
+            <span className="tone-meta">
+              <span className="tone-name">Highlight and shadow <em>· derived</em></span>
+              <span className="tone-role">
+                Both are worked out from the ground, and neither is a choice: a raised thing
+                looks lit rather than outlined only while its two lights stay within reach of
+                the paper they sit on. Move the ground and they move with it.
               </span>
             </span>
-          </label>
+          </div>
+
+          <div className="dojo-stones">
+            <div className="stat-head"><Circle size={15} /><span>The stones</span></div>
+            <p className="fine">
+              Every room names the set it is played with, this one included. Two colours make a
+              set; the lit crown, the rim where the surface turns away and the seating a dark
+              board asks for are cut from those two.
+            </p>
+            <div className="stone-row">
+              {STONE_SETS.map(s => (
+                <button key={s.id}
+                  type="button"
+                  style={themeVars(DOJO_THEME, { ...palette, stones: s.id }, AUTO_STONES)}
+                  className={`stone-btn ${palette.stones === s.id ? "active" : ""}`}
+                  onClick={() => set("stones", s.id)}
+                  aria-pressed={palette.stones === s.id}
+                  aria-label={`Stones: ${s.name}`}
+                >
+                  <span className="stone-plate">
+                    <span className="theme-stone b" />
+                    <span className="theme-stone w" />
+                  </span>
+                  <span className="stone-name">{s.name}</span>
+                </button>
+              ))}
+            </div>
+            <p className="fine type-note">{stonesOf(palette.stones).note}</p>
+          </div>
 
           <div className="audit">
             <div className="stat-head"><span>What the rules say</span></div>
@@ -231,20 +278,29 @@ export function DojoView({ profile, setProfile, notify, go, room }) {
               room cannot be worn yet. Every named room in Joseki clears all six.
             </p>
           )}
+          {overridden && (
+            <p className="fine">
+              You are playing every room with {stonesOf(profile.stones).name.toLowerCase()}, chosen on{" "}
+              <button className="link-btn" onClick={() => go("look")}>the look page</button>, so those
+              are the stones you will see once this room is worn. Set them back to the room’s own
+              there and this set follows the dojo.
+            </p>
+          )}
         </div>
       </div>
 
       <Card>
         <div className="stat-head"><span>Start from a room</span></div>
         <p className="fine" style={{ marginTop: 6 }}>
-          Loads that palette into the controls above. It does not change what you are wearing.
+          Loads that palette into the controls above, stones and all. It does not change what
+          you are wearing.
         </p>
         <div className="theme-row">
           {PALETTES.map((p, i) => (
             <button key={p.id}
               style={roomVars[i]}
               className="theme-btn"
-              onClick={() => { setDraft(paletteFrom(p.id)); setAutoLights(false); }}
+              onClick={() => setDraft(paletteFrom(p.id))}
               aria-label={`Start from ${p.name}`}
             >
               <span className="theme-plate">
