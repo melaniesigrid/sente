@@ -85,7 +85,7 @@ export function Passage({ context = "any", size = "", className = "" }) {
     <figure
       className={`passage ${size} ${className}`}
       onClick={() => setSeed(s => s + 1)}
-      title="Another page"
+      title={t("quote.another")}
     >
       <blockquote className="passage-text" aria-label={p.text}>
         {/* The finished passage, hidden, holding the box open. Without it the

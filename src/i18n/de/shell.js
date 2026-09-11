@@ -46,4 +46,6 @@ export const shell = {
     systemName: "Diesem Gerät folgen",
     following: "im Moment {language}",
   },
+  mascot: { dismiss: "Moku wegschicken" },
+  quote: { another: "Eine andere Seite" },
 };

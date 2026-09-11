@@ -38,4 +38,6 @@ export const shell = {
     systemName: "Seguir a este dispositivo",
     following: "ahora mismo, {language}",
   },
+  mascot: { dismiss: "Despedir a Moku" },
+  quote: { another: "Otra página" },
 };

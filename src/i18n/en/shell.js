@@ -43,4 +43,8 @@ export const shell = {
     systemName: "Follow this device",
     following: "{language} right now",
   },
+  /* Two buttons that carry no label of their own: the one that sends the
+     mascot away, and the quotation card, which turns the page when clicked. */
+  mascot: { dismiss: "Send Moku away" },
+  quote: { another: "Another page" },
 };
