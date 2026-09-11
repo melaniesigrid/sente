@@ -67,6 +67,18 @@ Two consequences worth naming, because they are what make the model worth having
   from the wrong colour; refusing a move from the wrong *seat* is the same check
   against the same pure function, running the same module the client runs.
 
+## The two teams are the same shape
+
+The opposing side is **not** a pair of dan players. It is your opposite number and their
+partner, exactly as your side is: `w1` plays at *your* level, `w2` at the partner rank.
+
+This is a rule, not a default, which is why `pairRoster` reads the level from the profile
+rather than taking it as an argument. The lobby's level stepper is about a game you play
+alone; if it reached this table it would put a 9 dan in the seat standing in for you and
+leave the two partners looking like the only real players at the board. A pair table
+where one side is stronger is not a pair game, it is a handicap nobody agreed to, and
+that applies to the front seats as much as it already applied to the partners.
+
 ## Rating
 
 **Pair go is unrated**, in every phase, and the table says so plainly.

@@ -50,30 +50,41 @@ const botSeat = (persona, rank) => ({
 });
 
 /** Build the four seats.
+ *
+ *  The opposing team is not a pair of dan players: it is your opposite number and
+ *  their partner, exactly as your side is. So `w1` plays at *your* level and `w2`
+ *  at the partner rank, mirroring `b1` and `b2`. That is what makes the table a
+ *  game rather than an exhibition. It is a rule and not a default, which is why
+ *  the level is read from the profile here rather than passed in: a lobby that
+ *  stepped the level would otherwise put a 9 dan in the seat standing in for you
+ *  and leave the two partners looking like the only real players at the board.
+ *
  *  @param {object} o
  *  @param {object} o.profile      the player's profile (name, tint, rating)
  *  @param {object} o.persona      the opponent house player, from the lobby
- *  @param {string} o.rank         the level the opponent plays at
  *  @param {string} [o.partnerRank]
  *  @returns {object} a roster the engine will accept */
-export function pairRoster({ profile, persona, rank, partnerRank = PARTNER_RANK }) {
+export function pairRoster({ profile, persona, partnerRank = PARTNER_RANK }) {
   /* Neither partner may be the opponent: two Kaedes at one board is a bug that
      looks like a joke. The opponent is excluded from the pool outright. */
   const [partner, otherPartner] = partnersFor(partnerRank, [persona.id]);
+  const myRank = rankOf(profile.rating);
   return createRoster({
-    b1: { kind: "human", name: profile.name, rank: rankOf(profile.rating), tint: profile.tint, you: true },
-    w1: botSeat(persona, rank),
+    b1: { kind: "human", name: profile.name, rank: myRank, tint: profile.tint, you: true },
+    w1: botSeat(persona, myRank),
     b2: botSeat(partner, partnerRank),
     w2: botSeat(otherPartner, partnerRank),
   });
 }
 
-/** Rebuild a roster from what a saved game remembers: persona ids and ranks, not
- *  the persona objects themselves. Returns null if a persona has since gone. */
+/** Rebuild a roster from what a saved game remembers: the persona id and the
+ *  partner rank. Your opposite number's level is not stored, because it is not a
+ *  choice: it is whatever your level is when you sit back down. Returns null if
+ *  the persona has since gone. */
 export function rosterFromSaved(saved, profile) {
   const persona = personaById(saved.personaId);
   if (!persona) return null;
-  return pairRoster({ profile, persona, rank: saved.rank, partnerRank: saved.partnerRank });
+  return pairRoster({ profile, persona, partnerRank: saved.partnerRank });
 }
 
 /** The seat that answers `seatId`'s move: the one that plays next.
@@ -114,8 +125,9 @@ export const teamLine = (roster, color) =>
 /** The fine print under a pair table. Unrated is not a footnote here, it is the
  *  first thing said: a win in which a 7 dan played half your moves is evidence
  *  about the pair and not about you. */
-export function pairCaption({ size, komi, partnerRank }) {
-  return `${size}×${size} · komi ${komi} · pair go, four seats · partner at ${partnerRank} · unrated`;
+export function pairCaption({ size, komi, partnerRank, myRank }) {
+  const level = myRank ? `${myRank} each side` : "your level each side";
+  return `${size}×${size} · komi ${komi} · pair go, four seats · ${level} · partners at ${partnerRank} · unrated`;
 }
 
 /** Whose move it is, said the way a pair table says it. */

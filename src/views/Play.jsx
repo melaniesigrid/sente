@@ -199,7 +199,7 @@ export function PlayView({ profile, setProfile, notify, resume }) {
           <p className="persona-bio">The original multiplayer. Black and White share the device; the ladder sits this one out.</p>
           <span className="persona-cta"><Handshake size={13} /> Sit down</span>
         </button>
-        <PairCard profile={profile} rank={rank} onPlay={sit} />
+        <PairCard profile={profile} onPlay={sit} />
         <MastersRow onSit={(mode) => setSession({ mode: { ...mode, clock } })} />
       </div>
     );

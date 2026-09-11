@@ -56,8 +56,8 @@ const BOARD_PX = { 9: 460, 13: 560, 19: 680 };
 export function PairGame({ mode, onExit, profile, notify, initial }) {
   const partnerRank = mode.partnerRank ?? PARTNER_RANK;
   const roster = useMemo(
-    () => pairRoster({ profile, persona: mode.persona, rank: mode.rank, partnerRank }),
-    [profile, mode.persona, mode.rank, partnerRank],
+    () => pairRoster({ profile, persona: mode.persona, partnerRank }),
+    [profile, mode.persona, partnerRank],
   );
   const table = {
     size: mode.size, rules: mode.rules, komi: mode.komi,
@@ -435,7 +435,7 @@ export function PairGame({ mode, onExit, profile, notify, initial }) {
             <Card inset className="caps">
               <div><span className="dot dot-b" /> Black captures: {rec.captures.b}</div>
               <div><span className="dot dot-w" /> White captures: {rec.captures.w}</div>
-              <div className="fine">{pairCaption({ size: rec.size, komi: rec.komi, partnerRank })}{hints ? " · atari hints on" : ""}</div>
+              <div className="fine">{pairCaption({ size: rec.size, komi: rec.komi, partnerRank, myRank: roster.b1.rank })}{hints ? " · atari hints on" : ""}</div>
             </Card>
           )}
           <Card className="chat-card">
