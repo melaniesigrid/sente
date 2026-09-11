@@ -2,6 +2,31 @@
 /* Fondations : les dix leçons de 30k à 20k. Les positions sont des données et
    ne sont jamais touchées — seuls les mots autour d'elles le sont. */
 export const lessons1 = {
+  /* La démo d'accueil. C'est la première chose que lit qui que ce soit : un
+     débutant à qui l'on tend quatre paragraphes dans une langue qu'il n'a pas
+     n'arrive jamais jusqu'au goban. */
+  welcome: {
+    title: "Tes premières pierres",
+    subtitle: "Tout ce qu'il te faut pour commencer une partie",
+    steps: {
+      0: {
+        text: "Les pierres se posent sur les croisements, pas dans les cases. Les noirs jouent d'abord, puis les blancs, une pierre à la fois. Une pierre posée ne bouge plus jamais : le goban ne fait que gagner des pierres, ou les perdre d'un coup quand elles sont capturées.",
+      },
+      1: {
+        text: "Une pierre respire par les points vides qui la touchent, le long des lignes. Celle-ci en a quatre. Au bord elle en aurait trois, dans le coin deux. Retire le dernier et la pierre quitte le goban : c'est la seule règle à laquelle il faut se tenir.",
+      },
+      2: {
+        text: "Il reste un souffle à la pierre blanche. Tu joues les noirs. Prends-le.",
+        hint: "Trouve le seul point vide qui touche encore la pierre blanche, et joue là.",
+        success: "Voilà une capture. La pierre blanche quitte le goban et vaudra un point pour toi à la fin. Tout le reste du go est bâti là-dessus.",
+        wrongText: "Pas là. Cherche le point vide qui touche encore la pierre blanche.",
+      },
+      3: {
+        text: "Les captures sont ta façon d'argumenter. Le territoire est ta façon de gagner. À la fin, chaque camp compte les points vides qu'il a enclos — les noirs en haut à gauche ici, les blancs en bas à droite — et la plus grande part emporte la partie. Tu en sais maintenant assez pour en jouer une.",
+      },
+    },
+  },
+
   liberties: {
     title: "Libertés et capture",
     subtitle: "La seule règle dont tout le reste pousse",

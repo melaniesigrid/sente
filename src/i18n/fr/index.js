@@ -13,7 +13,7 @@ import { screens } from "./screens.js";
 import { game } from "./game.js";
 import { front } from "./front.js";
 import { rooms } from "./rooms.js";
-import { legal } from "./legal.js";
+import { legal, legalDoc, credit } from "./legal.js";
 import { online } from "./online.js";
 import { account } from "./account.js";
 import { voice } from "./voice.js";
@@ -35,6 +35,8 @@ export const fr = {
   ...front,
   ...rooms,
   legal,
+  legalDoc,
+  credit,
   online,
   account,
   voice,
