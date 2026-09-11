@@ -1089,7 +1089,10 @@ that is honestly still English.
 - [x] Spanish: the dashboard and the lobby — `Home`, `Play`, the duel card, the SGF opener.
       The clock presets, the ruleset names and the personas' bios on those screens are data
       prose and wait for the content slice.
-- [ ] Spanish: the game itself (`Game`, `gameStatus`, the clock, the result card).
+- [x] Spanish: the game itself — `Game` and `gameStatus`, the status pill, the controls,
+      the counting card, the result card, table talk and the promotion ceremony. A result
+      row now carries `color` as well as its label, so the dot is never chosen by comparing
+      a word. Online play and review still read in English.
 - [ ] Spanish: learn, the library, tsumego, the ladder, the profile.
 - [ ] Spanish: the landing page, onboarding, the small print, the letters.
 - [ ] Spanish: the content prose — Moku's lines, the personas, the welcome copy, the

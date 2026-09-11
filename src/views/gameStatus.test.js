@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { refusalText, resultLine, statusText, captionText, resignLabel, resultCard, ratingLine, RESIGN_CONFIRM_MS } from "./gameStatus.js";
 import { ratingOfRank, ratingOfValue, rankValue } from "../content/rank.js";
 import { createGame, pass, acceptScore, resign, timeout } from "../engine/index.js";
+import { makeT } from "../i18n/index.js";
 
 describe("refusalText", () => {
   it("names ko, superko and suicide", () => {
@@ -103,8 +104,21 @@ describe("resultCard", () => {
     const card = resultCard(g.result);
     expect(card.headline).toBe("Black wins");
     expect(card.sub).toBe("by 73.5");
-    expect(card.rows[0]).toEqual({ side: "Black", detail: "1 stone + 80 territory", total: 81, winner: true });
-    expect(card.rows[1]).toEqual({ side: "White", detail: "0 stones + 0 territory + 7.5 komi", total: 7.5, winner: false });
+    expect(card.rows[0]).toEqual({ color: "b", side: "Black", detail: "1 stone + 80 territory", total: 81, winner: true });
+    expect(card.rows[1]).toEqual({ color: "w", side: "White", detail: "0 stones + 0 territory + 7.5 komi", total: 7.5, winner: false });
+  });
+
+  /* The row's dot is drawn from `color`, never from the label: a language that
+     does not call Black "Black" must still get a black dot. */
+  it("names the side in the language it is handed, and the colour in neither", () => {
+    const es = makeT("es");
+    const g = acceptScore(pass(pass(createGame({ size: 9, komi: 7.5, setup: { b: [[4, 4]] } }))));
+    const card = resultCard(g.result, es);
+    expect(card.headline).toBe("Ganan las negras");
+    expect(card.sub).toBe("por 73.5");
+    expect(card.rows.map(r => r.color)).toEqual(["b", "w"]);
+    expect(card.rows[0].side).toBe("Negras");
+    expect(card.rows[0].detail).toBe("1 piedra + 80 de territorio");
   });
   it("adds the handicap bonus and reads jigo", () => {
     const h = acceptScore(pass(pass(createGame({ size: 9, handicap: 2, komi: 0.5 }))));
