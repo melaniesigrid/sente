@@ -55,6 +55,34 @@ describe("the stylesheet", () => {
     expect(["w-1", "w-2", "w-3"].map(val)).toEqual(cutWhite(set.w));
   });
 
+  // The front door's headline is sized off the window while its column may
+  // shrink past it, so a wide display face runs "beautifully" over the board
+  // beside it. Both columns are lifted onto one layer to clear the stone field,
+  // and on one layer the board wins: it comes second and carries an opaque
+  // ground, so the word stopped at it rather than crossing it. The words are
+  // what the page is for, so the copy has to outrank it.
+  //
+  // Declaring a z-index is not enough and that is the whole point of this test:
+  // the band rule is three classes wide and comes late in the sheet, so a plain
+  // .lp-hero-copy { z-index: 2 } loses the cascade and changes nothing on screen.
+  it("keeps the landing headline above the board it can overlap", () => {
+    // Every selector in this sheet is plain: classes only, and a class inside
+    // :not() weighs what it would weigh outside it.
+    const weight = sel => (sel.match(/[.][a-z][a-z0-9-]*/g) || []).length;
+    const z = body => { const m = /z-index: (-?\d+)/.exec(body); return m ? Number(m[1]) : null; };
+
+    const all = rules(CSS);
+    const band = all.findIndex(r => r.selector.startsWith(".lp-ground >") && z(r.body) !== null);
+    const copy = all.findIndex(r => /[.]lp-hero-copy$/.test(r.selector) && z(r.body) !== null);
+    expect(band, "the band rule that lifts both columns").toBeGreaterThan(-1);
+    expect(copy, "a rule giving .lp-hero-copy its own layer").toBeGreaterThan(-1);
+
+    // above the board, and actually winning the cascade to get there
+    expect(z(all[copy].body)).toBeGreaterThan(z(all[band].body));
+    expect(weight(all[copy].selector)).toBeGreaterThanOrEqual(weight(all[band].selector));
+    expect(copy, "stated after the rule it answers").toBeGreaterThan(band);
+  });
+
   it("dims no word with an opacity", () => {
     const offenders = rules(CSS)
       .filter(r => DRAWS_TEXT(r.body) && /opacity: \.\d/.test(r.body))
