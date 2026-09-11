@@ -2,6 +2,31 @@
 /* Grundlagen: die zehn Lektionen von 30k bis 20k. Die Stellungen sind Daten
    und werden nie angefasst — nur die Worte darum herum. */
 export const lessons1 = {
+  /* Die Willkommens-Vorführung. Sie ist das Erste, was überhaupt jemand
+     liest: einem Anfänger, dem man vier Absätze in einer Sprache hinhält, die
+     er nicht hat, kommt nie bis zum Brett. */
+  welcome: {
+    title: "Deine ersten Steine",
+    subtitle: "Alles, was du brauchst, um eine Partie zu beginnen",
+    steps: {
+      0: {
+        text: "Die Steine liegen auf den Kreuzungen, nicht in den Feldern. Schwarz spielt zuerst, dann Weiß, ein Stein nach dem anderen. Ein gesetzter Stein bewegt sich nie wieder: das Brett gewinnt nur Steine hinzu, oder verliert sie auf einmal, wenn sie gefangen werden.",
+      },
+      1: {
+        text: "Ein Stein atmet durch die leeren Punkte neben sich, den Linien entlang. Dieser hat vier. Am Rand hätte er drei, in der Ecke zwei. Nimm den letzten weg, und der Stein kommt vom Brett: das ist die einzige Regel, an der du festhalten musst.",
+      },
+      2: {
+        text: "Dem weißen Stein bleibt ein Atemzug. Du bist Schwarz. Nimm ihn.",
+        hint: "Finde den einen leeren Punkt, der den weißen Stein noch berührt, und spiel dorthin.",
+        success: "Das ist ein Fang. Der weiße Stein kommt vom Brett und ist dir am Ende einen Punkt wert. Alles andere im Go ist darauf gebaut.",
+        wrongText: "Nicht dort. Such den leeren Punkt, der den weißen Stein noch berührt.",
+      },
+      3: {
+        text: "Fangen ist, wie du argumentierst. Gebiet ist, wie du gewinnst. Am Ende zählt jede Seite die leeren Punkte, die sie umschlossen hat — Schwarz hier oben links, Weiß unten rechts — und der größere Anteil nimmt die Partie. Du weißt jetzt genug, um eine zu spielen.",
+      },
+    },
+  },
+
   liberties: {
     title: "Freiheiten und Fangen",
     subtitle: "Die eine Regel, aus der alles wächst",
