@@ -141,8 +141,23 @@ each fixed in its own commit:
       caption says so. In review: left and right walk a move, up and down jump ten,
       Home and End go to the ends, N toggles numbers. Screen-reader labels are on the
       board and now use the same notation the coordinates draw.
-- [ ] Local-only telemetry ring buffer (last 50 games: size, result, bot, move count) to
-      tune house-player weights. Never leaves the device.
+- [x] Local-only telemetry ring buffer (2026-09-11, branch `feat/telemetry`): the last
+      fifty games, in `src/store/telemetry.js`, under its own key `sente-telemetry-v1`.
+      Every finished house game is recorded in `conclude`, the one place they all pass
+      through, tagged `rated`, `coached`, `duel` or `master` — only a rated game is
+      evidence about a rank, so only rated games count toward a persona's record.
+      Decisions: it lives in its own storage key rather than on the profile precisely so
+      it cannot be swept along when a profile learns how to sync. It keeps the shape of a
+      game (size, handicap, bot, the rank that bot was asked to play, result code, move
+      count) and no moves and no names: a record you could replay is a record of what
+      somebody played. It forgets the oldest at fifty. The profile carries a card showing
+      what is in it, the record against each house player, and one press to erase it —
+      a record kept quietly is a record kept badly — and a win rate is only printed once
+      five rated games stand behind it. The privacy notice enumerates it. The three
+      storage functions survive a browser that refuses storage or has none, and are
+      tested against a stub of the browser contract rather than by adding jsdom.
+- [ ] Actually use it: `byBot` is the input to calibration, and nothing reads it yet.
+      The Calibrate item under House players is the other half of this one.
 
 Decisions made in Phase 3, the table slice (branch `feat/the-table`, 2026-09-10):
 - Komi is what the board is owed: 5.5 on 9x9, 6.5 on 13x13, 7.5 on 19x19 under area

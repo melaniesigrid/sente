@@ -194,6 +194,7 @@ const PRIVACY = {
       heading: "What stays on this device",
       paras: [
         "Your name, your avatar tint, your rank, your finished lessons and problems, the room and the pairing you chose, the game in progress and the last table you set up. All of it sits in your browser's local storage, under keys of Joseki's own, and none of it is sent anywhere.",
+        "Joseki also keeps the shape of your last fifty games against the house players — the board size, the handicap, which house player, how the game ended and how many moves it took — so the house players can be tuned against what really happens at the board. It holds no moves and nothing that could replay a game, it is never sent anywhere, and your profile page shows you exactly what is in it and empties it in one press.",
         "Clearing site data for Joseki erases every one of them, and there is no copy elsewhere to restore from.",
       ],
     },
