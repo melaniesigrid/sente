@@ -1055,9 +1055,25 @@ ${FONT_FACES}
    stone is a smear. What replaces the relief is the shine, which is what a
    polished stone that size actually has on it -- a highlight where the surface
    faces the light and a lit rim where it turns away. */
-.fig { position: absolute; z-index: 0; pointer-events: none; }
+/* --fig-lead is the beat the lines get to themselves before the first stone
+   lands. Every delay on this block is measured from it, so the whole sequence
+   -- rules, stones, rings, captures -- moves together if it is ever retimed. */
+.fig { position: absolute; z-index: 0; pointer-events: none; --fig-lead: 260ms; }
 .fig svg { height: var(--fig-h, clamp(200px, 30vw, 420px)); width: auto; display: block; overflow: visible; }
+/* The board is set before it is played on. The lines draw themselves in over a
+   beat, and only then does the first stone land -- which is the order the thing
+   actually happens in, and it turns a decoration that starts into a decoration
+   that begins. A browser that will not animate a dash offset gets the lines
+   already drawn, which is the picture either way. */
 .fig-grid line { stroke: var(--grid); stroke-width: 1.25px; vector-effect: non-scaling-stroke; opacity: .5; }
+.fig.playing .fig-grid line {
+  stroke-dasharray: 100%;
+  animation: fig-rule .5s cubic-bezier(.4, 0, .2, 1) both;
+}
+@keyframes fig-rule {
+  from { stroke-dashoffset: 100%; opacity: 0; }
+  to { stroke-dashoffset: 0; opacity: .5; }
+}
 .fig-rim { stroke: rgba(var(--sh-lite),.5); vector-effect: non-scaling-stroke; }
 
 /* A figure dissolves into the ground on every side and is cut only by the page
@@ -1088,16 +1104,58 @@ ${FONT_FACES}
    it would hold its end state through the delay and cancel the landing. */
 .fig .fig-stone { opacity: 0; transform-box: fill-box; transform-origin: center; }
 .fig.playing .fig-stone {
-  animation: fig-lay .52s cubic-bezier(.16, 1, .3, 1) both;
-  animation-delay: var(--laid, 0ms);
+  animation: fig-lay .54s cubic-bezier(.2, .9, .3, 1) both;
+  animation-delay: calc(var(--laid, 0ms) + var(--fig-lead));
 }
 .fig.playing .fig-stone.taken {
   animation:
-    fig-lay .52s cubic-bezier(.16, 1, .3, 1) var(--laid, 0ms) both,
-    fig-take .42s ease-in var(--gone, 0ms) forwards;
+    fig-lay .54s cubic-bezier(.2, .9, .3, 1) calc(var(--laid, 0ms) + var(--fig-lead)) both,
+    fig-take .6s cubic-bezier(.3, 0, .2, 1) calc(var(--gone, 0ms) + var(--fig-lead)) forwards;
 }
-@keyframes fig-lay { from { opacity: 0; transform: scale(.34); } to { opacity: 1; transform: none; } }
-@keyframes fig-take { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(1.42); } }
+/* A stone lands a shade large and settles back, because that is what a stone
+   does when a hand puts it down: it comes toward you before it comes to rest. */
+@keyframes fig-lay {
+  0% { opacity: 0; transform: scale(.34); }
+  62% { opacity: 1; transform: scale(1.06); }
+  100% { opacity: 1; transform: none; }
+}
+/* And a captured stone is plucked. Up first, the way a hand lifts a stone
+   before it takes it away, then off. It used to balloon and fade, which reads
+   as a bubble bursting -- the one thing that never happens on a go board. */
+@keyframes fig-take {
+  0% { opacity: 1; transform: none; }
+  24% { opacity: 1; transform: translateY(-8%) scale(1.07); }
+  100% { opacity: 0; transform: translateY(-52%) scale(.55); }
+}
+
+/* The rings: one where a stone lands, one where a stone was taken off.
+   Neither is a flourish invented for the page -- the first is the ring a stone
+   actually makes in the eye as it is set down, and the second is the hole the
+   ponnuki is named for. They are drawn in the ink the grid is drawn in, so
+   they read as the board reacting rather than as a colour arriving. */
+.fig .fig-ring {
+  opacity: 0; stroke: var(--ink-3); vector-effect: non-scaling-stroke;
+  transform-box: fill-box; transform-origin: center;
+}
+.fig.playing .fig-ring {
+  animation: fig-ring .72s cubic-bezier(.15, .7, .3, 1) calc(var(--laid, 0ms) + var(--fig-lead)) both;
+}
+.fig.playing .fig-ring.out {
+  animation: fig-hole .9s cubic-bezier(.15, .7, .3, 1) calc(var(--gone, 0ms) + var(--fig-lead)) both;
+}
+@keyframes fig-ring {
+  0% { opacity: 0; transform: scale(.5); }
+  18% { opacity: .5; }
+  100% { opacity: 0; transform: scale(1.85); }
+}
+/* The hole rings wider and holds a breath longer than a landing does: a
+   capture is the larger event of the two, and the point it leaves is the one
+   thing on the board worth looking at for a moment afterwards. */
+@keyframes fig-hole {
+  0% { opacity: 0; transform: scale(.9); }
+  16% { opacity: .62; }
+  100% { opacity: 0; transform: scale(2.3); }
+}
 
 /* The light drifts across the figure rather than sitting still on it. Every
    stone runs the same slow loop, started earlier the further down the diagonal
@@ -1154,6 +1212,10 @@ ${FONT_FACES}
   .fig.playing .fig-stone { animation: none; opacity: 1; }
   .fig.playing .fig-stone.taken { animation: none; opacity: 0; }
   .fig-shine { animation: none; }
+  /* A ring is a thing that happened. With the motion off nothing happens, so
+     there is nothing for it to be, and the board is simply already ruled. */
+  .fig .fig-ring, .fig.playing .fig-ring { animation: none; opacity: 0; }
+  .fig.playing .fig-grid line { animation: none; stroke-dasharray: none; }
 }
 
 @media (max-width: 620px) { .chapter-body { padding-left: 12px; } }
@@ -1918,15 +1980,36 @@ ${FONT_FACES}
 .stone-field svg { width: 100%; height: 100%; display: block; filter: blur(2px); }
 /* A stone that was not on the board last tick settles in; one that was is the
    same element and is not touched. That is the whole of the motion, and it is
-   the position being played rather than an effect over it. */
+   the position being played rather than an effect over it.
+
+   It arrives a shade large and settles back, which is what a stone does when a
+   hand puts it down: it comes toward you before it comes to rest. A straight
+   fade up from small is a thing appearing, and a thing appearing is not a move
+   being played. The overshoot is seven per cent and lasts a fifth of a second,
+   which nobody will consciously see and everybody would miss. */
 .stone-field .fs-rim { fill: none; stroke: rgba(var(--sh-ink),.16); stroke-width: 2px; }
 .stone-field .fs-stone {
   transform-box: fill-box; transform-origin: center;
-  animation: fs-land .6s cubic-bezier(.16, 1, .3, 1) both;
+  animation: fs-land .62s cubic-bezier(.2, .9, .3, 1) both;
 }
 @keyframes fs-land {
-  from { opacity: 0; transform: scale(.45); }
-  to { opacity: 1; transform: none; }
+  0% { opacity: 0; transform: scale(.5); }
+  58% { opacity: 1; transform: scale(1.07); }
+  100% { opacity: 1; transform: none; }
+}
+/* And a stone that has been captured comes off the board. It is plucked -- up
+   a little first, the way a hand lifts a stone before it takes it away -- and
+   then it is gone. This is the one moment in a game of go that somebody who
+   has never played recognises on sight, and the field used to spend it between
+   two frames. It holds for a beat because the beat is two and a half seconds
+   and the stone is off the board inside the first second of it. */
+.stone-field .fs-stone.leaving {
+  animation: fs-lift .72s cubic-bezier(.3, 0, .2, 1) both;
+}
+@keyframes fs-lift {
+  0% { opacity: 1; transform: none; }
+  26% { opacity: 1; transform: translateY(-7%) scale(1.06); }
+  100% { opacity: 0; transform: translateY(-46%) scale(.6); }
 }
 /* The ground, closing back over the field at the edges so it has no border and
    never ends on a line. It used to close at a third of the way out, which was
@@ -1952,6 +2035,9 @@ ${FONT_FACES}
 @media (prefers-reduced-motion: reduce) {
   .stone-field { transition: none; }
   .stone-field .fs-stone { animation: none; }
+  /* A stone on its way off the board has nowhere to go without the animation,
+     so it is simply not drawn: the position is the position. */
+  .stone-field .fs-stone.leaving { display: none; }
 }
 
 /* ---- the floors ----

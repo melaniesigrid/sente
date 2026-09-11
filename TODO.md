@@ -1546,6 +1546,33 @@ Still open: nothing blocking. A note is a file in `journal.js` and a release wri
 itself, so the next entry is a commit either way.
 
 
+## How a stone moves (done, branch `feat/stone-motion`)
+
+The stones were drawn well and behaved like fading circles. This is the motion, and
+all of it is either something that happens on a board or nothing.
+
+- [x] A stone lands a shade large and settles back, in the field and in the figures both.
+      A straight fade up from small is a thing appearing; a thing appearing is not a move
+      being played (2026-09-11).
+- [x] A captured stone is plucked: up first, the way a hand lifts a stone before it takes
+      it away, then off. It used to balloon and fade, which reads as a bubble bursting,
+      the one thing that never happens on a go board. Fires deterministically in the
+      ponnuki and the ko, which capture every time they are played.
+- [x] Two rings. One where a stone lands, one where a stone was taken off, both drawn in
+      the ink the grid is drawn in. The second is why the ponnuki is worth setting large:
+      the ring is the capture that made the hole, on the move the engine performed it.
+      They are drawn outside the stone group, because a captured stone is fading out at
+      exactly the moment its own ring should be widest.
+- [x] The board rules itself in before the first stone lands, off one `--fig-lead` that
+      every other delay in the block is measured from.
+- [x] `departed(before, after)` in `fieldGame.js`, tested: the field draws a captured
+      stone on its way off rather than dropping it between two frames. Measured: this
+      bot captures about once in six whole games, so it is correctness rather than
+      spectacle, and it is kept for what it costs, which is a pure function.
+- [x] Reduced motion checked under emulation: no landing, no pluck, no rings, and the
+      board already ruled. The position is simply the position.
+
+
 ## The Record opens on a question, and the blog takes the arithmetic (done, branch `feat/journal-lede`)
 
 The broadsheet on the front door was true and it was not inviting. It opened on

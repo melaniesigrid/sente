@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useId } from "react";
 import {
-  FIELD_N, SETTLED, freshField, advanceField, fieldSpent, fieldStones,
+  FIELD_N, SETTLED, freshField, advanceField, fieldSpent, fieldStones, departed,
 } from "./fieldGame.js";
 import { StoneArt, Shine } from "./stoneArt.jsx";
 
@@ -21,6 +21,18 @@ import { StoneArt, Shine } from "./stoneArt.jsx";
    settles in rather than appearing between two frames. One move every couple of
    seconds, in a position that really is being played: it is the slowest thing
    on the page and the only one that is a game.
+
+   And stones come off it. A capture is the one moment in a game of go that
+   somebody who has never played recognises on sight, and for as long as the
+   field simply stopped drawing a captured stone it was throwing that moment
+   away between two frames. The stones that left are kept for one beat and
+   drawn on their way off the board, lifted and gone. They are worked out by
+   comparing the two positions (`departed`, in fieldGame.js) rather than by
+   reading the engine's capture list, so what leaves the screen can never
+   disagree with what is on it.
+
+   A fresh game is dealt with no departures. Sixty stones lifting off at once
+   is not a capture, it is a bug that looks like one.
 
    It is the real engine playing itself, for the same reason the hero board is:
    this page is not allowed to show anything it cannot show for real, and a
@@ -58,7 +70,10 @@ const CHUNK = 8;          /* moves per frame while seeding */
 const TICK_MS = 2600;     /* a mood, not a demo, but a visible one */
 
 export function StoneField({ live = true }) {
-  const [board, setBoard] = useState(null);
+  /* One object, not two pieces of state: the stones that left belong to the
+     position that replaced them, and setting them apart would let a render
+     land between the two and draw a capture against the wrong board. */
+  const [frame, setFrame] = useState(null);
   const host = useRef(null);
   const uid = useId().replace(/[:]/g, "");
   const ids = { b: `fsb-${uid}`, w: `fsw-${uid}`, shine: `fss-${uid}` };
@@ -72,8 +87,10 @@ export function StoneField({ live = true }) {
     let onScreen = true, awake = true;
 
     const beat = () => {
-      state = fieldSpent(state) ? advanceField(freshField(), SETTLED) : advanceField(state, 1);
-      setBoard(state.board);
+      const before = state.board;
+      const dealing = fieldSpent(state);
+      state = dealing ? advanceField(freshField(), SETTLED) : advanceField(state, 1);
+      setFrame({ board: state.board, gone: dealing ? [] : departed(before, state.board) });
     };
     const stop = () => { if (timer) { clearInterval(timer); timer = null; } };
     const start = () => { if (moving && !timer && onScreen && awake && !dead) timer = setInterval(beat, TICK_MS); };
@@ -83,7 +100,7 @@ export function StoneField({ live = true }) {
       state = advanceField(state, CHUNK);
       if (state.n < SETTLED && !fieldSpent(state)) { frame = requestAnimationFrame(seed); return; }
       if (dead) return;
-      setBoard(state.board);
+      setFrame({ board: state.board, gone: [] });
       start();
     };
     frame = requestAnimationFrame(seed);
@@ -114,6 +131,24 @@ export function StoneField({ live = true }) {
 
   const at = (n) => OFF + MARGIN + n * CELL;
 
+  const board = frame && frame.board;
+  const gone = (frame && frame.gone) || [];
+
+  /** One stone, at the size the field draws them. */
+  const stone = (s, className, key) => (
+    <g key={key} className={className}>
+      <circle cx={at(s.c)} cy={at(s.r)} r={R}
+        fill={`url(#${s.colour === "b" ? ids.b : ids.w})`} />
+      {/* A white stone on a pale ground is the same value as the ground:
+          without an edge it is a hole in the field rather than a stone in it,
+          and half the position simply does not arrive. The board does not need
+          this because a board has lines under its stones to cut them out. This
+          has none. */}
+      <circle cx={at(s.c)} cy={at(s.r)} r={R} className="fs-rim" />
+      <Shine x={at(s.c)} y={at(s.r)} r={R} id={ids.shine} className="fs-shine" />
+    </g>
+  );
+
   return (
     <div className={`stone-field${board ? " ready" : ""}`} ref={host} aria-hidden="true">
       {board && (
@@ -122,20 +157,11 @@ export function StoneField({ live = true }) {
           {/* Keyed by the point it sits on, which is what makes the arriving
               visible: a stone that was not there last tick is a new element and
               settles in, and one that was there is the same element and does
-              not move. A capture simply takes its element away. */}
-          {fieldStones(board).map(s => (
-            <g key={s.i} className="fs-stone">
-              <circle cx={at(s.c)} cy={at(s.r)} r={R}
-                fill={`url(#${s.colour === "b" ? ids.b : ids.w})`} />
-              {/* A white stone on a pale ground is the same value as the
-                  ground: without an edge it is a hole in the field rather than
-                  a stone in it, and half the position simply does not arrive.
-                  The board does not need this because a board has lines under
-                  its stones to cut them out. This has none. */}
-              <circle cx={at(s.c)} cy={at(s.r)} r={R} className="fs-rim" />
-              <Shine x={at(s.c)} y={at(s.r)} r={R} id={ids.shine} className="fs-shine" />
-            </g>
-          ))}
+              not move. A departing stone is keyed apart from the point it left,
+              so a capture and the move that follows it into the same point are
+              two elements and not one flickering between two states. */}
+          {gone.map(s => stone(s, "fs-stone leaving", `l${s.i}`))}
+          {fieldStones(board).map(s => stone(s, "fs-stone", s.i))}
         </svg>
       )}
     </div>
