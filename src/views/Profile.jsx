@@ -10,7 +10,10 @@ import { MARKS } from "../store/profile.js";
 import { typefaceOf } from "../content/typeface.js";
 import { setName } from "./look.js";
 import { PALETTES, themeOf, themeVars, SYSTEM_THEME, stoneSetOf } from "../theme/index.js";
-import { CLASSIC, LEVELS, BELOW_THE_LEVELS, levelForRank, chapterByNumber } from "../content/classic.js";
+import {
+  LEVELS, levelForRank, chapterByNumber,
+  localizeLevel, localizeChapter, localizeClassic, belowTheLevels,
+} from "../content/classic.js";
 import { LESSONS } from "../content/lessons.js";
 import { PROBLEMS } from "../content/problems.js";
 import { dayKey, liveStreak } from "../content/kata.js";
@@ -31,10 +34,10 @@ function LevelsCard({ rank }) {
   return (
     <Card>
       <div className="stat-head"><Mountain size={16} /><span>{t("profile.levels.head")}</span></div>
-      <p className="fine" style={{ marginTop: 6 }}>{t("profile.levels.note", { classic: CLASSIC.title })}</p>
-      <PullQuote>{chapterByNumber(12).plain}</PullQuote>
+      <p className="fine" style={{ marginTop: 6 }}>{t("profile.levels.note", { classic: localizeClassic(t).title })}</p>
+      <PullQuote>{localizeChapter(chapterByNumber(12), t).plain}</PullQuote>
       <ol className="level-list">
-        {LEVELS.map(l => (
+        {LEVELS.map(authored => localizeLevel(authored, t)).map(l => (
           <li key={l.n} className={`level-row ${mine && mine.n === l.n ? "here" : ""}`}
             aria-current={mine && mine.n === l.n ? "true" : undefined}>
             <span className="level-rank">{l.rank}</span>
@@ -46,7 +49,7 @@ function LevelsCard({ rank }) {
       <p className="fine" style={{ marginTop: 12 }}>
         {mine
           ? t("profile.levels.youStand", { ordinal: t(`profile.levels.ordinal.${mine.n}`), name: l0(mine.name) })
-          : t("profile.levels.below", { rank, note: BELOW_THE_LEVELS })}
+          : t("profile.levels.below", { rank, note: belowTheLevels(t) })}
       </p>
     </Card>
   );

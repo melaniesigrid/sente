@@ -14,7 +14,10 @@ import {
   lessonsInTier, lessonsInBook, lessonsInSeries, lessonAfter, bookProgressFor, trackByKey, isDone,
   tierById, seriesByKey,
 } from "../content/library.js";
-import { CLASSIC, CHAPTERS, PREFACE, NAMES, lessonIdsForChapter } from "../content/classic.js";
+import {
+  CLASSIC, CHAPTERS, NAMES, lessonIdsForChapter,
+  localizeChapter, localizePreface, localizeName, localizeClassic,
+} from "../content/classic.js";
 import { saveProfile } from "../store/profile.js";
 import { enrol, recallSummary } from "../content/recall.js";
 import { dayKey } from "../content/kata.js";
@@ -399,9 +402,11 @@ function NamesTable() {
           <div key={n.n} className={`name-cell ${n.sure ? "" : "unsure"}`}>
             <span className="name-word">{n.name}</span>
             <span className="name-modern">
-              {n.sure ? n.modern : n.modern ? t("learn.names.uncertain", { modern: n.modern }) : t("learn.names.none")}
+              {n.sure ? localizeName(n, t).modern
+                : n.modern ? t("learn.names.uncertain", { modern: localizeName(n, t).modern })
+                  : t("learn.names.none")}
             </span>
-            <span className="fine name-gloss">{n.text}</span>
+            <span className="fine name-gloss">{localizeName(n, t).text}</span>
           </div>
         ))}
       </div>
@@ -424,7 +429,9 @@ function Prose({ text, plain }) {
   ));
 }
 
-function ChapterRow({ chapter, lessons, done, onOpen }) {
+function ChapterRow({ chapter: authored, lessons, done, onOpen }) {
+  const t = useT();
+  const chapter = localizeChapter(authored, t);
   const [open, setOpen] = useState(false);
   return (
     <div className="chapter-row">
@@ -454,7 +461,7 @@ function ClassicCard({ done, onOpen }) {
   const finished = lessons.filter(l => done(l.id)).length;
   return (
     <Card inset className="stack-sm">
-      <div className="stat-head"><Quote size={15} /><span>{CLASSIC.title}</span></div>
+      <div className="stat-head"><Quote size={15} /><span>{localizeClassic(t).title}</span></div>
       <Statement lines={statementFor("learn", t)}>{plainFor("learn", t)}</Statement>
       <Passage context="learn" />
       <div className="row spread">
@@ -465,12 +472,12 @@ function ClassicCard({ done, onOpen }) {
       </div>
       {openList && (
         <div className="stack-sm">
-          <p className="fine">{CLASSIC.blurb} {CLASSIC.credit}</p>
+          <p className="fine">{localizeClassic(t).blurb} {localizeClassic(t).credit}</p>
           <div className="chapter-list">
             <div className="chapter-row">
               <div className="chapter-body preface">
-                <strong className="chapter-title">{PREFACE.title}</strong>
-                <Prose text={PREFACE.text} plain={PREFACE.plain} />
+                <strong className="chapter-title">{localizePreface(t).title}</strong>
+                <Prose text={localizePreface(t).text} plain={localizePreface(t).plain} />
               </div>
             </div>
             {CHAPTERS.map(ch => (

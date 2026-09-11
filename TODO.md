@@ -1146,7 +1146,11 @@ that is honestly still English.
       problems from the Xuanxuan and the two master games. Board coordinates and players'
       names are read the same way in every language and stay as they are. **Every lesson in
       the library now reads in Spanish.**
-- [ ] Spanish: the Classic's thirteen chapters, the preface and the thirty-two names.
+- [x] Spanish: the Classic — the preface, all thirteen chapters with their prose and their
+      sayings, the twenty passages, the nine levels, Huan Tan's three kinds and the
+      thirty-two names. The transliterated terms stay as they are: chapter eleven is about
+      those names and ends by arguing they must be set right before the shapes can be seen.
+      **Spanish is finished: every screen and every word of content.**
 - [ ] Spanish: the content prose. Lessons, personas, Moku, the plain-words statements, the
       books, the legal documents, and the Classic's thirteen chapters, in that order.
 - [ ] French, every slice above. Cheap after Spanish: the keys exist, so each PR is a

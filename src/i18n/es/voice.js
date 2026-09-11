@@ -1,5 +1,6 @@
 // es · voice
 export const voice = {
+  passageCite: "{author} · {book} · capítulo {n}, {title}",
   plainLabel: "En palabras llanas",
   clock: {
     none: "Sin reloj",

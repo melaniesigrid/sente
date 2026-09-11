@@ -29,6 +29,7 @@ import { lessons2 } from "./lessons2.js";
 import { lessons3 } from "./lessons3.js";
 import { lessons4 } from "./lessons4.js";
 import { lessons5 } from "./lessons5.js";
+import { classicBook, preface, kind, level, belowTheLevels, chapter, name, passage } from "./classic.js";
 import { content } from "./content.js";
 import { overlay } from "./overlay.js";
 
@@ -58,6 +59,14 @@ export const es = {
   series,
   problem,
   shape,
+  classicBook,
+  preface,
+  kind,
+  level,
+  belowTheLevels,
+  chapter,
+  name,
+  passage,
   legalDoc,
   credit,
   ...overlay,
