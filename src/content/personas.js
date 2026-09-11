@@ -8,7 +8,18 @@ import { RANK_LADDER } from "./rank.js";
    at home, used to suggest opponents and on the ladder; `profile.temperature`
    is how faithfully the sampled move follows the imitated player. `weights`
    feed the heuristic fallback used when the network cannot load. Chat lines
-   are picked at random per event. */
+   are picked at random per event.
+
+   MEASURED, NOT ASSUMED (2026-09-11, tools/calibrate, results.json). "A
+   personality, not a strength" used to be an intention. It has now been played
+   out: on 9x9, the rank axis orders the profiles — 5k beat 15k and 10k beat
+   20k, both 8 wins in 9 decided games — while temperature did not separate from
+   a coin, 10k at 0.4 against 10k at 1.4 going 3 in 8 with an interval of 14% to
+   69%. So the rank the game is played at is what carries strength, and the
+   temperatures below are left exactly where the personas' authors put them:
+   nudging a number on evidence that cannot tell it from noise would be
+   inventing a calibration rather than doing one. Thirty games is a small
+   sample and the roadmap carries the bigger run it wants. */
 export const PERSONAS = [
   {
     id: "hoshi", name: "Hoshi", tint: "mint", range: ["25k", "12k"], profile: { temperature: 1.0 },

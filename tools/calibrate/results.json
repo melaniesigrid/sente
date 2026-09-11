@@ -1,0 +1,436 @@
+{
+  "started": "2026-09-11T15:43:26.860Z",
+  "size": 9,
+  "komi": 5.5,
+  "games": 10,
+  "pairings": [
+    {
+      "id": "ladder-a",
+      "why": "Does the rank axis order the profiles?",
+      "a": {
+        "rank": "5k",
+        "temperature": 0.8
+      },
+      "b": {
+        "rank": "15k",
+        "temperature": 0.8
+      },
+      "games": 10,
+      "decided": 9,
+      "aWins": 8,
+      "rate": 0.8888888888888888,
+      "ci": {
+        "lo": 0.5649937852319398,
+        "hi": 0.9801096286728695
+      },
+      "separated": true,
+      "unfinished": 1,
+      "results": [
+        {
+          "winner": "b",
+          "finished": true,
+          "moves": 163,
+          "cleanup": 1,
+          "stalled": false,
+          "margin": 75.5,
+          "seed": 1008,
+          "aIsBlack": true,
+          "aWon": true,
+          "seconds": 63
+        },
+        {
+          "winner": "w",
+          "finished": true,
+          "moves": 88,
+          "cleanup": 51,
+          "stalled": false,
+          "margin": 86.5,
+          "seed": 2008,
+          "aIsBlack": false,
+          "aWon": true,
+          "seconds": 35
+        },
+        {
+          "winner": "b",
+          "finished": true,
+          "moves": 135,
+          "cleanup": 11,
+          "stalled": false,
+          "margin": 75.5,
+          "seed": 3008,
+          "aIsBlack": true,
+          "aWon": true,
+          "seconds": 45
+        },
+        {
+          "winner": "w",
+          "finished": true,
+          "moves": 152,
+          "cleanup": 5,
+          "stalled": false,
+          "margin": 86.5,
+          "seed": 4008,
+          "aIsBlack": false,
+          "aWon": true,
+          "seconds": 54
+        },
+        {
+          "winner": null,
+          "finished": false,
+          "moves": 203,
+          "margin": null,
+          "cleanup": 0,
+          "seed": 5008,
+          "aIsBlack": true,
+          "aWon": null,
+          "seconds": 76
+        },
+        {
+          "winner": "b",
+          "finished": true,
+          "moves": 183,
+          "cleanup": 9,
+          "stalled": false,
+          "margin": 75.5,
+          "seed": 6008,
+          "aIsBlack": false,
+          "aWon": false,
+          "seconds": 63
+        },
+        {
+          "winner": "b",
+          "finished": true,
+          "moves": 119,
+          "cleanup": 23,
+          "stalled": false,
+          "margin": 75.5,
+          "seed": 7008,
+          "aIsBlack": true,
+          "aWon": true,
+          "seconds": 57
+        },
+        {
+          "winner": "w",
+          "finished": true,
+          "moves": 98,
+          "cleanup": 39,
+          "stalled": false,
+          "margin": 86.5,
+          "seed": 8008,
+          "aIsBlack": false,
+          "aWon": true,
+          "seconds": 42
+        },
+        {
+          "winner": "b",
+          "finished": true,
+          "moves": 159,
+          "cleanup": 5,
+          "stalled": false,
+          "margin": 75.5,
+          "seed": 9008,
+          "aIsBlack": true,
+          "aWon": true,
+          "seconds": 58
+        },
+        {
+          "winner": "w",
+          "finished": true,
+          "moves": 130,
+          "cleanup": 15,
+          "stalled": false,
+          "margin": 86.5,
+          "seed": 10008,
+          "aIsBlack": false,
+          "aWon": true,
+          "seconds": 51
+        }
+      ]
+    },
+    {
+      "id": "ladder-b",
+      "why": "Does it order them at the weak end, where most players are?",
+      "a": {
+        "rank": "10k",
+        "temperature": 0.8
+      },
+      "b": {
+        "rank": "20k",
+        "temperature": 0.8
+      },
+      "games": 10,
+      "decided": 9,
+      "aWins": 8,
+      "rate": 0.8888888888888888,
+      "ci": {
+        "lo": 0.5649937852319398,
+        "hi": 0.9801096286728695
+      },
+      "separated": true,
+      "unfinished": 1,
+      "results": [
+        {
+          "winner": "b",
+          "finished": true,
+          "moves": 137,
+          "cleanup": 5,
+          "stalled": false,
+          "margin": 75.5,
+          "seed": 1008,
+          "aIsBlack": true,
+          "aWon": true,
+          "seconds": 58
+        },
+        {
+          "winner": null,
+          "finished": false,
+          "moves": 203,
+          "margin": null,
+          "cleanup": 0,
+          "seed": 2008,
+          "aIsBlack": false,
+          "aWon": null,
+          "seconds": 85
+        },
+        {
+          "winner": "b",
+          "finished": true,
+          "moves": 149,
+          "cleanup": 9,
+          "stalled": false,
+          "margin": 75.5,
+          "seed": 3008,
+          "aIsBlack": true,
+          "aWon": true,
+          "seconds": 62
+        },
+        {
+          "winner": "b",
+          "finished": true,
+          "moves": 151,
+          "cleanup": 13,
+          "stalled": false,
+          "margin": 75.5,
+          "seed": 4008,
+          "aIsBlack": false,
+          "aWon": false,
+          "seconds": 58
+        },
+        {
+          "winner": "b",
+          "finished": true,
+          "moves": 149,
+          "cleanup": 5,
+          "stalled": false,
+          "margin": 75.5,
+          "seed": 5008,
+          "aIsBlack": true,
+          "aWon": true,
+          "seconds": 57
+        },
+        {
+          "winner": "w",
+          "finished": true,
+          "moves": 158,
+          "cleanup": 9,
+          "stalled": false,
+          "margin": 86.5,
+          "seed": 6008,
+          "aIsBlack": false,
+          "aWon": true,
+          "seconds": 64
+        },
+        {
+          "winner": "b",
+          "finished": true,
+          "moves": 161,
+          "cleanup": 7,
+          "stalled": false,
+          "margin": 75.5,
+          "seed": 7008,
+          "aIsBlack": true,
+          "aWon": true,
+          "seconds": 61
+        },
+        {
+          "winner": "w",
+          "finished": true,
+          "moves": 152,
+          "cleanup": 11,
+          "stalled": false,
+          "margin": 86.5,
+          "seed": 8008,
+          "aIsBlack": false,
+          "aWon": true,
+          "seconds": 56
+        },
+        {
+          "winner": "b",
+          "finished": true,
+          "moves": 193,
+          "cleanup": 35,
+          "stalled": false,
+          "margin": 75.5,
+          "seed": 9008,
+          "aIsBlack": true,
+          "aWon": true,
+          "seconds": 73
+        },
+        {
+          "winner": "w",
+          "finished": true,
+          "moves": 148,
+          "cleanup": 7,
+          "stalled": false,
+          "margin": 86.5,
+          "seed": 10008,
+          "aIsBlack": false,
+          "aWon": true,
+          "seconds": 60
+        }
+      ]
+    },
+    {
+      "id": "temperature",
+      "why": "Does temperature weaken a profile, as the personas assume?",
+      "a": {
+        "rank": "10k",
+        "temperature": 0.4
+      },
+      "b": {
+        "rank": "10k",
+        "temperature": 1.4
+      },
+      "games": 10,
+      "decided": 8,
+      "aWins": 3,
+      "rate": 0.375,
+      "ci": {
+        "lo": 0.13684175946152105,
+        "hi": 0.6942621454161982
+      },
+      "separated": false,
+      "unfinished": 2,
+      "results": [
+        {
+          "winner": "b",
+          "finished": true,
+          "moves": 115,
+          "cleanup": 19,
+          "stalled": false,
+          "margin": 75.5,
+          "seed": 1011,
+          "aIsBlack": true,
+          "aWon": true,
+          "seconds": 42
+        },
+        {
+          "winner": "w",
+          "finished": true,
+          "moves": 85,
+          "cleanup": 16,
+          "stalled": false,
+          "margin": 26.5,
+          "seed": 2011,
+          "aIsBlack": false,
+          "aWon": true,
+          "seconds": 36
+        },
+        {
+          "winner": null,
+          "finished": false,
+          "moves": 203,
+          "margin": null,
+          "cleanup": 0,
+          "seed": 3011,
+          "aIsBlack": true,
+          "aWon": null,
+          "seconds": 77
+        },
+        {
+          "winner": "b",
+          "finished": true,
+          "moves": 65,
+          "cleanup": 48,
+          "stalled": false,
+          "margin": 7.5,
+          "seed": 4011,
+          "aIsBlack": false,
+          "aWon": false,
+          "seconds": 23
+        },
+        {
+          "winner": null,
+          "finished": false,
+          "moves": 203,
+          "margin": null,
+          "cleanup": 0,
+          "seed": 5011,
+          "aIsBlack": true,
+          "aWon": null,
+          "seconds": 76
+        },
+        {
+          "winner": "b",
+          "finished": true,
+          "moves": 169,
+          "cleanup": 9,
+          "stalled": false,
+          "margin": 75.5,
+          "seed": 6011,
+          "aIsBlack": false,
+          "aWon": false,
+          "seconds": 60
+        },
+        {
+          "winner": "w",
+          "finished": true,
+          "moves": 66,
+          "cleanup": 27,
+          "stalled": false,
+          "margin": 0.5,
+          "seed": 7011,
+          "aIsBlack": true,
+          "aWon": false,
+          "seconds": 23
+        },
+        {
+          "winner": "b",
+          "finished": true,
+          "moves": 51,
+          "cleanup": 46,
+          "stalled": false,
+          "margin": 1.5,
+          "seed": 8011,
+          "aIsBlack": false,
+          "aWon": false,
+          "seconds": 17
+        },
+        {
+          "winner": "b",
+          "finished": true,
+          "moves": 131,
+          "cleanup": 15,
+          "stalled": false,
+          "margin": 75.5,
+          "seed": 9011,
+          "aIsBlack": true,
+          "aWon": true,
+          "seconds": 41
+        },
+        {
+          "winner": "b",
+          "finished": true,
+          "moves": 139,
+          "cleanup": 15,
+          "stalled": false,
+          "margin": 75.5,
+          "seed": 10011,
+          "aIsBlack": false,
+          "aWon": false,
+          "seconds": 43
+        }
+      ]
+    }
+  ]
+}

@@ -328,8 +328,35 @@ imitates a rank: Hoshi 20k, Tetsu 15k, Yuki 10k, Ren 5k, Sora 1k, Kaede 2d, Tats
       fp32 compute (53 MB, in `public/models/`). `gen_fixtures.py` regenerates fixtures.
 - [x] Game preloads the network when a bot game opens, shows download progress in the
       status pill, and falls back to the heuristic player if the network cannot load.
-- [ ] Calibrate: bot-vs-bot ladder and real-game win rates; adjust `profile.temperature`
-      or nudge a persona's rank if it plays a stone stronger or weaker than its badge.
+- [x] Calibrate, the measurement (2026-09-11, branch `feat/calibrate`). `tools/calibrate/`
+      plays rank profiles against each other headlessly and reports win rates with a Wilson
+      interval beside every number; the run is in `tools/calibrate/results.json`.
+      First run, 9x9, 10 games a pairing, colours alternating, komi the board is owed:
+      **5k beat 15k 8 of 9** and **10k beat 20k 8 of 9** (both intervals clear of a coin),
+      so the rank axis orders the profiles and a badge at ten ranks' distance is telling
+      the truth. **Temperature did not separate**: 10k at 0.4 against 10k at 1.4 went 3 in
+      8, interval 14% to 69%. So nothing was adjusted. "A persona is a personality, not a
+      strength" was an intention in `personas.js` and is now a measurement, recorded there.
+      Nudging a temperature on evidence that cannot tell it from noise would be inventing a
+      calibration rather than doing one.
+      Decisions: two passes do not give a score you can trust, because nobody is here to
+      tap the dead stones off — the first run of the harness produced a 73.5 point margin
+      on a board with 81 points on it. A finished game is played out mechanically instead
+      (`cleanup.mjs`), each side playing any legal move that is not filling its own eye,
+      after which area scoring is exact rather than assumed. The eye rule is the
+      conservative one: refusing to fill a real eye costs a point, filling one costs a game.
+      Everything that decides a move is imported from the engine, because a run against a
+      special bot would measure the special bot.
+- [ ] Calibrate, the adjustment. Thirty games is a small sample and three of them hit the
+      move cap unfinished. Temperature wants a few hundred games before anything is moved,
+      and 19x19 is the board the personas are actually badged for — at about 1.2 s a move
+      that is a machine left running overnight, not a coffee. Real-game win rates from the
+      ring buffer (`byBot`) are the other half and are still only shown, never read.
+- [ ] The raw policy decides a 9x9 by annihilation: every decided game in the first run was
+      won by 75 points or more, with one side's groups all captured. That is what a policy
+      net with no search does without a resignation rule, and it makes the margin useless as
+      a signal even though the win is sound. Worth a look before any 9x9 strength claim
+      leans on a margin.
 - [x] The network runs in its own thread (`src/engine/kata/session.worker.js`,
       2026-09-10). It is the same single-threaded build doing the same arithmetic in the
       same order, so the logits stay bit-identical and the duel is untouched; what changed
