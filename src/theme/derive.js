@@ -10,14 +10,15 @@
    is correct by construction.
 
    An author may still override any derived value — the named palettes do,
-   where a hand-mixed tone beat the computed one — but nothing is required. */
+   where a hand-mixed tone beat the computed one — but nothing is required.
+
+   Which stones a room is played with is data of its own (stones.js). What
+   happens to a stone once a room has one is here, because it depends on the
+   room: a black stone has to be seated further into a dark board or it reads as
+   grey slate lying on top of the wood. */
 import { mix, lighten, darken, toTriple, isDarkColor, luminance, contrast } from "./color.js";
 import { TONES, READING, LARGE } from "./tokens.js";
-
-/** The stones, as they are cut. Slate and shell are real objects; a theme does
- *  not tint them, it only seats them further into a dark board. */
-const STONE_B = ["#6b655a", "#4b463c", "#3a362e"];
-const STONE_W = ["#fdfaf4", "#f2ede3", "#ddd5c6"];
+import { stonesOf, cutBlack, cutWhite, HOUSE_STONES } from "./stones.js";
 
 /** The two lights, from the ground alone.
  *
@@ -107,8 +108,10 @@ export function completeTones(tones) {
     dark: tones.dark || auto.dark,
     danger: tones.danger || deriveDanger(ground),
     grid: tones.grid,
-    stoneB: tones.stoneB,
-    stoneW: tones.stoneW,
+    // Which set this room is played with. An id rather than colours: the set
+    // itself is data in stones.js, and a player may override it for every room
+    // at once from the look page.
+    stones: tones.stones || HOUSE_STONES,
   };
   for (const tone of TONES) if (!out[tone.key]) throw new Error(`sente: palette is missing ${tone.key}`);
   return out;
@@ -127,8 +130,7 @@ export function tokensFor(tones) {
 
   const [d, blur] = dark ? [10, 24] : [8, 18];
   const [ds, blurs] = dark ? [6, 15] : [5, 12];
-  const b = t.stoneB || deriveStoneB(t.ground);
-  const w = t.stoneW || STONE_W;
+  const { b, w } = stonesFor(t);
 
   return {
     "--ground": t.ground,
@@ -182,14 +184,26 @@ export function tokensFor(tones) {
   };
 }
 
-/** Slate, seated toward the board it is played on. On paper this returns the
- *  stones unchanged; on a dark ground it pulls them down so the stone stays
+/** The black stone, seated toward the board it is played on. On paper this
+ *  returns the set as cut; on a dark ground it pulls the stone down so it stays
  *  black rather than turning into grey slate, while its crown stays above the
- *  ground so the piece still separates from the wood. */
-export function deriveStoneB(ground) {
-  if (!isDarkColor(ground)) return STONE_B;
+ *  ground so the piece still separates from the wood.
+ *
+ *  Only the black stone is seated. A white stone barely differs from paper and
+ *  never has, and on a dark board it needs no help at all: what separates it
+ *  there is its rim and its drop shadow, not its fill. */
+export function deriveStoneB(ground, core = stonesOf(HOUSE_STONES).b) {
+  const cut = cutBlack(core);
+  if (!isDarkColor(ground)) return cut;
   const seat = 0.35 + 0.15 * (1 - Math.min(1, luminance(ground) / 0.32));
-  return STONE_B.map((s, i) => mix(s, ground, seat - i * 0.05));
+  return cut.map((s, i) => mix(s, ground, seat - i * 0.05));
 }
 
-export { STONE_B, STONE_W };
+/** Both stones a completed tone set is played with, ready for the gradient:
+ *  the set's two cores, cut into three stops each, the black one seated into
+ *  this room's board. One function, so the board, the swatches and the audit
+ *  can never be looking at three different sets of stones. */
+export function stonesFor(tones) {
+  const set = stonesOf(tones.stones);
+  return { b: deriveStoneB(tones.ground, set.b), w: cutWhite(set.w), set };
+}

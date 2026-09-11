@@ -80,14 +80,15 @@ export const RULES = [
     why: "A loss should read at a glance without being read." },
 ];
 
-/** Shell against slate. Not a tone-against-tone rule, because the black stone
- *  is derived from the ground rather than authored — on a dark board the ink is
+/** The two stones against each other. Not a tone-against-tone rule, because a
+ *  stone is not a tone: the set is data of its own (stones.js), and the black
+ *  half of it is seated toward the board it is played on — on a dark board the ink is
  *  the light text and the stone is seated toward the wood. What must never
  *  collapse is the difference between the two stones. (A white stone barely
  *  differs from paper and never has: what separates it there is its rim and its
  *  drop shadow, not its fill.) */
 export const STONE_RULE = {
-  id: "stones", label: "Shell against slate", min: 4.5,
+  id: "stones", label: "The two stones", min: 4.5,
   why: "Black and white have to be unmistakable at a glance, across a board, at speed.",
 };
 
