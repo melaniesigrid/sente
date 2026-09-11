@@ -5,11 +5,11 @@
    Type is the one themed part: the display and body families are tokens set by
    the shell from the chosen pairing (src/content/typeface.js), and the block
    below carries the house pairing as the default. */
-import { GOOGLE_IMPORT } from "../content/typeface.js";
+import { GOOGLE_FACES } from "./googleFaces.js";
 import { FONT_FACES } from "./fontfaces.js";
 
 export const CSS = `
-${GOOGLE_IMPORT}
+${GOOGLE_FACES}
 ${FONT_FACES}
 
 .sente-root {

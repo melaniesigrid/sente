@@ -895,7 +895,22 @@ Open:
       own stones beside the tones rather than inheriting whatever it was started from.
 - [ ] Dark variant of the stone palette.
 - [x] Sound and haptic feedback on stone placement (opt-in, synthesised, no assets).
-- [ ] Self-host fonts instead of the Google Fonts `@import`.
+- [x] Self-host fonts instead of the Google Fonts `@import` (2026-09-11, branch
+      `feat/self-host-fonts`). `tools/fonts/fetch.mjs` (`npm run fonts`) downloads the five
+      text families once into `src/fonts/google/` and generates `src/styles/googleFaces.js`;
+      the app fetches nothing at runtime and the privacy notice lost its third party.
+      Decisions: Google declares one @font-face per weight but serves ONE variable file for
+      all of them, so faces are grouped by the file they point at and declared as the range
+      they really are — 40 files and 1.9 MB became 18 and 776 KB. Every `unicode-range` is
+      kept as written, because that is what lets a browser skip latin-ext on a page with no
+      accented characters; dropping it would make self-hosting slower than the CDN. Only
+      latin and latin-ext are kept (cyrillic, greek and vietnamese were a third of the bytes
+      for characters nothing in the app can produce) — add to `KEEP` and re-run if a language
+      needs one. The tests hold the chain end to end: a pairing may only name a declared
+      family, a declared family must have a face behind it, the list must match what the tool
+      downloads, and the stylesheet must contain no `@import` and no remote url.
+- [ ] The two borrowed display cuts are still OTF (`src/fonts/`). Now that there is a font
+      tool, converting Welorac and Qliesya to woff2 belongs next to it.
 
 ## Parking lot — wild ideas (brainstorm 2026-09-09)
 
