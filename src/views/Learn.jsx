@@ -444,7 +444,7 @@ function ClassicCard({ done, onOpen }) {
   return (
     <Card inset className="stack-sm">
       <div className="stat-head"><Quote size={15} /><span>{CLASSIC.title}</span></div>
-      <Statement lines={statementFor("learn")}>{plainFor("learn")}</Statement>
+      <Statement lines={statementFor("learn")} figure="learn">{plainFor("learn")}</Statement>
       <Passage context="learn" />
       <div className="row spread">
         <span className="fine">{finished}/{lessons.length} chapters read</span>

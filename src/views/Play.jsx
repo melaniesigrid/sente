@@ -92,7 +92,7 @@ export function PlayView({ profile, setProfile, notify, resume }) {
                 their own style and table talk, or hand the device across the table for a
                 face-to-face game. House players adapt to the level you pick, from 25 kyu
                 to 9 dan, and play any board." />
-        <Statement lines={statementFor("play")}>{plainFor("play")}</Statement>
+        <Statement lines={statementFor("play")} figure="play">{plainFor("play")}</Statement>
         <Passage context="play" />
         <OnlineCard profile={profile} notify={notify} onPlay={setSession} size={table.size} />
         <DuelCard profile={profile} today={today} mode={duelMode(PERSONAS, today)}

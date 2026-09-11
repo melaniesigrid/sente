@@ -168,7 +168,7 @@ export function RecallView({ profile, setProfile, go }) {
     return (
       <div className="stack arrives">
         {header}
-        <Statement lines={statementFor("recall")}>{plainFor("recall")}</Statement>
+        <Statement lines={statementFor("recall")} figure="recall" at="left">{plainFor("recall")}</Statement>
         <Card inset className="resume-card">
           <div className="resume-copy">
             <div className="stat-head"><CalendarClock size={15} /><span>Nothing due today</span></div>

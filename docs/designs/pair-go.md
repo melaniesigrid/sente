@@ -78,6 +78,17 @@ versions of this reason, and this is the largest version of it. Phase C (four hu
 no bots) could be rated with a team rating one day, but a team rating is a different
 number with a different meaning and it is not being smuggled in under this one.
 
+## Where it stands
+
+| | mode | phase | state |
+|---|---|---|---|
+| offline | you + a 7 dan vs a persona + its 7 dan | A | ✅ |
+| online | two people, each with their own 7 dan | B | ✅ |
+| online | four people, no bots | C1 | ✅ |
+| online | invite a named friend onto your team | C2 | open |
+
+One roster model covers all three. Each row changes only who occupies a seat.
+
 ## Phases
 
 ### Phase A: pair go against a bot team *(client only)*
@@ -98,21 +109,73 @@ second human. Ships as three PRs:
 
 Two humans, each with their own bot partner.
 
-- **B1 · rooms with rosters.** `server/room.js` carries a roster instead of
+- **B1 · rooms with rosters.** ✅ `server/room.js` carries a roster instead of
   `seats: { b, w }`, and validates the seat as well as the colour. A two-seat room is
-  the same code path, so existing online games migrate rather than fork.
-- **B2 · seating four.** Matchmaking for a pair table, and the invite link that seats a
-  partner. **Each human's browser runs their own bot partner** and submits its move
-  like any other: no KataGo on the server, no new infrastructure. The cost is that a
-  team's partner needs that team's device online, which the table states.
+  the same code path, and rooms stored before the roster are migrated on read.
+
+  Four rules turned out to differ at a four-seat table, and all four are the same
+  question: *what binds a team, and what binds a chair?*
+
+  | | two seats | four seats |
+  |---|---|---|
+  | may move | the colour to play | the **seat** to play (`canSeatPlay`) |
+  | undo | one move, asked while the opponent is to play | the **whole rotation**, asked on your own turn |
+  | who answers an undo | the opponent | **either** opponent; never your own partner |
+  | resign / accept | you | **either partner**, binding the team |
+
+  The undo rule is the one worth arguing with. One move back at a pair table would
+  hand the board to your *partner*, in the middle of a round nobody finished, so the
+  unit of a take-back is the round, which lands the asker back in their own chair, and
+  that is why it is asked for on your own turn rather than off it.
+
+  Chat stays one room-wide conversation. There is no team channel and there must not
+  be: a private line to your partner is precisely what "partners may not consult"
+  forbids, so the protocol has nowhere to put one.
+- **B2 · seating four.** ✅ Matchmaking for a pair table. **Each human's browser runs
+  their own bot partner** and submits its move like any other: no KataGo on the server,
+  no new infrastructure. The cost is that a team's partner needs that team's device
+  online, which the lobby states before you sit down.
+
+  A bot seat carries `runBy` (the player id whose browser answers for it), and that one
+  field is the whole mechanism. On top of it sits the rule that keeps clients honest:
+
+  > A move is applied as whichever seat is **actually to play**, when the sender controls
+  > it. A client never names the chair it means, and so can never name the wrong one.
+
+  Everything that is not a move (chat, resigning, accepting the count, asking for an
+  undo) speaks from the sender's own chair, because those are theirs and not their
+  partner's. A player who controls two seats and is to play in neither falls back to
+  their own chair, so the refusal reads "not your turn" rather than "you are nobody".
+
+  A pair seek only ever meets another pair seek: sitting down expecting a partner and
+  getting an ordinary game is not a near miss, it is a different game.
+
+  The invite link that seats a *named* friend is still open. The rendezvous word already
+  matches two pair seekers; what is missing is choosing which team a friend joins, and
+  that only starts to matter in Phase C.
 - **B3 · four chairs are fragile.** Disconnection, reconnection and an abandoned seat
   in a four-seat room; spectating a pair game.
 
 ### Phase C: four humans *(true rengo)*
 
-- **C1 · all-human rosters.** Four human seats; no partner bot. The one new rule is a
-  social one that the interface has to keep: partners may not consult, so a pair game
-  has no team-only chat while it is live.
+- **C1 · all-human rosters.** ✅ Four human seats; no partner bot. The seat model did
+  not change at all; what changed is that **no seat carries a runner**.
+
+  That turned out to be the one real hazard in the whole phase. B2 gave a bot partner a
+  `runBy` so the partnering player's browser could answer for it; applied to a *human*
+  partner the same field would hand a player their partner's chair, which is precisely
+  what pair go forbids. `seat()` now strips `runBy` from every human seat rather than
+  trusting the caller, and the test that says so is the most important one in
+  `server/room.test.js`.
+
+  Four seekers fill a table in arrival order (b1, w1, b2, w2), so the first two to
+  arrive lead the teams and the next two partner them. Arbitrary, but arbitrary in the
+  open: everybody can see the rule, and nobody is quietly put on the stronger side.
+
+  The no-team-chat rule needed no work at all. Chat has been one room-wide conversation
+  since B1, because a private line to your partner is exactly what the rule forbids,
+  which is what it looks like when a social rule is designed into a protocol instead of
+  being asked of the people using it.
 - **C2 · seating a team.** Invite a friend to your team, matchmake pairs against pairs,
   and decide whether a team rating is a number Joseki is willing to stand behind.
 
