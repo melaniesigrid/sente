@@ -843,7 +843,7 @@ ${FONT_FACES}
    reveal, and fading a mask as its contents rise reads as two ideas. */
 .lp-band {
   width: 100%; display: flex; justify-content: center;
-  padding: clamp(54px, 8vw, 116px) clamp(20px, 5vw, 48px);
+  padding: clamp(44px, 6vw, 92px) clamp(20px, 5vw, 48px) clamp(28px, 3.5vw, 52px);
 }
 .lp-band-inner { width: 100%; max-width: 1080px; }
 .statement.lp { margin: 0; padding: 0; border: 0; }
@@ -1284,7 +1284,7 @@ ${FONT_FACES}
 }
 .lp-hero-copy { flex: 1 1 420px; max-width: 620px; }
 .lp-hero-board { flex: 0 1 420px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
-.lp-board-well { border-radius: var(--r); box-shadow: var(--sink); padding: clamp(14px, 2vw, 24px); width: 100%; }
+.lp-board-well { border-radius: var(--r); box-shadow: var(--sink); padding: clamp(14px, 2vw, 24px); width: 100%; background: var(--ground); }
 .lp-board-note { color: var(--ink-2); margin: 0; font-family: var(--font-caption); font-style: var(--caption-style); font-size: 13px; text-align: center; }
 
 /* The stat chips are sunken, so they read as facts stamped into the ground
@@ -1367,6 +1367,44 @@ ${FONT_FACES}
   padding: clamp(76px, 11vw, 148px) clamp(20px, 5vw, 48px) clamp(56px, 8vw, 96px);
 }
 .lp-final .lp-lede { margin-bottom: 34px; }
+
+/* ---- the ground: a go position, blurred ----
+   A real game drawn at wall size and thrown out of focus. The circles are
+   stones, in the two stone tokens, so it turns over with the room and with the
+   stone set exactly as the boards do.
+
+   The rule it has to respect is the one the whole design rests on: the two
+   shadows read as light falling on a flat ground, and they stop reading the
+   moment there is texture directly under a raised or a sunken thing. So the
+   field is a layer under a band and every card, button and well on top of it
+   carries its own ground. The band's own contents are lifted a layer clear.
+
+   The mask is not a scrim over the picture — it is the ground itself coming
+   back in at the edges, so the field has no border and never ends on a line. */
+.lp-ground { position: relative; isolation: isolate; }
+.lp-ground > *:not(.stone-field) { position: relative; z-index: 1; }
+.stone-field {
+  position: absolute; inset: 0; z-index: 0; overflow: hidden;
+  pointer-events: none; opacity: 0; transition: opacity 1.4s ease;
+}
+.stone-field.ready { opacity: .62; }
+.stone-field svg { width: 100%; height: 100%; display: block; filter: blur(13px); }
+.stone-field .fs-b { fill: var(--stone-b-2); }
+.stone-field .fs-w { fill: var(--stone-w-2); }
+/* the ground, closing back over the field at the edges */
+.stone-field::after {
+  content: ""; position: absolute; inset: -2px;
+  background: radial-gradient(farthest-side at 50% 50%, transparent 34%, var(--ground) 100%);
+}
+/* A phone gets a smaller blur, because the field is scaled down with it and a
+   13px radius on a 380px band is fog rather than stones. */
+@media (max-width: 620px) {
+  .stone-field svg { filter: blur(9px); }
+  .stone-field.ready { opacity: .42; }
+}
+/* Reduced motion still gets the picture — StoneField holds one settled
+   position rather than playing — but not the fade onto the page. */
+@media (prefers-reduced-motion: reduce) { .stone-field { transition: none; } }
 
 /* The slim chrome the landing wears: the wordmark, and one way in. Everything
    else in the topbar belongs to a player who has already sat down. */
