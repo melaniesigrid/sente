@@ -1096,7 +1096,10 @@ that is honestly still English.
 - [x] Spanish: tsumego, the ladder and the profile — including the belts, which are
       overlaid by id from `rank.js` the way a room's note is, since a belt's name is a
       description and not a name.
-- [ ] Spanish: learn and the lesson library (`Learn`, `lessonStep`, `Review`).
+- [x] Spanish: the library and the lesson player — `Learn`, the shelf, the Classic card,
+      the chapter list and the tier rail. The lessons' own prose, the tracks, the tiers and
+      the books are data and wait for the content slice.
+- [ ] Spanish: review mode and the SGF reader (`Review`, `reviewLine`, `sgfImport`).
 - [ ] Spanish: the landing page, onboarding, the small print, the letters.
 - [ ] Spanish: the content prose — Moku's lines, the personas, the welcome copy, the
       commentary. The Classic's thirteen chapters are a translation problem of their own
