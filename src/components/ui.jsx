@@ -108,10 +108,10 @@ export const PullQuote = ({ children, label = "In plain words", size = "" }) => 
    flourish and never the content: the whole statement is the paragraph's
    accessible name from the first frame, the animated spans are hidden from a
    reader, and less motion means the lines are simply already up. */
-export const Statement = ({ lines, children, label = "In plain words" }) => {
+export const Statement = ({ lines, children, label = "In plain words", className = "" }) => {
   if (!lines || lines.length === 0) return null;
   return (
-    <section className="statement">
+    <section className={`statement${className ? ` ${className}` : ""}`}>
       <p className="statement-lines" aria-label={lines.join(" ")}>
         {lines.map((line, i) => (
           <span className="statement-mask" key={i} aria-hidden="true">
