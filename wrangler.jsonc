@@ -4,10 +4,20 @@
   //   Room      one instance per game: the GameRecord, seats, chat, sockets
   // Deploy with `npm run deploy:server`; develop with `npm run dev:server` (port 8787).
   "$schema": "node_modules/wrangler/config-schema.json",
+  // The script name stays `sente-server` for the same reason the storage keys
+  // do: the Durable Object namespaces hang off it, and a rename would strand
+  // every account and every game on namespaces nothing points at.
   "name": "sente-server",
   "main": "server/index.js",
   "compatibility_date": "2026-09-01",
   "observability": { "enabled": true },
+
+  // The server answers on its own subdomain, so the app and the API are one
+  // registrable domain and the client never names a Cloudflare address.
+  // `custom_domain` makes wrangler create the DNS record and the certificate
+  // on deploy; the zone has to be on this Cloudflare account first, or the
+  // deploy fails rather than half-succeeding. workers.dev keeps answering too.
+  "routes": [{ "pattern": "api.joseki.online", "custom_domain": true }],
 
   // Cloudflare Email Sending, for the two letters in server/mail.js. The
   // binding is unrestricted because the recipient is whichever address the
@@ -20,9 +30,11 @@
 
   "vars": {
     // Where the links in those letters point: the app, not this Worker.
-    "APP_URL": "https://melaniesigrid.github.io/sente/",
-    "MAIL_FROM_NAME": "Joseki"
-    // "MAIL_FROM": "sente@example.com"  <- an onboarded domain, then uncomment
+    "APP_URL": "https://joseki.online/",
+    "MAIL_FROM_NAME": "Joseki",
+    // An address on the onboarded domain. It is not a mailbox anyone reads;
+    // Email Routing forwards anything sent back to it.
+    "MAIL_FROM": "hello@joseki.online"
   },
   "durable_objects": {
     "bindings": [

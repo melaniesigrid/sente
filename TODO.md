@@ -466,7 +466,7 @@ imitates a rank: Hoshi 20k, Tetsu 15k, Yuki 10k, Ren 5k, Sora 1k, Kaede 2d, Tats
 ## Phase 4: Multiplayer (server)
 
 Slice 1 landed 2026-09-10 on branch `feat/server`: a Cloudflare Worker (`server/`) with
-two Durable Object classes, deployed at https://sente-server.melaniesigrid.workers.dev.
+two Durable Object classes, deployed at https://api.joseki.online.
 
 - [x] Backend: accounts, game service over WebSocket. The `GameRecord` is the wire
       format; the server validates every move with the same engine (`server/room.js`
@@ -526,6 +526,16 @@ two Durable Object classes, deployed at https://sente-server.melaniesigrid.worke
       account, and `sente-server` runs on `workers.dev`, which is Cloudflare's and not
       ours. Until `MAIL_FROM` is set, `/api/health` reports `"mail": "off"` and every link
       goes to the log instead of the post. The four steps are in `docs/server-operations.md`.
+- [ ] Joseki's own address: `joseki.online` for the app, `api.joseki.online` for the server
+      (branch `feat/domain`). The repository side is done, and what is left is not in the
+      repository: the zone has to be added to the Cloudflare account and Namecheap's
+      nameservers pointed at it, the apex needs GitHub's four A records kept DNS-only, and
+      the deploy token needs a Workers Routes row for the zone before CI can claim the
+      subdomain. Landing this before the zone is live would fail the server deploy on the
+      custom domain, so it waits. It also unblocks the letters above: a domain on the
+      account is the one thing Email Sending was missing. Nobody's saved profile survives
+      the move, because local storage belongs to the old origin and nothing can read it
+      across; anyone with an account signs back in, anyone without starts again.
 - [ ] Change the address on an account. `attach` refuses a second one, so a typo today is
       permanent, and confirming makes the wrong address a *provably* wrong one. Wants the
       password and a fresh confirmation posted to the new address, and should hold the old
@@ -649,7 +659,7 @@ Decisions made in slice 1:
   comes back. On a 9x9 this is one round trip and feels instant; a local echo is a
   later polish if 19x19 over a slow link needs it.
 - `VITE_SENTE_SERVER` picks the server at build time (dev default `localhost:8787`,
-  production default the workers.dev URL, empty string disables online play).
+  production default `https://api.joseki.online`, empty string disables online play).
 
 ## Phase 5: Lesson library (30 kyu to dan)
 

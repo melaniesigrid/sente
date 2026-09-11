@@ -94,4 +94,4 @@ jobs:
       - if: steps.gate.outputs.ok == 'true'
         run: sleep 45
       - if: steps.gate.outputs.ok == 'true'
-        run: node tools/server/smoke.mjs https://sente-server.melaniesigrid.workers.dev
+        run: node tools/server/smoke.mjs https://api.joseki.online

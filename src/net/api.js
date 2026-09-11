@@ -10,7 +10,7 @@
 
 import { deriveKey } from "./password.js";
 
-const DEFAULT_URL = import.meta.env.DEV ? "http://localhost:8787" : "https://sente-server.melaniesigrid.workers.dev";
+const DEFAULT_URL = import.meta.env.DEV ? "http://localhost:8787" : "https://api.joseki.online";
 const configured = import.meta.env.VITE_SENTE_SERVER;
 export const SERVER_URL = (configured === undefined ? DEFAULT_URL : configured).replace(/\/+$/, "");
 export const serverEnabled = () => SERVER_URL !== "";

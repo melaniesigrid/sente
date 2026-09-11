@@ -68,6 +68,13 @@ test suite. `src/engine/index.js` is the only thing views import from it.
 
 ## Deploying
 
+Joseki is at **https://joseki.online**, and the server answers on **api.joseki.online**.
+The domain is registered at Namecheap with its nameservers pointed at Cloudflare, which is
+what lets the Worker hold a subdomain and lets the server post a letter. The apex resolves
+to GitHub Pages on four A records that must stay DNS-only in Cloudflare: proxying them puts
+Cloudflare's certificate in front of a host that wants to present its own, and Pages then
+cannot finish provisioning.
+
 **Server.** `server/` is a Cloudflare Worker with two Durable Object classes; config in
 `wrangler.jsonc`. `npm run dev:server` runs it on port 8787, `npm run deploy:server`
 publishes it (needs `npx wrangler login` once). `npx wrangler secret put ADMIN_TOKEN`
@@ -92,9 +99,16 @@ free plan, which is a set of daily ceilings rather than a bill. `docs/server-ope
 has the numbers, the operator routes, and the two secrets a human has to set.
 
 **App.** `.github/workflows/deploy.yml` builds on every push to `main` and publishes `dist/` to
-GitHub Pages (enable Pages with source "GitHub Actions" once in the repo settings). Vite's
-`base` comes from the `BASE_PATH` env var, which the workflow sets to `/<repo>/`; unset
-locally, so `npm run dev` is unaffected.
+GitHub Pages (enable Pages with source "GitHub Actions" once in the repo settings).
+`public/CNAME` is what tells Pages to serve the build at `joseki.online`; it has to be in
+`public/` rather than the repository root, because every deploy replaces the published site
+with `dist/` and a root file would not be in it. The site is served from the root of the
+domain, so Vite's `base` is `/` and nothing sets `BASE_PATH` any more.
+
+The app stays on Pages rather than moving to Cloudflare with the server for one reason:
+`public/models/humanv0.fp16w.onnx` is 51 MiB, and both Cloudflare Pages and Workers static
+assets refuse a single file over 25 MiB. Moving the app would mean moving the model to R2
+first.
 
 ## Licence
 
