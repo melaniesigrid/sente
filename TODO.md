@@ -1008,6 +1008,37 @@ Open:
 - [ ] The two borrowed display cuts are still OTF (`src/fonts/`). Now that there is a font
       tool, converting Welorac and Qliesya to woff2 belongs next to it.
 
+### Motion
+
+The vocabulary is already here and it is not small: `arrives` staggers a screen, `pop` lands
+a stone, `lift` takes one off, `breathe` rings a group in atari, `statement-rise` sets the
+three lines, `fig-gleam` turns the figure over, `letter-in` sets the wordmark a letter at a
+time. One global `prefers-reduced-motion` block turns all of it off. So the work below is
+never "add an animation": it is finding the places that already have something to say and
+letting them say it in the words the place already speaks.
+
+- [x] The self-playing board says what it just did (2026-09-11, branch
+      `feat/dash-hero-and-motion`). `MiniSelfPlay` passed the `Board` a position and nothing
+      else, so the front door's demo popped stones into existence and silently deleted the
+      ones it captured: the first board a visitor ever sees was the one board in the app you
+      could not follow. It now hands over the same three facts a real game does, and they are
+      drawn by the same code: `lastMove` for the mark, `captured` for the ghosts that fade
+      off, and `captureKey` (the move number) so a capture on move 13 replays rather than
+      sitting there from move 12. Measured: 2.2% of self-play moves capture, about one every
+      50 seconds at the demo's pace.
+- [ ] Transitions between screens. Home, Play, Learn and Problems swap instantly; the shell
+      already keys an `ErrorBoundary` on `view`, so the seam is sitting there. Reuse the
+      `arrive` curve rather than inventing a second one, and keep it under the time it takes
+      to read the new screen's first line.
+- [ ] The dashboard hero. The rank badge, the meters counting up rather than appearing full,
+      the hero board settling in. Note that the hero itself is sound: its columns wrap
+      (`min-width: auto`), unlike the front door's, which is why the z-index fix in #134 was
+      needed there and is not needed here.
+- [ ] Press physics on the neumorphism. `:active` sinks nine elements, but `.tile`,
+      `.persona-card` and `.lesson-card` only translate on hover and never sink. A raised
+      thing that cannot be pressed into the ground is the one place the two-shadow system
+      stops being a material.
+
 ## Parking lot: wild ideas (brainstorm 2026-09-09)
 
 Every one of these leans on something already built. Not scheduled; pull one into a phase
