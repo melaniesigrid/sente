@@ -405,6 +405,15 @@ ${FONT_FACES}
 .persona-cta { display: inline-flex; align-items: center; gap: 6px; font: 700 12px var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--accent-ink); }
 .local-card { max-width: 560px; }
 
+/* The pair table's lobby card. Four faces before you commit to any of it: a format
+   whose whole point is who is sitting with you has to show you who is sitting with
+   you. Our team reads first and is raised; theirs is sunken, across the table. */
+.pair-card { display: flex; flex-direction: column; gap: 13px; max-width: 640px; }
+.pair-faces { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+.pair-face { display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: 14px; box-shadow: var(--sink-sm); }
+.pair-face.ours { box-shadow: var(--raise-sm); }
+@media (max-width: 560px) { .pair-faces { grid-template-columns: minmax(0, 1fr); } }
+
 .rank-picker { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 18px; flex-wrap: wrap; }
 .rank-picker-label { display: flex; flex-direction: column; gap: 2px; }
 .rank-picker-label strong { font-family: var(--font-display); font-weight: var(--w-display); font-size: 18px; }
@@ -483,6 +492,19 @@ ${FONT_FACES}
 .vs-meta.right { align-items: flex-end; }
 .vs-meta strong { font-size: 15px; }
 .vs-x { color: var(--ink-2); font-family: var(--font-display-italic); font-style: var(--display-italic-style); }
+
+/* A pair table has four names in the strip instead of two. The teams stack, so the
+   partnership reads as one block on each side of the "vs" rather than as four
+   players in a row. The seat to move is raised out of its team and the other three
+   are left flat, which is the whole marking: no name is dimmed to say it is not
+   this player's turn, because a name nobody can read is not a quieter name. */
+.pair-strip { align-items: stretch; }
+.pair-side { flex-direction: column; align-items: flex-start; gap: 4px; }
+.pair-side.right { align-items: flex-end; }
+.pair-seat { display: flex; align-items: center; gap: 9px; padding: 3px 7px; border-radius: 12px; transition: box-shadow .2s ease; }
+.pair-side.right .pair-seat { flex-direction: row-reverse; }
+.pair-side.right .pair-seat .vs-meta { align-items: flex-end; }
+.pair-seat.to-move { box-shadow: var(--raise-sm); opacity: 1; }
 
 /* The clock lives inside the vs-strip, not in a bar of its own. Pressure is a colour
    shift and a pulse in the last ten seconds; byo-yomi periods are pips, one each. */

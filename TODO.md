@@ -1325,7 +1325,7 @@ duel, a master game and a coached game move no rating.
 **Phase A — against a bot team (client only)**
 - [x] A1: `src/engine/rengo.js` — roster, rotation, `seatAt`, `canSeatPlay`, pure and
       tested, exported through `index.js`. No UI; ships dark.
-- [ ] A2: the table — `src/content/rengo.js` builds a roster from your profile, the
+- [x] A2: the table — `src/content/rengo.js` builds a roster from your profile, the
       opponent persona and the partner rank; `src/views/PairGame.jsx` plays it. A view
       of its own rather than a fourth branch inside `Game.jsx`, which already carries
       duel, master and coaching. A lobby card to sit down at.
