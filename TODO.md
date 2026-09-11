@@ -426,9 +426,40 @@ two Durable Object classes, deployed at https://sente-server.melaniesigrid.worke
 - [ ] The card, seen from outside: a page for another player, reachable from the ladder and
       from a seat at a table. The route (`GET /api/players/:id`) is live and tested; nothing
       links to it yet.
-- [ ] CI deploy for the Worker: `.github/workflows/deploy-server.yml` is written and
-      needs a `CLOUDFLARE_API_TOKEN` repository secret (Workers Scripts: Edit) to run.
+- [x] CI deploy for the Worker (2026-09-11): the `CLOUDFLARE_API_TOKEN` secret is set and
+      `deploy-server.yml` has deployed from `main` on its own. A push that touches
+      `server/`, `src/engine/` or `wrangler.jsonc` ships the Worker; anything else does not.
+- [x] A tally the server keeps, and a notice that gained a sentence instead of losing one
+      (2026-09-11, branch `feat/stats-history`): `GET /api/stats/history?days=` serves one
+      row a day — handles, handles made that day, games started, games finished, and the
+      most players in the lobby at once — kept for 365 days. Design:
+      `docs/designs/analytics-that-keeps-the-promise.md`.
 - [ ] Analysis: KataGo (or GnuGo) via the backend, or a WASM engine in the browser.
+
+Decisions made in Phase 4, the tally slice (2026-09-11, branch `feat/stats-history`):
+- **The privacy notice gained a paragraph; it did not lose one.** `legal.js` still says
+  Joseki has never counted a visit, and that stays true because a game is not a visit and
+  an account is not a visit. Nothing in the tally is a page view and nothing in it runs
+  in a browser, so somebody who reads every page and never plays moves none of the
+  numbers. This ruled out Plausible and Fathom as squarely as Google: cookieless tools
+  are still scripts that still count visits.
+- The day arithmetic is pure, in `server/rollup.js`, tested the way `players.js` is. The
+  Durable Object only does the wiring. The seal closes **yesterday** at 00:05 UTC,
+  because anything counted in those five minutes belongs to the day that just started.
+- Counters are written to storage, never held in memory. A Durable Object is evicted
+  after a short idle spell and at this traffic that is ordinary, so an in-memory counter
+  would be gone by the time the alarm woke a fresh instance and every row would read 0.
+- `newAccounts` is counted in `register()` alone, because `signUp()` claims its handle by
+  calling it. `noteGame()` is the same trap from the other side: a room reports itself
+  through one call both when it is made and when it ends, told apart by `endedAt`.
+- One alarm per Durable Object and `setAlarm` overwrites, so anything that later wants to
+  wake the Registry has to go through `#armSeal` or it cancels the seal silently. A
+  comment says so rather than a scheduler nothing yet competes for.
+- No bot games in the tally, ever: house players run KataGo in the browser and never
+  reach the Worker. Only the local ring buffer in Phase 3 could count those, and it never
+  leaves the device. That is a real cost of the privacy stance, stated rather than hidden.
+- `legal.test.js` walks the actual output of `sealed()`, so a field added to a row and
+  not described to the reader fails the suite.
 
 Decisions made in Phase 4, accounts slice (2026-09-10, branch `feat/accounts`):
 - **The password is stretched in the browser, not on the server.** A Worker on the free
