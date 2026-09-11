@@ -29,6 +29,7 @@ export const en = {
     yourBoard: "Your board",
     look: "The look of the place",
     profile: "Your profile",
+    language: "Language: {language}",
   },
   foot: {
     about: "About Joseki",

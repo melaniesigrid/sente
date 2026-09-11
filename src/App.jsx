@@ -27,6 +27,7 @@ import { typefaceVars } from "./content/typeface.js";
 import { themeVars, resolveTheme } from "./theme/index.js";
 import { usePrefersDark } from "./components/prefersDark.js";
 import { LangProvider } from "./components/lang.jsx";
+import { LangPill } from "./components/LangPill.jsx";
 import { useLang } from "./components/langStore.js";
 import { defaultProfile, loadProfile, needsOnboarding } from "./store/profile.js";
 import { Home } from "./views/Home.jsx";
@@ -126,10 +127,15 @@ export default function JosekiApp() {
         <Wordmark as="button" className="topbar-brand" onClick={() => setView("landing")}
           aria-label={t("brand.frontDoor")} />
         {view === "landing" ? (
-          <button className="lp-enter" onClick={() => go("home")}>
-            <span>{t(needsOnboarding(profile) ? "topbar.enter" : "topbar.yourBoard")}</span>
-            <ArrowRight size={16} strokeWidth={2.4} />
-          </button>
+          // The front door is the one screen a reader reaches before they have
+          // chosen anything, so it is the screen the language matters most on.
+          <div className="topbar-you">
+            <LangPill profile={profile} setProfile={setProfile} />
+            <button className="lp-enter" onClick={() => go("home")}>
+              <span>{t(needsOnboarding(profile) ? "topbar.enter" : "topbar.yourBoard")}</span>
+              <ArrowRight size={16} strokeWidth={2.4} />
+            </button>
+          </div>
         ) : (<>
         <nav className="nav" aria-label="Primary">
           {NAV.map(n => (
@@ -145,8 +151,16 @@ export default function JosekiApp() {
         {/* You, and how the place looks to you: one cluster on the right, since
             neither is a section of the game. The look is a preference rather
             than a screen you visit, but it is one press from anywhere, which is
-            what a thing you try on wants. */}
+            what a thing you try on wants.
+
+            The language leads the cluster. It is the only control in the
+            chrome that decides whether the rest of the chrome can be read, and
+            it is the only one not written in English — so it goes where a
+            reader who cannot read the rest will still find it. It writes the
+            same profile field the Look screen writes; the two are two views of
+            one setting. */}
         <div className="topbar-you">
+          <LangPill profile={profile} setProfile={setProfile} />
           <button className="icon-btn look-btn" onClick={() => go("look")}
             aria-label={t("topbar.look")} aria-current={view === "look" ? "page" : undefined}>
             <Palette size={17} />
