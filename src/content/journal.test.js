@@ -4,6 +4,7 @@ import {
   RELEASES, NOTES, ENTRIES, COUNTS, LATEST,
   parseChangelog, leadOf, segments, entryById, bodySections,
 } from "./journal.js";
+import { POSTS } from "./blog.js";
 
 /* The journal is the one screen whose job is to say what we did, which makes
    it the easiest place on the site to be out of date without anybody noticing.
@@ -146,29 +147,33 @@ describe("the notes", () => {
 });
 
 describe("the shelf", () => {
-  it("carries every note and every release, newest first", () => {
-    expect(ENTRIES.length).toBe(NOTES.length + RELEASES.length);
+  it("carries every post, every note and every release, newest first", () => {
+    expect(ENTRIES.length).toBe(POSTS.length + NOTES.length + RELEASES.length);
     expect(COUNTS).toEqual({
-      notes: NOTES.length, releases: RELEASES.length, entries: ENTRIES.length,
+      posts: POSTS.length, notes: NOTES.length,
+      releases: RELEASES.length, entries: ENTRIES.length,
     });
     const dates = ENTRIES.map(e => e.date);
     expect([...dates].sort().reverse()).toEqual(dates);
     expect(LATEST).toBe(dates[0]);
   });
 
-  it("gives every entry a unique id and one of the two kinds", () => {
+  it("gives every entry a unique id and one of the three kinds", () => {
     const ids = ENTRIES.map(e => e.id);
     expect(new Set(ids).size).toBe(ids.length);
     for (const e of ENTRIES) {
-      expect(["note", "release"], e.id).toContain(e.kind);
+      expect(["blog", "note", "release"], e.id).toContain(e.kind);
       expect(e.title.trim(), e.id).not.toBe("");
     }
   });
 
-  it("puts a note ahead of a release that landed the same day", () => {
-    const day = ENTRIES.filter(e => e.date === LATEST);
-    const kinds = day.map(e => e.kind);
-    expect(kinds.indexOf("release") === -1 || kinds.lastIndexOf("note") < kinds.indexOf("release")).toBe(true);
+  // Writing ahead of the release it was written about, and the blog ahead of
+  // both, because it is the piece somebody arriving from the front door was
+  // sent here to read.
+  it("orders a single day blog, then note, then release", () => {
+    const rank = { blog: 0, note: 1, release: 2 };
+    const day = ENTRIES.filter(e => e.date === LATEST).map(e => rank[e.kind]);
+    expect([...day].sort()).toEqual(day);
   });
 
   it("finds an entry by id and answers null for one it does not have", () => {
