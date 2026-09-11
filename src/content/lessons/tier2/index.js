@@ -7,8 +7,9 @@ import classicTerms from "./classic-terms.js";
 import classicKnowYourself from "./classic-know-yourself.js";
 import classicLevels from "./classic-levels.js";
 import falseEye from "./false-eye.js";
+import eyeShapes from "./eye-shapes.js";
 
 export const TIER2 = [
   classicBoard, classicCalculation, classicTerms, classicKnowYourself, classicLevels,
-  falseEye,
+  falseEye, eyeShapes,
 ];

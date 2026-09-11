@@ -230,6 +230,14 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       amounts to. Caught while authoring `false-eye`, whose kill depends on White being
       unable to retake; `marvels-net` and `liberty-race` were re-proved under the ko-aware
       search and are unchanged.
+- [x] `eye-shapes` (2026-09-11, 2 / 17k, life): the vital point, on four spaces the search
+      tool built and solved from the eye shape outward. Each is a white ring whose only
+      liberties are the points inside it, so dead means capturable rather than argued by
+      analogy. Three in a row dies to the middle and lives if White gets there first; four in
+      a row has no killing point at all; the square of four is dead as it stands, whoever
+      moves, and all four of its points kill; bent three behaves exactly like straight three
+      with the bend as its centre. Both quiz refutations were played out — Black on an end,
+      White in the middle captures the stone and comes out with two eyes.
 - [ ] The rest of the Fundamentals: chapter two's cutting and connecting (do not peep where
       you can cut), chapter five's thickness, chapter ten's shortage of liberties and the
       snapback as bait, chapter seven on how to study joseki.

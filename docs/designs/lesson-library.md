@@ -67,7 +67,7 @@ lessons across six tiers; content is authored tier by tier so each tier ships co
 - `net` 18k tactics: the net catches what the ladder cannot
 - `snapback` 17k tactics: sacrifice one to capture more
 - `false-eye` 18k life: an eye that is not an eye (exists)
-- `eye-shapes` 17k life: three-in-a-row, bent four, straight four, the vital point
+- `eye-shapes` 17k life: three-in-a-row, bent four, straight four, the vital point (exists)
 - `corner-life` 16k life: the L group and the tripod group, live or dead
 - `empty-triangle` 17k shape: the worst shape and why
 - `tigers-mouth` 16k shape: hane, tiger's mouth, bamboo joint
