@@ -5,10 +5,17 @@
    events. Everything a rule could touch goes through the engine's GameRecord,
    so the server refuses exactly the moves the client would.
 
+   A room seats a roster, not two colours. Two seats is an ordinary game; four
+   is pair go, where the teams alternate b1 w1 b2 w2 and nobody plays twice
+   running. Both are the same code path — the server asks the engine's
+   `canSeatPlay` whose turn it is, which is the same call the client greys the
+   board with, so the two can never disagree about it.
+
    Room:
-     { id, size, komi, handicap, rated, seats: { b: Player, w: Player },
+     { id, size, komi, handicap, rated, pair,
+       seats: { b1: Player, w1: Player, b2?: Player, w2?: Player },
        record: GameRecord, chat: [{ from, name, text, at }],
-       undo: null | { by: "b"|"w", at }, createdAt, endedAt, settled }
+       undo: null | { by: SeatId, at }, createdAt, endedAt, settled }
 
    Client -> server frames (`t` is the type):
      play {c, r} · pass · resign · markDead {c, r} · accept
@@ -20,40 +27,82 @@
      undo {status}  "asked" | "declined" for the requester's benefit
      error {reason, detail}
 
-   `applyMessage(room, seat, msg, now)` returns `{ room, events }`. `seat` is
-   "b", "w" or null for a spectator. Events are `{ to: "all"|"b"|"w"|"seat"
-   , frame }`; "seat" means the sender. A refused action returns the same
-   room and one error event. Nothing here throws on bad input. */
+   `applyMessage(room, seat, msg, now)` returns `{ room, events }`. `seat` is a
+   seat id ("b1", "w1", "b2", "w2") or null for a spectator. Events are
+   `{ to, frame }` where `to` is "all", "seat" (the sender), a seat id, or
+   "team:b" / "team:w". A refused action returns the same room and one error
+   event. Nothing here throws on bad input. */
 
 import {
   createGame, play, pass, resign, markDead, acceptScore, undo, replay,
   IllegalMoveError, IllegalTransitionError,
 } from "../src/engine/record.js";
+import {
+  createRoster, canSeatPlay, seatToPlay, colorOfSeat, rotationOf, isPair, teamSeats,
+} from "../src/engine/rengo.js";
 import { hashBoard } from "../src/engine/zobrist.js";
 
 export const SIZES = [9, 13, 19];
 export const MAX_CHAT = 240;
 export const CHAT_KEEP = 200;
 
-/** Build a room for two seated players. `players` are `{ id, name, tint, rating, rd }`. */
-export function createRoom({ id, size = 9, black, white, rated = true, komi, handicap = 0, now = Date.now() }) {
+/** Build a room. `black` and `white` are `{ id, name, tint, rating, rd }`; pass
+ *  `blackPartner` and `whitePartner` as well for a pair table, and both must be
+ *  given or neither — a team of two against a team of one is not a game.
+ *
+ *  A pair room is never rated, whoever asks. A win in which a partner played
+ *  half the moves is evidence about the pair and not about either player, and
+ *  the one place that has to be enforced rather than promised is the server. */
+export function createRoom({
+  id, size = 9, black, white, blackPartner = null, whitePartner = null,
+  rated = true, komi, handicap = 0, now = Date.now(),
+}) {
   if (!SIZES.includes(size)) throw new RangeError(`bad size ${size}`);
-  const record = createGame({ size, komi, handicap, players: { b: black.name, w: white.name } });
+  const seats = createRoster({
+    b1: seat(black), w1: seat(white),
+    ...(blackPartner ? { b2: seat(blackPartner) } : {}),
+    ...(whitePartner ? { w2: seat(whitePartner) } : {}),
+  });
+  const pair = isPair(seats);
+  const record = createGame({ size, komi, handicap, players: roomPlayers(seats) });
   return {
     version: 1,
-    id, size, komi: record.komi, handicap, rated,
-    seats: { b: seat(black), w: seat(white) },
+    id, size, komi: record.komi, handicap, pair, rated: pair ? false : rated,
+    seats,
     record, chat: [], undo: null,
     createdAt: now, endedAt: null, settled: null,
   };
 }
 
-const seat = (p) => ({ id: p.id, name: p.name, tint: p.tint ?? "eucalyptus", rating: p.rating, rd: p.rd });
+/* A seat as the room stores it. `kind` and `name` are what the engine's roster
+   validates; everything else rides along verbatim. A partner run by a player's
+   own browser still sits here as a bot, because that is what it is. */
+const seat = (p) => ({
+  kind: p.kind === "bot" ? "bot" : "human",
+  id: p.id, name: p.name, tint: p.tint ?? "eucalyptus",
+  rating: p.rating, rd: p.rd,
+  ...(p.rank ? { rank: p.rank } : {}),
+  ...(p.avatarAt !== undefined ? { avatarAt: p.avatarAt } : {}),
+});
 
-/** Which seat `playerId` holds, or null. */
+/** Is this a four-seat table? */
+export const isPairRoom = (room) => !!room.pair || isPair(room.seats);
+
+/** The seat that leads a team: the one an ordinary two-seat room calls "b" or "w". */
+export const leadSeat = (room, color) => room.seats[color + "1"];
+
+/** SGF-ish names per colour: a team is its players joined by "&". */
+export function roomPlayers(seats) {
+  const side = (color) => teamSeats(seats, color).map((id) => seats[id].name).join(" & ");
+  return { b: side("b"), w: side("w") };
+}
+
+/** Which seat `playerId` holds, or null. A player holds at most one seat: the
+ *  same person cannot sit twice at one table, and in pair go they must not —
+ *  partners may not consult, and there is nothing to stop a player who holds
+ *  both chairs of a team from consulting themselves. */
 export function seatOf(room, playerId) {
-  if (room.seats.b.id === playerId) return "b";
-  if (room.seats.w.id === playerId) return "w";
+  for (const id of Object.keys(room.seats)) if (room.seats[id].id === playerId) return id;
   return null;
 }
 
@@ -61,7 +110,11 @@ const err = (reason, detail = {}) => ({ to: "seat", frame: { t: "error", reason,
 const state = (room) => ({ to: "all", frame: { t: "state", room } });
 const ok = (room, ...events) => ({ room, events: [...events, state(room)] });
 const refuse = (room, reason, detail) => ({ room, events: [err(reason, detail)] });
-const other = (c) => (c === "b" ? "w" : "b");
+const otherColor = (c) => (c === "b" ? "w" : "b");
+/* The opposing team, as an event target. An undo is answered by the other side
+   rather than by one named person: at a pair table either opponent may decline,
+   because the request is against the team's position and not against a chair. */
+const otherTeam = (seatId) => "team:" + otherColor(colorOfSeat(seatId));
 const isInt = (n) => Number.isInteger(n);
 
 /** Wrap an engine transition: illegal moves and transitions become error events. */
@@ -75,45 +128,65 @@ function transition(room, fn) {
   }
 }
 
+/** Are these two seats on the same team? */
+const sameTeam = (a, b) => colorOfSeat(a) === colorOfSeat(b);
+
+/** How many moves one turn of the table is worth: one at a two-seat table, a
+ *  whole rotation at a pair table. */
+const undoDepth = (room) =>
+  (isPairRoom(room) ? rotationOf(room.seats, room.record.firstToPlay).length : 1);
+
 function finish(room, record, now) {
   const ended = record.phase === "ended" && room.record.phase !== "ended";
   return { ...room, record, undo: null, endedAt: ended ? now : room.endedAt };
 }
 
-export function applyMessage(room, seatColor, msg, now = Date.now()) {
+export function applyMessage(room, seatId, msg, now = Date.now()) {
   if (!msg || typeof msg !== "object" || typeof msg.t !== "string") return refuse(room, "bad-frame");
   const t = msg.t;
 
   if (t === "chat") {
     const text = typeof msg.text === "string" ? msg.text.trim().slice(0, MAX_CHAT) : "";
     if (!text) return refuse(room, "empty-chat");
-    const who = seatColor ? room.seats[seatColor] : msg.from;
+    const who = seatId ? room.seats[seatId] : msg.from;
     if (!who || typeof who.id !== "string" || typeof who.name !== "string") return refuse(room, "no-sender");
-    const line = { from: who.id, name: who.name.slice(0, 24), seat: seatColor, text, at: now };
+    /* Chat is one room-wide conversation, never a team channel. Partners may not
+       consult in pair go, and a private line to your partner is exactly the thing
+       that rule forbids, so the protocol simply has nowhere to put one. */
+    const line = { from: who.id, name: who.name.slice(0, 24), seat: seatId, text, at: now };
     const chat = [...room.chat, line].slice(-CHAT_KEEP);
     return { room: { ...room, chat }, events: [{ to: "all", frame: { t: "chat", msg: line } }] };
   }
 
-  if (!seatColor) return refuse(room, "spectator");
+  if (!seatId) return refuse(room, "spectator");
   const rec = room.record;
   if (rec.phase === "ended" && t !== "chat") return refuse(room, "game-over");
 
   switch (t) {
     case "play": {
       if (!isInt(msg.c) || !isInt(msg.r)) return refuse(room, "bad-point");
-      if (rec.toPlay !== seatColor) return refuse(room, "wrong-turn", { expected: rec.toPlay });
-      const { record, error } = transition(room, (r) => play(r, msg.c, msg.r, seatColor));
+      /* The seat, not the colour. At a pair table two people share a colour and
+         only one of them is to play, so a colour check would let a player move in
+         their partner's turn - the one way a four-seat room can go wrong that a
+         two-seat room cannot. */
+      if (!canSeatPlay(room.seats, rec, seatId)) {
+        return refuse(room, "wrong-turn", { expected: seatToPlay(room.seats, rec) });
+      }
+      const { record, error } = transition(room, (r) => play(r, msg.c, msg.r, colorOfSeat(seatId)));
       if (error) return { room, events: [error] };
       return ok(finish(room, record, now));
     }
     case "pass": {
-      if (rec.toPlay !== seatColor) return refuse(room, "wrong-turn", { expected: rec.toPlay });
-      const { record, error } = transition(room, (r) => pass(r, seatColor));
+      if (!canSeatPlay(room.seats, rec, seatId)) {
+        return refuse(room, "wrong-turn", { expected: seatToPlay(room.seats, rec) });
+      }
+      const { record, error } = transition(room, (r) => pass(r, colorOfSeat(seatId)));
       if (error) return { room, events: [error] };
       return ok(finish(room, record, now));
     }
     case "resign": {
-      const { record, error } = transition(room, (r) => resign(r, seatColor));
+      // Resigning is a decision for the whole team, and either partner may take it.
+      const { record, error } = transition(room, (r) => resign(r, colorOfSeat(seatId)));
       if (error) return { room, events: [error] };
       return ok(finish(room, record, now));
     }
@@ -127,30 +200,46 @@ export function applyMessage(room, seatColor, msg, now = Date.now()) {
     case "accept": {
       if (rec.phase !== "scoring") return refuse(room, "wrong-phase", { phase: rec.phase });
       // The first acceptance waits for the other side; the second settles it.
-      if (room.accepted && room.accepted !== seatColor) {
+      // Acceptance is per colour, not per chair: one member of a team accepting
+      // binds the team, the same way either of them may resign it.
+      const color = colorOfSeat(seatId);
+      if (room.accepted && room.accepted !== color) {
         const { record, error } = transition(room, (r) => acceptScore(r));
         if (error) return { room, events: [error] };
         return ok({ ...finish(room, record, now), accepted: null });
       }
-      return ok({ ...room, accepted: seatColor });
+      return ok({ ...room, accepted: color });
     }
+    /* Taking a move back. At a two-seat table that is one move, asked for while
+       the opponent is to play. At a pair table one move is neither enough nor
+       meaningful: undoing it would hand the board to your partner in the middle
+       of a round nobody has finished. So a pair undo takes back the whole
+       rotation and lands the asker back in their own chair, which means it may
+       only be asked for while they are to play - the opposite of the two-seat
+       rule, and for the same reason underneath it. */
     case "undoRequest": {
       if (rec.phase !== "playing") return refuse(room, "wrong-phase", { phase: rec.phase });
       if (room.undo) return refuse(room, "undo-pending");
-      // You can only ask for your own last move back, i.e. while the other side is to play.
-      if (rec.toPlay === seatColor) return refuse(room, "not-your-move");
-      if (!rec.moves.length) return refuse(room, "nothing-to-undo");
-      return ok({ ...room, undo: { by: seatColor, at: now } }, { to: "seat", frame: { t: "undo", status: "asked" } });
+      const mine = canSeatPlay(room.seats, rec, seatId);
+      if (isPairRoom(room) ? !mine : mine) return refuse(room, "not-your-move");
+      if (rec.moves.length < undoDepth(room)) return refuse(room, "nothing-to-undo");
+      return ok({ ...room, undo: { by: seatId, at: now } }, { to: "seat", frame: { t: "undo", status: "asked" } });
     }
     case "undoAccept": {
-      if (!room.undo || room.undo.by === seatColor) return refuse(room, "no-undo");
-      const { record, error } = transition(room, (r) => undo(r));
+      // Anyone on the other team may answer; nobody may grant their own team's request.
+      if (!room.undo || sameTeam(room.undo.by, seatId)) return refuse(room, "no-undo");
+      let record = room.record, error = null;
+      for (let i = 0; i < undoDepth(room) && !error; i++) {
+        const step = transition({ ...room, record }, (r) => undo(r));
+        record = step.record;
+        error = step.error;
+      }
       if (error) return { room: { ...room, undo: null }, events: [error] };
       return ok({ ...room, record, undo: null });
     }
     case "undoDecline": {
-      if (!room.undo || room.undo.by === seatColor) return refuse(room, "no-undo");
-      return ok({ ...room, undo: null }, { to: other(seatColor), frame: { t: "undo", status: "declined" } });
+      if (!room.undo || sameTeam(room.undo.by, seatId)) return refuse(room, "no-undo");
+      return ok({ ...room, undo: null }, { to: otherTeam(seatId), frame: { t: "undo", status: "declined" } });
     }
     default:
       return refuse(room, "unknown-type", { type: t });
@@ -171,11 +260,24 @@ function consistent(rec) {
   return hashBoard(rec.board) === rec.hashes[rec.hashes.length - 1];
 }
 
+/** Rooms stored before the roster landed are keyed by colour: `{ b, w }`. They
+ *  are games that may still be in progress, so they are migrated on read rather
+ *  than abandoned - the two chairs become the two lead seats, which is what they
+ *  always were. Written back on the next move like any other change. */
+function migrateSeats(raw) {
+  if (!raw.seats || raw.seats.b1) return raw;
+  if (!raw.seats.b || !raw.seats.w) return null;
+  const lift = (p) => ({ kind: "human", ...p });
+  return { ...raw, pair: false, seats: { b1: lift(raw.seats.b), w1: lift(raw.seats.w) } };
+}
+
 /** Read a stored room back. The board is trusted only once it agrees with the
  *  move log; if it does not, the log is the source of truth and the record is
  *  rebuilt from it. A log that will not replay is discarded. */
-export function reviveRoom(raw) {
-  if (!raw || raw.version !== 1 || !raw.record || !Array.isArray(raw.record.moves)) return null;
+export function reviveRoom(input) {
+  if (!input || input.version !== 1 || !input.record || !Array.isArray(input.record.moves)) return null;
+  const raw = migrateSeats(input);
+  if (!raw) return null;
   if (consistent(raw.record)) return raw;
   try {
     const record = replay(raw.record);
@@ -184,9 +286,17 @@ export function reviveRoom(raw) {
   } catch { return null; }
 }
 
-/** What the ladder needs from a finished room, or null while it is still going. */
+/** What the ladder needs from a finished room, or null while it is still going.
+ *
+ *  `black` and `white` are the lead seats, and at a pair table `rated` is false,
+ *  so the ladder is handed a game it will decline to rate rather than a game it
+ *  rates against the wrong two people. */
 export function outcome(room) {
   if (room.record.phase !== "ended" || !room.record.result) return null;
   const { winner, method } = room.record.result;
-  return { id: room.id, rated: room.rated, winner, method, black: room.seats.b.id, white: room.seats.w.id, size: room.size };
+  return {
+    id: room.id, rated: isPairRoom(room) ? false : room.rated, winner, method,
+    black: leadSeat(room, "b").id, white: leadSeat(room, "w").id, size: room.size,
+    ...(isPairRoom(room) ? { pair: true, seated: Object.keys(room.seats).map((k) => room.seats[k].id) } : {}),
+  };
 }
