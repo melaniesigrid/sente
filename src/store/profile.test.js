@@ -4,6 +4,7 @@ import { DEFAULT_TYPEFACE } from "../content/typeface.js";
 import { rankOf } from "../content/rank.js";
 import { GLICKO, isProvisional } from "../engine/index.js";
 import { SYSTEM_THEME, HOUSE_THEME, DOJO_THEME, AUTO_STONES } from "../theme/index.js";
+import { SYSTEM_LOCALE } from "../i18n/index.js";
 
 let warn;
 beforeEach(() => { warn = vi.spyOn(console, "warn").mockImplementation(() => {}); });
@@ -80,6 +81,15 @@ describe("sanitizeProfile", () => {
       expect(sanitizeProfile({ ...defaultProfile, typeface: bad }).typeface).toBe(DEFAULT_TYPEFACE);
     }
     expect(warn.mock.calls[0][0]).toMatch(/typeface/);
+  });
+  it("ships following the device's language, and resets an unknown one", () => {
+    expect(defaultProfile.locale).toBe(SYSTEM_LOCALE);
+    expect(sanitizeProfile({}).locale).toBe(SYSTEM_LOCALE);
+    expect(sanitizeProfile({ ...defaultProfile, locale: "es" }).locale).toBe("es");
+    for (const bad of ["", "tlh", "es-MX", 7, null]) {
+      expect(sanitizeProfile({ ...defaultProfile, locale: bad }).locale, String(bad)).toBe(SYSTEM_LOCALE);
+    }
+    expect(warn.mock.calls[0][0]).toMatch(/locale/);
   });
   it("drops unknown keys", () => {
     expect(sanitizeProfile({ ...defaultProfile, admin: true })).not.toHaveProperty("admin");

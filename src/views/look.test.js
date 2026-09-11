@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { roomsFor, setsFor } from "./look.js";
+import { roomsFor, setsFor, setName } from "./look.js";
+import { makeT } from "../i18n/index.js";
 import { PALETTES, STONE_SETS, AUTO_STONES, DOJO_THEME, SYSTEM_THEME, stoneSetOf } from "../theme/index.js";
 
 const MINE = { ground: "#101014", ink: "#e6e6ea", accent: "#b98cff", cream: "#f2f2f6" };
@@ -31,5 +32,20 @@ describe("what the look page offers", () => {
     const note = setsFor(DOJO_THEME, { ...MINE, name: "Dusk", stones: "plum" })[0].note;
     expect(note).toContain("Dusk");
     expect(note).toContain("plum & blossom");
+  });
+
+  /* The lists are English by default and take a reader when there is one, so a
+     Spanish player meets the drawer in Spanish down to the sentence that names
+     what the room is played with. */
+  it("offers the same lists in the language it is handed", () => {
+    const es = makeT("es");
+    expect(roomsFor(null, "house", es)[0].name).toBe("Sistema");
+    expect(roomsFor(MINE, "sumi", es).at(-1).mood).toBe("Tuya");
+    expect(roomsFor(null, "house", es).find(r => r.id === "sumi").mood).toBe("Oscura");
+    expect(roomsFor(null, "house", es).find(r => r.id === "sumi").name, "a room keeps its name").toBe("Sumi");
+    const sets = setsFor("sumi", null, es);
+    expect(sets[0].name).toBe("Las de la sala");
+    expect(sets[0].note).toContain(setName(sets.find(s => s.id === "jade"), es).toLowerCase());
+    expect(sets[0].note).not.toContain("played with");
   });
 });

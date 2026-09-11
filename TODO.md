@@ -1044,6 +1044,51 @@ Later, in order: the club and chat, then the game archive (cap, eviction, localS
 versus Durable Objects — all open), then Neo-Human pair go, which is a seat-model change in
 the multiplayer Worker and is unrated for the same reason coached games are.
 
+## Phase 7 — The words (in progress, branch `feat/i18n`)
+
+Joseki reads in the player's own language. English stays the language it is authored in
+and the floor every lookup lands on, so an unfinished language is a page with some English
+on it and never a page with a hole in it.
+
+One language at a time, and one screen-group at a time inside that, because the prose here
+is the product: a slice that is half-translated by a tired session is worse than a slice
+that is honestly still English.
+
+- [x] The kernel: `src/i18n/` — languages as data, catalogues per language, `t(key, vars,
+      fallback)`, plural forms by CLDR category, and a parity test that fails when a
+      translation drifts. `src/components/langStore.js` is the only thing that reads
+      `navigator.languages`, the way prefersDark.js is for the media query.
+- [x] `profile.locale`, `system` by default: the words follow the device unless the player
+      says otherwise, exactly as the room does.
+- [x] The language picker, at the head of the look page, above the room — it is the one
+      choice on that page that decides whether the rest of it can be read.
+- [x] Spanish: the shell (nav, top bar, footer, the crash card) and the whole look page,
+      including the notes the theme and typeface data files hold.
+- [ ] Spanish: home, play, the lobby and the game (`Home`, `Play`, `Game`, `gameStatus`).
+- [ ] Spanish: learn, the library, tsumego, the ladder, the profile.
+- [ ] Spanish: the landing page, onboarding, the small print, the letters.
+- [ ] Spanish: the content prose — Moku's lines, the personas, the welcome copy, the
+      commentary. The Classic's thirteen chapters are a translation problem of their own
+      and are the last thing to touch, not the first.
+- [ ] French, the same slices in the same order. Cheap after Spanish: the keys exist, so
+      each PR is a catalogue file and a test run.
+
+Decisions made in Phase 7 (change deliberately, not by accident):
+- English lives in `en.js`, except for prose that a data file already owns — a room's note,
+  a stone set's name, a pairing's note. Those stay in the data file and a translation
+  overlays them by id under `room.`, `stones.` and `type.`, which is what the third
+  argument to `t` is for. The parity test holds the overlays complete against the data.
+- A name is not translated. Rooms (House, Sumi, Yohen), pairings (Vitrine) and stone
+  sets' credits are names of things in the design system, like the name on a tube of
+  paint. A room's `mood` is, because that is a description and not a name.
+- The ladder is `Clasificación` in Spanish and will be `Classement` in French, never
+  `Escalera`/`Échelle`: those are the ladder *tactic*, and a nav button must not name a
+  shape.
+- The document's `lang` is set from the words on the screen, not from the file they were
+  served in. It is what a screen reader picks a voice from.
+- A missing key returns the key itself and warns once in development. Visible in a
+  screenshot, harmless to a player, and never a crash.
+
 ## Principles (do not trade away)
 
 - Rules live in the engine, never in a view.

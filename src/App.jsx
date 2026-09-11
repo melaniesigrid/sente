@@ -26,6 +26,8 @@ import { preciseRankOf } from "./content/rank.js";
 import { typefaceVars } from "./content/typeface.js";
 import { themeVars, resolveTheme } from "./theme/index.js";
 import { usePrefersDark } from "./components/prefersDark.js";
+import { LangProvider } from "./components/lang.jsx";
+import { useLang } from "./components/langStore.js";
 import { defaultProfile, loadProfile, needsOnboarding } from "./store/profile.js";
 import { Home } from "./views/Home.jsx";
 import { Welcome } from "./views/Welcome.jsx";
@@ -43,12 +45,14 @@ import { DOCUMENTS, COPYRIGHT } from "./content/legal.js";
 import { linkFromQuery, forgetLink } from "./views/letterLink.js";
 
 /* ----------------------- APP SHELL ----------------------- */
+/* The nav names its sections by key, not by word: the chrome is read in the
+   player's own language, and a language is added by adding a catalogue. */
 const NAV = [
-  { id: "home", label: "Home", icon: LayoutDashboard },
-  { id: "play", label: "Play", icon: Swords },
-  { id: "learn", label: "Learn", icon: GraduationCap },
-  { id: "tsumego", label: "Tsumego", icon: Target },
-  { id: "ladder", label: "Ladder", icon: Medal },
+  { id: "home", icon: LayoutDashboard },
+  { id: "play", icon: Swords },
+  { id: "learn", icon: GraduationCap },
+  { id: "tsumego", icon: Target },
+  { id: "ladder", icon: Medal },
 ];
 
 export default function JosekiApp() {
@@ -60,6 +64,11 @@ export default function JosekiApp() {
   // `system` is a pointer at two rooms; the device says which one, here and nowhere else.
   const prefersDark = usePrefersDark();
   const room = resolveTheme(profile.theme, prefersDark);
+  /* The words, resolved once: the shell reads its own chrome in them and hands
+     the same reader to every screen below. `system` follows the device, exactly
+     as the room does. */
+  const lang = useLang(profile.locale);
+  const t = lang.t;
   const [toast, setToast] = useState(null);
   // A different line from the Classic in the footer on every load.
   const [footSaying] = useState(() => sayingBySeed(Math.floor(Math.random() * 1e6)));
@@ -104,6 +113,7 @@ export default function JosekiApp() {
   const closeMailLink = useCallback(() => { forgetLink(); setMailLink(null); }, []);
 
   return (
+    <LangProvider value={lang}>
     <MokuProvider view={view}>
     <div className="sente-root" style={{ ...themeVars(room, profile.dojo, profile.stones), ...typefaceVars(profile.typeface) }}>
       <style>{CSS}</style>
@@ -113,10 +123,10 @@ export default function JosekiApp() {
             baseline. The mark is the whole idea of the place — a move and
             the reply it forces — so it leads the chrome on every screen. */}
         <Wordmark as="button" className="topbar-brand" onClick={() => setView("landing")}
-          aria-label="Joseki, the front door" />
+          aria-label={t("brand.frontDoor")} />
         {view === "landing" ? (
           <button className="lp-enter" onClick={() => go("home")}>
-            <span>{needsOnboarding(profile) ? "Enter" : "Your board"}</span>
+            <span>{t(needsOnboarding(profile) ? "topbar.enter" : "topbar.yourBoard")}</span>
             <ArrowRight size={16} strokeWidth={2.4} />
           </button>
         ) : (<>
@@ -127,7 +137,7 @@ export default function JosekiApp() {
               onClick={() => go(n.id)}
               aria-current={view === n.id ? "page" : undefined}>
               <n.icon size={16} strokeWidth={2.2} />
-              <span>{n.label}</span>
+              <span>{t(`nav.${n.id}`)}</span>
             </button>
           ))}
         </nav>
@@ -137,10 +147,10 @@ export default function JosekiApp() {
             what a thing you try on wants. */}
         <div className="topbar-you">
           <button className="icon-btn look-btn" onClick={() => go("look")}
-            aria-label="The look of the place" aria-current={view === "look" ? "page" : undefined}>
+            aria-label={t("topbar.look")} aria-current={view === "look" ? "page" : undefined}>
             <Palette size={17} />
           </button>
-          <button className="profile-chip" onClick={() => go("profile")} aria-label="Your profile">
+          <button className="profile-chip" onClick={() => go("profile")} aria-label={t("topbar.profile")}>
             <Avatar name={profile.name} tint={profile.tint} size={34} />
             <div className="chip-meta">
               <strong>{profile.name}</strong>
@@ -151,7 +161,7 @@ export default function JosekiApp() {
         </>)}
       </header>
       <main className={`content ${!mailLink && view === "landing" ? "wide" : ""}`}>
-        <ErrorBoundary key={mailLink ? "mail" : welcoming ? "welcome" : view} onHome={home}>
+        <ErrorBoundary key={mailLink ? "mail" : welcoming ? "welcome" : view} onHome={home} t={t}>
           {/* A link out of a letter outranks the front door as well as
               onboarding: somebody who came here to get back into an account
               they already have is not being introduced to Joseki. */}
@@ -188,10 +198,10 @@ export default function JosekiApp() {
             worse than no mark. */}
         <span className="foot-line foot-brand">
           <Wordmark lockup="plain" className="foot-wordmark" />
-          <span>&middot; play go, beautifully</span>
+          <span>&middot; {t("brand.tagline")}</span>
         </span>
         <span className="foot-line">{footSaying.text}</span>
-        <button className="foot-link" onClick={() => setView("landing")}>About Joseki</button>
+        <button className="foot-link" onClick={() => setView("landing")}>{t("foot.about")}</button>
         {/* The small print, reachable from every screen and never from anywhere
             else. A reader looking for the terms looks at the bottom of the page,
             so that is the only place they are asked to look. */}
@@ -203,10 +213,11 @@ export default function JosekiApp() {
             </span>
           ))}
         </span>
-        <span className="foot-line studio">{COPYRIGHT} · built with ♥</span>
+        <span className="foot-line studio">{COPYRIGHT} · {t("foot.built")}</span>
       </footer>
       </>}
     </div>
     </MokuProvider>
+    </LangProvider>
   );
 }
