@@ -17,6 +17,27 @@
    quotations from any modern translation. Pure data and pure functions;
    nothing here touches React or the browser. */
 
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
+import { localize } from "./translate.js";
+
+const EN = makeT(BASE_LOCALE);
+
+/* The book, in the language in force. Every piece of it is overlaid by the
+   number or key it is stored under: a chapter by its number, a level by its
+   step, a name by its place in the list of thirty-two.
+
+   The author's name, the dynasty and the transliterated terms are not
+   translated. Chapter eleven is *about* those terms and ends by arguing the
+   names must be set right before the shapes can be seen; replacing them would
+   be the one change the chapter forbids. */
+export const localizeChapter = (ch, t = EN) => localize(ch, `chapter.${ch.n}`, t);
+export const localizePreface = (t = EN) => localize(PREFACE, "preface", t);
+export const localizeLevel = (l, t = EN) => localize(l, `level.${l.n}`, t);
+export const localizeName = (n, t = EN) => localize(n, `name.${n.n}`, t);
+export const localizeKind = (k, t = EN) => localize(k, `kind.${k.key}`, t);
+export const localizeClassic = (t = EN) => localize(CLASSIC, "classicBook", t);
+export const belowTheLevels = (t = EN) => t("belowTheLevels", null, BELOW_THE_LEVELS);
+
 export const CLASSIC = {
   key: "classic",
   title: "The Classic in Thirteen Chapters",
@@ -365,7 +386,25 @@ export const chapterForLesson = (lessonId) =>
   CHAPTERS.find(ch => lessonIdsForChapter(ch).includes(lessonId)) || null;
 
 /** Every saying with its chapter, in book order. */
-export const SAYINGS = CHAPTERS.flatMap(ch => ch.sayings.map(text => ({ text, chapter: ch.n, title: ch.title })));
+export const SAYINGS = CHAPTERS.flatMap(
+  ch => ch.sayings.map((text, i) => ({ text, chapter: ch.n, title: ch.title, i })),
+);
+
+/** A saying in the language in force. It carries the chapter it was lifted
+ *  from and its place in that chapter, so the line and the chapter's title are
+ *  both read from the same overlay the chapter itself uses. */
+export const localizeSaying = (s, t = EN) => ({
+  ...s,
+  text: t(`chapter.${s.chapter}.sayings.${s.i}`, null, s.text),
+  title: t(`chapter.${s.chapter}.title`, null, s.title),
+});
+
+/** A passage in the language in force. Passages are a list, so they are
+ *  overlaid by their place in it. */
+export const localizePassage = (p, t = EN) => ({
+  ...p,
+  text: t(`passage.${PASSAGES.indexOf(p)}`, null, p.text),
+});
 
 const hashKey = (key) => {
   let h = 2166136261;

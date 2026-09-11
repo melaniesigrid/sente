@@ -30,6 +30,8 @@ export const TEXT_FIELDS = new Set([
   "trains", "era", "partial", "heading", "paras", "list", "terms",
   // A persona's table talk: each is a list of lines it might say.
   "greet", "botCapture", "userCapture", "reply", "win", "loss",
+  // A chapter of the Classic carries its prose and the lines lifted out of it.
+  "sayings", "modern",
 ]);
 
 /** Fields that name a thing rather than describe it, and are never translated:

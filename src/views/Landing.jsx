@@ -9,7 +9,7 @@ import { useReveal } from "../components/reveal.js";
 import { needsOnboarding } from "../store/profile.js";
 import { LESSONS } from "../content/lessons.js";
 import { PERSONAS } from "../content/personas.js";
-import { CHAPTERS, CLASSIC, sayingOfTheDay } from "../content/classic.js";
+import { CHAPTERS, CLASSIC, sayingOfTheDay, localizeSaying, localizeClassic } from "../content/classic.js";
 import { RULESETS } from "../engine/rulesets.js";
 import { PALETTES } from "../theme/palettes.js";
 import { dayKey } from "../content/kata.js";
@@ -45,7 +45,7 @@ const ROADMAP = [1, 2, 3, 4, 5];
 export function Landing({ profile, onEnter, go }) {
   const t = useT();
   const root = useReveal();
-  const saying = sayingOfTheDay(dayKey());
+  const saying = localizeSaying(sayingOfTheDay(dayKey()), t);
   const rooms = Object.keys(PALETTES).length;
   const rules = Object.keys(RULESETS).length;
   const returning = !needsOnboarding(profile);
@@ -57,7 +57,7 @@ export function Landing({ profile, onEnter, go }) {
     { key: "lessons", icon: GraduationCap, to: "learn", vars: { n: LESSONS.length } },
     { key: "tsumego", icon: Target, to: "tsumego" },
     { key: "players", icon: Bot, to: "play", vars: { n: PERSONAS.length } },
-    { key: "classic", icon: BookOpen, to: "learn", vars: { n: CHAPTERS.length, author: CLASSIC.author, era: CLASSIC.era } },
+    { key: "classic", icon: BookOpen, to: "learn", vars: { n: CHAPTERS.length, author: CLASSIC.author, era: localizeClassic(t).era } },
     { key: "rank", icon: Medal, to: "ladder" },
     { key: "rules", icon: Scale, to: "profile", vars: { rules, rooms } },
   ];
@@ -139,11 +139,11 @@ export function Landing({ profile, onEnter, go }) {
 
       {/* -------------------------------------------------- the Classic */}
       <section className="lp-section lp-quote-section" id="classic">
-        <TypedLabel className="lp-label reveal">{CLASSIC.title}</TypedLabel>
+        <TypedLabel className="lp-label reveal">{localizeClassic(t).title}</TypedLabel>
         <div className="lp-quote reveal">
           <TypedLine text={saying.text} className="lp-quote-line" />
           <p className="lp-quote-src">
-            {t("landing.classicSrc", { n: saying.chapter, title: saying.title, author: CLASSIC.author, era: CLASSIC.era })}
+            {t("landing.classicSrc", { n: saying.chapter, title: saying.title, author: CLASSIC.author, era: localizeClassic(t).era })}
           </p>
         </div>
         <p className="lp-lede reveal center">{t("landing.classicLede")}</p>

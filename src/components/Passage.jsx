@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { passageFor, emphasize, markBudget, CLASSIC } from "../content/classic.js";
+import { passageFor, emphasize, markBudget, CLASSIC, localizePassage } from "../content/classic.js";
 import { typedParts } from "./typedParts.js";
+import { useT } from "./langStore.js";
 
 /* ----------------------- PASSAGE (a page from the Classic) -----------------------
    A passage from Zhang Ni's thirteen chapters, typed out on a machine, with a
@@ -71,8 +72,10 @@ function useTyped(text, on) {
 }
 
 export function Passage({ context = "any", size = "", className = "" }) {
+  const t = useT();
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1e6));
-  const p = passageFor(context, seed);
+  const authored = passageFor(context, seed);
+  const p = authored && localizePassage(authored, t);
   const text = p ? p.text : "";
   const typing = size === "lg";
   const shown = useTyped(text, typing);
@@ -100,7 +103,12 @@ export function Passage({ context = "any", size = "", className = "" }) {
         </span>
       </blockquote>
       <figcaption className="passage-cite">
-        {CLASSIC.author} · {CLASSIC.short} · chapter {p.chapter}, {p.title}
+        {t("voice.passageCite", {
+          author: CLASSIC.author,
+          book: t("classicBook.short", null, CLASSIC.short),
+          n: p.chapter,
+          title: t(`chapter.${p.chapter}.title`, null, p.title),
+        })}
       </figcaption>
     </figure>
   );

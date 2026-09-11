@@ -15,6 +15,7 @@ import { CLOCK_PRESETS } from "../content/clockFace.js";
 import { TIERS, TRACKS, BOOKS, SERIES } from "../content/library.js";
 import { PROBLEMS } from "../content/problems.js";
 import { COMMENTARY } from "../content/commentary.js";
+import { CHAPTERS, LEVELS, NAMES, KINDS, PASSAGES } from "../content/classic.js";
 import {
   BASE_LOCALE, SYSTEM_LOCALE, LOCALES, CATALOGUES, isLocaleId, localeOf, resolveLocale,
   makeT, flatten, interpolate, pluralCategory,
@@ -33,6 +34,8 @@ const OVERLAYS = [
   "lesson.", "legalDoc.", "credit.",                             // the documents and the library
   "plain.", "statement.", "moku.", "ruleset.", "preset.", "persona.",  // the house's voices
   "tier.", "track.", "book.", "series.", "problem.", "shape.",   // the library and the coach
+  "classicBook.", "preface.", "kind.", "level.", "chapter.", "name.", "passage.", // the Classic
+  "belowTheLevels",
 ];
 const isOverlay = (key) => OVERLAYS.some(p => key.startsWith(p));
 const others = LOCALES.filter(l => l.id !== BASE_LOCALE);
@@ -258,10 +261,18 @@ describe.each(others)("$name is complete", (locale) => {
       series: SERIES.map(x => x.key),
       problem: PROBLEMS.map(x => x.id),
       shape: Object.keys(COMMENTARY),
+      classicBook: ["title", "short", "era", "blurb", "credit"],
+      preface: ["title", "plain", "text"],
+      kind: KINDS.map(k => k.key),
+      level: LEVELS.map(l => String(l.n)),
+      chapter: CHAPTERS.map(c => String(c.n)),
+      name: NAMES.map(n => String(n.n)),
+      passage: PASSAGES.map((p2, i) => String(i)),
     };
     for (const key of [...mine.keys()].filter(isOverlay)) {
       const [ns, id] = key.split(".");
-      expect(ids[ns], `${locale.id}: ${key}`).toContain(id);
+      // A one-word overlay names a single line rather than a family of them.
+      if (id !== undefined) expect(ids[ns], `${locale.id}: ${key}`).toContain(id);
       /* An overlay has no holes, because there is nobody to fill them — except
          the legal documents, which are written around a handful of constants
          and are handed exactly these. */

@@ -7,6 +7,7 @@
    what it says lives in src/content/personas.js beside its playing weights,
    overlaid by id like a lesson. */
 export const voice = {
+  passageCite: "{author} · {book} · chapter {n}, {title}",
   plainLabel: "In plain words",
   clock: {
     none: "No clock",
