@@ -1142,7 +1142,10 @@ that is honestly still English.
 - [x] Spanish: tiers 3 and 4, nine lessons from 15k to 5k — six more chapters of the
       Classic and the two endgame studies from the Guanzi. The Guanzi numbers are measured
       rather than claimed, so none of them was rounded in the translating.
-- [ ] Spanish: tier 5, six lessons.
+- [x] Spanish: tier 5, six lessons from 5k to 1k — the last chapters of the Classic, two
+      problems from the Xuanxuan and the two master games. Board coordinates and players'
+      names are read the same way in every language and stay as they are. **Every lesson in
+      the library now reads in Spanish.**
 - [ ] Spanish: the Classic's thirteen chapters, the preface and the thirty-two names.
 - [ ] Spanish: the content prose. Lessons, personas, Moku, the plain-words statements, the
       books, the legal documents, and the Classic's thirteen chapters, in that order.
