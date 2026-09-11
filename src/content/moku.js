@@ -21,6 +21,7 @@ const LINES = {
   tsumego: ["Vital point first. Always.", "If it looks like suicide, count again."],
   ladder: ["A hundred points is one stone of strength.", "Ranks are borrowed, never owned."],
   profile: ["Wear the belt you earned.", "The belt is a fact, not a trophy."],
+  look: ["I am cut from these stones too.", "Pick the room you would sit in all evening."],
   idle: ["Your move.", "Take your time. The stones wait.", "Big point or urgent point?", "Before you strike left, look right."],
   watching: ["Reading…", "Let them think.", "Hm."],
   atari: ["One breath left on a group of yours.", "Atari. Extend or accept it.", "That group is gasping."],

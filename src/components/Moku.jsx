@@ -23,7 +23,7 @@ const OFF_KEY = "sente-moku-off";
 const readOff = () => { try { return localStorage.getItem(OFF_KEY) === "1"; } catch { return false; } };
 const writeOff = (v) => { try { if (v) localStorage.setItem(OFF_KEY, "1"); else localStorage.removeItem(OFF_KEY); } catch { /* per-device nicety only */ } };
 
-const VIEW_FACT = { home: "home", play: "play", learn: "learn", tsumego: "tsumego", ladder: "ladder", profile: "profile" };
+const VIEW_FACT = { home: "home", play: "play", learn: "learn", tsumego: "tsumego", ladder: "ladder", profile: "profile", look: "look" };
 
 export function MokuProvider({ view, children }) {
   const [facts, setFacts] = useState(null);
