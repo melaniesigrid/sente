@@ -1066,7 +1066,7 @@ Later, in order: the club and chat, then the game archive (cap, eviction, localS
 versus Durable Objects — all open), then Neo-Human pair go, which is a seat-model change in
 the multiplayer Worker and is unrated for the same reason coached games are.
 
-## Phase 7 — The words (in progress, branch `feat/i18n`)
+## Phase 7 — The words (done, 2026-09-11)
 
 Joseki reads in the player's own language. English stays the language it is authored in
 and the floor every lookup lands on, so an unfinished language is a page with some English
@@ -1102,11 +1102,6 @@ that is honestly still English.
 - [x] Spanish: the library and the lesson player — `Learn`, the shelf, the Classic card,
       the chapter list and the tier rail. The lessons' own prose, the tracks, the tiers and
       the books are data and wait for the content slice.
-- [ ] Spanish: review mode and the SGF reader (`Review`, `reviewLine`, `sgfImport`).
-- [ ] Spanish: the landing page, onboarding, the small print, the letters.
-- [ ] Spanish: the content prose — Moku's lines, the personas, the welcome copy, the
-      commentary. The Classic's thirteen chapters are a translation problem of their own
-      and are the last thing to touch, not the first.
 - [x] Spanish: the front door and onboarding, and the machinery that translates content.
       `src/content/translate.js` walks a lesson (or any content shape) and reads its text
       fields from the catalogue, falling back to the data; `TEXT_FIELDS` is the contract
@@ -1151,8 +1146,6 @@ that is honestly still English.
       thirty-two names. The transliterated terms stay as they are: chapter eleven is about
       those names and ends by arguing they must be set right before the shapes can be seen.
       **Spanish is finished: every screen and every word of content.**
-- [ ] Spanish: the content prose. Lessons, personas, Moku, the plain-words statements, the
-      books, the legal documents, and the Classic's thirteen chapters, in that order.
 - [x] French: every screen, and the design system's own words. A language cannot arrive
       half-built — the parity test holds a catalogue to English's whole key set, and the
       room, stone, pairing and belt overlays complete against the data — so the first
@@ -1161,7 +1154,23 @@ that is honestly still English.
       the whole Classic. **French is finished: every screen and every word of content.**
 - [x] German: every screen, and the design system's own words. Same rule as French: a
       language arrives whole or not at all.
-- [ ] German: the content — the voices, the library's furniture, the lessons, the Classic.
+- [x] German: the content — the voices, the library's furniture, all thirty-two lessons and
+      the whole Classic. **German is finished: every screen and every word of content.**
+- [x] The gaps a screen-by-screen reading would never have found, closed by comparing the
+      four catalogues key for key and then scanning the views for literals:
+      - `commentary`, the line a sequence step says as each move lands — in `TEXT_FIELDS`,
+        reached by the walker, and written in no language at all. Fifty lines. The parity
+        test missed it because its `PROSE` pattern ended at `.commentary` and a flattened
+        key ends at `.commentary.0`.
+      - `credit`, the Classic's "these are Joseki's renderings, not quotations" line: read
+        through the walker on the learn page and not counted as prose, so three written
+        translations of it sat unread.
+      - The three legal documents and the welcome demo, which only Spanish carried.
+      - The recall sitting, which read `useT` and then said everything in English anyway,
+        and handed the player the authored lesson rather than the localized one.
+      - The verdict chip beside a choice, the two house fallback lines a step gets when its
+        author wrote none, and the two buttons whose only label is a tooltip.
+      **All four languages now hold the same 2013 keys, with no key any one of them lacks.**
 
 Decisions made in Phase 7 (change deliberately, not by accident):
 - English lives in `en.js`, except for prose that a data file already owns — a room's note,
