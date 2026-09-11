@@ -48,7 +48,7 @@ export const COPYRIGHT = `© ${COPYRIGHT_YEAR} ${STUDIO}`;
    being stopped and handed the line where the date lives. */
 export const REVISION = {
   updated: "11 September 2026",
-  stamp: "a2e9c842",
+  stamp: "f6f9e88c",
 };
 
 /** The day the documents last changed. */
