@@ -925,6 +925,54 @@ ${FONT_FACES}
    of the profile chip, cut to the same corner, so the bar reads as two objects
    of one family rather than a button beside a card. */
 .topbar-you { display: flex; align-items: center; gap: 10px; }
+
+/* ---- the language, in the chrome ----
+   Cut to the look button's corner and raised by the same pair of shadows, so
+   the right-hand cluster stays one family. It is wider than the icon buttons
+   beside it because it carries a word — the two-letter tag of the language
+   actually in force — and that tag is the only thing in the header that is not
+   in English. A reader who cannot read the nav can still read EN and press it.
+
+   It is a menu and not a screen. The language is one of four things the Look
+   screen offers and the only one that decides whether the other three can be
+   read, so it is the only one lifted out of there and into the bar. */
+.lang-pill-host { position: relative; flex: none; }
+.lang-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 48px; padding: 0 15px; border: 0; border-radius: 16px;
+  background: var(--ground); color: var(--ink-2); cursor: pointer;
+  box-shadow: var(--raise-sm);
+  transition: transform .15s ease, box-shadow .15s ease, color .15s ease;
+}
+.lang-pill:hover { transform: translateY(-1px); color: var(--ink); }
+.lang-pill.on, .lang-pill:active { box-shadow: var(--sink-sm); color: var(--accent-ink); transform: none; }
+.lang-tag { font: 700 13px var(--font-body); letter-spacing: .11em; }
+
+/* The menu hangs from the pill's own right edge, so it opens inward on every
+   screen rather than off the side of the bar. */
+.lang-menu {
+  position: absolute; top: calc(100% + 9px); right: 0; z-index: 50;
+  min-width: 214px; padding: 7px; border-radius: 18px;
+  background: var(--ground); box-shadow: var(--raise);
+  display: flex; flex-direction: column; gap: 2px;
+  animation: arrive .2s cubic-bezier(.2,.8,.2,1) both;
+}
+.lang-row {
+  display: grid; grid-template-columns: 1fr auto 18px; align-items: baseline; gap: 10px;
+  width: 100%; border: 0; background: none; cursor: pointer; text-align: left;
+  padding: 11px 12px; border-radius: 13px; color: var(--ink);
+  transition: box-shadow .14s ease, color .14s ease;
+}
+.lang-row:hover { box-shadow: var(--raise-sm); }
+.lang-row.on { box-shadow: var(--sink-sm); color: var(--accent-ink); }
+/* Every language names itself in its own words, and the name is set in the
+   body face at reading size: this is the one list a reader may not be able to
+   read, so nothing in it is allowed to be small or clever. */
+.lang-row-name { font: 600 15px var(--font-body); }
+.lang-row-note { font-size: 12px; letter-spacing: .08em; color: var(--ink-2); }
+.lang-row.on .lang-row-note { color: inherit; }
+.lang-row-tick { display: grid; place-items: center; color: var(--accent-ink); align-self: center; }
+
 .look-btn { width: 48px; height: 48px; border-radius: 16px; flex: none; transition: transform .15s ease, box-shadow .15s ease, color .15s ease; }
 .look-btn:hover { transform: translateY(-1px); }
 .look-btn[aria-current] { box-shadow: var(--sink-sm); color: var(--accent-ink); transform: none; }
@@ -1111,8 +1159,20 @@ ${FONT_FACES}
 /* ---- Moku ---- */
 .moku-dock { position: fixed; left: clamp(12px, 2vw, 24px); bottom: clamp(12px, 2vw, 24px); z-index: 40; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; pointer-events: none; }
 .moku-dock > * { pointer-events: auto; }
+/* The bubble is sized to the margin it stands in, not to itself.
+   It was a flat 250px in a dock pinned to the bottom left, and the content
+   column is 1100px centred — so on a 1440px screen the gutter is 170px and
+   Moku spoke straight across the page: over the statement on the dashboard,
+   over "NONE PRETENDING" in the lobby, and over the first room swatch on the
+   Look screen, which is a control and not just type. A mascot with an off
+   switch is chrome, and chrome does not get to cover the thing it is next to.
+
+   The expression 50vw minus 550px is the gutter beside that column; the rest is the dock's own
+   inset and a hair of air. The floor keeps a line readable when the gutter
+   runs out, which is the narrow case the rule below already handles. */
 .moku-bubble {
-  max-width: 250px; padding: 10px 14px; border-radius: 14px 14px 14px 4px;
+  max-width: min(250px, max(158px, calc(50vw - 566px)));
+  padding: 10px 14px; border-radius: 14px 14px 14px 4px;
   background: var(--ground); box-shadow: var(--raise-sm);
   font-family: var(--font-quote); font-style: var(--quote-style); font-size: 16px; line-height: 1.4; color: var(--ink);
   animation: rise-l .35s ease;
