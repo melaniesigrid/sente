@@ -52,12 +52,12 @@ export const STATEMENTS = {
    The house rule holds here hardest, because this is the page that is trying
    to persuade somebody: a line goes up only if it is true. Two rules is the
    liberty rule and the ko rule, which is how the primer already puts it, and
-   `fell` is set beside The Record, which prints the date and its source. A
+   `fell` is set beside The Record, which prints both dates and their sources. A
    statement that cannot point at something does not go on the front door. */
 
 export const LANDING_STATEMENTS = {
   rules:  ["Two rules.", "One board.", "A lifetime."],
-  fell:   ["The last game", "to fall.", "March 2016."],
+  fell:   ["Nineteen years", "after chess.", "March 2016."],
   honest: ["Nothing counted.", "Nothing sold.", "Nothing to sign."],
   begin:  ["Your move.", "Whenever", "you are ready."],
 };

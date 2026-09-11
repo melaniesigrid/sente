@@ -843,7 +843,7 @@ ${FONT_FACES}
    reveal, and fading a mask as its contents rise reads as two ideas. */
 .lp-band {
   width: 100%; display: flex; justify-content: center;
-  padding: clamp(54px, 8vw, 116px) clamp(20px, 5vw, 48px);
+  padding: clamp(44px, 6vw, 92px) clamp(20px, 5vw, 48px) clamp(28px, 3.5vw, 52px);
 }
 .lp-band-inner { width: 100%; max-width: 1080px; }
 .statement.lp { margin: 0; padding: 0; border: 0; }
@@ -1284,7 +1284,7 @@ ${FONT_FACES}
 }
 .lp-hero-copy { flex: 1 1 420px; max-width: 620px; }
 .lp-hero-board { flex: 0 1 420px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
-.lp-board-well { border-radius: var(--r); box-shadow: var(--sink); padding: clamp(14px, 2vw, 24px); width: 100%; }
+.lp-board-well { border-radius: var(--r); box-shadow: var(--sink); padding: clamp(14px, 2vw, 24px); width: 100%; background: var(--ground); }
 .lp-board-note { color: var(--ink-2); margin: 0; font-family: var(--font-caption); font-style: var(--caption-style); font-size: 13px; text-align: center; }
 
 /* The stat chips are sunken, so they read as facts stamped into the ground
@@ -1315,6 +1315,7 @@ ${FONT_FACES}
 .lp-btn.ghost:hover { opacity: 1; }
 
 /* ---- sections ---- */
+.lp-section.wide { max-width: 1340px; }
 .lp-section { max-width: 1080px; margin: 0 auto; width: 100%; padding: clamp(64px, 9vw, 124px) clamp(20px, 5vw, 48px); }
 .lp-grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(268px, 1fr)); gap: clamp(18px, 2.4vw, 28px); margin-top: clamp(38px, 5vw, 56px); }
 .lp-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: clamp(18px, 2.4vw, 28px); margin-top: clamp(38px, 5vw, 56px); }
@@ -1349,16 +1350,142 @@ ${FONT_FACES}
 .lp-quote-section { text-align: center; display: flex; flex-direction: column; align-items: center; }
 .lp-quote { display: flex; flex-direction: column; align-items: center; gap: 18px; margin: 8px 0 clamp(34px, 5vw, 52px); }
 .lp-quote-line {
-  margin: 0; max-width: 26ch;
-  font-size: clamp(23px, 3.4vw, 40px); line-height: 1.44; letter-spacing: -.018em;
+  margin: 0; max-width: 24ch;
+  font-size: clamp(26px, 4.4vw, 54px); line-height: 1.3; letter-spacing: -.02em;
 }
 .lp-quote-src { color: var(--ink-2); margin: 0; font-family: var(--font-caption); font-style: var(--caption-style); font-size: 14px; }
+
+/* ---- a pull: one line, set to be read slowly ----
+   Not a statement and not a quotation. A statement is the house shouting in
+   capitals and a quotation is Zhang Ni; this is the house talking, in the
+   quote italic, at about half a statement's size. One word is drawn as an
+   outline rather than filled, which is the statement's third line again at a
+   scale where it can sit inside a sentence. A browser with no stroke property
+   gets the word in the incidental ink instead of a line of nothing. */
+.lp-pull {
+  margin: clamp(44px, 5.5vw, 74px) auto 0; max-width: 24ch; text-align: center;
+  font-family: var(--font-quote); font-style: var(--quote-style); font-weight: 420;
+  font-size: clamp(26px, 4.2vw, 52px); line-height: 1.28;
+  letter-spacing: -.016em; color: var(--ink); text-wrap: balance;
+}
+.lp-pull em { font-style: inherit; color: var(--ink-3); }
+@supports (-webkit-text-stroke: 1px currentColor) {
+  .lp-pull em { color: transparent; -webkit-text-stroke: 1.4px var(--ink); }
+}
+@media (max-width: 620px) {
+  .lp-pull em { -webkit-text-stroke-width: 1px; }
+}
 
 /* ---- roadmap ---- */
 .lp-roadmap { margin-top: clamp(32px, 4vw, 44px); padding: clamp(24px, 3vw, 34px); }
 .lp-roadmap ul { list-style: none; padding: 0; margin: 20px 0 0; display: flex; flex-direction: column; gap: 15px; }
 .lp-roadmap li { color: var(--ink-2); display: flex; gap: 13px; align-items: baseline; font-size: clamp(15px, 1.6vw, 16.5px); line-height: 1.6; }
 .lp-roadmap li svg { flex: none; color: var(--accent-ink); transform: translateY(3px); }
+
+/* ---- The Record: the one section set as a page rather than as cards ----
+   A broadsheet. Hairline masthead, a kicker, columns with rules between them,
+   an opener that drops, and the sources ruled off underneath at caption size.
+   It is the only block on the site that is not neumorphic, and that is the
+   argument for it: the page stops being an interface for a moment and becomes
+   something printed, which is how a reader knows the register has changed from
+   "here is what this app does" to "here is what this game is".
+
+   Nothing is invented to make it work. The rules are the hairline that is
+   already on the screen, the type is the same three tokens, and the drop cap
+   is the display face at four lines. No colour and no family is named.
+
+   The 12px floor holds. A real broadsheet would set the footnotes at eight
+   point; these sit at 12 and stop, because nothing below that carries meaning
+   at arm's length and the footnote rail is the part that has to be read most
+   carefully — it is where the page proves what it just said. */
+.lp-record { border-top: 2px solid var(--grid); border-bottom: 1px solid var(--hairline); }
+.lp-record-head {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+  gap: 12px; padding: 14px 0 0; border-bottom: 1px solid var(--hairline);
+}
+.lp-record-mast {
+  font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: clamp(30px, 5vw, 58px); line-height: 1; margin: 0;
+  letter-spacing: calc(-0.01em + var(--display-tracking)); text-transform: uppercase;
+}
+.lp-record-rule {
+  color: var(--ink-2); font-family: var(--font-caption); font-style: var(--caption-style);
+  font-size: 13px; margin: 0 0 10px;
+}
+.lp-record-dek {
+  margin: clamp(18px, 2.4vw, 28px) 0 0; max-width: 62ch;
+  font-family: var(--font-quote); font-style: var(--quote-style);
+  font-size: clamp(19px, 2.3vw, 26px); line-height: 1.42; color: var(--ink);
+}
+.lp-columns {
+  margin-top: clamp(26px, 3.4vw, 40px);
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 0;
+}
+.lp-col { padding: clamp(20px, 2.4vw, 30px) clamp(18px, 2.2vw, 28px); border-top: 1px solid var(--hairline); }
+/* The rule between columns, and only between them: a rule on the outside edge
+   of a broadsheet is a box, and a box is a card, which is the thing this
+   section exists to not be. */
+.lp-col + .lp-col { border-left: 1px solid var(--hairline); }
+.lp-col-kicker {
+  font-family: var(--font-body); font-size: 12px; font-weight: 700;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--accent-ink);
+  margin: 0 0 9px;
+}
+.lp-col h3 {
+  font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: clamp(21px, 2.3vw, 27px); line-height: 1.12; margin: 0 0 12px;
+  letter-spacing: var(--display-tracking); text-wrap: balance;
+}
+.lp-col p { color: var(--ink-2); font-size: 15.5px; line-height: 1.66; margin: 0 0 11px; }
+.lp-col p:last-of-type { margin-bottom: 0; }
+/* The opener drops — the first paragraph of the lead column and nothing else.
+   A drop cap in every column reads as a pattern rather than as the start of
+   something, and one asked of "the first paragraph" lands on the kicker. */
+.lp-col p.lp-drop::first-letter {
+  float: left; font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: 3.4em; line-height: .82; padding: .06em .09em 0 0; color: var(--ink);
+}
+.lp-figure {
+  display: block; margin: 0 0 12px;
+  font-family: var(--font-display); font-weight: var(--w-display);
+  font-size: clamp(27px, 3.2vw, 38px); line-height: 1.04; color: var(--accent-ink);
+  letter-spacing: calc(-0.018em + var(--display-tracking));
+}
+.lp-figure small {
+  display: block; margin-top: 5px; color: var(--ink-2);
+  font-family: var(--font-caption); font-style: var(--caption-style);
+  font-size: 13px; letter-spacing: 0; font-weight: 400;
+}
+/* The rail. Every column above is answerable to a line down here, which is the
+   only reason the section is allowed to exist on a page that is selling
+   something. */
+.lp-sources { border-top: 1px solid var(--hairline); padding: clamp(18px, 2.2vw, 26px) clamp(18px, 2.2vw, 28px) 4px; }
+.lp-sources-label {
+  font-family: var(--font-body); font-size: 12px; font-weight: 700;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 12px;
+}
+.lp-sources ol {
+  margin: 0; padding: 0; list-style: none;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 9px clamp(18px, 2.2vw, 30px); counter-reset: src;
+}
+.lp-sources li {
+  counter-increment: src; color: var(--ink-2);
+  font-family: var(--font-caption); font-style: var(--caption-style);
+  font-size: 12.5px; line-height: 1.5; padding-left: 24px; position: relative;
+}
+.lp-sources li::before {
+  content: counter(src); position: absolute; left: 0; top: 0;
+  font-family: var(--font-body); font-style: normal; font-size: 12px; font-weight: 700;
+  color: var(--accent-ink);
+}
+.lp-sources a { color: inherit; text-decoration-color: var(--hairline); text-underline-offset: 3px; }
+.lp-sources a:hover { text-decoration-color: var(--accent-ink); }
+@media (max-width: 620px) {
+  .lp-col + .lp-col { border-left: 0; }
+  .lp-record-head { padding-bottom: 10px; }
+}
 
 /* ---- the last word ---- */
 .lp-final {
@@ -1367,6 +1494,44 @@ ${FONT_FACES}
   padding: clamp(76px, 11vw, 148px) clamp(20px, 5vw, 48px) clamp(56px, 8vw, 96px);
 }
 .lp-final .lp-lede { margin-bottom: 34px; }
+
+/* ---- the ground: a go position, blurred ----
+   A real game drawn at wall size and thrown out of focus. The circles are
+   stones, in the two stone tokens, so it turns over with the room and with the
+   stone set exactly as the boards do.
+
+   The rule it has to respect is the one the whole design rests on: the two
+   shadows read as light falling on a flat ground, and they stop reading the
+   moment there is texture directly under a raised or a sunken thing. So the
+   field is a layer under a band and every card, button and well on top of it
+   carries its own ground. The band's own contents are lifted a layer clear.
+
+   The mask is not a scrim over the picture — it is the ground itself coming
+   back in at the edges, so the field has no border and never ends on a line. */
+.lp-ground { position: relative; isolation: isolate; }
+.lp-ground > *:not(.stone-field) { position: relative; z-index: 1; }
+.stone-field {
+  position: absolute; inset: 0; z-index: 0; overflow: hidden;
+  pointer-events: none; opacity: 0; transition: opacity 1.4s ease;
+}
+.stone-field.ready { opacity: .62; }
+.stone-field svg { width: 100%; height: 100%; display: block; filter: blur(13px); }
+.stone-field .fs-b { fill: var(--stone-b-2); }
+.stone-field .fs-w { fill: var(--stone-w-2); }
+/* the ground, closing back over the field at the edges */
+.stone-field::after {
+  content: ""; position: absolute; inset: -2px;
+  background: radial-gradient(farthest-side at 50% 50%, transparent 34%, var(--ground) 100%);
+}
+/* A phone gets a smaller blur, because the field is scaled down with it and a
+   13px radius on a 380px band is fog rather than stones. */
+@media (max-width: 620px) {
+  .stone-field svg { filter: blur(9px); }
+  .stone-field.ready { opacity: .42; }
+}
+/* Reduced motion still gets the picture — StoneField holds one settled
+   position rather than playing — but not the fade onto the page. */
+@media (prefers-reduced-motion: reduce) { .stone-field { transition: none; } }
 
 /* The slim chrome the landing wears: the wordmark, and one way in. Everything
    else in the topbar belongs to a player who has already sat down. */

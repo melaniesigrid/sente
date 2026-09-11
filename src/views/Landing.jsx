@@ -3,6 +3,7 @@ import {
   Circle, Grid3x3, Handshake, ArrowRight, ArrowDown, Sparkles, Route,
 } from "lucide-react";
 import { MiniSelfPlay } from "../components/MiniSelfPlay.jsx";
+import { StoneField } from "../components/StoneField.jsx";
 import { Mark } from "../components/Brand.jsx";
 import { Statement } from "../components/ui.jsx";
 import { TypedLine, TypedLabel } from "../components/Typed.jsx";
@@ -15,6 +16,7 @@ import { RULESETS } from "../engine/rulesets.js";
 import { PALETTES } from "../theme/palettes.js";
 import { dayKey } from "../content/kata.js";
 import { LANDING_STATEMENTS } from "../content/plain.js";
+import { RECORD, RECORD_DEK, RECORD_STANDFIRST, SOURCES } from "../content/press.js";
 
 /* ----------------------- THE FRONT DOOR -----------------------
    Everything a visitor sees before they have played a stone. It is a different
@@ -121,16 +123,17 @@ export function Landing({ profile, onEnter, go }) {
     <div className="landing" ref={root}>
 
       {/* ---------------------------------------------------- hero */}
-      <section className="lp-hero">
+      <section className="lp-hero lp-ground">
+        <StoneField />
         <div className="lp-hero-copy lp-enters">
           <TypedLabel className="lp-label">The oldest game, softly lit</TypedLabel>
           <h1 className="lp-display">
             Play go,<br /><em>beautifully</em>.
           </h1>
           <p className="lp-lede">
-            A go server built the way a board is built: quiet, correct, and pleasant to
-            sit at for hours. Learn the game from its first breath, sharpen your reading
-            on classical shapes, and take your rank onto the ladder.
+            Built the way a board is built: quiet, correct, and pleasant to sit at for
+            hours. Learn the game from its first breath, then take your rank onto the
+            ladder.
           </p>
           <div className="lp-stats" aria-label="What is here">
             <span className="lp-stat"><b>{LESSONS.length}</b> lessons</span>
@@ -156,7 +159,7 @@ export function Landing({ profile, onEnter, go }) {
         </div>
       </section>
 
-      <Band lines={LANDING_STATEMENTS.rules} />
+      <hr className="lp-rule" />
 
       {/* -------------------------------------------------- the primer */}
       <section className="lp-section" id="primer">
@@ -177,7 +180,7 @@ export function Landing({ profile, onEnter, go }) {
         </div>
       </section>
 
-      <hr className="lp-rule" />
+      <Band lines={LANDING_STATEMENTS.rules} />
 
       {/* ------------------------------------------------- what is here */}
       <section className="lp-section" id="inside">
@@ -197,6 +200,52 @@ export function Landing({ profile, onEnter, go }) {
               <span className="lp-more"><span>Open</span><ArrowRight size={15} strokeWidth={2.4} /></span>
             </button>
           ))}
+        </div>
+      </section>
+
+      <Band lines={LANDING_STATEMENTS.fell} />
+
+      {/* ------------------------------------------------- the record */}
+      {/* The one section set as a page rather than as an interface. Every
+          column is answerable to a numbered line in the rail underneath it,
+          and the test beside press.js fails the build if one is not — which
+          is the only thing that makes a marketing section on this site
+          defensible at all. */}
+      <section className="lp-section wide" id="record">
+        <div className="lp-record">
+          <div className="lp-record-head">
+            <h2 className="lp-record-mast">The Record</h2>
+            <p className="lp-record-rule">{RECORD_STANDFIRST}</p>
+          </div>
+          <p className="lp-record-dek reveal">{RECORD_DEK}</p>
+          <div className="lp-columns">
+            {RECORD.map((col, i) => (
+              <article className={`lp-col reveal d${(i % 3) + 1}${i === 0 ? " lead" : ""}`} key={col.title}>
+                <p className="lp-col-kicker">{col.kicker}</p>
+                <h3>{col.title}</h3>
+                {col.figure ? (
+                  <span className="lp-figure">
+                    {col.figure.value}
+                    <small>{col.figure.note}</small>
+                  </span>
+                ) : null}
+                {col.body.map((para, j) => (
+                  <p key={j} className={i === 0 && j === 0 ? "lp-drop" : undefined}>{para}</p>
+                ))}
+              </article>
+            ))}
+          </div>
+          <div className="lp-sources reveal">
+            <p className="lp-sources-label">Sources</p>
+            <ol>
+              {SOURCES.map(s => (
+                <li key={s.id}>
+                  <a href={s.url} target="_blank" rel="noreferrer">{s.title}</a>
+                  {`. ${s.where}, ${s.year}.`}
+                </li>
+              ))}
+            </ol>
+          </div>
         </div>
       </section>
 
@@ -233,6 +282,9 @@ export function Landing({ profile, onEnter, go }) {
             </article>
           ))}
         </div>
+        <p className="lp-pull reveal">
+          A game you lost and <em>understood</em> is worth more than a game you won and did not.
+        </p>
       </section>
 
       <hr className="lp-rule" />
@@ -256,7 +308,8 @@ export function Landing({ profile, onEnter, go }) {
       <Band lines={LANDING_STATEMENTS.begin} center />
 
       {/* -------------------------------------------------- final call */}
-      <section className="lp-final">
+      <section className="lp-final lp-ground">
+        <StoneField />
         {/* The corner mark, at the one size it deserves. It is the richest of
             the three and the first to fail small, so it is spent here and in
             the boot splash rather than in the chrome: the 4x4 corner every
