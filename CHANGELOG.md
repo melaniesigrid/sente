@@ -6,6 +6,61 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.7.1.0 (2026-09-11)
+
+### Added
+
+- **Stones move like stones now.** A stone lands a shade large and settles back, the way
+  one does when a hand puts it down: it comes toward you before it comes to rest. A
+  straight fade up from small is a thing appearing, and a thing appearing is not a move
+  being played. This is in the field behind the front door and in the figures beside the
+  large type, both.
+- **A captured stone is plucked off the board.** Up first, the way a hand lifts a stone
+  before it takes it away, then gone. It used to balloon and fade, which reads as a bubble
+  bursting, the one thing that never happens on a go board. It plays wherever a figure
+  captures, which is the ponnuki and the ko, every time either is drawn.
+- **Two rings, in the ink the grid is drawn in.** One where a stone lands. One where a
+  stone was taken off, wider and held a breath longer, because the point a capture leaves
+  behind is the one thing on the board worth looking at for a moment afterwards. That
+  second ring is most of the reason the ponnuki is worth setting large: the shape is four
+  stones around an empty point, and the ring is the capture that emptied it, drawn on the
+  move the engine performed it.
+- **The board rules itself in before the first stone lands**, which is the order the thing
+  actually happens in.
+- The field draws a captured stone on its way off the board instead of dropping it between
+  two frames. What left is worked out by comparing the two positions rather than by reading
+  the engine's capture list, so what leaves the screen cannot disagree with what is on it.
+  Measured rather than assumed: these two bots capture about once in six whole games, so
+  this is correctness and not spectacle.
+
+### Changed
+
+- The drawing of a stone lives in one place, `src/components/stoneArt.jsx`, shared by the
+  field and the figures. Every colour is still a token, so both change room and stone set
+  with the board.
+- The field no longer deals a fresh game inside the beat. Sixty-four moves of a real engine
+  is forty milliseconds on a desktop and several hundred on a phone; it is taken a chunk to
+  a frame now, the way the first deal always was.
+- The rings are drawn at a stated weight rather than one derived from the stone's radius.
+  Off the radius they came out four pixels against a grid drawn at one and a quarter, which
+  is not a board reacting, it is a halo.
+
+### Fixed
+
+- **A reader who asked for less motion still saw the capture ring.** The rule that turns the
+  figures' animations off named `.fig-ring`, and the ring that draws a capture is
+  `.fig-ring.out`, one class heavier, so it won, and a nine-tenths-of-a-second ring kept
+  expanding for somebody who had asked for none. The same shape of mistake as the headline
+  that used to be cut off by the board. It is now checked by arithmetic rather than by
+  reading: a test walks the stylesheet and fails when a rule meant to stop an animation
+  loses to it, on weight or on source order.
+- A field mounted in a tab that was already in the background opened its clock behind it.
+  `visibilitychange` only fires on a transition, so the field has to ask whether the tab is
+  in front rather than assume it.
+- Turning the system's reduced-motion switch on mid-session now stops the field. It used to
+  keep playing with the animation stripped out, which is a jump cut every two and a half
+  seconds: worse than the motion the reader had just asked to be rid of.
+
 ## v0.7.0.0 (2026-09-11)
 
 ### Added
