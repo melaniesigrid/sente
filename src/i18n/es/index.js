@@ -28,6 +28,7 @@ import { lessons1 } from "./lessons1.js";
 import { lessons2 } from "./lessons2.js";
 import { lessons3 } from "./lessons3.js";
 import { lessons4 } from "./lessons4.js";
+import { lessons5 } from "./lessons5.js";
 import { content } from "./content.js";
 import { overlay } from "./overlay.js";
 
@@ -62,5 +63,5 @@ export const es = {
   ...overlay,
   /* The lessons arrive a file at a time, so this one key is assembled rather
      than spread: `content.js` holds the welcome demo, and each tier its own. */
-  lesson: { ...content.lesson, ...lessons1, ...lessons2, ...lessons3, ...lessons4 },
+  lesson: { ...content.lesson, ...lessons1, ...lessons2, ...lessons3, ...lessons4, ...lessons5 },
 };
