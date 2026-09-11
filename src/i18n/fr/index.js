@@ -18,6 +18,8 @@ import { online } from "./online.js";
 import { account } from "./account.js";
 import { voice } from "./voice.js";
 import { room, stones, type, belt } from "./overlay.js";
+import { plain, statement, moku, ruleset, preset, persona } from "./content.js";
+import { tier, track, book, series, problem, shape } from "./library.js";
 
 export const fr = {
   ...shell,
@@ -34,4 +36,16 @@ export const fr = {
   stones,
   type,
   belt,
+  plain,
+  statement,
+  moku,
+  ruleset,
+  preset,
+  persona,
+  tier,
+  track,
+  book,
+  series,
+  problem,
+  shape,
 };
