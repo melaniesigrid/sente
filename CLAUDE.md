@@ -101,6 +101,14 @@ in `server/` (Durable Objects), deployed separately.
   tier's index; `npm test` verifies every position. No exclamation marks in lesson text.
 - Run vitest from PowerShell (`C:...`), not Git Bash: the forks pool loads two copies of
   vitest when the drive-letter casing differs and every suite fails to find the runner.
+- **Line endings are declared in `.gitattributes`, not inherited from a machine.** The
+  repository stores LF; every working tree holds CRLF. That is what was always true, but
+  nothing said so, and the arrangement rested on each machine's global `core.autocrlf` —
+  so a fresh clone, a new worktree or CI could each decide differently. Two things follow.
+  A scripted multi-line replacement must strip `\r` before it matches, or it silently finds
+  nothing; this is the most common way an edit reports success and changes nothing. And to see
+  what a file actually holds, use `git ls-files --eol` — a hand-rolled `grep` for `\r$`
+  misreports any file that ends without a newline, and will tell you a clean tree is broken.
 - Roadmap lives in `TODO.md`. Update it when you finish or add work.
 
 ## Skill routing
