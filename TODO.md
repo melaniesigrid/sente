@@ -1352,18 +1352,53 @@ duel, a master game and a coached game move no rating.
         not consult, so the protocol has nowhere to put a private line to your partner.
       - The client's `seat` is a seat id now, not a colour, and the status pill names the
         player to move rather than the colour — at a pair table a colour is two people.
-- [ ] B2: matchmaking for a pair table and the invite link that seats a partner. Each
-      human's browser runs their own bot partner and submits its move like any other:
-      no KataGo on the server. The cost is that a team's partner needs that team's
-      device online, and the table says so.
+- [x] B2: matchmaking for a pair table (branch `feat/rengo-online`). Each human's
+      browser runs their own bot partner and submits its move like any other: no KataGo
+      on the server. The cost is that a team's partner needs that team's device online,
+      and the lobby says so before you sit down. Decisions made while building it:
+      - A bot seat carries `runBy`, the player id whose browser answers for it. That one
+        field is the whole mechanism.
+      - A move is applied as whichever seat is *actually* to play, when the sender
+        controls it (`actingSeat`). A client never names the chair it means and so can
+        never name the wrong one; everything that is not a move (chat, resign, the
+        count, an undo) speaks from the sender's own chair.
+      - A pair seek only ever meets another pair seek. Sitting down expecting a partner
+        and getting an ordinary game is not a near miss, it is a different game.
+      - `DEFAULT_PARTNER_RANK` lives in `src/engine/rengo.js` because the Registry
+        seats the table and the server may import from the engine and nowhere else.
+        When A2 lands, `content/rengo.js`'s `PARTNER_RANK` should re-export it rather
+        than hold a second "7d" that can drift.
+      - Verified by `tools/server/smoke.mjs` against a local Worker: the seek queues
+        stay apart, four seats are created, the table is unrated, each player answers
+        for their own partner and is refused the other team's, and the round-undo
+        works with consent from the other side.
+- [ ] B2 follow-up: the invite link that seats a named friend at a pair table. The
+      rendezvous word already matches two pair seekers; what is missing is choosing
+      *which* team a friend joins, which only matters once Phase C seats four humans.
 - [ ] B3: disconnection, reconnection and an abandoned seat in a four-seat room;
       spectating a pair game.
 
 **Phase C — four humans (true rengo)**
-- [ ] C1: all-human rosters. The one new rule is a social one the interface has to
-      keep: partners may not consult, so a live pair game has no team-only chat.
-- [ ] C2: invite a friend to your team, matchmake pairs against pairs, and decide
-      whether a team rating is a number Joseki is willing to stand behind.
+- [x] C1: all-human rosters (branch `feat/rengo-four`). The seat model did not change
+      at all; what changed is that no seat carries a runner. Decisions made while
+      building it:
+      - A human seat may never carry `runBy`. A bot partner is run by the browser of
+        the player it partners; a person plays their own moves. A `runBy` on a human
+        seat would hand a player their partner's chair, which is the one thing pair go
+        forbids — `seat()` now strips it rather than trusting the caller.
+      - Four seekers fill a table in arrival order: b1, w1, b2, w2, so the first two to
+        arrive lead the teams and the next two partner them. Arbitrary, but arbitrary in
+        the open — nobody is quietly put on the stronger side.
+      - Three queues that never see each other: an ordinary seek, a bot-partner pair
+        seek, and a rengo seek waiting for three more people.
+      - Still unrated. Four humans could carry a team rating, but that is a different
+        number with a different meaning and it is not being smuggled in under the
+        single-player one. That is C2's question, not C1's.
+      - The no-team-chat rule needed no work: chat has been one room-wide conversation
+        since B1, because a private line to your partner is what the rule forbids.
+- [ ] C2: invite a friend to your team (choose which team a named friend joins), and
+      decide whether a team rating is a number Joseki is willing to stand behind. The
+      rendezvous word already gets four people who agree on it to the same table.
 
 Open, deliberately: whether a handicap between *teams* means anything (Phase A offers
 even games only), and whether a partner may ever resign or accept a score for you

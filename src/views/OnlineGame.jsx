@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import {
   scoreBoard, chainsInAtari, idx, lastMoveIndex, toSgf, colorOfSeat, canSeatPlay, partnerSeat,
+  seatToPlay, kataChooseMoveForRecord, profileForRank, loadModel, modelReady, DEFAULT_PARTNER_RANK,
 } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
 import { Card, Btn, Pill, Avatar, RankBadge } from "../components/ui.jsx";
@@ -37,6 +38,13 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
   const account = useMemo(() => loadAccount(), []);
   const [room, setRoom] = useState(null);
   const [seat, setSeat] = useState(null);
+  /* The seats this browser answers for besides its own chair: at a pair table,
+     the partner on this player's team. Joseki runs no KataGo on the server, so
+     an online partner is played here and submitted over this socket like any
+     other move - which is why a team's partner needs that team's device. */
+  const [runs, setRuns] = useState([]);
+  const [partnerThinking, setPartnerThinking] = useState(false);
+  const answering = useRef(null);
   const [conn, setConn] = useState("connecting");
   const [watching, setWatching] = useState(0);
   const [chat, setChat] = useState([]);
@@ -56,7 +64,7 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
         if (f.t === "state") {
           setRoom(f.room);
           setChat(f.room.chat);
-        } else if (f.t === "seat") { setSeat(f.seat); setWatching(f.watching); }
+        } else if (f.t === "seat") { setSeat(f.seat); setRuns(f.runs ?? []); setWatching(f.watching); }
         else if (f.t === "chat") setChat(c => [...c, f.msg]);
         else if (f.t === "undo") { if (f.status === "declined") notify({ icon: "info", text: "Undo declined" }); }
         else if (f.t === "error") {
@@ -86,6 +94,9 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
 
   const rec = room ? room.record : null;
   const over = rec && rec.phase === "ended" ? rec.result : null;
+  // The seat to play, and whether it is the partner this browser is running.
+  const up = rec && rec.phase === "playing" ? seatToPlay(room.seats, rec) : null;
+  const partnerUp = !!(up && runs.includes(up));
   const scoring = rec && rec.phase === "scoring";
   const color = seat ? colorOfSeat(seat) : null;
   const myTurn = !!(rec && seat && rec.phase === "playing" && canSeatPlay(room.seats, rec, seat));
@@ -101,6 +112,44 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
   useMokuFacts({ view: "game", phase: rec ? rec.phase : "playing", thinking: false, myAtari: myAtari.length, oppAtari: 0, ko: !!(rec && rec.koPoint !== null), moment: null, result: resultKind, promoted: null, seed: rec ? rec.moves.length : 0 });
 
   const send = (frame) => { if (!sock.current || !sock.current.send(frame)) notify({ icon: "info", text: "Not connected" }); };
+
+  /* The partner's turn. Asked of the same human-style network the offline table
+     uses, at the rank the seat says, and answered over this socket. The guard is
+     the move count rather than a boolean: a reconnect or a second `state` frame
+     for the same position must not produce two answers, and the server would
+     refuse the second anyway - but a refusal the player has to read is a bug,
+     not a defence. */
+  useEffect(() => {
+    if (!partnerUp || conn !== "open" || !room) return undefined;
+    const at = rec.moves.length;
+    if (answering.current === at) return undefined;
+    answering.current = at;
+    let alive = true;
+    setPartnerThinking(true);
+    const ask = { ...profileForRank(room.seats[up].rank ?? DEFAULT_PARTNER_RANK, 0.5), oppRank: room.seats[up].rank ?? DEFAULT_PARTNER_RANK };
+    kataChooseMoveForRecord(rec, ask)
+      .then((res) => {
+        if (!alive) return;
+        const mv = res ? res.move : null;
+        send(mv ? { t: "play", c: mv[0], r: mv[1] } : { t: "pass" });
+      })
+      .catch(() => {
+        /* The network could not answer. The table says so rather than passing on
+           your behalf: a pass is a move, and no partner of yours chose it. */
+        if (alive) notify({ icon: "info", text: `${room.seats[up].name} cannot reach the network` });
+        answering.current = null;
+      })
+      .finally(() => { if (alive) setPartnerThinking(false); });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [partnerUp, conn, rec && rec.moves.length]);
+
+  // A pair table needs the network in this browser, so it starts downloading on arrival.
+  useEffect(() => {
+    if (!room || !room.pair || modelReady()) return undefined;
+    loadModel().catch(() => {});
+    return undefined;
+  }, [room]);
 
   const onPlay = (c, r) => {
     if (!seat || over) return;
@@ -153,7 +202,9 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
     catch { notify({ icon: "info", text: url.toString() }); }
   };
 
-  const status = onlineStatus({ room, seat, conn });
+  const status = partnerThinking && room
+    ? `${room.seats[up].name} is thinking…`
+    : onlineStatus({ room, seat, conn });
   const card = over ? resultCard(over) : null;
   const tone = over && color ? (over.winner === color ? "win" : over.winner === null ? "" : "loss") : "";
   const boardDisabled = !room || !seat || !!over || conn !== "open" || (!scoring && !myTurn);
@@ -175,16 +226,20 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
       <div className="row spread">
         <Btn icon={ChevronLeft} small onClick={onExit}>Lobby</Btn>
         {room && (
-          <div className="vs-strip">
-            <div className="vs-side">
-              <Avatar name={lead(room, "b").name} tint={lead(room, "b").tint} size={34} src={faceOf(lead(room, "b"))} />
-              <div className="vs-meta"><strong>{teamName(room, "b")}</strong><RankBadge rating={lead(room, "b").rating} size="sm" /></div>
-            </div>
+          <div className={`vs-strip ${room.pair ? "pair-strip" : ""}`}>
+            {room.pair ? <OnlineTeam room={room} color="b" up={up} /> : (
+              <div className="vs-side">
+                <Avatar name={lead(room, "b").name} tint={lead(room, "b").tint} size={34} src={faceOf(lead(room, "b"))} />
+                <div className="vs-meta"><strong>{teamName(room, "b")}</strong><RankBadge rating={lead(room, "b").rating} size="sm" /></div>
+              </div>
+            )}
             <span className="vs-x">vs</span>
-            <div className="vs-side">
-              <div className="vs-meta right"><strong>{teamName(room, "w")}</strong><RankBadge rating={lead(room, "w").rating} size="sm" /></div>
-              <Avatar name={lead(room, "w").name} tint={lead(room, "w").tint} size={34} src={faceOf(lead(room, "w"))} />
-            </div>
+            {room.pair ? <OnlineTeam room={room} color="w" up={up} align="right" /> : (
+              <div className="vs-side">
+                <div className="vs-meta right"><strong>{teamName(room, "w")}</strong><RankBadge rating={lead(room, "w").rating} size="sm" /></div>
+                <Avatar name={lead(room, "w").name} tint={lead(room, "w").tint} size={34} src={faceOf(lead(room, "w"))} />
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -316,3 +371,25 @@ const ERRORS = {
   "not-your-move": "You can only ask while they think",
   "wrong-phase": "Not now",
 };
+
+/* One team in an online pair header. The same shape the offline table uses: the
+   seat to move is raised out of its team, and no name is dimmed to say it is not
+   this player's turn. A bot partner is marked a bot, here as everywhere. */
+function OnlineTeam({ room, color, up, align }) {
+  return (
+    <div className={`vs-side pair-side ${align === "right" ? "right" : ""}`}>
+      {["1", "2"].map((n) => color + n).filter((id) => room.seats[id]).map((id) => {
+        const s = room.seats[id];
+        return (
+          <div key={id} className={`pair-seat ${up === id ? "to-move" : ""}`}>
+            <Avatar name={s.name} tint={s.tint} size={30} bot={s.kind === "bot"} src={s.kind === "bot" ? undefined : faceOf(s)} />
+            <div className="vs-meta">
+              <strong>{s.name}</strong>
+              {s.rating != null ? <RankBadge rating={s.rating} size="sm" /> : <span className="fine">{s.rank}</span>}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}

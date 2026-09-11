@@ -19,12 +19,17 @@
    made. See `docs/designs/pair-go.md` for why that is the design and not a
    shortcut. */
 
-import { createRoster, colorOfSeat, rotationOf } from "../engine/index.js";
+import { createRoster, colorOfSeat, rotationOf, DEFAULT_PARTNER_RANK } from "../engine/index.js";
 import { personasFor, personaById } from "./personas.js";
 import { rankOf, ratingOfRank } from "./rank.js";
 
-/** The default partner: strong enough that watching it is worth the game. */
-export const PARTNER_RANK = "7d";
+/** The default partner: strong enough that watching it is worth the game.
+ *
+ *  The number itself lives in the engine, because the server seats an online pair
+ *  table too and may import from the engine and from nowhere else. Re-exported
+ *  here so the offline table reads it under the name the rest of this file uses;
+ *  two "7d"s that drift apart is the failure this is avoiding. */
+export const PARTNER_RANK = DEFAULT_PARTNER_RANK;
 
 /** The strengths a partner can be asked to play at. A weak partner is a real
  *  choice — a 1 dan makes mistakes you can still see the shape of — so the

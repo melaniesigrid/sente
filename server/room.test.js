@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { createRoom, applyMessage, seatOf, reviveRoom, outcome, isPairRoom, leadSeat } from "./room.js";
+import {
+  createRoom, applyMessage, seatOf, reviveRoom, outcome, isPairRoom, leadSeat, controls, actingSeat,
+  isAllHuman,
+} from "./room.js";
 
 const A = { id: "a", name: "Ada", tint: "coral", rating: 1500, rd: 350 };
 const B = { id: "b", name: "Bea", tint: "sky", rating: 1600, rd: 100 };
@@ -326,5 +329,125 @@ describe("rooms stored before the roster", () => {
     const raw = legacy();
     raw.seats = {};
     expect(reviveRoom(raw)).toBeNull();
+  });
+});
+
+describe("a partner run by a browser", () => {
+  /* Joseki runs no KataGo on the server, so an online partner is played by the
+     device of the person it partners and submitted over their socket. `runBy`
+     is the whole mechanism. */
+  const online = () => createRoom({
+    id: "g5", size: 9, black: A, white: B,
+    blackPartner: { kind: "bot", id: "bot_t", name: "Tatsuo", rank: "7d" },
+    whitePartner: { kind: "bot", id: "bot_k", name: "Kaede", rank: "7d" },
+  });
+
+  it("hands each partner to the browser of the person it partners", () => {
+    const r = online();
+    expect(r.seats.b2).toMatchObject({ kind: "bot", name: "Tatsuo", rank: "7d", runBy: "a" });
+    expect(r.seats.w2).toMatchObject({ kind: "bot", name: "Kaede", runBy: "b" });
+  });
+
+  it("gives a player their own chair and the partner they run, and nothing else", () => {
+    const r = online();
+    expect(controls(r, "a")).toEqual(["b1", "b2"]);
+    expect(controls(r, "b")).toEqual(["w1", "w2"]);
+    expect(controls(r, "zz")).toEqual([]);
+    // A bot seat is nobody's chair: seatOf finds people, not the things they run.
+    expect(seatOf(r, "bot_t")).toBeNull();
+    expect(seatOf(r, "a")).toBe("b1");
+  });
+
+  it("applies a move as whichever chair is actually to play", () => {
+    let r = online();
+    expect(actingSeat(r, "a", "play")).toBe("b1");
+    r = applyMessage(r, actingSeat(r, "a", "play"), { t: "play", c: 2, r: 2 }).room;
+    expect(actingSeat(r, "b", "play")).toBe("w1");
+    r = applyMessage(r, actingSeat(r, "b", "play"), { t: "play", c: 6, r: 6 }).room;
+    // Black's partner is up, and it is Ada's browser that answers for it.
+    expect(actingSeat(r, "a", "play")).toBe("b2");
+    r = applyMessage(r, actingSeat(r, "a", "play"), { t: "play", c: 4, r: 4 }).room;
+    expect(r.record.moves).toHaveLength(3);
+    expect(actingSeat(r, "b", "play")).toBe("w2");
+  });
+
+  it("speaks from your own chair for everything that is not a move", () => {
+    // Your partner does not chat, does not resign you, and does not ask for undos.
+    const r = online();
+    for (const t of ["chat", "resign", "accept", "undoRequest"]) {
+      expect(actingSeat(r, "a", t)).toBe("b1");
+      expect(actingSeat(r, "b", t)).toBe("w1");
+    }
+  });
+
+  it("cannot be used to move in the other team's turn", () => {
+    const r = applyMessage(online(), "b1", { t: "play", c: 2, r: 2 }).room;
+    // Ada controls b1 and b2; neither is to play, so she falls back to her own
+    // chair and is told so, rather than being allowed to move as somebody else.
+    expect(actingSeat(r, "a", "play")).toBe("b1");
+    const out = applyMessage(r, actingSeat(r, "a", "play"), { t: "play", c: 3, r: 3 });
+    expect(frames(out, "error")[0]).toMatchObject({ reason: "wrong-turn", expected: "w1" });
+  });
+
+  it("survives a revive with the runners intact", () => {
+    const back = reviveRoom(JSON.parse(JSON.stringify(online())));
+    expect(controls(back, "a")).toEqual(["b1", "b2"]);
+  });
+});
+
+describe("four humans", () => {
+  /* Rengo as it is actually played. The seat model does not change at all: what
+     changes is that no seat has a runner, so nobody may touch anybody else's
+     chair - which is the rule of pair go rather than a policy Joseki invented. */
+  const four = () => createRoom({
+    id: "g6", size: 9, black: A, white: B, blackPartner: C, whitePartner: D,
+  });
+
+  it("seats four people and no bots", () => {
+    const r = four();
+    expect(isPairRoom(r)).toBe(true);
+    expect(isAllHuman(r)).toBe(true);
+    expect(Object.keys(r.seats).map((id) => r.seats[id].kind)).toEqual(["human", "human", "human", "human"]);
+  });
+
+  it("gives a human partner no runner, so nobody plays anybody else's moves", () => {
+    const r = four();
+    // The single most important assertion in this file: a `runBy` on a human seat
+    // would hand a player their partner's chair, which is the one thing pair go
+    // forbids and the one thing a bot partner is allowed.
+    for (const id of ["b1", "w1", "b2", "w2"]) expect(r.seats[id].runBy).toBeUndefined();
+    expect(controls(r, "a")).toEqual(["b1"]);
+    expect(controls(r, "c")).toEqual(["b2"]);
+  });
+
+  it("refuses a player who tries to move in their partner's turn", () => {
+    let r = four();
+    r = applyMessage(r, actingSeat(r, "a", "play"), { t: "play", c: 2, r: 2 }).room;
+    r = applyMessage(r, actingSeat(r, "b", "play"), { t: "play", c: 6, r: 6 }).room;
+    // Cy is up. Ada is on Cy's team and is not Cy.
+    expect(actingSeat(r, "a", "play")).toBe("b1");
+    const out = applyMessage(r, actingSeat(r, "a", "play"), { t: "play", c: 4, r: 4 });
+    expect(frames(out, "error")[0]).toMatchObject({ reason: "wrong-turn", expected: "b2" });
+    expect(applyMessage(r, actingSeat(r, "c", "play"), { t: "play", c: 4, r: 4 }).room.record.moves).toHaveLength(3);
+  });
+
+  it("is unrated: a team result is not a claim about any one of the four", () => {
+    const r = createRoom({ id: "g7", size: 9, black: A, white: B, blackPartner: C, whitePartner: D, rated: true });
+    expect(r.rated).toBe(false);
+    expect(outcome(applyMessage(r, "w2", { t: "resign" }).room)).toMatchObject({ rated: false, pair: true });
+  });
+
+  it("lets any of the four end it, and any two of opposite teams settle the count", () => {
+    let r = applyMessage(four(), "b1", { t: "pass" }).room;
+    r = applyMessage(r, "w1", { t: "pass" }).room;
+    expect(r.record.phase).toBe("scoring");
+    r = applyMessage(r, "b2", { t: "accept" }).room;
+    expect(r.accepted).toBe("b");
+    r = applyMessage(r, "w2", { t: "accept" }).room;
+    expect(r.record.phase).toBe("ended");
+  });
+
+  it("names all four on the record", () => {
+    expect(four().record.players).toEqual({ b: "Ada & Cy", w: "Bea & Dee" });
   });
 });

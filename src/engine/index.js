@@ -30,7 +30,7 @@ export {
   reviewLength, clampMove, markerAt, reviewLabel, playedMoves,
 } from "./review.js";
 export {
-  SEAT_IDS, RosterError, colorOfSeat, partnerSeat, createRoster, isPair, rosterSeats,
+  SEAT_IDS, DEFAULT_PARTNER_RANK, RosterError, colorOfSeat, partnerSeat, createRoster, isPair, rosterSeats,
   teamSeats, rotationOf, seatAt, seatToPlay, canSeatPlay, humanSeats, rosterPlayers,
 } from "./rengo.js";
 export { aiChooseMove, aiChooseMoveForRecord } from "./ai.js";

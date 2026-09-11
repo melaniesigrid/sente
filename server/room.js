@@ -60,8 +60,8 @@ export function createRoom({
   if (!SIZES.includes(size)) throw new RangeError(`bad size ${size}`);
   const seats = createRoster({
     b1: seat(black), w1: seat(white),
-    ...(blackPartner ? { b2: seat(blackPartner) } : {}),
-    ...(whitePartner ? { w2: seat(whitePartner) } : {}),
+    ...(blackPartner ? { b2: partnerOf(blackPartner, black) } : {}),
+    ...(whitePartner ? { w2: partnerOf(whitePartner, white) } : {}),
   });
   const pair = isPair(seats);
   const record = createGame({ size, komi, handicap, players: roomPlayers(seats) });
@@ -76,17 +76,39 @@ export function createRoom({
 
 /* A seat as the room stores it. `kind` and `name` are what the engine's roster
    validates; everything else rides along verbatim. A partner run by a player's
-   own browser still sits here as a bot, because that is what it is. */
-const seat = (p) => ({
-  kind: p.kind === "bot" ? "bot" : "human",
-  id: p.id, name: p.name, tint: p.tint ?? "eucalyptus",
-  rating: p.rating, rd: p.rd,
-  ...(p.rank ? { rank: p.rank } : {}),
-  ...(p.avatarAt !== undefined ? { avatarAt: p.avatarAt } : {}),
-});
+   own browser still sits here as a bot, because that is what it is.
+
+   `runBy` is the player id whose browser answers for a bot seat. Joseki runs no
+   KataGo on the server - the network is a file the browser downloads - so an
+   online partner is played by the device of the person it is partnering, and
+   submitted over their socket like any other move. The cost is stated at the
+   table: a team's partner needs that team's device online. */
+const seat = (p) => {
+  const bot = p.kind === "bot";
+  return {
+    kind: bot ? "bot" : "human",
+    id: p.id, name: p.name, tint: p.tint ?? "eucalyptus",
+    rating: p.rating, rd: p.rd,
+    ...(p.rank ? { rank: p.rank } : {}),
+    // Only a bot has a runner. A person plays their own moves, and a `runBy` on a
+    // human seat would hand their chair to their partner - which in pair go is not
+    // a convenience, it is the one thing the game forbids.
+    ...(bot && p.runBy ? { runBy: p.runBy } : {}),
+    ...(p.avatarAt !== undefined ? { avatarAt: p.avatarAt } : {}),
+  };
+};
+
+/* A partner seat. A bot partner defaults to being run by the browser of the
+   player it partners; a human partner is just another person at the board and
+   is given no runner at all. */
+const partnerOf = (p, lead) => seat(p.kind === "bot" ? { ...p, runBy: p.runBy ?? lead.id } : p);
 
 /** Is this a four-seat table? */
 export const isPairRoom = (room) => !!room.pair || isPair(room.seats);
+
+/** A pair table with nobody but people at it: rengo as it is actually played. */
+export const isAllHuman = (room) =>
+  Object.keys(room.seats).every((id) => room.seats[id].kind === "human");
 
 /** The seat that leads a team: the one an ordinary two-seat room calls "b" or "w". */
 export const leadSeat = (room, color) => room.seats[color + "1"];
@@ -102,8 +124,37 @@ export function roomPlayers(seats) {
  *  partners may not consult, and there is nothing to stop a player who holds
  *  both chairs of a team from consulting themselves. */
 export function seatOf(room, playerId) {
-  for (const id of Object.keys(room.seats)) if (room.seats[id].id === playerId) return id;
+  for (const id of Object.keys(room.seats)) {
+    const s = room.seats[id];
+    if (s.kind === "human" && s.id === playerId) return id;
+  }
   return null;
+}
+
+/** Every seat `playerId` may act in: their own chair, plus any bot seat their
+ *  browser is running. Two seats at a pair table, one at an ordinary one. */
+export function controls(room, playerId) {
+  if (!playerId) return [];
+  return Object.keys(room.seats).filter((id) => {
+    const s = room.seats[id];
+    return s.kind === "human" ? s.id === playerId : s.runBy === playerId;
+  });
+}
+
+/** The seat a frame from `playerId` should be applied as.
+ *
+ *  A move is applied as whichever seat is actually to play, when that is a seat
+ *  this player controls - so a client never has to say which of its two chairs it
+ *  means, and cannot get it wrong. Everything else (chat, resign, the count, an
+ *  undo) is applied as their own chair, because those are theirs and not their
+ *  partner's. Falling back to the own seat also makes a refusal read correctly:
+ *  the error says it is not your turn, rather than that you are nobody. */
+export function actingSeat(room, playerId, type) {
+  const own = seatOf(room, playerId);
+  if (type !== "play" && type !== "pass") return own;
+  const up = seatToPlay(room.seats, room.record);
+  if (up && controls(room, playerId).includes(up)) return up;
+  return own;
 }
 
 const err = (reason, detail = {}) => ({ to: "seat", frame: { t: "error", reason, ...detail } });
