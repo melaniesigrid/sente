@@ -411,6 +411,13 @@ ${FONT_FACES}
 .rank-picker-controls { display: flex; align-items: center; gap: 10px; }
 .btn-icon { padding-left: 10px; padding-right: 10px; }
 .table-picker .rank-picker-controls { gap: 18px; flex-wrap: wrap; }
+/* The level nudge: a full-width row under the stepper, not a third column beside
+   it. It is a remark about the games just played, so it sits below the control it
+   is remarking on and takes the whole width rather than squeezing the badge. */
+.level-nudge { flex-basis: 100%; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding-top: 12px; margin-top: 2px; border-top: 1px solid var(--hairline); }
+.level-nudge > svg { color: var(--accent-ink); flex: none; }
+.level-nudge .fine { flex: 1 1 200px; }
 /* The masters row: the same persona card, with the measured line under the bio. The
    claim is set smaller than the bio and the control smaller still, so the eye reads
    name, then character, then number, then the caveat that keeps the number honest. */

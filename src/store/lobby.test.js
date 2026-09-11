@@ -12,13 +12,13 @@ const memStorage = () => {
 
 describe("lobby preferences", () => {
   it("defaults to 19x19, AGA rules, no handicap, no clock, the board's own komi", () => {
-    expect(defaultLobby).toEqual({ rules: "aga", size: 19, handicap: 0, komi: null, clock: "none" });
+    expect(defaultLobby).toEqual({ rules: "aga", size: 19, handicap: 0, komi: null, clock: "none", rank: null });
     expect(loadLobby(memStorage())).toEqual(defaultLobby);
     expect(loadLobby(null)).toEqual(defaultLobby);
   });
   it("round-trips a table", () => {
     const s = memStorage();
-    const table = { rules: "japanese", size: 13, handicap: 4, komi: 4.5, clock: "standard" };
+    const table = { rules: "japanese", size: 13, handicap: 4, komi: 4.5, clock: "standard", rank: "6k" };
     expect(saveLobby(table, s)).toBe(true);
     expect(loadLobby(s)).toEqual(table);
   });
@@ -46,5 +46,29 @@ describe("lobby preferences", () => {
     const s = memStorage();
     saveLobby({ size: 11, handicap: 1 }, s);
     expect(loadLobby(s)).toEqual(defaultLobby);
+  });
+});
+
+describe("the remembered level", () => {
+  it("ships null, meaning my level whatever it is now", () => {
+    expect(defaultLobby.rank).toBeNull();
+    expect(sanitizeLobby({}).rank).toBeNull();
+  });
+
+  it("keeps a rank that is on the ladder", () => {
+    expect(sanitizeLobby({ rank: "5k" }).rank).toBe("5k");
+    expect(sanitizeLobby({ rank: "3d" }).rank).toBe("3d");
+  });
+
+  it("falls back to null for anything that is not a rank", () => {
+    for (const bad of ["42k", "5K", "", 5, {}, [], true]) {
+      expect(sanitizeLobby({ rank: bad }).rank, String(bad)).toBeNull();
+    }
+  });
+
+  it("round-trips through storage with the rest of the table", () => {
+    const store = memStorage();
+    saveLobby({ ...defaultLobby, rank: "7k", size: 13 }, store);
+    expect(loadLobby(store)).toMatchObject({ rank: "7k", size: 13 });
   });
 });
