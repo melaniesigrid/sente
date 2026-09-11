@@ -79,14 +79,25 @@ describe("the documents", () => {
      forgotten. The stamp is a fingerprint of every word in the three
      documents; when a word changes and the revision does not, this fails and
      prints the stamp to paste in. Moving the date is then the obvious thing to
-     do, because it is the line above. */
+     do, because it is the line above.
+
+     It is deliberately unavoidable, and that has a cost worth naming: a stamp
+     is a fact about the whole tree, so a prose change that lands on main
+     without one fails every open branch at once, none of which did anything
+     wrong. The failure says so, so that the second reader of it does not spend
+     the afternoon the first one did. */
   it("carry a stamp that matches the words they actually contain", () => {
     const now = documentStamp();
     expect(now, [
       "",
       "The documents changed and the revision did not.",
       "",
-      "In src/content/legal.js, set REVISION to:",
+      "If this branch does not touch src/content/legal.js, the change is not",
+      "yours. A prose change landed on main without its stamp, and the stamp is",
+      "a whole-tree invariant: every branch cut during that window fails here,",
+      "whatever it touches. Merge current main and run again before reading on.",
+      "",
+      "Otherwise, in src/content/legal.js, set REVISION to:",
       `  { updated: "<today, as '11 September 2026'>", stamp: "${now}" }`,
       "",
       "Move the date in the same commit. A notice dated before the sentence it",
