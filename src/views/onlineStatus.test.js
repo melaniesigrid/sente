@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { onlineStatus, settledLine, onlineCaption, tableLine } from "./onlineStatus.js";
+import { onlineStatus, settledLine, onlineCaption, tableLine, teamName } from "./onlineStatus.js";
 import { createRoom, applyMessage } from "../../server/room.js";
 
 const A = { id: "a", name: "Ada", rating: 1500, rd: 350 };
@@ -41,6 +41,13 @@ describe("onlineStatus", () => {
 });
 
 describe("lines", () => {
+  it("teamName tolerates a missing seat snapshot", () => {
+    const r = pair();
+    delete r.seats.w2;
+    expect(teamName(r, "w")).toBe("Bea");
+    r.seats.w1 = null;
+    expect(teamName(r, "w")).toBe("White");
+  });
   it("settledLine reads from my side", () => {
     const room = { settled: { rated: true, b: { delta: 12, rating: 1512 }, w: { delta: -12, rating: 1588 } } };
     expect(settledLine(room, "b1")).toBe("+12 rating · now 1512");

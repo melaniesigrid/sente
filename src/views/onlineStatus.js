@@ -11,7 +11,11 @@ const side = (c) => (c === "b" ? "Black" : "White");
 
 /** A team, named: one person at an ordinary table, two at a pair table. */
 export const teamName = (room, color) =>
-  teamSeats(room.seats, color).map((id) => room.seats[id].name).join(" & ");
+  teamSeats(room.seats, color)
+    .map((id) => room.seats[id])
+    .filter(Boolean)
+    .map((seat) => seat.name)
+    .join(" & ") || side(color);
 
 /** The status pill for an online room. `seat` is "b", "w" or null; `conn` is
  *  "connecting" | "open" | "closed". */
