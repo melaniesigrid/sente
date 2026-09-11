@@ -1120,7 +1120,10 @@ that is honestly still English.
       courtesy and not a second contract, so every language but English carries a line
       saying which version governs. The constants the documents are written around arrive
       as holes rather than copied in, and the date is set by Intl from one ISO constant.
-- [ ] Spanish: online play — the lobby, the game, the account gate, the letters.
+- [x] Spanish: online play — the lobby and the table, including the server's refusals and
+      the pure status helpers. A socket's callbacks read the reader out of a ref, so
+      changing language mid-game does not drop the table and reconnect it.
+- [ ] Spanish: the account gate, the profile card and the two letters.
 - [ ] Spanish: the content prose. Lessons, personas, Moku, the plain-words statements, the
       books, the legal documents, and the Classic's thirteen chapters, in that order.
 - [ ] French, every slice above. Cheap after Spanish: the keys exist, so each PR is a

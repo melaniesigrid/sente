@@ -20,6 +20,7 @@ import { game } from "./game.js";
 import { front } from "./front.js";
 import { rooms } from "./rooms.js";
 import { legal, legalDoc, credit } from "./legal.js";
+import { online } from "./online.js";
 import { content } from "./content.js";
 import { overlay } from "./overlay.js";
 
@@ -33,6 +34,7 @@ export const es = {
   ...front,
   ...rooms,
   legal,
+  online,
   legalDoc,
   credit,
   ...content,
