@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { PLAIN_WORDS, STATEMENTS, plainFor, statementFor } from "./plain.js";
+import {
+  PLAIN_WORDS, STATEMENTS, LANDING_STATEMENTS, plainFor, statementFor, landingStatement,
+} from "./plain.js";
 
 describe("plain words", () => {
   it("covers every screen that sets one", () => {
@@ -48,5 +50,36 @@ describe("the statement", () => {
   it("returns null for a screen with no statement", () => {
     expect(statementFor("nowhere")).toBeNull();
     expect(statementFor("home")).toBe(STATEMENTS.home);
+  });
+});
+
+describe("the front door's statements", () => {
+  it("gives every one of them three lines", () => {
+    for (const [key, lines] of Object.entries(LANDING_STATEMENTS)) {
+      expect(lines.length, key).toBe(3);
+    }
+  });
+
+  // These are set larger than the screens' statements are — up to 148px — so
+  // the ceiling on a line is lower, not higher. A line that wraps breaks the
+  // mask the three rise out of.
+  it("keeps every line short enough to stand at front-door size", () => {
+    for (const [key, lines] of Object.entries(LANDING_STATEMENTS)) {
+      for (const line of lines) {
+        expect(line.length, `${key}: ${line}`).toBeLessThanOrEqual(16);
+        expect(line, key).not.toMatch(/[!"“”]/);
+      }
+    }
+  });
+
+  it("does not collide with the screens' statements", () => {
+    for (const key of Object.keys(LANDING_STATEMENTS)) {
+      expect(STATEMENTS[key], key).toBeUndefined();
+    }
+  });
+
+  it("returns null for a statement that is not there", () => {
+    expect(landingStatement("nowhere")).toBeNull();
+    expect(landingStatement("rules")).toBe(LANDING_STATEMENTS.rules);
   });
 });

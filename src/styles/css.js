@@ -828,6 +828,42 @@ ${FONT_FACES}
   .statement-gloss { font-size: 14px; }
 }
 @media (prefers-reduced-motion: reduce) { .statement-line { animation: none; } }
+/* ---- the statement at front-door size ----
+   The same three lines with the room the landing has and a screen does not.
+   Two things change and nothing else does. The hairlines come off, because a
+   full-bleed band already separates the block from what is above it and a rule
+   inside a band draws a box. And the rise is gated on the scroll rather than
+   on mount: four statements down one long page would otherwise all have played
+   before the reader reached the second one.
+
+   The gate is animation-play-state, not a second animation. The lines sit
+   parked at translateY(105%) inside a mask that clips them, so a paused
+   statement is an empty band and not a flash of text in the wrong place. The
+   block opts out of the reveal fade for the same reason — the mask is the
+   reveal, and fading a mask as its contents rise reads as two ideas. */
+.lp-band {
+  width: 100%; display: flex; justify-content: center;
+  padding: clamp(54px, 8vw, 116px) clamp(20px, 5vw, 48px);
+}
+.lp-band-inner { width: 100%; max-width: 1080px; }
+.statement.lp { margin: 0; padding: 0; border: 0; }
+.statement.lp .statement-line { font-size: clamp(42px, 10.4vw, 148px); }
+.statement.lp .statement-mask:nth-child(2) .statement-line { font-size: clamp(38px, 9.2vw, 132px); }
+.statement.lp.center { text-align: center; }
+.statement.lp.reveal { opacity: 1; transform: none; }
+.statement.lp.reveal .statement-line { animation-play-state: paused; }
+.statement.lp.reveal.shown .statement-line { animation-play-state: running; }
+/* A stroke that is right at 104px is thin at 148px: the outline line is drawn
+   a shade heavier here so the third line reads as drawn rather than as faint. */
+@supports (-webkit-text-stroke: 1px currentColor) {
+  .statement.lp .statement-mask:nth-child(3) .statement-line { -webkit-text-stroke-width: 2px; }
+}
+@media (max-width: 620px) {
+  .statement.lp .statement-line { font-size: clamp(34px, 11.6vw, 54px); }
+  .statement.lp .statement-mask:nth-child(2) .statement-line { font-size: clamp(31px, 10.4vw, 48px); }
+  .statement.lp .statement-mask:nth-child(3) .statement-line { -webkit-text-stroke-width: 1.2px; }
+}
+
 @media (max-width: 620px) { .chapter-body { padding-left: 12px; } }
 
 /* ---- the thirty-two names (Classic, ch. 11) ---- */

@@ -4,6 +4,7 @@ import {
 } from "lucide-react";
 import { MiniSelfPlay } from "../components/MiniSelfPlay.jsx";
 import { Mark } from "../components/Brand.jsx";
+import { Statement } from "../components/ui.jsx";
 import { TypedLine, TypedLabel } from "../components/Typed.jsx";
 import { useReveal } from "../components/reveal.js";
 import { needsOnboarding } from "../store/profile.js";
@@ -13,6 +14,7 @@ import { CHAPTERS, CLASSIC, sayingOfTheDay } from "../content/classic.js";
 import { RULESETS } from "../engine/rulesets.js";
 import { PALETTES } from "../theme/palettes.js";
 import { dayKey } from "../content/kata.js";
+import { LANDING_STATEMENTS } from "../content/plain.js";
 
 /* ----------------------- THE FRONT DOOR -----------------------
    Everything a visitor sees before they have played a stone. It is a different
@@ -54,6 +56,20 @@ const PATH = [
   { n: "02", title: "Play a house player", body: "Start on nine lines against somebody a rank or two below you. Lose a few. That is the method, not a detour from it." },
   { n: "03", title: "Read something every day", body: "One tsumego, one saying, one game. The rank follows on its own — it is the only part you do not have to work at." },
 ];
+
+
+/* A statement, given a whole band of the page. Full-bleed, one idea, and the
+   three lines rise as the band is reached rather than on mount — see the
+   `.statement.lp` block in the stylesheet for why that gate exists. */
+function Band({ lines, center = false }) {
+  return (
+    <div className="lp-band">
+      <div className="lp-band-inner">
+        <Statement lines={lines} className={`lp reveal${center ? " center" : ""}`} />
+      </div>
+    </div>
+  );
+}
 
 export function Landing({ profile, onEnter, go }) {
   const root = useReveal();
@@ -140,7 +156,7 @@ export function Landing({ profile, onEnter, go }) {
         </div>
       </section>
 
-      <hr className="lp-rule" />
+      <Band lines={LANDING_STATEMENTS.rules} />
 
       {/* -------------------------------------------------- the primer */}
       <section className="lp-section" id="primer">
@@ -202,7 +218,7 @@ export function Landing({ profile, onEnter, go }) {
         </p>
       </section>
 
-      <hr className="lp-rule" />
+      <Band lines={LANDING_STATEMENTS.honest} />
 
       {/* ---------------------------------------------------- the path */}
       <section className="lp-section" id="path">
@@ -236,6 +252,8 @@ export function Landing({ profile, onEnter, go }) {
           </ul>
         </div>
       </section>
+
+      <Band lines={LANDING_STATEMENTS.begin} center />
 
       {/* -------------------------------------------------- final call */}
       <section className="lp-final">
