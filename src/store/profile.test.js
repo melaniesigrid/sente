@@ -3,7 +3,7 @@ import { sanitizeProfile, defaultProfile } from "./profile.js";
 import { DEFAULT_TYPEFACE } from "../content/typeface.js";
 import { rankOf } from "../content/rank.js";
 import { GLICKO, isProvisional } from "../engine/index.js";
-import { SYSTEM_THEME, HOUSE_THEME, DOJO_THEME } from "../theme/index.js";
+import { SYSTEM_THEME, HOUSE_THEME, DOJO_THEME, AUTO_STONES } from "../theme/index.js";
 
 let warn;
 beforeEach(() => { warn = vi.spyOn(console, "warn").mockImplementation(() => {}); });
@@ -108,6 +108,20 @@ describe("the stored palette", () => {
     expect(sanitizeProfile({ ...defaultProfile, theme: HOUSE_THEME }).theme).toBe(HOUSE_THEME);
     for (const bad of ["nope", "", 7, null, {}]) {
       expect(sanitizeProfile({ ...defaultProfile, theme: bad }).theme, String(bad)).toBe(SYSTEM_THEME);
+    }
+  });
+
+  // A set of stones is a preference of its own, kept apart from the room: a
+  // player who likes ivory keeps ivory through every room they walk into.
+  it("ships letting each room choose its own stones", () => {
+    expect(defaultProfile.stones).toBe(AUTO_STONES);
+    expect(sanitizeProfile({}).stones).toBe(AUTO_STONES);
+  });
+
+  it("keeps a set of stones, and resets one it does not know", () => {
+    expect(sanitizeProfile({ ...defaultProfile, stones: "honey" }).stones).toBe("honey");
+    for (const bad of ["gravel", "", 7, null, {}]) {
+      expect(sanitizeProfile({ ...defaultProfile, stones: bad }).stones, String(bad)).toBe(AUTO_STONES);
     }
   });
 
