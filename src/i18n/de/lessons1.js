@@ -63,6 +63,12 @@ export const lessons1 = {
         hint: "Füll die letzte Freiheit von Weiß.",
       },
       2: {
+        commentary: {
+          0: "Schwarz nimmt das Ko.",
+          1: "Weiß darf nicht zurücknehmen, also spielt Weiß anderswo: eine Ko-Drohung. Tu so, als wäre diese hier wichtig.",
+          2: "Schwarz beantwortet die Drohung.",
+          3: "Die Stellung hat sich geändert, Weiß darf also zurücknehmen. Jetzt ist es Schwarz, das eine Drohung braucht.",
+        },
         text: "Spiel einen Ko-Austausch durch. Du hast Schwarz: nimm das Ko und antworte dann auf die Drohung von Weiß.",
         hint: "Folg der Linie: erst der Fang, dann die Antwort auf die Drohung.",
         success: "Das ist der ganze Rhythmus eines Ko: nehmen, drohen, antworten, zurücknehmen.",
@@ -114,6 +120,11 @@ export const lessons1 = {
         wrongText: "Damit berühren sich die beiden schwarzen Steine weiter durch die Lücke. Spiel in die Lücke selbst.",
       },
       3: {
+        commentary: {
+          0: "Schwarz schneidet. Beide weißen Steine stehen nun zugleich im Atari.",
+          1: "Weiß kann nur einen retten. Dieser läuft.",
+          2: "Schwarz fängt den anderen. Ein Schnitt, der zwei Ataris macht, ist es wert, sich zu merken.",
+        },
         text: "Jetzt schneide mit Gewinn. Du hast Schwarz: spiel den Schnittpunkt und nimm dann, was Weiß zurücklässt.",
         hint: "Such den leeren Punkt, der die beiden weißen Steine trennt.",
         success: "Ein Gefangener und eine starke schwarze Form. Schneiden ist die Art, aus einer Lücke einen Gewinn zu machen.",
@@ -139,6 +150,11 @@ export const lessons1 = {
         refutations: { 0: { text: "Laufen hat Weiß nur einen zweiten Stein geliefert. Aus einer Freiheit wurde eine Freiheit, und Weiß hat sie geschlossen." } },
       },
       3: {
+        commentary: {
+          0: "Erweitere: drei Freiheiten.",
+          1: "Weiß jagt weiter.",
+          2: "Dreh zum offenen Raum. Wieder drei Freiheiten, und Weiß gehen die Steine zum Jagen aus.",
+        },
         text: "Eine Verfolgung. Du hast Schwarz: zieh weiter zum breitesten Raum, bis die Verfolgung für Weiß keinen Sinn mehr ergibt.",
         hint: "Jeder Zug sollte deiner Kette mehr Freiheiten lassen, als sie hatte.",
         success: "Entkommen ist kein Zug; es ist eine Richtung. Lauf dorthin, wo deine Freiheiten wachsen.",
@@ -240,6 +256,12 @@ export const lessons1 = {
         },
       },
       3: {
+        commentary: {
+          0: "Tengen.",
+          1: "Weiß nimmt eine Ecke mit dem 3-3-Punkt.",
+          2: "Schwarz nimmt von der Mitte aus die gegenüberliegende Ecke: die Steine arbeiten zusammen.",
+          3: "Weiß nimmt eine zweite Ecke. Vier Züge weit, und das Brett ist schon in Einflussbereiche geteilt.",
+        },
         text: "Spiel die ersten vier Züge einer gängigen 9×9-Eröffnung. Du hast Schwarz.",
         hint: "Zuerst die Mitte, dann die Ecke gegenüber der von Weiß.",
         success: "Das ist eine Eröffnung: ein paar Steine, jeder beansprucht eine Gegend, und noch kämpft keiner.",

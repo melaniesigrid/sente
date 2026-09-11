@@ -44,8 +44,9 @@ const holesIn = (line) => new Set([...String(line).matchAll(HOLE)].map(m => m[1]
 const lines = (entry) => (typeof entry === "string" ? [entry] : Object.values(entry));
 /* The field names that carry prose rather than data. Kept in step with
    `TEXT_FIELDS` by `translate.test.js`; named here as a path suffix because a
-   flattened key ends in the field it came from. */
-const PROSE = /\.(title|subtitle|plain|text|hint|success|wrongText|question|commentary|line|analogy|partial)$/;
+   flattened key ends in the field it came from — or in the index of the line,
+   for the fields that hold a list of them. */
+const PROSE = /\.(title|subtitle|plain|text|hint|success|wrongText|question|commentary|line|analogy|partial)(\.\d+)*$/;
 
 describe("locales", () => {
   it("ships a catalogue for every language it offers", () => {
@@ -201,13 +202,16 @@ describe.each(others)("$name is complete", (locale) => {
      English. Every path a content overlay names has to exist on the thing it
      names, which is what walking the lesson and comparing proves. */
   it("puts every lesson line somewhere the lesson can read it", () => {
-    const t = makeT(locale.id);
+    /* A reader that answers every lookup with the key it was asked for, so
+       that a field the walker reads is a field that changed — even where the
+       translation and the English are the same word. */
+    const probe = (key) => `\u0000${key}`;
     const all = [...LIBRARY, WELCOME_LESSON];
     const keys = [...mine.keys()].filter(k => k.startsWith("lesson."));
     const reached = new Set();
     for (const lesson of all) {
       const before = flatten({ lesson: { [lesson.id]: lesson } });
-      const after = flatten({ lesson: { [lesson.id]: localize(lesson, `lesson.${lesson.id}`, t) } });
+      const after = flatten({ lesson: { [lesson.id]: localize(lesson, `lesson.${lesson.id}`, probe) } });
       for (const [k, v] of after) if (before.get(k) !== v) reached.add(k);
     }
     for (const key of keys) {
@@ -229,6 +233,9 @@ describe.each(others)("$name is complete", (locale) => {
       const after = flatten({ [lesson.id]: localize(lesson, `lesson.${lesson.id}`, t) });
       for (const [key, value] of before) {
         if (typeof value !== "string" || !PROSE.test(key)) continue;
+        /* A line the catalogue writes has been through a translator, even
+           where the answer came back the same word: Tengen is Tengen. */
+        if (mine.has(`lesson.${key}`)) continue;
         expect(after.get(key), `${locale.id}: ${key} is still English in a lesson that is otherwise translated`)
           .not.toBe(value);
       }

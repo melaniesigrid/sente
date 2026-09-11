@@ -63,6 +63,12 @@ export const lessons1 = {
         hint: "Remplis la dernière liberté des blancs.",
       },
       2: {
+        commentary: {
+          0: "Les noirs prennent le ko.",
+          1: "Les blancs ne peuvent pas reprendre : ils jouent donc ailleurs, une menace de ko. Fais comme si celle-ci comptait.",
+          2: "Les noirs répondent à la menace.",
+          3: "La position a changé : les blancs peuvent reprendre. C'est maintenant aux noirs qu'il faut une menace.",
+        },
         text: "Joue un échange de ko en entier. Tu as les noirs : prends le ko, puis réponds à la menace des blancs.",
         hint: "Suis la ligne : d'abord la capture, ensuite la réponse à la menace.",
         success: "C'est tout le rythme d'un ko : prendre, menacer, répondre, reprendre.",
@@ -114,6 +120,11 @@ export const lessons1 = {
         wrongText: "Cela laisse les deux pierres noires se toucher par le trou. Joue dans le trou lui-même.",
       },
       3: {
+        commentary: {
+          0: "Les noirs coupent. Les deux pierres blanches sont en atari en même temps.",
+          1: "Les blancs ne peuvent en sauver qu'une. Celle-ci s'échappe.",
+          2: "Les noirs capturent l'autre. Une coupe qui fait deux ataris mérite qu'on s'en souvienne.",
+        },
         text: "Maintenant coupe avec profit. Tu as les noirs : joue le point de coupe, puis prends ce que les blancs laissent derrière.",
         hint: "Cherche le point vide qui sépare les deux pierres blanches.",
         success: "Une capture et une forme noire solide. Couper, c'est ainsi qu'on transforme un trou en gain.",
@@ -139,6 +150,11 @@ export const lessons1 = {
         refutations: { 0: { text: "Courir n'a fait que donner une deuxième pierre aux blancs. Une liberté est devenue une liberté, et les blancs l'ont fermée." } },
       },
       3: {
+        commentary: {
+          0: "Étends : trois libertés.",
+          1: "Les blancs continuent la poursuite.",
+          2: "Tourne vers l'espace libre. De nouveau trois libertés, et les blancs n'ont bientôt plus de pierres pour poursuivre.",
+        },
         text: "Une poursuite. Tu as les noirs : continue d'étendre vers l'espace le plus large jusqu'à ce que la poursuite cesse d'avoir un sens pour les blancs.",
         hint: "Chaque coup devrait laisser ta chaîne avec plus de libertés qu'elle n'en avait.",
         success: "S'échapper n'est pas un coup ; c'est une direction. Cours vers l'espace où tes libertés grandissent.",
@@ -240,6 +256,12 @@ export const lessons1 = {
         },
       },
       3: {
+        commentary: {
+          0: "Tengen.",
+          1: "Les blancs prennent un coin au 3-3.",
+          2: "Les noirs prennent le coin opposé depuis le centre : les pierres travaillent ensemble.",
+          3: "Les blancs prennent un deuxième coin. Quatre coups, et le goban est déjà partagé en sphères.",
+        },
         text: "Joue les quatre premiers coups d'une ouverture courante en 9×9. Tu as les noirs.",
         hint: "Le centre d'abord, puis le coin opposé à celui des blancs.",
         success: "Voilà une ouverture : quelques pierres, chacune réclamant une région, aucune ne se battant encore.",

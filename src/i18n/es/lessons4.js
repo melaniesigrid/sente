@@ -10,10 +10,20 @@ export const lessons4 = {
     steps: {
       0: { text: "Los dos muros se quedan a una línea de cada borde, así que todo está resuelto salvo la fila de arriba y la de abajo. Guanzi quiere decir las jugadas de cierre, y el libro clásico que las reúne es casi solo eso. Aquí las dos fronteras son del mismo tamaño, lo que las convierte en el sitio más claro posible para ver qué compra de verdad una jugada en gote." },
       1: {
+        commentary: {
+          0: "Las negras pasan por debajo del pie del muro blanco.",
+          1: "Las blancas bloquean. Dejarlo permitiría a las negras seguir andando por el borde.",
+          2: "Las negras conectan, y la parte de abajo queda terminada. Fíjate en a quién le toca ahora: las negras han gastado tres jugadas por una de las blancas, y la mano ha pasado a las blancas.",
+        },
         text: "Las negras toman la frontera de abajo.",
         hint: "Métete por debajo de la cabeza del muro blanco, deja que las blancas bloqueen y luego conecta.",
       },
       2: {
+        commentary: {
+          0: "Las blancas pasan por debajo del muro negro, arriba.",
+          1: "Las negras bloquean, por la misma razón que lo hicieron las blancas.",
+          2: "Las blancas conectan. Ambas fronteras están cerradas y la partida ha terminado.",
+        },
         text: "Así que las blancas toman la de arriba, exactamente igual.",
         hint: "Las blancas juegan el reflejo de lo que acaban de jugar las negras.",
       },
@@ -39,6 +49,11 @@ export const lessons4 = {
         refutations: { 0: { text: "El bloqueo simple es sólido y un punto más pequeño. Las blancas toman el punto que has dejado y la partida se cierra en treinta y seis a cuarenta y cinco en vez de treinta y siete a cuarenta y cuatro." } },
       },
       2: {
+        commentary: {
+          0: "El hane, bajo el pie del muro.",
+          1: "Las blancas bloquean. La piedra no puede ser cortada, así que no hay nada mejor.",
+          2: "Las negras conectan. El tablero está terminado.",
+        },
         text: "Juégalo entero.",
         hint: "Hane, deja que las blancas bloqueen y luego conecta por detrás.",
       },

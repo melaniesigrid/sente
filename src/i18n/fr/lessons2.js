@@ -42,6 +42,14 @@ export const lessons2 = {
         refutations: { 0: { text: "C'est aussi un atari, et les blancs sortent avec trois libertés vers la partie la plus large du goban. Plus rien ne les poursuit." } },
       },
       2: {
+        commentary: {
+          0: "Atari. Il reste une liberté aux blancs.",
+          1: "Les blancs étendent et en ont de nouveau deux.",
+          2: "Atari du même côté. Toute la méthode est là : ne jamais leur en laisser trois.",
+          3: "Les blancs étendent.",
+          4: "Atari.",
+          5: "Les blancs étendent, et l'escalier continue de descendre vers la droite. Cinq coups de plus comme celui-ci et le bord du goban arrive, là où il n'y a pas de liberté suivante. Le moteur le joue jusqu'au bout et compte la capture au onzième coup.",
+        },
         text: "Joue l'escalier.",
         hint: "Atari, laisse les blancs étendre, puis atari de nouveau du même côté.",
       },
@@ -127,6 +135,10 @@ export const lessons2 = {
         refutations: { 0: { text: "Réponds ailleurs et le coup d'œil se révèle avoir été une coupe après tout. Les blancs prennent le second point et les deux murs sont des groupes séparés, chacun devant vivre seul." } },
       },
       2: {
+        commentary: {
+          0: "Les blancs font un peep et menacent de couper.",
+          1: "Les noirs connectent, et la menace est finie avant d'avoir commencé. Compte ce qui a changé : les noirs ont dépensé une pierre et forment désormais une seule chaîne, et les blancs ont dépensé une pierre qui n'a qu'une liberté et ne fera plus jamais rien.",
+        },
         text: "L'échange entier, depuis le début.",
         hint: "Les blancs lorgnent l'un des points, les noirs connectent sur l'autre.",
       },
@@ -181,6 +193,15 @@ export const lessons2 = {
         refutations: { 0: { text: "Atari par l'extérieur, et les blancs connectent le long du bord à la pierre de droite. Rien de capturé." } },
       },
       3: {
+        commentary: {
+          0: "Atari par le haut. Les blancs ont une sortie.",
+          1: "Les blancs s'échappent.",
+          2: "Atari de nouveau, par le côté. Chaque fois que les blancs étendent, la chaîne a deux libertés puis en perd une.",
+          3: "Les blancs s'échappent encore, vers le coin.",
+          4: "Atari par le haut.",
+          5: "La dernière extension des blancs. Une liberté reste, dans le coin.",
+          6: "Capturés. Zheng, l'échelle : sept coups lus avant d'avoir posé la première pierre.",
+        },
         text: "Sept coups de profondeur. Tu as les noirs. Pousse la pierre blanche dans le coin avec une échelle ; les blancs, scriptés, courent à chaque fois.",
         hint: "Atari du côté qui ne laisse aux blancs qu'un pas en diagonale vers le coin.",
         success: "Une échelle se décide avant de commencer. Lis-la jusqu'au bout, puis joue le premier atari la conscience tranquille.",
