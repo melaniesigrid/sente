@@ -27,7 +27,7 @@
 import { DurableObject } from "cloudflare:workers";
 import { newRating, rateGame, migrateRating } from "./rating.js";
 import { randomHex, sha256, cleanName, cleanTint, sameDigest } from "./http.js";
-import { cleanKey, publicPlayer, hasPlayed } from "./players.js";
+import { cleanKey, publicPlayer, hasPlayed, reseeded } from "./players.js";
 import { cleanEmail, cleanKey as cleanDerivedKey, privateFields, KDF } from "./accounts.js";
 import { cleanBio, cleanFacts, avatarProblem, profileOf } from "./profile.js";
 import { hit, refund, REGISTER_LIMIT, REGISTER_WINDOW_MS, SIGNIN_LIMIT, SIGNIN_WINDOW_MS,
@@ -413,6 +413,21 @@ export class Registry extends DurableObject {
     await this.ctx.storage.put(`player:${id}`, next);
     this.ladderCache = null;
     return this.#self(next);
+  }
+
+  /** Put one player back at the newcomer's seat, for the operator: the rating
+   *  trio and the win/loss record, nothing else. The handle may be an address
+   *  rather than an id, because an address is what an operator is given. */
+  async reseed(handle) {
+    const id = String(handle).includes("@")
+      ? await this.ctx.storage.get(`email:${cleanEmail(handle) ?? ""}`)
+      : handle;
+    const p = id ? await this.ctx.storage.get(`player:${id}`) : null;
+    if (!p) return null;
+    const next = { ...reseeded(p, newRating()), lastSeen: Date.now() };
+    await this.ctx.storage.put(`player:${id}`, next);
+    this.ladderCache = null;
+    return publicPlayer(next);
   }
 
   /** Remove a player and their token. Finished games keep their record; the

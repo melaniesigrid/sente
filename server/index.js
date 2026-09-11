@@ -21,6 +21,7 @@
    (`src/net/password.js`). The server has no way to read the password back and
    is not told it.
      DELETE /api/admin/players/:id     ADMIN_TOKEN bearer
+     POST   /api/admin/players/:id/reseed  ADMIN_TOKEN bearer (:id may be an address)
      GET   /api/admin/players          ADMIN_TOKEN bearer
      DELETE /api/admin/ratelimit/:ip   ADMIN_TOKEN bearer
      POST   /api/admin/mail/:kind/:id  ADMIN_TOKEN bearer -> the link, unsent
@@ -169,6 +170,12 @@ async function route(req, env) {
   // Operator routes, guarded by the ADMIN_TOKEN secret (npx wrangler secret put ADMIN_TOKEN).
   if (path.startsWith("/api/admin/")) {
     if (!env.ADMIN_TOKEN || bearer(req) !== env.ADMIN_TOKEN) return fail(401, "unauthorized");
+    const reseed = /^\/api\/admin\/players\/([^/]+)\/reseed$/.exec(path);
+    if (reseed) {
+      if (req.method !== "POST") return fail(405, "method");
+      const player = await reg.reseed(decodeURIComponent(reseed[1]));
+      return player ? json({ reseeded: player }) : fail(404, "no-player");
+    }
     const players = /^\/api\/admin\/players(?:\/([^/]+))?$/.exec(path);
     if (players) {
       if (!players[1] && req.method === "GET") return json(await reg.everyone());

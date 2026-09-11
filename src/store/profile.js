@@ -13,7 +13,7 @@ export const LEGACY_KEY = "sente-profile-v2";
 
 export const defaultProfile = {
   name: "Player", tint: "eucalyptus",
-  rating: Math.round(ratingOfRank("20k")),   // 20k: winnable games first, and Glicko finds the truth fast
+  rating: Math.round(ratingOfRank("10k")),   // 10k, the seat OGS gives a new account; RD 350 finds the truth fast
   rd: GLICKO.rd,                             // rating deviation: 350 until games say otherwise
   vol: GLICKO.vol,                           // Glicko-2 volatility
   wins: 0, losses: 0, streak: 0, bestStreak: 0,
@@ -92,7 +92,7 @@ export function sanitizeProfile(raw) {
     else if (key === "bookProgress") out[key] = sanitizeBookProgress(raw[key]);
     // The three rating numbers are clamped rather than rejected: a rating off the
     // ladder is still a rating, just an impossible one, and the nearest real rank
-    // is a kinder answer than resetting a player to 20k.
+    // is a kinder answer than resetting a player to the seed rank.
     else if (key === "rating") out[key] = clamp(raw[key], MIN_RATING, MAX_RATING);
     else if (key === "rd") out[key] = clamp(raw[key], GLICKO.minRd, GLICKO.maxRd);
     else if (key === "vol") out[key] = clamp(raw[key], 0.01, 0.5);
