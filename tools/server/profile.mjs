@@ -1,5 +1,5 @@
-// Proves the profile routes — what a player says about themselves, and the
-// picture — against a running sente-server. Usage: node profile.mjs [baseUrl]
+// Proves the profile routes (what a player says about themselves, and the
+// picture) against a running sente-server. Usage: node profile.mjs [baseUrl]
 //
 // The server stores the picture without decoding it, so these bytes only have
 // to be the right size and carry the right content type.

@@ -1,4 +1,4 @@
-# Joseki — play go, beautifully
+# Joseki · play go, beautifully
 
 A full-featured go (baduk) server with a design-first UI. Play people over the network
 or house players with distinct personalities, work through guided lessons and tsumego
@@ -6,17 +6,17 @@ problems, climb a Glicko-2 ladder, and keep a persistent profile.
 
 ## Features
 
-- **Play people** — claim a handle, pick 9×9, 13×13 or 19×19 and find an opponent. The
+- **Play people**: claim a handle, pick 9×9, 13×13 or 19×19 and find an opponent. The
   server checks every move with the same engine, keeps the game while you are away,
   and rates it with Glicko-2. Spectate any table from its link, chat, ask for an undo.
-- **Play** — 9×9 go with a rules engine that enforces suicide, ko and positional superko.
+- **Play**: 9×9 go with a rules engine that enforces suicide, ko and positional superko.
   Area scoring with komi 7.5. Three house players with tuned heuristic weights, labeled
   as bots. The game on the table is saved locally and can be resumed from Home.
-- **Learn** — interactive lessons that walk through liberties, capture, atari, ko,
+- **Learn**: interactive lessons that walk through liberties, capture, atari, ko,
   life and death, and opening principles on a live board.
-- **Tsumego** — life-and-death and tesuji problems with hints and progress tracking.
-- **Ladder** — Elo-style rating with rank badges (kyu/dan), win streaks, and standings.
-- **Profile** — name, avatar tint, record, and lesson/problem completion, persisted locally.
+- **Tsumego**: life-and-death and tesuji problems with hints and progress tracking.
+- **Ladder**: Elo-style rating with rank badges (kyu/dan), win streaks, and standings.
+- **Profile**: name, avatar tint, record, and lesson/problem completion, persisted locally.
 
 ## Design
 
@@ -98,10 +98,10 @@ locally, so `npm run dev` is unaffected.
 
 ## Licence
 
-`LICENSE` — © 2026 Northbound Software Studio, all rights reserved. The repository is
+`LICENSE`: © 2026 Northbound Software Studio, all rights reserved. The repository is
 public so the work can be read; that is not a grant, and none should be inferred.
 
-The three documents a reader sees — terms, privacy and credits — are data in
+The three documents a reader sees (terms, privacy and credits) are data in
 `src/content/legal.js` and are rendered by `src/views/Legal.jsx` from the footer of every
 screen. `src/content/legal.test.js` holds their sentences to the code: the chat the room
 keeps, the picture the server accepts, the paragraph it accepts, and every runtime

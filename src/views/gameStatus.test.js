@@ -20,13 +20,13 @@ describe("refusalText", () => {
 describe("resultLine", () => {
   it("reads a scored result with the winner's total first", () => {
     const g = acceptScore(pass(pass(createGame({ size: 9, komi: 7.5 }))));
-    expect(resultLine(g.result)).toBe("White wins — 7.5 : 0");
+    expect(resultLine(g.result)).toBe("White wins · 7.5 : 0");
     const b = acceptScore(pass(pass(createGame({ size: 9, komi: 0.5, setup: { b: [[4, 4]] } }))));
-    expect(resultLine(b.result)).toBe("Black wins — 81 : 0.5");
+    expect(resultLine(b.result)).toBe("Black wins · 81 : 0.5");
   });
   it("reads jigo and resignation", () => {
     const j = acceptScore(pass(pass(createGame({ size: 9, komi: 0 }))));
-    expect(resultLine(j.result)).toBe("Jigo — 0 : 0");
+    expect(resultLine(j.result)).toBe("Jigo · 0 : 0");
     expect(resultLine(resign(createGame({ size: 9 })).result)).toBe("White wins by resignation");
     expect(resultLine(timeout(createGame({ size: 9 })).result)).toBe("White wins on time");
     expect(resultLine(timeout(createGame({ size: 9 }), "w").result)).toBe("Black wins on time");

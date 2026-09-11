@@ -93,7 +93,7 @@ ${FONT_FACES}
 .brand-mark { height: .72em; width: auto; }
 .brand-name { font-family: var(--font-display); font-weight: var(--w-display-strong); font-size: 1em; line-height: 1; letter-spacing: calc(.005em + var(--display-tracking)); }
 /* The compact lockup: the same two pieces, tightened, for a bar that has run
-   out of room. Nothing is dropped — a mark that only appears on wide screens
+   out of room. Nothing is dropped: a mark that only appears on wide screens
    is not a mark, it is an ornament. */
 @media (max-width: 760px) { .topbar .brand { font-size: 30px; gap: .18em; } }
 
@@ -164,7 +164,7 @@ ${FONT_FACES}
    at the same pixel size: the numbers go up against the apparent size and the
    measure comes down, from 64 characters to 58, because in a monospace one ch
    is exactly one character and 64 of them is a long way for an eye to travel.
-   Leading goes up too — an even column needs the air.
+   Leading goes up too: an even column needs the air.
 
    The measure belongs on the text and not on the figure around it: ch resolves
    against the element's own font, and the figure is still set in the body face,
@@ -184,18 +184,18 @@ ${FONT_FACES}
 /* The caret is the one the front door already types with, declared once with the
    landing's typed lines further down. One caret in the app, not two. */
 .passage.sm .passage-cite { font-size: 12.5px; margin-top: 6px; }
-/* the words that carry. Bold and the room's mark at reading contrast — never the
+/* the words that carry. Bold and the room's mark at reading contrast, never the
    raw accent, which is a 3:1 colour and would put the most important word in the
    passage below the floor the rest of it clears. The weight is a flat 700 now
    that the passage is typed: Courier Prime ships one bold and no axis, and on a
    machine a word is emphasised by striking it again, which is what its bold is.
    A monospace bold cannot widen the letter either, so the mark never shifts the
-   column — the words around a mark sit exactly where they sat. */
+   column: the words around a mark sit exactly where they sat. */
 .passage-key { font-weight: 700; color: var(--accent-ink); font-style: inherit; }
 /* On hover the passage takes the mark and the marked words take the ink: the
    relationship inverts, so the words never stop being the ones that stand out.
    The whole block goes to --accent-ink and not to the raw accent for the same
-   reason a marked word does — five lines of 2.99:1 italic is the worst place in
+   reason a marked word does: five lines of 2.99:1 italic is the worst place in
    the app to spend that colour, and it is a paragraph, not a dot. */
 .passage:hover .passage-text { color: var(--accent-ink); }
 .passage:hover .passage-key { color: var(--ink); }
@@ -223,7 +223,7 @@ ${FONT_FACES}
 /* A screen arrives a beat at a time rather than all at once. It is the front
    door's entrance, applied where a whole screen is swapped in by the nav: the
    eye gets to follow the order the page is meant to be read in. Anything past
-   the eighth child simply arrives with the eighth — a stagger you can still
+   the eighth child simply arrives with the eighth, a stagger you can still
    count is a stagger that has gone on too long. */
 .arrives > * { animation: arrive .7s cubic-bezier(.2,.8,.2,1) both; }
 .arrives > *:nth-child(1) { animation-delay: .04s; }
@@ -329,7 +329,7 @@ ${FONT_FACES}
 /* ---- a screen header ---- */
 /* Label, heading, lede: the front door's way of opening a section, and now
    every screen's. See components/ScreenHeader.jsx for why the label earns its
-   place — one word at heading size says nothing the nav had not already said. */
+   place: one word at heading size says nothing the nav had not already said. */
 .screen-head { display: flex; flex-direction: column; gap: 14px; padding: clamp(4px, 1vw, 12px) 0 clamp(2px, .6vw, 8px); }
 .screen-head .lede { margin: 0; }
 .screen-label, .lp-label {
@@ -811,14 +811,14 @@ ${FONT_FACES}
 /* ---- a statement: the house voice, set as large as the screen will bear ----
    The screen's one idea in three lines, ruled off top and bottom like a page
    turning. A passage is the classical voice in the italic; this is ours in the
-   display face, and the two look nothing alike on purpose — they used to sit
+   display face, and the two look nothing alike on purpose: they used to sit
    one under the other in the same italic at nearly the same size, and read as
    one long quotation.
 
    The three lines are worn in order: capitals in the display face, the italic
    voice, then the same capitals drawn as an outline in the incidental ink,
    which is stroke and not a dimmed word. The plain sentence sits under them at
-   caption size — the jump from 8vw to 15px is the point of the block. */
+   caption size: the jump from 8vw to 15px is the point of the block. */
 .statement { margin: 6px 0; padding: clamp(26px, 4vw, 46px) 0; border-top: 1px solid var(--grid); border-bottom: 1px solid var(--grid); }
 .statement-lines { margin: 0; display: flex; flex-direction: column; }
 .statement-mask { display: block; overflow: hidden; padding: .04em 0 .2em; }
@@ -861,7 +861,7 @@ ${FONT_FACES}
    The gate is animation-play-state, not a second animation. The lines sit
    parked at translateY(105%) inside a mask that clips them, so a paused
    statement is an empty band and not a flash of text in the wrong place. The
-   block opts out of the reveal fade for the same reason — the mask is the
+   block opts out of the reveal fade for the same reason: the mask is the
    reveal, and fading a mask as its contents rise reads as two ideas. */
 .lp-band {
   width: 100%; display: flex; justify-content: center;
@@ -1040,8 +1040,8 @@ ${FONT_FACES}
 
 /* ---- typeface picker ---- */
 /* The theme picker. Each swatch carries its own theme's custom properties, so
-   the little plate is drawn in that material — same two shadows, different
-   room — and you choose by looking rather than by reading a name. */
+   the little plate is drawn in that material (same two shadows, different
+   room) and you choose by looking rather than by reading a name. */
 .theme-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(136px, 1fr)); gap: 12px; margin-top: 16px; }
 .theme-btn {
   border: 0; cursor: pointer; background: var(--ground); color: var(--ink);
@@ -1072,8 +1072,8 @@ ${FONT_FACES}
 /* ---- the language, in the chrome ----
    Cut to the look button's corner and raised by the same pair of shadows, so
    the right-hand cluster stays one family. It is wider than the icon buttons
-   beside it because it carries a word — the two-letter tag of the language
-   actually in force — and that tag is the only thing in the header that is not
+   beside it because it carries a word (the two-letter tag of the language
+   actually in force) and that tag is the only thing in the header that is not
    in English. A reader who cannot read the nav can still read EN and press it.
 
    It is a menu and not a screen. The language is one of four things the Look
@@ -1304,7 +1304,7 @@ ${FONT_FACES}
 .moku-dock > * { pointer-events: auto; }
 /* The bubble is sized to the margin it stands in, not to itself.
    It was a flat 250px in a dock pinned to the bottom left, and the content
-   column is 1100px centred — so on a 1440px screen the gutter is 170px and
+   column is 1100px centred, so on a 1440px screen the gutter is 170px and
    Moku spoke straight across the page: over the statement on the dashboard,
    over "NONE PRETENDING" in the lobby, and over the first room swatch on the
    Look screen, which is a control and not just type. A mascot with an off
@@ -1333,7 +1333,7 @@ ${FONT_FACES}
 .moku .moku-brow { fill: none; stroke: var(--cream); stroke-width: 2.2; stroke-linecap: round; opacity: 0; transition: opacity .2s ease, transform .2s ease; }
 .moku .moku-ko { fill: none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 4 5; opacity: 0; transition: opacity .2s ease; }
 /* Laska's two mouths: the smile is on by default, the open one waits for a reason,
-   and the same smile turned over is the frown — no third curve was drawn. */
+   and the same smile turned over is the frown; no third curve was drawn. */
 .moku .moku-mouth { fill: none; stroke: var(--cream); stroke-linecap: round; transition: opacity .2s ease, transform .2s ease; }
 .moku .moku-mouth-idle { stroke-width: 1.98; }
 .moku .moku-mouth-cheer { stroke-width: 2.14; opacity: 0; }
@@ -1484,7 +1484,7 @@ ${FONT_FACES}
    two numbers was a band nobody had designed: the columns wrapped on their own
    at about 1000px, so the board fell *under* the headline instead of rising
    above it, and the well stretched to the full width of the page on the way
-   down. A 1920x1080 laptop at 200% scaling is 960 CSS pixels — the middle of
+   down. A 1920x1080 laptop at 200% scaling is 960 CSS pixels, the middle of
    that band, and an ordinary PC.
 
    So the hero does not wrap. Above the breakpoint it is two columns and
@@ -1611,7 +1611,7 @@ ${FONT_FACES}
    The 12px floor holds. A real broadsheet would set the footnotes at eight
    point; these sit at 12 and stop, because nothing below that carries meaning
    at arm's length and the footnote rail is the part that has to be read most
-   carefully — it is where the page proves what it just said. */
+   carefully: it is where the page proves what it just said. */
 .lp-record { border-top: 2px solid var(--grid); border-bottom: 1px solid var(--hairline); }
 .lp-record-head {
   display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
@@ -1653,7 +1653,7 @@ ${FONT_FACES}
 }
 .lp-col p { color: var(--ink-2); font-size: 15.5px; line-height: 1.66; margin: 0 0 11px; }
 .lp-col p:last-of-type { margin-bottom: 0; }
-/* The opener drops — the first paragraph of the lead column and nothing else.
+/* The opener drops: the first paragraph of the lead column and nothing else.
    A drop cap in every column reads as a pattern rather than as the start of
    something, and one asked of "the first paragraph" lands on the kicker. */
 .lp-col p.lp-drop::first-letter {
@@ -1720,7 +1720,7 @@ ${FONT_FACES}
    field is a layer under a band and every card, button and well on top of it
    carries its own ground. The band's own contents are lifted a layer clear.
 
-   The mask is not a scrim over the picture — it is the ground itself coming
+   The mask is not a scrim over the picture: it is the ground itself coming
    back in at the edges, so the field has no border and never ends on a line. */
 .lp-ground { position: relative; isolation: isolate; }
 .lp-ground > *:not(.stone-field):not(.lp-decor) { position: relative; z-index: 1; }
@@ -1743,8 +1743,8 @@ ${FONT_FACES}
   .stone-field svg { filter: blur(9px); }
   .stone-field.ready { opacity: .42; }
 }
-/* Reduced motion still gets the picture — StoneField holds one settled
-   position rather than playing — but not the fade onto the page. */
+/* Reduced motion still gets the picture (StoneField holds one settled
+   position rather than playing) but not the fade onto the page. */
 @media (prefers-reduced-motion: reduce) { .stone-field { transition: none; } }
 
 /* ---- the floors ----
@@ -1753,7 +1753,7 @@ ${FONT_FACES}
    is floored in four materials, alternating, and no two touching sections
    share one:
 
-     the game    a real position, blurred (StoneField, above) — hero and the
+     the game    a real position, blurred (StoneField, above), hero and the
                  last word, the two places the page is being looked at rather
                  than read.
      the ruling  a board's lines, at the spacing StoneField draws stones on.
@@ -1768,7 +1768,7 @@ ${FONT_FACES}
                  statement sits in a trough rather than on a swatch.
 
    Two things every floor obeys. It is a layer *under* the band, never a
-   texture behind a raised thing — the two shadows stop reading the moment
+   texture behind a raised thing: the two shadows stop reading the moment
    there is pattern under them, and every card carries its own --ground so it
    occludes whatever it stands on. And it ends by fading out, never on a line:
    each one is masked back to the bare ground at its edges, so a floor has no
@@ -1783,7 +1783,7 @@ ${FONT_FACES}
 .lp-dotted::before {
   content: ""; position: absolute; inset: 0; z-index: 0;
   pointer-events: none;
-  /* Masks read the alpha channel, so the colour here is only a carrier — it is
+  /* Masks read the alpha channel, so the colour here is only a carrier: it is
      a token all the same, because the stylesheet names no colour anywhere. */
   -webkit-mask-image: radial-gradient(115% 76% at 50% 50%, var(--ink) 24%, transparent 80%);
   mask-image: radial-gradient(115% 76% at 50% 50%, var(--ink) 24%, transparent 80%);
@@ -1799,7 +1799,7 @@ ${FONT_FACES}
   opacity: .3;
 }
 /* The points: the fine lattice, and the star point on every fourth crossing.
-   176px is 44 x 4 — the 4-4, drawn where a 4-4 goes. */
+   176px is 44 x 4: the 4-4, drawn where a 4-4 goes. */
 .lp-dotted::before {
   background-image:
     radial-gradient(circle, var(--ink-3) 2.2px, transparent 2.7px),
@@ -1898,13 +1898,13 @@ ${FONT_FACES}
 /* The middle window: still two columns, both taken in.
    What actually broke the row was the headline. The display face is sized off
    the window, so at 960px "beautifully" is set at 80px and wants some 470px of
-   column to itself — more than the column had — and that is what pushed the
+   column to itself (more than the column had) and that is what pushed the
    board out of the row and under the copy. Here the display is sized off the
    column instead, and the board is given a narrower well: it is fluid and only
    caps at its sizePx, so it simply draws smaller rather than overflowing.
 
    Two columns now hold down to 880, which covers the ordinary PC window this
-   was failing in — a 1920x1080 laptop at 200% scaling is 960 CSS pixels. */
+   was failing in: a 1920x1080 laptop at 200% scaling is 960 CSS pixels. */
 @media (max-width: 1100px) and (min-width: 880px) {
   .lp-hero { gap: clamp(22px, 2.8vw, 36px); }
   .lp-hero-copy { flex: 1 1 380px; }
@@ -1914,7 +1914,7 @@ ${FONT_FACES}
   .lp-hero .lp-stats { margin: 22px 0 26px; }
 }
 
-/* One column, and the board first — now because the small layout asks for it,
+/* One column, and the board first, now because the small layout asks for it,
    not because the row ran out of room. */
 @media (max-width: 879px) {
   .lp-hero { flex-direction: column; padding-top: clamp(24px, 5vw, 48px); }

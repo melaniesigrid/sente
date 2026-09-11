@@ -4,8 +4,8 @@
    the code they describe, so a change to the code that makes a sentence false
    fails here rather than being discovered by a reader.
 
-   What it can check, it checks against the source of the fact — the server's
-   own constants, package.json, the LICENSE file — never against a number
+   What it can check, it checks against the source of the fact (the server's
+   own constants, package.json, the LICENSE file) never against a number
    copied into the test. What it cannot check (whether a promise is kept, what
    a vendor's licence says) it leaves alone rather than pretending. */
 import { describe, it, expect } from "vitest";
@@ -106,7 +106,7 @@ describe("the documents", () => {
     ].join("\n")).toBe(REVISION.stamp);
   });
 
-  /* The stamp is only worth having if it moves. One word is enough — which is
+  /* The stamp is only worth having if it moves. One word is enough, which is
      the whole claim the guard above rests on. (The revision date is not
      excluded by being absent from the prose: the notice quite legitimately
      states dates of its own. It is excluded by `documentText` reading

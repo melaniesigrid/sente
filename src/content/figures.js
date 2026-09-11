@@ -8,8 +8,8 @@ import { tryPlay } from "../engine/rules.js";
    in stones, which is the argument this place is actually about.
 
    A figure is a sequence and not a picture. Each one is the order a teacher
-   puts the stones down in, replayed through `tryPlay` — the same function a
-   real game goes through — so the captures in them are captures the engine
+   puts the stones down in, replayed through `tryPlay` (the same function a
+   real game goes through), so the captures in them are captures the engine
    performed and not dots somebody remembered to leave out of a diagram. The
    ponnuki really does take a stone off. The ladder really does end in atari on
    the last line: it was not drawn, it was found, by letting Black atari and
@@ -18,7 +18,7 @@ import { tryPlay } from "../engine/rules.js";
    That matters for one reason. The front door says the rules live in one
    engine and the screens only draw it, and a hand-drawn shape behind those
    words would be the single lie on the page. Every claim in a `note` below is
-   a claim `figures.test.js` puts to the engine — that White cannot play into
+   a claim `figures.test.js` puts to the engine: that White cannot play into
    the tiger's mouth, that the bamboo joint answers a cut on either side, that
    the empty triangle is one liberty worse than the same three stones in a
    line. If a note and the engine ever disagree, the build stops.
@@ -29,7 +29,7 @@ import { tryPlay } from "../engine/rules.js";
    legal at the moment it is played, which the test also checks. */
 
 /** Rows are read `[column, row, colour]`, from the top left, and played in
- *  order. `size` is the small board the shape is framed on — these are not
+ *  order. `size` is the small board the shape is framed on; these are not
  *  positions on a 19, they are shapes at the size the shape needs. */
 export const FIGURES = [
   {
@@ -72,7 +72,7 @@ export const FIGURES = [
   {
     id: "ko",
     name: "The ko",
-    note: "Black takes, and White may not take it straight back — the one rule that stops the board repeating for ever. White has to ask a question somewhere else first.",
+    note: "Black takes, and White may not take it straight back: the one rule that stops the board repeating for ever. White has to ask a question somewhere else first.",
     size: 5,
     moves: [
       [1, 0, "b"], [0, 1, "b"], [1, 2, "b"],
@@ -100,7 +100,7 @@ export const FIGURES = [
   {
     id: "net",
     name: "The net",
-    note: "Not a capture — a promise of one. The stone is loose in the middle of four, and every direction it runs is a direction already covered.",
+    note: "Not a capture, but a promise of one. The stone is loose in the middle of four, and every direction it runs is a direction already covered.",
     size: 6,
     moves: [
       [2, 2, "w"],
@@ -117,7 +117,7 @@ export function figureOf(id) {
   return FIGURES.find(f => f.id === id) || FIGURES[0];
 }
 
-/** The board after the first `n` moves of a figure — `n` omitted means all of
+/** The board after the first `n` moves of a figure; `n` omitted means all of
  *  them. Every move goes through `tryPlay`, so a move that is not legal at the
  *  moment it is played throws rather than quietly landing. */
 export function playFigure(fig, n = fig.moves.length) {
@@ -139,12 +139,12 @@ export function figureFrames(fig) {
 }
 
 /** Every stone the figure ever holds, with the move it lands on and the move it
- *  is taken off at — `gone` is null for a stone that survives to the end.
+ *  is taken off at; `gone` is null for a stone that survives to the end.
  *
  *  A figure that is only its last frame is a diagram, and a diagram cannot show
  *  the one thing these shapes are about: the ponnuki's hole is a stone that was
  *  there, and the ko is a stone taken. So the drawing wants the lives, not the
- *  board, and this is where the lives are worked out — from the frames the
+ *  board, and this is where the lives are worked out, from the frames the
  *  engine produced, never from a list somebody kept by hand. */
 export function figureLives(fig) {
   const frames = figureFrames(fig);

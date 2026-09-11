@@ -1,8 +1,8 @@
 import { Mark } from "./Brand.jsx";
 
 /* ----------------------- THE MARKS, SET LARGE -----------------------
-   The three brand marks again — the forcing move and its answer, the corner a
-   joseki is played in, the single stone — drawn at the size of a section
+   The three brand marks again (the forcing move and its answer, the corner a
+   joseki is played in, the single stone) drawn at the size of a section
    rather than the size of a favicon, and let off the edge of the band.
 
    Why this is allowed to exist. The marks were drawn to say "sente": a
@@ -20,7 +20,7 @@ import { Mark } from "./Brand.jsx";
      it is aria-hidden, because it says nothing a reader needs.
    - It is never under a raised thing. The two shadows read as light on flat
      ground and stop reading over texture. Cards carry their own --ground, so
-     a mark passing behind one is simply occluded — which is the intended
+     a mark passing behind one is simply occluded, which is the intended
      picture: the section's shape, with the content standing on top of it.
    - It is quiet. At this scale the house drop-shadows on a stone become a
      smear the width of a finger, so they come off, and what is left is a

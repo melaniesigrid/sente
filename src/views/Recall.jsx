@@ -20,7 +20,7 @@ import { Response } from "./Learn.jsx";
    in the lesson: the same refutations, the same hint, the same Show me.
 
    What is different is the grading, and what is left out. A card is recalled
-   only when it is answered first try, unaided — a second guess is a card read
+   only when it is answered first try, unaided: a second guess is a card read
    off the board rather than remembered. And the lesson's teaching text stays
    behind: a question you are being asked to remember is not a question you
    are being told the answer to. The step's own prompt is all there is until
@@ -204,7 +204,7 @@ export function RecallView({ profile, setProfile, go }) {
             {results.map(r => (
               <li key={r.key} className={r.recalled ? "" : "shown"}>
                 {r.recalled ? <Check size={14} /> : <RotateCcw size={14} />}
-                <span>{cardName(r.card)} — back {r.recalled ? comesBack(r.card.box + 1) : comesBack(0)}</span>
+                <span>{cardName(r.card)} · back {r.recalled ? comesBack(r.card.box + 1) : comesBack(0)}</span>
               </li>
             ))}
           </ul>

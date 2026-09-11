@@ -6,7 +6,7 @@ import { shapeByKey } from "../../shapes.js";
    exists because most players have a favourite connection and play it without
    noticing that they chose.
 
-   The base is three black stones — (3,3), (4,3), (3,5) — from which all three
+   The base is three black stones at (3,3), (4,3) and (3,5), from which all three
    connections are a single legal move: solid at (3,4), the bamboo joint at
    (4,5), the tiger's mouth at (2,4). Every number below came from `chainAt`
    and `shapes.test.js` takes them again:
@@ -49,7 +49,7 @@ export default {
       question: "Black has connected solidly. How many liberties does the chain have?",
       answer: 9, tolerance: 0,
       hint: "Four stones, one chain, and no liberty counted twice.",
-      success: "Nine, in one chain, and there is nothing left on the board to cut. That is what solid buys: liberties that all belong to the same group, and the end of the conversation. What it costs is a move that did nothing except be safe — no eye, no reach, no ground.",
+      success: "Nine, in one chain, and there is nothing left on the board to cut. That is what solid buys: liberties that all belong to the same group, and the end of the conversation. What it costs is a move that did nothing except be safe: no eye, no reach, no ground.",
       wrongText: "Walk the outside of the four stones and count the empty points touching them, taking each point once.",
     },
     {
@@ -58,7 +58,7 @@ export default {
       question: "Rewind, and let Black play the bamboo joint instead. How many liberties do the two chains have between them, counting each empty point once?",
       answer: 10, tolerance: 0,
       hint: "Six for the top pair and six for the bottom, and two of the points belong to both.",
-      success: "Ten, which is more than the solid connection got, and it is worth less. A capturing race captures chains, not groups, and this is two chains of six rather than one chain of nine. What the bamboo joint does buy is a shape with no cutting point in it at all — White at either gap has two liberties and dies — and a foot pointing in two directions at once.",
+      success: "Ten, which is more than the solid connection got, and it is worth less. A capturing race captures chains, not groups, and this is two chains of six rather than one chain of nine. What the bamboo joint does buy is a shape with no cutting point in it at all (White at either gap has two liberties and dies) and a foot pointing in two directions at once.",
       wrongText: "Count each pair's liberties, then take away the ones you counted twice: the two points in the middle touch both pairs.",
     },
     {

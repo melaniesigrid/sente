@@ -133,21 +133,21 @@ would have posted to the log instead, where `npx wrangler tail` will show it. Ev
 works in that state except the letters actually arriving.
 
 Cloudflare Email Sending sends from a domain on your Cloudflare account. `workers.dev` is
-not one — it belongs to Cloudflare, not to you — so this needs a domain, which is the one
+not one (it belongs to Cloudflare, not to you) so this needs a domain, which is the one
 part of this slice that cannot be done from the repository:
 
 1. Add a domain to the Cloudflare account that owns `sente-server` (any registrar; the
    nameservers point at Cloudflare).
 2. `npx wrangler email sending enable <domain>`, which adds the SPF, DKIM and DMARC records
    for you. `npx wrangler email sending list` shows what is onboarded. If either command
-   answers `Unauthorized [code: 2036]`, the stored OAuth token predates Email Sending —
+   answers `Unauthorized [code: 2036]`, the stored OAuth token predates Email Sending;
    `npx wrangler login` again to pick up the scope.
 3. Uncomment `MAIL_FROM` in `wrangler.jsonc` and point it at an address on that domain
    (`sente@<domain>`). It does not have to be a mailbox anyone reads; set up Email Routing
    on it if you would like replies to go somewhere.
 4. Deploy, then check `GET /api/health` says `"mail": "sending"`.
 
-`APP_URL` in the same file is where the links point — the app on Pages, not this Worker.
+`APP_URL` in the same file is where the links point: the app on Pages, not this Worker.
 It is already set; change it if the app moves.
 
 Two things worth knowing before the first send. Deliver to a real address you control, not
@@ -176,17 +176,17 @@ Two letters, and no others: one confirms an address, one offers a way back in. B
 asked for. There is no list to be on, so neither carries an unsubscribe link.
 
 `POST /api/forgot` answers `{ok: true}` for an address with an account, an address without
-one, and something that is not an address at all — the same bytes each time, and the same
+one, and something that is not an address at all: the same bytes each time, and the same
 answer when the mail server itself fails. It must never become a way to ask who plays here.
 
 A confirmation link lasts a week; a way back in lasts an hour, because it is a key to an
 account sitting in an inbox. Both work once, and asking for a second forgets the first, so
 two live links are never left in one mailbox. Following a reset link signs the account out
-of everywhere else and hands the browser that used it one fresh session — a password
+of everywhere else and hands the browser that used it one fresh session; a password
 *change* deliberately does not, because that one required the old password and this one
 required only the mailbox.
 
-`key` is never a password — see **Passwords** below.
+`key` is never a password; see **Passwords** below.
 
 ## Operator routes
 
@@ -202,8 +202,8 @@ Every one of them needs `Authorization: Bearer $ADMIN_TOKEN`.
 | `POST /api/admin/mail/:kind/:id` | Mint a `verify` or `reset` link for one player and hand it back, unsent |
 
 **`/api/admin/mail/reset/:id` is a way into that account.** It is here for the two times
-you need it — proving the letters against a deployment with no mailbox to read, and helping
-somebody whose address has stopped accepting mail — and it grants no more than
+you need it (proving the letters against a deployment with no mailbox to read, and helping
+somebody whose address has stopped accepting mail) and it grants no more than
 `DELETE /api/admin/players/:id` already did to whoever holds the secret. Said out loud
 because it is worth knowing: `ADMIN_TOKEN` can sign in as anybody.
 
@@ -229,7 +229,7 @@ changed at, which is also what makes the picture URL cacheable forever: a new
 picture is a new URL.
 
 The browser squares and squeezes a picture to 192 px before uploading
-(`src/net/avatar.js`). The server does not decode it — it checks the content
+(`src/net/avatar.js`). The server does not decode it; it checks the content
 type against three raster formats and the length against 64 KB, and stores the
 bytes. **SVG is refused** and should stay refused: it is a document that can
 carry script, not a picture.

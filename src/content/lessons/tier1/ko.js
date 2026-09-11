@@ -18,7 +18,7 @@ export default {
       type: "info",
       setup: koShape,
       marks: [pt(4, 3)],
-      text: "This mirrored shape is a ko. The white stone in the middle has one liberty — but capturing it hands White the identical capture back.",
+      text: "This mirrored shape is a ko. The white stone in the middle has one liberty, but capturing it hands White the identical capture back.",
     },
     {
       type: "quiz",
@@ -26,7 +26,7 @@ export default {
       toPlay: "b",
       answers: [pt(4, 3)],
       text: "Take the ko: capture the white stone.",
-      success: "Captured — and now the ko rule bites: White may not recapture immediately, because that would repeat the whole-board position. White must play elsewhere first (a ko threat), and only then return.",
+      success: "Captured, and now the ko rule bites: White may not recapture immediately, because that would repeat the whole-board position. White must play elsewhere first (a ko threat), and only then return.",
       hint: "Fill White's last liberty.",
     },
     {
@@ -51,7 +51,7 @@ export default {
         w: [pt(4, 2), pt(5, 3), pt(4, 4)],
       },
       marks: [pt(3, 3)],
-      text: "The marked point is 'hot' for one turn. Ko fights are where games swing — threats, timing, and knowing when a ko is bigger than the board around it. A full ko-fighting module is on the curriculum roadmap.",
+      text: "The marked point is 'hot' for one turn. Ko fights are where games swing: threats, timing, and knowing when a ko is bigger than the board around it. A full ko-fighting module is on the curriculum roadmap.",
     },
   ],
 };

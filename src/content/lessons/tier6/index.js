@@ -1,9 +1,9 @@
 /* ----------------------- TIER 6 · DAN (1d–4d, 19x19) -----------------------
    The syllabus is in docs/designs/lesson-library.md. Four of the eight are
    authored: aji, amashi, the corner shape the proverb gets wrong, and ko as a
-   thing you build rather than a thing that happens to you. The rest —
+   thing you build rather than a thing that happens to you. The rest (
    professional openings, endgame counting in miai values, whole-board
-   thinking, and reading an engine honestly — are still open, and the last of
+   thinking, and reading an engine honestly) are still open, and the last of
    them waits on Phase 4 analysis.
 
    Tier 6 is the one tier where a lesson may be mostly argument. The engine can

@@ -46,7 +46,7 @@ describe("the stylesheet", () => {
   // The sheet's `.sente-root` block is the one place it may name a colour: it
   // is what a browser draws before the shell has spread a single custom
   // property. The stones there are the house set, and nothing but arithmetic
-  // keeps them so — which is what they are checked against.
+  // keeps them so, which is what they are checked against.
   it("ships the house set as the stylesheet's own stones", () => {
     const root = CSS.split(".sente-root {")[1].split("\n}")[0];
     const val = (name) => new RegExp(`--stone-${name}: (#[0-9a-f]{6})`).exec(root)[1];
@@ -63,7 +63,7 @@ describe("the stylesheet", () => {
   });
 
   // Large type is the one place the mark may colour a word, because 3:1 is
-  // where WCAG's own floor for large text sits — which is the same floor the
+  // where WCAG's own floor for large text sits, which is the same floor the
   // mark is already held to. Below that size the readable version is the only
   // one allowed, so the exemption is measured from the rule's own font-size
   // rather than granted by name.

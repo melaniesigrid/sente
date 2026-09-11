@@ -9,7 +9,7 @@ import { figureFor, figureLives } from "../content/figures.js";
    blurred game behind a band, and between those two there was a gap: the
    marks are a logo and the field is a texture, and neither of them is go. A
    statement is the house making a claim in six words. What belongs beside it
-   is the same claim in stones — and unlike a logo, it can be true.
+   is the same claim in stones, and unlike a logo, it can be true.
 
    So this draws a figure from content/figures.js, which is a sequence rather
    than a picture: the engine plays it, the ponnuki really takes the stone off,
@@ -33,7 +33,7 @@ import { figureFor, figureLives } from "../content/figures.js";
    - It is never in front of anything. z-index 0 in a positioned block, no
      pointer events, aria-hidden, and the words are lifted one layer clear.
    - It plays once, when it is reached, and then holds. A reader who asked for
-     less motion is handed the finished position in the first frame — which is
+     less motion is handed the finished position in the first frame, which is
      also what anyone gets who has no IntersectionObserver, because a figure
      nobody can see is worse than a figure that does not move. */
 

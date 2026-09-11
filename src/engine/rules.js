@@ -6,7 +6,7 @@
 
    Suicide is refused unless the ruleset allows it (New Zealand does). Where it is
    allowed the played chain is lifted the moment it is placed, and those stones are
-   prisoners for the opponent — they come back as `selfCaptured` so the caller can
+   prisoners for the opponent; they come back as `selfCaptured` so the caller can
    credit them to the right side. */
 
 import { NBRS, idx, inB, chainAt } from "./board.js";

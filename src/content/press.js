@@ -15,7 +15,7 @@
      It is the reason the section is allowed to be there at all.
    - Where the flattering line and the true line differ, the true one is
      printed. Go is very widely called the last game to fall to a machine. It
-     was not — shogi's reigning Meijin lost in 2017 — and the lead column says
+     was not (shogi's reigning Meijin lost in 2017) and the lead column says
      so in the paragraph where the boast would have gone.
    - A famous figure was moved rather than repeated. The one-in-ten-thousand
      estimate is nearly always attached to AlphaGo's move 37; the version with

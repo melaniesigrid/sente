@@ -60,7 +60,7 @@ describe("the front door's statements", () => {
     }
   });
 
-  // These are set larger than the screens' statements are — up to 148px — so
+  // These are set larger than the screens' statements are (up to 148px) so
   // the ceiling on a line is lower, not higher. A line that wraps breaks the
   // mask the three rise out of.
   it("keeps every line short enough to stand at front-door size", () => {

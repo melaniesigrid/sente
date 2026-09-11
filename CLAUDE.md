@@ -6,11 +6,11 @@ in `server/` (Durable Objects), deployed separately.
 
 ## Commands
 
-- `npm run dev` — dev server
-- `npm run build` — production build (must pass before commit)
-- `npm run lint` — oxlint
-- `npm test` — vitest (engine, store and server unit tests)
-- `npm run dev:server` / `npm run deploy:server` — the Worker, locally on 8787 / to Cloudflare
+- `npm run dev`: dev server
+- `npm run build`: production build (must pass before commit)
+- `npm run lint`: oxlint
+- `npm test`: vitest (engine, store and server unit tests)
+- `npm run dev:server` / `npm run deploy:server`: the Worker, locally on 8787 / to Cloudflare
 
 ## Conventions
 
@@ -18,8 +18,8 @@ in `server/` (Durable Objects), deployed separately.
   and `gote` are words this app teaches, and two of them collide with its own name. Only the
   product is capitalised; a corner pattern is a lowercase `joseki`, and initiative is a
   lowercase `sente`. Where a sentence would start with either term, reword rather than
-  capitalise — "Sente and gote" and "Sente is everything" are the go term, not the app.
-- **No lowercase `sente` identifier is the old name — every one is load-bearing.** The
+  capitalise: "Sente and gote" and "Sente is everything" are the go term, not the app.
+- **No lowercase `sente` identifier is the old name; every one is load-bearing.** The
   password salt (`sente-v${KDF.v}:${email}` in `src/net/password.js`), the `localStorage`
   keys (`sente-account-v1`, `sente-profile-v3`, `sente-lobby`), the CSS variables and
   `.sente-root`, the `sente-*` font families, the `x-sente-player` header and the Worker
@@ -37,7 +37,7 @@ in `server/` (Durable Objects), deployed separately.
   colours into the whole token set; `color.js` is the only place that knows how a colour is
   spelled. The stylesheet names no colour outside its house-default block, only tokens, which
   the shell sets from `profile.theme` (and `profile.dojo` for a palette the player built).
-- A new palette is four colours — ground, ink, mark, shell — in `palettes.js`. Everything
+- A new palette is four colours (ground, ink, mark, shell) in `palettes.js`. Everything
   else derives. `npm test` holds it to the same rules `auditPalette` shows live in the dojo;
   there is one implementation of those rules so the panel and CI cannot disagree.
 - `house` is the reference room and the fallback; `system` is what a profile ships set to,
@@ -55,7 +55,7 @@ in `server/` (Durable Objects), deployed separately.
 - **No view names a word.** User-facing text is a key into `src/i18n/`, read with `t()` from
   `useT()`; the language is themed the way the palette and the type are. `en.js` is the
   floor every lookup lands on, so an unfinished language shows English rather than a hole.
-  Prose a data file already owns — a room's note, a stone set's name, a pairing's note —
+  Prose a data file already owns (a room's note, a stone set's name, a pairing's note)
   stays there and a translation overlays it by id (`t(key, vars, dataString)`). `i18n.test.js`
   fails when a catalogue drifts from English or from the data. `system` is what a profile
   ships set to; `src/components/langStore.js` is the only thing that reads
@@ -93,7 +93,7 @@ in `server/` (Durable Objects), deployed separately.
   in. Komi is what the board is owed under those rules, never one number for every board.
 - The rating scale is OGS's, number for number: `rank = ln(rating / 525) * 23.15`, rank 30
   is 1 dan (`src/content/rank.js`). A rank is shown to a tenth, truncated so it always
-  sits inside the whole rank. Rating moves by Glicko-2 in `src/engine/glicko.js` — and the
+  sits inside the whole rank. Rating moves by Glicko-2 in `src/engine/glicko.js`, and the
   server imports that same module rather than keeping a second copy, because a rating that
   means one thing offline and another online is not a rating. See
   `docs/designs/the-table.md`.

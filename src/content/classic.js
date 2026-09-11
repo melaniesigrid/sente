@@ -448,14 +448,14 @@ export function passageFor(context, seed = 0) {
    A passage is set as one block of italic, and a block of italic is the easiest
    thing on a screen to slide off. A reader who is not already committed reads
    the first line and leaves. So a few words in each passage are struck a second
-   time — the room's mark taken to reading contrast, at a heavier weight — and
+   time (the room's mark taken to reading contrast, at a heavier weight) and
    those words are what the reader takes away if they take away nothing else.
 
    Which words is the whole design. The lexicon is in two tiers, and the tier
    decides who wins when a passage offers more candidates than it has marks.
    STRENGTH_WORDS are what the reader should leave carrying: the initiative, the
    advantage, the victory, knowing and studying and staying calm. CRAFT_WORDS are
-   the board itself — the corners, the eyes, the ko — and the losing pole the
+   the board itself: the corners, the eyes, the ko, and the losing pole the
    classic warns about. Mark "corner" over "victory" and the passage reads as a
    glossary; mark "victory" over "corner" and it reads as encouragement. The
    second is why anyone is on the page.
@@ -503,7 +503,7 @@ export function markBudget(text) {
 }
 
 /** Which lexicon entry a matched word came from, or -1. Each entry already spells
- *  its own inflections — "plan(?:s)?", "calculat(?:e|es|ed|ing|ion|ions)" — so the
+ *  its own inflections, "plan(?:s)?" and "calculat(?:e|es|ed|ing|ion|ions)", so the
  *  entry, not the literal word, is what identifies a repeat. */
 const ENTRY_RES = KEY_WORDS.map(w => new RegExp(`^(?:${w})$`, "i"));
 const entryOf = (word) => ENTRY_RES.findIndex(re => re.test(word));
@@ -530,7 +530,7 @@ function candidates(line) {
  *  joining back to exactly the string that went in. Deterministic. */
 export function emphasize(text, max = MAX_MARKS) {
   const line = String(text ?? "");
-  // Strength first, then reading order — so a passage offering both an
+  // Strength first, then reading order, so a passage offering both an
   // encouragement and a piece of board vocabulary marks the encouragement.
   const chosen = candidates(line)
     .map((c, i) => ({ ...c, i }))

@@ -10,8 +10,8 @@ Built the same day; what changed on contact with the work is recorded at the end
 
 The landing page works and says true things, but it reads as a well-set brochure
 rather than as an object somebody made on purpose. The part of Joseki that people
-actually stop on — the `Statement` block on the dashboard, three lines wearing three
-different faces, TAKE / *the ground.* / *Stone by stone.* — never appears on the one
+actually stop on (the `Statement` block on the dashboard, three lines wearing three
+different faces, TAKE / *the ground.* / *Stone by stone.*) never appears on the one
 screen a stranger sees. The front door has no image of its own, no argument for why go
 in particular, and nothing on it that would survive being screenshotted.
 
@@ -19,7 +19,7 @@ Three additions, in order of how much they change the page:
 
 1. **Statement typography** as the spine of the page, not decoration on it.
 2. **A ground that is a go board**, drawn in the stone tokens, under everything.
-3. **The Record** — a broadsheet section about go itself: the last game to fall to a
+3. **The Record**: a broadsheet section about go itself: the last game to fall to a
    machine, what the research supports, and what we refuse to claim.
 
 ## The constraints this has to live inside
@@ -91,7 +91,7 @@ The brief asked for either a blurred black-and-white polka field or an endless g
 being played. Those are the same drawing at two settings, so build one component with a
 prop. The second is strictly better and the first is its fallback.
 
-**`StoneField`** — a new component, aria-hidden, pointer-events none, absolutely
+**`StoneField`**: a new component, aria-hidden, pointer-events none, absolutely
 positioned inside a band, at low opacity under a `--scrim` wash.
 
 - **The still field.** A lattice of blurred circles at 19-line grid spacing, alternating
@@ -104,7 +104,7 @@ positioned inside a band, at low opacity under a `--scrim` wash.
   board already says that the engine is playing itself right now, and this is the same
   sentence at wall size.
 
-**How the live variant stays cheap.** Do not reuse `Board.jsx` — it draws hover ghosts,
+**How the live variant stays cheap.** Do not reuse `Board.jsx`; it draws hover ghosts,
 gridcell roles and per-stone gradients, all of which are wasted under a 14px blur.
 `StoneField` renders one flat token-filled circle per stone. A 19x19 mid-game is under
 200 of them. It ticks on an interval the way `MiniSelfPlay` does but slower, three to
@@ -188,7 +188,7 @@ without leaving the page half-finished.
 | 2 | `feat/stone-field` | `StoneField` in both variants, hero and final-call bands |
 | 3 | `feat/press-record` | `press.js` and its test, the broadsheet section, the source rail |
 | 4 | `feat/landing-copy` | pull quotes, the Classic enlarged, the hero lede cut |
-| 5 | — | `TODO.md` updated, `DECISIONS.md` entry for measured-not-claimed on marketing copy |
+| 5 | none | `TODO.md` updated, `DECISIONS.md` entry for measured-not-claimed on marketing copy |
 
 **Two operational notes that will otherwise cost a day.**
 
@@ -196,7 +196,7 @@ without leaving the page half-finished.
   `feat/board-sizes-local`, a stale already-shipped branch with no `Landing.jsx` in it
   at all. Build from a fresh worktree cut off a just-fetched `origin/main`, the way the
   recent work shipped. `origin/main` moves hourly.
-- `Landing.jsx` uses no `t()` at all today — the front door is untranslated English
+- `Landing.jsx` uses no `t()` at all today; the front door is untranslated English
   while the i18n stack is still merging bottom-up. Do **not** wire new landing copy into
   the catalog as part of this work. Add those keys in one pass after that stack lands,
   or the five-PR merge picks up a conflict in every file it touches.

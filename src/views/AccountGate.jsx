@@ -17,7 +17,7 @@ import { formProblem, passwordNote, errorText } from "./accountForm.js";
    get in, and a row of four would suggest it was.
 
    There is no third party here. Joseki holds the address, and it holds a hash
-   of a key the browser derives from the password — never the password, which
+   of a key the browser derives from the password, never the password, which
    does not leave the machine it was typed on (`src/net/password.js`).
 
    Deriving that key takes about a second on a phone, on purpose, so every
@@ -130,8 +130,8 @@ function CredentialForm({ mode, profile, notify, onSignedIn }) {
 /** The way back in for somebody who cannot sign in. Folded away until asked
  *  for, because it is not how most people arrive.
  *
- *  What it says afterwards is deliberately conditional — "if there is an
- *  account on that address" — and it says the same thing whether or not there
+ *  What it says afterwards is deliberately conditional ("if there is an
+ *  account on that address") and it says the same thing whether or not there
  *  was one. Answering honestly here would turn this box into a way to ask
  *  whether any address you like has an account on Joseki, which is not a
  *  question a go server should answer about its players. */

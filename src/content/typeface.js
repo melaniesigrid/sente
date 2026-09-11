@@ -1,7 +1,7 @@
 /* ----------------------- TYPEFACES (the pairings) -----------------------
    A pairing is data, like a persona or a seal colour: a display face, the face
    that carries the italic voice, and a body face. Nothing else about the design
-   system moves — the stone palette and the two-shadow neumorphism are fixed, and
+   system moves: the stone palette and the two-shadow neumorphism are fixed, and
    every face is normalised onto Fraunces' optical size in fontfaces.js, so
    picking a pairing changes the voice and not the layout.
 
@@ -22,10 +22,10 @@
 
    No script stands anywhere in the set. A script is a display face and nothing
    else: it cannot carry a quotation and it cannot carry a caption, because at
-   13px it is decoration standing where a word should be — and the ornament voice
-   is read mid-sentence, at reading size. So the quote voice is always a serif —
+   13px it is decoration standing where a word should be, and the ornament voice
+   is read mid-sentence, at reading size. So the quote voice is always a serif (
    its own where the pairing has one, Fraunces' or Newsreader's italic where it
-   does not — and the captions follow the italic when that italic is real and the
+   does not) and the captions follow the italic when that italic is real and the
    body face when it is not.
 
    Nothing here is ever slanted by the browser. The Typecase cuts are single-style,
@@ -64,7 +64,7 @@ export const GOOGLE_FAMILIES = [
    typefaceVars returns the same value for every time.
 
    Courier Prime is the typewriter face drawn to be read rather than to be
-   counted in: Courier's skeleton, stems with weight in them, and a real bold —
+   counted in: Courier's skeleton, stems with weight in them, and a real bold,
    which the marked words need, since a mark that is only a colour is not a mark
    on a monochrome screen. */
 export const TYPEWRITER = "'Courier Prime', 'Courier New', monospace";
@@ -91,7 +91,7 @@ export const TYPEFACES = [
     display: "'sente-welorac', 'Fraunces', serif",
     // The ornament voice carries the emphasised word in the landing hero and the
     // lesson numerals: mid-sentence, at reading size. A logo script stood here and
-    // could not do that job — at 13px it was decoration where a word should be.
+    // could not do that job: at 13px it was decoration where a word should be.
     // Fraunces' real italic is legible, and it gives Welorac's roman something to
     // contrast with, which the display face set against itself could not.
     italic: "'Fraunces', serif",

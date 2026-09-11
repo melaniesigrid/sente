@@ -19,8 +19,8 @@ export const setName = (set, t = EN) => t(`stones.${set.id}.name`, null, set.nam
 /** What the palette picker offers, in the order it offers them: follow the
  *  device first, then the named rooms, then the one this device built.
  *
- *  The System plate is drawn in whichever room it currently resolves to — that
- *  is what `drawAs` is for — so it shows the answer it is giving rather than
+ *  The System plate is drawn in whichever room it currently resolves to (that
+ *  is what `drawAs` is for) so it shows the answer it is giving rather than
  *  standing there grey among ten coloured plates. */
 export const roomsFor = (dojo, room, t = EN) => [
   { id: SYSTEM_THEME, name: t("look.room.systemName"), mood: t("look.room.systemMood"), drawAs: room },

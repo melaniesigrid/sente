@@ -9,8 +9,8 @@
    here is 12 kyu there, and the ladder does not have to be re-learned when a
    player goes looking for a human opponent.
 
-   A rank is shown to one decimal — 12.0k is a strong twelve kyu, 12.9k a weak
-   one — because a whole rank takes a long time to cross and a number that never
+   A rank is shown to one decimal (12.0k is a strong twelve kyu, 12.9k a weak
+   one), because a whole rank takes a long time to cross and a number that never
    moves reads as a number that is not listening. The whole-rank label is the
    floor of that decimal, so the two can never disagree. Progress up the scale
    is measured by Glicko-2 in `src/engine/glicko.js`. */
@@ -39,7 +39,7 @@ export const MIN_RATING = ratingOfValue(MIN_RANK_VALUE);   // 25.0k, the floor
 export const MAX_RATING = ratingOfValue(MAX_RANK_VALUE);   // 9.9d, the ceiling
 export const DAN_RATING = ratingOfValue(30);               // where kyu ends and dan begins
 
-/** A rating as a grade: `{ n, unit }`, n counted the way that grade is spoken —
+/** A rating as a grade: `{ n, unit }`, n counted the way that grade is spoken:
  *  kyu downward (25 weakest, 1 strongest), dan upward.
  *
  *  n is snapped to nine decimals first. Both labels below truncate rather than
@@ -99,7 +99,7 @@ export function rankInRange(label, [weak, strong]) {
   return i >= RANK_LADDER.indexOf(weak) && i <= RANK_LADDER.indexOf(strong);
 }
 
-/** How far a rating moved, in ranks: positive is stronger. Small by design —
+/** How far a rating moved, in ranks: positive is stronger. Small by design:
  *  a settled player crosses a tenth of a rank in a game. */
 export const rankGain = (before, after) => rankValue(after) - rankValue(before);
 
@@ -126,7 +126,7 @@ export const BELTS = [
  *  one point above it `rankOf` reads `k`. The bottom of the band, exclusive. */
 export const kyuFloor = (k) => ratingOfValue(29 - k);
 
-/** The rating where a belt's weakest rank begins — the bottom of its bar. */
+/** The rating where a belt's weakest rank begins: the bottom of its bar. */
 export const beltFloor = (belt) => (belt.id === "black" ? DAN_RATING : kyuFloor(belt.kyuMax));
 
 export function beltOf(rating) {
@@ -149,7 +149,7 @@ export function nextBelt(rating) {
 export const hintsForBelt = (belt) => belt.id === "white" || belt.id === "yellow";
 
 /** Whether a player gets the training wheels, belt and certainty together. A new
- *  account is seated at 10k — a green belt nobody has earned yet — so the wheels
+ *  account is seated at 10k, a green belt nobody has earned yet, so the wheels
  *  stay on while the rank is still a guess, and come off when the rating has
  *  settled somewhere orange or stronger. A weak belt keeps them either way. */
 export const hintsFor = (rating, rd) => isProvisional(rd) || hintsForBelt(beltOf(rating));

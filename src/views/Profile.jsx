@@ -38,8 +38,8 @@ function GameLogCard() {
       <div className="stat-head"><History size={16} /><span>The last {CAP} games</span></div>
       <p className="fine" style={{ marginTop: 6 }}>
         Kept on this device so the house players can be tuned against what happens at the
-        board rather than against their own bios. It holds the shape of a game — board size,
-        handicap, which house player, how it ended, how many moves — and no moves, no names
+        board rather than against their own bios. It holds the shape of a game (board size,
+        handicap, which house player, how it ended, how many moves) and no moves, no names
         and nothing that could replay it. It is never sent anywhere, and it forgets the
         oldest game once it is full.
       </p>
@@ -66,7 +66,7 @@ function GameLogCard() {
         <div className="row" style={{ marginTop: 12 }}>
           <Btn icon={Trash2} small
             onClick={() => { if (confirming) { clearTelemetry(); setLog([]); setConfirming(false); } else setConfirming(true); }}>
-            {confirming ? "Forget it — sure?" : "Forget these games"}
+            {confirming ? "Forget it, sure?" : "Forget these games"}
           </Btn>
           {confirming && <Btn small onClick={() => setConfirming(false)}>Keep them</Btn>}
         </div>
@@ -191,7 +191,7 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
         </Card>
         <Card>
           <div className="stat-head"><Sparkles size={16} /><span>Seal color</span></div>
-          <p className="fine" style={{ marginTop: 6 }}>Your mark on the ladder, the lobby, and — one day — across the network.</p>
+          <p className="fine" style={{ marginTop: 6 }}>Your mark on the ladder, the lobby, and, one day, across the network.</p>
           <div className="tint-row">
             {Object.entries(TINTS).map(([key, hex]) => (
               <button key={key}
@@ -209,7 +209,7 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
       <LevelsCard rank={rankOf(profile.rating)} />
 
       {/* Everything that decides how the place looks lives on its own screen
-          now — the rooms, the stones, the pairings and the dojo behind them.
+          now: the rooms, the stones, the pairings and the dojo behind them.
           What stays here is the sentence that says what you are wearing. */}
       <Card>
         <div className="stat-head"><Palette size={16} /><span>The look of the place</span></div>
@@ -312,7 +312,7 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
       <Card inset>
         <p className="fine">
           Your profile lives on this device. Accounts, friends, and match history
-          sync when online play arrives — the profile shape is already server-ready.
+          sync when online play arrives; the profile shape is already server-ready.
         </p>
       </Card>
     </div>

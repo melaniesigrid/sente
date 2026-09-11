@@ -20,8 +20,8 @@ import { saveProfile } from "../store/profile.js";
    The order is the order the eye takes. The room first, because it decides the
    ground every other choice is judged against; then the stones, which are the
    only things on the board that are not the room; then the type. Every swatch
-   is drawn in the material it offers — a palette plate wears its own tokens, a
-   stone plate wears the room you are standing in with that set on it — so the
+   is drawn in the material it offers: a palette plate wears its own tokens, a
+   stone plate wears the room you are standing in with that set on it, so the
    choosing is done by looking rather than by reading names.
 
    The words come first, above the room, because they are the one choice on
