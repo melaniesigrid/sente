@@ -78,13 +78,45 @@ ${FONT_FACES}
   gap: 14px; flex-wrap: wrap;
   padding: clamp(14px, 2.5vw, 24px) clamp(16px, 4vw, 44px);
 }
-.brand { display: flex; align-items: baseline; gap: 11px; border: 0; background: none; padding: 0; color: inherit; cursor: pointer; }
-.brand-mark {
-  width: 24px; height: 24px; border-radius: 50%;
-  background: var(--ink);
-  box-shadow: 4px 4px 9px var(--dark), -4px -4px 9px var(--light);
+/* ---- the brand lockup ---- */
+/* One font-size on the lockup drives both halves, so a lockup is scaled in
+   one place and the mark keeps its footing against the letters at any size.
+   The mark is measured in em from the cap-height rather than in pixels: the
+   played stone stands where the capital starts and the pair sits on the same
+   baseline as the word. */
+.brand {
+  display: inline-flex; align-items: baseline; gap: .22em;
+  border: 0; background: none; padding: 0; color: inherit; cursor: pointer;
+  font-size: clamp(34px, 5vw, 46px);
 }
-.brand-name { font-family: var(--font-display); font-weight: var(--w-display-strong); font-size: clamp(34px, 5vw, 46px); line-height: 1; letter-spacing: calc(.005em + var(--display-tracking)); }
+.brand-plain { gap: 0; }
+.brand-mark { height: .72em; width: auto; }
+.brand-name { font-family: var(--font-display); font-weight: var(--w-display-strong); font-size: 1em; line-height: 1; letter-spacing: calc(.005em + var(--display-tracking)); }
+/* The compact lockup: the same two pieces, tightened, for a bar that has run
+   out of room. Nothing is dropped — a mark that only appears on wide screens
+   is not a mark, it is an ornament. */
+@media (max-width: 760px) { .topbar .brand { font-size: 30px; gap: .18em; } }
+
+/* ---- the marks ---- */
+/* A mark is a shape, so it may carry the accent; that is the whole point of
+   the played stone. Every mark is a raised object and takes the house pair of
+   shadows, light from the top left and dark from the bottom right. */
+.mark { display: block; overflow: visible; }
+.lp-final-mark { height: 96px; margin: 0 auto 6px; }
+/* The raise is the stone's, not the drawing's: a line on a board is painted
+   into the wood and casts nothing, and shadowing the grid only fogs it. */
+.mark-ink, .mark-played, .mark-waiting {
+  filter: drop-shadow(1.5px 1.5px 3px var(--dark)) drop-shadow(-1.5px -1.5px 3px var(--light));
+}
+.mark-ink, .mark-star { fill: var(--ink); }
+.mark-played { fill: var(--accent); }
+/* The stone that has not been played yet is drawn, not filled: it is the
+   point the forcing move asks about. */
+.mark-waiting { fill: none; stroke: var(--ink); stroke-width: 2.4; }
+/* A shape may take an opacity where a word may not: the grid is painted
+   lighter than the board edge, which is how a board is actually made. */
+.mark-grid { stroke: var(--grid); stroke-opacity: .45; stroke-width: 1.4; }
+.mark-edge { fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linejoin: round; }
 .nav { display: flex; gap: 6px; padding: 7px; border-radius: 18px; box-shadow: var(--sink-sm); }
 .nav-btn {
   display: flex; align-items: center; gap: 7px;
@@ -121,6 +153,8 @@ ${FONT_FACES}
   align-items: center;
 }
 .foot-line { color: var(--ink-2); font-family: var(--font-caption); font-style: var(--caption-style); }
+.foot-brand { display: inline-flex; align-items: baseline; gap: 8px; }
+.foot-wordmark { font-size: 19px; color: var(--ink); cursor: default; }
 
 /* passages from the Classic: typed and not set, on the same machine in every
    pairing (TYPEWRITER in content/typeface.js), a hairline, a quiet citation.

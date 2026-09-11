@@ -3,6 +3,7 @@ import {
   Circle, Grid3x3, Handshake, ArrowRight, ArrowDown, Sparkles, Route,
 } from "lucide-react";
 import { MiniSelfPlay } from "../components/MiniSelfPlay.jsx";
+import { Mark } from "../components/Brand.jsx";
 import { TypedLine, TypedLabel } from "../components/Typed.jsx";
 import { useReveal } from "../components/reveal.js";
 import { needsOnboarding } from "../store/profile.js";
@@ -238,6 +239,11 @@ export function Landing({ profile, onEnter, go }) {
 
       {/* -------------------------------------------------- final call */}
       <section className="lp-final">
+        {/* The corner mark, at the one size it deserves. It is the richest of
+            the three and the first to fail small, so it is spent here and in
+            the boot splash rather than in the chrome: the 4x4 corner every
+            opening starts from, which is the sequence the place is named for. */}
+        <Mark variant="corner" className="lp-final-mark reveal" />
         <TypedLabel className="lp-label reveal">Open it</TypedLabel>
         <h2 className="lp-display sm reveal">The board is <em>set</em>.</h2>
         <p className="lp-lede reveal center">
