@@ -11,15 +11,13 @@
    side is to move as three separate lines; this file only picks between them. */
 import { preciseRankOf } from "../content/rank.js";
 import { rulesetOf } from "../engine/index.js";
-import { BASE_LOCALE, makeT } from "../i18n/index.js";
+import { BASE_LOCALE, makeT, lineOr } from "../i18n/index.js";
 
 const EN = makeT(BASE_LOCALE);
 
 /** Toast text for a refused move, or null when the refusal needs no words (occupied). */
 export function refusalText(reason, t = EN) {
-  const key = `game.refusal.${reason}`;
-  const line = t(key);
-  return line === key ? null : line;
+  return lineOr(t, `game.refusal.${reason}`, null);
 }
 
 /** One line for a finished record's result. */

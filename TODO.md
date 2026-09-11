@@ -1123,7 +1123,12 @@ that is honestly still English.
 - [x] Spanish: online play — the lobby and the table, including the server's refusals and
       the pure status helpers. A socket's callbacks read the reader out of a ref, so
       changing language mid-game does not drop the table and reconnect it.
-- [ ] Spanish: the account gate, the profile card and the two letters.
+- [x] Spanish: the account gate, the profile card and the two letters. Every reason the
+      server can refuse with lives in the catalogue now, so a language answers for all of
+      them, and `accountForm.test.js` checks that in each language rather than in English.
+- [ ] Spanish: the content prose — the plain-words statements, Moku, the personas, the
+      problems, the commentary, the books and tracks, then the lessons, and the Classic's
+      thirteen chapters last.
 - [ ] Spanish: the content prose. Lessons, personas, Moku, the plain-words statements, the
       books, the legal documents, and the Classic's thirteen chapters, in that order.
 - [ ] French, every slice above. Cheap after Spanish: the keys exist, so each PR is a

@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { formProblem, passwordNote, errorText, ACCOUNT_ERRORS } from "./accountForm.js";
+import { formProblem, passwordNote, errorText } from "./accountForm.js";
+import { CATALOGUES, LOCALES, makeT } from "../i18n/index.js";
+
+/* The reasons the server can give now live in the catalogue, under
+   `account.error`, so every language answers for all of them. `unknown` is the
+   fallback rather than a reason, and is checked separately. */
+const REASONS = Object.keys(CATALOGUES.en.account.error).filter(r => r !== "unknown");
 
 const good = { name: "Ada", email: "ada@example.com", password: "two eyes live", confirm: "two eyes live" };
 
@@ -50,16 +56,24 @@ describe("passwordNote", () => {
 });
 
 describe("errorText", () => {
-  it("names every reason the server can give", () => {
-    for (const reason of Object.keys(ACCOUNT_ERRORS)) expect(errorText(reason)).not.toMatch(/went wrong \(/);
+  it("names every reason the server can give, in every language", () => {
+    for (const locale of LOCALES) {
+      const t = makeT(locale.id);
+      for (const reason of REASONS) {
+        expect(errorText(reason, t), `${locale.id}: ${reason}`).not.toBe(errorText("kettle", t));
+      }
+    }
   });
   it("still says something for a reason it has never met", () => {
     expect(errorText("kettle")).toBe("Something went wrong (kettle)");
   });
   it("never tells a signing-in person which half was wrong", () => {
-    expect(ACCOUNT_ERRORS["bad-credentials"]).not.toMatch(/address is|no such|unknown/i);
+    expect(errorText("bad-credentials")).not.toMatch(/address is|no such|unknown/i);
   });
-  it("keeps the house voice: no exclamation marks", () => {
-    for (const text of Object.values(ACCOUNT_ERRORS)) expect(text).not.toContain("!");
+  it("keeps the house voice: no exclamation marks, in any language", () => {
+    for (const locale of LOCALES) {
+      const t = makeT(locale.id);
+      for (const reason of REASONS) expect(errorText(reason, t), `${locale.id}: ${reason}`).not.toContain("!");
+    }
   });
 });

@@ -8,29 +8,15 @@
    a round trip. */
 
 import { cleanEmail, passwordProblem, MIN_PASSWORD } from "../net/password.js";
+import { BASE_LOCALE, makeT, lineOr } from "../i18n/index.js";
 
-/** Every reason a call can fail, in the house voice: plain, specific, and
- *  never blaming the person for something the server did. */
-export const ACCOUNT_ERRORS = {
-  offline: "The server is out of reach right now",
-  "no-server": "This copy of Joseki is running without a server",
-  "bad-name": "A handle is two to eighteen characters",
-  "bad-email": "That does not look like an address",
-  "bad-key": "Something went wrong securing that password. Try again.",
-  "bad-credentials": "That address and password do not go together",
-  "email-taken": "There is already an account on that address. Sign in instead.",
-  "already-attached": "This handle already has an address",
-  "no-email": "Add an address before setting a password",
-  "too-many-handles": "That is a lot of handles from one place today. Try again in an hour.",
-  "too-many-attempts": "Too many sign-in attempts from here. Try again in an hour.",
-  "too-many-letters": "That is several letters already. Look in your spam folder, then try again in an hour.",
-  "bad-token": "That link does not work. Check you copied the whole of it.",
-  "token-expired": "That link has been used, or it is too old. Ask for another.",
-  "already-verified": "That address is already confirmed",
-  "mail-failed": "The letter could not be sent. That is ours to fix, not yours.",
-};
+const EN = makeT(BASE_LOCALE);
 
-export const errorText = (reason) => ACCOUNT_ERRORS[reason] ?? `Something went wrong (${reason})`;
+/** Every reason a call can fail has a line in the catalogue, under
+ *  `account.error`. A reason nobody has a line for still says the reason, which
+ *  is more use on screen than a shrug. */
+export const errorText = (reason, t = EN) =>
+  lineOr(t, `account.error.${reason}`, t("account.error.unknown", { reason }));
 
 /** The problem with a form, or null when it may be submitted. `mode` is
  *  "signup" | "signin" | "attach" | "password" | "forgot" | "reset". Order
@@ -41,19 +27,19 @@ export const errorText = (reason) => ACCOUNT_ERRORS[reason] ?? `Something went w
  *  and nothing else — its address comes back from the server with the link,
  *  because the browser needs it to derive the key and the person following a
  *  link from their own inbox should not have to type it again. */
-export function formProblem(mode, fields) {
+export function formProblem(mode, fields, t = EN) {
   const { name = "", email = "", password = "", confirm = "", oldPassword = "" } = fields;
-  if (mode === "forgot") return cleanEmail(email) ? null : "That does not look like an address";
-  if (mode === "signup" && name.trim().length < 2) return "A handle is two to eighteen characters";
-  if (mode !== "password" && !cleanEmail(email)) return "That does not look like an address";
-  if (mode === "password" && !oldPassword) return "Your current password, first";
+  if (mode === "forgot") return cleanEmail(email) ? null : t("account.form.badEmail");
+  if (mode === "signup" && name.trim().length < 2) return t("account.form.badName");
+  if (mode !== "password" && !cleanEmail(email)) return t("account.form.badEmail");
+  if (mode === "password" && !oldPassword) return t("account.form.oldFirst");
   if (mode !== "signin") {
     const problem = passwordProblem(password);
-    if (problem === "password-short") return `A password is ${MIN_PASSWORD} characters or more — a short sentence is easier to remember than a short password`;
-    if (problem) return "Choose a password";
-    if (confirm !== password) return "The two passwords are not the same";
+    if (problem === "password-short") return t("account.form.short", { min: MIN_PASSWORD });
+    if (problem) return t("account.form.choose");
+    if (confirm !== password) return t("account.form.mismatch");
   } else if (!password) {
-    return "Your password";
+    return t("account.form.needPassword");
   }
   return null;
 }
@@ -61,9 +47,9 @@ export function formProblem(mode, fields) {
 /** Rough, honest feedback on a password: how long it is against how long it
  *  wants to be. Not a strength meter with a colour and a lie about entropy —
  *  just the one thing that actually matters, said once. */
-export function passwordNote(password) {
+export function passwordNote(password, t = EN) {
   if (!password) return null;
-  if (password.length < MIN_PASSWORD) return `${MIN_PASSWORD - password.length} more to go`;
-  if (password.length < 16) return "Long enough. A few more words would be better.";
-  return "That will hold";
+  if (password.length < MIN_PASSWORD) return t("account.note.toGo", { count: MIN_PASSWORD - password.length });
+  if (password.length < 16) return t("account.note.enough");
+  return t("account.note.holds");
 }

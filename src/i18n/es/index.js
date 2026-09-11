@@ -21,6 +21,7 @@ import { front } from "./front.js";
 import { rooms } from "./rooms.js";
 import { legal, legalDoc, credit } from "./legal.js";
 import { online } from "./online.js";
+import { account } from "./account.js";
 import { content } from "./content.js";
 import { overlay } from "./overlay.js";
 
@@ -35,6 +36,7 @@ export const es = {
   ...rooms,
   legal,
   online,
+  account,
   legalDoc,
   credit,
   ...content,
