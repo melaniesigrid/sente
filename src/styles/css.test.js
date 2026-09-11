@@ -145,3 +145,129 @@ describe("the quiet inks, in every room", () => {
     }
   });
 });
+
+/* A reader who asked for less motion is the one reader the sheet can fail
+   silently. Every other rule here is checked by looking at it; a rule that
+   loses the cascade looks exactly like a rule that works, and the only place it
+   turns up is on somebody's machine with the system switch on. So the switch is
+   checked by arithmetic rather than by reading: a rule that turns an animation
+   off has to outweigh the rule it is turning off, or it changes nothing at all.
+
+   It is the trap the landing headline fell into, in the same shape:
+   `.fig.playing .fig-ring` does not beat `.fig.playing .fig-ring.out`, however
+   far down the sheet it is written. */
+describe("the motion switch", () => {
+  /* Selectors in this sheet are plain: element names, classes, descendant
+     combinators and commas. A "subject" is the last compound, the element a
+     rule draws -- and it is a compound and not a class list because some of
+     what this sheet animates is a bare element: `.fig-grid line` draws lines. */
+  const each = sel => sel.split(",").map(one => one.trim()).filter(Boolean);
+  const classes = sel => sel.match(/[.][a-z][a-z0-9-]*/g) || [];
+  const compound = (token) => [
+    ...(token.match(/^[a-z][a-z0-9-]*/) || []),
+    ...(token.match(/[.][a-z][a-z0-9-]*/g) || []),
+  ];
+  const subject = sel => compound(sel.trim().split(/\s+/).at(-1) || "");
+  /** True when `off` is aimed at whatever `on` draws: same element, and every
+   *  ancestor it names is one `on` names too. */
+  const covers = (off, on) =>
+    subject(off).length > 0
+    && subject(off).every(c => subject(on).includes(c))
+    && classes(off).every(c => classes(on).includes(c));
+
+  /** Every rule in the sheet, flat, with whether it sits inside a
+   *  prefers-reduced-motion block. The sheet nests one deep: a media query
+   *  with plain rules in it and nothing else. */
+  function ruled(source) {
+    /* Comments come out first. They are the only thing between a rule's brace
+       and the one before it, and leaving them in forced an earlier version of
+       this to keep just the last line of a selector -- which silently dropped
+       half of every selector written across two lines, and a dropped selector
+       reads exactly like a rule that is missing. */
+    const css = source.replace(/\/\*[\s\S]*?\*\//g, " ");
+
+    /* The switch's blocks, as [from, to) in the text. A rule is inside one or
+       it is not; asking a flat scan to remember where it is inside a media
+       query is how a test like this quietly stops testing anything. */
+    const blocks = [];
+    for (const m of css.matchAll(/@media[^{]*prefers-reduced-motion[^{]*\{/g)) {
+      let depth = 1, i = m.index + m[0].length;
+      while (i < css.length && depth > 0) {
+        if (css[i] === "{") depth++;
+        else if (css[i] === "}") depth--;
+        i++;
+      }
+      blocks.push([m.index, i]);
+    }
+    const out = [];
+    for (const m of css.matchAll(/([^{}]*)\{([^{}]*)\}/g)) {
+      const head = m[1].trim().replace(/\s+/g, " ");
+      if (!head || head.startsWith("@")) continue;
+      out.push({
+        selector: head, body: m[2], at: m.index,
+        reduce: blocks.some(([a, b]) => m.index > a && m.index < b),
+      });
+    }
+    return out;
+  }
+
+  it("stops every animation the switch was written to stop", () => {
+    const all = ruled(CSS);
+    const quiet = all
+      .filter(r => r.reduce && /animation:\s*none|display:\s*none/.test(r.body))
+      .flatMap(r => each(r.selector).map(selector => ({ selector, at: r.at })));
+
+    const offenders = [];
+    for (const r of all.filter(rule => !rule.reduce && /animation:\s*(?!none)[a-z]/.test(rule.body)))
+      for (const sel of each(r.selector)) {
+        const aimed = quiet.filter(q => covers(q.selector, sel));
+        // a rule the switch says nothing about is not this test's business
+        if (!aimed.length) continue;
+        /* Specificity first, and source order when specificity ties -- which
+           is the whole cascade and not half of it. An equal-weight switch rule
+           written ABOVE the rule it means to stop is a silent no-op: it loses
+           on order, it looks exactly like a rule that works, and an earlier
+           version of this test passed it. */
+        if (aimed.some(q => classes(q.selector).length > classes(sel).length)) continue;
+        if (aimed.some(q => classes(q.selector).length === classes(sel).length && q.at > r.at)) continue;
+        offenders.push(sel);
+      }
+    expect(offenders, "a switch rule that loses on weight or on order").toEqual([]);
+  });
+
+  /* The other half of the same guarantee. The test above catches a switch rule
+     that loses on specificity; this one catches the switch rule that was never
+     written. They fail on opposite mistakes and a decoration needs both: the
+     first is how the capture ring kept animating for a reader who asked for
+     none, and the second is the ordinary way the next animation will.
+
+     Scoped to the two decorations this rule is about. The rest of the sheet has
+     its own reasons for moving and is not in scope here. */
+  it("leaves no decoration animating with the switch on", () => {
+    const all = ruled(CSS);
+    const quiet = all
+      .filter(r => r.reduce && /animation:\s*none|display:\s*none/.test(r.body))
+      .flatMap(r => each(r.selector));
+
+    const unguarded = all
+      .filter(r => !r.reduce && /animation:\s*(?!none)[a-z]/.test(r.body))
+      .flatMap(r => each(r.selector))
+      .filter(sel => /\.fig|\.stone-field|\.fs-/.test(sel))
+      .filter(sel => !quiet.some(q => covers(q, sel)));
+
+    expect(unguarded, "an animation the switch never mentions").toEqual([]);
+  });
+
+  // An animation whose keyframes are not in the sheet is not an error anywhere:
+  // the browser runs nothing and the element simply sits there, which looks
+  // exactly like a stone that was never told to move. A renamed keyframe block
+  // is the ordinary way that happens.
+  it("names no animation the sheet does not define", () => {
+    const defined = new Set([...CSS.matchAll(/@keyframes\s+([a-z0-9-]+)/g)].map(m => m[1]));
+    const used = new Set([...CSS.matchAll(/animation:\s*([a-z][a-z0-9-]*)/g)]
+      .map(m => m[1]).filter(n => n !== "none" && n !== "inherit"));
+    for (const name of used) expect(defined.has(name), `@keyframes ${name}`).toBe(true);
+    expect(used.has("fs-lift"), "the field's departing stone").toBe(true);
+    expect(used.has("fig-hole"), "the figure's capture ring").toBe(true);
+  });
+});

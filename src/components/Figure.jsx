@@ -63,10 +63,13 @@ function Stone({ x, y, r, colour, laid, gone, sheen, ids }) {
           shape is four stones around an empty point, and the point is empty
           because a stone was captured there: the ring is that capture, drawn on
           the move the engine performed it and on the point it left behind. */}
+      {/* fig-mark carries the two clocks and nothing else -- it is the group
+          the rings hang off, named so that it can be read and selected rather
+          than styled. The stylesheet has no rule for it on purpose. */}
       <g className="fig-mark" style={style}>
-        <circle cx={x} cy={y} r={r} className="fig-ring" fill="none" strokeWidth={r * 0.09} />
+        <circle cx={x} cy={y} r={r} className="fig-ring" fill="none" />
         {gone !== null && (
-          <circle cx={x} cy={y} r={r} className="fig-ring out" fill="none" strokeWidth={r * 0.09} />
+          <circle cx={x} cy={y} r={r} className="fig-ring out" fill="none" />
         )}
       </g>
       <g className={`fig-stone${gone === null ? "" : " taken"}`} style={style}>

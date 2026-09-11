@@ -1542,6 +1542,31 @@ behind the hero that a visitor can see is a real game.
       in the field rather than a stone in it. The drawing of a stone is shared with the
       figures in `src/components/stoneArt.jsx`.
 
+### What the ship review changed (v0.7.1.0)
+
+- [x] A reduced-motion reader was still being shown the capture ring: the switch named
+      `.fig-ring` and the ring that draws a capture is `.fig-ring.out`, one class heavier.
+      The same cascade trap as the hero headline. Fixed, and now checked by arithmetic in
+      `src/styles/css.test.js`: a rule meant to stop an animation has to beat it on weight
+      and on source order, and a second test refuses an animation the switch never mentions.
+      Both were proved by mutation rather than trusted.
+- [x] A field mounted in an already-backgrounded tab opened its clock behind it, because
+      `visibilitychange` only fires on a transition. It asks now.
+- [x] Turning the system motion switch on mid-session stops the field. It used to keep
+      playing with the animation stripped, which is a jump cut every 2.6 seconds.
+- [x] The re-deal is chunked across frames like the first deal. Sixty-four engine moves
+      inside the beat is 40ms on this desktop and several hundred on a phone.
+- [x] The beat cannot start while the seed is still walking chunks, so two drivers never
+      share one position.
+- [x] jsdom and @testing-library added, scoped per-file so the other 86 suites stay on
+      node. `StoneField.test.jsx` and `Figure.test.jsx` cover the eleven render paths that
+      had no coverage: the scripted capture, the fresh deal, key separation, the pauses,
+      the observer-less browser, and the rings.
+
+Known and accepted: `.playing` is one-way, so a figure's gleam keeps looping after it has
+been scrolled past. Gating it on `.playing` defers that cost rather than removing it, which
+is still strictly better than the ungated version it replaced.
+
 Still open: nothing blocking. A note is a file in `journal.js` and a release writes
 itself, so the next entry is a commit either way.
 
@@ -1553,7 +1578,10 @@ all of it is either something that happens on a board or nothing.
 
 - [x] A stone lands a shade large and settles back, in the field and in the figures both.
       A straight fade up from small is a thing appearing; a thing appearing is not a move
-      being played (2026-09-11).
+      being played (2026-09-11). The one stone that does not get the settle is one captured
+      within half a second of landing, where the pluck takes the transform over early: the
+      ko's white stone is the only place it happens and it reads as a stone snatched away,
+      which is what it is.
 - [x] A captured stone is plucked: up first, the way a hand lifts a stone before it takes
       it away, then off. It used to balloon and fade, which reads as a bubble bursting,
       the one thing that never happens on a go board. Fires deterministically in the
