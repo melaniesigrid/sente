@@ -120,10 +120,28 @@ Two humans, each with their own bot partner.
   Chat stays one room-wide conversation. There is no team channel and there must not
   be: a private line to your partner is precisely what "partners may not consult"
   forbids, so the protocol has nowhere to put one.
-- **B2 · seating four.** Matchmaking for a pair table, and the invite link that seats a
-  partner. **Each human's browser runs their own bot partner** and submits its move
-  like any other: no KataGo on the server, no new infrastructure. The cost is that a
-  team's partner needs that team's device online, which the table states.
+- **B2 · seating four.** ✅ Matchmaking for a pair table. **Each human's browser runs
+  their own bot partner** and submits its move like any other: no KataGo on the server,
+  no new infrastructure. The cost is that a team's partner needs that team's device
+  online, which the lobby states before you sit down.
+
+  A bot seat carries `runBy` — the player id whose browser answers for it — and that one
+  field is the whole mechanism. On top of it sits the rule that keeps clients honest:
+
+  > A move is applied as whichever seat is **actually to play**, when the sender controls
+  > it. A client never names the chair it means, and so can never name the wrong one.
+
+  Everything that is not a move — chat, resigning, accepting the count, asking for an
+  undo — speaks from the sender's own chair, because those are theirs and not their
+  partner's. A player who controls two seats and is to play in neither falls back to
+  their own chair, so the refusal reads "not your turn" rather than "you are nobody".
+
+  A pair seek only ever meets another pair seek: sitting down expecting a partner and
+  getting an ordinary game is not a near miss, it is a different game.
+
+  The invite link that seats a *named* friend is still open. The rendezvous word already
+  matches two pair seekers; what is missing is choosing which team a friend joins, and
+  that only starts to matter in Phase C.
 - **B3 · four chairs are fragile.** Disconnection, reconnection and an abandoned seat
   in a four-seat room; spectating a pair game.
 

@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { createRoom, applyMessage, seatOf, reviveRoom, outcome, isPairRoom, leadSeat } from "./room.js";
+import {
+  createRoom, applyMessage, seatOf, reviveRoom, outcome, isPairRoom, leadSeat, controls, actingSeat,
+} from "./room.js";
 
 const A = { id: "a", name: "Ada", tint: "coral", rating: 1500, rd: 350 };
 const B = { id: "b", name: "Bea", tint: "sky", rating: 1600, rd: 100 };
@@ -326,5 +328,68 @@ describe("rooms stored before the roster", () => {
     const raw = legacy();
     raw.seats = {};
     expect(reviveRoom(raw)).toBeNull();
+  });
+});
+
+describe("a partner run by a browser", () => {
+  /* Joseki runs no KataGo on the server, so an online partner is played by the
+     device of the person it partners and submitted over their socket. `runBy`
+     is the whole mechanism. */
+  const online = () => createRoom({
+    id: "g5", size: 9, black: A, white: B,
+    blackPartner: { kind: "bot", id: "bot_t", name: "Tatsuo", rank: "7d" },
+    whitePartner: { kind: "bot", id: "bot_k", name: "Kaede", rank: "7d" },
+  });
+
+  it("hands each partner to the browser of the person it partners", () => {
+    const r = online();
+    expect(r.seats.b2).toMatchObject({ kind: "bot", name: "Tatsuo", rank: "7d", runBy: "a" });
+    expect(r.seats.w2).toMatchObject({ kind: "bot", name: "Kaede", runBy: "b" });
+  });
+
+  it("gives a player their own chair and the partner they run, and nothing else", () => {
+    const r = online();
+    expect(controls(r, "a")).toEqual(["b1", "b2"]);
+    expect(controls(r, "b")).toEqual(["w1", "w2"]);
+    expect(controls(r, "zz")).toEqual([]);
+    // A bot seat is nobody's chair: seatOf finds people, not the things they run.
+    expect(seatOf(r, "bot_t")).toBeNull();
+    expect(seatOf(r, "a")).toBe("b1");
+  });
+
+  it("applies a move as whichever chair is actually to play", () => {
+    let r = online();
+    expect(actingSeat(r, "a", "play")).toBe("b1");
+    r = applyMessage(r, actingSeat(r, "a", "play"), { t: "play", c: 2, r: 2 }).room;
+    expect(actingSeat(r, "b", "play")).toBe("w1");
+    r = applyMessage(r, actingSeat(r, "b", "play"), { t: "play", c: 6, r: 6 }).room;
+    // Black's partner is up, and it is Ada's browser that answers for it.
+    expect(actingSeat(r, "a", "play")).toBe("b2");
+    r = applyMessage(r, actingSeat(r, "a", "play"), { t: "play", c: 4, r: 4 }).room;
+    expect(r.record.moves).toHaveLength(3);
+    expect(actingSeat(r, "b", "play")).toBe("w2");
+  });
+
+  it("speaks from your own chair for everything that is not a move", () => {
+    // Your partner does not chat, does not resign you, and does not ask for undos.
+    const r = online();
+    for (const t of ["chat", "resign", "accept", "undoRequest"]) {
+      expect(actingSeat(r, "a", t)).toBe("b1");
+      expect(actingSeat(r, "b", t)).toBe("w1");
+    }
+  });
+
+  it("cannot be used to move in the other team's turn", () => {
+    const r = applyMessage(online(), "b1", { t: "play", c: 2, r: 2 }).room;
+    // Ada controls b1 and b2; neither is to play, so she falls back to her own
+    // chair and is told so, rather than being allowed to move as somebody else.
+    expect(actingSeat(r, "a", "play")).toBe("b1");
+    const out = applyMessage(r, actingSeat(r, "a", "play"), { t: "play", c: 3, r: 3 });
+    expect(frames(out, "error")[0]).toMatchObject({ reason: "wrong-turn", expected: "w1" });
+  });
+
+  it("survives a revive with the runners intact", () => {
+    const back = reviveRoom(JSON.parse(JSON.stringify(online())));
+    expect(controls(back, "a")).toEqual(["b1", "b2"]);
   });
 });
