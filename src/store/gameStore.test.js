@@ -23,7 +23,7 @@ describe("gameStore", () => {
     rec = play(rec, 4, 4); rec = play(rec, 2, 2); rec = pass(rec);
     expect(saveGame({ record: rec, mode: { kind: "bot", personaId: "hoshi" } }, s)).toBe(true);
     const back = loadGame(s);
-    expect(back.mode).toEqual({ kind: "bot", personaId: "hoshi", rank: null, key: null, coaching: false });
+    expect(back.mode).toEqual({ kind: "bot", personaId: "hoshi", rank: null, key: null, coaching: false, partnerRank: null });
     expect(back.record).toEqual(rec);
     expect(typeof back.savedAt).toBe("number");
     expect(warn).not.toHaveBeenCalled();
@@ -31,7 +31,7 @@ describe("gameStore", () => {
   it("keeps a daily duel's day key and drops a non-string one", () => {
     const s = memStorage();
     saveGame({ record: createGame({ size: 9 }), mode: { kind: "duel", personaId: "tetsu", key: "2026-09-09" } }, s);
-    expect(loadGame(s).mode).toEqual({ kind: "duel", personaId: "tetsu", rank: null, key: "2026-09-09", coaching: false });
+    expect(loadGame(s).mode).toEqual({ kind: "duel", personaId: "tetsu", rank: null, key: "2026-09-09", coaching: false, partnerRank: null });
     saveGame({ record: createGame({ size: 9 }), mode: { kind: "duel", personaId: "tetsu", key: 7 } }, s);
     expect(loadGame(s).mode.key).toBeNull();
   });
@@ -145,5 +145,16 @@ describe("saved rank", () => {
     const store = { getItem: (k) => s.get(k) ?? null, setItem: (k, v) => s.set(k, v), removeItem: (k) => s.delete(k) };
     saveGame({ record: createGame({ size: 9 }), mode: { kind: "bot", personaId: "yuki", rank: "7k" } }, store);
     expect(loadGame(store).mode.rank).toBe("7k");
+  });
+});
+
+describe("a pair table's other half", () => {
+  it("keeps the partner rank, and drops one that is not a rank label", () => {
+    const s = memStorage();
+    const mode = { kind: "pair", personaId: "tetsu", rank: "12k", partnerRank: "7d" };
+    saveGame({ record: createGame({ size: 19 }), mode }, s);
+    expect(loadGame(s).mode.partnerRank).toBe("7d");
+    saveGame({ record: createGame({ size: 19 }), mode: { ...mode, partnerRank: 7 } }, s);
+    expect(loadGame(s).mode.partnerRank).toBeNull();
   });
 });

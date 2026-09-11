@@ -1,3 +1,4 @@
+import { suggestLevel } from "../content/level.js";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   CAP, KINDS, STORE_KEY, sanitizeGame, sanitizeLog, pushGame,
@@ -178,6 +179,18 @@ describe("storage", () => {
 
 describe("the promise", () => {
   it("names every kind of game the app can record", () => {
-    expect(KINDS).toEqual(["rated", "coached", "duel", "master"]);
+    expect(KINDS).toEqual(["rated", "coached", "duel", "master", "pair"]);
+  });
+  it("keeps every kind that is not evidence about a rank out of the suggestion", () => {
+    // The guard behind the list: only a rated game moves the level the lobby
+    // suggests. A duel is seeded, a master has no rank, a coached game had help,
+    // and a pair game had a 7 dan playing half of it.
+    for (const kind of KINDS.filter(k => k !== "rated")) {
+      const log = Array.from({ length: 12 }, (_, i) => ({
+        at: "2026-09-09", size: 9, handicap: 0, bot: "tetsu", botRank: "12k",
+        kind, result: "R+", won: true, moves: 40 + i,
+      }));
+      expect(suggestLevel(log, "12k")).toBeNull();
+    }
   });
 });

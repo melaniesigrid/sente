@@ -18,6 +18,10 @@ import {
   pairRoster, seatAsk, seatWeights, seatPersona, seatRating, pairCaption, pairStatus, PARTNER_RANK,
 } from "../content/rengo.js";
 import { refusalText, resultLine, resultCard, resignLabel, loadingText, RESIGN_CONFIRM_MS } from "./gameStatus.js";
+import { saveGame, clearGame } from "../store/gameStore.js";
+import { recordGame } from "../store/telemetry.js";
+import { duelOutcome } from "../content/duel.js";
+import { dayKey } from "../content/kata.js";
 
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const MOMENT_MS = 2600;
@@ -49,7 +53,7 @@ const BOARD_PX = { 9: 460, 13: 560, 19: 680 };
    clock for two players, or two, and what byo-yomi means when your partner
    burned it) and guessing at it would be worse than leaving it off and
    saying so. */
-export function PairGame({ mode, onExit, profile, notify }) {
+export function PairGame({ mode, onExit, profile, notify, initial }) {
   const partnerRank = mode.partnerRank ?? PARTNER_RANK;
   const roster = useMemo(
     () => pairRoster({ profile, persona: mode.persona, rank: mode.rank, partnerRank }),
@@ -61,7 +65,7 @@ export function PairGame({ mode, onExit, profile, notify }) {
     // an open question, and the seat model answers it either way when it is settled.
     handicap: 0, clock: null,
   };
-  const [rec, setRec] = useState(() => createGame(table));
+  const [rec, setRec] = useState(() => initial || createGame(table));
   const [thinking, setThinking] = useState(false);
   const [confirmResign, setConfirmResign] = useState(false);
   const [moment, setMoment] = useState(null);
@@ -93,6 +97,18 @@ export function PairGame({ mode, onExit, profile, notify }) {
   const sound = !!profile.sound;
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, [chat]);
+
+  /* Persist the table on every change; an ended or empty game clears the slot.
+     Only the opponent and the two ranks are stored - the roster is rebuilt from
+     them on the way back in, so a resumed table can never seat a partner that
+     today's personas disagree with. */
+  useEffect(() => {
+    if (rec.phase === "ended" || rec.moves.length === 0) clearGame();
+    else saveGame({
+      record: rec,
+      mode: { kind: "pair", personaId: mode.persona.id, rank: mode.rank, partnerRank },
+    });
+  }, [rec, mode.persona, mode.rank, partnerRank]);
   useEffect(() => {
     alive.current = true;
     return () => {
@@ -150,6 +166,17 @@ export function PairGame({ mode, onExit, profile, notify }) {
     if (next.phase === "ended" && prev.phase !== "ended") {
       if (sound) playBell();
       const won = next.result.winner === "b";
+      /* The device's own ring buffer, under its own kind. A pair game is not
+         evidence about your rank - a 7 dan played half of it - and `suggestLevel`
+         reads only "rated", so this can never move the level the lobby suggests. */
+      const outcome = duelOutcome(next);
+      if (outcome) {
+        recordGame({
+          at: dayKey(), size: next.size, handicap: next.handicap,
+          bot: mode.persona.id, botRank: mode.rank ?? null,
+          kind: "pair", result: outcome.code, won: outcome.won, moves: outcome.moves,
+        });
+      }
       // Your partner's second and last line, and the opponents' answer to it.
       for (const id of ["b2", "w1", "w2"]) {
         const p = seatPersona(roster, id);
@@ -163,7 +190,7 @@ export function PairGame({ mode, onExit, profile, notify }) {
       });
     }
     return next;
-  }, [sound, notify, roster, say]);
+  }, [sound, notify, roster, say, mode.persona, mode.rank]);
 
   /* One house player's turn, whichever of the three it is. The seat says what
      rank to ask the network for and who it is answering; if the network cannot
@@ -212,6 +239,7 @@ export function PairGame({ mode, onExit, profile, notify }) {
     if (opened.current) return;
     opened.current = true;
     greet();
+    // A resumed table can come back mid-round with one of the three to move.
     if (rec.phase === "playing" && !canSeatPlay(roster, rec, "b1")) botTurn(rec);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -273,6 +301,25 @@ export function PairGame({ mode, onExit, profile, notify }) {
     for (let i = 0; i < undoDepth; i++) r = undo(r);
     setRec(r);
   };
+
+  /* P passes, U takes the round back. Both go through the handlers the buttons
+     use, so every guard on them holds for the keyboard too - neither fires while
+     a house player is thinking, and neither fires in somebody else's turn.
+     Typing in a box is typing, not a shortcut. */
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const tag = e.target && e.target.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || (e.target && e.target.isContentEditable)) return;
+      const key = e.key.toLowerCase();
+      if (key !== "p" && key !== "u") return;
+      e.preventDefault();
+      if (key === "p") onPass();
+      else onUndo();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  });
 
   const onAccept = () => { if (scoring) setRec(conclude(acceptScore(rec), rec)); };
   const onResumePlay = () => {

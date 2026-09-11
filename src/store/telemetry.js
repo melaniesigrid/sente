@@ -29,7 +29,11 @@ export const CAP = 50;
 
 /** How a game was played, which decides whether its result means anything about
  *  a rank: only a `rated` game does. */
-export const KINDS = ["rated", "coached", "duel", "master"];
+/* The kinds of game the ring buffer keeps apart. Only "rated" is evidence about
+   a rank: a duel is seeded, a master has no rank, a coached game had help, and a
+   pair game had a 7 dan playing half of it. `suggestLevel` reads "rated" alone,
+   so a new kind can never quietly start moving the level suggestion. */
+export const KINDS = ["rated", "coached", "duel", "master", "pair"];
 
 const isCount = (n) => Number.isInteger(n) && n >= 0;
 const isDayKey = (s) => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s);
