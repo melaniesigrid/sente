@@ -1,5 +1,6 @@
 import { Bot, Crown, Shield, Star } from "lucide-react";
-import { TINTS, rankOf, preciseRankOf, beltOf } from "../content/rank.js";
+import { TINTS, rankOf, preciseRankOf, beltOf, beltLabel } from "../content/rank.js";
+import { useT } from "./langStore.js";
 import { isProvisional } from "../engine/index.js";
 
 /* ----------------------- SHARED UI ----------------------- */
@@ -42,13 +43,15 @@ export const Avatar = ({ name, tint, size = 44, bot, src, className = "" }) => (
    rating deviation: while it is wide the rank is still a guess, and the badge
    says so with a question mark rather than pretending otherwise. */
 export const RankBadge = ({ rating, size = "md", precise = false, rd }) => {
+  const t = useT();
   const whole = rankOf(rating);
   const label = precise ? preciseRankOf(rating) : whole;
   const belt = beltOf(rating);
   const dan = whole.endsWith("d");
   const unsure = rd !== undefined && isProvisional(rd);
   const Icon = dan ? Crown : parseInt(whole) <= 10 ? Star : Shield;
-  const title = `Rating ${Math.round(rating)} · ${belt.label}${unsure ? " · still settling" : ""}`;
+  const title = t("rank.badgeTitle", { rating: Math.round(rating), belt: beltLabel(belt, t) })
+    + (unsure ? t("rank.settling") : "");
   return (
     <div className={`rank-badge ${size}`} title={title}>
       <Icon size={size === "lg" ? 18 : 14} strokeWidth={2.2} />
@@ -59,14 +62,17 @@ export const RankBadge = ({ rating, size = "md", precise = false, rd }) => {
 };
 
 /** A tied belt: the band plus a knot. `belt` is an entry from BELTS. */
-export const BeltRibbon = ({ belt, className = "" }) => (
-  <div className={`belt-ribbon ${className}`} style={{ "--belt": belt.color }} role="img" aria-label={belt.label}>
+export const BeltRibbon = ({ belt, className = "" }) => {
+  const t = useT();
+  return (
+  <div className={`belt-ribbon ${className}`} style={{ "--belt": belt.color }} role="img" aria-label={beltLabel(belt, t)}>
     <span className="belt-band" />
     <span className="belt-knot" />
     <span className="belt-tail belt-tail-l" />
     <span className="belt-tail belt-tail-r" />
   </div>
-);
+  );
+};
 
 /** A neumorphic on/off switch. */
 export const Toggle = ({ on, onChange, label }) => (

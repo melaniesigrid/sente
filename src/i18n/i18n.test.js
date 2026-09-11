@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { PALETTES, STONE_SETS } from "../theme/index.js";
 import { TYPEFACES } from "../content/typeface.js";
+import { BELTS } from "../content/rank.js";
 import {
   BASE_LOCALE, SYSTEM_LOCALE, LOCALES, CATALOGUES, isLocaleId, localeOf, resolveLocale,
   makeT, flatten, interpolate, pluralCategory,
@@ -9,7 +10,7 @@ import {
 /* The three namespaces whose English lives in the data file that owns the
    thing, not in en.js. A translation overlays them by id, so they are checked
    against the data below rather than against English. */
-const OVERLAYS = ["room.", "stones.", "type."];
+const OVERLAYS = ["room.", "stones.", "type.", "belt."];
 const isOverlay = (key) => OVERLAYS.some(p => key.startsWith(p));
 const others = LOCALES.filter(l => l.id !== BASE_LOCALE);
 const HOLE = /\{(\w+)\}/g;
@@ -152,6 +153,7 @@ describe.each(others)("$name is complete", (locale) => {
       expect(mine.get(`stones.${s.id}.note`), `${locale.id}: stones.${s.id}.note`).toBeTruthy();
     }
     for (const f of TYPEFACES) expect(mine.get(`type.${f.id}.note`), `${locale.id}: type.${f.id}`).toBeTruthy();
+    for (const b of BELTS) expect(mine.get(`belt.${b.id}.label`), `${locale.id}: belt.${b.id}`).toBeTruthy();
   });
 
   it("overlays only things that exist, and leaves their holes alone", () => {
@@ -159,6 +161,7 @@ describe.each(others)("$name is complete", (locale) => {
       room: PALETTES.map(p => p.id),
       stones: STONE_SETS.map(s => s.id),
       type: TYPEFACES.map(f => f.id),
+      belt: BELTS.map(b => b.id),
     };
     for (const key of [...mine.keys()].filter(isOverlay)) {
       const [ns, id] = key.split(".");

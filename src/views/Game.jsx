@@ -17,7 +17,7 @@ import { MokuMark } from "../components/Moku.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
 import { playStone, playCapture, playBell, haptic } from "../components/sound.js";
 import {
-  rankOf, preciseRankOf, ratingOfRank, rankWithHandicap, beltOf, hintsFor, hintsForBelt,
+  rankOf, preciseRankOf, ratingOfRank, rankWithHandicap, beltOf, beltLabel, hintsFor, hintsForBelt,
   MIN_RATING, MAX_RATING,
 } from "../content/rank.js";
 import { startDuel, duelOutcome, recordDuel, duelResultText, duelShareText, duelShareUrl } from "../content/duel.js";
@@ -673,11 +673,11 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       </div>
 
       {ceremony && (
-        <div className="ceremony" role="dialog" aria-modal="true" aria-label={t("game.ceremony.label", { belt: ceremony.label })}>
+        <div className="ceremony" role="dialog" aria-modal="true" aria-label={t("game.ceremony.label", { belt: beltLabel(ceremony, t) })}>
           <Card className="ceremony-card">
             <MokuMark state="promoted" sash={ceremony.color} size={120} />
             <p className="eyebrow"><Award size={13} /> {t("game.ceremony.head")}</p>
-            <h3 className="result-headline">{ceremony.label}</h3>
+            <h3 className="result-headline">{beltLabel(ceremony, t)}</h3>
             <BeltRibbon belt={ceremony} className="ceremony-belt" />
             <p className="lesson-text">{t("game.ceremony.now", { rank: preciseRankOf(profile.rating) })} {hintsFor(profile.rating, profile.rd) ? t(hintsForBelt(ceremony) ? "game.ceremony.hintsBelt" : "game.ceremony.hintsSettling") : t("game.ceremony.hintsOff")}</p>
             <Btn primary onClick={() => setCeremony(null)}>{t("game.ceremony.tie")}</Btn>

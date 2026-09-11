@@ -1093,7 +1093,10 @@ that is honestly still English.
       the counting card, the result card, table talk and the promotion ceremony. A result
       row now carries `color` as well as its label, so the dot is never chosen by comparing
       a word. Online play and review still read in English.
-- [ ] Spanish: learn, the library, tsumego, the ladder, the profile.
+- [x] Spanish: tsumego, the ladder and the profile — including the belts, which are
+      overlaid by id from `rank.js` the way a room's note is, since a belt's name is a
+      description and not a name.
+- [ ] Spanish: learn and the lesson library (`Learn`, `lessonStep`, `Review`).
 - [ ] Spanish: the landing page, onboarding, the small print, the letters.
 - [ ] Spanish: the content prose — Moku's lines, the personas, the welcome copy, the
       commentary. The Classic's thirteen chapters are a translation problem of their own
