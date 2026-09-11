@@ -36,6 +36,9 @@
    Nothing here touches React or timers. */
 import { tryPlay, idx, opponent, createGame, play as playRec } from "../engine/index.js";
 import { setupToBoard } from "../content/positions.js";
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
+
+const EN = makeT(BASE_LOCALE);
 
 /* reply: long enough to read the line that prompted it. wrongHold: how long the
    red cross stays on the board — the correction itself stays in the log. */
@@ -51,6 +54,12 @@ export const REVEAL_AFTER = 2;
 
 export const VERDICT_LABELS = { best: "Best", fine: "Playable", poor: "Not this" };
 
+/** The verdict chip beside a choice, in the reader's language. The keys are
+ *  the verdicts the lessons already write, so a catalogue that has not reached
+ *  this screen shows the English above rather than a blank chip. */
+export const verdictLabel = (verdict, t = EN) =>
+  t(`learn.verdict.${verdict}`, null, VERDICT_LABELS[verdict] || "");
+
 /** Step types that are read, not solved. */
 const TOLD = (type) => type === "info" || type === "maxim";
 
@@ -61,6 +70,28 @@ export const DEFAULT_WRONG = "Not there. Look again.";
    other one gets the neutral line and the player opens the hint instead, so the
    learner is never told the same sentence twice in two places. */
 export const wrongTextFor = (step) => step.wrongText || DEFAULT_WRONG;
+
+/** The lesson as the player should hand it to the reducer: the author's words
+ *  wherever they wrote any, and the house's two fallback lines in the reader's
+ *  language wherever they did not. Filling them here rather than inside the
+ *  reducer is what lets the reducer stay a pure function of its step: it never
+ *  reaches for a language, because by the time it sees a step every word it
+ *  might say is already on it. */
+export function withHouseWords(lesson, t = EN) {
+  const wrong = t("learn.wrongText", null, DEFAULT_WRONG);
+  const partial = t("learn.partial", null, DEFAULT_PARTIAL);
+  if (wrong === DEFAULT_WRONG && partial === DEFAULT_PARTIAL) return lesson;
+  return {
+    ...lesson,
+    steps: lesson.steps.map(step => ({
+      ...step,
+      wrongText: step.wrongText || wrong,
+      ...(step.stops
+        ? { stops: step.stops.map(stop => ({ ...stop, partial: stop.partial || partial })) }
+        : null),
+    })),
+  };
+}
 
 export function initStep(lesson, step) {
   const base = {

@@ -129,7 +129,7 @@ export function MokuDock() {
       <div className="moku-bubble" role="status" aria-live="polite" key={m.line}>{m.line}</div>
       <div className="moku-seat">
         <MokuMark state={m.state} size={92} />
-        <button className="moku-off" onClick={() => m.setOff(true)} aria-label="Send Moku away" title="Send Moku away">
+        <button className="moku-off" onClick={() => m.setOff(true)} aria-label={t("mascot.dismiss")} title={t("mascot.dismiss")}>
           <X size={13} strokeWidth={2.6} />
         </button>
       </div>

@@ -23,7 +23,7 @@ import { enrol, recallSummary } from "../content/recall.js";
 import { dayKey } from "../content/kata.js";
 import { rankOf } from "../content/rank.js";
 import { modelReady, kataChooseMoveForRecord, profileForRank } from "../engine/index.js";
-import { initStep, stepReducer, marksFor, boardLocked, canReveal, recordAtStop, coordLabel, VERDICT_LABELS } from "./lessonStep.js";
+import { initStep, stepReducer, marksFor, boardLocked, canReveal, recordAtStop, coordLabel, verdictLabel, withHouseWords } from "./lessonStep.js";
 import { useT } from "../components/langStore.js";
 import { localizeLesson, lessonField } from "../content/translate.js";
 import { localizeTrack, localizeTier, localizeBook, localizeSeries } from "../content/library.js";
@@ -48,13 +48,13 @@ const TONE_ICON = { success: Check, correction: X, verdict: Lightbulb, commentar
 
 /** One thing the lesson said. Four tones, one shape. Exported: the recall
  *  sitting draws the same block, because it is the same voice answering. */
-export function Response({ entry }) {
+export function Response({ entry, t }) {
   const Icon = TONE_ICON[entry.tone] || CornerDownRight;
   return (
     <div className={`response tone-${entry.tone}`}>
       <Icon size={14} strokeWidth={2.2} />
       <p className="lesson-text">
-        {entry.verdict && <span className="verdict-label">{VERDICT_LABELS[entry.verdict]}</span>}
+        {entry.verdict && <span className="verdict-label">{verdictLabel(entry.verdict, t)}</span>}
         {entry.text}
       </p>
     </div>
@@ -82,7 +82,7 @@ export function LessonPlayer({ lesson: authored, nextLesson, onDone, onExit, onO
   const exitWord = exitLabel ?? t("learn.library");
   /* The lesson in the reader's language. Memoised on the pair, so a lesson
      nobody has translated costs one identity check and no copying. */
-  const lesson = useMemo(() => localizeLesson(authored, t), [authored, t]);
+  const lesson = useMemo(() => withHouseWords(localizeLesson(authored, t), t), [authored, t]);
   const saved = SESSIONS.get(lesson.id);
   const [stepIdx, setStepIdx] = useState(saved?.stepIdx ?? 0);
   const [maxIdx, setMaxIdx] = useState(saved?.maxIdx ?? 0);
@@ -302,8 +302,8 @@ export function LessonPlayer({ lesson: authored, nextLesson, onDone, onExit, onO
             )}
 
             <div className={`log ${step.type === "info" || step.type === "maxim" ? "" : "reserve"}`} aria-live="polite">
-              {state.log.map((entry, i) => <Response key={i} entry={entry} />)}
-              {levelNotes.map(n => <Response key={`lvl${n.stopIdx}`} entry={{ tone: "commentary", text: n.text }} />)}
+              {state.log.map((entry, i) => <Response key={i} entry={entry} t={t} />)}
+              {levelNotes.map(n => <Response key={`lvl${n.stopIdx}`} entry={{ tone: "commentary", text: n.text }} t={t} />)}
               {state.status === "await" && (
                 <button type="button" className="log-next" onClick={() => dispatch({ type: "reply" })}>
                   <span>{t("learn.playReply")}</span> <ChevronRight size={14} />
