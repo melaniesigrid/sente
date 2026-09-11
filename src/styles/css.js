@@ -1349,10 +1349,31 @@ ${FONT_FACES}
 .lp-quote-section { text-align: center; display: flex; flex-direction: column; align-items: center; }
 .lp-quote { display: flex; flex-direction: column; align-items: center; gap: 18px; margin: 8px 0 clamp(34px, 5vw, 52px); }
 .lp-quote-line {
-  margin: 0; max-width: 26ch;
-  font-size: clamp(23px, 3.4vw, 40px); line-height: 1.44; letter-spacing: -.018em;
+  margin: 0; max-width: 24ch;
+  font-size: clamp(26px, 4.4vw, 54px); line-height: 1.3; letter-spacing: -.02em;
 }
 .lp-quote-src { color: var(--ink-2); margin: 0; font-family: var(--font-caption); font-style: var(--caption-style); font-size: 14px; }
+
+/* ---- a pull: one line, set to be read slowly ----
+   Not a statement and not a quotation. A statement is the house shouting in
+   capitals and a quotation is Zhang Ni; this is the house talking, in the
+   quote italic, at about half a statement's size. One word is drawn as an
+   outline rather than filled, which is the statement's third line again at a
+   scale where it can sit inside a sentence. A browser with no stroke property
+   gets the word in the incidental ink instead of a line of nothing. */
+.lp-pull {
+  margin: clamp(44px, 5.5vw, 74px) auto 0; max-width: 24ch; text-align: center;
+  font-family: var(--font-quote); font-style: var(--quote-style); font-weight: 420;
+  font-size: clamp(26px, 4.2vw, 52px); line-height: 1.28;
+  letter-spacing: -.016em; color: var(--ink); text-wrap: balance;
+}
+.lp-pull em { font-style: inherit; color: var(--ink-3); }
+@supports (-webkit-text-stroke: 1px currentColor) {
+  .lp-pull em { color: transparent; -webkit-text-stroke: 1.4px var(--ink); }
+}
+@media (max-width: 620px) {
+  .lp-pull em { -webkit-text-stroke-width: 1px; }
+}
 
 /* ---- roadmap ---- */
 .lp-roadmap { margin-top: clamp(32px, 4vw, 44px); padding: clamp(24px, 3vw, 34px); }

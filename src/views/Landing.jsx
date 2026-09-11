@@ -130,9 +130,9 @@ export function Landing({ profile, onEnter, go }) {
             Play go,<br /><em>beautifully</em>.
           </h1>
           <p className="lp-lede">
-            A go server built the way a board is built: quiet, correct, and pleasant to
-            sit at for hours. Learn the game from its first breath, sharpen your reading
-            on classical shapes, and take your rank onto the ladder.
+            Built the way a board is built: quiet, correct, and pleasant to sit at for
+            hours. Learn the game from its first breath, then take your rank onto the
+            ladder.
           </p>
           <div className="lp-stats" aria-label="What is here">
             <span className="lp-stat"><b>{LESSONS.length}</b> lessons</span>
@@ -235,6 +235,9 @@ export function Landing({ profile, onEnter, go }) {
             </article>
           ))}
         </div>
+        <p className="lp-pull reveal">
+          A game you lost and <em>understood</em> is worth more than a game you won and did not.
+        </p>
       </section>
 
       <hr className="lp-rule" />
