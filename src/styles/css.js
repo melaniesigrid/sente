@@ -41,8 +41,8 @@ ${FONT_FACES}
   --grid: var(--ink);
   --hairline: rgba(var(--sh-ink),.14);
   --belt-edge: rgba(var(--sh-ink),.42);
-  --stone-b-1: #6b655a; --stone-b-2: #4b463c; --stone-b-3: #3a362e;
-  --stone-w-1: #fdfaf4; --stone-w-2: #f2ede3; --stone-w-3: #ddd5c6;
+  --stone-b-1: #6a655d; --stone-b-2: #4b463c; --stone-b-3: #3b372f;
+  --stone-w-1: #fbfaf7; --stone-w-2: #f2ede3; --stone-w-3: #ded5c4;
   --font-display: 'Fraunces', serif;
   --font-display-italic: 'Fraunces', serif;
   --display-italic-style: italic;
@@ -841,12 +841,53 @@ ${FONT_FACES}
 .theme-mood { color: var(--ink-2); font: 700 12px var(--font-body); letter-spacing: .14em; text-transform: uppercase; }
 .theme-btn.active .theme-mood { color: var(--accent-ink); opacity: 1; }
 
+/* ---- the look of the place: rooms, stones, type ---- */
+/* The page header is the dojo's, shared rather than copied: two screens, one
+   idea of what the top of a page looks like. */
+/* You and your look, one cluster in the top bar. The button is a plate the size
+   of the profile chip, cut to the same corner, so the bar reads as two objects
+   of one family rather than a button beside a card. */
+.topbar-you { display: flex; align-items: center; gap: 10px; }
+.look-btn { width: 48px; height: 48px; border-radius: 16px; flex: none; transition: transform .15s ease, box-shadow .15s ease, color .15s ease; }
+.look-btn:hover { transform: translateY(-1px); }
+.look-btn[aria-current] { box-shadow: var(--sink-sm); color: var(--accent-ink); transform: none; }
+/* The board and the drawer, side by side: a set is chosen by watching the
+   stones on the board change, not by reading the name of a rock. */
+.look-stones { display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr); gap: clamp(16px, 2.4vw, 26px); margin-top: 16px; align-items: start; }
+@media (max-width: 820px) { .look-stones { grid-template-columns: 1fr; } }
+.look-preview { display: flex; flex-direction: column; gap: 12px; }
+.look-cut { display: flex; gap: 8px; align-items: flex-start; }
+.look-cut > svg { flex: none; margin-top: 2px; color: var(--accent-ink); }
+.look-cut.warn > svg { color: var(--danger-ink); }
+.stone-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+/* Cut exactly like a room plate, because they are two rows of the same object
+   on one page: same padding, same gap, same corner, same shadow. */
+.stone-btn {
+  border: 0; cursor: pointer; background: var(--ground); color: var(--ink);
+  display: flex; flex-direction: column; align-items: flex-start; gap: 9px;
+  padding: 12px; border-radius: 18px; box-shadow: var(--raise-sm);
+  transition: box-shadow .18s ease, transform .18s ease;
+}
+.stone-btn:hover { transform: translateY(-2px); }
+.stone-btn.active { box-shadow: var(--sink-sm), 0 0 0 2px var(--accent-ring); transform: none; }
+.stone-plate { width: 100%; height: 46px; border-radius: 12px; box-shadow: var(--sink-sm); display: flex; align-items: center; justify-content: center; gap: 10px; }
+/* The set's name is the plate's title, so it is set like one: a room's name and
+   a set's name have the same rank on this page. */
+.stone-name { font-family: var(--font-display); font-weight: var(--w-display-strong); font-size: 16px; line-height: 1.1; padding-left: 2px; text-align: left; }
+.stone-btn.active .stone-name { color: var(--accent-ink); }
+/* The profile keeps a strip of plates rather than the whole picker: enough to
+   say the rooms are there, not enough to be a second place to choose one. */
+.look-strip { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.look-chip { width: 74px; height: 34px; padding: 0 9px; gap: 6px; }
+.look-chip .theme-stone { width: 13px; height: 13px; }
+.look-chip .theme-mark { width: 9px; height: 9px; }
+
 /* ---- the dojo: build your own room ---- */
 /* The stage carries the palette being edited and the panel does not, so the
    controls stay legible while the room they describe is still half-mixed. */
-.dojo-head { display: flex; flex-direction: column; gap: 10px; }
-.dojo-title { font-family: var(--font-display); font-weight: var(--w-display-strong); font-size: clamp(30px, 4.6vw, 44px); line-height: var(--display-leading); letter-spacing: var(--display-tracking); margin: 0; }
-.dojo-sub { color: var(--ink-2); font-size: 15px; line-height: 1.6; margin: 0; max-width: 62ch; }
+.look-head, .dojo-head { display: flex; flex-direction: column; gap: 10px; }
+.look-title, .dojo-title { font-family: var(--font-display); font-weight: var(--w-display-strong); font-size: clamp(30px, 4.6vw, 44px); line-height: var(--display-leading); letter-spacing: var(--display-tracking); margin: 0; }
+.look-sub, .dojo-sub { color: var(--ink-2); font-size: 15px; line-height: 1.6; margin: 0; max-width: 62ch; }
 .dojo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 420px); gap: clamp(16px, 2.4vw, 26px); }
 @media (max-width: 900px) { .dojo { grid-template-columns: 1fr; } }
 /* The panel is much the taller of the two, so the board rides along with it
