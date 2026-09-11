@@ -188,7 +188,7 @@ async function route(req, env) {
     // Mint a link and hand it back rather than posting it, for the two times
     // an operator needs one: proving the flow against a deployment with no
     // mailbox to read (tools/server/mail.mjs), and helping somebody whose
-    // address has stopped accepting mail. Note what this grants — a reset link
+    // address has stopped accepting mail. Note what this grants: a reset link
     // is a way into that account, so ADMIN_TOKEN can sign in as anybody. It
     // could already delete them; this is the same trust, said out loud.
     if (path.startsWith("/api/admin/mail/") && req.method === "POST") {
@@ -299,7 +299,7 @@ async function limited(run, ok = 200) {
  *  instead and the call succeeds. That is deliberate: a local wrangler dev,
  *  and a deployment whose domain is not onboarded yet, can both be walked
  *  through the whole flow with wrangler tail. The link is never put in an HTTP
- *  response — a link in a response would be a way for anyone who can ask for a
+ *  response: a link in a response would be a way for anyone who can ask for a
  *  reset to read one. */
 async function post(env, minted) {
   const cfg = mailConfig(env);
@@ -307,7 +307,7 @@ async function post(env, minted) {
   const write = minted.kind === "verify" ? verifyMessage : resetMessage;
   const letter = write({ name: minted.name, link, ttlMs: minted.ttlMs });
   if (cfg.mode !== "sending") {
-    console.log("mail(" + minted.kind + ") not sent to " + minted.email + " — " + link);
+    console.log("mail(" + minted.kind + ") not sent to " + minted.email + ": " + link);
     return;
   }
   try {

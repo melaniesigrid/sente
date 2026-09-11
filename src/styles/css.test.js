@@ -46,13 +46,41 @@ describe("the stylesheet", () => {
   // The sheet's `.sente-root` block is the one place it may name a colour: it
   // is what a browser draws before the shell has spread a single custom
   // property. The stones there are the house set, and nothing but arithmetic
-  // keeps them so — which is what they are checked against.
+  // keeps them so, which is what they are checked against.
   it("ships the house set as the stylesheet's own stones", () => {
     const root = CSS.split(".sente-root {")[1].split("\n}")[0];
     const val = (name) => new RegExp(`--stone-${name}: (#[0-9a-f]{6})`).exec(root)[1];
     const set = stonesOf(HOUSE_STONES);
     expect(["b-1", "b-2", "b-3"].map(val)).toEqual(cutBlack(set.b));
     expect(["w-1", "w-2", "w-3"].map(val)).toEqual(cutWhite(set.w));
+  });
+
+  // The front door's headline is sized off the window while its column may
+  // shrink past it, so a wide display face runs "beautifully" over the board
+  // beside it. Both columns are lifted onto one layer to clear the stone field,
+  // and on one layer the board wins: it comes second and carries an opaque
+  // ground, so the word stopped at it rather than crossing it. The words are
+  // what the page is for, so the copy has to outrank it.
+  //
+  // Declaring a z-index is not enough and that is the whole point of this test:
+  // the band rule is three classes wide and comes late in the sheet, so a plain
+  // .lp-hero-copy { z-index: 2 } loses the cascade and changes nothing on screen.
+  it("keeps the landing headline above the board it can overlap", () => {
+    // Every selector in this sheet is plain: classes only, and a class inside
+    // :not() weighs what it would weigh outside it.
+    const weight = sel => (sel.match(/[.][a-z][a-z0-9-]*/g) || []).length;
+    const z = body => { const m = /z-index: (-?\d+)/.exec(body); return m ? Number(m[1]) : null; };
+
+    const all = rules(CSS);
+    const band = all.findIndex(r => r.selector.startsWith(".lp-ground >") && z(r.body) !== null);
+    const copy = all.findIndex(r => /[.]lp-hero-copy$/.test(r.selector) && z(r.body) !== null);
+    expect(band, "the band rule that lifts both columns").toBeGreaterThan(-1);
+    expect(copy, "a rule giving .lp-hero-copy its own layer").toBeGreaterThan(-1);
+
+    // above the board, and actually winning the cascade to get there
+    expect(z(all[copy].body)).toBeGreaterThan(z(all[band].body));
+    expect(weight(all[copy].selector)).toBeGreaterThanOrEqual(weight(all[band].selector));
+    expect(copy, "stated after the rule it answers").toBeGreaterThan(band);
   });
 
   it("dims no word with an opacity", () => {
@@ -63,7 +91,7 @@ describe("the stylesheet", () => {
   });
 
   // Large type is the one place the mark may colour a word, because 3:1 is
-  // where WCAG's own floor for large text sits — which is the same floor the
+  // where WCAG's own floor for large text sits, which is the same floor the
   // mark is already held to. Below that size the readable version is the only
   // one allowed, so the exemption is measured from the rule's own font-size
   // rather than granted by name.

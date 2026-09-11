@@ -15,8 +15,8 @@ export const PERSONAS = [
     tagline: "Gentle & curious", bio: "Learns alongside you. Forgets about ladders. Loves the star points, obviously. Happiest between 25k and 12k.",
     weights: { noise: 6, capture: 7, selfAtari: -6, rescue: 4 },
     chat: {
-      greet: ["Hello! I'm still learning too — let's have a good one.", "A fresh board. My favorite thing."],
-      botCapture: ["Got one! Sorry about that.", "Oh — that worked?"],
+      greet: ["Hello! I'm still learning too. Let's have a good one.", "A fresh board. My favorite thing."],
+      botCapture: ["Got one! Sorry about that.", "Oh, that worked?"],
       userCapture: ["Ouch. Nicely read.", "I saw that coming and walked in anyway."],
       reply: ["Good move, I think?", "The corners really are big, aren't they.", "I always forget about ladders.", "This is fun."],
       win: ["That was close! Rematch anytime.", "I got lucky in the corner, I think."],
@@ -28,7 +28,7 @@ export const PERSONAS = [
     tagline: "Fights everything", bio: "Believes the shortest path to strength runs straight through the middle of your position. At home from 20k to 6k.",
     weights: { capture: 16, atari: 6, noise: 3, edge: 0.7, selfAtari: -10 },
     chat: {
-      greet: ["No prisoners. Well — many prisoners, actually.", "Let's skip the quiet part."],
+      greet: ["No prisoners. Well, many prisoners, actually.", "Let's skip the quiet part."],
       botCapture: ["The hunt continues.", "Those stones were lonely anyway."],
       userCapture: ["A fair trade. Probably.", "Hm. Noted."],
       reply: ["Fighting is the fastest teacher.", "Cut first, ask questions later.", "Thick? Slow. Same thing."],
@@ -45,7 +45,7 @@ export const PERSONAS = [
       botCapture: ["Those were inside my territory anyway.", "Tidy."],
       userCapture: ["Acceptable. The border holds.", "You may keep those."],
       reply: ["Thickness now, points later.", "Every wall is a promise.", "Count. Then count again."],
-      win: ["The endgame decided it, as usual.", "Good game — your opening was solid."],
+      win: ["The endgame decided it, as usual.", "Good game. Your opening was solid."],
       loss: ["Your borders were better than mine today.", "Well counted. Truly."],
     },
   },

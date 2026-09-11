@@ -9,8 +9,8 @@
    to hand-authoring these drift; derived, a new palette is six colours and it
    is correct by construction.
 
-   An author may still override any derived value — the named palettes do,
-   where a hand-mixed tone beat the computed one — but nothing is required.
+   An author may still override any derived value (the named palettes do,
+   where a hand-mixed tone beat the computed one) but nothing is required.
 
    Which stones a room is played with is data of its own (stones.js). What
    happens to a stone once a room has one is here, because it depends on the
@@ -24,7 +24,7 @@ import { stonesOf, cutBlack, cutWhite, HOUSE_STONES } from "./stones.js";
  *
  *  On paper the highlight is most of the way to white and the shadow a fifth of
  *  the way to black: a sheet lit from the top left. On a dark ground both moves
- *  shrink — there is less room below the ground than above it — and the
+ *  shrink (there is less room below the ground than above it) and the
  *  highlight goes toward the ink rather than toward white, because a white edge
  *  on a dark panel reads as a hairline and not as a lit face. */
 export function deriveLights(ground, ink) {
@@ -62,7 +62,7 @@ export function quieten(tone, ground, floor) {
  *  cannot push a passing value back under it. */
 export const deriveInk2 = (ink, ground) => quieten(ink, ground, READING + 0.1);
 
-/** Incidental text — the oversized lesson numeral, the rank beside a level, a
+/** Incidental text: the oversized lesson numeral, the rank beside a level, a
  *  step number set at display size. Held to the large-text floor and spent on
  *  nothing small. */
 export const deriveInk3 = (ink, ground) => quieten(ink, ground, LARGE + 0.1);
@@ -75,14 +75,14 @@ export function deriveDanger(ground) {
 
 /** The mark, taken to reading contrast.
  *
- *  The accent is held to 2.9:1 because it is a mark — a dot, a ring, a chip —
+ *  The accent is held to 2.9:1 because it is a mark (a dot, a ring, a chip)
  *  and a mark is glanced at. A marked WORD is not: it sits inside a sentence and
  *  is read at reading size, so it owes the same 4.5:1 the sentence around it
  *  owes. Colouring one in the raw accent is how a quote ends up with its most
  *  important word as its least legible one.
  *
  *  So: walk the accent away from the ground a step at a time until it clears,
- *  and stop at the first step that does. Only lightness is spent, never hue —
+ *  and stop at the first step that does. Only lightness is spent, never hue:
  *  the word has to still read as this room's mark, or it is just a second ink.
  *  A room whose accent already clears gets it back untouched. */
 export function deriveAccentInk(accent, ground) {
@@ -154,8 +154,8 @@ export function tokensFor(tones) {
     // The one accent token that is a colour rather than a wash, because it is
     // the only one that lands on a word somebody has to read.
     "--accent-ink": t.accentInk || deriveAccentInk(t.accent, t.ground),
-    // The warning has the same two lives the accent does — a pill and a chip at
-    // 2.9:1, and the word "Resigned" at reading size — so it is walked up the
+    // The warning has the same two lives the accent does (a pill and a chip at
+    // 2.9:1, and the word "Resigned" at reading size) so it is walked up the
     // same way. Same errand, same function.
     "--danger-ink": t.dangerInk || deriveAccentInk(t.danger, t.ground),
 

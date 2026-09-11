@@ -18,7 +18,7 @@ import { pt } from "../../positions.js";
 
    White's wall in the diagram is a single chain with four liberties, all of
    them inside the eye space, so there is no outside-liberty caveat: the shape
-   is dead as it stands. That is the whole point of putting it at 2 dan — a
+   is dead as it stands. That is the whole point of putting it at 2 dan: a
    player who trusts the proverb here loses the corner and never finds out why. */
 
 const wall = [pt(3, 0), pt(3, 1), pt(0, 2), pt(1, 2), pt(2, 2), pt(3, 2)];

@@ -13,7 +13,7 @@ export default {
       type: "info",
       setup: { b: [], w: [] },
       marks: [pt(2, 2), pt(6, 2), pt(2, 6), pt(6, 6), pt(4, 4)],
-      text: "Territory is cheapest where walls already exist. Corners need two directions of defense, sides three, the centre four — so openings begin near corners. On 9×9 the star points are 3-3 points, and the centre point, tengen, is close enough to every corner to matter.",
+      text: "Territory is cheapest where walls already exist. Corners need two directions of defense, sides three, the centre four, so openings begin near corners. On 9×9 the star points are 3-3 points, and the centre point, tengen, is close enough to every corner to matter.",
     },
     {
       type: "choice",
@@ -58,7 +58,7 @@ export default {
       toPlay: "b",
       answers: [pt(2, 2), pt(6, 2), pt(2, 6), pt(6, 6), pt(4, 4)],
       text: "Empty board, Black to play. Take a big point.",
-      success: "Good. Efficiency first: claim the cheap territory before contact fighting starts. The full corner-pattern module — canonical 4-4 and 3-4 sequences with deviations and punishments, engine-verified — is next on the curriculum roadmap.",
+      success: "Good. Efficiency first: claim the cheap territory before contact fighting starts. The full corner-pattern module (canonical 4-4 and 3-4 sequences with deviations and punishments, engine-verified) is next on the curriculum roadmap.",
       hint: "Corners are worth more than the middle of a side.",
       wrongText: "Not a big point. Corners and the centre come first on an empty board.",
     },

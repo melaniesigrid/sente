@@ -18,7 +18,7 @@ export const PROBLEMS = [
     title: "Two for one",
     setup: { b: [pt(1, 2), pt(1, 3), pt(2, 1), pt(3, 2), pt(3, 3)], w: [pt(2, 2), pt(2, 3)] },
     toPlay: "b", answers: [pt(2, 4)],
-    prompt: "Black to play. The white chain shares its liberties — take them both.",
+    prompt: "Black to play. The white chain shares its liberties. Take them both.",
     explain: "Connected stones are counted as one chain. Their single shared liberty was underneath.",
   },
   {
@@ -37,12 +37,12 @@ export const PROBLEMS = [
       b: [pt(2, 0), pt(2, 1), pt(2, 2), pt(0, 3), pt(1, 3)],
     },
     toPlay: "b", answers: [pt(1, 1)],
-    prompt: "Black to play. The only move looks illegal — is it?",
+    prompt: "Black to play. The only move looks illegal. Is it?",
     explain: "Captures resolve before your own liberties are counted. Playing White's last liberty removes five stones, so your stone lands in open space.",
   },
   {
     id: "p5", rank: "15k", theme: "Life & Death",
-    title: "Straight three — kill",
+    title: "Straight three: kill",
     setup: {
       w: [pt(0, 1), pt(1, 1), pt(2, 1), pt(3, 0), pt(3, 1)],
       b: [pt(0, 2), pt(1, 2), pt(2, 2), pt(3, 2), pt(4, 0), pt(4, 1)],
@@ -53,14 +53,14 @@ export const PROBLEMS = [
   },
   {
     id: "p6", rank: "15k", theme: "Life & Death",
-    title: "Straight three — live",
+    title: "Straight three: live",
     setup: {
       b: [pt(0, 1), pt(1, 1), pt(2, 1), pt(3, 0), pt(3, 1)],
       w: [pt(0, 2), pt(1, 2), pt(2, 2), pt(3, 2), pt(4, 0), pt(4, 1)],
     },
     toPlay: "b", answers: [pt(1, 0)],
     prompt: "Now it's your group. Black to play and live.",
-    explain: "Same vital point, opposite urgency: the center move splits the space into two real eyes. Whoever reaches the vital point first decides the group's fate — sente in miniature.",
+    explain: "Same vital point, opposite urgency: the center move splits the space into two real eyes. Whoever reaches the vital point first decides the group's fate: sente in miniature.",
   },
   /* ----------------------- THE CLASSICAL SHAPES -----------------------
      From here the problems are the eye shapes every collection opens with, and
@@ -87,7 +87,7 @@ export const PROBLEMS = [
     },
     toPlay: "b", answers: [pt(1, 1)],
     prompt: "The five points make a cross. Black to play and kill.",
-    explain: "The middle of the cross, and it is the only move: it is the point every arm of the shape runs through. The same point is the only move that saves the group when White gets there first, which is what a vital point means — one square that both players want for opposite reasons.",
+    explain: "The middle of the cross, and it is the only move: it is the point every arm of the shape runs through. The same point is the only move that saves the group when White gets there first, which is what a vital point means: one square that both players want for opposite reasons.",
   },
   {
     id: "p9", rank: "3k", theme: "Life & Death",

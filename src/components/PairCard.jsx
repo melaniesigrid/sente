@@ -34,7 +34,7 @@ export function PairCard({ profile, rank, onPlay }) {
         You and a {partnerRank} house player against {persona.name} and one of their own.
         The four of you take turns in one rotation and nobody plays twice running, so
         every move you make is answered by an opponent and then built on by a player
-        far stronger than you — in your game, on your mistake. Your partner is silent:
+        far stronger than you, in your game, on your mistake. Your partner is silent:
         what it has to teach, it teaches by playing it.
       </p>
       <div className="pair-faces">

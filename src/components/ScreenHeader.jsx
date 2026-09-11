@@ -5,7 +5,7 @@ import { TypedLabel } from "./Typed.jsx";
    a small letterspaced label typed out in the accent, a heading at display
    size under it, and a line of prose to say what the screen is for.
 
-   Before this, each screen opened on a bare `<h2>Learn</h2>` — correct, and
+   Before this, each screen opened on a bare `<h2>Learn</h2>`, correct, and
    completely silent about where you had arrived. One word at heading size does
    not tell a reader anything the nav had not already told them; the label and
    the lede are what turn a tab into a place.

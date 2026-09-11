@@ -7,8 +7,8 @@ import {
    The texture behind the front door's first and last bands: a go position,
    blurred to where it is read as pattern first and a game second.
 
-   It is the real engine playing itself, for the same reason the hero board is
-   — this page is not allowed to show anything it cannot show for real, and a
+   It is the real engine playing itself, for the same reason the hero board is:
+   this page is not allowed to show anything it cannot show for real, and a
    drawing of a board would have been the one decorative lie on it. Blurred at
    this radius it is also, straightforwardly, the field of soft dots the brief
    asked for. Both descriptions are of the same picture.
@@ -25,7 +25,7 @@ import {
      playing instead of showing an empty band forever.
    - A reader who asked for less motion gets the position and not the game: one
      settled board, held.
-   - It is decoration and is addressed as such — aria-hidden, no pointer events,
+   - It is decoration and is addressed as such: aria-hidden, no pointer events,
      and nothing in it is announced. */
 
 const CELL = 44, MARGIN = 26;
@@ -65,7 +65,7 @@ export function StoneField({ live = true }) {
     const onVisibility = () => { awake = !document.hidden; if (awake) start(); else stop(); };
     document.addEventListener("visibilitychange", onVisibility);
 
-    /* Pause when the band is off screen. This only ever stops the interval —
+    /* Pause when the band is off screen. This only ever stops the interval;
        a browser with no IntersectionObserver simply keeps playing, which costs
        a couple of milliseconds a move and is the right way to fail. */
     let io = null;

@@ -12,7 +12,7 @@ import { typedParts } from "./typedParts.js";
 
    A few words carry the mark (`emphasize`, same file, which ranks the words of
    strength above the words of the board). They are <strong>, because that is
-   what they are — the emphasis is in the markup, not only in the colour, so it
+   what they are: the emphasis is in the markup, not only in the colour, so it
    survives a screen reader and a stylesheet that never loads.
 
    The hero types itself out; the page and the card sizes arrive already set.
@@ -33,8 +33,8 @@ const REDUCED = () =>
 /* The front door types too (components/Typed.jsx), and it types at a fixed
    speed, which is right for a section label and a single line. A passage runs
    from 125 to 356 characters, where a fixed speed puts four seconds between the
-   shortest and the longest. So the duration is what is held constant here —
-   every passage lands in about the same beat — and the speed falls out of the
+   shortest and the longest. So the duration is what is held constant here (
+   every passage lands in about the same beat) and the speed falls out of the
    length, inside bounds a typist could hold. The two share the pure part
    (typedParts) and the caret; only the clock differs, and it differs on
    purpose. */

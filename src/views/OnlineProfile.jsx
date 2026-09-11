@@ -9,7 +9,7 @@ import { errorText } from "./accountForm.js";
 
 /* ----------------------- THE PLAYER'S OWN CARD -----------------------
    What other people see when they meet you at a table: a picture, a paragraph,
-   and three short facts. It is small on purpose — the few things one player
+   and three short facts. It is small on purpose: the few things one player
    wants to know about another before sitting down, not a page about a person.
 
    This is the account's profile, which is a different thing from the local

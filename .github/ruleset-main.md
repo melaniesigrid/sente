@@ -27,7 +27,7 @@ Force-pushing and deleting `main` are both refused.
 merging" rule, and it is the one that sounds like the answer and is not: `main` moves several
 times an hour here, so turning it on would mean every open branch chasing a base that has
 already moved again by the time it catches up. The merge queue is the version of that
-guarantee that does not cost the chase — it tests the merge result just before it lands — and
+guarantee that does not cost the chase (it tests the merge result just before it lands), and
 it belongs here once it can be enabled. It is not in the JSON because the API refuses the rule:
 
     422 Validation Failed — Invalid rule 'merge_queue':
@@ -44,7 +44,7 @@ It would have caught the first: a prose change landed on `main` without the lega
 a red commit from landing at all.
 
 It would not have caught the second. Four PRs were stacked, each based on the one below, and
-they merged into their own bases after the bottom of the stack had already reached `main` —
+they merged into their own bases after the bottom of the stack had already reached `main`,
 so all four were marked merged and none of their content was on `main`. Every one of them was
 green and genuinely mergeable into the base it named. The mistake was which base it named, and
 no status check can see that. Land a stack bottom-up in one sitting, or retarget the rest of it

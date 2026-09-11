@@ -17,8 +17,8 @@ import {
    controls on the same page, in the palette being edited, and prints the rules
    as numbers while they are being broken.
 
-   Nothing here is typed. A colour is chosen from the drawer (theme/swatches.js)
-   — every value the named rooms use for that role — and the stones from the
+   Nothing here is typed. A colour is chosen from the drawer (theme/swatches.js),
+   which holds every value the named rooms use for that role, and the stones from the
    eight sets in stones.js, because an eyedropper and a hex field asked a player
    to redo work the design system had already done and measured. What is left is
    the interesting half: whether House's ground can carry Cinnabar's mark, and
@@ -26,7 +26,7 @@ import {
    stock colour is only proven against the room it was mixed for.
 
    No rule lives here. The contract is src/theme/tokens.js, the measurements are
-   auditPalette, and the derivation of the two lights is deriveLights — this
+   auditPalette, and the derivation of the two lights is deriveLights, and this
    view only calls them. That is why the warnings a designer reads here are the
    same ones the build enforces. */
 
@@ -101,7 +101,7 @@ export function DojoView({ profile, setProfile, notify, go, room }) {
 
   /* A palette built here is meant to graduate: if it is good enough to keep, it
      should become an entry in palettes.js like the named rooms. Only the four
-     authored tones, the warning and the stones are printed — the rest derives
+     authored tones, the warning and the stones are printed; the rest derives
      there too. */
   const copyAsCode = () => {
     const t = completeTones(palette);
@@ -134,7 +134,7 @@ export function DojoView({ profile, setProfile, notify, go, room }) {
         <p className="dojo-sub">
           Six colours make a room, and every colour offered here is one Joseki already plays
           in somewhere: take this room's ground, that room's mark, and the stones from a
-          third. The board moves with them as you go — stones, grid, shadows and all.
+          third. The board moves with them as you go: stones, grid, shadows and all.
           Nothing is saved until you say so, and the numbers below are the same ones the
           build checks.
         </p>

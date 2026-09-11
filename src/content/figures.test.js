@@ -4,7 +4,7 @@ import { chainAt, idx, createBoard, withStone } from "../engine/board.js";
 import { tryPlay } from "../engine/rules.js";
 
 /* Every figure is decoration, and every note under one is a claim. A claim on
-   this site is checked, including the ones nobody will read — a shape set at
+   this site is checked, including the ones nobody will read: a shape set at
    the size of a section is the most visible go on the front door, and it is
    the one place a wrong diagram would be hardest to notice and worst to ship.
    So the engine is asked, here, whether each figure is what it says it is. */

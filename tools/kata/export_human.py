@@ -7,7 +7,7 @@ Usage (from the repo root, with a venv that has torch, onnx, onnxruntime, numpy)
 
 Writes:
     <out>.fp32.onnx   full precision (reference)
-    <out>.fp16w.onnx  fp16 weights, fp32 compute — half the download, runs on the
+    <out>.fp16w.onnx  fp16 weights, fp32 compute: half the download, runs on the
                       WebAssembly backend, which has no fp16 kernels
 
 Inputs:  bin [B,22,H,W] float, global [B,19] float, meta [B,192] float

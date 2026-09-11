@@ -18,8 +18,8 @@ They are left as they were written rather than rewritten after the fact.
 - **Stones are themed, and you choose them.** A go set is two objects, and Joseki had
   exactly one pair of them: Nachi slate and Hyuga clam, the same two colours in every
   room. The board was themed and the pieces on it were not. Eight sets now sit in the
-  drawer — slate & shell, ink & ivory, jade, lapis, plum, cinnabar, walnut & honey, moss
-  & rice — and the one you pick follows you from room to room.
+  drawer (slate & shell, ink & ivory, jade, lapis, plum, cinnabar, walnut & honey, moss
+  & rice) and the one you pick follows you from room to room.
 - **Every named room names the set it was designed around.** Sumi is played with jade,
   yohen with lapis, lacquer with honey, kaya with the tournament set, cinnabar with its
   own. The room decides unless you say otherwise, so changing rooms changes the stones
@@ -27,8 +27,8 @@ They are left as they were written rather than rewritten after the fact.
 
 ### Changed
 
-- A set is authored as two colours — the core of the black stone and the core of the
-  white one — and everything else is arithmetic: the lit crown, the rim where the surface
+- A set is authored as two colours (the core of the black stone and the core of the
+  white one) and everything else is arithmetic: the lit crown, the rim where the surface
   curves away, and the seating a dark board needs so a black stone stays black instead of
   reading as grey slate lying on the wood. Adding a set is two colours and nothing else.
 - The contrast rule that used to measure shell against a fixed slate now measures the two
@@ -51,7 +51,7 @@ They are left as they were written rather than rewritten after the fact.
 
 - Moku wears Laska's face. The mascot's face was drawn here from scratch; Laska's
   dot-mascot (`playlaska.com`, `web/src/mascots.tsx`) had already answered the same
-  question better, so the geometry is hers now — big round eyes set wide and high, a
+  question better, so the geometry is hers now: big round eyes set wide and high, a
   glint up and outward, a soft shine across the top, and a smile that opens when there
   is something to cheer. Every offset in `src/components/Moku.jsx` is Laska's own number
   times `BODY.r / 34`, her body radius, so the proportions are hers and only the scale
@@ -62,7 +62,7 @@ They are left as they were written rather than rewritten after the fact.
   glint and the curves are untouched: it is her face in negative, not a redrawn one.
 - The brows stay ours, since Laska has no angry face, but their offsets are now multiples
   of the eye they sit over rather than the absolute numbers drawn against the older,
-  smaller, lower eyes — against her wider eye those crowded it to within a pixel at dock
+  smaller, lower eyes; against her wider eye those crowded it to within a pixel at dock
   size. Both mouths are drawn and the stylesheet picks one off `data-state`, so Moku's
   motion all still lives in one place, and the down states turn the same smile over
   instead of introducing a third curve.
@@ -100,14 +100,14 @@ They are left as they were written rather than rewritten after the fact.
 
 ### Added
 
-- The small print, and a footer that admits to it. Three documents — terms of use,
-  privacy, and credits and copyright — on one screen at `src/views/Legal.jsx`, reachable
+- The small print, and a footer that admits to it. Three documents (terms of use,
+  privacy, and credits and copyright) on one screen at `src/views/Legal.jsx`, reachable
   from the foot of every page including the front door. They are set in the same face,
   the same room and the same two shadows as everything else: small print is usually small
   as a way of asking not to be read, and there is nothing in these worth hiding.
 - `src/content/legal.js`, the documents as data rather than as markup, written under one
   rule: nothing in them describes behaviour the code does not have. Where a promise would
-  be pleasant and untrue — a backup, an uptime, an export button — the document says the
+  be pleasant and untrue (a backup, an uptime, an export button), the document says the
   true thing instead. The privacy notice names what the server keeps field by field, that
   the password never leaves the browser, that the address you registered from is kept and
   deleted with the account, and the one thing leaving does not reach: a finished game
@@ -115,11 +115,11 @@ They are left as they were written rather than rewritten after the fact.
 - `src/content/legal.test.js`, which holds the prose to the code the way the lesson
   verifier holds a lesson to the engine. The chat line count comes from `CHAT_KEEP`, the
   picture size from `AVATAR_MAX_BYTES`, the paragraph from `BIO_MAX`, and every runtime
-  dependency in `package.json` must have a line on the credits page — a package added
+  dependency in `package.json` must have a line on the credits page: a package added
   without an attribution fails the suite rather than going missing quietly. The house
   voice is enforced here too: no exclamation marks in a legal document either.
 - `LICENSE`: all rights reserved, with two carve-outs stated rather than implied. Go
-  itself belongs to nobody — the rules, the proverbs, the classical problems and the old
+  itself belongs to nobody: the rules, the proverbs, the classical problems and the old
   masters' records are nobody's property, and only Joseki's words about them are the
   Studio's. Other people's software and type are governed by their own terms.
 - A copyright line in the footer, from the same constant the credits page and the LICENSE
@@ -236,7 +236,7 @@ They are left as they were written rather than rewritten after the fact.
 
 ### Added
 
-- The lobby sets the table. Pick the board — 9x9, 13x13 or 19x19 — and a handicap of two to
+- The lobby sets the table. Pick the board (9x9, 13x13 or 19x19) and a handicap of two to
   nine stones before you sit down. 19x19 is the default, the board most of the world plays
   on, and the choice is remembered on your device between games.
 - Komi is shown, never typed: it follows the handicap the way the rules do, 7.5 for an even

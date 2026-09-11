@@ -19,7 +19,7 @@ import {
 
    The board is dead here: review reads, it does not play. Branching off into a
    variation needs the record to hold more than one line, which it does not yet, so
-   the variation tree is deliberately not faked — see TODO.md.
+   the variation tree is deliberately not faked; see TODO.md.
 
    Keyboard, because scrubbing with a mouse is miserable: left and right walk a move,
    up and down jump ten, Home and End go to the ends, and N toggles the numbers. The
@@ -142,7 +142,7 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
             {onRematch && <Btn icon={Swords} small onClick={onRematch}>Play again</Btn>}
           </div>
           <p className="fine">
-            {branchable ? "Play on the board to try a line — it is never saved into the game. " : ""}
+            {branchable ? "Play on the board to try a line; it is never saved into the game. " : ""}
             Arrows walk a move, up and down jump ten, Home and End go to the ends, N toggles
             numbers. {caps.length === 0 ? "Nothing was captured in this game." : `${caps.length} capture${caps.length === 1 ? "" : "s"} in this game.`}
           </p>

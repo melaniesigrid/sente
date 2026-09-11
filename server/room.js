@@ -7,7 +7,7 @@
 
    A room seats a roster, not two colours. Two seats is an ordinary game; four
    is pair go, where the teams alternate b1 w1 b2 w2 and nobody plays twice
-   running. Both are the same code path — the server asks the engine's
+   running. Both are the same code path. The server asks the engine's
    `canSeatPlay` whose turn it is, which is the same call the client greys the
    board with, so the two can never disagree about it.
 
@@ -48,7 +48,7 @@ export const CHAT_KEEP = 200;
 
 /** Build a room. `black` and `white` are `{ id, name, tint, rating, rd }`; pass
  *  `blackPartner` and `whitePartner` as well for a pair table, and both must be
- *  given or neither — a team of two against a team of one is not a game.
+ *  given or neither. A team of two against a team of one is not a game.
  *
  *  A pair room is never rated, whoever asks. A win in which a partner played
  *  half the moves is evidence about the pair and not about either player, and
@@ -120,7 +120,7 @@ export function roomPlayers(seats) {
 }
 
 /** Which seat `playerId` holds, or null. A player holds at most one seat: the
- *  same person cannot sit twice at one table, and in pair go they must not —
+ *  same person cannot sit twice at one table, and in pair go they must not:
  *  partners may not consult, and there is nothing to stop a player who holds
  *  both chairs of a team from consulting themselves. */
 export function seatOf(room, playerId) {

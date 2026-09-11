@@ -1,7 +1,7 @@
 /* ----------------------- THE TOKEN CONTRACT -----------------------
    One place says what a theme is. The stylesheet reads these names, the shell
    writes them, the dojo edits them, and the tests check them against this list
-   rather than against a copy of it — so a token cannot be added in one place
+   rather than against a copy of it, so a token cannot be added in one place
    and forgotten in another.
 
    A palette is authored as TONES: seven colours, of which four are always
@@ -20,7 +20,7 @@ export const TONES = [
   },
   {
     key: "accent", label: "Mark", css: null, required: true,
-    role: "The one colour that means here. A mark, never body text — so it is held to 3:1, not 4.5:1.",
+    role: "The one colour that means here. A mark, never body text, so it is held to 3:1, not 4.5:1.",
   },
   {
     key: "cream", label: "Shell", css: "--cream", required: true,
@@ -66,7 +66,7 @@ export const TOKEN_NAMES = [
  *  reason `--accent-ink` exists: a marked word is text, whatever else it is. */
 export const READING = 4.5;
 
-/** The floor for text set large — 24px and up, or 19px bold. WCAG AA grants it
+/** The floor for text set large: 24px and up, or 19px bold. WCAG AA grants it
  *  3:1, which is the same floor a mark is held to, and it is the whole licence
  *  `--ink-3` runs on. Nothing small is allowed to spend it. */
 export const LARGE = 3;
@@ -82,7 +82,7 @@ export const RULES = [
 
 /** The two stones against each other. Not a tone-against-tone rule, because a
  *  stone is not a tone: the set is data of its own (stones.js), and the black
- *  half of it is seated toward the board it is played on — on a dark board the ink is
+ *  half of it is seated toward the board it is played on; on a dark board the ink is
  *  the light text and the stone is seated toward the wood. What must never
  *  collapse is the difference between the two stones. (A white stone barely
  *  differs from paper and never has: what separates it there is its rim and its

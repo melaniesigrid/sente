@@ -32,7 +32,7 @@ export function plainFor(key) {
    Three lines, and the order is the design: the first is the display face in
    capitals, the second turns into the italic voice, the third is drawn as an
    outline. A view passes the three to `Statement` and the stylesheet decides
-   how each is worn — so a line can be re-worded here without touching CSS. */
+   how each is worn, so a line can be re-worded here without touching CSS. */
 
 export const STATEMENTS = {
   home: ["Take", "the ground.", "Stone by stone."],
