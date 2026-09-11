@@ -11,11 +11,13 @@ import { PROBLEMS } from "../content/problems.js";
 import { setupToBoard } from "../content/positions.js";
 import { dayKey, dailyProblem, attend, liveStreak } from "../content/kata.js";
 import { saveProfile } from "../store/profile.js";
+import { useT } from "../components/langStore.js";
 
 /* ----------------------- TSUMEGO -----------------------
    `initialId` opens a specific problem (the Home card's kata of the day).
    Solving today's kata records attendance; the streak lives in the profile. */
 export function ProblemsView({ profile, setProfile, initialId }) {
+  const t = useT();
   const today = dayKey();
   const kata = dailyProblem(PROBLEMS, today);
   const startId = initialId && PROBLEMS.some(p => p.id === initialId) ? initialId : PROBLEMS[0].id;
@@ -58,11 +60,9 @@ export function ProblemsView({ profile, setProfile, initialId }) {
   return (
     <div className="stack arrives">
       <ScreenHeader
-        label="Life and death"
-        title={<>Read it <em>out</em>.</>}
-        lede="Classical shapes — the public-domain vocabulary every serious life-and-death
-              collection is built on. One of them is today's kata; solve it daily and your
-              attendance grows." />
+        label={t("tsumego.label")}
+        title={<>{t("tsumego.titleBefore")}<em>{t("tsumego.titleEm")}</em>{t("tsumego.titleAfter")}</>}
+        lede={t("tsumego.lede")} />
       <Statement lines={statementFor("tsumego")}>{plainFor("tsumego")}</Statement>
       <Passage context="tsumego" />
       <div className="prob-tabs" role="tablist">
@@ -71,7 +71,7 @@ export function ProblemsView({ profile, setProfile, initialId }) {
           return (
             <button key={p.id} role="tab" aria-selected={p.id === activeId}
               className={`prob-tab ${p.id === activeId ? "active" : ""} ${done ? "done" : ""} ${kata && p.id === kata.id ? "kata" : ""}`}
-              onClick={() => load(p.id)} title={kata && p.id === kata.id ? "Kata of the day" : undefined}>
+              onClick={() => load(p.id)} title={kata && p.id === kata.id ? t("tsumego.kataTitle") : undefined}>
               {done ? <Check size={13} /> : <span className="prob-n">{i + 1}</span>}
             </button>
           );
@@ -84,7 +84,7 @@ export function ProblemsView({ profile, setProfile, initialId }) {
             <div className="prob-head">
               <span className="rank-chip">{prob.rank}</span>
               <span className="theme-chip">{prob.theme}</span>
-              {isKata && <span className="theme-chip kata-chip"><CalendarCheck size={11} /> kata of the day</span>}
+              {isKata && <span className="theme-chip kata-chip"><CalendarCheck size={11} /> {t("tsumego.kataChip")}</span>}
             </div>
             <h3 className="prob-title">{prob.title}</h3>
             <p className="lesson-text">{prob.prompt}</p>
@@ -92,16 +92,16 @@ export function ProblemsView({ profile, setProfile, initialId }) {
               <p className="lesson-text success-row"><Check size={16} /> {prob.explain}</p>
             )}
             {state.status === "solved" && isKata && profile.kataDate === today && (
-              <p className="fine hint-row"><Flame size={14} /> Attendance: {streak} {streak === 1 ? "day" : "days"} in a row.</p>
+              <p className="fine hint-row"><Flame size={14} /> {t("tsumego.attendance", { count: streak })}</p>
             )}
             {state.status === "wrong" && (
-              <p className="fine wrong-row"><X size={14} /> The group answers back — resetting.</p>
+              <p className="fine wrong-row"><X size={14} /> {t("tsumego.wrong")}</p>
             )}
           </Card>
           <div className="row">
-            <Btn icon={RotateCcw} small onClick={() => load(prob.id)}>Reset</Btn>
+            <Btn icon={RotateCcw} small onClick={() => load(prob.id)}>{t("tsumego.reset")}</Btn>
             {state.status === "solved" && curIdx < PROBLEMS.length - 1 && (
-              <Btn icon={SkipForward} small primary onClick={() => load(PROBLEMS[curIdx + 1].id)}>Next problem</Btn>
+              <Btn icon={SkipForward} small primary onClick={() => load(PROBLEMS[curIdx + 1].id)}>{t("tsumego.next")}</Btn>
             )}
           </div>
         </div>

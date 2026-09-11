@@ -330,4 +330,117 @@ export const en = {
       now: "{outcome} \u00b7 now {rank}",
     },
   },
+
+  /* The two ladders. */
+  ladder: {
+    label: "Where you stand",
+    titleBefore: "The ",
+    titleEm: "ladder",
+    titleAfter: ".",
+    lede: "The global ladder is people: every rated game between two handles is settled on the server with Glicko-2, so a rating carries how sure it is. The house ladder is you against the residents, Elo-style, roughly a hundred points to a rank.",
+    globalHead: "Global \u00b7 people",
+    fetching: "Fetching the ladder\u2026",
+    empty: "Nobody has sat down yet. Claim a handle in Play to be first.",
+    rowMeta: "{provisional} \u00b7 {wins}\u2013{losses}",
+    thatsYou: " \u00b7 that\u2019s you",
+    houseHead: "House \u00b7 you and the bots",
+    botNote: "house player \u00b7 adapts to your level",
+    you: "that\u2019s you",
+    bestStreak: "Best win streak:",
+    currentStreak: "\u00b7 current:",
+  },
+
+  /* Life and death. */
+  tsumego: {
+    label: "Life and death",
+    titleBefore: "Read it ",
+    titleEm: "out",
+    titleAfter: ".",
+    lede: "Classical shapes \u2014 the public-domain vocabulary every serious life-and-death collection is built on. One of them is today\u2019s kata; solve it daily and your attendance grows.",
+    kataTitle: "Kata of the day",
+    kataChip: "kata of the day",
+    attendance: {
+      one: "Attendance: {count} day in a row.",
+      other: "Attendance: {count} days in a row.",
+    },
+    wrong: "The group answers back \u2014 resetting.",
+    reset: "Reset",
+    next: "Next problem",
+  },
+
+  /* The profile: who you are on this device, and what it has watched you do. */
+  profile: {
+    displayName: "Display name",
+    saveName: "Save name",
+    editName: "Edit name",
+    wl: "{wins} W \u00b7 {losses} L",
+    streakPill: "streak {count}",
+    levels: {
+      head: "The nine levels",
+      note: "Chapter twelve of {classic} sorts players into nine steps of mind, the first the highest. They line up with the nine dan grades, one for one.",
+      youStand: "You stand on the {ordinal} level: {name}.",
+      below: "You are {rank}, which is below all nine. {note}",
+      /* Spelled out, not built from the number: Spanish apocopates the first
+         and the third, and no rule that fits English would know that. */
+      ordinal: {
+        1: "first", 2: "second", 3: "third", 4: "fourth", 5: "fifth",
+        6: "sixth", 7: "seventh", 8: "eighth", 9: "ninth",
+      },
+    },
+    belt: {
+      head: "Your belt",
+      black: "{rank}. The belt is a fact, not a trophy.",
+      next: "{rank} \u00b7 {kyu}k earns the {belt}",
+      hints: "Training wheels: groups of yours in atari are ringed on the board. They come off {when}.",
+      whenOrange: "at orange belt",
+      whenSettled: "once your rank has settled",
+      noHints: "No training wheels at this belt. You read your own liberties.",
+    },
+    seal: {
+      head: "Seal color",
+      note: "Your mark on the ladder, the lobby, and \u2014 one day \u2014 across the network.",
+      pick: "Seal color {name}",
+    },
+    look: {
+      head: "The look of the place",
+      note: "You are in {room}, playing with {stones}, set in the {type} pairing.",
+      following: " The room is following your device.",
+      change: "Change the look",
+    },
+    table: {
+      head: "At the table",
+      sound: "Stone sound",
+      soundNote: "A synthesised click on every stone, a soft note per capture, and a small haptic on phones. Nothing is downloaded.",
+      coords: "Coordinates",
+      coordsNote: "Letters and numbers around the board, the way a book prints them. The letter I is skipped, so the column after H is J.",
+      lastMove: "Last move",
+      lastMoveNote: "How the stone just played is marked: a dot on it, a ring around it, or nothing at all.",
+      markerGroup: "Last-move marker",
+      markDot: "Dot",
+      markRing: "Ring",
+      markNone: "None",
+      moku: "Moku at the table",
+      mokuNote: "The stone with two eyes. Every face it makes is a fact about the board: atari, ko, a capture. Never a mood.",
+      showMoku: "Show Moku",
+    },
+    stats: {
+      rated: "Rated games",
+      pct: " \u00b7 {pct}%",
+      kata: "Kata attendance",
+      kataDays: { one: " day", other: " days" },
+      kataBest: " \u00b7 best {count}",
+      duels: "Daily duels",
+      duelWon: " \u00b7 {count} won",
+      duelBest: " \u00b7 best streak {count}",
+      lessons: "Lessons",
+      tsumego: "Tsumego",
+    },
+    device: "Your profile lives on this device. Accounts, friends, and match history sync when online play arrives \u2014 the profile shape is already server-ready.",
+  },
+
+  /* A rank, wherever it is named rather than shown. */
+  rank: {
+    badgeTitle: "Rating {rating} \u00b7 {belt}",
+    settling: " \u00b7 still settling",
+  },
 };

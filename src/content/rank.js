@@ -15,6 +15,9 @@
    floor of that decimal, so the two can never disagree. Progress up the scale
    is measured by Glicko-2 in `src/engine/glicko.js`. */
 import { isProvisional } from "../engine/glicko.js";
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
+
+const EN = makeT(BASE_LOCALE);
 
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
@@ -113,6 +116,11 @@ export const TINTS = {
    way: five coloured belts across the kyu ranks, black at dan. A belt is derived
    from the rank, never stored, so it can never disagree with the rating.
    Colours are the existing palette; nothing new is introduced. */
+/** What a belt is called in the language in force. The English lives in the
+ *  entry below, the way a room's note lives in palettes.js; a translation
+ *  overlays it by id under `belt.`. */
+export const beltLabel = (belt, t = EN) => t(`belt.${belt.id}.label`, null, belt.label);
+
 export const BELTS = [
   { id: "white",  label: "White belt",  color: "#f2ede3", kyuMax: 25, kyuMin: 21 },
   { id: "yellow", label: "Yellow belt", color: TINTS.sun, kyuMax: 20, kyuMin: 16 },
