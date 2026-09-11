@@ -785,9 +785,10 @@ Open:
       named room names the set it was designed around, a dojo room keeps the set it was
       started from, and a player may override all of it for every room at once.
       `stones.test.js` holds all eighty room-and-set boards to the floor the dojo prints.
-- [ ] The dojo picks its own set: a built room inherits the set it was started from but
-      cannot change it without changing the override for every room. The tone list is the
-      obvious place for it, beside the six colours.
+- [x] The dojo builds from the drawer (`src/theme/swatches.js`): no eyedropper and no hex
+      field, only the colours the named rooms already use for that role, indexed per tone and
+      sorted light to dark. The two lights are always derived, and the panel picks the room's
+      own stones beside the tones rather than inheriting whatever it was started from.
 - [ ] Dark variant of the stone palette.
 - [x] Sound and haptic feedback on stone placement (opt-in, synthesised, no assets).
 - [ ] Self-host fonts instead of the Google Fonts `@import`.
