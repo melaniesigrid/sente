@@ -12,6 +12,15 @@ export const lessons5 = {
     steps: {
       0: { text: "El medio juego, dice el clásico, está lleno de cosas que parecen ventajas y no lo son. Su línea más afilada es toda una estrategia en ocho palabras: para fortalecer lo de fuera, asienta antes lo de dentro; para sujetar el este, golpea el oeste. Aquí las blancas tienen un grupo fuerte a la izquierda y dos piedras débiles a la derecha. El ataque a las piedras débiles empieza por la izquierda." },
       1: {
+        commentary: {
+          0: "Apóyate en el grupo fuerte. No se le puede hacer daño, así que responderá y tú ganarás forma.",
+          1: "Las blancas empujan de vuelta, como debe hacer un grupo fuerte.",
+          2: "Extiende. Tus piedras miran ahora a las piedras blancas débiles.",
+          3: "Las blancas hacen hane por debajo para quedarse con el lado.",
+          4: "Extiende otra vez. Se está formando un muro, y mira al este.",
+          5: "Las blancas conectan. La izquierda queda resuelta, en los términos de las blancas, y está bien así.",
+          6: "Ahora el ataque. Las dos piedras débiles quedan tapadas, y el muro que construiste en el oeste está detrás de ellas.",
+        },
         text: "Un ataque de apoyo. Llevas negras; las blancas, guionizadas, responden por la izquierda. Golpea el oeste para sujetar el este.",
         hint: "Pégate primero al grupo fuerte, extiende dos veces y luego tapa las piedras débiles desde abajo.",
         success: "Las piedras que jugaste a la izquierda nunca pretendieron capturar nada allí. Eran el muro para la pelea de la derecha.",
@@ -61,11 +70,20 @@ export const lessons5 = {
     steps: {
       0: { text: "El capítulo trece deja de filosofar y enumera formas. Le da un nombre a cada una y luego se limita a decir si vive o muere. Esta es la primera: cuatro piedras blancas dobladas alrededor de dos puntos en la esquina. El clásico dice que un grupo así está muerto con seguridad, y lo dice sin argumentarlo, como quien enuncia el tamaño de una moneda." },
       1: {
+        commentary: {
+          0: "Las negras juegan dentro. A las blancas les queda una libertad, en el otro punto de la esquina.",
+          1: "Las blancas capturan la piedra, que es la única jugada que mantiene al grupo respirando. El espacio ocular es ahora un solo punto.",
+          2: "Las negras vuelven a jugar ahí. Esta vez la piedra se lleva al grupo entero consigo: un espacio ocular de dos puntos nunca puede convertirse en dos ojos, así que la forma estaba muerta antes de la primera jugada.",
+        },
         text: "Juegan las negras. Tres jugadas lo resuelven.",
         hint: "Juega dentro del espacio de dos puntos y deja que las blancas capturen. Luego vuelve a jugar ahí.",
       },
       2: { text: "La segunda forma son seis piedras que ocupan cuatro puntos en línea recta, y el clásico dice que esta vive con seguridad. La diferencia son dos puntos de espacio de ojo, y lo decide todo. Los dos puntos marcados del medio son los que vale la pena probar." },
       3: {
+        commentary: {
+          0: "Las negras toman un punto central. Es el único intento que merece la pena: los puntos exteriores dejarían a las blancas un tres recto y una vida fácil.",
+          1: "Las blancas toman el otro punto central. La piedra negra queda cortada con una sola libertad, y las blancas la capturan cuando quieran, dejando un ojo en cada extremo de la fila.",
+        },
         text: "Juegan las negras, con el mejor intento.",
         hint: "Las negras toman uno de los dos puntos del medio; las blancas responden en el otro.",
       },

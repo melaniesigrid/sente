@@ -10,10 +10,20 @@ export const lessons4 = {
     steps: {
       0: { text: "Les deux murs s'arrêtent à une ligne de chaque bord : tout est réglé sauf la rangée du haut et celle du bas. Guanzi veut dire les coups de clôture, et le livre classique qui les rassemble n'est presque que cela. Ici les deux frontières font la même taille, ce qui en fait l'endroit le plus clair possible pour voir ce qu'achète vraiment un coup en gote." },
       1: {
+        commentary: {
+          0: "Les noirs passent sous le pied du mur blanc.",
+          1: "Les blancs bloquent. Laisser faire permettrait aux noirs d'avancer encore le long du bord.",
+          2: "Les noirs connectent, et le bas est terminé. Remarque à qui est le trait maintenant : les noirs ont dépensé trois coups contre un aux blancs, et le trait est passé aux blancs.",
+        },
         text: "Les noirs prennent la frontière du bas.",
         hint: "Passe sous la tête du mur blanc, laisse les blancs bloquer, puis connecte.",
       },
       2: {
+        commentary: {
+          0: "Les blancs passent sous le mur noir, en haut.",
+          1: "Les noirs bloquent, pour la même raison que les blancs.",
+          2: "Les blancs connectent. Les deux frontières sont closes et la partie est finie.",
+        },
         text: "Les blancs prennent donc celle du haut, exactement de la même façon.",
         hint: "Les blancs jouent le miroir de ce que les noirs viennent de jouer.",
       },
@@ -39,6 +49,11 @@ export const lessons4 = {
         refutations: { 0: { text: "Le blocage simple est solide et vaut un point de moins. Les blancs prennent le point que tu as laissé et la partie se règle à trente-six contre quarante-cinq au lieu de trente-sept contre quarante-quatre." } },
       },
       2: {
+        commentary: {
+          0: "Le hane, sous le pied du mur.",
+          1: "Les blancs bloquent. La pierre ne peut pas être coupée : il n'y a rien de mieux.",
+          2: "Les noirs connectent. Le goban est terminé.",
+        },
         text: "Joue-le en entier.",
         hint: "Hane, laisse les blancs bloquer, puis connecte derrière.",
       },

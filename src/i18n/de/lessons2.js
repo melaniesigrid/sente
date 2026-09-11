@@ -42,6 +42,14 @@ export const lessons2 = {
         refutations: { 0: { text: "Das ist auch ein Atari, und Weiß tritt mit drei Freiheiten in den weitesten Teil des Bretts hinaus. Jetzt verfolgt es niemand mehr." } },
       },
       2: {
+        commentary: {
+          0: "Atari. Weiß hat noch eine Freiheit.",
+          1: "Weiß erweitert und hat wieder zwei.",
+          2: "Atari von derselben Seite. Das ist die ganze Methode: lass es nie drei bekommen.",
+          3: "Weiß erweitert.",
+          4: "Atari.",
+          5: "Weiß erweitert, und die Treppe läuft weiter nach unten und nach rechts. Noch fünf solche Züge, und der Rand des Bretts kommt, wo es keine nächste Freiheit gibt. Die Engine spielt es aus und zählt den Fang beim elften Zug.",
+        },
         text: "Spiel die Treppe.",
         hint: "Atari, lass Weiß herausziehen, dann wieder Atari von derselben Seite.",
       },
@@ -127,6 +135,10 @@ export const lessons2 = {
         refutations: { 0: { text: "Antworte woanders, und aus dem Lugen wird doch ein Schnitt. Weiß nimmt den zweiten Punkt, und die beiden Mauern sind getrennte Gruppen, jede muss für sich leben." } },
       },
       2: {
+        commentary: {
+          0: "Weiß lugt und droht zu schneiden.",
+          1: "Schwarz verbindet, und die Drohung ist vorbei, ehe sie begann. Zähl, was sich geändert hat: Schwarz hat einen Stein ausgegeben und ist jetzt eine einzige Kette, und Weiß hat einen Stein ausgegeben, der eine einzige Freiheit hat und nie wieder etwas tun kann.",
+        },
         text: "Der ganze Austausch, von vorn.",
         hint: "Weiß lugt an einem Punkt, Schwarz verbindet am anderen.",
       },
@@ -181,6 +193,15 @@ export const lessons2 = {
         refutations: { 0: { text: "Atari von außen, und Weiß verbindet am Rand entlang mit dem Stein rechts. Nichts gefangen." } },
       },
       3: {
+        commentary: {
+          0: "Atari von oben. Weiß hat einen Weg hinaus.",
+          1: "Weiß läuft.",
+          2: "Wieder Atari, von der Seite. Jedes Mal, wenn Weiß erweitert, behält die Kette zwei Freiheiten und verliert dann eine.",
+          3: "Weiß läuft wieder, zur Ecke hin.",
+          4: "Atari von oben.",
+          5: "Die letzte Erweiterung von Weiß. Eine Freiheit bleibt, in der Ecke.",
+          6: "Gefangen. Zheng, die Leiter: sieben Züge gelesen, bevor der erste Stein gesetzt wurde.",
+        },
         text: "Sieben Züge tief. Du hast Schwarz. Treib den weißen Stein mit einer Leiter in die Ecke; das gescriptete Weiß läuft jedes Mal.",
         hint: "Atari von der Seite, die Weiß nur einen diagonalen Schritt zur Ecke lässt.",
         success: "Eine Leiter ist entschieden, bevor sie beginnt. Lies sie zu Ende, und spiel dann das erste Atari mit ruhigem Gewissen.",

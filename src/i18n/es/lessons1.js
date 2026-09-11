@@ -63,6 +63,12 @@ export const lessons1 = {
         hint: "Rellena la última libertad de las blancas.",
       },
       2: {
+        commentary: {
+          0: "Las negras toman el ko.",
+          1: "Las blancas no pueden retomar, así que juegan en otra parte: una amenaza de ko. Haz como si esta importara.",
+          2: "Las negras responden a la amenaza.",
+          3: "La posición ha cambiado, así que las blancas ya pueden retomar. Ahora son las negras las que necesitan una amenaza.",
+        },
         text: "Juega un intercambio de ko entero. Llevas negras: toma el ko y luego responde a la amenaza de las blancas.",
         hint: "Sigue la línea: primero la captura, después la respuesta a la amenaza.",
         success: "Ese es todo el ritmo de un ko: tomar, amenazar, responder, retomar.",
@@ -114,6 +120,11 @@ export const lessons1 = {
         wrongText: "Eso deja las dos piedras negras tocándose por el hueco. Juega dentro del hueco.",
       },
       3: {
+        commentary: {
+          0: "Las negras cortan. Las dos piedras blancas quedan en atari a la vez.",
+          1: "Las blancas solo pueden salvar una. Esta huye.",
+          2: "Las negras capturan la otra. Un corte que hace dos ataris merece recordarse.",
+        },
         text: "Ahora corta con provecho. Llevas negras: juega el punto de corte y luego toma lo que las blancas dejan atrás.",
         hint: "Busca el punto vacío que separa las dos piedras blancas.",
         success: "Una captura y una forma negra fuerte. Cortar es como se convierte un hueco en una ganancia.",
@@ -139,6 +150,11 @@ export const lessons1 = {
         refutations: { 0: { text: "Correr solo le dio a las blancas una segunda piedra. Una libertad se convirtió en una libertad, y las blancas la cerraron." } },
       },
       3: {
+        commentary: {
+          0: "Extiende: tres libertades.",
+          1: "Las blancas siguen persiguiendo.",
+          2: "Gira hacia el espacio abierto. Otra vez tres libertades, y a las blancas se les acaban las piedras con que perseguir.",
+        },
         text: "Una persecución. Llevas negras: sigue extendiendo hacia el espacio más ancho hasta que perseguirte deje de tener sentido para las blancas.",
         hint: "Cada jugada debería dejar a tu cadena con más libertades de las que tenía.",
         success: "Escapar no es una jugada; es una dirección. Corre hacia donde tus libertades crecen.",
@@ -240,6 +256,12 @@ export const lessons1 = {
         },
       },
       3: {
+        commentary: {
+          0: "Tengen.",
+          1: "Las blancas toman una esquina con el 3-3.",
+          2: "Las negras toman la esquina opuesta desde el centro: las piedras trabajan juntas.",
+          3: "Las blancas toman una segunda esquina. Cuatro jugadas, y el tablero ya está repartido en esferas.",
+        },
         text: "Juega las cuatro primeras jugadas de una apertura común de 9×9. Llevas negras.",
         hint: "Primero el centro, luego la esquina opuesta a la de las blancas.",
         success: "Eso es una apertura: unas pocas piedras, cada una reclamando una región, ninguna peleando todavía.",

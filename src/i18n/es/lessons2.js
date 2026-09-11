@@ -42,6 +42,14 @@ export const lessons2 = {
         refutations: { 0: { text: "Esto también es atari, y las blancas salen con tres libertades hacia la parte más ancha del tablero. Ya no las persigue nadie." } },
       },
       2: {
+        commentary: {
+          0: "Atari. A las blancas les queda una libertad.",
+          1: "Las blancas extienden y vuelven a tener dos.",
+          2: "Atari desde el mismo lado. Todo el método es esto: no dejar nunca que lleguen a tres.",
+          3: "Las blancas extienden.",
+          4: "Atari.",
+          5: "Las blancas extienden, y la escalera sigue bajando hacia la derecha. Cinco jugadas más así y llega el borde del tablero, donde no hay libertad siguiente. El motor lo juega hasta el final y cuenta la captura en la jugada once.",
+        },
         text: "Juega la escalera entera.",
         hint: "Atari, deja que las blancas extiendan, y atari otra vez desde el mismo lado.",
       },
@@ -127,6 +135,10 @@ export const lessons2 = {
         refutations: { 0: { text: "Responde en otro sitio y resulta que el asomo era un corte después de todo. Las blancas toman el segundo punto y los dos muros son grupos separados, cada uno teniendo que vivir por su cuenta." } },
       },
       2: {
+        commentary: {
+          0: "Las blancas asoman, amenazando cortar.",
+          1: "Las negras conectan, y la amenaza se acaba antes de empezar. Cuenta lo que ha cambiado: las negras han gastado una piedra y ahora son una sola cadena, y las blancas han gastado una piedra que tiene una sola libertad y ya no podrá hacer nada nunca.",
+        },
         text: "El intercambio entero, desde el principio.",
         hint: "Las blancas asoman en un punto, las negras conectan en el otro.",
       },
@@ -181,6 +193,15 @@ export const lessons2 = {
         refutations: { 0: { text: "Atari desde fuera, y las blancas conectan por el borde con la piedra de la derecha. No has capturado nada." } },
       },
       3: {
+        commentary: {
+          0: "Atari desde arriba. Las blancas tienen una salida.",
+          1: "Las blancas huyen.",
+          2: "Atari otra vez, desde el lado. Cada vez que las blancas extienden, la cadena tiene dos libertades y enseguida pierde una.",
+          3: "Las blancas huyen de nuevo, hacia la esquina.",
+          4: "Atari desde arriba.",
+          5: "La última extensión de las blancas. Queda una libertad, en la esquina.",
+          6: "Capturadas. Zheng, la escalera: siete jugadas leídas antes de poner la primera piedra.",
+        },
         text: "Siete jugadas de profundidad. Llevas negras. Persigue la piedra blanca hasta la esquina con una escalera; las blancas, guionizadas, corren cada vez.",
         hint: "Atari desde el lado que deja a las blancas solo un paso en diagonal hacia la esquina.",
         success: "Una escalera se decide antes de empezar. Léela hasta el final, y luego juega el primer atari con la conciencia tranquila.",

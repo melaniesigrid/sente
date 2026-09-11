@@ -13,6 +13,15 @@ export const lessons5 = {
     steps: {
       0: { text: "Le milieu de partie, dit le classique, est plein de choses qui ressemblent à des avantages et n'en sont pas. Sa ligne la plus tranchante est toute une stratégie en huit mots : pour renforcer l'extérieur, règle d'abord l'intérieur ; pour tenir l'est, frappe l'ouest. Ici les blancs ont un groupe fort à gauche et deux pierres faibles à droite. L'attaque des pierres faibles commence à gauche." },
       1: {
+        commentary: {
+          0: "Appuie-toi sur le groupe fort. On ne peut pas lui faire de mal : il répondra et tu gagneras de la forme.",
+          1: "Les blancs repoussent, comme doit le faire un groupe fort.",
+          2: "Étends. Tes pierres font maintenant face aux pierres blanches faibles.",
+          3: "Les blancs font hane par en dessous pour garder le côté.",
+          4: "Étends encore. Un mur se forme, et il regarde vers l'est.",
+          5: "Les blancs connectent. La gauche est réglée, aux conditions des blancs, et c'est très bien ainsi.",
+          6: "Maintenant l'attaque. Les deux pierres faibles sont coiffées, et le mur que tu as bâti à l'ouest se tient derrière elles.",
+        },
         text: "Une attaque d'appui. Tu as les noirs ; les blancs, scriptés, répondent à gauche. Frappe l'ouest pour tenir l'est.",
         hint: "Colle-toi d'abord au groupe fort, étends deux fois, puis coiffe les pierres faibles par en dessous.",
         success: "Les pierres que tu as jouées à gauche n'ont jamais eu pour but d'y capturer quoi que ce soit. Elles étaient le mur du combat de droite.",
@@ -62,11 +71,20 @@ export const lessons5 = {
     steps: {
       0: { text: "Le chapitre treize cesse de philosopher et énumère des formes. Il donne un nom à chacune puis dit simplement si elle vit ou meurt. Voici la première : quatre pierres blanches pliées autour de deux points dans le coin. Le classique dit qu'un tel groupe est assurément mort, et il le dit sans argument, comme on énoncerait la taille d'une pièce de monnaie." },
       1: {
+        commentary: {
+          0: "Les noirs jouent à l'intérieur. Il reste une liberté aux blancs, à l'autre point du coin.",
+          1: "Les blancs capturent la pierre, seul coup qui garde le groupe respirant. L'espace d'œil n'est plus qu'un point.",
+          2: "Les noirs y rejouent. Cette fois la pierre emporte le groupe entier avec elle : un espace d'œil de deux points ne peut jamais devenir deux yeux, la forme était donc morte avant le premier coup.",
+        },
         text: "Aux noirs de jouer. Trois coups règlent la question.",
         hint: "Joue dans l'espace de deux points et laisse les blancs capturer. Puis rejoue là.",
       },
       2: { text: "La deuxième forme, ce sont six pierres tenant quatre points en ligne droite, et le classique dit que celle-là vit assurément. La différence tient à deux points d'espace d'yeux, et elle décide de tout. Les deux points marqués au milieu sont ceux qui valent la peine d'être essayés." },
       3: {
+        commentary: {
+          0: "Les noirs prennent un point du milieu. C'est la seule tentative qui vaille : les points extérieurs laisseraient aux blancs un trois droit et une vie facile.",
+          1: "Les blancs prennent l'autre point du milieu. La pierre noire est coupée avec une seule liberté, et les blancs la capturent quand ils veulent, laissant un œil à chaque bout de la rangée.",
+        },
         text: "Aux noirs de jouer, en prenant le meilleur essai.",
         hint: "Les noirs prennent l'un des deux points du milieu ; les blancs répondent sur l'autre.",
       },
