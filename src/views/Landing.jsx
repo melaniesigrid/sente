@@ -3,6 +3,7 @@ import {
   Circle, Grid3x3, Handshake, ArrowRight, ArrowDown, Sparkles, Route,
 } from "lucide-react";
 import { MiniSelfPlay } from "../components/MiniSelfPlay.jsx";
+import { StoneField } from "../components/StoneField.jsx";
 import { Mark } from "../components/Brand.jsx";
 import { Statement } from "../components/ui.jsx";
 import { TypedLine, TypedLabel } from "../components/Typed.jsx";
@@ -121,7 +122,8 @@ export function Landing({ profile, onEnter, go }) {
     <div className="landing" ref={root}>
 
       {/* ---------------------------------------------------- hero */}
-      <section className="lp-hero">
+      <section className="lp-hero lp-ground">
+        <StoneField />
         <div className="lp-hero-copy lp-enters">
           <TypedLabel className="lp-label">The oldest game, softly lit</TypedLabel>
           <h1 className="lp-display">
@@ -156,7 +158,7 @@ export function Landing({ profile, onEnter, go }) {
         </div>
       </section>
 
-      <Band lines={LANDING_STATEMENTS.rules} />
+      <hr className="lp-rule" />
 
       {/* -------------------------------------------------- the primer */}
       <section className="lp-section" id="primer">
@@ -177,7 +179,7 @@ export function Landing({ profile, onEnter, go }) {
         </div>
       </section>
 
-      <hr className="lp-rule" />
+      <Band lines={LANDING_STATEMENTS.rules} />
 
       {/* ------------------------------------------------- what is here */}
       <section className="lp-section" id="inside">
@@ -256,7 +258,8 @@ export function Landing({ profile, onEnter, go }) {
       <Band lines={LANDING_STATEMENTS.begin} center />
 
       {/* -------------------------------------------------- final call */}
-      <section className="lp-final">
+      <section className="lp-final lp-ground">
+        <StoneField />
         {/* The corner mark, at the one size it deserves. It is the richest of
             the three and the first to fail small, so it is spent here and in
             the boot splash rather than in the chrome: the 4x4 corner every
