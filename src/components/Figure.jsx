@@ -53,13 +53,30 @@ function Stone({ x, y, r, colour, laid, gone, sheen, ids }) {
     ...(gone === null ? null : { "--gone": `${gone * STEP_MS}ms` }),
   };
   return (
-    <g className={`fig-stone${gone === null ? "" : " taken"}`} style={style}>
-      <circle cx={x} cy={y} r={r} fill={`url(#${colour === "b" ? ids.b : ids.w})`} />
-      {/* the rim the light catches as the surface turns away, and the highlight
-          it catches where the surface faces it */}
-      <circle cx={x} cy={y} r={r * 0.985} fill="none" className="fig-rim" strokeWidth={r * 0.06} />
-      <Shine x={x} y={y} r={r} id={ids.shine} />
-    </g>
+    <>
+      {/* The rings sit outside the stone and not inside it, which is the whole
+          reason they work: a captured stone's group is fading out at exactly
+          the moment its ring should be at its widest, and a ring inside it
+          would fade with it and never be seen.
+
+          The second ring is why the ponnuki is worth setting at this size. The
+          shape is four stones around an empty point, and the point is empty
+          because a stone was captured there: the ring is that capture, drawn on
+          the move the engine performed it and on the point it left behind. */}
+      <g className="fig-mark" style={style}>
+        <circle cx={x} cy={y} r={r} className="fig-ring" fill="none" strokeWidth={r * 0.09} />
+        {gone !== null && (
+          <circle cx={x} cy={y} r={r} className="fig-ring out" fill="none" strokeWidth={r * 0.09} />
+        )}
+      </g>
+      <g className={`fig-stone${gone === null ? "" : " taken"}`} style={style}>
+        <circle cx={x} cy={y} r={r} fill={`url(#${colour === "b" ? ids.b : ids.w})`} />
+        {/* the rim the light catches as the surface turns away, and the
+            highlight it catches where the surface faces it */}
+        <circle cx={x} cy={y} r={r * 0.985} fill="none" className="fig-rim" strokeWidth={r * 0.06} />
+        <Shine x={x} y={y} r={r} id={ids.shine} />
+      </g>
+    </>
   );
 }
 

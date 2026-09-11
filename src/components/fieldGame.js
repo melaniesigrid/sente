@@ -50,6 +50,28 @@ export function advanceField(s, moves) {
   return out;
 }
 
+/** The stones that were on `before` and are not on `after`: a capture, as
+ *  drawing instructions. The field draws them for one beat on their way off
+ *  the board, because stones coming off is the one moment in a game of go that
+ *  a passer-by recognises, and a decoration that skips it is a decoration that
+ *  has thrown away the best thing it had.
+ *
+ *  It compares two positions rather than reading the engine's own capture list
+ *  on purpose: the field is drawn from a board and this is a fact about the
+ *  two boards, so it cannot fall out of step with what is on screen. A point
+ *  that changed colour counts as a departure too, which on a real board it is:
+ *  a stone came off it, and another went down. */
+export function departed(before, after) {
+  const out = [];
+  if (!before || !after || before.cells.length !== after.cells.length) return out;
+  for (let i = 0; i < before.cells.length; i++) {
+    const was = before.cells[i];
+    if (!was || after.cells[i] === was) continue;
+    out.push({ i, c: i % before.size, r: Math.floor(i / before.size), colour: was });
+  }
+  return out;
+}
+
 /** Every stone on the board, as drawing instructions and nothing else. */
 export function fieldStones(board) {
   const out = [];
