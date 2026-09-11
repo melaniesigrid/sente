@@ -1132,7 +1132,11 @@ that is honestly still English.
 - [x] Spanish: the tsumego, the coach's shape commentary in all seven voices, and the
       library's own furniture — the six tiers with their exit tests, the seven tracks, the
       five books and the series.
-- [ ] Spanish: the lessons, tier by tier.
+- [x] Spanish: tier 1, the ten lessons from 30k to 20k. A lesson is translated whole or not
+      at all, and `i18n.test.js` now holds that: half a lesson is the one shape the
+      fall-through does not forgive, because it would put one step in one language and the
+      next in another inside a single board.
+- [ ] Spanish: tiers 2 to 5, twenty-two lessons.
 - [ ] Spanish: the Classic's thirteen chapters, the preface and the thirty-two names.
 - [ ] Spanish: the content prose. Lessons, personas, Moku, the plain-words statements, the
       books, the legal documents, and the Classic's thirteen chapters, in that order.
