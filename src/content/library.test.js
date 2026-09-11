@@ -290,15 +290,48 @@ describe("library helpers", () => {
     const allTier1 = lessonsInTier(1).map(l => l.id);
     expect(currentTierFor({ lessonsDone: allTier1, tierPassed: [] })).toBe(2);
   });
-  it("lessonAfter follows the series, else library order, and ends with null", () => {
+  it("lessonAfter follows the series, else library order", () => {
     expect(lessonAfter(lessonById("liberties")).id).toBe("no-liberty-capture");
     expect(lessonAfter(lessonById("classic-board")).id).toBe("classic-calculation");
     expect(lessonAfter(lessonById("classic-territory")).id).toBe("classic-conflict"); // chapter order, not tier order
     // Chapter thirteen holds two lessons, so the miscellany flows into the corner shapes.
     expect(lessonAfter(lessonById("classic-miscellany")).id).toBe("classic-corner-shapes");
-    expect(lessonAfter(lessonById("classic-corner-shapes"))).toBeNull();
     expect(lessonAfter(lessonById("first-9x9-opening")).id).toBe("classic-board"); // tier 1 flows into tier 2
     expect(lessonAfter(null)).toBeNull();
+  });
+  it("lessonAfter leads on from every lesson, across track, tier and series", () => {
+    const read = (ids) => ({ lessonsDone: ids, tierPassed: [] });
+    const last = LIBRARY[LIBRARY.length - 1];
+
+    // The end of a series is not the end of the library: it flows on into library order.
+    const classic = lessonsInSeries("classic");
+    const lastChapter = classic[classic.length - 1];
+    const on = lessonAfter(lastChapter);
+    expect(on).not.toBeNull();
+    expect(on.series).not.toBe("classic");
+
+    // Every lesson but the last hands the learner another one, read or unread.
+    const all = LIBRARY.map(l => l.id);
+    for (const [i, lesson] of LIBRARY.entries()) {
+      expect(lessonAfter(lesson, fresh)).not.toBeNull();
+      const after = lessonAfter(lesson, read(all));
+      if (lesson.id === last.id) expect(after).toBeNull();
+      else expect(after.id).toBe(LIBRARY[i + 1].id);
+      expect(after?.id).not.toBe(lesson.id);
+    }
+
+    // A lesson already read is passed over, and work skipped behind is come back for.
+    expect(lessonAfter(LIBRARY[0], read([LIBRARY[1].id])).id).not.toBe(LIBRARY[1].id);
+    expect(lessonAfter(last, read(LIBRARY.slice(1).map(l => l.id))).id).toBe(LIBRARY[0].id);
+
+    // With a profile and no lesson, it is the same question as "what is next for me".
+    expect(lessonAfter(null, fresh).id).toBe(nextLessonFor(fresh).id);
+  });
+  it("lessonAfter prefers a lesson whose prerequisites are read", () => {
+    const gated = LIBRARY.find(l => (l.prereqs || []).length);
+    const before = LIBRARY[LIBRARY.indexOf(gated) - 1];
+    const suggested = lessonAfter(before, { lessonsDone: [before.id], tierPassed: [] });
+    expect(prereqsMissing(suggested, { lessonsDone: [before.id] })).toEqual([]);
   });
   it("lessonsInSeries returns chapters in order, and a chapter may hold more than one lesson", () => {
     const cs = lessonsInSeries("classic").map(l => l.chapter);

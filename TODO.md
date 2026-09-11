@@ -548,6 +548,15 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       `wrongTextFor` no longer falls back to the hint and no sentence is said twice. One
       `.response` block carries all four tones, and finishing a lesson shows a recap plus
       the next lesson instead of jumping straight into it.
+- [x] Every lesson leads to the next one (2026-09-11): `lessonAfter(lesson, profile)`.
+      The library is one path, so the recap always hands the learner another lesson across
+      whatever boundary comes next — track, tier, kyu or dan. The rest of a series wins first
+      (the Classic runs Tier 2 to Tier 5 and is read as a book, prerequisite gate and all),
+      then the next unread lesson ahead, then work skipped behind, preferring lessons whose
+      prerequisites are read. The last chapter of a series used to end in nothing; now only
+      the last lesson in the library ends, and it says so. The recap names the boundary being
+      crossed, and the jump goes through the same prerequisite gate as opening a lesson from
+      the grid. The welcome demo is not in the library and is told none of this.
 - [ ] Tier 2 Apprentice and Tier 3 Journeyman authored (20 lessons, 9/13/19).
 - [ ] SGF authoring pipeline: build-time script turns SGF with comments into steps.
 - [ ] Tier 4 Craftsman and Tier 5 Master authored (20 lessons, 19x19).
