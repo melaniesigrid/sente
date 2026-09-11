@@ -32,6 +32,8 @@ export const TEXT_FIELDS = new Set([
   "greet", "botCapture", "userCapture", "reply", "win", "loss",
   // A chapter of the Classic carries its prose and the lines lifted out of it.
   "sayings", "modern",
+  // A book says in its own sentence what it owes and what it does not claim.
+  "credit",
 ]);
 
 /** Fields that name a thing rather than describe it, and are never translated:
