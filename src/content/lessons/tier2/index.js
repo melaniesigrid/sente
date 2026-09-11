@@ -8,8 +8,9 @@ import classicKnowYourself from "./classic-know-yourself.js";
 import classicLevels from "./classic-levels.js";
 import falseEye from "./false-eye.js";
 import eyeShapes from "./eye-shapes.js";
+import tigersMouth from "./tigers-mouth.js";
 
 export const TIER2 = [
   classicBoard, classicCalculation, classicTerms, classicKnowYourself, classicLevels,
-  falseEye, eyeShapes,
+  falseEye, eyeShapes, tigersMouth,
 ];

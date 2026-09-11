@@ -70,7 +70,7 @@ lessons across six tiers; content is authored tier by tier so each tier ships co
 - `eye-shapes` 17k life: three-in-a-row, bent four, straight four, the vital point (exists)
 - `corner-life` 16k life: the L group and the tripod group, live or dead
 - `empty-triangle` 17k shape: the worst shape and why
-- `tigers-mouth` 16k shape: hane, tiger's mouth, bamboo joint
+- `tigers-mouth` 16k shape: hane, tiger's mouth, bamboo joint (exists)
 - `extend-from-corner` 16k opening: the two-space extension on 13x13
 - `sente-gote` 15k endgame: the difference and why sente is worth double
 - **Exit:** beat Hoshi even on 9x9.

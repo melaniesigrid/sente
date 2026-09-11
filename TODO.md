@@ -248,6 +248,21 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       whole. Cites the Dunhuang manuscript, the sixth-century scroll that is the oldest
       surviving go manual, whose last section sorts problems into four kinds with ko and seki
       as one of them.
+- [x] `tigers-mouth` (2026-09-11, 2 / 16k, shape): three gaps and one question asked of each
+      — if White plays here, what happens? White in a tiger's mouth has exactly one liberty
+      and comes straight off; a bamboo joint answers either cut with the other point and
+      becomes one chain of five, checked both ways round with White packed down both sides;
+      a one-point jump with White on all four diagonals is cut by a legal stone with two
+      liberties, leaving both black stones in atari. Each claim is read off the board rather
+      than taken from a search verdict, because the connection solver returns "safe" when it
+      runs out of depth and a shape it cannot cut in six plies is not thereby proved sound.
+- [ ] The snapback still has no home. Three separate exhaustive hunts — corner life and
+      death, corner capture, and capture against a white group that can connect to safety —
+      produced 5439 positions with a unique capturing move and not one where that move is a
+      sacrifice. A snapback is almost never the *only* answer inside a bounded region: the
+      throw-in and the plain atari usually both work, and what makes the throw-in right in a
+      real game is something outside the region. It needs a lesson built around recognising
+      the shape from the victim's side rather than a puzzle with a unique solution.
 - [ ] The rest of the Fundamentals: chapter two's cutting and connecting (do not peep where
       you can cut), chapter five's thickness, chapter ten's shortage of liberties and the
       snapback as bait, chapter seven on how to study joseki.
