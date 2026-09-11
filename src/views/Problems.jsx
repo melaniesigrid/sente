@@ -7,7 +7,7 @@ import { ScreenHeader } from "../components/ScreenHeader.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
-import { PROBLEMS } from "../content/problems.js";
+import { PROBLEMS, localizeProblem } from "../content/problems.js";
 import { setupToBoard } from "../content/positions.js";
 import { dayKey, dailyProblem, attend, liveStreak } from "../content/kata.js";
 import { saveProfile } from "../store/profile.js";
@@ -22,7 +22,8 @@ export function ProblemsView({ profile, setProfile, initialId }) {
   const kata = dailyProblem(PROBLEMS, today);
   const startId = initialId && PROBLEMS.some(p => p.id === initialId) ? initialId : PROBLEMS[0].id;
   const [activeId, setActiveId] = useState(startId);
-  const prob = PROBLEMS.find(p => p.id === activeId);
+  const authored = PROBLEMS.find(p => p.id === activeId);
+  const prob = localizeProblem(authored, t);
   const [state, setState] = useState(() => ({ board: setupToBoard(prob.setup), status: "open", flash: [] }));
   const streak = liveStreak(profile, today);
   const isKata = kata && prob.id === kata.id;

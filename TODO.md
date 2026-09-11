@@ -1129,7 +1129,9 @@ that is honestly still English.
 - [x] Spanish: the house's voices — the plain-words gloss and statement on every screen,
       Moku's whole vocabulary, all seven house players' taglines, bios and table talk, the
       rulesets, the clock presets and the duel result line.
-- [ ] Spanish: the tsumego, the commentary, the tracks, the tiers and the books.
+- [x] Spanish: the tsumego, the coach's shape commentary in all seven voices, and the
+      library's own furniture — the six tiers with their exit tests, the seven tracks, the
+      five books and the series.
 - [ ] Spanish: the lessons, tier by tier.
 - [ ] Spanish: the Classic's thirteen chapters, the preface and the thirty-two names.
 - [ ] Spanish: the content prose. Lessons, personas, Moku, the plain-words statements, the

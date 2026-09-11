@@ -6,7 +6,7 @@ import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { LESSONS } from "../content/lessons.js";
 import { lessonById } from "../content/library.js";
-import { PROBLEMS } from "../content/problems.js";
+import { PROBLEMS, localizeProblem } from "../content/problems.js";
 import { preciseRankOf } from "../content/rank.js";
 import { PERSONAS } from "../content/personas.js";
 import { duelMode } from "../content/duel.js";
@@ -36,7 +36,8 @@ export function Home({ profile, go, onResume }) {
   const [saved, setSaved] = useState(() => loadSession({ today, profile }));
   const discard = () => { clearGame(); setSaved(null); };
   const duel = duelMode(PERSONAS, today);
-  const kata = dailyProblem(PROBLEMS, today);
+  const authoredKata = dailyProblem(PROBLEMS, today);
+  const kata = authoredKata && localizeProblem(authoredKata, t);
   const kataDone = profile.kataDate === today;
   const streak = liveStreak(profile, today);
   const recall = recallSummary(LIBRARY, profile.recall, today);

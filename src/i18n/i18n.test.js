@@ -12,6 +12,9 @@ import { MOKU_STATES } from "../content/moku.js";
 import { PERSONAS } from "../content/personas.js";
 import { RULESET_IDS } from "../engine/rulesets.js";
 import { CLOCK_PRESETS } from "../content/clockFace.js";
+import { TIERS, TRACKS, BOOKS, SERIES } from "../content/library.js";
+import { PROBLEMS } from "../content/problems.js";
+import { COMMENTARY } from "../content/commentary.js";
 import {
   BASE_LOCALE, SYSTEM_LOCALE, LOCALES, CATALOGUES, isLocaleId, localeOf, resolveLocale,
   makeT, flatten, interpolate, pluralCategory,
@@ -29,6 +32,7 @@ const OVERLAYS = [
   "room.", "stones.", "type.", "belt.", "tone.", "rule.",        // the design system
   "lesson.", "legalDoc.", "credit.",                             // the documents and the library
   "plain.", "statement.", "moku.", "ruleset.", "preset.", "persona.",  // the house's voices
+  "tier.", "track.", "book.", "series.", "problem.", "shape.",   // the library and the coach
 ];
 const isOverlay = (key) => OVERLAYS.some(p => key.startsWith(p));
 const others = LOCALES.filter(l => l.id !== BASE_LOCALE);
@@ -224,6 +228,12 @@ describe.each(others)("$name is complete", (locale) => {
       ruleset: RULESET_IDS,
       preset: CLOCK_PRESETS.map(p2 => p2.id),
       persona: PERSONAS.map(p2 => p2.id),
+      tier: TIERS.map(x => String(x.id)),
+      track: TRACKS.map(x => x.key),
+      book: BOOKS.map(x => x.id),
+      series: SERIES.map(x => x.key),
+      problem: PROBLEMS.map(x => x.id),
+      shape: Object.keys(COMMENTARY),
     };
     for (const key of [...mine.keys()].filter(isOverlay)) {
       const [ns, id] = key.split(".");
