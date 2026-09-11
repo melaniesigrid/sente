@@ -13,6 +13,7 @@ import { CHAPTERS, CLASSIC, sayingOfTheDay } from "../content/classic.js";
 import { RULESETS } from "../engine/rulesets.js";
 import { PALETTES } from "../theme/palettes.js";
 import { dayKey } from "../content/kata.js";
+import { useT } from "../components/langStore.js";
 
 /* ----------------------- THE FRONT DOOR -----------------------
    Everything a visitor sees before they have played a stone. It is a different
@@ -32,73 +33,33 @@ import { dayKey } from "../content/kata.js";
 /* The game, in three cards. This is the whole of go for somebody who has never
    seen it, and it is deliberately not four. */
 const PRIMER = [
-  {
-    icon: Circle,
-    title: "Two players, one board",
-    body: "Black plays, then White, one stone at a time onto the crossings. A stone once placed does not move again. There is nothing else to learn before your first game.",
-  },
-  {
-    icon: Grid3x3,
-    title: "Surround it, and it is yours",
-    body: "Empty ground you alone enclose is your territory. Enclose a stone on every side and it comes off the board. That one idea is very nearly the entire rulebook.",
-  },
-  {
-    icon: Handshake,
-    title: "The game ends by agreement",
-    body: "When neither side can gain, both pass. You settle which groups are dead, the points are counted, and you bow. Ten minutes on nine lines is a real game.",
-  },
+  { key: "players", icon: Circle },
+  { key: "surround", icon: Grid3x3 },
+  { key: "agreement", icon: Handshake },
 ];
 
-const PATH = [
-  { n: "01", title: "Learn the shape of it", body: "Twenty minutes and four lessons is enough to play a whole game and understand why you won it." },
-  { n: "02", title: "Play a house player", body: "Start on nine lines against somebody a rank or two below you. Lose a few. That is the method, not a detour from it." },
-  { n: "03", title: "Read something every day", body: "One tsumego, one saying, one game. The rank follows on its own — it is the only part you do not have to work at." },
-];
+const PATH = ["01", "02", "03"];
+
+const ROADMAP = [1, 2, 3, 4, 5];
 
 export function Landing({ profile, onEnter, go }) {
+  const t = useT();
   const root = useReveal();
   const saying = sayingOfTheDay(dayKey());
   const rooms = Object.keys(PALETTES).length;
   const rules = Object.keys(RULESETS).length;
   const returning = !needsOnboarding(profile);
 
+  /* Every number on this page is counted from the content at render time, and
+     goes into the line as a value rather than being welded to it: a language
+     that puts the count somewhere else in the sentence can. */
   const FEATURES = [
-    {
-      icon: GraduationCap,
-      title: `${LESSONS.length} lessons that wait for you`,
-      body: "Each one is a live board you play on, not a diagram you look at. The lesson does not move on until the move is yours, and you can walk it backwards.",
-      to: "learn",
-    },
-    {
-      icon: Target,
-      title: "Tsumego, and one every day",
-      body: "Classical life-and-death shapes for reading practice, plus a kata of the day that keeps a streak. Every position is proved by the engine before it is set.",
-      to: "tsumego",
-    },
-    {
-      icon: Bot,
-      title: `${PERSONAS.length} house players, honestly labelled`,
-      body: "They run in your browser and are never dressed up as people. Each plays at the rank it says on any board, and a handicap game is rated as the game it really is.",
-      to: "play",
-    },
-    {
-      icon: BookOpen,
-      title: `The Classic in ${CHAPTERS.length} chapters`,
-      body: `${CLASSIC.author}'s ${CLASSIC.era} treatise runs through the whole app — a saying at the door, a chapter beside the lesson it belongs to, the nine levels on your profile.`,
-      to: "learn",
-    },
-    {
-      icon: Medal,
-      title: "A rank that means something",
-      body: "Glicko-2, on the same scale OGS uses, number for number. A new rank carries a question mark until the deviation closes, because a guess ought to look like a guess.",
-      to: "ladder",
-    },
-    {
-      icon: Scale,
-      title: `${rules} rulesets, ${rooms} rooms`,
-      body: "AGA, Japanese, Chinese and New Zealand — scoring, komi and handicap compensation each done the way its own book says. Then set the room and the type to suit your eyes.",
-      to: "profile",
-    },
+    { key: "lessons", icon: GraduationCap, to: "learn", vars: { n: LESSONS.length } },
+    { key: "tsumego", icon: Target, to: "tsumego" },
+    { key: "players", icon: Bot, to: "play", vars: { n: PERSONAS.length } },
+    { key: "classic", icon: BookOpen, to: "learn", vars: { n: CHAPTERS.length, author: CLASSIC.author, era: CLASSIC.era } },
+    { key: "rank", icon: Medal, to: "ladder" },
+    { key: "rules", icon: Scale, to: "profile", vars: { rules, rooms } },
   ];
 
   return (
@@ -107,28 +68,24 @@ export function Landing({ profile, onEnter, go }) {
       {/* ---------------------------------------------------- hero */}
       <section className="lp-hero">
         <div className="lp-hero-copy lp-enters">
-          <TypedLabel className="lp-label">The oldest game, softly lit</TypedLabel>
+          <TypedLabel className="lp-label">{t("landing.label")}</TypedLabel>
           <h1 className="lp-display">
-            Play go,<br /><em>beautifully</em>.
+            {t("landing.displayBefore")}<br /><em>{t("landing.displayEm")}</em>{t("landing.displayAfter")}
           </h1>
-          <p className="lp-lede">
-            A go server built the way a board is built: quiet, correct, and pleasant to
-            sit at for hours. Learn the game from its first breath, sharpen your reading
-            on classical shapes, and take your rank onto the ladder.
-          </p>
-          <div className="lp-stats" aria-label="What is here">
-            <span className="lp-stat"><b>{LESSONS.length}</b> lessons</span>
-            <span className="lp-stat"><b>{CHAPTERS.length}</b> chapters of the Classic</span>
-            <span className="lp-stat"><b>{PERSONAS.length}</b> house players</span>
-            <span className="lp-stat"><b>9 · 13 · 19</b> lines</span>
+          <p className="lp-lede">{t("landing.lede")}</p>
+          <div className="lp-stats" aria-label={t("landing.statsLabel")}>
+            <span className="lp-stat"><b>{LESSONS.length}</b> {t("landing.stats.lessons")}</span>
+            <span className="lp-stat"><b>{CHAPTERS.length}</b> {t("landing.stats.chapters")}</span>
+            <span className="lp-stat"><b>{PERSONAS.length}</b> {t("landing.stats.players")}</span>
+            <span className="lp-stat"><b>9 · 13 · 19</b> {t("landing.stats.lines")}</span>
           </div>
           <div className="lp-cta">
             <button className="lp-btn primary" onClick={onEnter}>
-              <span>{returning ? "Back to your board" : "Sit down at the board"}</span>
+              <span>{t(returning ? "landing.backToBoard" : "landing.sitDown")}</span>
               <ArrowRight size={19} strokeWidth={2.2} />
             </button>
             <a className="lp-btn ghost" href="#primer">
-              <span>Never played?</span>
+              <span>{t("landing.neverPlayed")}</span>
               <ArrowDown size={18} strokeWidth={2.2} />
             </a>
           </div>
@@ -136,7 +93,7 @@ export function Landing({ profile, onEnter, go }) {
         <div className="lp-hero-board lp-enters">
           {/* the real engine, playing itself — not a recording */}
           <div className="lp-board-well" aria-hidden="true"><MiniSelfPlay sizePx={380} /></div>
-          <p className="lp-board-note">Joseki&rsquo;s own engine, playing itself, right now.</p>
+          <p className="lp-board-note">{t("landing.boardNote")}</p>
         </div>
       </section>
 
@@ -144,18 +101,15 @@ export function Landing({ profile, onEnter, go }) {
 
       {/* -------------------------------------------------- the primer */}
       <section className="lp-section" id="primer">
-        <TypedLabel className="lp-label reveal">The game</TypedLabel>
-        <h2 className="lp-h2 reveal">Two players. One board.<br />Hold more of it than they do.</h2>
-        <p className="lp-lede reveal">
-          Go is four thousand years old and its rules fit on a napkin. What takes a
-          lifetime is not the rules — it is everything they turn out to imply.
-        </p>
+        <TypedLabel className="lp-label reveal">{t("landing.primerLabel")}</TypedLabel>
+        <h2 className="lp-h2 reveal">{t("landing.primerH2a")}<br />{t("landing.primerH2b")}</h2>
+        <p className="lp-lede reveal">{t("landing.primerLede")}</p>
         <div className="lp-grid3">
           {PRIMER.map((c, i) => (
-            <article className={`neu-card lp-card reveal d${i + 1}`} key={c.title}>
+            <article className={`neu-card lp-card reveal d${i + 1}`} key={c.key}>
               <span className="lp-icon"><c.icon size={26} strokeWidth={1.8} /></span>
-              <h3 className="lp-h3">{c.title}</h3>
-              <p className="lp-body">{c.body}</p>
+              <h3 className="lp-h3">{t(`landing.primer.${c.key}.title`)}</h3>
+              <p className="lp-body">{t(`landing.primer.${c.key}.body`)}</p>
             </article>
           ))}
         </div>
@@ -165,20 +119,17 @@ export function Landing({ profile, onEnter, go }) {
 
       {/* ------------------------------------------------- what is here */}
       <section className="lp-section" id="inside">
-        <TypedLabel className="lp-label reveal">What is here</TypedLabel>
-        <h2 className="lp-h2 reveal">Everything a player needs,<br />and nothing that shouts.</h2>
-        <p className="lp-lede reveal">
-          The rules live in one engine and the screens only draw it, so what you are
-          shown is what actually happened. Open any of these to go straight there.
-        </p>
+        <TypedLabel className="lp-label reveal">{t("landing.insideLabel")}</TypedLabel>
+        <h2 className="lp-h2 reveal">{t("landing.insideH2a")}<br />{t("landing.insideH2b")}</h2>
+        <p className="lp-lede reveal">{t("landing.insideLede")}</p>
         <div className="lp-grid2">
           {FEATURES.map((f, i) => (
-            <button className={`neu-card lp-card lp-card-btn reveal d${(i % 3) + 1}`} key={f.title}
+            <button className={`neu-card lp-card lp-card-btn reveal d${(i % 3) + 1}`} key={f.key}
               onClick={() => go(f.to)}>
               <span className="lp-icon"><f.icon size={26} strokeWidth={1.8} /></span>
-              <h3 className="lp-h3">{f.title}</h3>
-              <p className="lp-body">{f.body}</p>
-              <span className="lp-more"><span>Open</span><ArrowRight size={15} strokeWidth={2.4} /></span>
+              <h3 className="lp-h3">{t(`landing.features.${f.key}.title`, f.vars)}</h3>
+              <p className="lp-body">{t(`landing.features.${f.key}.body`, f.vars)}</p>
+              <span className="lp-more"><span>{t("landing.open")}</span><ArrowRight size={15} strokeWidth={2.4} /></span>
             </button>
           ))}
         </div>
@@ -192,28 +143,24 @@ export function Landing({ profile, onEnter, go }) {
         <div className="lp-quote reveal">
           <TypedLine text={saying.text} className="lp-quote-line" />
           <p className="lp-quote-src">
-            Chapter {saying.chapter}, {saying.title} · {CLASSIC.author}, {CLASSIC.era}
+            {t("landing.classicSrc", { n: saying.chapter, title: saying.title, author: CLASSIC.author, era: CLASSIC.era })}
           </p>
         </div>
-        <p className="lp-lede reveal center">
-          The thirteen chapters are threaded through the app rather than filed in a
-          corner of it — a line at the door each day, and the chapter that belongs to
-          a lesson sitting beside the lesson.
-        </p>
+        <p className="lp-lede reveal center">{t("landing.classicLede")}</p>
       </section>
 
       <hr className="lp-rule" />
 
       {/* ---------------------------------------------------- the path */}
       <section className="lp-section" id="path">
-        <TypedLabel className="lp-label reveal">Where to start</TypedLabel>
-        <h2 className="lp-h2 reveal">Three weeks to a real game.</h2>
+        <TypedLabel className="lp-label reveal">{t("landing.pathLabel")}</TypedLabel>
+        <h2 className="lp-h2 reveal">{t("landing.pathH2")}</h2>
         <div className="lp-grid3">
-          {PATH.map((s, i) => (
-            <article className={`lp-step reveal d${i + 1}`} key={s.n}>
-              <span className="lp-step-n">{s.n}</span>
-              <h3 className="lp-h3">{s.title}</h3>
-              <p className="lp-body">{s.body}</p>
+          {PATH.map((n, i) => (
+            <article className={`lp-step reveal d${i + 1}`} key={n}>
+              <span className="lp-step-n">{n}</span>
+              <h3 className="lp-h3">{t(`landing.path.${i + 1}.title`)}</h3>
+              <p className="lp-body">{t(`landing.path.${i + 1}.body`)}</p>
             </article>
           ))}
         </div>
@@ -223,16 +170,14 @@ export function Landing({ profile, onEnter, go }) {
 
       {/* ---------------------------------------------------- roadmap */}
       <section className="lp-section" id="next">
-        <TypedLabel className="lp-label reveal">Still to come</TypedLabel>
-        <h2 className="lp-h2 reveal">Being built in the open.</h2>
+        <TypedLabel className="lp-label reveal">{t("landing.nextLabel")}</TypedLabel>
+        <h2 className="lp-h2 reveal">{t("landing.nextH2")}</h2>
         <div className="neu-card neu-inset lp-roadmap reveal">
-          <div className="stat-head"><Route size={17} /><span>Where this is going</span></div>
+          <div className="stat-head"><Route size={17} /><span>{t("landing.roadmapHead")}</span></div>
           <ul>
-            <li><Sparkles size={15} /> Review mode: scrub the game, walk the variations, jump to every capture</li>
-            <li><Sparkles size={15} /> Real-time matches against people, over the same game loop</li>
-            <li><Sparkles size={15} /> Friends, rooms, and spectating with live chat</li>
-            <li><Sparkles size={15} /> Corner-pattern trees and engine review on a finished board</li>
-            <li><Sparkles size={15} /> A spaced-repetition tsumego queue that knows what you keep missing</li>
+            {ROADMAP.map(n => (
+              <li key={n}><Sparkles size={15} /> {t(`landing.roadmap.${n}`)}</li>
+            ))}
           </ul>
         </div>
       </section>
@@ -244,15 +189,12 @@ export function Landing({ profile, onEnter, go }) {
             the boot splash rather than in the chrome: the 4x4 corner every
             opening starts from, which is the sequence the place is named for. */}
         <Mark variant="corner" className="lp-final-mark reveal" />
-        <TypedLabel className="lp-label reveal">Open it</TypedLabel>
-        <h2 className="lp-display sm reveal">The board is <em>set</em>.</h2>
-        <p className="lp-lede reveal center">
-          Nothing to sign up for. Your rank, your lessons and your room live on this
-          device and stay there.
-        </p>
+        <TypedLabel className="lp-label reveal">{t("landing.finalLabel")}</TypedLabel>
+        <h2 className="lp-display sm reveal">{t("landing.finalBefore")}<em>{t("landing.finalEm")}</em>{t("landing.finalAfter")}</h2>
+        <p className="lp-lede reveal center">{t("landing.finalLede")}</p>
         <div className="lp-cta center reveal">
           <button className="lp-btn primary" onClick={onEnter}>
-            <span>{returning ? "Back to your board" : "Play your first game"}</span>
+            <span>{t(returning ? "landing.backToBoard" : "landing.firstGame")}</span>
             <Swords size={19} strokeWidth={2.2} />
           </button>
         </div>

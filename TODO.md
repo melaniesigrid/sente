@@ -1107,8 +1107,14 @@ that is honestly still English.
 - [ ] Spanish: the content prose — Moku's lines, the personas, the welcome copy, the
       commentary. The Classic's thirteen chapters are a translation problem of their own
       and are the last thing to touch, not the first.
-- [ ] Spanish: the rest of the screens — the landing page, onboarding, online play, the
-      small print, review mode, the dojo.
+- [x] Spanish: the front door and onboarding, and the machinery that translates content.
+      `src/content/translate.js` walks a lesson (or any content shape) and reads its text
+      fields from the catalogue, falling back to the data; `TEXT_FIELDS` is the contract
+      for what counts as prose, and a test holds it against what the library actually uses.
+      The welcome demo is the first lesson translated, because it is the first thing
+      anybody reads.
+- [ ] Spanish: review mode, the dojo and the small print.
+- [ ] Spanish: online play — the lobby, the game, the account gate, the letters.
 - [ ] Spanish: the content prose. Lessons, personas, Moku, the plain-words statements, the
       books, the legal documents, and the Classic's thirteen chapters, in that order.
 - [ ] French, every slice above. Cheap after Spanish: the keys exist, so each PR is a

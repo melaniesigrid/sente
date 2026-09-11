@@ -2,6 +2,9 @@ import { describe, it, expect } from "vitest";
 import { PALETTES, STONE_SETS } from "../theme/index.js";
 import { TYPEFACES } from "../content/typeface.js";
 import { BELTS } from "../content/rank.js";
+import { LIBRARY } from "../content/library.js";
+import { WELCOME_LESSON } from "../content/welcome.js";
+import { localize } from "../content/translate.js";
 import {
   BASE_LOCALE, SYSTEM_LOCALE, LOCALES, CATALOGUES, isLocaleId, localeOf, resolveLocale,
   makeT, flatten, interpolate, pluralCategory,
@@ -10,7 +13,12 @@ import {
 /* The three namespaces whose English lives in the data file that owns the
    thing, not in en.js. A translation overlays them by id, so they are checked
    against the data below rather than against English. */
-const OVERLAYS = ["room.", "stones.", "type.", "belt."];
+/* Namespaces whose English lives in a data file rather than in en.js. The
+   first four are complete-or-fail: every room, set, pairing and belt must have
+   its line. `lesson.` is not, and cannot be — the library is translated a file
+   at a time and an untranslated lesson is simply still in English — so what is
+   checked there is that every key names something real. */
+const OVERLAYS = ["room.", "stones.", "type.", "belt.", "lesson."];
 const isOverlay = (key) => OVERLAYS.some(p => key.startsWith(p));
 const others = LOCALES.filter(l => l.id !== BASE_LOCALE);
 const HOLE = /\{(\w+)\}/g;
@@ -156,12 +164,31 @@ describe.each(others)("$name is complete", (locale) => {
     for (const b of BELTS) expect(mine.get(`belt.${b.id}.label`), `${locale.id}: belt.${b.id}`).toBeTruthy();
   });
 
+  /* A stale key is worse than a missing one: it looks translated and shows
+     English. Every path a content overlay names has to exist on the thing it
+     names, which is what walking the lesson and comparing proves. */
+  it("puts every lesson line somewhere the lesson can read it", () => {
+    const t = makeT(locale.id);
+    const all = [...LIBRARY, WELCOME_LESSON];
+    const keys = [...mine.keys()].filter(k => k.startsWith("lesson."));
+    const reached = new Set();
+    for (const lesson of all) {
+      const before = flatten({ lesson: { [lesson.id]: lesson } });
+      const after = flatten({ lesson: { [lesson.id]: localize(lesson, `lesson.${lesson.id}`, t) } });
+      for (const [k, v] of after) if (before.get(k) !== v) reached.add(k);
+    }
+    for (const key of keys) {
+      expect(reached.has(key), `${locale.id}: ${key} reaches no lesson field`).toBe(true);
+    }
+  });
+
   it("overlays only things that exist, and leaves their holes alone", () => {
     const ids = {
       room: PALETTES.map(p => p.id),
       stones: STONE_SETS.map(s => s.id),
       type: TYPEFACES.map(f => f.id),
       belt: BELTS.map(b => b.id),
+      lesson: [...LIBRARY.map(l => l.id), WELCOME_LESSON.id],
     };
     for (const key of [...mine.keys()].filter(isOverlay)) {
       const [ns, id] = key.split(".");
