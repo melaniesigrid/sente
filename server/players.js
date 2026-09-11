@@ -24,5 +24,11 @@ export function publicPlayer(p) {
   };
 }
 
+/** A player put back at the newcomer's seat: the rating trio comes from `seat`
+ *  and the record goes to zero. Everything that makes them who they are — name,
+ *  tint, email, password, picture, the games they played — is left alone, which
+ *  is what makes this something an operator can grant without deleting anybody. */
+export const reseeded = (p, seat) => ({ ...p, ...seat, wins: 0, losses: 0, draws: 0 });
+
 /** Has this player finished a rated game? Only they stand on the ladder. */
 export const hasPlayed = (p) => p.wins + p.losses + (p.draws ?? 0) > 0;

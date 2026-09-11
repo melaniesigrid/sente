@@ -164,6 +164,10 @@ Decisions made in Phase 3, the table slice (branch `feat/the-table`, 2026-09-10)
   strength, up or down, inside an evening. Atari hints follow that uncertainty rather
   than the belt alone, so a newcomer at a green belt they have not proved still gets
   them (`hintsFor` in `src/content/rank.js`).
+- `POST /api/admin/players/:id/reseed` puts one account back at that seat — the rating
+  trio and the win/loss record, nothing else — so starting over no longer means deleting
+  the account. The handle may be the address, because an address is what an operator is
+  given. Documented in `docs/server-operations.md`.
 - `server/rating.js` is now a thin use of `src/engine/glicko.js`, on the same scale.
   Stored ratings were migrated by rank; the registry carries `schema:version` and
   migrates once at wake-up, inside `blockConcurrencyWhile`.

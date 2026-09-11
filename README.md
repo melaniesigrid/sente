@@ -72,7 +72,8 @@ test suite. `src/engine/index.js` is the only thing views import from it.
 `wrangler.jsonc`. `npm run dev:server` runs it on port 8787, `npm run deploy:server`
 publishes it (needs `npx wrangler login` once). `npx wrangler secret put ADMIN_TOKEN`
 sets the key for the operator routes: `GET /api/admin/players`,
-`DELETE /api/admin/players/:id`, `DELETE /api/admin/ratelimit/:ip` and
+`DELETE /api/admin/players/:id`, `POST /api/admin/players/:id/reseed` (back to the
+newcomer's seat, keeping the account), `DELETE /api/admin/ratelimit/:ip` and
 `GET /api/admin/whoami` (what the edge says about a caller).
 
 Claiming a handle is limited to twenty an hour from one address; leaving gives the claim

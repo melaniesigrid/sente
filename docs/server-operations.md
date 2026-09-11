@@ -190,12 +190,13 @@ required only the mailbox.
 
 ## Operator routes
 
-All four need `Authorization: Bearer $ADMIN_TOKEN`.
+Every one of them needs `Authorization: Bearer $ADMIN_TOKEN`.
 
 | Route | What it does |
 | --- | --- |
 | `GET /api/admin/players` | Every account, newest first |
 | `DELETE /api/admin/players/:id` | Remove one account for good |
+| `POST /api/admin/players/:id/reseed` | Put one account back at the newcomer's seat: the rating trio and the win/loss record, nothing else. `:id` may be the address instead, url-encoded |
 | `DELETE /api/admin/ratelimit/:ip` | Forget one address's handle-claiming count |
 | `GET /api/admin/whoami` | What the edge says about the caller, for checking addresses arrive |
 | `POST /api/admin/mail/:kind/:id` | Mint a `verify` or `reset` link for one player and hand it back, unsent |
