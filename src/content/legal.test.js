@@ -13,6 +13,7 @@ import { readFileSync } from "node:fs";
 import { DOCUMENTS, CREDITS, COPYRIGHT, CONTACT, UPDATED, documentById } from "./legal.js";
 import { CHAT_KEEP } from "../../server/room.js";
 import { AVATAR_MAX_BYTES, BIO_MAX } from "../../server/profile.js";
+import { RETAIN_DAYS, sealed, emptyDay } from "../../server/rollup.js";
 
 /** Every word of every document, as one string. The claims live in prose, so
  *  the checks are made against prose. */
@@ -89,6 +90,40 @@ describe("the privacy notice, against the server", () => {
     expect(privacy).toMatch(/no cookie/i);
     expect(privacy).toMatch(/no analytics script/i);
     expect(privacy).toMatch(/[Nn]ever your password/);
+  });
+
+  /* The daily tally, added 11 September 2026. `legal.js` promises that
+     anything newly collected is disclosed in a sentence of its own rather than
+     folded into a paragraph, so what follows checks that the sentence is
+     there, that the retention it quotes is the one the server enforces, and
+     that the older claim beside it was not quietly softened to make room. */
+  it("keeps the number of days the server actually keeps", () => {
+    expect(privacy).toContain(`${RETAIN_DAYS} days`);
+  });
+
+  it("still says Joseki has never counted a visit", () => {
+    // The tally counts games and accounts, neither of which is a visit. If it
+    // ever starts counting page views this sentence has to go, and removing it
+    // should cost a failing test rather than a moment's inattention.
+    expect(privacy).toMatch(/never counted a visit/i);
+  });
+
+  it("names every field the tally stores, so the row cannot quietly grow", () => {
+    // `sealed` is what decides a row's shape. A field added there and not
+    // described here would be a collection the notice does not admit to.
+    const row = sealed(emptyDay(), "2026-09-11", 0);
+    const said = {
+      date: /once a day/i,
+      accounts: /how many handles exist/i,
+      newAccounts: /how many were made that day/i,
+      gamesStarted: /how many games were started/i,
+      gamesFinished: /how many finished/i,
+      peakOnline: /most people who were in the lobby at once/i,
+    };
+    for (const field of Object.keys(row)) {
+      expect(said[field], `the tally stores ${field} and the notice never says so`).toBeTruthy();
+      expect(privacy, field).toMatch(said[field]);
+    }
   });
 });
 

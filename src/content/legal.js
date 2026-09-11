@@ -33,7 +33,7 @@ export const COPYRIGHT = `© ${COPYRIGHT_YEAR} ${STUDIO}`;
 /** The day these documents last said something different. Shown on each one: a
  *  legal document with no date is a document nobody can tell they have read
  *  before. Move it in the same commit that changes a word of the text. */
-export const UPDATED = "10 September 2026";
+export const UPDATED = "11 September 2026";
 
 /* ---------------------------------------------------------------- credits */
 /* Everything in the build that somebody else made, with the terms it comes
@@ -174,6 +174,7 @@ const TERMS = {
    the three facts, the avatar at 64 KB) · server/accounts.js (the stretched
    key, never the password) · server/mail.js (the two letters) ·
    server/ratelimit.js and `claimedFrom` (the address bucket) ·
+   server/rollup.js (the daily tally and how long it is kept) ·
    src/store/*.js (the four local keys) · src/content/typeface.js (the Google
    Fonts import, the one third party the browser talks to on its own). */
 const PRIVACY = {
@@ -185,6 +186,7 @@ const PRIVACY = {
       heading: "The short version",
       paras: [
         "There is no analytics script, no advertising network, no tracking pixel and no cookie of any kind. Joseki has never counted a visit.",
+        "Since 11 September 2026 the server does keep a tally of its own. Once a day it writes down how many handles exist, how many were made that day, how many games were started, how many finished, and the most people who were in the lobby at once. That is six numbers and a date, nobody is named in any of them, and they are kept for 365 days. A game is not a visit and an account is not a visit, so the sentence above still holds: read every page here and never sit down at a board, and you will not appear in any of those numbers.",
         "Play by yourself and nothing leaves your device. Play against people and the server keeps the handful of things listed below, because a game between two people cannot happen without them.",
       ],
     },

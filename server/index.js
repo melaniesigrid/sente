@@ -33,6 +33,7 @@
      GET   /api/games           bearer         -> recent games
      GET   /api/ladder                         -> top players
      GET   /api/stats                          -> {players, online, seeking}
+     GET   /api/stats/history?days=            -> a row a day, oldest first
      GET   /api/lobby?token=    websocket      -> matchmaking
      GET   /api/game/:id                       -> the room (public)
      GET   /api/game/:id/ws?token=  websocket  -> play or watch */
@@ -248,6 +249,12 @@ async function route(req, env) {
 
   if (path === "/api/ladder" && req.method === "GET") return json(await reg.ladder(), 200, { "cache-control": "public, max-age=30" });
   if (path === "/api/stats" && req.method === "GET") return json(await reg.stats());
+  // Open in a browser and read it. The series is six integers and a date per
+  // row, with nobody named in it, so it is public for the same reason the
+  // ladder is: there is nothing in it to keep back.
+  if (path === "/api/stats/history" && req.method === "GET") {
+    return json(await reg.history(url.searchParams.get("days")), 200, { "cache-control": "public, max-age=300" });
+  }
 
   if (path === "/api/lobby") {
     if (req.headers.get("upgrade") !== "websocket") return fail(426, "websocket-only");

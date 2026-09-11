@@ -10,6 +10,9 @@
      matchmaking  `seek:<playerId>` open seeks; lobby sockets are hibernated and
                   tagged with the player id so a match can be pushed to them
      the ladder   a sort over the players, cached for a minute
+     the tally    `day:<date>` the day being counted, `stats:day:<date>` the
+                  days already sealed; six integers each and no identifier,
+                  so publishing the whole series gives nothing away
 
    A handle can be claimed with nothing but a name — sitting down to play has
    never needed an account, and still does not. Such a handle lives in one
@@ -34,8 +37,13 @@ import { hit, refund, REGISTER_LIMIT, REGISTER_WINDOW_MS, SIGNIN_LIMIT, SIGNIN_W
   FORGOT_LIMIT, FORGOT_WINDOW_MS, VERIFY_LIMIT, VERIFY_WINDOW_MS } from "./ratelimit.js";
 import { VERIFY_TTL_MS, RESET_TTL_MS } from "./mail.js";
 import { SIZES } from "./room.js";
+import { dayOf, dayBefore, emptyDay, counted, raised, isFinish, sealed, stale,
+  clampDays, recent, nextSeal, RETAIN_DAYS } from "./rollup.js";
 
 const KEEP_GAMES = 24;
+/* Storage lists cap at a thousand keys a page, so anything counting every
+   player has to ask for the next page rather than trust the first. */
+const PAGE = 1000;
 /* How many devices one account may stay signed in on. Past this the oldest
    session is forgotten, which is what a person who never signs out wants. */
 const SESSION_KEEP = 12;
@@ -54,10 +62,18 @@ export class Registry extends DurableObject {
   constructor(ctx, env) {
     super(ctx, env);
     this.ladderCache = null;
+    this.historyCache = null;
     // Storage is migrated once, before the first request is answered. Blocking
     // the object's concurrency here is the point: no handler can read a player
     // on the old scale, and a cold start cannot race a second migration.
-    ctx.blockConcurrencyWhile(async () => { await this.#migrate(); });
+    // The seal is armed in the same breath, and deliberately not from inside
+    // `#migrate`: that returns at its first line for an object already at
+    // SCHEMA, which every live object is, so an arm placed there would be code
+    // that never runs again.
+    ctx.blockConcurrencyWhile(async () => {
+      await this.#migrate();
+      await this.#armSeal();
+    });
   }
 
   /** Bring stored records up to SCHEMA. Runs once per object, at wake-up. */
@@ -115,6 +131,9 @@ export class Registry extends DurableObject {
     };
     player.sessions = [player.tokenHash];
     await this.ctx.storage.put({ [`player:${id}`]: player, [`tok:${player.tokenHash}`]: id });
+    // Counted here and only here. `signUp` claims a handle by calling this, so
+    // counting there as well would make every signup arrive twice.
+    await this.#note("newAccounts");
     return { token, player: this.#self(player) };
   }
 
@@ -512,6 +531,10 @@ export class Registry extends DurableObject {
 
   /** Rooms call this when a game is made and when it ends, so the lobby list is current. */
   async noteGame(summary) {
+    // One call, two events, told apart by the `endedAt` the room sets at the
+    // move that finishes the game. Counting both as the same thing would
+    // double every game.
+    await this.#note(isFinish(summary) ? "gamesFinished" : "gamesStarted");
     for (const id of [summary.black.id, summary.white.id]) {
       const key = `games:${id}`;
       const list = (await this.ctx.storage.get(key)) || [];
@@ -583,9 +606,104 @@ export class Registry extends DurableObject {
   }
 
   async stats() {
-    const players = await this.ctx.storage.list({ prefix: "player:" });
     const seeks = await this.ctx.storage.list({ prefix: "seek:" });
-    return { players: players.size, online: this.ctx.getWebSockets().length, seeking: seeks.size };
+    return { players: await this.#countPlayers(), online: this.ctx.getWebSockets().length, seeking: seeks.size };
+  }
+
+  /** Every player, counted a page at a time. A single `list` stops at a
+   *  thousand keys and says nothing about it, so counting that way would have
+   *  the number quietly stop rising on the day it mattered. */
+  async #countPlayers() {
+    let n = 0;
+    let startAfter;
+    for (;;) {
+      const page = await this.ctx.storage.list({ prefix: "player:", limit: PAGE, ...(startAfter ? { startAfter } : {}) });
+      if (page.size === 0) break;
+      n += page.size;
+      if (page.size < PAGE) break;
+      startAfter = [...page.keys()].pop();
+    }
+    return n;
+  }
+
+  /* ----- the daily tally -----
+     How many people are here and how much go gets played, one row a day.
+     Nothing in here is a page view and nothing in here names a person, which
+     is what lets the privacy notice keep saying Joseki has never counted a
+     visit. What is counted, and why each of these is not a visit, is argued
+     in `server/rollup.js`. */
+
+  /** Add to today's row. Written straight to storage rather than held in
+   *  memory: a Durable Object is evicted after a short idle spell, and at this
+   *  traffic that is the ordinary case rather than the edge. An in-memory
+   *  counter would be gone by the time the seal woke a fresh instance, and
+   *  every row would read zero no matter what happened that day. */
+  async #note(field, n = 1) {
+    const key = `day:${dayOf(Date.now())}`;
+    const day = (await this.ctx.storage.get(key)) ?? emptyDay();
+    await this.ctx.storage.put(key, counted(day, field, n));
+  }
+
+  /** Sample how many are in the lobby at once. Taken when a socket opens and
+   *  not when one closes, because a close can only lower a number that only
+   *  ever rises. */
+  async #notePeak() {
+    const online = this.ctx.getWebSockets().length;
+    const key = `day:${dayOf(Date.now())}`;
+    const day = (await this.ctx.storage.get(key)) ?? emptyDay();
+    if (online > (day.peakOnline ?? 0)) await this.ctx.storage.put(key, raised(day, online));
+  }
+
+  /** A Durable Object has exactly one alarm and `setAlarm` overwrites it, so
+   *  anything else that ever wants to wake this object has to come through
+   *  here or it will cancel the seal without a word. Not worth a scheduler
+   *  until something actually competes for it; worth this comment now. */
+  async #armSeal() {
+    if ((await this.ctx.storage.getAlarm()) === null) {
+      await this.ctx.storage.setAlarm(nextSeal(Date.now()));
+    }
+  }
+
+  async alarm() {
+    // Re-arm whatever happened. An alarm that throws is retried by the
+    // platform, but one that fails quietly and never re-arms stops the clock
+    // for good, and losing a day's row is a far smaller thing than losing
+    // every day after it.
+    try {
+      await this.#seal(Date.now());
+    } catch (e) {
+      console.error("seal failed", e);
+    }
+    await this.ctx.storage.setAlarm(nextSeal(Date.now()));
+  }
+
+  /** Close yesterday and drop whatever has aged out. Yesterday and not today:
+   *  the seal wakes a few minutes after midnight, and anything counted in
+   *  those minutes belongs to the day that just started. */
+  async #seal(nowMs) {
+    const today = dayOf(nowMs);
+    const date = dayBefore(today);
+    const key = `day:${date}`;
+    const working = await this.ctx.storage.get(key);
+    // A day the object slept through has no working row and seals as zeros,
+    // so a quiet day is a flat line rather than a hole in the series.
+    await this.ctx.storage.put(`stats:day:${date}`, sealed(working ?? emptyDay(), date, await this.#countPlayers()));
+    if (working) await this.ctx.storage.delete(key);
+    const kept = await this.ctx.storage.list({ prefix: "stats:day:" });
+    const gone = stale([...kept.keys()].map(k => k.slice("stats:day:".length)), today, RETAIN_DAYS);
+    if (gone.length) await this.ctx.storage.delete(gone.map(d => `stats:day:${d}`));
+    this.historyCache = null;
+  }
+
+  /** The sealed days, oldest first. Read once per waking and kept in memory:
+   *  the rows never change after they are written, and the only thing that
+   *  adds or removes one is the seal, which drops the cache itself. */
+  async history(days) {
+    if (!this.historyCache) {
+      const rows = await this.ctx.storage.list({ prefix: "stats:day:" });
+      this.historyCache = [...rows.values()];
+    }
+    return recent(this.historyCache, clampDays(days), dayOf(Date.now()));
   }
 
   /* ----- lobby sockets and matchmaking -----
@@ -600,6 +718,7 @@ export class Registry extends DurableObject {
     server.serializeAttachment({ id: player.id });
     // A player has one lobby seat: newer tabs replace older ones quietly.
     for (const ws of this.ctx.getWebSockets(player.id)) if (ws !== server) ws.close(4000, "replaced");
+    await this.#notePeak();
     await this.broadcastLobby();
     return new Response(null, { status: 101, webSocket: client });
   }
