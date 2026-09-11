@@ -95,7 +95,7 @@ export class Room extends DurableObject {
     if (ev.to === "seat") return sendRaw(sender, frame);
     if (ev.to === "all") { for (const ws of this.ctx.getWebSockets()) sendRaw(ws, frame); return; }
     const ids = ev.to.startsWith("team:")
-      ? teamSeats(room.seats, ev.to.slice(5)).map((id) => room.seats[id].id)
+      ? teamSeats(room.seats, ev.to.slice(5)).map((id) => room.seats[id]).filter(Boolean).map((seat) => seat.id)
       : room.seats[ev.to] ? [room.seats[ev.to].id] : [];
     for (const pid of ids) for (const ws of this.ctx.getWebSockets(pid)) sendRaw(ws, frame);
   }

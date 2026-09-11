@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { onlineStatus, settledLine, onlineCaption, tableLine } from "./onlineStatus.js";
+import { onlineStatus, settledLine, onlineCaption, tableLine, teamName } from "./onlineStatus.js";
 import { createRoom, applyMessage } from "../../server/room.js";
 
 const A = { id: "a", name: "Ada", rating: 1500, rd: 350 };
@@ -22,6 +22,12 @@ describe("onlineStatus", () => {
     // A watcher is told who, not what colour: at a pair table a colour is two people.
     expect(onlineStatus({ room: r, seat: null, conn: "open" })).toBe("Ada to move");
   });
+  it("falls back to the colour when the next seat is missing", () => {
+    const r = fresh();
+    r.seats = {};
+    expect(onlineStatus({ room: r, seat: "b1", conn: "open" })).toBe("Black to move");
+    expect(onlineStatus({ room: r, seat: null, conn: "open" })).toBe("Black to move");
+  });
   it("covers undo asks and the two-sided count", () => {
     let r = step(fresh(), "b1", { t: "play", c: 2, r: 2 });
     r = step(r, "b1", { t: "undoRequest" });
@@ -36,6 +42,13 @@ describe("onlineStatus", () => {
 });
 
 describe("lines", () => {
+  it("teamName tolerates a missing seat snapshot", () => {
+    const r = pair();
+    delete r.seats.w2;
+    expect(teamName(r, "w")).toBe("Bea");
+    r.seats.w1 = null;
+    expect(teamName(r, "w")).toBe("White");
+  });
   it("settledLine reads from my side", () => {
     const room = { settled: { rated: true, b: { delta: 12, rating: 1512 }, w: { delta: -12, rating: 1588 } } };
     expect(settledLine(room, "b1")).toBe("+12 rating · now 1512");
