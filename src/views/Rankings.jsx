@@ -43,7 +43,7 @@ export function RankingsView({ profile }) {
               on the server with Glicko-2, so a rating carries how sure it is. The house
               ladder is you against the residents, Elo-style, roughly a hundred points to
               a rank." />
-      <Statement lines={statementFor("ladder")}>{plainFor("ladder")}</Statement>
+      <Statement lines={statementFor("ladder")} figure="ladder">{plainFor("ladder")}</Statement>
       <Passage context="ladder" />
 
       {global !== false && (

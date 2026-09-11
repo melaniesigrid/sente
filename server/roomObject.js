@@ -6,7 +6,10 @@
    the Registry once and pins the rating changes on the room. */
 
 import { DurableObject } from "cloudflare:workers";
-import { createRoom, applyMessage, seatOf, reviveRoom, outcome } from "./room.js";
+import {
+  createRoom, applyMessage, seatOf, reviveRoom, outcome, isPairRoom, leadSeat, controls, actingSeat,
+} from "./room.js";
+import { teamSeats } from "../src/engine/rengo.js";
 
 export class Room extends DurableObject {
   constructor(ctx, env) {
@@ -49,12 +52,15 @@ export class Room extends DurableObject {
     const player = header ? JSON.parse(header) : null;
     const seat = player ? seatOf(room, player.id) : null;
     const tag = seat ? player.id : "spectator";
+    // The seats this player may act in: their chair, plus the partner their
+    // browser runs. The client needs it to know when to ask its partner to move.
+    const runs = player ? controls(room, player.id).filter((id) => id !== seat) : [];
     const pair = new WebSocketPair();
     const [client, server] = Object.values(pair);
     this.ctx.acceptWebSocket(server, [tag, seat ? "seated" : "watching"]);
     server.serializeAttachment({ seat, player: player ? { id: player.id, name: player.name } : null });
     send(server, { t: "state", room });
-    send(server, { t: "seat", seat, watching: this.ctx.getWebSockets("watching").length });
+    send(server, { t: "seat", seat, runs, watching: this.ctx.getWebSockets("watching").length });
     return new Response(null, { status: 101, webSocket: client });
   }
 
@@ -69,7 +75,11 @@ export class Room extends DurableObject {
       if (!player) return send(ws, { t: "error", reason: "sign-in-to-chat" });
       msg = { ...msg, from: player };
     }
-    const { room: next, events } = applyMessage(room, seat, msg);
+    /* Which chair this frame speaks from. A move is applied as whichever seat is
+       actually to play when this player controls it, so a client running its own
+       partner never has to name the chair and cannot name the wrong one. */
+    const acting = seat ? actingSeat(room, player.id, msg.t) : null;
+    const { room: next, events } = applyMessage(room, acting, msg);
     if (next !== room) await this.save(next);
     for (const ev of events) this.emit(ev, ws, next);
     await this.maybeSettle(next);
@@ -78,11 +88,16 @@ export class Room extends DurableObject {
   async webSocketClose() {}
   async webSocketError() {}
 
+  /* Sockets are tagged by player id, so a target is resolved to the ids sitting
+     in it: one for a seat, two for a team at a pair table. */
   emit(ev, sender, room) {
     const frame = JSON.stringify(ev.frame);
     if (ev.to === "seat") return sendRaw(sender, frame);
     if (ev.to === "all") { for (const ws of this.ctx.getWebSockets()) sendRaw(ws, frame); return; }
-    for (const ws of this.ctx.getWebSockets(room.seats[ev.to].id)) sendRaw(ws, frame);
+    const ids = ev.to.startsWith("team:")
+      ? teamSeats(room.seats, ev.to.slice(5)).map((id) => room.seats[id].id)
+      : room.seats[ev.to] ? [room.seats[ev.to].id] : [];
+    for (const pid of ids) for (const ws of this.ctx.getWebSockets(pid)) sendRaw(ws, frame);
   }
 
   /** Report a finished game to the ladder once; broadcast the rating changes. */
@@ -103,12 +118,17 @@ export class Room extends DurableObject {
   }
 }
 
-/** The lobby's view of a game. */
+/** The lobby's view of a game. `black` and `white` stay the lead seats so a
+ *  lobby that has never heard of pair go still renders a pair table as a game
+ *  between two named people; `teams` carries the rest for one that has. */
 function summary(room) {
+  const side = (color) => teamSeats(room.seats, color)
+    .map((id) => ({ id: room.seats[id].id, name: room.seats[id].name, tint: room.seats[id].tint }));
   return {
-    id: room.id, size: room.size, rated: room.rated,
-    black: { id: room.seats.b.id, name: room.seats.b.name, tint: room.seats.b.tint },
-    white: { id: room.seats.w.id, name: room.seats.w.name, tint: room.seats.w.tint },
+    id: room.id, size: room.size, rated: room.rated, pair: isPairRoom(room),
+    black: { id: leadSeat(room, "b").id, name: leadSeat(room, "b").name, tint: leadSeat(room, "b").tint },
+    white: { id: leadSeat(room, "w").id, name: leadSeat(room, "w").name, tint: leadSeat(room, "w").tint },
+    teams: { b: side("b"), w: side("w") },
     phase: room.record.phase, moves: room.record.moves.length, toPlay: room.record.toPlay,
     result: room.record.result, createdAt: room.createdAt, endedAt: room.endedAt, updatedAt: Date.now(),
   };

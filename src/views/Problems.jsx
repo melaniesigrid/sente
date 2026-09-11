@@ -63,7 +63,7 @@ export function ProblemsView({ profile, setProfile, initialId }) {
         lede="Classical shapes — the public-domain vocabulary every serious life-and-death
               collection is built on. One of them is today's kata; solve it daily and your
               attendance grows." />
-      <Statement lines={statementFor("tsumego")}>{plainFor("tsumego")}</Statement>
+      <Statement lines={statementFor("tsumego")} figure="tsumego">{plainFor("tsumego")}</Statement>
       <Passage context="tsumego" />
       <div className="prob-tabs" role="tablist">
         {PROBLEMS.map((p, i) => {

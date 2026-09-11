@@ -405,6 +405,15 @@ ${FONT_FACES}
 .persona-cta { display: inline-flex; align-items: center; gap: 6px; font: 700 12px var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--accent-ink); }
 .local-card { max-width: 560px; }
 
+/* The pair table's lobby card. Four faces before you commit to any of it: a format
+   whose whole point is who is sitting with you has to show you who is sitting with
+   you. Our team reads first and is raised; theirs is sunken, across the table. */
+.pair-card { display: flex; flex-direction: column; gap: 13px; max-width: 640px; }
+.pair-faces { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+.pair-face { display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: 14px; box-shadow: var(--sink-sm); }
+.pair-face.ours { box-shadow: var(--raise-sm); }
+@media (max-width: 560px) { .pair-faces { grid-template-columns: minmax(0, 1fr); } }
+
 .rank-picker { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 18px; flex-wrap: wrap; }
 .rank-picker-label { display: flex; flex-direction: column; gap: 2px; }
 .rank-picker-label strong { font-family: var(--font-display); font-weight: var(--w-display); font-size: 18px; }
@@ -483,6 +492,19 @@ ${FONT_FACES}
 .vs-meta.right { align-items: flex-end; }
 .vs-meta strong { font-size: 15px; }
 .vs-x { color: var(--ink-2); font-family: var(--font-display-italic); font-style: var(--display-italic-style); }
+
+/* A pair table has four names in the strip instead of two. The teams stack, so the
+   partnership reads as one block on each side of the "vs" rather than as four
+   players in a row. The seat to move is raised out of its team and the other three
+   are left flat, which is the whole marking: no name is dimmed to say it is not
+   this player's turn, because a name nobody can read is not a quieter name. */
+.pair-strip { align-items: stretch; }
+.pair-side { flex-direction: column; align-items: flex-start; gap: 4px; }
+.pair-side.right { align-items: flex-end; }
+.pair-seat { display: flex; align-items: center; gap: 9px; padding: 3px 7px; border-radius: 12px; transition: box-shadow .2s ease; }
+.pair-side.right .pair-seat { flex-direction: row-reverse; }
+.pair-side.right .pair-seat .vs-meta { align-items: flex-end; }
+.pair-seat.to-move { box-shadow: var(--raise-sm); opacity: 1; }
 
 /* The clock lives inside the vs-strip, not in a bar of its own. Pressure is a colour
    shift and a pulse in the last ten seconds; byo-yomi periods are pips, one each. */
@@ -862,6 +884,127 @@ ${FONT_FACES}
   .statement.lp .statement-line { font-size: clamp(34px, 11.6vw, 54px); }
   .statement.lp .statement-mask:nth-child(2) .statement-line { font-size: clamp(31px, 10.4vw, 48px); }
   .statement.lp .statement-mask:nth-child(3) .statement-line { -webkit-text-stroke-width: 1.2px; }
+}
+
+/* ---- the figure: a shape from the game, at the size of the statement ----
+   Decor put a brand mark behind a section and StoneField put a blurred game
+   behind a band. This is the third and the only one that is go: a real shape,
+   played out by the engine, set beside the largest words on the screen.
+
+   It is drawn richer than a decor is, on purpose. A mark at this size is a
+   logo and has to stay at a watermark's strength or it takes the page over; a
+   figure is stones on lines, which is the picture this whole site is of, so it
+   is allowed to be seen. What keeps it out of the way instead is the mask: the
+   figure is at full strength where it leaves the page and gone to nothing by
+   the time it reaches the words, so the reader never has type over texture.
+
+   The stones are the room's stones, off --stone-*, and the light on them is
+   --sh-lite, the same light every raised card is lit by. Nothing is named here
+   that is not a token, and a change of set in the look page changes this too.
+
+   The house drop-shadows come off for Decor's reason: a 3px blur under a 300px
+   stone is a smear. What replaces the relief is the shine, which is what a
+   polished stone that size actually has on it -- a highlight where the surface
+   faces the light and a lit rim where it turns away. */
+.fig { position: absolute; z-index: 0; pointer-events: none; }
+.fig svg { height: var(--fig-h, clamp(200px, 30vw, 420px)); width: auto; display: block; overflow: visible; }
+.fig-grid line { stroke: var(--grid); stroke-width: 1.25px; vector-effect: non-scaling-stroke; opacity: .5; }
+.fig-rim { stroke: rgba(var(--sh-lite),.5); vector-effect: non-scaling-stroke; }
+
+/* A figure dissolves into the ground on every side and is cut only by the page
+   on the one it leaves by. The mask is centred on the shape -- --fig-cx and
+   --fig-cy are set by the component, off the stones themselves -- and not on
+   the frame, because the stones sit wherever the shape put them and a mask
+   centred on the frame catches half of them. Two earlier tries got this wrong:
+   a linear fade softened one edge and left the other three as the sides of a
+   box, and a fade anchored on the bleeding edge left the far stones at a third
+   of their strength, which on a pale ground turns a black stone white. A stone
+   here is either the colour it was played or it is not there. */
+.fig-right, .fig-left {
+  top: 50%;
+  -webkit-mask-image: radial-gradient(var(--fig-r, 86%) var(--fig-r, 86%) at var(--fig-cx, 50%) var(--fig-cy, 50%),
+    var(--ink) var(--fig-s, 46%), rgba(0,0,0,.42) var(--fig-m, 74%), transparent 100%);
+  mask-image: radial-gradient(var(--fig-r, 86%) var(--fig-r, 86%) at var(--fig-cx, 50%) var(--fig-cy, 50%),
+    var(--ink) var(--fig-s, 46%), rgba(0,0,0,.42) var(--fig-m, 74%), transparent 100%);
+}
+.fig-right { right: -6%; transform: translate(26%, -50%); }
+.fig-left { left: -6%; transform: translate(-26%, -50%); }
+
+/* The playing of it. A stone lands on the move it was played on and a captured
+   stone leaves on the move it was captured on, both off the one beat in
+   Figure.jsx, so what is watched is the sequence the engine actually produced.
+
+   The take is set to run forwards and not both. A stone that is going to be
+   captured must contribute nothing at all until its moment -- filled backwards
+   it would hold its end state through the delay and cancel the landing. */
+.fig .fig-stone { opacity: 0; transform-box: fill-box; transform-origin: center; }
+.fig.playing .fig-stone {
+  animation: fig-lay .52s cubic-bezier(.16, 1, .3, 1) both;
+  animation-delay: var(--laid, 0ms);
+}
+.fig.playing .fig-stone.taken {
+  animation:
+    fig-lay .52s cubic-bezier(.16, 1, .3, 1) var(--laid, 0ms) both,
+    fig-take .42s ease-in var(--gone, 0ms) forwards;
+}
+@keyframes fig-lay { from { opacity: 0; transform: scale(.34); } to { opacity: 1; transform: none; } }
+@keyframes fig-take { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(1.42); } }
+
+/* The light drifts across the figure rather than sitting still on it. Every
+   stone runs the same slow loop, started earlier the further down the diagonal
+   it sits (--sheen, set per stone), which is one wave of light crossing the
+   shape and not a row of pulsing dots. */
+.fig-shine { animation: fig-gleam 9s ease-in-out infinite; animation-delay: var(--sheen, 0ms); }
+@keyframes fig-gleam { 0%, 100% { opacity: .5; } 45% { opacity: 1; } }
+
+/* A statement with a figure holds it: the block is the positioned thing, its
+   own contents are lifted a layer clear of it, and the bleed is clipped at the
+   statement rather than at the window. The front door is the exception -- there
+   the band is the full width of the page and does the clipping, so the figure
+   is allowed out to the window edge. */
+.statement { position: relative; }
+.statement.has-fig { overflow: hidden; }
+.statement > *:not(.fig) { position: relative; z-index: 1; }
+/* A screen keeps its figure inside the measure rather than throwing it off the
+   window: the statement clips at the content column, and a shape pushed as far
+   out as a front-door band would lose the stone that makes it the shape it is.
+   A ponnuki missing one of its four is a tiger's mouth. */
+.statement .fig { --fig-h: clamp(190px, 27vw, 400px); }
+.statement .fig-right { right: -1%; transform: translate(9%, -50%); }
+.statement .fig-left { left: -1%; transform: translate(-9%, -50%); }
+.lp-band { overflow: hidden; }
+.statement.lp.has-fig { overflow: visible; }
+.statement.lp .fig { --fig-h: clamp(280px, 42vw, 640px); }
+.statement.lp .fig-right { right: calc(50% - 50vw); transform: translate(30%, -50%); }
+.statement.lp .fig-left { left: calc(50% - 50vw); transform: translate(-30%, -50%); }
+/* A centred statement has no margin to put a figure in, so its figure goes
+   behind the words and drops to the strength of a watermark -- a seal under the
+   type rather than a shape beside it. This is the one place the figure gives up
+   its stones to the words, and it is right that it does: a centred band is the
+   last thing on the front door and the words are the whole of it. */
+.statement.lp.center .fig {
+  --fig-h: clamp(320px, 46vw, 720px);
+  top: 50%; left: 50%; right: auto; transform: translate(-50%, -50%); opacity: .26;
+}
+/* On a narrow screen the words take the whole measure, so the figure goes
+   behind them and drops to a shadow of itself rather than fighting for room.
+
+   It also goes up. A statement is display type over a paragraph of plain words,
+   and the two do not take a shape behind them equally well: a line set at 11vw
+   carries one and reading size does not. So the figure is pinned to the top of
+   the block, where the big type is, and keeps off the sentence underneath. */
+@media (max-width: 820px) {
+  .statement .fig, .statement.lp .fig {
+    --fig-h: clamp(210px, 56vw, 360px); opacity: .26; top: 0;
+  }
+  .statement .fig-right, .statement.lp .fig-right { right: -14%; transform: translate(14%, -12%); }
+  .statement .fig-left, .statement.lp .fig-left { left: -14%; transform: translate(-14%, -12%); }
+  .statement.lp.center .fig { top: 50%; transform: translate(-50%, -50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fig.playing .fig-stone { animation: none; opacity: 1; }
+  .fig.playing .fig-stone.taken { animation: none; opacity: 0; }
+  .fig-shine { animation: none; }
 }
 
 @media (max-width: 620px) { .chapter-body { padding-left: 12px; } }
