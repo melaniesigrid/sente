@@ -1724,6 +1724,15 @@ ${FONT_FACES}
    back in at the edges, so the field has no border and never ends on a line. */
 .lp-ground { position: relative; isolation: isolate; }
 .lp-ground > *:not(.stone-field):not(.lp-decor) { position: relative; z-index: 1; }
+/* One exception, and it is stated here because this is the rule it answers.
+   The headline is sized off the window while its column is free to shrink past
+   it, so a wide display face sets "beautifully" wider than the column has and
+   the word runs over the board beside it. On one layer the board wins, by
+   coming second in the markup, and it carries an opaque ground: the word does
+   not overlap the board, it stops at it. The words are what the front door is
+   for, so the copy takes the layer above. Specificity is matched to the rule
+   above deliberately, and the lower z-index then loses on source order. */
+.lp-hero.lp-ground > .lp-hero-copy { z-index: 2; }
 .stone-field {
   position: absolute; inset: 0; z-index: 0; overflow: hidden;
   pointer-events: none; opacity: 0; transition: opacity 1.4s ease;
