@@ -51,7 +51,7 @@ export const COPYRIGHT = `© ${COPYRIGHT_YEAR} ${STUDIO}`;
    being stopped and handed the line where the date lives. */
 export const REVISION = {
   updated: "12 September 2026",
-  stamp: "bdb9f2d0",
+  stamp: "4f1dd24b",
 };
 
 /** The day the documents last changed. */
@@ -197,7 +197,7 @@ const TERMS = {
    key, never the password) · server/mail.js (the two letters) ·
    server/ratelimit.js and `claimedFrom` (the address bucket) ·
    server/rollup.js (the daily tally and how long it is kept) ·
-   src/store/*.js (the four local keys) · src/styles/googleFaces.js (the text
+   src/store/*.js (the local keys, now five) · src/store/deja.js (the positions, CAP = 1500) · src/styles/googleFaces.js (the text
    faces, self-hosted since 11 September 2026, so there is no longer a third
    party the browser talks to on its own). */
 const PRIVACY = {
@@ -218,6 +218,7 @@ const PRIVACY = {
       paras: [
         "Your name, your avatar tint, your rank, your finished lessons and problems, the room and the pairing you chose, the game in progress and the last table you set up. All of it sits in your browser's local storage, under keys of Joseki's own, and none of it is sent anywhere.",
         "Joseki also keeps the shape of your last fifty games against the house players (the board size, the handicap, which house player, how the game ended and how many moves it took) so the house players can be tuned against what really happens at the board. It holds no moves and nothing that could replay a game, it is never sent anywhere, and your profile page shows you exactly what is in it and empties it in one press.",
+        "It also keeps the positions from the opening and early middle game of games you have finished, up to fifteen hundred of them, so that the table can tell you when a game reaches somewhere you have played before. A position is stored as a number, turned to a standard orientation, with a count and a win-loss tally beside it. There are no moves in it and no order, so it cannot be turned back into a game you played; it is never sent anywhere; your profile page says how much is in it and empties it in one press; and switching déjà vu off on that page stops the table reading it.",
         "Clearing site data for Joseki erases every one of them, and there is no copy elsewhere to restore from.",
       ],
     },

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Pencil, Trophy, Flame, Sparkles, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Mountain, Palette, Grid3x3, Dot, Hammer, History, Trash2, MousePointerClick } from "lucide-react";
+import { Check, Pencil, Trophy, Flame, Sparkles, Sparkle, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Mountain, Palette, Grid3x3, Dot, Hammer, History, Trash2, MousePointerClick } from "lucide-react";
 import { Card, Btn, Pill, Avatar, RankBadge, BeltRibbon, Toggle, PullQuote, Statement } from "../components/ui.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
@@ -16,6 +16,7 @@ import { dayKey, liveStreak } from "../content/kata.js";
 import { saveProfile } from "../store/profile.js";
 import { loadAccount } from "../store/account.js";
 import { loadTelemetry, clearTelemetry, byBot, summarize, CAP } from "../store/telemetry.js";
+import { loadMemory, clearMemory, summarize as summarizeDeja, CAP as DEJA_CAP } from "../store/deja.js";
 import { PERSONAS } from "../content/personas.js";
 import { serverEnabled } from "../net/api.js";
 import { OnlineProfileCard } from "./OnlineProfile.jsx";
@@ -29,6 +30,47 @@ import { LettersCard } from "./LettersCard.jsx";
    fifty games went, the player should be able to read it, see exactly what it
    holds, and empty it in one press. Nothing here is sent anywhere - see
    store/telemetry.js, which has no network call in it at all. */
+/* The memory behind déjà vu, shown for the same reason the game log is shown:
+   a device that remembers something about you should say what, and let you
+   empty it. What it holds is positions without the order that would make them a
+   game, so there is nothing here to read back - see store/deja.js. */
+function DejaCard({ on }) {
+  const [memory, setMemory] = useState(loadMemory);
+  const [confirming, setConfirming] = useState(false);
+  const sum = summarizeDeja(memory);
+
+  return (
+    <Card>
+      <div className="stat-head"><Sparkle size={16} /><span>Positions you have stood on</span></div>
+      <p className="fine" style={{ marginTop: 6 }}>
+        The opening and early middle game of your finished games, kept on this device so the
+        table can tell you when a game arrives somewhere you have been before. A position is
+        stored turned to a standard orientation, so the same opening into another corner is
+        the same position. It holds no moves and no order, which is what makes it a set of
+        positions rather than a record of your games, it is never sent anywhere, and it drops
+        the positions you have visited least once it is full.
+      </p>
+      {sum.positions === 0 ? (
+        <p className="fine" style={{ marginTop: 10 }}>
+          Nothing in it yet. It fills as you finish games{on ? "" : ", and déjà vu is switched off above"}.
+        </p>
+      ) : (<>
+        <div className="row" style={{ marginTop: 10 }}>
+          <Pill icon={Grid3x3}>{sum.positions} of {DEJA_CAP}{sum.full ? " · full" : ""}</Pill>
+          <Pill icon={Sparkle}>{sum.revisited} met again</Pill>
+        </div>
+        <div className="row" style={{ marginTop: 12 }}>
+          <Btn icon={Trash2} small
+            onClick={() => { if (confirming) { clearMemory(); setMemory({}); setConfirming(false); } else setConfirming(true); }}>
+            {confirming ? "Forget them, sure?" : "Forget these positions"}
+          </Btn>
+          {confirming && <Btn small onClick={() => setConfirming(false)}>Keep them</Btn>}
+        </div>
+      </>)}
+    </Card>
+  );
+}
+
 function GameLogCard() {
   const [log, setLog] = useState(loadTelemetry);
   const [confirming, setConfirming] = useState(false);
@@ -289,6 +331,16 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
             </div>
           </div>
           <div className="setting-row">
+            <Sparkle size={20} />
+            <div className="setting-copy">
+              <strong>Déjà vu</strong>
+              <span className="fine">When a game reaches a position you have played before, the table
+                says so, and how those games went. It reads only this device's own memory of your
+                finished games, and it never suggests a move.</span>
+            </div>
+            <Toggle on={!!profile.dejaVu} onChange={v => commit({ dejaVu: v })} label="Déjà vu" />
+          </div>
+          <div className="setting-row">
             <MokuMark size={34} state={moku && moku.off ? "idle" : "watching"} />
             <div className="setting-copy">
               <strong>Moku at the table</strong>
@@ -321,6 +373,7 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
           <div className="stat-num">{profile.problemsDone.length}<em>/{PROBLEMS.length}</em></div>
         </Card>
       </div>
+      <DejaCard on={!!profile.dejaVu} />
       <GameLogCard />
 
       <Card inset>
