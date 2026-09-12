@@ -31,6 +31,7 @@ import {
   statusText, refusalText, captionText, resignLabel, confirmMoveLabel, resultCard, ratingLine,
   RESIGN_CONFIRM_MS,
 } from "./gameStatus.js";
+import { tapAction } from "./stagedMove.js";
 import { useClock } from "./useClock.js";
 
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
@@ -52,8 +53,9 @@ const BOARD_PX = { 9: 460, 13: 560, 19: 680 };
    by the day: no undo, no rematch, unrated, and starting it spends the day's
    one attempt.
 
-   Playing a stone is one tap, or two if the profile asks for two: with
-   `confirmMove` on, the first tap stages the move and the second plays it.
+   Playing a stone is always two taps: the first stages the move and the second
+   plays it, with the rule about what a tap means in `stagedMove.js` so that this
+   table, an online table and a pair table all agree.
    Staging runs the move through the engine straight away and keeps the record
    it produced, so an illegal point is refused while it is still a hover rather
    than after a confirmation, and the confirmed move is the very position the
@@ -126,12 +128,11 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const turn = rec.toPlay;
   const mySide = persona ? "b" : turn;
   const sound = !!profile.sound;
-  const confirmMoves = !!profile.confirmMove;
 
   /* A staged move is only ever valid for the position it was staged in, so any
      change to the record drops it - a pass, an undo, the house player's reply,
-     a flag - and so does turning the setting off mid-game. */
-  useEffect(() => { setPending(null); }, [rec, confirmMoves]);
+     a flag. */
+  useEffect(() => { setPending(null); }, [rec]);
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, [chat]);
   useEffect(() => {
@@ -415,10 +416,9 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       }
       throw e;
     }
-    // With confirmation on, the second tap on the staged point plays it and a tap
-    // anywhere else moves the staged stone there. Marking dead stones is exempt:
-    // a misplaced mark is undone by tapping it again, so it costs nothing.
-    if (confirmMoves && !(pending && pending.c === c && pending.r === r)) {
+    // The second tap on the staged point plays it; a tap anywhere else moves the
+    // staged stone there. Scoring is exempt and has already returned above.
+    if (tapAction(pending, c, r) === "stage") {
       setPending({ c, r, next });
       return;
     }
@@ -608,14 +608,10 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
             </div>
           ) : (
             <div className="row">
-              {confirmMoves && (
-                <>
-                  <Btn icon={Check} small primary onClick={onConfirmMove} disabled={!pending}>
-                    {confirmMoveLabel(!!pending)}
-                  </Btn>
-                  {pending && <Btn icon={X} small onClick={() => setPending(null)}>Cancel</Btn>}
-                </>
-              )}
+              <Btn icon={Check} small primary onClick={onConfirmMove} disabled={!pending}>
+                {confirmMoveLabel(!!pending)}
+              </Btn>
+              {pending && <Btn icon={X} small onClick={() => setPending(null)}>Cancel</Btn>}
               <Btn icon={Flag} small onClick={onPass} disabled={!!over}>Pass</Btn>
               <Btn icon={RotateCcw} small onClick={onUndo} disabled={!canUndo}>Undo</Btn>
               <Btn icon={Handshake} small onClick={onResign} disabled={!canResign}>{resignLabel(confirmResign)}</Btn>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Pencil, Trophy, Flame, Sparkles, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Mountain, Palette, Grid3x3, Dot, Hammer, History, Trash2, MousePointerClick } from "lucide-react";
+import { Check, Pencil, Trophy, Flame, Sparkles, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Mountain, Palette, Grid3x3, Dot, Hammer, History, Trash2 } from "lucide-react";
 import { Card, Btn, Pill, Avatar, RankBadge, BeltRibbon, Toggle, PullQuote, Statement } from "../components/ui.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
@@ -251,14 +251,6 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
               <span className="fine">A synthesised click on every stone, a soft note per capture, and a small haptic on phones. Nothing is downloaded.</span>
             </div>
             <Toggle on={profile.sound} onChange={v => commit({ sound: v })} label="Stone sound" />
-          </div>
-          <div className="setting-row">
-            <MousePointerClick size={16} />
-            <div className="setting-copy">
-              <strong>Confirm every move</strong>
-              <span className="fine">Two taps to play a stone: the first sets it down faintly, the second plays it. Until then nothing has happened and you can tap somewhere else instead. Your clock keeps running while you decide.</span>
-            </div>
-            <Toggle on={profile.confirmMove} onChange={v => commit({ confirmMove: v })} label="Confirm every move" />
           </div>
           <div className="setting-row">
             <Grid3x3 size={16} />
