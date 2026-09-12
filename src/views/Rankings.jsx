@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { Crown, Flame, Globe, Bot } from "lucide-react";
-import { Card, Avatar, RankBadge, Statement } from "../components/ui.jsx";
+import { Card, Avatar, RankBadge, Statement } from "../components/ui.jsx";
 import { ScreenHeader } from "../components/ScreenHeader.jsx";
 import { avatarUrl } from "../net/avatar.js";
 import { SERVER_URL } from "../net/api.js";
@@ -15,8 +15,12 @@ import { loadAccount } from "../store/account.js";
 /* ----------------------- RANKINGS -----------------------
    Two ladders. The global one is the server's Glicko-2 table of people who
    claimed a handle; it is fetched fresh on every visit and shown only when the
-   server answers. The house ladder is the local one: you against the bots. */
-export function RankingsView({ profile }) {
+   server answers. The house ladder is the local one: you against the bots.
+
+   A row on the global ladder opens that player's page. The house ladder's rows
+   do not: a house player is software, it has nothing to say about itself, and a
+   page about one would be a page about a rank. */
+export function RankingsView({ profile, go }) {
   const account = useMemo(() => loadAccount(), []);
   const [global, setGlobal] = useState(() => (serverEnabled() ? null : false));   // null loading, [] empty, false unavailable
   useEffect(() => {
@@ -53,7 +57,10 @@ export function RankingsView({ profile }) {
             {global === null && <p className="fine">Fetching the ladder…</p>}
             {global && global.length === 0 && <p className="fine">Nobody has sat down yet. Claim a handle in Play to be first.</p>}
             {global && global.map((r, i) => (
-              <div key={r.id} className={`ladder-row ${account && r.id === account.player.id ? "me" : ""}`}>
+              <button key={r.id} type="button"
+                className={`ladder-row ladder-open ${account && r.id === account.player.id ? "me" : ""}`}
+                onClick={() => go("player", { playerId: r.id, from: "ladder" })}
+                aria-label={`${r.name}, ${preciseRankOf(r.rating)}. Open their page`}>
                 <span className={`ladder-pos ${i === 0 ? "gold" : ""}`}>{i === 0 ? <Crown size={16} /> : i + 1}</span>
                 <Avatar name={r.name} tint={r.tint} size={38} src={avatarUrl(SERVER_URL, r.id, r.avatarAt)} />
                 <div className="ladder-name">
@@ -62,7 +69,7 @@ export function RankingsView({ profile }) {
                 </div>
                 <div className="ladder-rating">{preciseRankOf(r.rating)}</div>
                 <RankBadge rating={r.rating} rd={r.rd} precise />
-              </div>
+              </button>
             ))}
           </Card>
         </>

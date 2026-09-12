@@ -10,7 +10,7 @@
 
 import { deriveKey } from "./password.js";
 
-const DEFAULT_URL = import.meta.env.DEV ? "http://localhost:8787" : "https://sente-server.melaniesigrid.workers.dev";
+const DEFAULT_URL = import.meta.env.DEV ? "http://localhost:8787" : "https://api.joseki.online";
 const configured = import.meta.env.VITE_SENTE_SERVER;
 export const SERVER_URL = (configured === undefined ? DEFAULT_URL : configured).replace(/\/+$/, "");
 export const serverEnabled = () => SERVER_URL !== "";
@@ -82,6 +82,15 @@ export const api = {
   setAvatar: (token, blob) => call("/api/me/avatar", { method: "PUT", token, blob }),
   clearAvatar: (token) => call("/api/me/avatar", { method: "DELETE", token }),
   profile: (id) => call(`/api/players/${encodeURIComponent(id)}`),
+
+  /* Friends. The three lists arrive together, and every call that changes one
+     of them answers with the outcome and the new standing rather than a bare
+     200: declining a request and taking one back come from the same DELETE and
+     mean opposite things to whoever pressed it. */
+  friends: (token) => call("/api/me/friends", { token }),
+  askFriend: (token, id) => call(`/api/me/friends/${encodeURIComponent(id)}`, { method: "POST", token }),
+  acceptFriend: (token, id) => call(`/api/me/friends/${encodeURIComponent(id)}/accept`, { method: "POST", token }),
+  forgetFriend: (token, id) => call(`/api/me/friends/${encodeURIComponent(id)}`, { method: "DELETE", token }),
 
   games: (token) => call("/api/games", { token }),
   ladder: () => call("/api/ladder"),

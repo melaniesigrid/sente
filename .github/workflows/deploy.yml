@@ -28,10 +28,11 @@ jobs:
       - run: npm ci
       - run: npm run build
         env:
-          # Project pages are served under /<repo>/; local dev keeps "/".
-          BASE_PATH: /${{ github.event.repository.name }}/
+          # The site is served from the root of joseki.online, so the base is
+          # "/" and BASE_PATH goes unset. It only mattered while the app lived
+          # under /<repo>/ on github.io, and vite.config.js still honours it.
           # The game server; set to "" to build without online play.
-          VITE_SENTE_SERVER: https://sente-server.melaniesigrid.workers.dev
+          VITE_SENTE_SERVER: https://api.joseki.online
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:

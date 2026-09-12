@@ -100,6 +100,10 @@ each fixed in its own commit:
       overlay, honest result card with every term ("41 stones + 3 territory = 44" vs
       "35 + 4 + 7.5 komi = 46.5"), a bow, and "Keep playing" to take both passes back.
 - [x] Resign with confirmation; result recorded honestly.
+- [x] Confirm every move, opt-in (`confirmMove` on the profile, "At the table"): the first
+      tap stages a faint stone under a dashed ring, the second plays it, and nothing reaches
+      the record until then. Staging runs the move through the engine immediately, so an
+      illegal point is refused at stage time. The clock keeps running while you decide.
 - [x] Clock UI (2026-09-10, branch `feat/clock`): pressure states, byo-yomi pips, no chrome.
 - [x] Review mode (2026-09-10, branch `feat/review-mode`): scrub with arrows, move number
       overlay, jump to capture, SGF out. The variation tree is NOT done and is not faked:
@@ -466,7 +470,7 @@ imitates a rank: Hoshi 20k, Tetsu 15k, Yuki 10k, Ren 5k, Sora 1k, Kaede 2d, Tats
 ## Phase 4: Multiplayer (server)
 
 Slice 1 landed 2026-09-10 on branch `feat/server`: a Cloudflare Worker (`server/`) with
-two Durable Object classes, deployed at https://sente-server.melaniesigrid.workers.dev.
+two Durable Object classes, deployed at https://api.joseki.online.
 
 - [x] Backend: accounts, game service over WebSocket. The `GameRecord` is the wire
       format; the server validates every move with the same engine (`server/room.js`
@@ -526,6 +530,33 @@ two Durable Object classes, deployed at https://sente-server.melaniesigrid.worke
       account, and `sente-server` runs on `workers.dev`, which is Cloudflare's and not
       ours. Until `MAIL_FROM` is set, `/api/health` reports `"mail": "off"` and every link
       goes to the log instead of the post. The four steps are in `docs/server-operations.md`.
+- [x] Joseki's own address: `joseki.online` for the app, `api.joseki.online` for the
+      server (branch `feat/online`). The zone is on Cloudflare and Namecheap's nameservers
+      point at it (`nadia`/`randy.ns.cloudflare.com`, verified 2026-09-12), so the repository
+      half lands: `public/CNAME`, an unset `BASE_PATH`, and both clients naming the api
+      subdomain. Three things are still a human in a dashboard and not a commit, and the
+      site does not answer until they are done:
+      1. The apex needs GitHub's four A records (185.199.108-111.153) and the AAAA quad,
+         **DNS-only, never proxied**: an orange cloud puts Cloudflare's certificate in front
+         of a host that wants to present its own and Pages never finishes provisioning.
+         Today the apex resolves to a Cloudflare address that serves nothing.
+      2. `api.joseki.online` is the Worker's custom domain, claimed by the deploy from
+         `"routes"` in `wrangler.jsonc`. It does not resolve yet.
+      3. `CLOUDFLARE_API_TOKEN` needs a **Workers Routes: Edit** row for the zone beside the
+         Workers Scripts row. A token's permissions are fixed at creation, so this is a new
+         token and `gh secret set` again. Without it the deploy uploads the code and then
+         fails on the domain.
+      It also unblocks the letters above: a domain on the account is the one thing Email
+      Sending was missing. Nobody's saved profile survives the move, because local storage
+      belongs to the old origin and nothing can read it across; anyone with an account signs
+      back in, anyone without starts again.
+- [x] The credit in the footer leads somewhere. `STUDIO_URL` in `legal.js`, an anchor in the
+      footer, and the same link in the served markup of `index.html` under the boot mark, so
+      a crawler that never runs the bundle still finds it. Beside it the things a site at its
+      own address needs and a site under `/sente/` on github.io did not: a canonical, four
+      Open Graph tags, `robots.txt` and a one-URL `sitemap.xml`. All static, all inert: the
+      privacy notice's "no analytics script, no tracking pixel, never counted a visit" is
+      still true word for word, and it is the reason there is no verification snippet here.
 - [ ] Change the address on an account. `attach` refuses a second one, so a typo today is
       permanent, and confirming makes the wrong address a *provably* wrong one. Wants the
       password and a fresh confirmation posted to the new address, and should hold the old
@@ -649,7 +680,7 @@ Decisions made in slice 1:
   comes back. On a 9x9 this is one round trip and feels instant; a local echo is a
   later polish if 19x19 over a slow link needs it.
 - `VITE_SENTE_SERVER` picks the server at build time (dev default `localhost:8787`,
-  production default the workers.dev URL, empty string disables online play).
+  production default `https://api.joseki.online`, empty string disables online play).
 
 ## Phase 5: Lesson library (30 kyu to dan)
 
@@ -1485,6 +1516,98 @@ even games only), and whether a partner may ever resign or accept a score for yo
 Out of scope, and named here so it does not creep in: reviewing the finished game and
 asking *why* the partner played there. Analysis is its own feature for every kind of
 game, not a wing of this one.
+
+## Phase 9: The social layer
+
+Full design: `docs/designs/the-social-layer.md` (office hours, 2026-09-12). Joseki can
+seat two strangers and rate the game honestly; it cannot do what a club does, which is let
+one player recognise another. Eight PRs growing outward from one page. The demand is
+first-party and specific: "Chat and having my friends will be very important and they can
+be the first users soon."
+
+Two of the seven asks turned out to be already built and merely unreachable — a player's
+paragraph, three facts and picture have shipped since the accounts slice, and
+`GET /api/players/:id` has been live and tested with nothing linking to it.
+
+- [x] **The page** (branch `feat/player-page`): the other end of that route. A player's
+      face at 84 px, their name at display size, the rank badge with its question mark,
+      their record, their paragraph and whichever facts they filled in, and one line of
+      fine print for when they arrived and how recently they played. Reached from every
+      row of the global ladder, which is now a button. The house ladder's rows are not:
+      a house player is software and a page about one would be a page about a rank.
+      `playerCard.js` is the wording, pure and tested; `PlayerPage.test.jsx` tests the
+      drawing, including the two absences below.
+- [x] **Friends** (branch `feat/friends`): request, accept, decline, withdraw, remove.
+      Three lists of ids per player in `friends:<id>` — settled, asked, asking — with
+      every edge written on both books in one put or on neither, so reading your friends
+      is one key and never a scan. `server/friends.js` holds the whole policy, pure;
+      the Durable Object only stores. The button on a player's page and the card on the
+      profile screen both derive what they offer from `src/views/friendship.js`, so the
+      two can never disagree about the same person. `tools/server/friends.mjs` proves it
+      against a deployment in 31 checks.
+- [ ] **Presence**, defaulting to off-the-record. The Registry already holds the lobby
+      sockets. Friends see that you are here; strangers see "played this week" and nothing
+      finer. `showOnline: "friends" | "everyone" | "nobody"` on the profile, and the
+      opt-out the ask called for is therefore the default rather than a setting to find.
+- [ ] **The archive**: lift `KEEP_GAMES` for finished games, paginate from the first
+      commit rather than discovering the ceiling later, and give every archived game its
+      SGF out of the record the Room already keeps for good.
+- [ ] **Featured games**: pin up to three onto your page with a line of your own about
+      each. The pin is an id; the game is still the record.
+- [ ] **The dashboard**: every game you are in, ordered by who is waiting on whom, with
+      how long the board has been waiting. It says plainly that it is not a clock. This
+      is also where a seat at a table becomes a link to a player's page: today
+      `linkedGame()` spends the `?game=` in the address on first read, so navigating away
+      from a live online table strands you in the lobby with no way back to your own game.
+      The dashboard is that way back, and the links wait for it.
+- [ ] **Badges**, computed at settle time and never granted. The set is deliberately not
+      enumerated in the design doc: it gets settled against the fields the record actually
+      holds, so no badge is designed for data that does not exist.
+- [ ] **Mail**: one thread per pair, between people who have played or are friends. No
+      broadcast, no list, no unsubscribe because there is nothing to leave. Rate limited
+      and blockable from the first commit.
+
+Decisions made in Phase 9, the friends slice (2026-09-12, branch `feat/friends`):
+- **An edge is written on both books or on neither**, in one `put` of two keys. The
+  alternative is one record holding a list of friends, which makes a friendship a claim
+  one person can make about another, and leaves no scan cheap enough to find a mismatch
+  afterwards. `friends.test.js` walks a fixed sequence of twenty moves and asserts the
+  two books agree after every one of them.
+- **Two people who each asked first are friends on the spot.** Answering the second one
+  with "you already have a request from them" is a true sentence that asks somebody to
+  press a different button to reach the outcome they just asked for.
+- **One `DELETE` declines, withdraws and unfriends.** From the person pressing it those
+  are one act, and which of the three lists the id was on is the server's business to
+  look up rather than the caller's to know before it may ask. The call answers with the
+  outcome, because "withdrawn" and "declined" come back from it and mean opposite things.
+- **Declining tells the person who asked nothing at all**, and is not blocking: they may
+  ask again. Blocking is a real thing and belongs with mail, not here.
+- Asking twice is quiet rather than an error, and does not re-stamp the request: it is
+  what somebody does when they are not sure the first one landed.
+- The friend button is derived from the caller's own three lists rather than from a
+  question about one player. `GET /api/players/:id` is cached for everybody alike and
+  must not learn who is asking.
+
+Decisions made in Phase 9, the page slice (2026-09-12, branch `feat/player-page`):
+- **Every feature in this phase is a new collection of personal data, so each one carries
+  its sentence in `legal.js` and its line in `remove()` in the same PR that adds it.**
+  Not a tidy-up at the end of the phase. This slice collects nothing new and so adds no
+  sentence, which is the reason it could ship in one afternoon.
+- **The page carries no list of games, and that is a legal constraint rather than a
+  scoping one.** `legal.js` says a finished game may be shown "to the players and to
+  anyone holding the link to that room". A list on a page anybody can open is wider than
+  that sentence, so the games wait for the archive slice, which widens the notice and the
+  page together or not at all. `PlayerPage.test.jsx` asserts the absence, so the day
+  somebody adds a games list without touching the notice, the suite says so.
+- **Nothing public says anything finer about time than a day.** `lastSeen` is already on
+  every public player the server serves, so this is not about what is known but about what
+  is said: a page anybody can open must not be a way to work out when a person is at their
+  desk. `seenText` buckets to today, yesterday, this week, this month, then a month and a
+  year, and a test walks every bucket for a clock time.
+- The answer from the server carries the id it is about. Opening a second player from the
+  first one's page otherwise shows the first player's card for a frame, which reads as the
+  wrong person rather than as loading.
+- The house ladder does not link. Only people have pages.
 
 ## Principles (do not trade away)
 

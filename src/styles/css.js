@@ -392,6 +392,12 @@ ${FONT_FACES}
 .mark-ring { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 4 4; opacity: .85; }
 .wrong-x line { stroke: var(--danger); stroke-width: 3; stroke-linecap: round; opacity: .9; animation: pop .18s ease; }
 .last-dot { fill: var(--accent); opacity: .9; }
+/* A staged move: the stone you are about to play, faint, under a breathing ring.
+   Clearly not on the board yet, and clearly not a hover ghost either. */
+.stone-staged { opacity: .55; }
+.staged-ring { fill: none; stroke: var(--accent); stroke-width: 2.6; stroke-dasharray: 5 5; opacity: .95;
+  animation: staged-breathe 1.8s ease-in-out infinite; }
+@keyframes staged-breathe { 50% { opacity: .4; } }
 .stone-b { filter: drop-shadow(2.5px 2.5px 3px rgba(var(--sh-ink),.45)) drop-shadow(-1.5px -1.5px 2px rgba(var(--sh-lite),.5)); }
 .stone-w { filter: drop-shadow(2.5px 2.5px 3px rgba(var(--sh-ink),.35)) drop-shadow(-1.5px -1.5px 2px rgba(var(--sh-lite),.9)); }
 .stone-in { animation: pop .22s ease; transform-origin: center; transform-box: fill-box; }
@@ -582,6 +588,17 @@ ${FONT_FACES}
   transition: box-shadow .15s ease;
 }
 .ladder-row.me { box-shadow: var(--sink-sm); }
+/* A ladder row that opens a player's page is a button, so it has to give back
+   the chrome a button brings with it and keep the row it was. The raise on
+   hover is the same two shadows every other raised thing uses; a row that is
+   already sunk because it is yours stays sunk, so "that's you" never flickers
+   into looking like somebody else's row under the pointer. */
+.ladder-open {
+  appearance: none; background: none; border: 0; font: inherit; color: inherit;
+  width: 100%; text-align: left; cursor: pointer;
+}
+.ladder-open:hover:not(.me), .ladder-open:focus-visible:not(.me) { box-shadow: var(--raise-sm); }
+.ladder-open:active:not(.me) { box-shadow: var(--sink-sm); }
 .ladder-pos { color: var(--ink-2); width: 26px; text-align: center; font-family: var(--font-display); font-weight: var(--w-display); font-size: 17px; display: grid; place-items: center; }
 .ladder-pos.gold { color: var(--accent-ink); opacity: 1; }
 .ladder-name { flex: 1; display: flex; flex-direction: column; line-height: 1.2; }
@@ -1664,6 +1681,50 @@ ${FONT_FACES}
 .op-fact dd { margin: 0; font-size: 14.5px; font-weight: 600; }
 .op-label { color: var(--ink-2); font-size: 12.5px; letter-spacing: .09em; text-transform: uppercase; }
 .op-textarea { width: 100%; resize: vertical; min-height: 76px; line-height: 1.6; font: 400 15px var(--font-body); }
+/* ---- the same card, seen from outside ----
+   One page, one card, and the name at display size rather than a heading size:
+   on this screen the person IS the subject, where on the profile screen their
+   card is one object among several. The picture is bigger for the same reason.
+   The facts well and the paragraph are the card's, unchanged, so a player sees
+   the thing they edited and not a second design of it. */
+.player-page { max-width: 620px; }
+.player-page .op-head { align-items: center; }
+.player-page h3 { font-size: clamp(24px, 3.4vw, 31px); line-height: 1.15; }
+.player-when { margin: 0; padding-top: 12px; border-top: 1px solid var(--hairline); }
+@media (max-width: 520px) {
+  .player-page .op-head { flex-direction: column; align-items: flex-start; gap: 12px; }
+}
+/* ---- friends ----
+   Three lists on one card, each headed and each absent when it is empty. A row
+   is one button holding the whole person, with the two acts as loose buttons
+   beside it: the name is a big target, and pressing it never declines anybody. */
+.friends-card { display: flex; flex-direction: column; gap: 16px; }
+.friends-card h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }
+.friend-group { display: flex; flex-direction: column; gap: 7px; }
+.friend-group-head {
+  margin: 0; font-size: 12.5px; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--ink-2); display: flex; align-items: baseline; gap: 7px;
+}
+.friend-rows { display: flex; flex-direction: column; gap: 6px; }
+.friend-row { display: flex; align-items: center; gap: 11px; padding: 8px 12px; border-radius: 16px; }
+.friend-who {
+  appearance: none; background: none; border: 0; font: inherit; color: inherit;
+  display: flex; align-items: center; gap: 11px; flex: 1; min-width: 0;
+  text-align: left; cursor: pointer; padding: 4px; border-radius: 14px;
+  transition: box-shadow .15s ease;
+}
+.friend-who:hover, .friend-who:focus-visible { box-shadow: var(--raise-sm); }
+.friend-who:active { box-shadow: var(--sink-sm); }
+.friend-acts { display: flex; align-items: center; gap: 5px; flex: none; }
+.friend-button { padding-top: 4px; }
+.friend-standing {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 14px; color: var(--ink-2); padding: 7px 2px;
+}
+@media (max-width: 520px) {
+  .friend-row { flex-wrap: wrap; }
+  .friend-who { flex-basis: 100%; }
+}
 .seek-state { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-radius: 14px; box-shadow: var(--sink-sm); font-size: 14.5px; }
 .seek-state .pulse { color: var(--accent-ink); animation: seek-pulse 1.6s ease-in-out infinite; }
 @keyframes seek-pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }

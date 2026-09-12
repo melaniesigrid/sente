@@ -25,6 +25,9 @@ import { hashString } from "../engine/index.js";
 export const STUDIO = "Northbound Software Studio";
 export const PRODUCT = "Joseki";
 export const CONTACT = "hello@northboundsoftwarestudio.com";
+/** The studio's own front door. A credit that names who runs this and then
+ *  makes the reader search for them is half a credit. */
+export const STUDIO_URL = "https://northboundsoftwarestudio.com";
 export const REPO = "https://github.com/melaniesigrid/sente";
 
 /** The year the notice asserts, and the line that carries it. One constant, so
@@ -47,8 +50,8 @@ export const COPYRIGHT = `© ${COPYRIGHT_YEAR} ${STUDIO}`;
    its own; what it can do is make it impossible to change a word without
    being stopped and handed the line where the date lives. */
 export const REVISION = {
-  updated: "11 September 2026",
-  stamp: "fe8760f7",
+  updated: "12 September 2026",
+  stamp: "39b8ff4a",
 };
 
 /** The day the documents last changed. */
@@ -228,6 +231,7 @@ const PRIVACY = {
         "The sign-in tokens for your open sessions, kept as hashes, so a stolen store is not a set of working keys.",
         "Anything you chose to add to your profile: a paragraph of up to 280 characters, three short facts, and a picture of up to 64 KB.",
         "The games you played online, and up to 200 chat lines in each room alongside the record.",
+        "Who your friends here are: the handles you have agreed to be friends with, the requests you have sent, and the requests you have been sent. Three lists of handles with the date each was written, kept on your record and on theirs, and seen by nobody but the two of you. Declining a request deletes it and tells the person who sent it nothing at all.",
         "The address you registered from, kept so that leaving gives back the account it spent, shown to nobody, and deleted with the account.",
       ],
     },
@@ -249,7 +253,7 @@ const PRIVACY = {
     {
       heading: "Leaving",
       paras: [
-        "There is a way out that needs nobody's permission. Leaving removes your account, your sessions, your address, your picture, your ladder seat, and the record of the address you registered from.",
+        "There is a way out that needs nobody's permission. Leaving removes your account, your sessions, your address, your picture, your ladder seat, your friends list, and the record of the address you registered from. Your handle is taken off the lists of everybody who had you on theirs, in the same breath, because a friendship is two records and deleting one of them would leave the other holding a name that answers nothing.",
         "One thing survives, and it should be said plainly: a finished game stays in the room it was played in, under the handle you played it under. It is your opponent's game as much as yours, and taking it away would take away theirs.",
         `To ask for a copy of what is held about you, to correct it, or to have something removed that leaving does not reach, write to ${CONTACT} and a person will do it by hand. There is no export button, and saying otherwise would be the easy sentence to write and the false one.`,
       ],

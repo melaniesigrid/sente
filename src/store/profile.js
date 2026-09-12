@@ -22,6 +22,7 @@ export const defaultProfile = {
   lessonsDone: [], problemsDone: [],
   tierPassed: [],                            // library tier ids whose exit test was passed
   sound: false,                              // stone click + haptic, opt-in
+  confirmMove: false,                        // two taps to play: the first stages a stone, the second commits it
   onboarded: false,                          // the welcome flow has been seen or skipped
   coordinates: false,                        // letters and numbers around the board
   lastMoveMark: "dot",                       // how the last stone played is marked
