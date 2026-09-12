@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { onlineStatus, settledLine, onlineCaption, tableLine, teamName } from "./onlineStatus.js";
+import {
+  onlineStatus, settledLine, onlineCaption, tableLine, teamName,
+  orderTables, waitingNote, waitingOn,
+} from "./onlineStatus.js";
 import { createRoom, applyMessage } from "../../server/room.js";
 
 const A = { id: "a", name: "Ada", rating: 1500, rd: 350 };
@@ -103,5 +106,92 @@ describe("a pair table's words", () => {
     expect(tableLine(g, "c")).toMatchObject({ who: "vs Bea & Dee", mine: "b" });
     expect(tableLine(g, "d")).toMatchObject({ who: "vs Ada & Cy", mine: "w" });
     expect(tableLine(g, "zz").who).toBe("Ada & Cy vs Bea & Dee");
+  });
+});
+
+/* ----- the dashboard: whose turn, and how long it has sat there ----- */
+const MIN = 60000, HR = 60 * MIN, DAY = 24 * HR;
+const NOW = 1_700_000_000_000;
+/* A lobby summary, which is not a room: this is the shape `api.games` hands
+   back and the only shape the ordering is allowed to depend on. */
+const game = (over) => ({
+  id: "g", size: 9, phase: "playing", moves: 10, toPlay: "b",
+  black: { id: "a", name: "Ada" }, white: { id: "b", name: "Bea" },
+  updatedAt: NOW, ...over,
+});
+
+describe("waitingNote", () => {
+  it("says nothing about a board that has only just moved", () => {
+    expect(waitingNote(NOW, NOW)).toBe("");
+    expect(waitingNote(NOW - 9 * MIN, NOW)).toBe("");
+  });
+  it("counts minutes, then hours, then days", () => {
+    expect(waitingNote(NOW - 10 * MIN, NOW)).toBe("10 minutes");
+    expect(waitingNote(NOW - 59 * MIN, NOW)).toBe("59 minutes");
+    expect(waitingNote(NOW - HR, NOW)).toBe("1 hour");
+    expect(waitingNote(NOW - 5 * HR, NOW)).toBe("5 hours");
+    expect(waitingNote(NOW - DAY, NOW)).toBe("1 day");
+    expect(waitingNote(NOW - 9 * DAY, NOW)).toBe("9 days");
+  });
+  it("says nothing when there is no timestamp to speak from", () => {
+    expect(waitingNote(undefined, NOW)).toBe("");
+    expect(waitingNote(null, NOW)).toBe("");
+  });
+});
+
+describe("waitingOn", () => {
+  it("is yours when it is your move and theirs when it is not", () => {
+    expect(waitingOn(game({ toPlay: "b" }), "a")).toBe("yours");
+    expect(waitingOn(game({ toPlay: "w" }), "a")).toBe("theirs");
+  });
+  it("counts a game being counted as its own thing", () => {
+    expect(waitingOn(game({ phase: "scoring" }), "a")).toBe("counting");
+  });
+  it("never waits on somebody who is only watching", () => {
+    expect(waitingOn(game({ toPlay: "b" }), "zz")).toBe("theirs");
+  });
+  it("looks through both teams at a pair table", () => {
+    const g = game({ toPlay: "w", teams: { b: [{ id: "a" }, { id: "c" }], w: [{ id: "b" }, { id: "d" }] } });
+    expect(waitingOn(g, "d")).toBe("yours");
+    expect(waitingOn(g, "c")).toBe("theirs");
+  });
+});
+
+describe("orderTables", () => {
+  it("puts the tables waiting on you first, longest-waiting first", () => {
+    const { live: order } = orderTables([
+      game({ id: "recent-yours", toPlay: "b", updatedAt: NOW - MIN }),
+      game({ id: "theirs", toPlay: "w", updatedAt: NOW - 9 * DAY }),
+      game({ id: "old-yours", toPlay: "b", updatedAt: NOW - DAY }),
+      game({ id: "counting", phase: "scoring", updatedAt: NOW - HR }),
+    ], "a");
+    expect(order.map(g => g.id)).toEqual(["old-yours", "recent-yours", "counting", "theirs"]);
+  });
+
+  it("keeps finished games out of the live list, newest ending first", () => {
+    const { live, done } = orderTables([
+      game({ id: "old", phase: "ended", endedAt: NOW - DAY }),
+      game({ id: "live" }),
+      game({ id: "new", phase: "ended", endedAt: NOW - HR }),
+    ], "a");
+    expect(live.map(g => g.id)).toEqual(["live"]);
+    expect(done.map(g => g.id)).toEqual(["new", "old"]);
+  });
+
+  it("does not shuffle two tables that are equally urgent and equally old", () => {
+    const same = [game({ id: "b2" }), game({ id: "a1" })];
+    expect(orderTables(same, "a").live.map(g => g.id))
+      .toEqual(orderTables(same.slice().reverse(), "a").live.map(g => g.id));
+  });
+
+  it("does not reorder the caller's array", () => {
+    const given = [game({ id: "theirs", toPlay: "w" }), game({ id: "yours", toPlay: "b" })];
+    orderTables(given, "a");
+    expect(given.map(g => g.id)).toEqual(["theirs", "yours"]);
+  });
+
+  it("takes nothing at all without throwing", () => {
+    expect(orderTables(undefined, "a")).toEqual({ live: [], done: [] });
+    expect(orderTables([], "a")).toEqual({ live: [], done: [] });
   });
 });

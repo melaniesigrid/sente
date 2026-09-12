@@ -1573,6 +1573,13 @@ paragraph, three facts and picture have shipped since the accounts slice, and
       `linkedGame()` spends the `?game=` in the address on first read, so navigating away
       from a live online table strands you in the lobby with no way back to your own game.
       The dashboard is that way back, and the links wait for it.
+      - Ordering landed on `feat/table-talk`: `orderTables` and `waitingOn` in
+        `onlineStatus.js` put the tables you are the hold-up on first, longest-waiting
+        first, and `waitingNote` says how long a board has sat there out of the
+        `updatedAt` the lobby summary already carried, so no server change was needed.
+        The list says in words that these games have no clock, because the absence of a
+        countdown is not something anybody notices. Still open: the seat-to-player-page
+        links, and a game you are in that has aged out of `KEEP_GAMES`.
 - [ ] **Badges**, computed at settle time and never granted. The set is deliberately not
       enumerated in the design doc: it gets settled against the fields the record actually
       holds, so no badge is designed for data that does not exist.
