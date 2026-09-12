@@ -1776,6 +1776,29 @@ ${FONT_FACES}
   padding: 12px 14px; margin: -2px 0 6px; border-radius: 16px; box-shadow: var(--sink-sm);
 }
 .pin-note .chat-input { width: 100%; }
+/* ---- every game you are in ----
+   The front page's answer to "whose move is it". A row waiting on you takes
+   the accent on its mark and nothing else: a whole card of coloured rows is a
+   card with no emphasis in it. */
+.dash-card { display: flex; flex-direction: column; gap: 13px; }
+.dash-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.dash-head h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }
+.dash-card .fine { margin: 0; }
+.dash-row { padding: 8px 12px; }
+.dash-mark {
+  display: grid; place-items: center; width: 26px; height: 26px; flex: none;
+  color: var(--ink-2);
+}
+.dash-row.waiting .dash-mark { color: var(--accent-ink); }
+.dash-row.waiting strong { color: var(--accent-ink); }
+/* A seat at the table, when it leads to a page. */
+.vs-open {
+  appearance: none; background: none; border: 0; font: inherit; color: inherit;
+  cursor: pointer; border-radius: 14px; padding: 4px 6px;
+  transition: box-shadow .15s ease;
+}
+.vs-open:hover, .vs-open:focus-visible { box-shadow: var(--raise-sm); }
+.vs-open:active { box-shadow: var(--sink-sm); }
 .seek-state { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-radius: 14px; box-shadow: var(--sink-sm); font-size: 14.5px; }
 .seek-state .pulse { color: var(--accent-ink); animation: seek-pulse 1.6s ease-in-out infinite; }
 @keyframes seek-pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }

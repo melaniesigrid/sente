@@ -82,6 +82,18 @@ export class Room extends DurableObject {
     const { room: next, events } = applyMessage(room, acting, msg);
     if (next !== room) await this.save(next);
     for (const ev of events) this.emit(ev, ws, next);
+    /* Tell the Registry the game moved, AFTER the move has gone out to the
+       people at the board. Until this existed the lobby's summary was frozen at
+       the moment the game was made, so every table in progress read "0 moves,
+       your move" however long it had been going: `noteGame` was called when a
+       room was created and when it ended, and never in between.
+
+       It is deliberately not awaited. The players feel the broadcast; the list
+       is a screen they are not looking at, so a cross-object call has no
+       business sitting in front of their stone landing. */
+    if (next !== room && next.record.phase !== "ended") {
+      this.ctx.waitUntil(this.registry().noteGame(summary(next)));
+    }
     await this.maybeSettle(next);
   }
 

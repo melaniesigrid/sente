@@ -202,7 +202,7 @@ export default function JosekiApp() {
               the dashboard remounts the table rather than leaving the first one up. */}
           {view === "play" && <PlayView key={(params && params.gameId) || "lobby"}
             profile={profile} setProfile={setProfile} notify={notify} resume={resume}
-            openGame={params ? params.gameId : null} />}
+            openGame={params ? params.gameId : null} go={go} />}
           {view === "learn" && <LearnView profile={profile} setProfile={setProfile} go={go} />}
           {view === "tsumego" && <ProblemsView profile={profile} setProfile={setProfile} initialId={params ? params.problemId : null} />}
           {view === "recall" && <RecallView profile={profile} setProfile={setProfile} go={go} />}
