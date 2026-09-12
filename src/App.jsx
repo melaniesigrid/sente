@@ -38,6 +38,7 @@ import { LearnView } from "./views/Learn.jsx";
 import { ProblemsView } from "./views/Problems.jsx";
 import { RecallView } from "./views/Recall.jsx";
 import { RankingsView } from "./views/Rankings.jsx";
+import { PlayerPage } from "./views/PlayerPage.jsx";
 import { ProfileView } from "./views/Profile.jsx";
 import { DojoView } from "./views/Dojo.jsx";
 import { LookView } from "./views/Look.jsx";
@@ -196,7 +197,12 @@ export default function JosekiApp() {
           {view === "learn" && <LearnView profile={profile} setProfile={setProfile} go={go} />}
           {view === "tsumego" && <ProblemsView profile={profile} setProfile={setProfile} initialId={params ? params.problemId : null} />}
           {view === "recall" && <RecallView profile={profile} setProfile={setProfile} go={go} />}
-          {view === "ladder" && <RankingsView profile={profile} />}
+          {view === "ladder" && <RankingsView profile={profile} go={go} />}
+          {/* A player's page remembers where it was opened from, so coming back
+              from a ladder row lands on the ladder and coming back from a table
+              lands at the table rather than always at the ladder. */}
+          {view === "player" && <PlayerPage playerId={params ? params.playerId : null} go={go}
+            onBack={params && params.from ? () => go(params.from, params.fromParams || null) : null} />}
           {view === "profile" && <ProfileView profile={profile} setProfile={setProfile} go={go} room={room} notify={notify} />}
           {view === "look" && <LookView profile={profile} setProfile={setProfile} go={go} room={room} />}
           {view === "dojo" && <DojoView profile={profile} setProfile={setProfile} notify={notify} go={go} room={room} />}

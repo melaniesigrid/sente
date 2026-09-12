@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
   ChevronLeft, Flag, RotateCcw, RefreshCw, Trophy, Timer, CircleDot, Scale, History,
-  MessageCircle, Bot, Send, User, Handshake, Check, Download, Undo2, Award, GraduationCap,
+  MessageCircle, Bot, Send, User, Handshake, Check, Download, Undo2, Award, GraduationCap, X,
 } from "lucide-react";
 import {
   createGame, play, pass, resign, timeout, undo, markDead, acceptScore, scoreBoard, chainsInAtari, idx,
@@ -28,7 +28,8 @@ import { recordGame } from "../store/telemetry.js";
 import { dayKey } from "../content/kata.js";
 import { chooseRemark, noteSpoken, PACING } from "../content/commentary.js";
 import {
-  statusText, refusalText, captionText, resignLabel, resultCard, ratingLine, RESIGN_CONFIRM_MS,
+  statusText, refusalText, captionText, resignLabel, confirmMoveLabel, resultCard, ratingLine,
+  RESIGN_CONFIRM_MS,
 } from "./gameStatus.js";
 import { useClock } from "./useClock.js";
 
@@ -50,6 +51,16 @@ const BOARD_PX = { 9: 460, 13: 560, 19: 680 };
    A daily duel (`mode.kind === "duel"`) is a bot game whose replies are seeded
    by the day: no undo, no rematch, unrated, and starting it spends the day's
    one attempt.
+
+   Playing a stone is one tap, or two if the profile asks for two: with
+   `confirmMove` on, the first tap stages the move and the second plays it.
+   Staging runs the move through the engine straight away and keeps the record
+   it produced, so an illegal point is refused while it is still a hover rather
+   than after a confirmation, and the confirmed move is the very position the
+   staging proved legal. Nothing else happens until it is confirmed - the duel
+   attempt is not spent, the coach says nothing, the record does not move - and
+   because the clock is read off the record, your clock keeps running while you
+   decide, which is what a clock is for.
 
    Rating is Glicko-2 (`src/engine/glicko.js`, the same module the server runs).
    A house player has a deviation at the floor because it is exactly as strong as
@@ -86,6 +97,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     persona ? [{ who: "bot", text: pick(persona.chat.greet) }] : []);
   const [draft, setDraft] = useState("");
   const [confirmResign, setConfirmResign] = useState(false);
+  const [pending, setPending] = useState(null);    // {c, r, next}: a staged move, not yet played
   const [moment, setMoment] = useState(null);      // "capture" | "captured", expires
   const [delta, setDelta] = useState(null);        // rating change of the finished game
   const [ceremony, setCeremony] = useState(null);  // belt just earned, until dismissed
@@ -114,6 +126,12 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const turn = rec.toPlay;
   const mySide = persona ? "b" : turn;
   const sound = !!profile.sound;
+  const confirmMoves = !!profile.confirmMove;
+
+  /* A staged move is only ever valid for the position it was staged in, so any
+     change to the record drops it - a pass, an undo, the house player's reply,
+     a flag - and so does turning the setting off mid-game. */
+  useEffect(() => { setPending(null); }, [rec, confirmMoves]);
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, [chat]);
   useEffect(() => {
@@ -364,6 +382,21 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     setSpoken(sp => noteSpoken(sp, remark.shapeId, moveNumber));
   }, [coaching, persona, spoken, say]);
 
+  /* Everything that happens once a stone has actually landed. `next` is the record
+     the engine already produced for the move, so a confirmed move and an immediate
+     one take exactly the same path from here. */
+  const commitMove = (next, c, r) => {
+    setPending(null);
+    if (rec.moves.length === 0) spendAttempt();
+    setRec(next);
+    afterMove(next, turn);
+    if (persona) {
+      if (next.lastCaptured.length >= 2) say(pick(persona.chat.userCapture));
+      else coach(next, c, r);
+      botTurn(next);
+    }
+  };
+
   const onPlay = (c, r) => {
     if (over || thinking) return;
     if (scoring) {
@@ -378,18 +411,22 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       if (e instanceof IllegalMoveError) {
         const text = refusalText(e.reason);
         if (text) notify({ icon: "info", text });
-        return;
+        return;   // a refused point changes nothing, including anything already staged
       }
       throw e;
     }
-    if (rec.moves.length === 0) spendAttempt();
-    setRec(next);
-    afterMove(next, turn);
-    if (persona) {
-      if (next.lastCaptured.length >= 2) say(pick(persona.chat.userCapture));
-      else coach(next, c, r);
-      botTurn(next);
+    // With confirmation on, the second tap on the staged point plays it and a tap
+    // anywhere else moves the staged stone there. Marking dead stones is exempt:
+    // a misplaced mark is undone by tapping it again, so it costs nothing.
+    if (confirmMoves && !(pending && pending.c === c && pending.r === r)) {
+      setPending({ c, r, next });
+      return;
     }
+    commitMove(next, c, r);
+  };
+
+  const onConfirmMove = () => {
+    if (pending && !over && !thinking) commitMove(pending.next, pending.c, pending.r);
   };
 
   const onPass = () => {
@@ -518,7 +555,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     setTimeout(() => say(pick(persona.chat.reply)), 700 + Math.random() * 900);
   };
 
-  const status = statusText({ result: over, thinking, personaName: persona ? persona.name : null, turn, phase: rec.phase, loading });
+  const status = statusText({ result: over, thinking, personaName: persona ? persona.name : null, turn, phase: rec.phase, loading, pending: !!pending });
   const card = over ? resultCard(over) : null;
   const boardDisabled = !!over || thinking || (!scoring && persona && turn !== "b");
 
@@ -561,7 +598,8 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
             atari={atariIdx}
             captured={rec.lastCaptured || []} captureKey={rec.moves.length}
             territory={preview ? preview.territory : null} dead={rec.dead}
-            coordinates={profile.coordinates} mark={profile.lastMoveMark} />
+            coordinates={profile.coordinates} mark={profile.lastMoveMark}
+            pending={pending ? { c: pending.c, r: pending.r, color: turn } : null} />
           {scoring ? (
             <div className="row">
               <Btn icon={Check} small primary onClick={onAccept}>Accept score</Btn>
@@ -570,6 +608,14 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
             </div>
           ) : (
             <div className="row">
+              {confirmMoves && (
+                <>
+                  <Btn icon={Check} small primary onClick={onConfirmMove} disabled={!pending}>
+                    {confirmMoveLabel(!!pending)}
+                  </Btn>
+                  {pending && <Btn icon={X} small onClick={() => setPending(null)}>Cancel</Btn>}
+                </>
+              )}
               <Btn icon={Flag} small onClick={onPass} disabled={!!over}>Pass</Btn>
               <Btn icon={RotateCcw} small onClick={onUndo} disabled={!canUndo}>Undo</Btn>
               <Btn icon={Handshake} small onClick={onResign} disabled={!canResign}>{resignLabel(confirmResign)}</Btn>
