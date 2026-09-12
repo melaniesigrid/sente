@@ -20,6 +20,35 @@ import { sourceFor } from "./press.js";
 
 export const POSTS = [
   {
+    id: "handicap-stones",
+    date: "2026-09-12",
+    kicker: "The record",
+    title: "How badly the computers lost, in stones",
+    dek: "The front door says a human could still beat the best program for nineteen years after chess fell. This is the measurement behind that: the gap between people and machines at go had a unit, and the unit was handicap stones.",
+    sources: ["deepblue", "computergo", "alphago"],
+    body: [
+      { p: "Most tellings of this story have two dates in them and nothing in between. Chess in 1997, go in 2016. That makes it sound like go was simply waiting its turn." },
+      { p: "It was not waiting. It was being lost, badly, every year, in public, by the best programs anybody could write. And go has something chess does not: a way to say exactly how badly. You give the weaker player free stones before the game starts. The number of stones is the size of the gap." },
+
+      { h: "Nine stones was a prize nobody could win" },
+      { p: "Between 1985 and 2000 the Ing Prize was offered every year at the World Computer Go Congress. The money went up as the conditions got harder. Forty million New Taiwan dollars sat at the top of it for any program that could beat a 1-dan professional on an even board." },
+      { p: "That top prize was never a serious target. The one below it was: four hundred thousand NT dollars for winning a nine-stone handicap match. Nine stones is the standard maximum. It is what you give a beginner. No program claimed it, and the prize expired unclaimed in 2000." },
+      { p: "The last Ing Prize that was collected went to a program called Handtalk in 1997, the same year Deep Blue beat Kasparov. Handtalk won two hundred and fifty thousand NT dollars for beating three amateur players aged eleven to thirteen. It was given eleven stones to do it." },
+
+      { h: "What eleven stones means" },
+      { p: "One rank in go is about one stone of handicap. Eleven stones against a strong amateur teenager puts the best go program of 1997 somewhere in the range of a person who has been playing for a few months." },
+      { p: "Hold that next to the other half of the same year. In chess, the machine was the world champion's equal. In go, the machine was a child who had just learned the rules, and it had to be handed the corners before it could compete with actual children." },
+
+      { h: "The gap closes in the last four years" },
+      { p: "Then it moves quickly. In 2012 the program Zen beat Takemiya Masaki, a nine-dan professional, by eleven points at five stones, and then by twenty points at four. In 2013 Crazy Stone beat Yoshio Ishida, another nine-dan professional, at four stones on a full board." },
+      { p: "Four stones is still four stones. Nobody would call that parity, and at the time the honest reading was that a professional gave up four free moves and still had to work. Three years later AlphaGo beat Lee Sedol four games to one with no handicap at all." },
+
+      { h: "Why the unit matters" },
+      { p: "The point of measuring in stones rather than in wins is that it gives the nineteen years a shape. This was not a long flat wait broken by a sudden result. It was a program eleven stones behind a child, then five, then four, and then, in about thirty months, nothing." },
+      { p: "It is also the reason the front door states its claim the way it does. Go was not the last game to fall, and saying so is just wrong. What is true, and better, is that for nineteen years after chess this was the one board game left where a person of ordinary skill could sit down against the best program in the world and expect to win. That stopped being true in 2016, and there is no unit of handicap left to measure the gap with now, because it runs the other way." },
+    ],
+  },
+  {
     id: "why-nineteen-years",
     date: "2026-09-11",
     kicker: "Computation",
