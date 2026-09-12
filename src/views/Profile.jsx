@@ -20,6 +20,7 @@ import { PERSONAS } from "../content/personas.js";
 import { serverEnabled } from "../net/api.js";
 import { OnlineProfileCard } from "./OnlineProfile.jsx";
 import { FriendsCard } from "./FriendsCard.jsx";
+import { ArchiveCard } from "./ArchiveCard.jsx";
 
 /* ----------------------- THE LAST FIFTY GAMES -----------------------
    The device's own ring buffer, shown to the person it is about. A record kept
@@ -167,6 +168,7 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
       </Card>
 
       {account && <OnlineProfileCard account={account} setAccount={setAccount} notify={notify} />}
+      {account && <ArchiveCard account={account} go={go} />}
       {account && <FriendsCard account={account} notify={notify} go={go} />}
 
       <Statement lines={statementFor("profile")} figure="profile" at="left">{plainFor("profile")}</Statement>

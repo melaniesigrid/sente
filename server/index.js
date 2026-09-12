@@ -31,16 +31,19 @@
      GET   /api/players/:id                     -> a public profile
      GET   /api/players/:id/avatar              -> the picture, cached by its stamp
      GET   /api/games           bearer         -> recent games
+     GET   /api/me/archive?cursor=&limit= bearer -> finished games, newest first
      GET   /api/ladder                         -> top players
      GET   /api/stats                          -> {players, online, seeking}
      GET   /api/stats/history?days=            -> a row a day, oldest first
      GET   /api/lobby?token=    websocket      -> matchmaking
      GET   /api/game/:id                       -> the room (public)
+     GET   /api/game/:id/sgf                   -> the record as a file (public)
      GET   /api/game/:id/ws?token=  websocket  -> play or watch */
 
 import { json, fail, readJson, bearer, HttpError, CORS, base64, bytes } from "./http.js";
 import { AVATAR_MAX_BYTES } from "./profile.js";
 import { askedIds } from "./presence.js";
+import { toSgf } from "../src/engine/sgf.js";
 import { callerIp } from "./ratelimit.js";
 import { mailConfig, mailLink, verifyMessage, resetMessage } from "./mail.js";
 export { Registry } from "./registry.js";
@@ -292,6 +295,16 @@ async function route(req, env) {
     return json(await reg.gamesOf(player.id));
   }
 
+  /* The archive: every finished game, newest first, a page at a time. The
+     route above is the lobby's short list of what you are in the middle of;
+     this one is kept for good and read with a cursor, so a player with ten
+     thousand games costs the same to page as one with ten. */
+  if (path === "/api/me/archive" && req.method === "GET") {
+    const player = await requirePlayer(req, reg);
+    return json(await reg.archiveOf(player.id,
+      url.searchParams.get("cursor"), url.searchParams.get("limit")));
+  }
+
   if (path === "/api/ladder" && req.method === "GET") return json(await reg.ladder(), 200, { "cache-control": "public, max-age=30" });
   if (path === "/api/stats" && req.method === "GET") return json(await reg.stats());
   // Open in a browser and read it. The series is six integers and a date per
@@ -308,11 +321,26 @@ async function route(req, env) {
     return reg.fetch(withPlayer(req, player));
   }
 
-  const m = /^\/api\/game\/([^/]+)(\/ws)?$/.exec(path);
+  const m = /^\/api\/game\/([^/]+)(\/ws|\/sgf)?$/.exec(path);
   if (m) {
     const id = m[1];
     if (!GAME_ID.test(id)) return fail(404, "no-such-game");
     const stub = room(env, id);
+    if (m[2] === "/sgf") {
+      /* The record is already in its Room and is never deleted, so the file is
+         written from it on the way out rather than kept a second time. Public
+         for the same reason the room is: whoever holds the link may read it. */
+      const r = await stub.get();
+      if (!r) return fail(404, "no-such-game");
+      return new Response(toSgf(r.record), {
+        headers: {
+          ...CORS,
+          "content-type": "application/x-go-sgf; charset=utf-8",
+          "content-disposition": `attachment; filename="${id}.sgf"`,
+          "cache-control": "public, max-age=60",
+        },
+      });
+    }
     if (!m[2]) {
       const r = await stub.get();
       return r ? json(r) : fail(404, "no-such-game");

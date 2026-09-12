@@ -51,7 +51,7 @@ export const COPYRIGHT = `© ${COPYRIGHT_YEAR} ${STUDIO}`;
    being stopped and handed the line where the date lives. */
 export const REVISION = {
   updated: "12 September 2026",
-  stamp: "5efc8056",
+  stamp: "7cb92787",
 };
 
 /** The day the documents last changed. */
@@ -231,6 +231,7 @@ const PRIVACY = {
         "The sign-in tokens for your open sessions, kept as hashes, so a stolen store is not a set of working keys.",
         "Anything you chose to add to your profile: a paragraph of up to 280 characters, three short facts, and a picture of up to 64 KB.",
         "The games you played online, and up to 200 chat lines in each room alongside the record.",
+        "An index of your finished games, one entry each, kept for as long as the account is. It holds no moves: it is the date, the board, the opponent and the result, and it is what lets your own archive be paged through without reading every game you have ever played. Leaving deletes the index; the games themselves stay in the rooms they were played in, for the reason given under Leaving.",
         "Who your friends here are: the handles you have agreed to be friends with, the requests you have sent, and the requests you have been sent. Three lists of handles with the date each was written, kept on your record and on theirs, and seen by nobody but the two of you. Declining a request deletes it and tells the person who sent it nothing at all.",
         "Which of the three answers you gave to who may see that you are here: nobody, your friends, or anybody. One word on your record, and not on the ladder, so reading the ladder cannot tell you who has chosen to be invisible.",
         "The address you registered from, kept so that leaving gives back the account it spent, shown to nobody, and deleted with the account.",
@@ -341,7 +342,13 @@ export function documentText() {
       for (const item of group.items) parts.push(item.what, item.who, item.terms);
     }
     for (const section of doc.sections) {
-      parts.push(section.heading, ...section.paras);
+      /* The bullets are in, and for a while they were not. Every sentence
+         naming something the server keeps about a person lives in a `list`
+         rather than in `paras` -- the whole of "What the server keeps" is
+         bullets -- so a stamp over the paragraphs alone protected the prose
+         around the disclosure and not the disclosure itself. Two collections
+         were added under that gap without the stamp moving once. */
+      parts.push(section.heading, ...section.paras, ...(section.list ?? []));
     }
   }
   return parts.join("\n");
