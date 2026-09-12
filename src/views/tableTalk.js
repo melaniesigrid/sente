@@ -11,12 +11,17 @@
 
    Neither is a rule, so neither is in the engine. Reading a coordinate is,
    which is why `parsePoint` lives there and this file only calls it. */
-import { parsePoint, pointLabel } from "../engine/index.js";
+import { parsePoint } from "../engine/index.js";
 
 /* A candidate coordinate: a letter and one or two digits, standing alone as a
    word. The boundaries are what keep "3D" and "mod42" out; whether the token
-   is really a point on this board is `parsePoint`'s answer, not this one's. */
-const TOKEN = /(?<![A-Za-z0-9])([A-Za-z]\d{1,2})(?![A-Za-z0-9])/g;
+   is really a point on this board is `parsePoint`'s answer, not this one's.
+
+   The leading boundary is captured rather than looked behind. A lookbehind is
+   a parse-time construct that Safari could not read until 16.4, and a regex
+   literal that cannot be parsed takes its whole module down: an iPhone one
+   version out of date would have got a blank table rather than a chat line. */
+const TOKEN = /(^|[^A-Za-z0-9])([A-Za-z]\d{1,2})(?![A-Za-z0-9])/g;
 
 /** A chat message as parts: `{ t: "text", s }` and `{ t: "point", s, c, r }`.
   *
@@ -30,18 +35,23 @@ export function talkParts(text, size) {
   let at = 0;
   TOKEN.lastIndex = 0;
   for (let m = TOKEN.exec(s); m; m = TOKEN.exec(s)) {
-    const pt = parsePoint(size, m[1]);
+    const token = m[2];
+    const start = m.index + m[1].length;
+    const pt = parsePoint(size, token);
     if (!pt) continue;
-    if (m.index > at) parts.push({ t: "text", s: s.slice(at, m.index) });
-    parts.push({ t: "point", s: m[1], c: pt.c, r: pt.r });
-    at = m.index + m[1].length;
+    if (start > at) parts.push({ t: "text", s: s.slice(at, start) });
+    parts.push({ t: "point", s: token, c: pt.c, r: pt.r });
+    at = start + token.length;
   }
   if (at < s.length) parts.push({ t: "text", s: s.slice(at) });
   return parts;
 }
 
 /** Every distinct point a message names, in the order it names them. The board
-  * marks all of them, so a line that compares two points shows both. */
+  * marks all of them, so a line that compares two points shows both.
+  *
+  * The shape is what `Board` reads for `marks`, and nothing more: the board
+  * wants a place, and the word for the place is already in the sentence. */
 export function pointsNamed(text, size) {
   const seen = new Set();
   const out = [];
@@ -50,7 +60,7 @@ export function pointsNamed(text, size) {
     const key = `${p.c},${p.r}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    out.push({ c: p.c, r: p.r, label: pointLabel(size, p.c, p.r) });
+    out.push({ c: p.c, r: p.r });
   }
   return out;
 }
@@ -72,9 +82,14 @@ const CLOSING = [
   { text: "Thank you for the game", note: "the usual closing" },
   { text: "Arigatou gozaimashita", note: "thank you very much" },
 ];
+/* Only one line while counting, and it is a question rather than a verdict.
+   "That marking looks right to me" was here and is gone: it sends a chat line
+   and nothing else, so a player who tapped it had every reason to believe they
+   had accepted the count, and the game would sit unfinished with both sides
+   sure they had agreed. It was also an opinion about the position, which the
+   rule two paragraphs up forbids. Accepting is a button of its own. */
 const COUNTING = [
   { text: "Shall we count?", note: "" },
-  { text: "That marking looks right to me", note: "" },
 ];
 
 /** The etiquette offered at this moment, already filtered by what this player

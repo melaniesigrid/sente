@@ -37,6 +37,14 @@ describe("parsePoint", () => {
     expect(parsePoint(19, "T20")).toBe(null);
   });
 
+  it("refuses a zero-padded number, which is not how a point is written", () => {
+    expect(parsePoint(19, "D04")).toBe(null);
+    expect(parsePoint(19, "D0")).toBe(null);
+    expect(parsePoint(19, "D00")).toBe(null);
+    // and the word stays a word rather than lighting the board
+    expect(talkParts("D04 is nowhere", 19)).toEqual([{ t: "text", s: "D04 is nowhere" }]);
+  });
+
   it("refuses what is not a coordinate at all", () => {
     for (const s of ["", "D", "4", "DD4", "D4D", "4D", "D 4", "--", null, undefined, 4]) {
       expect(parsePoint(19, s)).toBe(null);
@@ -94,8 +102,8 @@ describe("talkParts", () => {
 describe("pointsNamed", () => {
   it("names each point once, in the order it was named", () => {
     expect(pointsNamed("D4 then Q16 then d4 again", 19)).toEqual([
-      { c: 3, r: 15, label: "D4" },
-      { c: 15, r: 3, label: "Q16" },
+      { c: 3, r: 15 },
+      { c: 15, r: 3 },
     ]);
   });
 
@@ -122,7 +130,7 @@ describe("etiquette", () => {
   });
 
   it("offers the counting lines while counting", () => {
-    expect(etiquette({ phase: "scoring", moves: 90 }).length).toBe(2);
+    expect(etiquette({ phase: "scoring", moves: 90 }).length).toBe(1);
   });
 
   it("drops a line once this player has said it", () => {
@@ -140,5 +148,104 @@ describe("etiquette", () => {
   it("takes no argument at all without throwing", () => {
     expect(etiquette()).toEqual([{ text: "Have a good game", note: "the usual opening" },
       { text: "Onegaishimasu", note: "please, let us play" }]);
+  });
+});
+
+/* ----- the edges a real chat line runs into ----- */
+
+describe("talkParts at the edges", () => {
+  it("keeps reading after a coordinate it had to refuse", () => {
+    const parts = talkParts("I4 then D4", 19);
+    expect(joined(parts)).toBe("I4 then D4");
+    expect(parts.filter((p) => p.t === "point").map((p) => p.s)).toEqual(["D4"]);
+  });
+
+  it("lets the board size decide, one message at a time", () => {
+    expect(talkParts("T19 is the corner", 19)[0].t).toBe("point");
+    expect(talkParts("T19 is the corner", 13)).toEqual([{ t: "text", s: "T19 is the corner" }]);
+  });
+
+  it("finds a point on either side of a line break", () => {
+    const parts = talkParts("D4\nthen Q16", 19);
+    expect(joined(parts)).toBe("D4\nthen Q16");
+    expect(parts.filter((p) => p.t === "point").map((p) => p.s)).toEqual(["D4", "Q16"]);
+  });
+
+  it("reads a coordinate that punctuation is leaning on", () => {
+    for (const s of ["(D4)", "D4.", "D4, then", "at D4!"]) {
+      expect(talkParts(s, 19).some((p) => p.t === "point")).toBe(true);
+      expect(joined(talkParts(s, 19))).toBe(s);
+    }
+  });
+
+  it("gives the same answer twice, however many lines came before", () => {
+    const first = talkParts("D4 and Q16", 19);
+    talkParts("no points here at all", 19);
+    talkParts("I4 K5 mod42", 19);
+    expect(talkParts("D4 and Q16", 19)).toEqual(first);
+  });
+
+  it("finds nothing when the size is not a board", () => {
+    expect(talkParts("D4", undefined)).toEqual([{ t: "text", s: "D4" }]);
+    expect(talkParts("D4", 0)).toEqual([{ t: "text", s: "D4" }]);
+  });
+});
+
+describe("pointsNamed at the edges", () => {
+  it("is empty for nothing at all", () => {
+    expect(pointsNamed(null, 19)).toEqual([]);
+    expect(pointsNamed("", 19)).toEqual([]);
+  });
+
+  it("names a point only on a board that has it", () => {
+    expect(pointsNamed("K5", 19)).toEqual([{ c: 9, r: 14 }]);
+    expect(pointsNamed("K5", 9)).toEqual([]);
+  });
+});
+
+describe("etiquette at the edges", () => {
+  it("stops offering the opening once the game is under way", () => {
+    expect(etiquette({ phase: "playing", moves: 2 }).length).toBe(2);
+    expect(etiquette({ phase: "playing", moves: 3 })).toEqual([]);
+  });
+
+  it("treats a phase it has never heard of as the start of a game", () => {
+    expect(etiquette({ phase: "waiting", moves: 0 }).map((l) => l.text))
+      .toEqual(["Have a good game", "Onegaishimasu"]);
+  });
+
+  it("offers a spectator nothing in any phase", () => {
+    for (const phase of ["playing", "scoring", "ended"]) {
+      expect(etiquette({ phase, moves: 0, seated: false })).toEqual([]);
+    }
+  });
+});
+
+/* The token scanner captures its leading boundary rather than looking behind,
+   because a lookbehind is a parse error on Safari before 16.4 and would take
+   the whole module down. These pin the boundary behaviour either way. */
+describe("the word boundary, without a lookbehind", () => {
+  it("finds a point at the very start of a message", () => {
+    expect(talkParts("D4 first", 19)[0]).toMatchObject({ t: "point", s: "D4" });
+  });
+  it("finds two points separated only by punctuation", () => {
+    const pts = talkParts("D4,Q16", 19).filter(p => p.t === "point");
+    expect(pts.map(p => p.s)).toEqual(["D4", "Q16"]);
+  });
+  it("keeps the separator as text rather than swallowing it", () => {
+    expect(talkParts("D4,Q16", 19).map(p => p.s).join("")).toBe("D4,Q16");
+    expect(talkParts("play D4 now", 19).map(p => p.s).join("")).toBe("play D4 now");
+  });
+  it("still refuses a coordinate glued to a word or a number", () => {
+    for (const s of ["3D4", "xD4", "D4x", "D4D5", "mod42"]) {
+      expect(talkParts(s, 19).every(p => p.t === "text")).toBe(true);
+    }
+  });
+});
+
+describe("what is offered while counting", () => {
+  it("asks a question and never states a verdict about the position", () => {
+    const lines = etiquette({ phase: "scoring", moves: 90 });
+    expect(lines.map(l => l.text)).toEqual(["Shall we count?"]);
   });
 });

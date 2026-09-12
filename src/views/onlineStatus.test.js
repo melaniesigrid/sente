@@ -195,3 +195,100 @@ describe("orderTables", () => {
     expect(orderTables([], "a")).toEqual({ live: [], done: [] });
   });
 });
+
+/* ----- the edges the dashboard runs into ----- */
+
+describe("waitingNote at the edges", () => {
+  it("says nothing about a stamp from the future, because clocks disagree", () => {
+    expect(waitingNote(NOW + HR, NOW)).toBe("");
+  });
+  it("says nothing when the stamp is not a number", () => {
+    expect(waitingNote(NaN, NOW)).toBe("");
+    expect(waitingNote("1700000000000", NOW)).toBe("");
+    expect(waitingNote(Infinity, NOW)).toBe("");
+  });
+  it("reads the clock itself when it is not told the time", () => {
+    expect(waitingNote(Date.now() - 3 * HR)).toBe("3 hours");
+    expect(waitingNote(Date.now())).toBe("");
+  });
+  it("is still counting hours in the last moment before a day", () => {
+    expect(waitingNote(NOW - (DAY - 1), NOW)).toBe("23 hours");
+    expect(waitingNote(NOW - (2 * DAY - 1), NOW)).toBe("1 day");
+  });
+});
+
+describe("waitingOn at the edges", () => {
+  /* An empty list is not an answer. The lead seat is sitting right there, so
+     a summary whose teams arrived empty falls back to it rather than telling a
+     player their own game belongs to somebody else. */
+  it("falls back to the lead seat when a side arrives empty", () => {
+    const g = game({ toPlay: "b", teams: { b: [], w: [{ id: "b" }] } });
+    expect(waitingOn(g, "a")).toBe("yours");
+    expect(tableLine(g, "a").detail).toContain("your move");
+  });
+
+  it("still says nothing about somebody who is at neither side", () => {
+    const g = game({ toPlay: "b", teams: { b: [], w: [{ id: "b" }] } });
+    expect(waitingOn(g, "stranger")).toBe("theirs");
+  });
+
+  it("does not put an absent player in a team name", () => {
+    const g = game({ phase: "playing", teams: { b: [{ id: "a", name: "Ada" }, null], w: [{ id: "b" }] } });
+    expect(() => tableLine(g, "zz")).not.toThrow();
+    expect(tableLine(g, "zz").who).toBe("Ada vs ");
+  });
+});
+
+describe("orderTables at the edges", () => {
+  it("falls back to the last change when a finished game never stamped an ending", () => {
+    const { done } = orderTables([
+      game({ id: "stamped", phase: "ended", endedAt: NOW - DAY, updatedAt: NOW - DAY }),
+      game({ id: "unstamped", phase: "ended", endedAt: null, updatedAt: NOW - HR }),
+    ], "a");
+    expect(done.map(g => g.id)).toEqual(["unstamped", "stamped"]);
+  });
+  it("orders two games that ended at the same moment by id, so the list holds still", () => {
+    const two = [
+      game({ id: "b2", phase: "ended", endedAt: NOW }),
+      game({ id: "a1", phase: "ended", endedAt: NOW }),
+    ];
+    expect(orderTables(two, "a").done.map(g => g.id)).toEqual(["a1", "b2"]);
+    expect(orderTables(two.slice().reverse(), "a").done.map(g => g.id)).toEqual(["a1", "b2"]);
+  });
+  it("treats a table with no timestamp as the one that has waited longest", () => {
+    const { live } = orderTables([
+      game({ id: "stamped", toPlay: "b", updatedAt: NOW - DAY }),
+      game({ id: "unstamped", toPlay: "b", updatedAt: undefined }),
+    ], "a");
+    expect(live.map(g => g.id)).toEqual(["unstamped", "stamped"]);
+  });
+  it("keeps a game being counted above one waiting on the other player", () => {
+    const { live } = orderTables([
+      game({ id: "theirs", toPlay: "w", updatedAt: NOW - 9 * DAY }),
+      game({ id: "counting", phase: "scoring", updatedAt: NOW }),
+    ], "a");
+    expect(live.map(g => g.id)).toEqual(["counting", "theirs"]);
+  });
+});
+
+/* One bad row is a row drawn badly, never a lobby that fails to draw. The
+   summaries come off the wire and an older record can be missing a side. */
+describe("a lobby summary that is missing a side", () => {
+  it("does not throw when there are no teams and no players", () => {
+    expect(() => waitingOn({ phase: "playing", toPlay: "b" }, "a")).not.toThrow();
+    expect(waitingOn({ phase: "playing", toPlay: "b" }, "a")).toBe("theirs");
+  });
+  it("does not throw when teams is present but empty", () => {
+    expect(waitingOn({ phase: "playing", toPlay: "b", teams: {} }, "a")).toBe("theirs");
+  });
+  it("still orders the rest of the lobby around the bad row", () => {
+    const ok = game({ id: "ok", toPlay: "b" });
+    const bad = { id: "bad", size: 9, phase: "playing", toPlay: "b", updatedAt: NOW };
+    let out;
+    expect(() => { out = orderTables([bad, ok], "a"); }).not.toThrow();
+    expect(out.live.map(g => g.id).sort()).toEqual(["bad", "ok"]);
+  });
+  it("describes the row rather than throwing", () => {
+    expect(() => tableLine({ id: "bad", size: 9, phase: "playing", toPlay: "b", moves: 3 }, "a")).not.toThrow();
+  });
+});

@@ -57,7 +57,9 @@ export const pointLabel = (size, c, r) => `${colLabel(c)}${rowLabel(size, r)}`;
   * Lowercase is accepted because people type lowercase. */
 export function parsePoint(size, label) {
   if (typeof label !== "string") return null;
-  const m = /^([A-Za-z])(\d{1,2})$/.exec(label.trim());
+  /* No leading zero: "D04" is not how anybody writes a point, and letting it
+     through would light a ring under a word the board cannot spell. */
+  const m = /^([A-Za-z])([1-9]\d?)$/.exec(label.trim());
   if (!m) return null;
   const c = COLUMN_LETTERS.indexOf(m[1].toUpperCase());
   const n = Number(m[2]);

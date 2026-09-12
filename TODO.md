@@ -1580,6 +1580,28 @@ paragraph, three facts and picture have shipped since the accounts slice, and
         The list says in words that these games have no clock, because the absence of a
         countdown is not something anybody notices. Still open: the seat-to-player-page
         links, and a game you are in that has aged out of `KEEP_GAMES`.
+      - [ ] **P1, and the ordering is wrong until it lands: the lobby summary is frozen.**
+        `noteGame` is called exactly twice in a game's life, at `create`
+        (`server/roomObject.js:38`) and at `maybeSettle` (`:111`). Nothing writes it in
+        between, so every live game's stored summary still says `toPlay: "b"`, `moves: 0`
+        and an `updatedAt` of the moment the table was made. The consequences, in order of
+        how badly they read:
+        - `orderTables` sorts by whose colour you hold, not by whose move it is, and "N
+          tables are waiting on you" counts every live game in which you are Black.
+        - `waitingNote` says how long ago the table was *created*, under a heading that
+          means how long it has been *waiting*.
+        - `tableLine`'s "your move / their move" has read from the same frozen field since
+          long before this branch. This is not a new bug; it is an old one the ordering
+          now leans its whole weight on.
+        The fix is `await this.registry().noteGame(summary(next))` wherever a message
+        changes the room, and the question that has to be answered first is cost: the
+        Registry is a single Durable Object named `main`, so a write per move is a write
+        per move in every game on the server, funnelled through one object. Decide that
+        before writing it. Two smaller things belong in the same slice: the lobby calls
+        `refresh()` once at mount (`OnlineLobby.jsx:56`) and no lobby frame refetches, so
+        an open lobby is frozen too; and `noteGame` files a summary only under the two
+        lead seat ids (`server/registry.js:663`), so a pair partner in seat b2 or w2 never
+        sees their own table in the list at all.
 - [ ] **Badges**, computed at settle time and never granted. The set is deliberately not
       enumerated in the design doc: it gets settled against the fields the record actually
       holds, so no badge is designed for data that does not exist.

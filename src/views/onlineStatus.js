@@ -93,12 +93,28 @@ export function waitingNote(updatedAt, now = Date.now()) {
    are only watching sorts with "their move": it is not waiting on you either. */
 const URGENCY = { yours: 0, counting: 1, theirs: 2 };
 
+/* Who is sitting on one side of a lobby summary. A pair game lists four people,
+   so a side is a list and not a person; a summary from a server that has not
+   sent `teams` falls back to the lead seat. It is total on purpose: one row
+   that arrived without a side is a row the lobby draws badly, never an
+   exception that empties the whole list on the way past. */
+const teamOf = (game, c) => {
+  const named = game.teams && game.teams[c];
+  /* An empty list is not an answer. A summary whose teams arrived empty would
+     otherwise beat the lead seat that is sitting right there, and the player
+     would be told their own game was somebody else's. */
+  const side = named && named.length ? named : [c === "b" ? game.black : game.white];
+  return side.filter((p) => p && typeof p === "object");
+};
+const sideHeld = (game, me) =>
+  (teamOf(game, "b").some((p) => p && p.id === me) ? "b"
+    : teamOf(game, "w").some((p) => p && p.id === me) ? "w"
+    : null);
+
 /** Which of the three a live game is, for a given player. */
 export function waitingOn(game, me) {
   if (game.phase === "scoring") return "counting";
-  const team = (c) => (game.teams ? game.teams[c] : [c === "b" ? game.black : game.white]);
-  const holds = (c) => team(c).some((p) => p.id === me);
-  const mine = holds("b") ? "b" : holds("w") ? "w" : null;
+  const mine = sideHeld(game, me);
   return mine && game.toPlay === mine ? "yours" : "theirs";
 }
 
@@ -110,13 +126,13 @@ export function waitingOn(game, me) {
 export function orderTables(games, me) {
   const all = Array.isArray(games) ? games : [];
   const at = (g) => (Number.isFinite(g.updatedAt) ? g.updatedAt : 0);
-  const live = all.filter((g) => g.phase !== "ended").slice().sort((a, b) => {
+  const live = all.filter((g) => g.phase !== "ended").sort((a, b) => {
     const d = URGENCY[waitingOn(a, me)] - URGENCY[waitingOn(b, me)];
     if (d !== 0) return d;
     if (at(a) !== at(b)) return at(a) - at(b);
     return String(a.id).localeCompare(String(b.id));
   });
-  const done = all.filter((g) => g.phase === "ended").slice().sort((a, b) => {
+  const done = all.filter((g) => g.phase === "ended").sort((a, b) => {
     const ea = Number.isFinite(a.endedAt) ? a.endedAt : at(a);
     const eb = Number.isFinite(b.endedAt) ? b.endedAt : at(b);
     if (ea !== eb) return eb - ea;
@@ -127,13 +143,8 @@ export function orderTables(games, me) {
 
 /** A one-line description of a table for the lobby list. `me` is my player id. */
 export function tableLine(game, me) {
-  /* A pair game lists four people, so "mine" is found by looking through both
-     teams rather than at the two lead seats. A lobby summary from a server that
-     has not sent `teams` still works: the leads stand in for them. */
-  const team = (c) => (game.teams ? game.teams[c] : [c === "b" ? game.black : game.white]);
-  const nameOfTeam = (c) => team(c).map((p) => p.name).join(" & ");
-  const holds = (c) => team(c).some((p) => p.id === me);
-  const mine = holds("b") ? "b" : holds("w") ? "w" : null;
+  const nameOfTeam = (c) => teamOf(game, c).map((p) => p.name).filter(Boolean).join(" & ");
+  const mine = sideHeld(game, me);
   const who = mine
     ? `vs ${nameOfTeam(mine === "b" ? "w" : "b")}`
     : `${nameOfTeam("b")} vs ${nameOfTeam("w")}`;
