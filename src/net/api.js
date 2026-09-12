@@ -92,6 +92,13 @@ export const api = {
   acceptFriend: (token, id) => call(`/api/me/friends/${encodeURIComponent(id)}/accept`, { method: "POST", token }),
   forgetFriend: (token, id) => call(`/api/me/friends/${encodeURIComponent(id)}`, { method: "DELETE", token }),
 
+  /* Who of these people is here. The token is optional: a player who lets
+     anybody see them is visible to a visitor with no handle. The answer names
+     only the ones who are here and may be seen, so an empty answer means
+     nothing at all about anybody in the question. */
+  presence: (token, ids) =>
+    call(`/api/presence?ids=${encodeURIComponent(ids.join(","))}`, token ? { token } : {}),
+
   games: (token) => call("/api/games", { token }),
   ladder: () => call("/api/ladder"),
   stats: () => call("/api/stats"),

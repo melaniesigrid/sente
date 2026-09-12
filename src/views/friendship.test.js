@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   standingWith, friendAction, outcomeText, OUTCOME_TEXT,
-  friendErrorText, FRIEND_ERRORS, moved, STANDING_AFTER, bookIsEmpty,
+  friendErrorText, FRIEND_ERRORS, moved, STANDING_AFTER, bookIsEmpty, everyoneIn,
 } from "./friendship.js";
 
 const p = (id) => ({ id, name: id.toUpperCase(), tint: "eucalyptus", rating: 900, rd: 80 });
@@ -161,5 +161,27 @@ describe("bookIsEmpty", () => {
     expect(bookIsEmpty(book({ friends: [p("a")] }))).toBe(false);
     expect(bookIsEmpty(book({ incoming: [p("a")] }))).toBe(false);
     expect(bookIsEmpty(book({ outgoing: [p("a")] }))).toBe(false);
+  });
+});
+
+describe("everyoneIn", () => {
+  it("names everybody on the card, in the order the card reads", () => {
+    expect(everyoneIn(book({ incoming: [p("i")], friends: [p("f")], outgoing: [p("o")] })))
+      .toEqual(["i", "f", "o"]);
+  });
+
+  /* Somebody can only be on one list at a time, but a book read mid-change can
+     briefly show them twice, and asking about one id twice is wasted work. */
+  it("names somebody on two lists only once", () => {
+    expect(everyoneIn(book({ friends: [p("a")], outgoing: [p("a")] }))).toEqual(["a"]);
+  });
+
+  it("is empty for an empty book and for no book at all", () => {
+    expect(everyoneIn(book())).toEqual([]);
+    expect(everyoneIn(null)).toEqual([]);
+  });
+
+  it("skips entries that lost their id rather than asking about undefined", () => {
+    expect(everyoneIn({ friends: [null, { name: "no id" }, p("a")] })).toEqual(["a"]);
   });
 });

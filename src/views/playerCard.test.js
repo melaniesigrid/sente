@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { monthYear, joinedText, seenText, recordText, factRows, saidAnything } from "./playerCard.js";
+import { monthYear, joinedText, seenText, recordText, factRows, saidAnything,
+  hereSet, presenceLine } from "./playerCard.js";
 import { FACTS } from "../../server/profile.js";
 
 /* A fixed afternoon to measure against, so "yesterday" means yesterday and not
@@ -113,5 +114,45 @@ describe("saidAnything", () => {
     expect(saidAnything({ bio: "   ", facts: {} })).toBe(false);
     expect(saidAnything({})).toBe(false);
     expect(saidAnything(null)).toBe(false);
+  });
+});
+
+describe("hereSet", () => {
+  it("reads the ids out of a presence answer", () => {
+    expect([...hereSet({ online: ["a", "b"] })]).toEqual(["a", "b"]);
+  });
+
+  it("is empty for an answer that names nobody, and for no answer at all", () => {
+    for (const bad of [{ online: [] }, {}, null, undefined]) {
+      expect([...hereSet(bad)], String(bad)).toEqual([]);
+    }
+  });
+});
+
+describe("presenceLine", () => {
+  it("says somebody is here now, in place of when they last played", () => {
+    expect(presenceLine(true, daysBefore(3), NOW)).toBe("Here now");
+  });
+
+  /* Two lines saying "Here now, played this week" is one fact twice, and the
+     second is the weaker version of the first. */
+  it("never says both at once", () => {
+    expect(presenceLine(true, daysBefore(0), NOW)).not.toMatch(/played/i);
+  });
+
+  it("falls back to exactly what was said before presence existed", () => {
+    for (const d of [0, 1, 3, 20, 200]) {
+      expect(presenceLine(false, daysBefore(d), NOW), String(d)).toBe(seenText(daysBefore(d), NOW));
+    }
+  });
+
+  /* Somebody who is away and somebody who did not say are the same silence:
+     the screen is handed `false` for both and cannot tell them apart. */
+  it("says nothing at all for somebody who is not here and never played", () => {
+    expect(presenceLine(false, null, NOW)).toBe(null);
+  });
+
+  it("says nothing finer than a day when they are not here", () => {
+    expect(presenceLine(false, daysBefore(2), NOW)).not.toMatch(/\d{1,2}:\d{2}/);
   });
 });

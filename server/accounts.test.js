@@ -51,11 +51,21 @@ describe("passwordProblem", () => {
 describe("privateFields", () => {
   it("says whether there is a way back in", () => {
     expect(privateFields({ email: "a@b.co", pw: { salt: "s", hash: "h" }, sessions: ["x", "y"], emailVerifiedAt: 1 }))
-      .toEqual({ email: "a@b.co", hasPassword: true, emailVerified: true, sessions: 2 });
+      .toEqual({ email: "a@b.co", hasPassword: true, emailVerified: true, sessions: 2, showOnline: "friends" });
   });
   it("is honest about a handle with no account behind it", () => {
     expect(privateFields({}))
-      .toEqual({ email: null, hasPassword: false, emailVerified: false, sessions: 0 });
+      .toEqual({ email: null, hasPassword: false, emailVerified: false, sessions: 0, showOnline: "friends" });
+  });
+  /* Who may see you are here is the owner's business and nobody else's: it is
+     on this view and never on `publicPlayer`, so reading the ladder cannot tell
+     you who has chosen to be invisible. A player who never chose reads as
+     friends, which is the default the whole slice rests on. */
+  it("carries the presence setting, defaulting to friends", () => {
+    expect(privateFields({}).showOnline).toBe("friends");
+    expect(privateFields({ showOnline: "everyone" }).showOnline).toBe("everyone");
+    expect(privateFields({ showOnline: "nobody" }).showOnline).toBe("nobody");
+    expect(privateFields({ showOnline: "nonsense" }).showOnline).toBe("friends");
   });
   it("separates an address that has been typed from one that has answered", () => {
     // Every account made before confirming existed has no stamp, and unproved

@@ -51,6 +51,22 @@ export function seenText(lastSeen, now = Date.now()) {
   return when ? `Last played ${when}` : null;
 }
 
+/** The ids in a presence answer, as a set. The answer names only the people
+ *  who are here AND who let this viewer know, so an id absent from it means one
+ *  of those two things and the screen must not guess which. */
+export const hereSet = (answer) => new Set((answer && answer.online) || []);
+
+/** The one line about when somebody was last at a board.
+ *
+ *  "Here now" replaces the last-played line rather than sitting beside it: two
+ *  lines saying "Here now · played this week" is the same fact twice, and the
+ *  second one is the weaker version of the first. Somebody who is not here, or
+ *  who has not said we may know, gets exactly what they got before presence
+ *  existed, which is a bucket no finer than a day. */
+export function presenceLine(isHere, lastSeen, now = Date.now()) {
+  return isHere ? "Here now" : seenText(lastSeen, now);
+}
+
 /** The record, or an honest sentence when there is not one yet. A player with
  *  no finished game has no rank worth reading either, which is why the badge
  *  beside this carries its own question mark. */

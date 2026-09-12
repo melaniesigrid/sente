@@ -4,7 +4,8 @@ import { avatarUrl } from "../net/avatar.js";
 import { SERVER_URL } from "../net/api.js";
 import { provisionalText } from "../content/online.js";
 import { useFriends } from "./useFriends.js";
-import { bookIsEmpty } from "./friendship.js";
+import { usePresence } from "./usePresence.js";
+import { bookIsEmpty, everyoneIn } from "./friendship.js";
 
 /* ----------------------- THE FRIENDS CARD -----------------------
    The three lists, on one card, with the requests waiting at the top.
@@ -18,6 +19,9 @@ import { bookIsEmpty } from "./friendship.js";
    on the row that do not. */
 export function FriendsCard({ account, notify, go }) {
   const { book, busy, act } = useFriends(account.token, notify);
+  /* Everybody on the card at once, in one call, rather than a call per row.
+     Friends are the people most likely to be visible, which is the point. */
+  const here = usePresence(account.token, everyoneIn(book));
 
   return (
     <Card className="friends-card">
@@ -40,11 +44,11 @@ export function FriendsCard({ account, notify, go }) {
       ) : (
         <>
           <Group title="Asking to be friends" people={book.incoming} empty={null}
-            act={act} busy={busy} go={go} kind="incoming" />
+            act={act} busy={busy} go={go} here={here} kind="incoming" />
           <Group title="Friends" people={book.friends} empty={null}
-            act={act} busy={busy} go={go} kind="friends" />
+            act={act} busy={busy} go={go} here={here} kind="friends" />
           <Group title="You asked" people={book.outgoing} empty={null}
-            act={act} busy={busy} go={go} kind="outgoing" />
+            act={act} busy={busy} go={go} here={here} kind="outgoing" />
         </>
       )}
     </Card>
@@ -53,14 +57,14 @@ export function FriendsCard({ account, notify, go }) {
 
 /** One of the three lists, with its heading, or nothing at all when it is
  *  empty. An empty heading is a promise of content that is not there. */
-function Group({ title, people, act, busy, go, kind }) {
+function Group({ title, people, act, busy, go, here, kind }) {
   if (!people || people.length === 0) return null;
   return (
     <div className="friend-group">
       <h4 className="friend-group-head">{title} <span className="fine">{people.length}</span></h4>
       <div className="friend-rows">
         {people.map((person) => (
-          <FriendRow key={person.id} person={person} kind={kind}
+          <FriendRow key={person.id} person={person} kind={kind} here={here.has(person.id)}
             busy={busy === person.id} act={act} go={go} />
         ))}
       </div>
@@ -68,7 +72,7 @@ function Group({ title, people, act, busy, go, kind }) {
   );
 }
 
-function FriendRow({ person, kind, busy, act, go }) {
+function FriendRow({ person, kind, busy, act, go, here }) {
   return (
     <div className="friend-row">
       <button type="button" className="friend-who"
@@ -77,7 +81,7 @@ function FriendRow({ person, kind, busy, act, go }) {
         <Avatar name={person.name} tint={person.tint} size={38}
           src={avatarUrl(SERVER_URL, person.id, person.avatarAt)} />
         <span className="ladder-name">
-          <strong>{person.name}</strong>
+          <strong>{person.name}{here && <span className="here-dot" title="Here now" />}</strong>
           <span className="fine">{provisionalText(person)} · {person.wins}–{person.losses}</span>
         </span>
       </button>

@@ -1713,6 +1713,27 @@ ${FONT_FACES}
   .friend-row { flex-wrap: wrap; }
   .friend-who { flex-basis: 100%; }
 }
+/* ---- here now ----
+   One small dot in the accent, and nothing anywhere for somebody who is not
+   here: away and "did not say" are the same silence, so there is no second
+   colour for offline to give the difference away. It carries a title on a row
+   where no words accompany it, and none on the page, where the words beside it
+   already say "Here now" and a tooltip would repeat them. */
+.here-dot {
+  display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--accent-ink); margin-left: 7px; vertical-align: middle;
+  flex: none;
+}
+.player-when .here-dot { margin: 0 7px 0 0; }
+/* ---- who may see you are here ----
+   Three choices on the same segmented control the lobby sets a board size
+   with, so a preference that changes what other people see reads as the same
+   kind of object as every other preference on the screen. */
+.who-may-see {
+  display: flex; flex-direction: column; gap: 8px;
+  padding-top: 14px; border-top: 1px solid var(--hairline);
+}
+.who-may-see .fine { margin: 0; }
 .seek-state { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-radius: 14px; box-shadow: var(--sink-sm); font-size: 14.5px; }
 .seek-state .pulse { color: var(--accent-ink); animation: seek-pulse 1.6s ease-in-out infinite; }
 @keyframes seek-pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
