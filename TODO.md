@@ -534,18 +534,19 @@ two Durable Object classes, deployed at https://api.joseki.online.
       server (branch `feat/online`). The zone is on Cloudflare and Namecheap's nameservers
       point at it (`nadia`/`randy.ns.cloudflare.com`, verified 2026-09-12), so the repository
       half lands: `public/CNAME`, an unset `BASE_PATH`, and both clients naming the api
-      subdomain. Three things are still a human in a dashboard and not a commit, and the
-      site does not answer until they are done:
-      1. The apex needs GitHub's four A records (185.199.108-111.153) and the AAAA quad,
-         **DNS-only, never proxied**: an orange cloud puts Cloudflare's certificate in front
-         of a host that wants to present its own and Pages never finishes provisioning.
-         Today the apex resolves to a Cloudflare address that serves nothing.
-      2. `api.joseki.online` is the Worker's custom domain, claimed by the deploy from
-         `"routes"` in `wrangler.jsonc`. It does not resolve yet.
-      3. `CLOUDFLARE_API_TOKEN` needs a **Workers Routes: Edit** row for the zone beside the
-         Workers Scripts row. A token's permissions are fixed at creation, so this is a new
-         token and `gh secret set` again. Without it the deploy uploads the code and then
-         fails on the domain.
+      subdomain. **Live 2026-09-12**: the apex carries GitHub's four A records and the AAAA
+      quad DNS-only, `api.joseki.online` answers `/api/health`, and the deploy token was
+      reissued with a Workers Routes: Edit row for the zone.
+
+      The one that was not in anybody's plan, and is worth reading before the next domain:
+      **a `CNAME` file does not bind a custom domain on a GitHub Actions Pages build.** It
+      works for the legacy branch-based build; this repository is `build_type: workflow` and
+      that build ignores the file. With correct DNS and `CNAME` sitting in `dist/`, the apex
+      answered a bare 404 from GitHub and presented no certificate, because Pages did not
+      know the hostname was ours. The domain has to be set on the repository
+      (`gh api -X PUT repos/melaniesigrid/sente/pages -f cname=joseki.online`), which turns
+      `https_enforced` off until the certificate provisions, and **a deployment has to run
+      afterwards** or the new address keeps 404ing. `README.md` has the two commands.
       It also unblocks the letters above: a domain on the account is the one thing Email
       Sending was missing. Nobody's saved profile survives the move, because local storage
       belongs to the old origin and nothing can read it across; anyone with an account signs

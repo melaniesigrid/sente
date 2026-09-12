@@ -100,10 +100,30 @@ has the numbers, the operator routes, and the two secrets a human has to set.
 
 **App.** `.github/workflows/deploy.yml` builds on every push to `main` and publishes `dist/` to
 GitHub Pages (enable Pages with source "GitHub Actions" once in the repo settings).
-`public/CNAME` is what tells Pages to serve the build at `joseki.online`; it has to be in
-`public/` rather than the repository root, because every deploy replaces the published site
-with `dist/` and a root file would not be in it. The site is served from the root of the
-domain, so Vite's `base` is `/` and nothing sets `BASE_PATH` any more.
+What actually binds the domain is the **custom domain on the repository**, not the `CNAME`
+file. This is the part that cost an evening on 2026-09-12: a `CNAME` in the published output
+sets the custom domain only for the legacy branch-based Pages build. This repository deploys
+with `build_type: workflow` (source "GitHub Actions"), and that build **ignores the file**.
+The DNS was correct and the file was in `dist/`, and the apex still answered a bare 404 from
+GitHub with no certificate, because Pages had no idea which site the hostname belonged to.
+
+Set it once, and it sticks across deploys:
+
+```
+gh api -X PUT repos/melaniesigrid/sente/pages -f cname=joseki.online
+gh api -X PUT repos/melaniesigrid/sente/pages -F https_enforced=true
+```
+
+Setting the domain turns `https_enforced` off, because there is no certificate for a hostname
+Pages has not seen before; it provisions one within a minute or two and the second call turns
+enforcement back on. **A deployment has to run after the domain is set** or the site keeps
+404ing at the new address: `gh workflow run "Deploy"` is enough.
+
+`public/CNAME` stays anyway, and is still in `public/` rather than the repository root because
+every deploy replaces the published site with `dist/` and a root file would not be in it. It
+documents the intended address and is what a branch-based build would need, but nothing about
+the live site depends on it. The site is served from the root of the domain, so Vite's `base`
+is `/` and nothing sets `BASE_PATH` any more.
 
 `public/robots.txt` and `public/sitemap.xml` ride along in the same build, and `index.html`
 carries the canonical and the Open Graph tags. All four are static text. There is no
