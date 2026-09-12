@@ -51,7 +51,7 @@ export const COPYRIGHT = `© ${COPYRIGHT_YEAR} ${STUDIO}`;
    being stopped and handed the line where the date lives. */
 export const REVISION = {
   updated: "12 September 2026",
-  stamp: "bdb9f2d0",
+  stamp: "5aef84dc",
 };
 
 /** The day the documents last changed. */
@@ -197,7 +197,7 @@ const TERMS = {
    key, never the password) · server/mail.js (the two letters) ·
    server/ratelimit.js and `claimedFrom` (the address bucket) ·
    server/rollup.js (the daily tally and how long it is kept) ·
-   src/store/*.js (the four local keys) · src/styles/googleFaces.js (the text
+   src/store/*.js (the four local keys) · src/content/chain.js (the days practised, CHAIN_KEEP = 400) · src/styles/googleFaces.js (the text
    faces, self-hosted since 11 September 2026, so there is no longer a third
    party the browser talks to on its own). */
 const PRIVACY = {
@@ -217,6 +217,7 @@ const PRIVACY = {
       heading: "What stays on this device",
       paras: [
         "Your name, your avatar tint, your rank, your finished lessons and problems, the room and the pairing you chose, the game in progress and the last table you set up. All of it sits in your browser's local storage, under keys of Joseki's own, and none of it is sent anywhere.",
+        "Which days you practised on, as a list of dates going back thirteen months, so the dashboard can show you the run you are keeping. It is a date and nothing else: not what you did that day, not how long for, and not how well it went. It is never sent anywhere, and it is the same local storage as everything above, so clearing site data clears it too.",
         "Joseki also keeps the shape of your last fifty games against the house players (the board size, the handicap, which house player, how the game ended and how many moves it took) so the house players can be tuned against what really happens at the board. It holds no moves and nothing that could replay a game, it is never sent anywhere, and your profile page shows you exactly what is in it and empties it in one press.",
         "Clearing site data for Joseki erases every one of them, and there is no copy elsewhere to restore from.",
       ],

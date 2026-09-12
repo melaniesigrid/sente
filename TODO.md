@@ -100,10 +100,15 @@ each fixed in its own commit:
       overlay, honest result card with every term ("41 stones + 3 territory = 44" vs
       "35 + 4 + 7.5 komi = 46.5"), a bow, and "Keep playing" to take both passes back.
 - [x] Resign with confirmation; result recorded honestly.
-- [x] Confirm every move, opt-in (`confirmMove` on the profile, "At the table"): the first
-      tap stages a faint stone under a dashed ring, the second plays it, and nothing reaches
-      the record until then. Staging runs the move through the engine immediately, so an
-      illegal point is refused at stage time. The clock keeps running while you decide.
+- [x] Confirm every move, at every table (branch `feat/confirm-every-move`): the first tap
+      stages a faint stone under a dashed ring, the second plays it, and nothing reaches the
+      record until then. Staging runs the move through the engine immediately, so an illegal
+      point is refused at stage time. The clock keeps running while you decide.
+      Began as an opt-in `confirmMove` toggle that only worked against house players. Made
+      unconditional and wired into online and pair tables after the first Go Guatemala club
+      player asked for it: on a phone there is no hover, so without it there is no way to see
+      where a stone will land before it lands. What a tap means now lives in
+      `views/stagedMove.js` so all three tables agree; the toggle is gone.
 - [x] Clock UI (2026-09-10, branch `feat/clock`): pressure states, byo-yomi pips, no chrome.
 - [x] Review mode (2026-09-10, branch `feat/review-mode`): scrub with arrows, move number
       overlay, jump to capture, SGF out. The variation tree is NOT done and is not faked:
@@ -414,6 +419,58 @@ Decisions:
   on the board changed, it says nothing new.
 - Sound is a profile field (opt-in, default off). Moku's off switch is a device
   preference in localStorage, like Pip's in ZipQuarry.
+
+## The chain (2026-09-12, branch `feat/the-chain`)
+
+Attendance was a counter on one button. `kataStreak` went up when the kata was solved
+and reset when it was not, so a reader who finished two lessons, sat a recall and
+played three rated games, and did not tap that one card, lost the run anyway: the
+number punished the day it was meant to reward. And it was an integer with no record
+behind it, so nothing could show a reader the chain they were being asked not to
+break, and nothing could be checked afterwards.
+
+- [x] `src/content/chain.js`: the days practised, as a list of day keys, and everything
+      else derived by replaying it, the way a belt is derived from a rating rather than
+      stored beside it. `attendDay` writes the day down (idempotent inside a day),
+      `chainRun` reads the run standing on a given day, `recentDays` is what both
+      surfaces draw from. `profile.chain` is capped at 400 days and sanitised like every
+      other stored field; `chainBest` survives runs older than the cap, and the record
+      outranks it wherever the two disagree.
+- [x] A day counts for practice of any kind: a solved problem, a finished lesson, a
+      graded recall card or a finished rated game. Four call sites, one function.
+- [x] Rest days, and they are earned rather than bought: seven days of practice earn
+      one, a reader may hold two, and a missed day spends one. A rest day lengthens the
+      run but earns nothing, so a reader who practises once a week cannot hold a run
+      together on rest days they never earned.
+- [x] The dashboard hero carries the run, the last twenty-eight days as a strip, and one
+      sentence. The kata card gives up its flame (two streaks on one screen was the
+      fragmentation this set out to fix) and shows its own state instead, Open or Solved.
+      Profile gains the record: the run, the longest, the days on the record, the rest
+      days held, and half a year as a grid of weekdays by week.
+- [x] A profile saved before this shipped is seeded from its kata streak (`seedFromKata`),
+      because those days really were practised. Nobody holding a run lost it on the day.
+- [x] The privacy notice names it: a list of dates, thirteen months back, never sent
+      anywhere. `legal.js` is read off the code, so the stamp moved with the sentence.
+
+Decisions:
+- The warning is said once and never counts down. `endsToday` is true only when the run
+  really does end tonight (alive, today unpractised, no rest day left), and the note
+  says so plainly. Nothing here nags, notifies, reddens or asks twice: a habit that
+  needs a threat to survive the evening is not a habit, and this product has a privacy
+  notice that forbids it the measurement such nagging would want anyway.
+- A mark is filled or empty and never sized or shaded by how much was done. The record
+  does not know how much was done, and a grid that implied it would be inventing.
+- The run is derived rather than stored, so a record carried between devices or clocks
+  cannot disagree with itself. A record that runs past today (a clock moved backwards)
+  leaves the run standing and says nothing about tonight.
+
+- [ ] The daily duel and the weekly problem do not count for practice yet. The duel has
+      its own streak and the weekly is not on main; both should feed the one record.
+- [ ] Nothing marks a chain that ends. A reader who loses a nineteen-day run is told
+      only by the number going to zero, and the honest version of that is a line on the
+      day it happens, not a badge for having had it.
+- [ ] The grid is half a year because a year of empty sockets is a reproach to somebody
+      three days in. It could grow with the record instead of being fixed.
 
 ## House players (done 2026-09-09, branch `feat/kata-bots`)
 

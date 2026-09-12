@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Pencil, Trophy, Flame, Sparkles, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Mountain, Palette, Grid3x3, Dot, Hammer, History, Trash2, MousePointerClick } from "lucide-react";
+import { Check, Pencil, Trophy, Flame, Sparkles, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Mountain, Palette, Grid3x3, Dot, Hammer, History, Trash2 } from "lucide-react";
 import { Card, Btn, Pill, Avatar, RankBadge, BeltRibbon, Toggle, PullQuote, Statement } from "../components/ui.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
@@ -12,7 +12,9 @@ import { PALETTES, themeOf, themeVars, SYSTEM_THEME, stoneSetOf } from "../theme
 import { CLASSIC, LEVELS, BELOW_THE_LEVELS, levelForRank, chapterByNumber } from "../content/classic.js";
 import { LESSONS } from "../content/lessons.js";
 import { PROBLEMS } from "../content/problems.js";
-import { dayKey, liveStreak } from "../content/kata.js";
+import { dayKey } from "../content/kata.js";
+import { chainRun, chainNote } from "../content/chain.js";
+import { ChainYear } from "../components/Chain.jsx";
 import { saveProfile } from "../store/profile.js";
 import { loadAccount } from "../store/account.js";
 import { loadTelemetry, clearTelemetry, byBot, summarize, CAP } from "../store/telemetry.js";
@@ -138,7 +140,7 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
   const next = nextBelt(profile.rating);
   const floor = beltFloor(belt);
   const pct = next ? Math.max(0, Math.min(100, ((profile.rating - floor) / (next.at - floor)) * 100)) : 100;
-  const streak = liveStreak(profile, dayKey());
+  const run = chainRun(profile, dayKey());
 
   return (
     <div className="stack arrives">
@@ -257,14 +259,6 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
             <Toggle on={profile.sound} onChange={v => commit({ sound: v })} label="Stone sound" />
           </div>
           <div className="setting-row">
-            <MousePointerClick size={16} />
-            <div className="setting-copy">
-              <strong>Confirm every move</strong>
-              <span className="fine">Two taps to play a stone: the first sets it down faintly, the second plays it. Until then nothing has happened and you can tap somewhere else instead. Your clock keeps running while you decide.</span>
-            </div>
-            <Toggle on={profile.confirmMove} onChange={v => commit({ confirmMove: v })} label="Confirm every move" />
-          </div>
-          <div className="setting-row">
             <Grid3x3 size={16} />
             <div className="setting-copy">
               <strong>Coordinates</strong>
@@ -299,14 +293,36 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
         </div>
       </Card>
 
+      {/* The record. It is on the profile rather than the dashboard because it
+          is a thing to look back at, not a thing to act on: the dashboard has
+          the one sentence about today, and this has the half year behind it. */}
+      {run.total > 0 && (
+        <Card className="chain-card">
+          <div className="stat-head"><CalendarCheck size={16} /><span>The chain</span></div>
+          <div className="chain-head">
+            <div className="stat-num">{run.days}<em>{run.days === 1 ? "day" : "days"} running</em></div>
+            <div className="chain-facts">
+              <span><strong>{run.best}</strong> longest run</span>
+              <span><strong>{run.total}</strong> days on the record</span>
+              {run.alive && <span><strong>{run.rest}</strong> {run.rest === 1 ? "rest day" : "rest days"} in hand</span>}
+            </div>
+          </div>
+          <ChainYear profile={profile} today={dayKey()} />
+          <p className="fine">{chainNote(run)} A day counts when you solve a problem, finish a
+            lesson, sit a recall or play a rated game. Seven days of practice earn a rest day,
+            you can hold two, and a missed day spends one. The record goes back thirteen months
+            and lives on this device only.</p>
+        </Card>
+      )}
+
       <div className="grid3">
         <Card>
           <div className="stat-head"><Swords size={16} /><span>Rated games</span></div>
           <div className="stat-num">{games}<em>{games ? ` · ${Math.round((profile.wins / games) * 100)}%` : ""}</em></div>
         </Card>
         <Card>
-          <div className="stat-head"><CalendarCheck size={16} /><span>Kata attendance</span></div>
-          <div className="stat-num">{streak}<em>{streak === 1 ? " day" : " days"}{profile.kataBest > streak ? ` · best ${profile.kataBest}` : ""}</em></div>
+          <div className="stat-head"><CalendarCheck size={16} /><span>Practice</span></div>
+          <div className="stat-num">{run.days}<em>{run.days === 1 ? " day" : " days"}{run.best > run.days ? ` · best ${run.best}` : ""}</em></div>
         </Card>
         <Card>
           <div className="stat-head"><Swords size={16} /><span>Daily duels</span></div>
