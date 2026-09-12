@@ -44,6 +44,7 @@ import { readBook, standing, ask, accept, forget, forgetting, everyoneWhoKnows,
 import { cleanShowOnline, whoIsHere } from "./presence.js";
 import { archivePrefix, archiveKey, pageSize, cursorFor, page as archivePage,
   archived, playersOf } from "./archive.js";
+import { readFeatured, pin as pinPure, unpin as unpinPure, featuredWith } from "./featured.js";
 import { hit, refund, REGISTER_LIMIT, REGISTER_WINDOW_MS, SIGNIN_LIMIT, SIGNIN_WINDOW_MS,
   FORGOT_LIMIT, FORGOT_WINDOW_MS, VERIFY_LIMIT, VERIFY_WINDOW_MS } from "./ratelimit.js";
 import { VERIFY_TTL_MS, RESET_TTL_MS } from "./mail.js";
@@ -412,7 +413,10 @@ export class Registry extends DurableObject {
   /** The owner's own view of themselves: everything public, plus the few
    *  things only they may see. */
   #self(p) {
-    return { ...profileOf(p, publicPlayer(p)), ...privateFields(p) };
+    /* The owner sees their pins as they are stored: ids and the lines they
+       wrote. The joined rows are for a stranger's view of the page, and this
+       caller already has the archive those rows came from. */
+    return { ...profileOf(p, publicPlayer(p)), ...privateFields(p), featured: readFeatured(p.featured) };
   }
 
   async self(id) {
@@ -541,11 +545,65 @@ export class Registry extends DurableObject {
     return (await this.ctx.storage.get(`avatar:${id}`)) ?? null;
   }
 
-  /** A stranger's view of a player: the ladder's row plus what they chose to
-   *  say. This is the only route that serves one player to another. */
+  /** A stranger's view of a player: the ladder's row, what they chose to say,
+   *  and the few games they chose to show. This is the only route that serves
+   *  one player to another.
+   *
+   *  The pinned games are read here rather than stored on the record, so a page
+   *  can never show a game that has gone and the list heals itself by being
+   *  read. The rows come from this player's own archive, which is where the
+   *  right to show them comes from: you may pin a game you played. */
   async profile(id) {
     const p = await this.ctx.storage.get(`player:${id}`);
-    return p ? profileOf(p, publicPlayer(p)) : null;
+    if (!p) return null;
+    const pins = readFeatured(p.featured);
+    const rows = new Map();
+    if (pins.length) {
+      const got = await this.ctx.storage.get(pins.map((e) => `pin:${id}:${e.id}`));
+      for (const [key, value] of got) rows.set(key.slice(`pin:${id}:`.length), value);
+    }
+    return { ...profileOf(p, publicPlayer(p)), featured: featuredWith(pins, rows) };
+  }
+
+  /* ----- the games a player shows -----
+     A pin is an id and a line; the game itself stays in its room and in the
+     archive. Pinning copies nothing, so a pinned game can never drift out of
+     step with the real one, and the pin costs the same whatever the game was. */
+
+  /** The archive row for one of this player's own games, or null. This is the
+   *  check that a pin is a game they actually played: the row only exists
+   *  under their own prefix if they sat at that board. */
+  async #ownGame(id, gameId) {
+    const got = await this.ctx.storage.list({ prefix: archivePrefix(id) });
+    for (const [key, value] of got) if (value && value.id === gameId) return { key, value };
+    return null;
+  }
+
+  async pinGame(id, gameId, note) {
+    const p = await this.ctx.storage.get(`player:${id}`);
+    if (!p) throw new Error("no-player");
+    const own = await this.#ownGame(id, gameId);
+    if (!own) throw new Error("not-your-game");
+    const r = pinPure(readFeatured(p.featured), gameId, note, Date.now());
+    if (r.error) throw new Error(r.error);
+    /* The row is copied to a key the public profile can read in one batched
+       get. Without it, serving somebody's page would mean scanning their whole
+       archive to find three games, which is the one thing the archive's key
+       scheme exists to avoid. */
+    await this.ctx.storage.put({
+      [`player:${id}`]: { ...p, featured: r.list, lastSeen: Date.now() },
+      [`pin:${id}:${gameId}`]: own.value,
+    });
+    return this.#self({ ...p, featured: r.list });
+  }
+
+  async unpinGame(id, gameId) {
+    const p = await this.ctx.storage.get(`player:${id}`);
+    if (!p) throw new Error("no-player");
+    const r = unpinPure(readFeatured(p.featured), gameId);
+    await this.ctx.storage.put(`player:${id}`, { ...p, featured: r.list, lastSeen: Date.now() });
+    await this.ctx.storage.delete(`pin:${id}:${gameId}`);
+    return this.#self({ ...p, featured: r.list });
   }
 
   /* ----- friends ----- */
@@ -662,11 +720,16 @@ export class Registry extends DurableObject {
   /** Every archive key this player has, in pages, so leaving can delete them
    *  without holding the whole archive of a prolific player in memory. */
   async #forgetArchive(id) {
-    for (;;) {
-      const got = await this.ctx.storage.list({ prefix: archivePrefix(id), limit: PAGE });
-      if (got.size === 0) return;
-      await this.ctx.storage.delete([...got.keys()]);
-      if (got.size < PAGE) return;
+    // The pinned copies go with it: they are rows of the same games, kept
+    // under their own prefix only so a public page can read three of them
+    // without scanning a whole archive.
+    for (const prefix of [archivePrefix(id), `pin:${id}:`]) {
+      for (;;) {
+        const got = await this.ctx.storage.list({ prefix, limit: PAGE });
+        if (got.size === 0) break;
+        await this.ctx.storage.delete([...got.keys()]);
+        if (got.size < PAGE) break;
+      }
     }
   }
 

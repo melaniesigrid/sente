@@ -107,6 +107,13 @@ export const api = {
   /* The record as a file. Not a fetch: the browser is sent to it so the
      download lands with the name the server gives it. */
   sgfUrl: (id) => `${SERVER_URL}/api/game/${encodeURIComponent(id)}/sgf`,
+  /* The games shown on your page. PUT twice is an edit of the line, not a
+     second pin, which is why it is not a POST. */
+  pinGame: (token, id, note) =>
+    call(`/api/me/featured/${encodeURIComponent(id)}`, { method: "PUT", token, body: { note } }),
+  unpinGame: (token, id) =>
+    call(`/api/me/featured/${encodeURIComponent(id)}`, { method: "DELETE", token }),
+
   ladder: () => call("/api/ladder"),
   stats: () => call("/api/stats"),
   game: (id) => call(`/api/game/${encodeURIComponent(id)}`),

@@ -51,7 +51,7 @@ export const COPYRIGHT = `© ${COPYRIGHT_YEAR} ${STUDIO}`;
    being stopped and handed the line where the date lives. */
 export const REVISION = {
   updated: "12 September 2026",
-  stamp: "7cb92787",
+  stamp: "4cc245ba",
 };
 
 /** The day the documents last changed. */
@@ -145,7 +145,7 @@ const TERMS = {
       heading: "What you write stays yours",
       paras: [
         "Your bio, your chat lines and your picture are yours. Putting them into Joseki allows the Studio to store them and to show them where the product shows them: your profile, the room you are playing in, and the record afterwards.",
-        "A game record is a record of a game two people played. Joseki keeps finished games and may show them to the players and to anyone holding the link to that room.",
+        "A game record is a record of a game two people played. Joseki keeps finished games and may show them to the players, to anyone holding the link to that room, and — if either player chooses to show that game on their own page — to anyone who opens that page. A game is two people's, so showing one shows both names, exactly as the room and the ladder already do. What nobody may do is publish a line about somebody else under their own name: the sentence a player writes beside a game they show is attributed to them and is theirs alone.",
       ],
     },
     {
@@ -233,6 +233,7 @@ const PRIVACY = {
         "The games you played online, and up to 200 chat lines in each room alongside the record.",
         "An index of your finished games, one entry each, kept for as long as the account is. It holds no moves: it is the date, the board, the opponent and the result, and it is what lets your own archive be paged through without reading every game you have ever played. Leaving deletes the index; the games themselves stay in the rooms they were played in, for the reason given under Leaving.",
         "Who your friends here are: the handles you have agreed to be friends with, the requests you have sent, and the requests you have been sent. Three lists of handles with the date each was written, kept on your record and on theirs, and seen by nobody but the two of you. Declining a request deletes it and tells the person who sent it nothing at all.",
+        "The games you chose to show on your page, at most three, each with a line of up to 140 characters that you wrote. Both are public, because the page is. Taking a game off your page removes the line with it.",
         "Which of the three answers you gave to who may see that you are here: nobody, your friends, or anybody. One word on your record, and not on the ladder, so reading the ladder cannot tell you who has chosen to be invisible.",
         "The address you registered from, kept so that leaving gives back the account it spent, shown to nobody, and deleted with the account.",
       ],

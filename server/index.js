@@ -32,6 +32,8 @@
      GET   /api/players/:id/avatar              -> the picture, cached by its stamp
      GET   /api/games           bearer         -> recent games
      GET   /api/me/archive?cursor=&limit= bearer -> finished games, newest first
+     PUT   /api/me/featured/:gameId bearer {note} -> show a game on your page
+     DELETE /api/me/featured/:gameId bearer     -> take it off again
      GET   /api/ladder                         -> top players
      GET   /api/stats                          -> {players, online, seeking}
      GET   /api/stats/history?days=            -> a row a day, oldest first
@@ -78,6 +80,9 @@ export default {
         "already-friends": 409, "no-request": 409,
         "your-list-is-full": 409, "their-list-is-full": 409,
         "too-many-asked": 409, "their-requests-are-full": 409,
+        /* Showing a game you did not play is not a bad request so much as a
+           claim about somebody else's game, so it is a refusal of its own. */
+        "not-your-game": 403, "too-many-featured": 409,
       };
       if (known[e.message]) return fail(known[e.message], e.message);
       console.error("unhandled", e);
@@ -303,6 +308,20 @@ async function route(req, env) {
     const player = await requirePlayer(req, reg);
     return json(await reg.archiveOf(player.id,
       url.searchParams.get("cursor"), url.searchParams.get("limit")));
+  }
+
+  /* The few games a player shows on their page. PUT rather than POST because
+     pinning a game already pinned is an edit of the line, not a second pin:
+     the same call twice leaves the same thing behind. */
+  const pinned = /^\/api\/me\/featured\/([^/]+)$/.exec(path);
+  if (pinned) {
+    const player = await requirePlayer(req, reg);
+    if (req.method === "PUT") {
+      const b = await readJson(req);
+      return json(await reg.pinGame(player.id, pinned[1], b.note));
+    }
+    if (req.method === "DELETE") return json(await reg.unpinGame(player.id, pinned[1]));
+    return fail(405, "method");
   }
 
   if (path === "/api/ladder" && req.method === "GET") return json(await reg.ladder(), 200, { "cache-control": "public, max-age=30" });

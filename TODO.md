@@ -1563,8 +1563,13 @@ paragraph, three facts and picture have shipped since the accounts slice, and
       writes the file out of the record the Room already keeps rather than storing a
       second copy. `server/archive.js` is the key arithmetic, pure;
       `tools/server/archive.mjs` plays two whole games and reads them back, 24 checks.
-- [ ] **Featured games**: pin up to three onto your page with a line of your own about
-      each. The pin is an id; the game is still the record.
+- [x] **Featured games** (branch `feat/featured`): pin up to three onto your page with a
+      line of your own about each. A pin is an id and a sentence; the game stays in its
+      room and in the archive, so pinning copies nothing and a pinned game can never
+      drift out of step with the real one. You may only pin a game you played, both
+      players may pin the same game, and each keeps their own line about it. This is the
+      slice that widened `legal.js` to permit a game on a page anybody can open —
+      deliberately, with the sentence and the first drawing of one in the same commit.
 - [ ] **The dashboard**: every game you are in, ordered by who is waiting on whom, with
       how long the board has been waiting. It says plainly that it is not a clock. This
       is also where a seat at a table becomes a link to a player's page: today
@@ -1577,6 +1582,33 @@ paragraph, three facts and picture have shipped since the accounts slice, and
 - [ ] **Mail**: one thread per pair, between people who have played or are friends. No
       broadcast, no list, no unsubscribe because there is nothing to leave. Rate limited
       and blockable from the first commit.
+
+Decisions made in Phase 9, the featured slice (2026-09-12, branch `feat/featured`):
+- **The notice was widened here, on purpose, in the commit that first drew a game on
+  somebody else's page.** Since the page slice `legal.js` had said a game may be shown
+  "to the players and to anyone holding the link to that room", and `PlayerPage.test.jsx`
+  asserted the absence of any games list so that nobody could quietly outgrow it. The
+  sentence now also permits a game "if either player chooses to show that game on their
+  own page". The test did not disappear: it narrowed to the thing that is still true,
+  which is that a player's whole archive is never on a page anybody can open, and that
+  the page is given no way to fetch one.
+- **A line about a game is attributed.** A game is two people's, and showing one shows
+  both names, which the room and the ladder already do. What nobody may do is publish a
+  sentence about somebody else under their own name, so the note is drawn as this
+  player's words with their name on it, and the notice says so in a sentence of its own.
+- **A pin is an id, not a copy of a game.** Pinning therefore costs the same whatever the
+  game was, and a pinned game cannot drift out of step with the record.
+- **The row is copied to `pin:<player>:<game>` all the same**, because serving a page
+  would otherwise mean scanning a whole archive to find three games, which is the one
+  thing the archive's key scheme exists to avoid. Leaving deletes that prefix too.
+- **You may only pin a game you played**, checked against your own archive prefix, which
+  is where the right to show it comes from. Refused with 403 rather than 400: showing
+  somebody else's game is a claim about them, not a malformed request.
+- **`PUT`, not `POST`.** Pinning a game already pinned is an edit of the line, and the
+  same call twice leaves the same thing behind. A separate route for editing would be two
+  names for one idea, and a re-pin keeps its place so a page never reorders under its owner.
+- Three is the cap. A page that shows everything shows nothing, and three is enough for a
+  best win, a favourite loss and the strange one.
 
 Decisions made in Phase 9, the archive slice (2026-09-12, branch `feat/archive`):
 - **One key a game, not a longer list.** `games:<id>` stays exactly as it was: capped at

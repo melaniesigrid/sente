@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Download, Loader, ChevronDown, Swords } from "lucide-react";
+import { Download, Loader, ChevronDown, Swords, Star, StarOff } from "lucide-react";
 import { Card, Btn } from "../components/ui.jsx";
 import { api, serverEnabled } from "../net/api.js";
+import { saveAccount } from "../store/account.js";
 import { monthYear } from "./playerCard.js";
 import { archiveLine } from "./archiveLine.js";
+import { MAX_FEATURED, NOTE_MAX } from "../../server/featured.js";
 
 /* ----------------------- THE ARCHIVE -----------------------
    Every finished game you have played here, newest first, a page at a time.
@@ -16,7 +18,7 @@ import { archiveLine } from "./archiveLine.js";
    Each row carries its SGF as a plain link rather than a button that fetches.
    The server names the file, the browser saves it, and nothing has to hold a
    game in memory to hand it over. */
-export function ArchiveCard({ account, go }) {
+export function ArchiveCard({ account, setAccount, notify, go }) {
   const [games, setGames] = useState(null);
   const [cursor, setCursor] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -72,7 +74,8 @@ export function ArchiveCard({ account, go }) {
         <>
           <div className="friend-rows">
             {games.map((game) => (
-              <ArchiveRow key={game.id} game={game} me={account.player.id} go={go} />
+              <ArchiveRow key={game.id} game={game} me={account.player.id} go={go}
+                account={account} setAccount={setAccount} notify={notify} />
             ))}
           </div>
           {cursor && (
@@ -87,9 +90,31 @@ export function ArchiveCard({ account, go }) {
   );
 }
 
-function ArchiveRow({ game, me, go }) {
+function ArchiveRow({ game, me, go, account, setAccount, notify }) {
   const line = archiveLine(game, me);
+  const pins = account.player.featured || [];
+  const pinned = pins.some((e) => e.id === game.id);
+  const [editing, setEditing] = useState(false);
+  const [note, setNote] = useState(() => (pins.find((e) => e.id === game.id) || {}).note || "");
+  const [busy, setBusy] = useState(false);
+
+  const save = async (next) => {
+    setBusy(true);
+    try {
+      const player = next === null
+        ? await api.unpinGame(account.token, game.id)
+        : await api.pinGame(account.token, game.id, next);
+      setAccount({ token: account.token, player });
+      saveAccount({ token: account.token, player });
+      notify({ icon: "info", text: next === null ? "Taken off your page" : "Shown on your page" });
+      setEditing(false);
+    } catch (e) {
+      notify({ icon: "info", text: pinError(e.reason) });
+    } finally { setBusy(false); }
+  };
+
   return (
+    <>
     <div className="archive-row">
       <button type="button" className="friend-who"
         onClick={() => go("play", { gameId: game.id })}
@@ -102,6 +127,10 @@ function ArchiveRow({ game, me, go }) {
         </span>
       </button>
       <span className="fine archive-when">{monthYear(game.endedAt)}</span>
+      <Btn icon={pinned ? StarOff : Star} small disabled={busy}
+        onClick={() => (pinned ? save(null) : setEditing((v) => !v))}
+        label={pinned ? `Take the game against ${line.who} off your page`
+          : `Show the game against ${line.who} on your page`} />
       {/* A plain link, so the browser saves the file the server names rather
           than the page holding a game in memory to hand it over. */}
       <a className="btn btn-sm" href={api.sgfUrl(game.id)} download
@@ -109,5 +138,27 @@ function ArchiveRow({ game, me, go }) {
         <Download size={14} strokeWidth={2.2} /><span>SGF</span>
       </a>
     </div>
+    {editing && !pinned && (
+      <div className="pin-note">
+        <label className="op-label" htmlFor={`pin-${game.id}`}>A line about this game, if you like</label>
+        <input id={`pin-${game.id}`} className="chat-input" value={note} maxLength={NOTE_MAX}
+          placeholder="The one where I finally killed a dragon"
+          onChange={(e) => setNote(e.target.value)} />
+        <div className="row">
+          <Btn icon={busy ? Loader : Star} small primary disabled={busy}
+            onClick={() => save(note)}>{busy ? "Saving…" : "Show it"}</Btn>
+          <Btn small onClick={() => setEditing(false)}>Cancel</Btn>
+          <span className="fine">At most {MAX_FEATURED} games. Everybody who opens your page sees this.</span>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
+
+/** The two ways pinning is refused, in the house voice. */
+const pinError = (reason) => ({
+  "too-many-featured": `You are already showing ${MAX_FEATURED} games. Take one off first.`,
+  "not-your-game": "You can only show a game you played",
+  offline: "The server is out of reach right now",
+}[reason] ?? `Something went wrong (${reason})`);

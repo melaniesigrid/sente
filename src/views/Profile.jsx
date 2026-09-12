@@ -168,7 +168,7 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
       </Card>
 
       {account && <OnlineProfileCard account={account} setAccount={setAccount} notify={notify} />}
-      {account && <ArchiveCard account={account} go={go} />}
+      {account && <ArchiveCard account={account} setAccount={setAccount} notify={notify} go={go} />}
       {account && <FriendsCard account={account} notify={notify} go={go} />}
 
       <Statement lines={statementFor("profile")} figure="profile" at="left">{plainFor("profile")}</Statement>
