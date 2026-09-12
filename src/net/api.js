@@ -83,6 +83,15 @@ export const api = {
   clearAvatar: (token) => call("/api/me/avatar", { method: "DELETE", token }),
   profile: (id) => call(`/api/players/${encodeURIComponent(id)}`),
 
+  /* Friends. The three lists arrive together, and every call that changes one
+     of them answers with the outcome and the new standing rather than a bare
+     200: declining a request and taking one back come from the same DELETE and
+     mean opposite things to whoever pressed it. */
+  friends: (token) => call("/api/me/friends", { token }),
+  askFriend: (token, id) => call(`/api/me/friends/${encodeURIComponent(id)}`, { method: "POST", token }),
+  acceptFriend: (token, id) => call(`/api/me/friends/${encodeURIComponent(id)}/accept`, { method: "POST", token }),
+  forgetFriend: (token, id) => call(`/api/me/friends/${encodeURIComponent(id)}`, { method: "DELETE", token }),
+
   games: (token) => call("/api/games", { token }),
   ladder: () => call("/api/ladder"),
   stats: () => call("/api/stats"),

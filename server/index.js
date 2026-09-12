@@ -66,6 +66,14 @@ export default {
         "bad-token": 400, "token-expired": 410,
         exists: 409, "email-taken": 409, "already-attached": 409, "already-verified": 409,
         "mail-failed": 502,
+        /* Friends. Everything that is refused here is refused for the state
+           the two books are in, which is a conflict and not a bad request:
+           the same call would have worked a moment earlier or will work a
+           moment later. `yourself` is the exception and is simply wrong. */
+        yourself: 400,
+        "already-friends": 409, "no-request": 409,
+        "your-list-is-full": 409, "their-list-is-full": 409,
+        "too-many-asked": 409, "their-requests-are-full": 409,
       };
       if (known[e.message]) return fail(known[e.message], e.message);
       console.error("unhandled", e);
@@ -223,6 +231,29 @@ async function route(req, env) {
     return json(await reg.setAvatar(player.id, type, base64(buf)));
   }
 
+  /* Friends. The three lists come back together because every screen that
+     shows one of them shows all three: a list with the requests waiting at the
+     top of it is one thing to read, where a separate "requests" page is one
+     more place to forget to look. */
+  if (path === "/api/me/friends" && req.method === "GET") {
+    const player = await requirePlayer(req, reg);
+    return json(await reg.friendsOf(player.id));
+  }
+
+  /* One DELETE for declining, withdrawing and unfriending. From the person
+     pressing it those are the same act, and which of the three lists the id
+     was on is the server's business to look up rather than the caller's to
+     know before it may ask. */
+  const friend = /^\/api\/me\/friends\/([^/]+?)(\/accept)?$/.exec(path);
+  if (friend) {
+    const player = await requirePlayer(req, reg);
+    if (req.method === "DELETE") return json(await reg.forgetFriend(player.id, friend[1]));
+    if (req.method !== "POST") return fail(405, "method");
+    return friend[2]
+      ? json(await reg.acceptFriend(player.id, friend[1]))
+      : limited(() => reg.askFriend(player.id, friend[1]));
+  }
+
   const who = /^\/api\/players\/([^/]+?)(\/avatar)?$/.exec(path);
   if (who && req.method === "GET") {
     if (!who[2]) {
@@ -287,7 +318,7 @@ async function limited(run, ok = 200) {
   try {
     return json(await run(), ok);
   } catch (e) {
-    if (!["too-many-handles", "too-many-attempts", "too-many-letters"].includes(e.message)) throw e;
+    if (!["too-many-handles", "too-many-attempts", "too-many-letters", "too-many-requests"].includes(e.message)) throw e;
     const secs = Math.ceil((e.retryAfterMs ?? 3600000) / 1000);
     return json({ error: e.message }, 429, { "retry-after": String(secs) });
   }

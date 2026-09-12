@@ -29,13 +29,30 @@ import { FACTS } from "../../server/profile.js";
 
 const profile = vi.fn();
 const loadAccount = vi.fn(() => null);
+const friends = vi.fn();
+const askFriend = vi.fn();
+const acceptFriend = vi.fn();
+const forgetFriend = vi.fn();
 
 vi.mock("../net/api.js", () => ({
-  api: { profile: (...a) => profile(...a) },
+  api: {
+    profile: (...a) => profile(...a),
+    friends: (...a) => friends(...a),
+    askFriend: (...a) => askFriend(...a),
+    acceptFriend: (...a) => acceptFriend(...a),
+    forgetFriend: (...a) => forgetFriend(...a),
+  },
   serverEnabled: () => true,
   SERVER_URL: "https://server.test",
 }));
 vi.mock("../store/account.js", () => ({ loadAccount: () => loadAccount() }));
+
+const EMPTY_BOOK = { friends: [], incoming: [], outgoing: [] };
+/** Signed in as somebody who is not the player being looked at. */
+const signedIn = (book = EMPTY_BOOK) => {
+  loadAccount.mockReturnValue({ token: "t", player: { id: "p_me" } });
+  friends.mockResolvedValue(book);
+};
 
 const { PlayerPage } = await import("./PlayerPage.jsx");
 
@@ -49,7 +66,13 @@ const PLAYER = {
   facts: { [FACTS[0].key]: "Go Guatemala" },
 };
 
-beforeEach(() => { profile.mockReset(); loadAccount.mockReset(); loadAccount.mockReturnValue(null); });
+beforeEach(() => {
+  profile.mockReset();
+  loadAccount.mockReset();
+  loadAccount.mockReturnValue(null);
+  for (const fn of [friends, askFriend, acceptFriend, forgetFriend]) fn.mockReset();
+  friends.mockResolvedValue(EMPTY_BOOK);
+});
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 const show = (props = {}) => render(<PlayerPage playerId="p_abc" go={() => {}} {...props} />);
@@ -126,10 +149,87 @@ describe("a player who has written nothing", () => {
 describe("your own page", () => {
   it("says it is you and offers the way to change it", async () => {
     loadAccount.mockReturnValue({ token: "t", player: { id: "p_abc" } });
+    friends.mockResolvedValue(EMPTY_BOOK);
     profile.mockResolvedValue(PLAYER);
     show();
     await screen.findByText(/edit your card/i);
     expect(screen.getByText(/as everybody else sees you/i)).toBeTruthy();
+  });
+
+  it("offers no way to befriend yourself", async () => {
+    loadAccount.mockReturnValue({ token: "t", player: { id: "p_abc" } });
+    friends.mockResolvedValue(EMPTY_BOOK);
+    profile.mockResolvedValue(PLAYER);
+    show();
+    await screen.findByText(/edit your card/i);
+    expect(screen.queryByRole("button", { name: /add friend/i })).toBe(null);
+  });
+});
+
+describe("the friend button", () => {
+  beforeEach(() => { profile.mockResolvedValue(PLAYER); });
+
+  it("is absent for somebody who has not claimed a handle", async () => {
+    loadAccount.mockReturnValue(null);
+    show();
+    await screen.findByText("Ixchel");
+    expect(screen.queryByRole("button", { name: /add friend/i })).toBe(null);
+    expect(friends).not.toHaveBeenCalled();
+  });
+
+  it("offers to add a stranger, and sends one request", async () => {
+    signedIn();
+    askFriend.mockResolvedValue({ outcome: "asked", standing: "asked" });
+    show({ notify: vi.fn() });
+    (await screen.findByRole("button", { name: /add friend/i })).click();
+    await waitFor(() => expect(askFriend).toHaveBeenCalledWith("t", "p_abc"));
+  });
+
+  /* The case the pure module exists for: they asked me first, so this page
+     must offer to accept rather than send a second request back across a table
+     where the answer was already waiting. */
+  it("offers to accept, not to ask again, when they asked first", async () => {
+    signedIn({ ...EMPTY_BOOK, incoming: [{ id: "p_abc", name: "Ixchel" }] });
+    acceptFriend.mockResolvedValue({ outcome: "friends", standing: "friends" });
+    show({ notify: vi.fn() });
+    await screen.findByRole("button", { name: /^accept$/i });
+    expect(screen.queryByRole("button", { name: /add friend/i })).toBe(null);
+    screen.getByRole("button", { name: /^decline$/i });
+  });
+
+  it("shows a settled friendship with a way out and no way to ask again", async () => {
+    signedIn({ ...EMPTY_BOOK, friends: [{ id: "p_abc", name: "Ixchel" }] });
+    show({ notify: vi.fn() });
+    await screen.findByText(/^Friends$/);
+    expect(screen.queryByRole("button", { name: /add friend/i })).toBe(null);
+    screen.getByRole("button", { name: /remove friend/i });
+  });
+
+  it("says a request is out, and offers to take it back", async () => {
+    signedIn({ ...EMPTY_BOOK, outgoing: [{ id: "p_abc", name: "Ixchel" }] });
+    show({ notify: vi.fn() });
+    await screen.findByText(/^Asked$/);
+    screen.getByRole("button", { name: /take the request back/i });
+  });
+
+  it("says what happened in the words the outcome was given, not the call", async () => {
+    const notify = vi.fn();
+    signedIn({ ...EMPTY_BOOK, outgoing: [{ id: "p_abc", name: "Ixchel" }] });
+    forgetFriend.mockResolvedValue({ outcome: "withdrawn", standing: "none" });
+    show({ notify });
+    (await screen.findByRole("button", { name: /take the request back/i })).click();
+    await waitFor(() => expect(notify).toHaveBeenCalledWith(
+      expect.objectContaining({ text: "Request taken back" })));
+  });
+
+  it("puts a refusal in front of the person rather than swallowing it", async () => {
+    const notify = vi.fn();
+    signedIn();
+    askFriend.mockRejectedValue(Object.assign(new Error("x"), { reason: "their-list-is-full" }));
+    show({ notify });
+    (await screen.findByRole("button", { name: /add friend/i })).click();
+    await waitFor(() => expect(notify).toHaveBeenCalledWith(
+      expect.objectContaining({ text: "Their friends list is full" })));
   });
 });
 

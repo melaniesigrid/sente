@@ -1514,8 +1514,14 @@ paragraph, three facts and picture have shipped since the accounts slice, and
       a house player is software and a page about one would be a page about a rank.
       `playerCard.js` is the wording, pure and tested; `PlayerPage.test.jsx` tests the
       drawing, including the two absences below.
-- [ ] **Friends**: request, accept, decline, remove. Stored as a small list on each side
-      of the edge, so reading your friends is one key and never a scan.
+- [x] **Friends** (branch `feat/friends`): request, accept, decline, withdraw, remove.
+      Three lists of ids per player in `friends:<id>` — settled, asked, asking — with
+      every edge written on both books in one put or on neither, so reading your friends
+      is one key and never a scan. `server/friends.js` holds the whole policy, pure;
+      the Durable Object only stores. The button on a player's page and the card on the
+      profile screen both derive what they offer from `src/views/friendship.js`, so the
+      two can never disagree about the same person. `tools/server/friends.mjs` proves it
+      against a deployment in 31 checks.
 - [ ] **Presence**, defaulting to off-the-record. The Registry already holds the lobby
       sockets. Friends see that you are here; strangers see "played this week" and nothing
       finer. `showOnline: "friends" | "everyone" | "nobody"` on the profile, and the
@@ -1537,6 +1543,27 @@ paragraph, three facts and picture have shipped since the accounts slice, and
 - [ ] **Mail**: one thread per pair, between people who have played or are friends. No
       broadcast, no list, no unsubscribe because there is nothing to leave. Rate limited
       and blockable from the first commit.
+
+Decisions made in Phase 9, the friends slice (2026-09-12, branch `feat/friends`):
+- **An edge is written on both books or on neither**, in one `put` of two keys. The
+  alternative is one record holding a list of friends, which makes a friendship a claim
+  one person can make about another, and leaves no scan cheap enough to find a mismatch
+  afterwards. `friends.test.js` walks a fixed sequence of twenty moves and asserts the
+  two books agree after every one of them.
+- **Two people who each asked first are friends on the spot.** Answering the second one
+  with "you already have a request from them" is a true sentence that asks somebody to
+  press a different button to reach the outcome they just asked for.
+- **One `DELETE` declines, withdraws and unfriends.** From the person pressing it those
+  are one act, and which of the three lists the id was on is the server's business to
+  look up rather than the caller's to know before it may ask. The call answers with the
+  outcome, because "withdrawn" and "declined" come back from it and mean opposite things.
+- **Declining tells the person who asked nothing at all**, and is not blocking: they may
+  ask again. Blocking is a real thing and belongs with mail, not here.
+- Asking twice is quiet rather than an error, and does not re-stamp the request: it is
+  what somebody does when they are not sure the first one landed.
+- The friend button is derived from the caller's own three lists rather than from a
+  question about one player. `GET /api/players/:id` is cached for everybody alike and
+  must not learn who is asking.
 
 Decisions made in Phase 9, the page slice (2026-09-12, branch `feat/player-page`):
 - **Every feature in this phase is a new collection of personal data, so each one carries
