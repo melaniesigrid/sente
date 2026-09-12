@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
-import { ArrowLeft, Pencil, Swords } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, Pencil, Swords, Mail } from "lucide-react";
 import { Card, Btn, Avatar, RankBadge, Badges } from "../components/ui.jsx";
 import { api, serverEnabled, SERVER_URL } from "../net/api.js";
 import { avatarUrl } from "../net/avatar.js";
@@ -9,6 +9,7 @@ import { joinedText, recordText, factRows, saidAnything, presenceLine } from "./
 import { standingWith, friendAction } from "./friendship.js";
 import { archiveLine } from "./archiveLine.js";
 import { badgesShown } from "../content/badges.js";
+import { BlockButton } from "./LettersCard.jsx";
 import { useFriends } from "./useFriends.js";
 import { usePresence } from "./usePresence.js";
 import { FriendButton } from "./FriendsCard.jsx";
@@ -32,7 +33,7 @@ import { FriendButton } from "./FriendsCard.jsx";
    less of one. Nothing here is shown that the player did not either type or
    earn at a board. */
 export function PlayerPage({ playerId, go, onBack, notify }) {
-  const account = useMemo(() => loadAccount(), []);
+  const [account, setAccount] = useState(() => loadAccount());
   const canAsk = serverEnabled() && !!playerId;
   /* One piece of state, and it carries the id it is an answer about. Opening a
      second player from the first one's page would otherwise show the first
@@ -119,8 +120,17 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
           {/* Nothing to press on your own page, and nothing to press without a
               handle: somebody who has not claimed one has no list to add to. */}
           {!mine && account && (
-            <FriendButton person={player} busy={busy === player.id} act={act}
-              action={friendAction(standingWith(book, player.id))} />
+            <>
+              <FriendButton person={player} busy={busy === player.id} act={act}
+                action={friendAction(standingWith(book, player.id))} />
+              <div className="row">
+                <Btn icon={Mail} small onClick={() => go("profile")}>Write to them</Btn>
+                {/* Silent, and never the same act as unfriending: the two mean
+                    different things and doing both at once would take the
+                    second choice away from whoever the first one protects. */}
+                <BlockButton account={account} setAccount={setAccount} player={player} notify={notify} />
+              </div>
+            </>
           )}
 
           {mine && (

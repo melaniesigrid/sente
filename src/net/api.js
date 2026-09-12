@@ -114,6 +114,16 @@ export const api = {
   unpinGame: (token, id) =>
     call(`/api/me/featured/${encodeURIComponent(id)}`, { method: "DELETE", token }),
 
+  /* The post. One thread per pair, read and written by the other person's id;
+     `letters` is the list of them. A thread comes back with whether you may
+     write to them, so a page can offer the box or say plainly why not. */
+  letters: (token) => call("/api/me/letters", { token }),
+  thread: (token, id) => call(`/api/me/letters/${encodeURIComponent(id)}`, { token }),
+  write: (token, id, text) =>
+    call(`/api/me/letters/${encodeURIComponent(id)}`, { method: "POST", token, body: { text } }),
+  setBlocked: (token, id, on) =>
+    call(`/api/me/blocked/${encodeURIComponent(id)}`, { method: on ? "PUT" : "DELETE", token }),
+
   ladder: () => call("/api/ladder"),
   stats: () => call("/api/stats"),
   game: (id) => call(`/api/game/${encodeURIComponent(id)}`),
