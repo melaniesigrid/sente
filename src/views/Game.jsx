@@ -27,6 +27,7 @@ import { saveGame, clearGame } from "../store/gameStore.js";
 import { recordGame } from "../store/telemetry.js";
 import { dayKey } from "../content/kata.js";
 import { chooseRemark, noteSpoken, PACING } from "../content/commentary.js";
+import { attendDay } from "../content/chain.js";
 import {
   statusText, refusalText, captionText, resignLabel, confirmMoveLabel, resultCard, ratingLine,
   RESIGN_CONFIRM_MS,
@@ -274,6 +275,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
           ...profile, rating, rd: rated.rd, vol: rated.vol,
           wins: profile.wins + (won ? 1 : 0), losses: profile.losses + (won ? 0 : 1),
           streak, bestStreak: Math.max(profile.bestStreak, streak),
+          ...attendDay(profile),
         };
         setProfile(np);
         saveProfile(np);

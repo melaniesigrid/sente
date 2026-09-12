@@ -7,6 +7,7 @@ import { DEFAULT_TYPEFACE, typefaceOf } from "../content/typeface.js";
 import { SYSTEM_THEME, isThemeId, sanitizePalette, AUTO_STONES, isStoneId } from "../theme/index.js";
 import { SYSTEM_LOCALE, isLocaleId } from "../i18n/index.js";
 import { parseCardKey, sanitizeEntry } from "../content/recall.js";
+import { sanitizeChain, seedFromKata } from "../content/chain.js";
 
 export const STORE_KEY = "sente-profile-v3";
 /** v2 held ratings on the old 100-points-per-rank scale. v3 is OGS's scale, so
@@ -33,6 +34,8 @@ export const defaultProfile = {
   stones: AUTO_STONES,                       // stone set id, or "auto" to play each room with its own
   dojo: null,                                // the palette this device built, or null
   kataDate: "", kataStreak: 0, kataBest: 0,  // kata of the day attendance
+  chain: [],                                 // the days practised, oldest first, src/content/chain.js
+  chainBest: 0,                              // the longest run ever held; the record outlives the days it was made of
   duelStarted: "", duelDate: "", duelResult: "", duelMoves: 0,  // daily duel: day started, day finished, code ("B+3.5")
   duelPlayed: 0, duelWins: 0, duelStreak: 0, duelBestStreak: 0,
   bookProgress: {},                          // { [lessonId]: { stops, score, total } } from replay lessons
@@ -72,7 +75,7 @@ export const MARKS = ["dot", "ring", "none"];
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
 // Element type for each array field; anything else in an array is a corrupt profile.
-const ARRAY_OF = { lessonsDone: "string", problemsDone: "string", tierPassed: "number" };
+const ARRAY_OF = { lessonsDone: "string", problemsDone: "string", tierPassed: "number", chain: "string" };
 
 const validField = (key, value, raw) => {
   // `dojo` defaults to null, so its type cannot be read off the default; it is
@@ -112,6 +115,7 @@ export function sanitizeProfile(raw) {
     if (key === "dojo") out[key] = raw[key] === null ? null : sanitizePalette(raw[key]);
     else if (key === "bookProgress") out[key] = sanitizeBookProgress(raw[key]);
     else if (key === "recall") out[key] = sanitizeRecall(raw[key]);
+    else if (key === "chain") out[key] = sanitizeChain(raw[key]);
     // The three rating numbers are clamped rather than rejected: a rating off the
     // ladder is still a rating, just an impossible one, and the nearest real rank
     // is a kinder answer than resetting a player to the seed rank.
@@ -121,6 +125,13 @@ export function sanitizeProfile(raw) {
     else out[key] = Array.isArray(raw[key]) ? raw[key].slice() : raw[key];
   }
   if (bad.length) console.warn(`sente: profile field(s) reset to default: ${bad.join(", ")}`);
+  // A profile saved before the chain existed carries its kata attendance and
+  // nothing else. Those days were practised, so the record is seeded from the
+  // counter rather than starting everybody at nothing on the day this ships.
+  if (!out.chain.length) {
+    const seeded = seedFromKata(out);
+    if (seeded) { out.chain = seeded; out.chainBest = Math.max(out.chainBest, seeded.length); }
+  }
   return out;
 }
 

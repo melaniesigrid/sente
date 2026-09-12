@@ -10,6 +10,7 @@ import { useMokuFacts } from "../components/mokuStore.js";
 import { PROBLEMS } from "../content/problems.js";
 import { setupToBoard } from "../content/positions.js";
 import { dayKey, dailyProblem, attend, liveStreak } from "../content/kata.js";
+import { attendDay } from "../content/chain.js";
 import { saveProfile } from "../store/profile.js";
 
 /* ----------------------- TSUMEGO -----------------------
@@ -43,6 +44,7 @@ export function ProblemsView({ profile, setProfile, initialId }) {
           ...pr,
           problemsDone: [...new Set([...pr.problemsDone, prob.id])],
           ...(isKata ? attend(pr, today) : {}),
+          ...attendDay(pr, today),
         };
         saveProfile(np);
         return np;
