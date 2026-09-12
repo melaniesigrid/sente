@@ -1463,6 +1463,71 @@ Out of scope, and named here so it does not creep in: reviewing the finished gam
 asking *why* the partner played there. Analysis is its own feature for every kind of
 game, not a wing of this one.
 
+## Phase 9: The social layer
+
+Full design: `docs/designs/the-social-layer.md` (office hours, 2026-09-12). Joseki can
+seat two strangers and rate the game honestly; it cannot do what a club does, which is let
+one player recognise another. Eight PRs growing outward from one page. The demand is
+first-party and specific: "Chat and having my friends will be very important and they can
+be the first users soon."
+
+Two of the seven asks turned out to be already built and merely unreachable — a player's
+paragraph, three facts and picture have shipped since the accounts slice, and
+`GET /api/players/:id` has been live and tested with nothing linking to it.
+
+- [x] **The page** (branch `feat/player-page`): the other end of that route. A player's
+      face at 84 px, their name at display size, the rank badge with its question mark,
+      their record, their paragraph and whichever facts they filled in, and one line of
+      fine print for when they arrived and how recently they played. Reached from every
+      row of the global ladder, which is now a button. The house ladder's rows are not:
+      a house player is software and a page about one would be a page about a rank.
+      `playerCard.js` is the wording, pure and tested; `PlayerPage.test.jsx` tests the
+      drawing, including the two absences below.
+- [ ] **Friends**: request, accept, decline, remove. Stored as a small list on each side
+      of the edge, so reading your friends is one key and never a scan.
+- [ ] **Presence**, defaulting to off-the-record. The Registry already holds the lobby
+      sockets. Friends see that you are here; strangers see "played this week" and nothing
+      finer. `showOnline: "friends" | "everyone" | "nobody"` on the profile, and the
+      opt-out the ask called for is therefore the default rather than a setting to find.
+- [ ] **The archive**: lift `KEEP_GAMES` for finished games, paginate from the first
+      commit rather than discovering the ceiling later, and give every archived game its
+      SGF out of the record the Room already keeps for good.
+- [ ] **Featured games**: pin up to three onto your page with a line of your own about
+      each. The pin is an id; the game is still the record.
+- [ ] **The dashboard**: every game you are in, ordered by who is waiting on whom, with
+      how long the board has been waiting. It says plainly that it is not a clock. This
+      is also where a seat at a table becomes a link to a player's page: today
+      `linkedGame()` spends the `?game=` in the address on first read, so navigating away
+      from a live online table strands you in the lobby with no way back to your own game.
+      The dashboard is that way back, and the links wait for it.
+- [ ] **Badges**, computed at settle time and never granted. The set is deliberately not
+      enumerated in the design doc: it gets settled against the fields the record actually
+      holds, so no badge is designed for data that does not exist.
+- [ ] **Mail**: one thread per pair, between people who have played or are friends. No
+      broadcast, no list, no unsubscribe because there is nothing to leave. Rate limited
+      and blockable from the first commit.
+
+Decisions made in Phase 9, the page slice (2026-09-12, branch `feat/player-page`):
+- **Every feature in this phase is a new collection of personal data, so each one carries
+  its sentence in `legal.js` and its line in `remove()` in the same PR that adds it.**
+  Not a tidy-up at the end of the phase. This slice collects nothing new and so adds no
+  sentence, which is the reason it could ship in one afternoon.
+- **The page carries no list of games, and that is a legal constraint rather than a
+  scoping one.** `legal.js` says a finished game may be shown "to the players and to
+  anyone holding the link to that room". A list on a page anybody can open is wider than
+  that sentence, so the games wait for the archive slice, which widens the notice and the
+  page together or not at all. `PlayerPage.test.jsx` asserts the absence, so the day
+  somebody adds a games list without touching the notice, the suite says so.
+- **Nothing public says anything finer about time than a day.** `lastSeen` is already on
+  every public player the server serves, so this is not about what is known but about what
+  is said: a page anybody can open must not be a way to work out when a person is at their
+  desk. `seenText` buckets to today, yesterday, this week, this month, then a month and a
+  year, and a test walks every bucket for a clock time.
+- The answer from the server carries the id it is about. Opening a second player from the
+  first one's page otherwise shows the first player's card for a frame, which reads as the
+  wrong person rather than as loading.
+- The house ladder does not link. Only people have pages.
+
 ## Principles (do not trade away)
 
 - Rules live in the engine, never in a view.
