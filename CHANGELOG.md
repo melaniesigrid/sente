@@ -6,6 +6,29 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.7.4.0 (2026-09-12)
+
+### Changed
+
+- **Every move is two taps now, at every table.** The first tap puts the stone down where
+  you are looking without playing it, under a dashed ring; the second plays it. A tap
+  somewhere else moves the staged stone rather than playing anything, so a finger in the
+  wrong place costs a tap instead of a game. Nothing reaches the record until the second
+  tap, and a staged move is dropped whenever the position changes underneath it.
+- **It works online and at a pair table**, which is the point. Confirming a move used to be
+  a setting that only did anything against a house player. The first club player to ask for
+  it was on a phone, where there is no hover and therefore no way to see where a stone will
+  land before it lands, playing online, where the setting did nothing at all.
+- Staging online proves the point against the engine before anything is sent, so an illegal
+  point is refused on the tap that stages rather than the tap that commits. The server is
+  still the authority; this only moves its answer earlier.
+
+### Removed
+
+- **The "Confirm every move" setting.** It is how the board works now, so there is nothing
+  left to switch. Profiles that still carry the old field are read as before and the field
+  is dropped; nothing else about them changes.
+
 ## v0.7.3.0 (2026-09-12)
 
 ### Added
