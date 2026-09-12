@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
   ChevronLeft, Flag, RotateCcw, RefreshCw, Trophy, Timer, CircleDot, Scale,
-  Handshake, Check, Download, Undo2, Users, MessageCircle, Bot,
+  Handshake, Check, X, Download, Undo2, Users, MessageCircle, Bot,
 } from "lucide-react";
 import {
   createGame, play, pass, resign, undo, markDead, acceptScore, scoreBoard, chainsInAtari, idx,
@@ -17,7 +17,8 @@ import { hintsFor } from "../content/rank.js";
 import {
   pairRoster, seatAsk, seatWeights, seatPersona, seatRating, pairCaption, pairStatus, PARTNER_RANK,
 } from "../content/rengo.js";
-import { refusalText, resultLine, resultCard, resignLabel, loadingText, RESIGN_CONFIRM_MS } from "./gameStatus.js";
+import { refusalText, resultLine, resultCard, resignLabel, confirmMoveLabel, loadingText, RESIGN_CONFIRM_MS } from "./gameStatus.js";
+import { tapAction } from "./stagedMove.js";
 import { saveGame, clearGame } from "../store/gameStore.js";
 import { recordGame } from "../store/telemetry.js";
 import { duelOutcome } from "../content/duel.js";
@@ -71,6 +72,7 @@ export function PairGame({ mode, onExit, profile, notify, initial }) {
   const [moment, setMoment] = useState(null);
   const [loading, setLoading] = useState(null);
   const [chat, setChat] = useState(() => []);
+  const [pending, setPending] = useState(null);
   const alive = useRef(true);
   const thinkTimer = useRef(null);
   const resignTimer = useRef(null);
@@ -244,6 +246,17 @@ export function PairGame({ mode, onExit, profile, notify, initial }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /* Your partner and the opposing pair all move the record on, and a stone staged
+     against the old position would play somewhere you never meant. */
+  useEffect(() => { setPending(null); }, [rec]);
+
+  const commitMove = (next) => {
+    setPending(null);
+    setRec(next);
+    afterMove(next, "b");
+    botTurn(next);
+  };
+
   const onPlay = (c, r) => {
     if (over || thinking) return;
     if (scoring) {
@@ -262,9 +275,15 @@ export function PairGame({ mode, onExit, profile, notify, initial }) {
       }
       throw e;
     }
-    setRec(next);
-    afterMove(next, "b");
-    botTurn(next);
+    if (tapAction(pending, c, r) === "stage") {
+      setPending({ c, r, next });
+      return;
+    }
+    commitMove(next);
+  };
+
+  const onConfirmMove = () => {
+    if (pending && !over && !thinking && myTurn) commitMove(pending.next);
   };
 
   const onPass = () => {
@@ -378,7 +397,8 @@ export function PairGame({ mode, onExit, profile, notify, initial }) {
             disabled={boardDisabled}
             atari={atariIdx}
             captured={rec.lastCaptured || []} captureKey={rec.moves.length}
-            territory={preview ? preview.territory : null} dead={rec.dead} />
+            territory={preview ? preview.territory : null} dead={rec.dead}
+            pending={pending ? { c: pending.c, r: pending.r, color: "b" } : null} />
           {scoring ? (
             <div className="row">
               <Btn icon={Check} small primary onClick={onAccept}>Accept score</Btn>
@@ -387,6 +407,10 @@ export function PairGame({ mode, onExit, profile, notify, initial }) {
             </div>
           ) : (
             <div className="row">
+              <Btn icon={Check} small primary onClick={onConfirmMove} disabled={!pending}>
+                {confirmMoveLabel(!!pending)}
+              </Btn>
+              {pending && <Btn icon={X} small onClick={() => setPending(null)}>Cancel</Btn>}
               <Btn icon={Flag} small onClick={onPass} disabled={!!over || !myTurn}>Pass</Btn>
               <Btn icon={RotateCcw} small onClick={onUndo} disabled={!canUndo}>Undo the round</Btn>
               <Btn icon={Handshake} small onClick={onResign} disabled={!canResign}>{resignLabel(confirmResign)}</Btn>

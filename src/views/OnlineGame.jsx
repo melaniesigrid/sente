@@ -6,6 +6,7 @@ import {
 import {
   scoreBoard, chainsInAtari, idx, lastMoveIndex, toSgf, colorOfSeat, canSeatPlay, partnerSeat,
   seatToPlay, kataChooseMoveForRecord, profileForRank, loadModel, modelReady, DEFAULT_PARTNER_RANK,
+  play, IllegalMoveError,
 } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
 import { Card, Btn, Pill, Avatar, RankBadge } from "../components/ui.jsx";
@@ -15,7 +16,8 @@ import { playStone, playCapture, playBell, haptic } from "../components/sound.js
 import { beltOf, hintsForBelt } from "../content/rank.js";
 import { gameSocket, SERVER_URL } from "../net/api.js";
 import { loadAccount } from "../store/account.js";
-import { refusalText, resignLabel, resultCard, RESIGN_CONFIRM_MS } from "./gameStatus.js";
+import { refusalText, resignLabel, confirmMoveLabel, resultCard, RESIGN_CONFIRM_MS } from "./gameStatus.js";
+import { tapAction } from "./stagedMove.js";
 import { onlineStatus, settledLine, onlineCaption, teamName } from "./onlineStatus.js";
 
 /* `seat` in this view is a seat id ("b1", "w1", "b2", "w2"), which is what the
@@ -51,6 +53,7 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
   const [draft, setDraft] = useState("");
   const [confirmResign, setConfirmResign] = useState(false);
   const [gone, setGone] = useState(false);
+  const [pending, setPending] = useState(null);
   const sock = useRef(null);
   const resignTimer = useRef(null);
   const chatEndRef = useRef(null);
@@ -108,6 +111,16 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
     () => (scoring ? scoreBoard(rec.board, { dead: rec.dead, komi: rec.komi, handicap: rec.handicap }) : null),
     [scoring, rec],
   );
+
+  /* A staged move belongs to the position it was staged in, so the opponent
+     playing, an undo being agreed, or the table going to scoring all drop it
+     rather than leave a stone hovering over a board that has moved on.
+     Keyed on the position rather than on the room object: the server sends a
+     fresh room for things that change no stone at all - somebody arriving to
+     watch, a seat being filled - and those must not throw your move away. */
+  const moveCount = rec ? rec.moves.length : 0;
+  const recPhase = rec ? rec.phase : null;
+  useEffect(() => { setPending(null); }, [moveCount, recPhase]);
   const resultKind = over && color ? (over.winner === null ? "jigo" : over.winner === color ? "win" : "loss") : null;
   useMokuFacts({ view: "game", phase: rec ? rec.phase : "playing", thinking: false, myAtari: myAtari.length, oppAtari: 0, ko: !!(rec && rec.koPoint !== null), moment: null, result: resultKind, promoted: null, seed: rec ? rec.moves.length : 0 });
   const blackLead = room ? lead(room, "b") : null;
@@ -157,6 +170,32 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
     if (!seat || over) return;
     if (scoring) { send({ t: "markDead", c, r }); return; }
     if (!myTurn) return;
+    /* Staging runs the point through the engine first. The server refuses exactly
+       the moves this would - `server/room.js` reduces over the same module - so a
+       refusal can be shown on the tap that stages rather than saved up for the tap
+       that commits. The server stays the authority: this only moves its answer
+       earlier, and nothing is sent until the second tap. */
+    try {
+      play(rec, c, r);
+    } catch (e) {
+      if (e instanceof IllegalMoveError) {
+        const text = refusalText(e.reason);
+        if (text) notify({ icon: "info", text });
+        return;   // a refused point changes nothing, including anything already staged
+      }
+      throw e;
+    }
+    if (tapAction(pending, c, r) === "stage") {
+      setPending({ c, r });
+      return;
+    }
+    setPending(null);
+    send({ t: "play", c, r });
+  };
+  const onConfirmMove = () => {
+    if (!pending || !myTurn) return;
+    const { c, r } = pending;
+    setPending(null);
     send({ t: "play", c, r });
   };
   const onPass = () => { if (myTurn) send({ t: "pass" }); };
@@ -249,7 +288,8 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
             <Board board={rec.board} onPlay={onPlay} lastMove={lastMoveIndex(rec)} disabled={boardDisabled}
               atari={atariIdx} captured={rec.lastCaptured || []} captureKey={rec.moves.length}
               territory={preview ? preview.territory : null} dead={rec.dead}
-            coordinates={profile.coordinates} mark={profile.lastMoveMark} />
+            coordinates={profile.coordinates} mark={profile.lastMoveMark}
+            pending={pending ? { c: pending.c, r: pending.r, color } : null} />
           ) : (
             <div className="board-well board-placeholder" aria-hidden="true" />
           )}
@@ -268,6 +308,10 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
             </div>
           ) : (
             <div className="row">
+              <Btn icon={Check} small primary onClick={onConfirmMove} disabled={!pending}>
+                {confirmMoveLabel(!!pending)}
+              </Btn>
+              {pending && <Btn icon={X} small onClick={() => setPending(null)}>Cancel</Btn>}
               <Btn icon={Flag} small onClick={onPass} disabled={!myTurn}>Pass</Btn>
               <Btn icon={RotateCcw} small onClick={() => send({ t: "undoRequest" })} disabled={!canAskUndo}>Ask undo</Btn>
               <Btn icon={Handshake} small onClick={onResign} disabled={!canResign}>{resignLabel(confirmResign)}</Btn>
