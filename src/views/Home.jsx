@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { serverEnabled } from "../net/api.js";
 import { loadAccount } from "../store/account.js";
 import { DashboardCard } from "./DashboardCard.jsx";
-import { Swords, GraduationCap, Target, Trophy, Play, Trash2, CalendarCheck, Flame, BrainCircuit } from "lucide-react";
+import { Swords, GraduationCap, Target, Trophy, Play, Trash2, CalendarCheck, BrainCircuit, Check, Circle } from "lucide-react";
 import { MiniSelfPlay } from "../components/MiniSelfPlay.jsx";
 import { Card, Btn, RankBadge, Statement } from "../components/ui.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
@@ -16,7 +16,8 @@ import { duelMode } from "../content/duel.js";
 import { clearGame } from "../store/gameStore.js";
 import { useMokuFacts } from "../components/mokuStore.js";
 import { DuelCard } from "../components/DuelCard.jsx";
-import { dayKey, dailyProblem, liveStreak } from "../content/kata.js";
+import { ChainLine } from "../components/Chain.jsx";
+import { dayKey, dailyProblem } from "../content/kata.js";
 import { recallSummary } from "../content/recall.js";
 import { LIBRARY } from "../content/library.js";
 import { OpenSgf } from "../components/OpenSgf.jsx";
@@ -40,7 +41,6 @@ export function Home({ profile, go, onResume }) {
   const duel = duelMode(PERSONAS, today);
   const kata = dailyProblem(PROBLEMS, today);
   const kataDone = profile.kataDate === today;
-  const streak = liveStreak(profile, today);
   const recall = recallSummary(LIBRARY, profile.recall, today);
   useMokuFacts({ view: "home", seed: games });
   const greeting = games ? "Welcome back" : "Welcome to the board";
@@ -65,6 +65,7 @@ export function Home({ profile, go, onResume }) {
             <RankBadge rating={profile.rating} rd={profile.rd} size="lg" precise />
             <span className="fine">{games ? `${profile.wins} of ${games} won` : "no games played yet"}</span>
           </div>
+          <ChainLine profile={profile} today={today} />
           <p className="lede">{nudge}</p>
           <div className="row">
             <Btn icon={Swords} primary onClick={() => go("play")}>Find a game</Btn>
@@ -100,11 +101,14 @@ export function Home({ profile, go, onResume }) {
           <div className="kata-copy">
             <div className="stat-head"><CalendarCheck size={16} /><span>Kata of the day</span></div>
             <strong className="kata-title">{kata.title}</strong>
-            <span className="fine">{kata.rank} · {kata.theme} · {kataDone ? "attended today" : "one problem, every day"}</span>
+            <span className="fine">{kata.rank} · {kata.theme} · one problem, every day</span>
           </div>
-          <div className="kata-streak">
-            <Flame size={16} />
-            <span className="stat-num">{streak}<em>{streak === 1 ? "day" : "days"}</em></span>
+          {/* The card's own state, where the streak used to be. The flame moved
+              to the hero when it stopped being about this one button, and the
+              card still needs to say whether today's problem is behind you. */}
+          <div className="kata-state">
+            {kataDone ? <Check size={15} /> : <Circle size={15} />}
+            <span>{kataDone ? "Solved" : "Open"}</span>
           </div>
         </button>
       )}

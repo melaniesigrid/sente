@@ -1601,6 +1601,48 @@ ${FONT_FACES}
 .kata-streak { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 16px; box-shadow: var(--sink-sm); color: var(--danger-ink); }
 .kata-streak .stat-num { margin-top: 0; font-size: 26px; color: var(--ink); }
 .kata-card.done .kata-streak { color: var(--accent-ink); }
+/* The kata's own state, sunken like the streak pill it replaced, so the card
+   keeps its two-part shape now that the flame has moved to the hero. */
+.kata-state { display: flex; align-items: center; gap: 8px; margin-left: auto; padding: 10px 16px; border-radius: 16px; box-shadow: var(--sink-sm); color: var(--ink-2); font: 700 13px var(--font-body); letter-spacing: .11em; text-transform: uppercase; }
+.kata-card.done .kata-state { color: var(--accent-ink); }
+
+/* ---- the chain ----
+   A day is a mark. A day practised is filled and stands off the ground; a day
+   that was not is the same socket left empty, sunken, which is the two-shadow
+   system saying nothing happened here rather than saying it went badly. There
+   is no red in this, and no mark is ever larger than any other: a record that
+   sized its days by how much was done would be a record of something the app
+   cannot measure.
+
+   Both strips are grids of equal fractions rather than fixed pixels, so the
+   dashboard's four weeks and the profile's half year both hold their shape from
+   a phone to a desk without a breakpoint between them. */
+.chain-line { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin: 4px 0 16px; }
+.chain-run { display: flex; align-items: center; gap: 9px; padding: 8px 14px; border-radius: 14px; box-shadow: var(--sink-sm); color: var(--danger-ink); flex: none; }
+.chain-run .stat-num { margin-top: 0; font-size: 24px; color: var(--ink); }
+.chain-run .stat-num em { font-size: 13px; }
+.chain-side { flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
+
+/* A mark is about eleven pixels, which is the size at which four weeks read as
+   a rhythm rather than as a row of buttons. Both grids are capped at the width
+   that gives them that and shrink below it, so neither needs a breakpoint. */
+.chain-strip { display: grid; grid-template-columns: repeat(28, minmax(0, 1fr)); gap: 3px; max-width: 392px; }
+.chain-year { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 1fr); grid-auto-columns: minmax(0, 1fr); gap: 3px; margin: 16px 0 6px; max-width: 390px; }
+/* Filled or empty, and nothing in between: at this size a shadow is mush, so a
+   practised day is the mark itself and an unpractised one is the ground with a
+   hairline round it. The mark may be spent here because a day is a graphic, not
+   a word - the rule it would break is the one about colouring text. */
+.chain-mark { aspect-ratio: 1; border-radius: 2px; background: var(--ground); box-shadow: inset 0 0 0 1px var(--hairline); }
+.chain-mark.on { background: var(--accent); box-shadow: none; }
+/* Today is ringed, filled or not, so the reader can always find where they are. */
+.chain-mark.today { box-shadow: 0 0 0 2px var(--accent-ring); }
+/* The rest of this week: days that have not happened yet, left blank so the
+   grid keeps its rectangle instead of ending in a ragged column. */
+.chain-mark.ahead { background: none; box-shadow: none; }
+
+.chain-card .chain-head { display: flex; align-items: baseline; gap: 20px; flex-wrap: wrap; }
+.chain-facts { display: flex; gap: 18px; flex-wrap: wrap; color: var(--ink-2); font-size: 14px; }
+.chain-facts strong { color: var(--ink); font-family: var(--font-display); font-weight: var(--w-display); font-size: 17px; margin-right: 4px; }
 .duel-card { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
 .duel-card .avatar { flex: 0 0 auto; }
 .duel-copy { flex: 1 1 240px; display: flex; flex-direction: column; gap: 4px; }

@@ -55,10 +55,21 @@ describe("the seed", () => {
 
 describe("sanitizeProfile", () => {
   it("keeps a well-formed profile intact and copies its arrays", () => {
-    const good = { ...defaultProfile, name: "Ada", tint: "coral", rating: 1234, wins: 3, losses: 1, streak: 2, bestStreak: 2, lessonsDone: ["ko"], problemsDone: ["p1", "p2"], tierPassed: [1, 2], sound: true, kataDate: "2026-09-09", kataStreak: 3, kataBest: 5, duelStarted: "2026-09-09", duelDate: "2026-09-09", duelResult: "B+3.5", duelMoves: 40, duelPlayed: 2, duelWins: 1, duelStreak: 1, duelBestStreak: 1 };
+    const good = { ...defaultProfile, name: "Ada", tint: "coral", rating: 1234, wins: 3, losses: 1, streak: 2, bestStreak: 2, lessonsDone: ["ko"], problemsDone: ["p1", "p2"], tierPassed: [1, 2], sound: true, kataDate: "2026-09-09", kataStreak: 3, kataBest: 5, duelStarted: "2026-09-09", duelDate: "2026-09-09", duelResult: "B+3.5", duelMoves: 40, duelPlayed: 2, duelWins: 1, duelStreak: 1, duelBestStreak: 1, chain: ["2026-09-08", "2026-09-09"], chainBest: 5 };
     const out = sanitizeProfile(good);
     expect(out).toEqual(good);
     expect(out.lessonsDone).not.toBe(good.lessonsDone);
+    expect(warn).not.toHaveBeenCalled();
+  });
+  /* The one field that is not left as it was found. A profile saved before the
+     chain existed has an empty record and a kata streak, and those days really
+     were practised, so the record is seeded from the counter on load: see
+     seedFromKata in src/content/chain.js. Without it every player holding a run
+     the day this shipped would have watched it reset to nothing. */
+  it("seeds the practice record from a kata streak that predates it", () => {
+    const out = sanitizeProfile({ kataDate: "2026-09-09", kataStreak: 3 });
+    expect(out.chain).toEqual(["2026-09-07", "2026-09-08", "2026-09-09"]);
+    expect(out.chainBest).toBe(3);
     expect(warn).not.toHaveBeenCalled();
   });
   it("fills missing fields from the defaults without warning", () => {

@@ -19,6 +19,7 @@ import { saveProfile } from "../store/profile.js";
 import { enrol, recallSummary } from "../content/recall.js";
 import { dayKey } from "../content/kata.js";
 import { rankOf } from "../content/rank.js";
+import { attendDay } from "../content/chain.js";
 import { modelReady, kataChooseMoveForRecord, profileForRank } from "../engine/index.js";
 import { initStep, stepReducer, marksFor, boardLocked, canReveal, recordAtStop, coordLabel, VERDICT_LABELS } from "./lessonStep.js";
 
@@ -500,6 +501,7 @@ export function LearnView({ profile, setProfile, go }) {
         // Its questions join the recall queue, due tomorrow. A lesson is read
         // once; what it asked you comes back until you know it.
         recall: enrol(p.recall, lesson, dayKey()),
+        ...attendDay(p, dayKey()),
       };
       saveProfile(np);
       return np;
