@@ -1136,10 +1136,29 @@ letting them say it in the words the place already speaks.
       the hero board settling in. Note that the hero itself is sound: its columns wrap
       (`min-width: auto`), unlike the front door's, which is why the z-index fix in #134 was
       needed there and is not needed here.
-- [ ] Press physics on the neumorphism. `:active` sinks nine elements, but `.tile`,
-      `.persona-card` and `.lesson-card` only translate on hover and never sink. A raised
-      thing that cannot be pressed into the ground is the one place the two-shadow system
-      stops being a material.
+- [x] Press physics on the neumorphism (2026-09-12, branch `feat/press-physics`). The item
+      named three offenders; an audit of the sheet found eleven, because the rule it was
+      really asking for is that a thing which rises to meet the pointer has to go down
+      under it. One ladder does all of them: a press moves a thing one rung toward the
+      ground, `--raise` to `--press`, `--raise-sm` to `--sink-sm`, and something already
+      sunken to `--sink`. `--press` is the one new token, derived per room like every other
+      shadow, because a dark room has less luminance to spend and needs the longer offset
+      (3px there, 2px on paper). A card stops at `--press` rather than inverting: turn a
+      300px surface inside out and it is not pressed, it is a hole with a heading floating
+      over it and the streak pill left standing proud of a tray. In fast, out slow: the
+      shadow answers in 60ms and rides each element's own transition back up.
+      The bug underneath was worth more than the feature. `.arrives > *` staggered every
+      card in with `animation: ... both`, and an animation that fills forwards owns the
+      properties it touched for the life of the element: `transform` was pinned at `none`
+      afterwards, so the hover lift on the tile, the persona and the lesson card had been
+      dead since the stagger shipped, and a press built on travel would have been dead too.
+      The last keyframe is the resting state exactly, so there was nothing to hold:
+      `backwards` covers the delay, which is the only part that needed covering. Measured
+      in Chrome over CDP with the pseudo-state forced, before and after: the tile's rect
+      did not move on hover, and now moves the two pixels the rule asks for.
+      `css.test.js` holds all three: every selector that lifts has a press that moves a
+      shadow, the press duration is shorter than the release, and the stagger does not fill
+      forwards.
 
 ## Parking lot: wild ideas (brainstorm 2026-09-09)
 

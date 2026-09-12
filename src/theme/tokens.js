@@ -55,7 +55,7 @@ export const TOKEN_NAMES = [
   "--stone-b-1", "--stone-b-2", "--stone-b-3",
   "--stone-w-1", "--stone-w-2", "--stone-w-3",
   "--belt-edge",
-  "--raise", "--raise-sm", "--sink", "--sink-sm",
+  "--raise", "--raise-sm", "--press", "--sink", "--sink-sm",
 ];
 
 /** The checks the dojo runs on a palette, and the tests run on every named room. Each

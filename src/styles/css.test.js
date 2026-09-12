@@ -103,6 +103,58 @@ describe("the stylesheet", () => {
     expect(offenders, "use --accent-ink or --danger-ink").toEqual([]);
   });
 
+  // The two shadows are a material, so a thing that rises to meet the pointer
+  // has to go down under it. This is the rule that caught the tile, the persona
+  // and the lesson card: all three lifted on hover and then had nothing to say
+  // at the moment of the click, which is the one moment the reader is asking
+  // the question. A press moves a thing one rung down the ladder
+  // (--raise, --raise-sm, --press, --sink-sm, --sink), so the check is that the
+  // press exists and that it moves a shadow rather than only a pixel: a press
+  // that only translates is a thing sliding, not a thing being pushed.
+  //
+  // .look-btn is the one exception, and it is not one: it is worn with
+  // .icon-btn, which presses, and it adds a press of its own only for the room
+  // it is currently showing.
+  it("presses everything that lifts", () => {
+    const bare = (one, pseudo) => one.split(pseudo)[0].replace(/:not\([^)]*\)/g, "").trim();
+    const parts = sel => sel.split(",").map(one => one.trim());
+
+    const lifts = new Set();
+    const presses = new Set();
+    for (const r of rules(CSS)) {
+      for (const one of parts(r.selector)) {
+        if (one.includes(":hover") && /transform: translateY\(-/.test(r.body)) lifts.add(bare(one, ":hover"));
+        if (one.includes(":active") && /box-shadow:/.test(r.body)) presses.add(bare(one, ":active"));
+      }
+    }
+    presses.add(".look-btn");
+
+    const dead = [...lifts].filter(sel => ![...presses].some(p => p === sel || sel.startsWith(p)));
+    expect(dead, "a raised thing that cannot be pressed into the ground").toEqual([]);
+  });
+
+  // The press and the lift are transforms, and an animation that fills forwards
+  // owns every property it touched for the life of the element. The arrive
+  // stagger runs on the direct children of .arrives, which is where the cards
+  // live, so `both` there quietly cancelled the lift on every card on the
+  // dashboard, the lobby and the library. Nothing in a screenshot says so: the
+  // rules are all present and the cascade is fine. Only the animation wins.
+  it("lets go of the cards it staggered in", () => {
+    const arrive = rules(CSS).find(r => /[.]arrives > [*]$/.test(r.selector));
+    expect(arrive, "the stagger rule").toBeTruthy();
+    expect(arrive.body, "fills backwards, so hover and :active get the transform back")
+      .toMatch(/animation:[^;]*backwards;/);
+  });
+
+  // In fast, out slow: the shadow answers the finger, and takes its own time
+  // coming back. A press that eases in at the same speed as the release reads
+  // as the surface catching up rather than as the surface answering.
+  it("presses in faster than it comes back up", () => {
+    const press = rules(CSS).find(r => /transition-duration/.test(r.body) && r.selector.includes(":active"));
+    expect(press, "one rule setting the press duration for all of them").toBeTruthy();
+    expect(Number(/transition-duration: \.(\d+)s/.exec(press.body)[1])).toBeLessThan(15);
+  });
+
   it("asks for no colour the token contract does not promise", () => {
     const asked = new Set([...CSS.matchAll(/var\((--[a-z0-9-]+)/g)].map(m => m[1]));
     const promised = new Set([...TOKEN_NAMES, "--accent"]);
