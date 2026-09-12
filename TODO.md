@@ -1555,6 +1555,13 @@ paragraph, three facts and picture have shipped since the accounts slice, and
       seen; nobody is ever reported as away, so somebody out and somebody hiding are the
       same silence. `server/presence.js` holds the policy, pure; `tools/server/presence.mjs`
       proves it against a deployment in 22 checks, opening real lobby sockets to do it.
+- [x] **Table talk that knows it is at a board** (branch `feat/table-talk`): a
+      coordinate anybody types is a word you can tap, and tapping it rings every
+      point that line names. `parsePoint` in the engine is the exact inverse of
+      `pointLabel` and is tested as one over every point of 9, 13 and 19; the
+      splitting and the etiquette are pure in `src/views/tableTalk.js`. A game
+      also opens and closes with one tap, plainly worded, with the traditional
+      line offered beside the plain one.
 - [ ] **The archive**: lift `KEEP_GAMES` for finished games, paginate from the first
       commit rather than discovering the ceiling later, and give every archived game its
       SGF out of the record the Room already keeps for good.

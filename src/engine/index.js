@@ -4,7 +4,7 @@
 
 export {
   NBRS, SIZES, idx, inB, colRow, createBoard, withStone, starPoints, chainAt,
-  COLUMN_LETTERS, colLabel, rowLabel, pointLabel,
+  COLUMN_LETTERS, colLabel, rowLabel, pointLabel, parsePoint,
   boardFromRows, boardToRows,
 } from "./board.js";
 export { zobristTable, xorStone, hashBoard } from "./zobrist.js";

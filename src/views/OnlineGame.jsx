@@ -17,6 +17,7 @@ import { gameSocket, SERVER_URL } from "../net/api.js";
 import { loadAccount } from "../store/account.js";
 import { refusalText, resignLabel, resultCard, RESIGN_CONFIRM_MS } from "./gameStatus.js";
 import { onlineStatus, settledLine, onlineCaption, teamName } from "./onlineStatus.js";
+import { talkParts, pointsNamed, etiquette } from "./tableTalk.js";
 
 /* `seat` in this view is a seat id ("b1", "w1", "b2", "w2"), which is what the
    server now hands out: at a pair table a colour names two people, and the one
@@ -49,6 +50,10 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
   const [watching, setWatching] = useState(0);
   const [chat, setChat] = useState([]);
   const [draft, setDraft] = useState("");
+  /* The chat line whose points are currently lit on the board, by its index
+     in the log. One at a time: two lines pointing at once would be a board
+     with rings on it and no way to tell which sentence meant which. */
+  const [lit, setLit] = useState(null);
   const [confirmResign, setConfirmResign] = useState(false);
   const [gone, setGone] = useState(false);
   const sock = useRef(null);
@@ -107,6 +112,25 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
   const preview = useMemo(
     () => (scoring ? scoreBoard(rec.board, { dead: rec.dead, komi: rec.komi, handicap: rec.handicap }) : null),
     [scoring, rec],
+  );
+  /* A ring points at a board, so it stops meaning anything the moment the board
+     changes. The stones move, the marks go. */
+  const moveCount = rec ? rec.moves.length : 0;
+  const phase = rec ? rec.phase : null;
+  useEffect(() => { setLit(null); }, [moveCount, phase]);
+  const litPoints = useMemo(() => {
+    if (lit === null || !rec || !chat[lit]) return [];
+    return pointsNamed(chat[lit].text, rec.size);
+  }, [lit, chat, rec]);
+  /* The etiquette on offer, minus whatever this player has already said here.
+     A spectator is offered none of it: the greeting is between the players. */
+  const said = useMemo(
+    () => (account ? chat.filter(m => m.from === account.player.id).map(m => m.text) : []),
+    [chat, account],
+  );
+  const openers = useMemo(
+    () => (rec ? etiquette({ phase: rec.phase, moves: rec.moves.length, seated: !!seat, said }) : []),
+    [rec, seat, said],
   );
   const resultKind = over && color ? (over.winner === null ? "jigo" : over.winner === color ? "win" : "loss") : null;
   useMokuFacts({ view: "game", phase: rec ? rec.phase : "playing", thinking: false, myAtari: myAtari.length, oppAtari: 0, ko: !!(rec && rec.koPoint !== null), moment: null, result: resultKind, promoted: null, seed: rec ? rec.moves.length : 0 });
@@ -181,12 +205,12 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
   const canAskUndo = !!(seat && rec && rec.phase === "playing" && !room.undo
     && (room.pair ? myTurn : !myTurn) && rec.moves.length >= (room.pair ? 4 : 1));
 
-  const sendChat = () => {
-    const t = draft.trim();
+  const say = (text) => {
+    const t = (text ?? "").trim();
     if (!t) return;
     send({ t: "chat", text: t });
-    setDraft("");
   };
+  const sendChat = () => { say(draft); setDraft(""); };
 
   const downloadSgf = () => {
     const blob = new Blob([toSgf(rec)], { type: "application/x-go-sgf" });
@@ -254,7 +278,7 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
           {room ? (
             <Board board={rec.board} onPlay={onPlay} lastMove={lastMoveIndex(rec)} disabled={boardDisabled}
               atari={atariIdx} captured={rec.lastCaptured || []} captureKey={rec.moves.length}
-              territory={preview ? preview.territory : null} dead={rec.dead}
+              territory={preview ? preview.territory : null} dead={rec.dead} marks={litPoints}
             coordinates={profile.coordinates} mark={profile.lastMoveMark} />
           ) : (
             <div className="board-well board-placeholder" aria-hidden="true" />
@@ -336,11 +360,28 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
             <div className="chat-log" aria-live="polite">
               {chat.map((m, i) => (
                 <div key={i} className={`bubble ${account && m.from === account.player.id ? "mine" : ""}`}>
-                  {(!account || m.from !== account.player.id) && <span className="bubble-who">{m.name}{m.seat ? "" : " (watching)"} · </span>}{m.text}
+                  {(!account || m.from !== account.player.id) && <span className="bubble-who">{m.name}{m.seat ? "" : " (watching)"} · </span>}
+                  {rec ? talkParts(m.text, rec.size).map((part, j) => (
+                    part.t === "point" ? (
+                      <button key={j} type="button"
+                        className={`coord ${lit === i ? "on" : ""}`}
+                        onClick={() => setLit(lit === i ? null : i)}
+                        aria-label={`${lit === i ? "Clear" : "Show"} ${part.s} on the board`}
+                      >{part.s}</button>
+                    ) : <span key={j}>{part.s}</span>
+                  )) : m.text}
                 </div>
               ))}
               <div ref={chatEndRef} />
             </div>
+            {account && openers.length > 0 && (
+              <div className="talk-offer">
+                {openers.map(line => (
+                  <button key={line.text} type="button" className="talk-line" onClick={() => say(line.text)}
+                    title={line.note}>{line.text}</button>
+                ))}
+              </div>
+            )}
             {account ? (
               <div className="chat-row">
                 <input className="chat-input" value={draft} placeholder="Say something…" maxLength={240}

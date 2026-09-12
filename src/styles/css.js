@@ -566,6 +566,27 @@ ${FONT_FACES}
 }
 .bubble.mine { align-self: flex-end; border-radius: 14px 14px 5px 14px; box-shadow: var(--raise-sm); color: var(--accent-ink); }
 .chat-row { display: flex; gap: 8px; }
+/* A coordinate somebody typed, made tappable. It is a word in a sentence first,
+   so it keeps the sentence's size and only borrows the accent; lit, it sinks,
+   which is the same thing every pressed control in here does. */
+.coord {
+  border: 0; background: transparent; padding: 0 3px; margin: 0 -1px;
+  font: inherit; font-weight: 700; color: var(--accent-ink);
+  border-radius: 6px; cursor: pointer;
+}
+.coord:hover { box-shadow: var(--sink-sm); }
+.coord.on { box-shadow: var(--sink-sm); background: var(--accent-soft); }
+.coord:focus-visible { outline: 2px solid var(--accent-ring); outline-offset: 1px; }
+/* The etiquette row. Sentence case at reading size, because these are things a
+   person says, not controls: a greeting set in small caps is a label. */
+.talk-offer { display: flex; flex-wrap: wrap; gap: 6px; }
+.talk-line {
+  border: 0; background: transparent; color: var(--ink-2);
+  font: 500 13px var(--font-body); padding: 5px 11px; border-radius: 999px;
+  box-shadow: var(--raise-sm); cursor: pointer;
+}
+.talk-line:hover { color: var(--accent-ink); }
+.talk-line:active { box-shadow: var(--sink-sm); }
 .chat-input {
   flex: 1; border: 0; background: var(--ground); color: var(--ink);
   font: 500 14.5px var(--font-body);
