@@ -2386,6 +2386,14 @@ ${FONT_FACES}
   .icon-btn { width: 44px; height: 44px; }
   .coach-toggle { min-height: 44px; padding-inline: 12px; }
 
+  /* The sources under the landing page are 12.5px links inside a citation, and
+     they are left alone on purpose. Making each its own box to pad it to 44px
+     turns the link atomic, so the rest of the citation can no longer sit on the
+     same line and every entry breaks with an orphaned full stop. Padding them
+     while inline grows the hit area into the neighbouring line instead, which
+     is worse than a small target: it is a target that takes the wrong tap. The
+     rows are far enough apart to aim at, and a miss costs nothing. */
+
   /* A settings row is an icon, a sentence and a control on one line. A 48px
      switch leaves room for the sentence; the three-button Dot/Ring/None group
      does not, and because the copy is flex:1 with an automatic minimum it gave
