@@ -31,7 +31,7 @@ const emit = (e) => { for (const fn of listeners) fn(e); };
 
 export const modelReady = () => session !== null;
 
-/** Site base URL ("/" locally, "/sente/" on Pages). */
+/** Site base URL, "/" both locally and on joseki.online. */
 const base = () => {
   try { return import.meta.env.BASE_URL || "/"; } catch { return "/"; }
 };

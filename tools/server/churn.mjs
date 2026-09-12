@@ -1,6 +1,6 @@
 // Claim a handle and leave again, more times than the limit allows.
 // With the refund in place every one of these must succeed.
-const base = process.argv[2] || "https://sente-server.melaniesigrid.workers.dev";
+const base = process.argv[2] || "https://api.joseki.online";
 const rounds = Number(process.argv[3] || 25);
 let made = 0, refused = 0;
 for (let i = 0; i < rounds; i++) {
