@@ -589,7 +589,54 @@ two Durable Object classes, deployed at https://api.joseki.online.
       row a day (handles, handles made that day, games started, games finished, and the
       most players in the lobby at once) kept for 365 days. Design:
       `docs/designs/analytics-that-keeps-the-promise.md`.
-- [ ] Analysis: KataGo (or GnuGo) via the backend, or a WASM engine in the browser.
+- [x] Analysis: the win rate graph and the tools around it (2026-09-12, branch
+      `feat/winrate-graph`). The network already in the browser answers for every position
+      of a finished game, and its value head becomes one curve: who the network thought was
+      winning, move by move. Around it: the moves that decided the game as buttons straight
+      to them, a line saying what the move you are standing on cost its player, and the move
+      the network would have played instead, ringed on the board. `src/engine/analysis.js`
+      is the arithmetic, `src/engine/kata/analyse.js` the walk, `src/components/WinGraph.jsx`
+      the picture. Nothing leaves the device and nothing starts without being asked.
+- [ ] What analysis still does NOT do: there is no search behind the number (one look per
+      position, no reading past it), and no score lead, because only the policy and value
+      heads were exported. A score lead needs the ownership head out of `export_human.py`.
+
+Decisions made in Phase 4, the analysis slice (2026-09-12, branch `feat/winrate-graph`):
+- **The graph is always Black's.** The network answers for whoever is to move, so a graph
+  that showed the raw answer would mean the opposite thing on every other move.
+  `winRateForBlack` flips it once, at the seam, and nothing downstream has to remember.
+- **The network is asked at one fixed strength (9d), not at the players' ranks.** It is
+  rank-conditioned: asked at 20k it says what a 20k believes, which is the right way to
+  pick a 20k's move and the wrong way to say who was winning. One standard also means two
+  graphs can be compared. Checked against the model itself first: an empty board answers
+  within a point of even at every size, and a nine-stone board answers 1.00 for Black to
+  play and 0.00 for White.
+- **No-result is divided out.** The value head is three numbers, and the graph is a share
+  of the games that finish, so a position with a triple ko in it does not read as an even
+  game just because nobody wins it.
+- **Nothing is analysed until somebody asks.** A run is a network call per position, over a
+  second each on 19x19, so a whole game is minutes of a laptop's battery. It streams, it
+  can be stopped, and a stopped walk can be picked up again where it left off. What it
+  drew before it stopped stays on screen.
+- **A stopped walk IS cached, and this reverses the first call.** The worry was a cache
+  missing its middle, but a walk goes strictly in move order, so what it leaves behind is
+  always positions 0 to k and never a gap. Throwing that away meant four minutes of 19x19
+  died the moment somebody tapped Back, which is the feature's worst moment for the sake of
+  a state the code cannot produce. A shorter walk never overwrites a longer one.
+- **The cache key names everything the answer depends on**, not just the moves: setup
+  stones, who moved first, komi, handicap, ruleset and the strength it was asked at. An
+  opened SGF can carry setup stones with no handicap at all, so two different games can
+  otherwise share a key and one gets drawn over the other with nothing on screen to say so.
+- **Review's new prose is hardcoded English, like the rest of Review.** It is a knowing
+  exception to "no view names a word": `Review.jsx` names every one of its words today, the
+  i18n rollout has not reached it, and half-migrating one file while the translation stack
+  is still landing would collide with it. The strings are in one block and are the i18n
+  stack's to take. The engine's two new sentences sit beside `resultText` and `reviewLabel`,
+  which have always been English in the engine; when those move, these move with them.
+- **The two stone colours carry the whole picture.** The curve is the border between
+  Black's share of the box and White's, so a graph needs no legend and no third hue, and
+  it themes itself with every palette. The turning points and the cursor are the only
+  marks on it.
 
 Decisions made in Phase 4, the tally slice (2026-09-11, branch `feat/stats-history`):
 - **The privacy notice gained a paragraph; it did not lose one.** `legal.js` still says
