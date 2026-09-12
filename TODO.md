@@ -1587,9 +1587,45 @@ paragraph, three facts and picture have shipped since the accounts slice, and
       badge goes away again if the record stops supporting it. They are derived in the
       browser from fields the server already serves, so nothing is stored, nothing is
       migrated and nothing new is owed to the privacy notice.
-- [ ] **Mail**: one thread per pair, between people who have played or are friends. No
-      broadcast, no list, no unsubscribe because there is nothing to leave. Rate limited
-      and blockable from the first commit.
+- [x] **The post** (branch `feat/post`): one thread a pair, kept for good, between people
+      who have finished a game together or agreed to be friends. No broadcast, no list
+      anybody can be added to, no unsubscribe because there is nothing to be on. Sixty
+      letters an hour, two thousand characters each, a hundred kept in a thread.
+      Blocking is one-sided and silent, is not the same act as unfriending, and leaves
+      the letters already written where they are. Leaving takes the whole correspondence
+      from both sides. `tools/server/post.mjs` proves it in 30 checks.
+
+**Phase 9 is complete.** Eight slices, eight branches, one design doc.
+
+Decisions made in Phase 9, the post slice (2026-09-12, branch `feat/post`):
+- **The spam policy is one rule and needs no filter, no reporting queue and nobody's
+  judgement**: only somebody you agreed to be friends with, or finished a game against,
+  can write to you at all. Both are things you took part in — one you agreed to, the
+  other you sat down for — so a stranger off the ladder has no way in.
+- **Blocking is silent, and the silence is the feature.** A blocked writer is refused with
+  the words a stranger gets, their own view of the thread says the same and no more, and
+  nothing public carries a block list. `writeLetter` folded `blocked` into `not-met` only
+  after `tools/server/post.mjs` caught it not doing so: `canWrite` folded it and the write
+  path did not, which is exactly the hole a prover exists to find and no unit test would
+  have seen.
+- **Blocking is not unfriending.** The two mean different things, and doing both at once
+  would take the second choice away from the person the first one is protecting. Letters
+  already written stay where they are.
+- **There is no read receipt, and `unread` is absent from the wire.** A receipt is a
+  promise about somebody else's attention. What a person actually wants to know is
+  whether they are the one being waited on, which is the same question the dashboard asks
+  about a board and is answered the same way: who spoke last.
+- **It is shaped like a post, not a chat.** One thread a pair for good, no typing
+  indicator, no notification; the letters are set as blocks of prose rather than bubbles,
+  because the shape says "read this" instead of "reply now".
+- **"Have we played?" is answered out of the archive**, not by keeping a third record of
+  who has met whom. A list of everybody you have ever played is exactly the data this
+  feature exists to avoid needing.
+- `mail:<player>:<other>` is an index of who you have a thread with, so "my letters" is
+  one list read rather than a walk over every thread on the server.
+- Naming the route's regex `post` shadowed the module-level `post()` that hands a letter
+  to Cloudflare Email Sending, which would have broken both account letters. The lint
+  caught it; the comment above the rename says so.
 
 Decisions made in Phase 9, the badges slice (2026-09-12, branch `feat/badges`):
 - **Measured, never awarded.** Every badge is a function of the public record. There is

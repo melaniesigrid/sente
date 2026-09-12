@@ -45,6 +45,9 @@ import { cleanShowOnline, whoIsHere } from "./presence.js";
 import { archivePrefix, archiveKey, pageSize, cursorFor, page as archivePage,
   archived, playersOf } from "./archive.js";
 import { readFeatured, pin as pinPure, unpin as unpinPure, featuredWith } from "./featured.js";
+import { threadKey, cleanLetter, readThread, withLetter, mayWrite, threadSummary,
+  byRecent, readBlocked, block as blockPure, unblock as unblockPure,
+  POST_LIMIT, POST_WINDOW_MS } from "./post.js";
 import { hit, refund, REGISTER_LIMIT, REGISTER_WINDOW_MS, SIGNIN_LIMIT, SIGNIN_WINDOW_MS,
   FORGOT_LIMIT, FORGOT_WINDOW_MS, VERIFY_LIMIT, VERIFY_WINDOW_MS } from "./ratelimit.js";
 import { VERIFY_TTL_MS, RESET_TTL_MS } from "./mail.js";
@@ -416,7 +419,14 @@ export class Registry extends DurableObject {
     /* The owner sees their pins as they are stored: ids and the lines they
        wrote. The joined rows are for a stranger's view of the page, and this
        caller already has the archive those rows came from. */
-    return { ...profileOf(p, publicPlayer(p)), ...privateFields(p), featured: readFeatured(p.featured) };
+    return {
+      ...profileOf(p, publicPlayer(p)), ...privateFields(p),
+      featured: readFeatured(p.featured),
+      /* On the owner's view and nowhere else. A public page that carried this
+         would tell somebody they had been blocked, which is the one thing
+         blocking chose not to say. */
+      blocked: readBlocked(p.blocked),
+    };
   }
 
   async self(id) {
@@ -472,6 +482,7 @@ export class Registry extends DurableObject {
     // Before this player's own book goes, everybody named in it is told.
     await this.#unfriendEverybody(id);
     await this.#forgetArchive(id);
+    await this.#forgetPost(id);
     const sessions = (p.sessions ?? [p.tokenHash]).filter(Boolean).map(h => `tok:${h}`);
     await this.ctx.storage.delete([
       `player:${id}`, `tok:${p.tokenHash}`, ...sessions, `games:${id}`, `seek:${id}`, `avatar:${id}`,
@@ -730,6 +741,121 @@ export class Registry extends DurableObject {
         await this.ctx.storage.delete([...got.keys()]);
         if (got.size < PAGE) break;
       }
+    }
+  }
+
+  /* ----- the post -----
+     One thread per pair, under `post:<sorted pair>`, so either of them reads
+     and writes the same key. `mail:<player>:<other>` is that player's index of
+     who they have a thread with, which is what makes "my letters" one list
+     read rather than a walk over every thread on the server. */
+
+  /** Have these two finished a game together? Answered out of the smaller of
+   *  the two archives rather than by keeping a third record of who has met
+   *  whom: a list of everybody you have ever played is exactly the data this
+   *  feature exists to avoid needing. */
+  async #havePlayed(a, b) {
+    const rows = await this.ctx.storage.list({ prefix: archivePrefix(a) });
+    for (const [, game] of rows) {
+      for (const side of ["b", "w"]) {
+        const seats = (game.teams && game.teams[side]) || [side === "b" ? game.black : game.white];
+        if ((seats || []).some((p) => p && p.id === b)) return true;
+      }
+    }
+    return false;
+  }
+
+  async #mayWrite(fromId, toId) {
+    const to = await this.ctx.storage.get(`player:${toId}`);
+    if (!to) return "no-player";
+    const blocked = readBlocked(to.blocked).includes(fromId);
+    const book = await this.#book(fromId);
+    const friends = book.friends.some((e) => e.id === toId);
+    const played = friends ? false : await this.#havePlayed(fromId, toId);
+    return mayWrite({ from: fromId, to: toId, friends, played, blocked });
+  }
+
+  /** Whether this player could write to that one, so a page can offer the box
+   *  or say plainly why it is not offering it. */
+  async canWrite(fromId, toId) {
+    const why = await this.#mayWrite(fromId, toId);
+    /* A blocked writer is told "not met", not "blocked". Blocking is silent:
+       saying so would turn it into a message, which is the one thing the
+       person who blocked chose not to send. */
+    return { can: why === null, why: why === "blocked" ? "not-met" : why };
+  }
+
+  async writeLetter(fromId, toId, rawText) {
+    const why = await this.#mayWrite(fromId, toId);
+    /* A blocked writer is refused with the words a stranger gets. Blocking is
+       silent, and an error that said "blocked" would be a message — the one
+       message the person who blocked chose not to send. `canWrite` folds it
+       the same way; doing it in one place and not the other is exactly the
+       hole `tools/server/post.mjs` was written to find, and did. */
+    if (why) throw new Error(why === "blocked" ? "not-met" : why);
+    const text = cleanLetter(rawText);
+    if (!text) throw new Error("empty-letter");
+    await this.#spend(`rate:post:${fromId}`, POST_LIMIT, POST_WINDOW_MS, "too-many-letters-sent");
+    const key = `post:${threadKey(fromId, toId)}`;
+    const thread = withLetter(readThread(await this.ctx.storage.get(key)), fromId, text, Date.now());
+    const at = thread[thread.length - 1].at;
+    await this.ctx.storage.put({
+      [key]: thread,
+      [`mail:${fromId}:${toId}`]: at,
+      [`mail:${toId}:${fromId}`]: at,
+    });
+    return { thread, with: toId };
+  }
+
+  /** One thread, and nothing at all for a pair with no thread. Reading is not
+   *  gated on `mayWrite`: somebody who blocks a person keeps the letters that
+   *  person already sent, and somebody who has stopped being a friend does not
+   *  lose the conversation they had. */
+  async threadWith(meId, otherId) {
+    const thread = readThread(await this.ctx.storage.get(`post:${threadKey(meId, otherId)}`));
+    return { thread, with: otherId, ...(await this.canWrite(meId, otherId)) };
+  }
+
+  /** Every thread this player has, newest conversation first, each with the
+   *  person it is with. One list read plus one batched get of the people. */
+  async lettersOf(meId) {
+    const index = await this.ctx.storage.list({ prefix: `mail:${meId}:` });
+    const ids = [...index.keys()].map((k) => k.slice(`mail:${meId}:`.length));
+    if (!ids.length) return [];
+    const people = await this.#peopleByIds(ids);
+    const rows = [];
+    for (const otherId of ids) {
+      const person = people.get(otherId);
+      if (!person) continue;            // they left; the index heals by being read
+      const thread = readThread(await this.ctx.storage.get(`post:${threadKey(meId, otherId)}`));
+      const summary = threadSummary(thread, meId);
+      if (summary) rows.push({ ...summary, player: publicPlayer(person) });
+    }
+    return byRecent(rows);
+  }
+
+  async setBlocked(meId, otherId, on) {
+    const p = await this.ctx.storage.get(`player:${meId}`);
+    if (!p) throw new Error("no-player");
+    const list = readBlocked(p.blocked);
+    const next = on ? blockPure(list, otherId) : unblockPure(list, otherId);
+    await this.ctx.storage.put(`player:${meId}`, { ...p, blocked: next, lastSeen: Date.now() });
+    return { blocked: next };
+  }
+
+  /** Every letter this player was part of, gone, from both sides. A thread is
+   *  two people's, but unlike a game it is not a record of something that
+   *  happened at a board: it is correspondence, and the notice says leaving
+   *  takes it. */
+  async #forgetPost(id) {
+    const index = await this.ctx.storage.list({ prefix: `mail:${id}:` });
+    const others = [...index.keys()].map((k) => k.slice(`mail:${id}:`.length));
+    const gone = [...index.keys()];
+    for (const other of others) {
+      gone.push(`post:${threadKey(id, other)}`, `mail:${other}:${id}`);
+    }
+    for (let i = 0; i < gone.length; i += 100) {
+      await this.ctx.storage.delete(gone.slice(i, i + 100));
     }
   }
 

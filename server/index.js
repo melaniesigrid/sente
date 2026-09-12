@@ -32,6 +32,11 @@
      GET   /api/players/:id/avatar              -> the picture, cached by its stamp
      GET   /api/games           bearer         -> recent games
      GET   /api/me/archive?cursor=&limit= bearer -> finished games, newest first
+     GET   /api/me/letters      bearer         -> your threads, newest first
+     GET   /api/me/letters/:id  bearer         -> one thread, and whether you may write
+     POST  /api/me/letters/:id  bearer {text}  -> write one
+     PUT   /api/me/blocked/:id  bearer         -> stop them writing; silent
+     DELETE /api/me/blocked/:id bearer
      PUT   /api/me/featured/:gameId bearer {note} -> show a game on your page
      DELETE /api/me/featured/:gameId bearer     -> take it off again
      GET   /api/ladder                         -> top players
@@ -83,6 +88,9 @@ export default {
         /* Showing a game you did not play is not a bad request so much as a
            claim about somebody else's game, so it is a refusal of its own. */
         "not-your-game": 403, "too-many-featured": 409,
+        /* The post. "not-met" is a 403 and not a 404: the person exists and
+           you may read their page; what you may not do is write to them. */
+        "not-met": 403, blocked: 403, "empty-letter": 400,
       };
       if (known[e.message]) return fail(known[e.message], e.message);
       console.error("unhandled", e);
@@ -310,6 +318,36 @@ async function route(req, env) {
       url.searchParams.get("cursor"), url.searchParams.get("limit")));
   }
 
+  /* The post: one thread per pair, for good. Not a chat and not a list —
+     nobody can be added to anything, and the only people who may write to you
+     are ones you agreed to (a friend) or sat down with (a finished game). */
+  if (path === "/api/me/letters" && req.method === "GET") {
+    const player = await requirePlayer(req, reg);
+    return json(await reg.lettersOf(player.id));
+  }
+
+  /* Not named `post`: that is the module-level helper that hands a letter to
+     Cloudflare Email Sending, and a local of the same name inside this
+     function would shadow it and break both of the account letters. */
+  const thread = /^\/api\/me\/letters\/([^/]+)$/.exec(path);
+  if (thread) {
+    const player = await requirePlayer(req, reg);
+    if (req.method === "GET") return json(await reg.threadWith(player.id, thread[1]));
+    if (req.method === "POST") {
+      const b = await readJson(req);
+      return limited(() => reg.writeLetter(player.id, thread[1], b.text), 201);
+    }
+    return fail(405, "method");
+  }
+
+  const blocked = /^\/api\/me\/blocked\/([^/]+)$/.exec(path);
+  if (blocked) {
+    const player = await requirePlayer(req, reg);
+    if (req.method === "PUT") return json(await reg.setBlocked(player.id, blocked[1], true));
+    if (req.method === "DELETE") return json(await reg.setBlocked(player.id, blocked[1], false));
+    return fail(405, "method");
+  }
+
   /* The few games a player shows on their page. PUT rather than POST because
      pinning a game already pinned is an edit of the line, not a second pin:
      the same call twice leaves the same thing behind. */
@@ -379,7 +417,8 @@ async function limited(run, ok = 200) {
   try {
     return json(await run(), ok);
   } catch (e) {
-    if (!["too-many-handles", "too-many-attempts", "too-many-letters", "too-many-requests"].includes(e.message)) throw e;
+    if (!["too-many-handles", "too-many-attempts", "too-many-letters",
+      "too-many-requests", "too-many-letters-sent"].includes(e.message)) throw e;
     const secs = Math.ceil((e.retryAfterMs ?? 3600000) / 1000);
     return json({ error: e.message }, 429, { "retry-after": String(secs) });
   }

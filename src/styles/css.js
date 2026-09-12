@@ -1810,6 +1810,22 @@ ${FONT_FACES}
   font-size: 12px; color: var(--ink-2); cursor: default;
 }
 .badge svg { color: var(--accent-ink); opacity: .8; }
+/* ---- the post ----
+   Letters, not chat. They are set as blocks of prose with room to breathe
+   rather than as bubbles in a stream: the shape says "read this" instead of
+   "reply now", which is the difference the feature rests on. */
+.letters-card { display: flex; flex-direction: column; gap: 14px; }
+.letters-card h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }
+.letter-row { align-items: center; }
+.letter-preview { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 42ch; }
+.thread { display: flex; flex-direction: column; gap: 10px; max-height: 52vh; overflow-y: auto; padding: 2px; }
+.letter {
+  display: flex; flex-direction: column; gap: 5px;
+  padding: 12px 15px; border-radius: 16px; box-shadow: var(--sink-sm);
+}
+.letter.mine { box-shadow: var(--raise-sm); }
+.letter-text { margin: 0; font-size: 15px; line-height: 1.65; white-space: pre-line; }
+.letter .fine { margin: 0; align-self: flex-end; }
 .seek-state { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-radius: 14px; box-shadow: var(--sink-sm); font-size: 14.5px; }
 .seek-state .pulse { color: var(--accent-ink); animation: seek-pulse 1.6s ease-in-out infinite; }
 @keyframes seek-pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
