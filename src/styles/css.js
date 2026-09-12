@@ -482,6 +482,32 @@ ${FONT_FACES}
 .review-scrub::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; margin-top: -5px; border-radius: 50%; background: var(--ink); box-shadow: var(--raise-sm); }
 .review-scrub::-moz-range-thumb { width: 16px; height: 16px; border: 0; border-radius: 50%; background: var(--ink); box-shadow: var(--raise-sm); }
 .review-scrub:focus-visible { outline-offset: 4px; }
+
+/* The win rate graph. The curve is the border between Black's share of the box and
+   White's, so the two stone colours carry the whole reading and nothing needs a
+   legend. The hairline along it is the room's own ground, which is the one colour
+   that stands out against both stones in every palette. */
+.review-analysis { width: 100%; }
+.wingraph { width: 100%; border-radius: var(--r); box-shadow: var(--sink-sm); padding: 8px; }
+.wingraph svg { display: block; width: 100%; height: 132px; border-radius: calc(var(--r) - 10px); touch-action: none; cursor: pointer; }
+.wingraph-white { fill: var(--stone-w-2); }
+.wingraph-black { fill: var(--stone-b-2); }
+.wingraph-unknown { fill: var(--ground); }
+.wingraph-even { stroke: var(--grid); stroke-opacity: .5; stroke-width: 1; stroke-dasharray: 4 6; }
+.wingraph-line { fill: none; stroke: var(--ground); stroke-width: 2; stroke-linejoin: round; }
+.wingraph-turn { stroke: var(--danger); stroke-width: 1.5; stroke-dasharray: 3 4; }
+.wingraph-cursor { stroke: var(--accent); stroke-width: 2; }
+.wingraph-ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-2); padding: 4px 2px 0; }
+.review-winline { margin: 0; text-align: center; font-size: 14px; color: var(--ink-2); }
+.review-advice { margin: 0; text-align: center; font-size: 14px; color: var(--ink-2); }
+
+/* One turning point: a move the network says decided something. */
+.turn-chip { display: inline-flex; align-items: center; gap: 6px; border: 0; cursor: pointer;
+  background: var(--ground); color: var(--ink); border-radius: 999px; padding: 6px 12px;
+  font-family: inherit; font-size: 13px; box-shadow: var(--raise-sm); }
+.turn-chip svg { color: var(--danger-ink); }
+.turn-chip.on { box-shadow: var(--sink-sm); }
+.turn-cost { color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .stone-num { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; pointer-events: none; }
 .stone-num.on-b { fill: var(--light); }
 .stone-num.on-w { fill: var(--ink); }
