@@ -975,7 +975,30 @@ Open:
 
 ## Design and polish (schedule after a design review)
 
-- [ ] Mobile layout pass: board sizing, nav collapse, touch targets.
+- [x] Mobile layout pass (2026-09-12, branch `fix/mobile-fit`): board sizing, touch targets,
+      and the mascot. The headline bug was the board. `.board-well` carried `flex: 2 1 520px`
+      with no parent named, and the well's parents are column stacks, where a basis is a
+      HEIGHT and not a width: on a 390px phone the well stood 520px tall around a 334px
+      board, so 174px of the sunken panel was empty ground under the grid. The basis now
+      belongs to `.play-wrap > .board-well`, the one place the axis is horizontal. The
+      lesson search box had the identical bug one letter down (`flex: 0 1 300px` on
+      `.search-row`, a 300px tall input below 900px, where `.screen-head` stops being a
+      grid); it is written as a `max-width` now, which means the same thing in both axes.
+      `css.test.js` holds both: neither class may carry a px flex basis unless the selector
+      says which parent it means. Touch targets: `.btn-sm`, `.seg-btn`, `.btn-icon`,
+      `.icon-btn` and `.coach-toggle` were between 24px and 38px tall and are held to 44
+      below 760px; the switch and the lesson step rail are drawn small on purpose, so the
+      drawing moved into a `::before` and the button around it grew instead. The five nav
+      buttons are icon-only on a phone because the stylesheet hides their span, and a hidden
+      span is out of the accessibility tree too, so they announced nothing: the label is now
+      also an `aria-label`. A settings row let its copy collapse to one word a line when the
+      Dot/Ring/None group sat beside it; the row may wrap and the copy asks for 12rem first.
+      Moku: the off switch was `opacity: 0` until hover, which on a touch screen means never,
+      and it was 23px besides. It is 44px and visible, the dock is given room at the foot of
+      the page so it never sits on the footer at rest, and the bubble no longer speaks across
+      what you are reading: the seat is a button and the line opens when you ask for it.
+      Desktop is untouched, deliberately: every rule above is inside a `max-width: 760px` or
+      `hover: none` block, or is axis-agnostic.
 - [x] The look of the place is one screen (`src/views/Look.jsx`, v0.7.0.0): the rooms, the
       stones and the pairings together, reached from the top bar. The profile keeps a
       sentence saying what you are wearing and a strip of plates; it is no longer a place

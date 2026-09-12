@@ -119,14 +119,23 @@ export function MokuMark({ size = 56, state = "idle", sash = null, className = "
   );
 }
 
+/* The seat is a button so the line can be asked for rather than delivered. On a
+   wide screen the bubble is always up and the button only gives a keyboard the
+   same reach a mouse has; on a phone the stylesheet hides the bubble until this
+   sets `open`, because a gutter that holds a spoken line does not exist there
+   and the line would otherwise lie across whatever you were reading. */
 export function MokuDock() {
   const m = useContext(MokuCtx);
+  const [open, setOpen] = useState(false);
   if (!m || m.off) return null;
   return (
     <div className="moku-dock">
-      <div className="moku-bubble" role="status" aria-live="polite" key={m.line}>{m.line}</div>
+      <div className={`moku-bubble ${open ? "open" : ""}`} role="status" aria-live="polite" key={m.line}>{m.line}</div>
       <div className="moku-seat">
-        <MokuMark state={m.state} size={92} />
+        <button className="moku-seat-btn" onClick={() => setOpen(!open)}
+          aria-expanded={open} aria-label={open ? "Hide what Moku is saying" : "Ask Moku"}>
+          <MokuMark state={m.state} size={92} />
+        </button>
         <button className="moku-off" onClick={() => m.setOff(true)} aria-label="Send Moku away" title="Send Moku away">
           <X size={13} strokeWidth={2.6} />
         </button>

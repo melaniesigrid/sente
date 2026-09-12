@@ -271,3 +271,45 @@ describe("the motion switch", () => {
     expect(used.has("fig-hole"), "the figure's capture ring").toBe(true);
   });
 });
+
+/* ----------------------- A BASIS IS A WIDTH -----------------------
+   Two bugs, the same shape, found on a phone. `flex: 2 1 520px` on the board
+   well and `flex: 0 1 300px` on the lesson search box were both written while
+   looking at a row, where the basis is a width. Both elements also sit in a
+   column stack, and there the very same declaration is a HEIGHT: the well
+   stood 520px tall around a 334px board, and the search box was a 300px tall
+   input. Neither is visible in a text test of the markup and neither throws.
+
+   So: an element that is laid out in a column somewhere may not carry a px
+   flex basis unless the selector says which parent it means. A child
+   combinator against the row is what says it. */
+const COLUMN_DWELLERS = [
+  // subject class, and the row-scoped selector it is allowed to be pinned to
+  [".board-well", /\.play-wrap\s*>\s*\.board-well$/],
+  [".search-row", /never$/],
+];
+
+describe("a flex basis in px", () => {
+  for (const [cls, allowed] of COLUMN_DWELLERS) {
+    it(`is not written unscoped on ${cls}`, () => {
+      for (const r of rules(CSS)) {
+        if (!r.selector.split(",").some(s => s.trim().endsWith(cls))) continue;
+        if (!/(^|;)\s*flex:[^;]*\d+px/.test(r.body)) continue;
+        expect(r.selector, `${r.selector} sets a px flex basis where the axis is not known`)
+          .toMatch(allowed);
+      }
+    });
+  }
+
+  // The well is the one that is actually square, so it gets the stronger claim:
+  // whatever else the rule says, it must not pin the well any main size at all
+  // except through the row.
+  it("leaves the board well free to be as tall as it is wide", () => {
+    const own = rules(CSS).filter(r => r.selector === ".board-well");
+    expect(own.length, "the bare .board-well rule went missing").toBeGreaterThan(0);
+    for (const r of own) {
+      expect(r.body, ".board-well pins a main size").not.toMatch(/(^|;)\s*flex:/);
+      expect(r.body, ".board-well pins a height").not.toMatch(/(^|;)\s*height:/);
+    }
+  });
+});
