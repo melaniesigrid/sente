@@ -1734,6 +1734,24 @@ ${FONT_FACES}
   padding-top: 14px; border-top: 1px solid var(--hairline);
 }
 .who-may-see .fine { margin: 0; }
+/* ---- the archive ----
+   One row a game, the whole person-and-result a button and the SGF a plain
+   link beside it. The mark takes the accent for a win and stays quiet for a
+   loss: a red loss on every other row turns a season of go into a report card. */
+.archive-card { display: flex; flex-direction: column; gap: 14px; }
+.archive-card h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }
+.archive-row { display: flex; align-items: center; gap: 11px; padding: 8px 12px; border-radius: 16px; }
+.archive-mark {
+  display: grid; place-items: center; width: 34px; height: 34px; flex: none;
+  border-radius: 11px; box-shadow: var(--sink-sm); color: var(--ink-2);
+}
+.archive-mark.won { color: var(--accent-ink); }
+.archive-when { flex: none; white-space: nowrap; }
+.archive-row a.btn { flex: none; text-decoration: none; }
+@media (max-width: 560px) {
+  .archive-row { flex-wrap: wrap; }
+  .archive-row .friend-who { flex-basis: 100%; }
+}
 .seek-state { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-radius: 14px; box-shadow: var(--sink-sm); font-size: 14.5px; }
 .seek-state .pulse { color: var(--accent-ink); animation: seek-pulse 1.6s ease-in-out infinite; }
 @keyframes seek-pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
