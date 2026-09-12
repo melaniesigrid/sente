@@ -27,9 +27,40 @@ describe("The Record", () => {
     }
   });
 
-  it("opens on a headline that asks rather than asserts", () => {
+  // The headline used to be a question, because the line everybody repeats --
+  // go was the last game to fall to a machine -- is false, and asking was the
+  // only honest way to print it. The claim it makes now is the true one and
+  // the lead column defends it, so it is allowed to be a statement. What it is
+  // not allowed to be is the false line, in any tense, anywhere on the page.
+  it("states its claim plainly rather than asking", () => {
     expect(RECORD_HEADLINE.length).toBeGreaterThan(10);
-    expect(RECORD_HEADLINE.endsWith("?"), RECORD_HEADLINE).toBe(true);
+    expect(RECORD_HEADLINE.endsWith("."), RECORD_HEADLINE).toBe(true);
+    expect(RECORD_HEADLINE, "the headline must not hedge").not.toMatch(/\?/);
+  });
+
+  // The false version may appear only where it is being corrected, which in
+  // practice means a paragraph that also says it is not true.
+  it("never prints the last-game-to-fall line as a claim", () => {
+    const paras = RECORD.flatMap(c => c.body);
+    for (const para of paras) {
+      if (!/last game to (fall|be)/i.test(para)) continue;
+      expect(para, "the false line appears without its correction")
+        .toMatch(/not true|is not|was not/i);
+    }
+  });
+
+  // A stranger reading standing up. The old draft ran to fifty-word sentences
+  // with the point at the end; this keeps the columns to the plain register
+  // the rest of the front door uses.
+  it("keeps its sentences short enough to read standing up", () => {
+    for (const col of RECORD) {
+      for (const para of col.body) {
+        for (const sentence of para.split(/(?<=[.:]) /)) {
+          const words = sentence.trim().split(/\s+/).length;
+          expect(words, `${col.title}: ${sentence}`).toBeLessThanOrEqual(48);
+        }
+      }
+    }
   });
 
   it("points every citation at a source that exists", () => {

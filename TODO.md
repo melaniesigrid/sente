@@ -1832,3 +1832,43 @@ Decisions:
 Still open: the landing still uses no `t()`, so the headline and the founder's column
 are English until the i18n pass reaches the front door. The blog chrome is translated;
 the post is not, for the reason the journal already states out loud.
+
+## The Record says the true thing plainly (done, branch `feat/last-game`)
+
+The broadsheet was accurate and it was unreadable. It was written the way a machine
+writes when it is trying to sound literary: fifty-word sentences, three qualifications
+each, the point arriving last. A stranger who did not already know what go is got
+nothing out of it, and the one line they would have cared about was the one line the
+page refused to say.
+
+- [x] The headline states the claim instead of asking it: "The last game humans could
+      beat a computer at." (`RECORD_HEADLINE`, `press.js`). The old question mark existed
+      because the line everybody repeats, go was the last game to fall to a machine, is
+      false. But there is a true version of that line and it is the more interesting one,
+      so the page prints it and the lead column carries the shogi correction in the same
+      breath. The test changed with it: the headline must end on a full stop, must not
+      hedge, and the false line may appear in a column only where that column also says
+      it is not true.
+- [x] Every column rewritten to short sentences, one idea each. `press.test.js` holds it
+      there: no sentence in the Record may run past 48 words.
+- [x] The lead column's unsourced flourish (a program handed nine stones and still
+      losing) replaced with the measured version: in 1997 the best program in the world
+      was handed eleven free stones and beat three children with them, which is what the
+      Ing Prize record actually says. New source `computergo`.
+- [x] `src/content/blog.js`: a second post, "How badly the computers lost, in stones".
+      The nineteen years had a unit and the unit was handicap stones. The Ing Prize that
+      expired unclaimed in 2000 at nine stones, Handtalk's eleven-stone win in 1997, Zen
+      at five and then four against Takemiya in 2012, Crazy Stone at four against Ishida
+      in 2013, and then nothing in 2016. It is the evidence under the new headline.
+- [x] `.lp-record-headline` measure widened from 18ch to 22ch, because a statement is
+      longer than a question and three lines of display is still a broadsheet.
+
+Decisions:
+- The headline is allowed to be a statement now because this statement is true. The rule
+  was never "ask rather than assert". It was "do not assert what you cannot defend", and
+  the question mark was a workaround for a claim the page could not defend. Given a claim
+  it can, the workaround is worse than the thing it was protecting against: a reader who
+  is asked a question has to guess the answer, and half of them will guess the false one.
+- Plain beats literary here and nowhere else. The Record is the only writing on this site
+  addressed to somebody who has not decided to care yet. The lessons, the journal and the
+  Classic are all read by somebody who already sat down.

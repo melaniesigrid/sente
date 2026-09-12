@@ -5,16 +5,27 @@
    actually true about this game is better than anything we could claim about
    our own software.
 
-   It opens on a question and not on a number. A broadsheet earns its first
-   paragraph with a headline somebody would read over a shoulder on a train,
-   and the number that used to sit at the top -- the exact count of legal
-   positions -- is in the blog now, where the arithmetic belongs. A column is
-   150 words and cannot carry a working. The blog can.
+   It is written to be read once, quickly, by somebody standing up. Short
+   sentences. One idea each. The earlier draft of this section was written the
+   way a machine writes when it is trying to sound literary -- long clauses,
+   three qualifications a sentence, the point arriving last -- and a reader who
+   does not already know what go is got nothing out of it. So the rule here is
+   plainer than the rest of the app's voice: say the thing, then say what it
+   rests on.
+
+   The headline states a claim instead of asking one. That is a change. The old
+   headline asked, because the line everybody repeats -- go was the last game
+   to fall to a machine -- is false, and a page that prints a falsehood as a
+   statement has told it. But there is a true version of that line, and it is
+   the more interesting one: for nineteen years after chess fell, go was the
+   only board game left where a human could still reliably beat the best
+   program in the world. That is what the headline says now, and the lead
+   column defends it and prints the shogi correction in the same breath.
 
    It is also the most dangerous thing on the site. A marketing page that
    reaches for a fact reaches for the flattering version of it, so this one is
    held to the rule the rest of the app already lives by: measured, never
-   claimed. In practice that meant five things.
+   claimed. In practice that means four things.
 
    - Every column names the sources it rests on, and `press.test.js` fails the
      build if one does not. The rail under the columns is not a bibliography.
@@ -23,11 +34,6 @@
      is sourced by the person who signed it and by nothing else, so the test
      asks a `signed` column for a signature instead of a citation, and forbids
      it a figure. A memory is not evidence and should not be set as evidence.
-   - Where the flattering line and the true line differ, the true one is
-     printed. Go is very widely called the last game to fall to a machine. It
-     was not (shogi's reigning Meijin lost in 2017) and the lead column says
-     so in the paragraph where the boast would have gone. The headline asks
-     the question rather than asserting it, for the same reason.
    - A famous figure was moved rather than repeated. The one-in-ten-thousand
      estimate is nearly always attached to AlphaGo's move 37; the version with
      a primary source behind it is Demis Hassabis reading AlphaGo's own logs
@@ -80,6 +86,13 @@ export const SOURCES = [
     url: "https://en.wikipedia.org/wiki/Computer_shogi",
   },
   {
+    id: "computergo",
+    title: "Computer Go: the record of the handicap matches and the Ing Prize",
+    where: "Wikipedia",
+    year: 2000,
+    url: "https://en.wikipedia.org/wiki/Computer_Go",
+  },
+  {
     id: "silver",
     title: "Mastering the game of Go with deep neural networks and tree search",
     where: "Silver and others, Nature",
@@ -112,37 +125,42 @@ export const SOURCES = [
 /** The masthead's second line. */
 export const RECORD_STANDFIRST = "What is known about this game, and what is not";
 
-/** The headline the section opens on. It is a question because the answer is
- *  no, and because a page that prints the flattering version as a statement
- *  and takes it back three paragraphs later has told the lie first. */
-export const RECORD_HEADLINE = "The last game to fall to a machine?";
+/** The headline the section opens on. It states the claim rather than asking
+ *  it, because this version of the claim is true and the lead column defends
+ *  it. The line everybody repeats -- the last game to fall to a machine -- is
+ *  the false version, and it is corrected in the column, not in the headline,
+ *  because a correction is not a headline. */
+export const RECORD_HEADLINE = "The last game humans could beat a computer at.";
 
-/** The standfirst under the headline, in the quote voice. */
+/** The standfirst under the headline, in the quote voice. Four short
+ *  sentences: what happened, how long it lasted, when it ended, what this
+ *  section is for. */
 export const RECORD_DEK =
-  "Chess went in 1997. Go held out nineteen more years and then lost in Seoul, over six "
-  + "days in March 2016, in front of a room of people who had given their lives to it. It "
-  + "is the story this game is known for, and most of the ways it gets told are wrong. "
-  + "Here is the version with the sources under it.";
+  "Chess fell to a machine in 1997. Go did not. For nineteen more years the best "
+  + "go program in the world could be beaten by a decent club player, and nobody knew "
+  + "how to change that. Then, over six days in Seoul in March 2016, somebody did. "
+  + "This is what happened, with the sources under it.";
 
 export const RECORD = [
   {
     kicker: "The machines",
     title: "Nineteen years after chess",
     body: [
-      "Deep Blue beat the reigning world chess champion in New York in May 1997, three and a half games to two and a half. Go took another nineteen years, and for most of them nobody knew what to do about it: a go board holds more legal positions than any search can enumerate, and unlike chess there is no cheap way to glance at a position and say who is ahead.",
-      "AlphaGo beat Lee Sedol four games to one in Seoul, over six days in March 2016. It did not get there by searching harder. It got there by learning which moves were worth looking at, so the search could be smaller rather than bigger, and the working for that is in the blog.",
-      "Go is very widely called the last game to fall to a machine. It was not. Shogi's reigning Meijin lost two games to a program called Ponanza in May 2017, fourteen months later. We would rather print that than the better line.",
+      "Deep Blue beat the world chess champion in May 1997. After that, go was the holdout. Not because nobody tried. In the same year, the best go program in the world was handed eleven free stones and used them to beat three children. Eleven stones is what you give somebody who learned the rules last month.",
+      "The reason is that go is too big to search and too vague to judge. A board holds more legal positions than a computer can count. Worse, there is no quick way to look at a go position and say who is ahead. Chess programs won by looking at more moves than a person can. Here that gets you nowhere.",
+      "AlphaGo beat Lee Sedol four games to one in Seoul in March 2016. It did not win by looking at more moves. It won by learning which moves were worth looking at, so it could look at far fewer. The arithmetic is in the blog.",
+      "You will often hear that go was the last game to fall to a machine. That part is not true. Shogi's reigning champion lost fourteen months later, in May 2017. What is true is the line above: go was the last one where a human could still expect to win.",
     ],
-    sources: ["deepblue", "alphago", "silver", "dennosen"],
+    sources: ["deepblue", "computergo", "alphago", "silver", "dennosen"],
   },
   {
     kicker: "From the founder",
     title: "The room we called 304",
     signed: "the founder",
     body: [
-      "I learned this game in an applied mathematics course, because somebody had put it on the curriculum. That is not a sentence I have ever been able to say outside my own country without it sounding invented. We studied it the way we studied everything else, which is to say far too hard, and every so often the faculty sent a delegation to the World Championship: a paid trip, where you sat down across from professionals and came home knowing more than you left with.",
-      "The same year I was learning where a stone wants to sit, I was learning probability, and the two happened in the same place. We never gave it a name. It was 304, a room at the engineering faculty, and it is still the most fun I have had learning anything. Some of us were small kids. The older students ran the training themselves, on their own time, because that is how a field grows in a country too small to import one.",
-      "That is a recollection and not a finding, and the column at the end of this row is where we decline to tell you that any of it made us cleverer. What I will say is that thirty people learned this game at once because somebody older stayed late, and that this site is an attempt to leave that room open.",
+      "I learned this game in an applied mathematics course, because somebody had put it on the curriculum. I have never been able to say that sentence abroad without it sounding invented. We studied it the way we studied everything else, far too hard. Every so often the faculty sent a delegation to the World Championship: a paid trip, where you sat down across from professionals and came home knowing more than you left with.",
+      "The same year I was learning where a stone wants to sit, I was learning probability, in the same building. We never gave the club a name. It was 304, a room at the engineering faculty. It is still the most fun I have had learning anything. Some of us were small kids. The older students ran the training themselves, on their own time, because that is how a field grows in a country too small to import one.",
+      "That is a memory, not a finding. The last column here is where we decline to tell you any of it made us cleverer. What I will say is that thirty people learned this game at once because somebody older stayed late, and this site is an attempt to leave that room open.",
     ],
     sources: [],
   },
@@ -150,31 +168,31 @@ export const RECORD = [
     kicker: "The match",
     title: "Move 37, and move 78",
     body: [
-      "In the second game AlphaGo played a shoulder hit on the fifth line, at P10, that no professional would have considered. The commentators took it for a mistake. It decided the game.",
-      "Two games later Lee Sedol answered with a wedge at L11, move 78, which Gu Li called a divine move. AlphaGo's own logs gave a human less than one chance in ten thousand of finding it. The program replied badly on 79, still rating its position around seventy per cent, and that estimate collapsed at move 87. It resigned on 180.",
-      "That is the one game of the five a human won.",
+      "In game two, AlphaGo played a shoulder hit on the fifth line, at P10. No professional would have considered it. The commentators called it a mistake. It won the game.",
+      "Two games later Lee Sedol answered with a wedge at L11, move 78. Gu Li called it a divine move. AlphaGo's own logs gave a human less than one chance in ten thousand of playing it. The program replied badly on move 79, still believing it was winning about seven times in ten. That belief collapsed at move 87. It resigned on 180.",
+      "That is the one game of five that a human won. Nobody has beaten a top program in an even game since.",
     ],
     sources: ["alphago", "logs"],
   },
   {
     kicker: "And since",
-    title: "It was not the end of the story",
+    title: "The machines are still not safe",
     body: [
-      "In 2023 researchers trained an adversary against KataGo, the strongest open engine there is, and beat it in more than ninety-seven games in a hundred at settings that are comfortably superhuman. The trick is to lure it into building one enormous cyclically connected group, which it reads as alive, and then take the whole thing off the board.",
-      "The adversary cannot play go. It loses to amateurs. What it found is a blind spot, and a human can work the same blind spot by hand: one of the authors won fourteen of fifteen games against the strongest bot on the KGS server, some of them while giving it nine stones.",
-      "He is a co-author who learned the shape from his own team's adversary, which is the part usually left out. The weakness survived training meant to close it.",
+      "In 2023, researchers trained a program whose only job was to beat KataGo, the strongest open engine there is. It won more than ninety-seven games in a hundred, at settings well above any human.",
+      "It does this with one trick. It lures KataGo into building a single enormous group in a ring, which the engine reads as alive, and then takes the whole thing off the board. The trick program cannot play go at all. It loses to ordinary amateurs.",
+      "The useful part is that a person can run the same trick by hand. One of the authors learned the shape from his own program and won fourteen of fifteen games against the strongest bot on a public server, some of them while giving it nine stones. The blind spot survived training meant to close it.",
     ],
     sources: ["goattack"],
   },
   {
     kicker: "The claim we will not make",
-    title: "What playing is known to do",
+    title: "Go will not make you smarter",
     refuses: true,
     body: [
-      "A French study followed about three and a half thousand people for twenty years. Board game players were fifteen per cent less likely to develop dementia. Then the figures were adjusted for how each person had scored on a cognitive test at the start, and for depression, and the effect went away.",
-      "The authors are blunt about what that leaves. A reverse causation remains possible, they write: the people who were already doing well were the ones playing board games. Only a controlled study could tell the two apart.",
-      "The wider evidence on games carrying over to anything outside themselves is weaker still. Across the meta-analyses the effect shrinks as the studies get better designed, which is the shape of a result that is not there.",
-      "So nobody has shown that go makes you better at anything except go, and we are not going to be the first to say that it does. Play it because it is beautiful, and because it is very hard. That is enough.",
+      "A French study followed about three and a half thousand people for twenty years. The board game players were fifteen per cent less likely to develop dementia. That is the number you see quoted.",
+      "Here is the rest of it. When the figures were adjusted for how each person scored on a cognitive test at the start, and for depression, the effect disappeared. The authors say plainly what that leaves open: maybe the people who were already doing well were the ones playing board games. Only a controlled trial could tell the difference.",
+      "The wider evidence is weaker still. Across the studies on games carrying over to anything outside themselves, the better the study is designed, the smaller the effect gets. That is the shape of a result that is not there.",
+      "So: nobody has shown that go makes you better at anything except go, and we are not going to be the first to say it does. Play it because it is beautiful and very hard. That is enough.",
     ],
     sources: ["paquid", "transfer"],
   },

@@ -1960,7 +1960,7 @@ ${FONT_FACES}
    somebody would read over a shoulder, and everything under it is the answer
    to that line. */
 .lp-record-headline {
-  margin: clamp(20px, 2.8vw, 34px) 0 0; max-width: 18ch;
+  margin: clamp(20px, 2.8vw, 34px) 0 0; max-width: 22ch;
   font-family: var(--font-display); font-weight: var(--w-display-strong);
   font-size: clamp(34px, 6.4vw, 76px); line-height: .98;
   letter-spacing: calc(-0.025em + var(--display-tracking));
