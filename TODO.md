@@ -1256,8 +1256,34 @@ A weekend each:
 - [ ] Tsumego mined from your own games: scan a finished record for positions where a
       group of yours sat in atari with a rescue available, or an enemy group could be
       taken (the AI's capture/rescue evaluators find these). Feeds spaced repetition.
-- [ ] Déjà vu: keep every Zobrist hash you have ever seen locally; the board whispers
-      "you have been here before, and lost". A personal opening book with no engine.
+- [x] Déjà vu (2026-09-12, branch `feat/deja-vu`): the board says when a game has
+      arrived somewhere you have played before, and how those games went.
+      `src/store/deja.js` keeps the opening and early middle game (moves 8 to 44) of
+      finished games as canonical position keys, under its own storage key, capped at
+      1500 and forgetting the least-visited first. The canonical part is what makes it
+      feel like memory rather than like a hash table: `canonical` from the masters work
+      turns each position to a standard orientation, so the same opening played into
+      another corner is the same position, which is how a human remembers it too. A
+      lookup is memoised on the position, because `canonical` turns the board over eight
+      times and a running clock renders the table several times a second.
+      Decisions: the window is moves 8 to 44. Before that every game looks like every
+      other one and the note would fire constantly and mean nothing; after it a position
+      has essentially never been seen before and never will be, so keeping it spends the
+      cap on entries that can only ever say "once". A pass-and-play game is never written
+      down, because a shared board has no "you" to file the result under, though the table
+      still recognises a position while you play a friend. An entry is four small numbers
+      and there is no order in the store, so it cannot be read back as a game you played.
+      The note is an aside under the caption, never a status: it is not a fact about this
+      game and must not be read as one. Default on, with a switch on the profile, and the
+      profile says how many positions are in there and empties them in one press. The
+      privacy notice names it, and the stamp moved with the sentence.
+- [ ] Déjà vu, still open: a duel is remembered like any other game, which gives a player
+      with history a small edge on a board everybody is meant to meet fresh. Decide
+      whether a duel reads the memory or only writes to it.
+- [ ] Déjà vu says nothing in review, where it would be most useful: a reader walking an
+      old game could be told which of these positions they have met since.
+- [ ] A solo player who uses pass-and-play to study an opening gets nothing written down.
+      Either count those with no verdict, or say so at the table.
 - [x] Rengo with the bots: promoted out of the parking lot into Phase 8 (pair go), where
       it grew a seat model, a roadmap to four humans and a design record.
 - [ ] One-colour go: render every stone the same colour, rules untouched, one Board prop.

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
   ChevronLeft, Flag, RotateCcw, RefreshCw, Trophy, Timer, CircleDot, Scale, History,
   MessageCircle, Bot, Send, User, Handshake, Check, Download, Undo2, Award, GraduationCap, X,
+  Sparkle,
 } from "lucide-react";
 import {
   createGame, play, pass, resign, timeout, undo, markDead, acceptScore, scoreBoard, chainsInAtari, idx,
@@ -25,6 +26,7 @@ import { ShareDuelButton } from "../components/DuelCard.jsx";
 import { saveProfile } from "../store/profile.js";
 import { saveGame, clearGame } from "../store/gameStore.js";
 import { recordGame } from "../store/telemetry.js";
+import { loadMemory, rememberGame, recall, dejaNote } from "../store/deja.js";
 import { dayKey } from "../content/kata.js";
 import { chooseRemark, noteSpoken, PACING } from "../content/commentary.js";
 import { attendDay } from "../content/chain.js";
@@ -115,6 +117,10 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
      so it neither repeats itself nor chatters. */
   const [coaching, setCoaching] = useState(() => !!mode.coaching);
   const [confirmCoach, setConfirmCoach] = useState(false);   // two clicks, like resigning
+  /* The positions this device has stood on before. Read once when the table is
+     set up, so a lookup between moves never touches storage, and written back
+     at the end of the game. */
+  const [memory, setMemory] = useState(loadMemory);
   const [spoken, setSpoken] = useState(() => mode.spoken ?? {});
   const lastChatterMove = useRef(-99);              // the coach yields to table talk
   const resumed = useRef(false);                   // the resume effect runs once, StrictMode or not
@@ -129,6 +135,18 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const turn = rec.toPlay;
   const mySide = persona ? "b" : turn;
   const sound = !!profile.sound;
+  /* Déjà vu: the board saying you have been here before. Off during scoring and
+     once the game is over, where the reader is looking at a result rather than at
+     a position, and off for anybody who has switched it off. Memoised on the
+     position rather than computed per render: canonical() turns the board over
+     eight times and hashes each one, and a running clock renders this view
+     several times a second between moves. */
+  const deja = useMemo(
+    () => (profile.dejaVu && !over && !scoring
+      ? dejaNote(recall(memory, rec.board, rec.toPlay, rec.moves.length))
+      : null),
+    [profile.dejaVu, over, scoring, memory, rec.board, rec.toPlay, rec.moves.length],
+  );
 
   /* A staged move is only ever valid for the position it was staged in, so any
      change to the record drops it - a pass, an undo, the house player's reply,
@@ -234,11 +252,22 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
          it leaves this machine - see store/telemetry.js for what it keeps and
          what it refuses to keep. The kind matters: only a rated game is
          evidence about a rank. */
-      const remember = (kind) => outcome && recordGame({
-        at: dayKey(), size: next.size, handicap: next.handicap,
-        bot: persona ? persona.id : null, botRank: botRank ?? null,
-        kind, result: outcome.code, won: outcome.won, moves: outcome.moves,
-      });
+      const remember = (kind) => {
+        if (!outcome) return;
+        recordGame({
+          at: dayKey(), size: next.size, handicap: next.handicap,
+          bot: persona ? persona.id : null, botRank: botRank ?? null,
+          kind, result: outcome.code, won: outcome.won, moves: outcome.moves,
+        });
+        /* And the positions themselves, so the board can say you have been here
+           before. Its own store, its own rules: see store/deja.js. Every kind of
+           game that reaches this helper is remembered, and a pass-and-play game
+           is not one of them: it never calls remember at all, because a shared
+           board has no "you" whose win or loss the position could be filed
+           under, and a memory that cannot say how it went for you is only half
+           the sentence. */
+        setMemory(rememberGame(next, outcome.won));
+      };
       if (duel) {
         remember("duel");
         say(pick(outcome.won === null ? persona.chat.reply : outcome.won ? persona.chat.loss : persona.chat.win));
@@ -685,6 +714,10 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
               <div><span className="dot dot-b" /> Black captures: {rec.captures.b}</div>
               <div><span className="dot dot-w" /> White captures: {rec.captures.w}</div>
               <div className="fine">{captionText({ size: rec.size, komi: rec.komi, handicap: rec.handicap, rules: rec.rules, rated: !!persona && !duel && !master && !coaching, duel: !!duel })}{hints ? " · atari hints on" : ""}{!over ? " · P passes, U takes back" : ""}</div>
+              {/* One line, and only when the memory has something to say. It is
+                  keyed on the note so that arriving somewhere familiar reads as
+                  something the board just noticed rather than as text appearing. */}
+              {deja && <div key={deja} className="deja"><Sparkle size={14} /><span>{deja}</span></div>}
             </Card>
           )}
           {persona ? (

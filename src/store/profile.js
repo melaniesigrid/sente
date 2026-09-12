@@ -25,6 +25,7 @@ export const defaultProfile = {
   sound: false,                              // stone click + haptic, opt-in
   onboarded: false,                          // the welcome flow has been seen or skipped
   coordinates: false,                        // letters and numbers around the board
+  dejaVu: true,                              // the board says when you have stood here before, src/store/deja.js
   lastMoveMark: "dot",                       // how the last stone played is marked
 
   locale: SYSTEM_LOCALE,                     // language id, or "system" to read whatever the device asks for

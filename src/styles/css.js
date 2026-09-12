@@ -456,6 +456,15 @@ ${FONT_FACES}
 @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
 .caps { display: flex; flex-direction: column; gap: 10px; font-size: 16px; }
+/* Déjà vu: the one line the table says about your own history. It is set as an
+   aside rather than as a status, because it is not a fact about this game and
+   must never be read as one: a rule above it, the mark on the glyph, and the
+   quiet ink. It arrives rather than appearing, on the same curve everything
+   else in the place arrives on. */
+.deja { display: flex; align-items: flex-start; gap: 9px; margin-top: 4px; padding-top: 11px; border-top: 1px solid var(--hairline); color: var(--ink-2); font-size: 14.5px; line-height: 1.5; animation: arrive .5s cubic-bezier(.2,.8,.2,1) backwards; }
+.deja svg { flex: none; color: var(--accent-ink); transform: translateY(2px); }
+@media (prefers-reduced-motion: reduce) { .deja { animation: none; } }
+
 .dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 8px; vertical-align: -1px; }
 .dot-b { background: var(--ink); }
 .dot-w { background: var(--cream); box-shadow: 0 0 0 1px var(--dark); }
