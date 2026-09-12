@@ -100,6 +100,13 @@ export const api = {
     call(`/api/presence?ids=${encodeURIComponent(ids.join(","))}`, token ? { token } : {}),
 
   games: (token) => call("/api/games", { token }),
+  /* The archive: every finished game, newest first, a page at a time. The
+     cursor is the server's and opaque; hand back what it gave you. */
+  archive: (token, cursor) =>
+    call(`/api/me/archive${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ""}`, { token }),
+  /* The record as a file. Not a fetch: the browser is sent to it so the
+     download lands with the name the server gives it. */
+  sgfUrl: (id) => `${SERVER_URL}/api/game/${encodeURIComponent(id)}/sgf`,
   ladder: () => call("/api/ladder"),
   stats: () => call("/api/stats"),
   game: (id) => call(`/api/game/${encodeURIComponent(id)}`),

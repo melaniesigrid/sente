@@ -42,6 +42,8 @@ import { cleanBio, cleanFacts, avatarProblem, profileOf } from "./profile.js";
 import { readBook, standing, ask, accept, forget, forgetting, everyoneWhoKnows,
   ASK_LIMIT, ASK_WINDOW_MS } from "./friends.js";
 import { cleanShowOnline, whoIsHere } from "./presence.js";
+import { archivePrefix, archiveKey, pageSize, cursorFor, page as archivePage,
+  archived, playersOf } from "./archive.js";
 import { hit, refund, REGISTER_LIMIT, REGISTER_WINDOW_MS, SIGNIN_LIMIT, SIGNIN_WINDOW_MS,
   FORGOT_LIMIT, FORGOT_WINDOW_MS, VERIFY_LIMIT, VERIFY_WINDOW_MS } from "./ratelimit.js";
 import { VERIFY_TTL_MS, RESET_TTL_MS } from "./mail.js";
@@ -465,6 +467,7 @@ export class Registry extends DurableObject {
     if (!p) return false;
     // Before this player's own book goes, everybody named in it is told.
     await this.#unfriendEverybody(id);
+    await this.#forgetArchive(id);
     const sessions = (p.sessions ?? [p.tokenHash]).filter(Boolean).map(h => `tok:${h}`);
     await this.ctx.storage.delete([
       `player:${id}`, `tok:${p.tokenHash}`, ...sessions, `games:${id}`, `seek:${id}`, `avatar:${id}`,
@@ -632,6 +635,41 @@ export class Registry extends DurableObject {
     }
   }
 
+  /** One page of a player's finished games, newest first. Storage does the
+   *  ordering (the stamp is in the key) and the paging, so this reads exactly
+   *  the page asked for and never the rest of the archive.
+   *
+   *  A cursor is the key of the last row of the previous page, checked against
+   *  this player's own prefix on the way in so an invented one cannot page
+   *  somebody else's games. */
+  async archiveOf(id, rawCursor, rawLimit) {
+    const limit = pageSize(rawLimit);
+    const after = cursorFor(id, rawCursor);
+    /* `end`, not `startAfter`. Storage bounds a list lexicographically and
+       `reverse` only flips the order it hands the range back in, so paging
+       downwards through a descending list is an exclusive upper bound. With
+       `startAfter` the second page comes back holding everything NEWER than
+       the cursor, which is the page just read. */
+    const got = await this.ctx.storage.list({
+      prefix: archivePrefix(id),
+      reverse: true,
+      limit,
+      ...(after ? { end: after } : {}),
+    });
+    return archivePage([...got].map(([key, value]) => ({ key, value })), limit);
+  }
+
+  /** Every archive key this player has, in pages, so leaving can delete them
+   *  without holding the whole archive of a prolific player in memory. */
+  async #forgetArchive(id) {
+    for (;;) {
+      const got = await this.ctx.storage.list({ prefix: archivePrefix(id), limit: PAGE });
+      if (got.size === 0) return;
+      await this.ctx.storage.delete([...got.keys()]);
+      if (got.size < PAGE) return;
+    }
+  }
+
   /* ----- presence ----- */
 
   /** Of these people, the ones this viewer may be told are here, and who are.
@@ -659,12 +697,23 @@ export class Registry extends DurableObject {
     // One call, two events, told apart by the `endedAt` the room sets at the
     // move that finishes the game. Counting both as the same thing would
     // double every game.
-    await this.#note(isFinish(summary) ? "gamesFinished" : "gamesStarted");
+    const finished = isFinish(summary);
+    await this.#note(finished ? "gamesFinished" : "gamesStarted");
     for (const id of [summary.black.id, summary.white.id]) {
       const key = `games:${id}`;
       const list = (await this.ctx.storage.get(key)) || [];
       const rest = list.filter(g => g.id !== summary.id);
       await this.ctx.storage.put(key, [summary, ...rest].slice(0, KEEP_GAMES));
+    }
+    /* The list above is the lobby's, and stays capped: it answers "what am I
+       in the middle of". The archive is the other question, and it is kept for
+       good, one key a game, for everybody who sat at the board — which is four
+       people at a pair table and not the two lead seats. */
+    if (finished) {
+      const row = archived(summary);
+      const keys = {};
+      for (const id of playersOf(summary)) keys[archiveKey(id, summary.endedAt, summary.id)] = row;
+      await this.ctx.storage.put(keys);
     }
   }
 
