@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { Pencil, Check, X, Camera, Trash2, Loader } from "lucide-react";
-import { Card, Btn, Avatar, RankBadge } from "../components/ui.jsx";
+import { Card, Btn, Avatar, RankBadge, Badges } from "../components/ui.jsx";
 import { api, SERVER_URL } from "../net/api.js";
 import { saveAccount } from "../store/account.js";
 import { prepareAvatar, avatarUrl, AVATAR_ERRORS } from "../net/avatar.js";
 import { BIO_MAX, FACTS } from "../../server/profile.js";
 import { SHOW_ONLINE, cleanShowOnline } from "../../server/presence.js";
 import { errorText } from "./accountForm.js";
+import { badgesShown } from "../content/badges.js";
 
 /* ----------------------- THE PLAYER'S OWN CARD -----------------------
    What other people see when they meet you at a table: a picture, a paragraph,
@@ -40,6 +41,7 @@ export function OnlineProfileCard({ account, setAccount, notify }) {
             <RankBadge rating={player.rating} rd={player.rd} precise />
             <span className="fine">{player.wins} W · {player.losses} L</span>
           </div>
+          <Badges badges={badgesShown(player)} />
           <p className="fine">Your card on the server. It follows you to any device you sign in on.</p>
         </div>
         {!editing && (

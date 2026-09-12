@@ -1579,12 +1579,35 @@ paragraph, three facts and picture have shipped since the accounts slice, and
       was made and when it ended and never in between, so the lobby's own "your tables"
       list had been reading "0 moves, your move" for every game in progress since it
       shipped. `tools/server/dashboard.mjs` proves the live summary from both seats.
-- [ ] **Badges**, computed at settle time and never granted. The set is deliberately not
-      enumerated in the design doc: it gets settled against the fields the record actually
-      holds, so no badge is designed for data that does not exist.
+- [x] **Badges** (branch `feat/badges`), measured and never granted. Nine in a closed
+      set, every one a function of the player's public record and nothing else: games
+      finished, a settled deviation, a settled dan rating, and how long the handle has
+      been here. No grant, no list of who has what, and no way for an operator to give
+      one out or take one away — if the arithmetic says you have it you have it, and a
+      badge goes away again if the record stops supporting it. They are derived in the
+      browser from fields the server already serves, so nothing is stored, nothing is
+      migrated and nothing new is owed to the privacy notice.
 - [ ] **Mail**: one thread per pair, between people who have played or are friends. No
       broadcast, no list, no unsubscribe because there is nothing to leave. Rate limited
       and blockable from the first commit.
+
+Decisions made in Phase 9, the badges slice (2026-09-12, branch `feat/badges`):
+- **Measured, never awarded.** Every badge is a function of the public record. There is
+  no sportsmanship badge, no helpfulness badge and no early-adopter badge, because those
+  are claims somebody makes about you, and a claim wearing the costume of a measurement
+  is worse than no badge at all. A test reads every `hint` and fails one containing the
+  word "for": if the line needs it, the badge is an award.
+- **A badge can go away**, and that is the proof it is measured. Let a deviation reopen
+  and the settled badge goes with it. Anything that could only ever accumulate would be
+  a grant with extra steps.
+- **No server code and no stored state.** The fields these read are already on every
+  public player the server serves, so a badge is derived where it is drawn. Storing them
+  would be caching the answer to a question that costs nothing to ask, and would owe the
+  privacy notice a sentence for data that need not exist.
+- **Only the highest of a tier is worn.** Somebody with a hundred games should not carry
+  five badges that all say the same thing.
+- **Every badge says what it measures**, as its title, in the words somebody would use to
+  check it themselves. A badge nobody can check is decoration.
 
 Decisions made in Phase 9, the dashboard slice (2026-09-12, branch `feat/dashboard`):
 - **A room now reports every move to the Registry, and does not await it.** The players

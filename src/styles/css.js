@@ -1799,6 +1799,17 @@ ${FONT_FACES}
 }
 .vs-open:hover, .vs-open:focus-visible { box-shadow: var(--raise-sm); }
 .vs-open:active { box-shadow: var(--sink-sm); }
+/* ---- badges ----
+   Small, sunken, and quiet. They are facts about a record, not trophies, so
+   they sit under the record they were worked out from and take no colour of
+   their own. */
+.badges { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 2px 0 0; padding: 0; }
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border-radius: 11px; box-shadow: var(--sink-sm);
+  font-size: 12px; color: var(--ink-2); cursor: default;
+}
+.badge svg { color: var(--accent-ink); opacity: .8; }
 .seek-state { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-radius: 14px; box-shadow: var(--sink-sm); font-size: 14.5px; }
 .seek-state .pulse { color: var(--accent-ink); animation: seek-pulse 1.6s ease-in-out infinite; }
 @keyframes seek-pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
