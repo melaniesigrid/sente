@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { Crown, Flame, Globe, Bot } from "lucide-react";
-import { Card, Avatar, RankBadge, Statement } from "../components/ui.jsx";
+import { Card, Avatar, RankBadge, Statement } from "../components/ui.jsx";
 import { ScreenHeader } from "../components/ScreenHeader.jsx";
 import { avatarUrl } from "../net/avatar.js";
 import { SERVER_URL } from "../net/api.js";
