@@ -43,7 +43,7 @@ import { DojoView } from "./views/Dojo.jsx";
 import { LookView } from "./views/Look.jsx";
 import { MailLinkView } from "./views/MailLink.jsx";
 import { LegalView } from "./views/Legal.jsx";
-import { DOCUMENTS, COPYRIGHT } from "./content/legal.js";
+import { DOCUMENTS, COPYRIGHT_YEAR, STUDIO, STUDIO_URL } from "./content/legal.js";
 import { JournalView } from "./views/Journal.jsx";
 import { linkFromQuery, forgetLink } from "./views/letterLink.js";
 
@@ -238,7 +238,15 @@ export default function JosekiApp() {
             </span>
           ))}
         </span>
-        <span className="foot-line studio">{COPYRIGHT} · {t("foot.built")}</span>
+        {/* The studio's name is the one credit on the page, so it is the one
+            thing in the footer that leads somewhere off this site. An anchor
+            rather than a button: it leaves Joseki, and a reader is owed the
+            href under their cursor before they commit to the click. */}
+        <span className="foot-line studio">
+          © {COPYRIGHT_YEAR}{" "}
+          <a className="foot-link" href={STUDIO_URL} rel="noopener">{STUDIO}</a>
+          {" · "}{t("foot.built")}
+        </span>
       </footer>
       </>}
     </div>

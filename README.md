@@ -105,6 +105,11 @@ GitHub Pages (enable Pages with source "GitHub Actions" once in the repo setting
 with `dist/` and a root file would not be in it. The site is served from the root of the
 domain, so Vite's `base` is `/` and nothing sets `BASE_PATH` any more.
 
+`public/robots.txt` and `public/sitemap.xml` ride along in the same build, and `index.html`
+carries the canonical and the Open Graph tags. All four are static text. There is no
+verification snippet and no analytics tag, because `src/content/legal.js` promises there is
+none and that promise is load-bearing: see `docs/designs/analytics-that-keeps-the-promise.md`.
+
 The app stays on Pages rather than moving to Cloudflare with the server for one reason:
 `public/models/humanv0.fp16w.onnx` is 51 MiB, and both Cloudflare Pages and Workers static
 assets refuse a single file over 25 MiB. Moving the app would mean moving the model to R2

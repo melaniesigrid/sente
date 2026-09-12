@@ -1,0 +1,10 @@
+# Joseki is one page: everything else is a view inside it, reached without a
+# URL of its own. There is nothing here to keep a crawler out of, and nothing
+# to count it with either. The sitemap is the only line that earns its place.
+User-agent: *
+Allow: /
+
+# The model the house players run is 51 MiB and is not a document.
+Disallow: /models/
+
+Sitemap: https://joseki.online/sitemap.xml

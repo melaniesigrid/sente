@@ -25,6 +25,9 @@ import { hashString } from "../engine/index.js";
 export const STUDIO = "Northbound Software Studio";
 export const PRODUCT = "Joseki";
 export const CONTACT = "hello@northboundsoftwarestudio.com";
+/** The studio's own front door. A credit that names who runs this and then
+ *  makes the reader search for them is half a credit. */
+export const STUDIO_URL = "https://northboundsoftwarestudio.com";
 export const REPO = "https://github.com/melaniesigrid/sente";
 
 /** The year the notice asserts, and the line that carries it. One constant, so

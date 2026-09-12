@@ -526,16 +526,33 @@ two Durable Object classes, deployed at https://api.joseki.online.
       account, and `sente-server` runs on `workers.dev`, which is Cloudflare's and not
       ours. Until `MAIL_FROM` is set, `/api/health` reports `"mail": "off"` and every link
       goes to the log instead of the post. The four steps are in `docs/server-operations.md`.
-- [ ] Joseki's own address: `joseki.online` for the app, `api.joseki.online` for the server
-      (branch `feat/domain`). The repository side is done, and what is left is not in the
-      repository: the zone has to be added to the Cloudflare account and Namecheap's
-      nameservers pointed at it, the apex needs GitHub's four A records kept DNS-only, and
-      the deploy token needs a Workers Routes row for the zone before CI can claim the
-      subdomain. Landing this before the zone is live would fail the server deploy on the
-      custom domain, so it waits. It also unblocks the letters above: a domain on the
-      account is the one thing Email Sending was missing. Nobody's saved profile survives
-      the move, because local storage belongs to the old origin and nothing can read it
-      across; anyone with an account signs back in, anyone without starts again.
+- [x] Joseki's own address: `joseki.online` for the app, `api.joseki.online` for the
+      server (branch `feat/online`). The zone is on Cloudflare and Namecheap's nameservers
+      point at it (`nadia`/`randy.ns.cloudflare.com`, verified 2026-09-12), so the repository
+      half lands: `public/CNAME`, an unset `BASE_PATH`, and both clients naming the api
+      subdomain. Three things are still a human in a dashboard and not a commit, and the
+      site does not answer until they are done:
+      1. The apex needs GitHub's four A records (185.199.108-111.153) and the AAAA quad,
+         **DNS-only, never proxied**: an orange cloud puts Cloudflare's certificate in front
+         of a host that wants to present its own and Pages never finishes provisioning.
+         Today the apex resolves to a Cloudflare address that serves nothing.
+      2. `api.joseki.online` is the Worker's custom domain, claimed by the deploy from
+         `"routes"` in `wrangler.jsonc`. It does not resolve yet.
+      3. `CLOUDFLARE_API_TOKEN` needs a **Workers Routes: Edit** row for the zone beside the
+         Workers Scripts row. A token's permissions are fixed at creation, so this is a new
+         token and `gh secret set` again. Without it the deploy uploads the code and then
+         fails on the domain.
+      It also unblocks the letters above: a domain on the account is the one thing Email
+      Sending was missing. Nobody's saved profile survives the move, because local storage
+      belongs to the old origin and nothing can read it across; anyone with an account signs
+      back in, anyone without starts again.
+- [x] The credit in the footer leads somewhere. `STUDIO_URL` in `legal.js`, an anchor in the
+      footer, and the same link in the served markup of `index.html` under the boot mark, so
+      a crawler that never runs the bundle still finds it. Beside it the things a site at its
+      own address needs and a site under `/sente/` on github.io did not: a canonical, four
+      Open Graph tags, `robots.txt` and a one-URL `sitemap.xml`. All static, all inert: the
+      privacy notice's "no analytics script, no tracking pixel, never counted a visit" is
+      still true word for word, and it is the reason there is no verification snippet here.
 - [ ] Change the address on an account. `attach` refuses a second one, so a typo today is
       permanent, and confirming makes the wrong address a *provably* wrong one. Wants the
       password and a fresh confirmation posted to the new address, and should hold the old

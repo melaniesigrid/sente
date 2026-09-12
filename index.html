@@ -6,11 +6,29 @@
     <meta name="description" content="Joseki · play go, beautifully. A full-featured go (baduk) server with lessons, tsumego, house players, and rankings." />
     <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Ccircle%20cx%3D%2716%27%20cy%3D%278%27%20r%3D%276.8%27%20fill%3D%27%235f8c7e%27%2F%3E%3Ccircle%20cx%3D%2716%27%20cy%3D%2724%27%20r%3D%275.6%27%20fill%3D%27none%27%20stroke%3D%27%234b463c%27%20stroke-width%3D%272.4%27%2F%3E%3C%2Fsvg%3E" />
     <title>Joseki · play go, beautifully</title>
+
+    <!-- The address this page is, said once. Joseki answers at the root of its
+         own domain and at the old github.io path until that stops resolving;
+         a canonical is what tells a crawler those are one page and not two. -->
+    <link rel="canonical" href="https://joseki.online/" />
+
+    <!-- What a link to Joseki looks like when somebody posts one. No script and
+         no pixel: these are four static tags, and the privacy notice's promise
+         that nothing counts a visit still holds word for word. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Joseki" />
+    <meta property="og:url" content="https://joseki.online/" />
+    <meta property="og:title" content="Joseki · play go, beautifully" />
+    <meta property="og:description" content="Play go against house players or a person, learn from thirty lessons and the Classic in thirteen chapters, and carry a rank that means what a rank means." />
+    <meta name="twitter:card" content="summary" />
     <style>
       html,body,#root{margin:0;min-height:100vh;background:#e8e4db}
       .boot{min-height:100vh;display:flex;align-items:center;justify-content:center;
         animation:boot-in .5s ease both;animation-delay:.25s}
       .boot-stone{filter:drop-shadow(2px 2px 4px #c4beb1) drop-shadow(-2px -2px 4px #fbf8f2)}
+      .boot-stack{display:flex;flex-direction:column;align-items:center;gap:18px}
+      .boot-credit{margin:0;font:400 13px/1.4 Georgia,serif;color:#7c766a}
+      .boot-credit a{color:inherit;text-underline-offset:3px}
       @keyframes boot-in{from{opacity:0}to{opacity:1}}
       @media (prefers-reduced-motion:reduce){.boot{animation:none}}
     </style>
@@ -24,13 +42,22 @@
          token; React replaces the whole splash on mount. -->
     <div id="root">
       <div class="boot" aria-label="Joseki is loading">
-        <svg viewBox="0 0 32 32" width="132" height="132" aria-hidden="true">
-          <path d="M13.5 6V32M21 6V32M28.5 6V32M6 13.5H32M6 21H32M6 28.5H32"
-            stroke="#4b463c" stroke-opacity=".45" stroke-width="1.4" fill="none" />
-          <path d="M6 32V6H32" stroke="#4b463c" stroke-width="2.2" stroke-linejoin="round" fill="none" />
-          <circle cx="28.5" cy="28.5" r="1.5" fill="#4b463c" />
-          <circle class="boot-stone" cx="21" cy="21" r="5.4" fill="#5f8c7e" />
-        </svg>
+        <div class="boot-stack">
+          <svg viewBox="0 0 32 32" width="132" height="132" aria-hidden="true">
+            <path d="M13.5 6V32M21 6V32M28.5 6V32M6 13.5H32M6 21H32M6 28.5H32"
+              stroke="#4b463c" stroke-opacity=".45" stroke-width="1.4" fill="none" />
+            <path d="M6 32V6H32" stroke="#4b463c" stroke-width="2.2" stroke-linejoin="round" fill="none" />
+            <circle cx="28.5" cy="28.5" r="1.5" fill="#4b463c" />
+            <circle class="boot-stone" cx="21" cy="21" r="5.4" fill="#5f8c7e" />
+          </svg>
+        <!-- The same credit the footer carries, in the markup that is served
+             rather than the markup React builds. A crawler that never runs
+             the bundle still finds out who made this. React replaces the
+             whole splash on mount, so it is on screen for one breath. -->
+        <p class="boot-credit">A go server by
+          <a href="https://northboundsoftwarestudio.com">Northbound Software Studio</a>
+        </p>
+        </div>
       </div>
     </div>
     <script type="module" src="/src/main.jsx"></script>
