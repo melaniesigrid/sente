@@ -6,6 +6,40 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.7.3.0 (2026-09-12)
+
+### Added
+
+- **A graph of who was winning.** Review will now draw the whole game as one picture: ask
+  for it and the network already in your browser looks at every position in turn, and its
+  opinion of who stood better becomes a curve. The curve is the border between Black's
+  share of the box and White's, so a game Black won ends with the picture mostly black and
+  nothing needs a legend. Click anywhere on it to stand at that move.
+- **The moves that decided it, as buttons.** Under the graph sit the handful of moves that
+  cost their player the most, worst first, each one a button straight to that position. The
+  line beneath the graph says what the move you are standing on did: "The network gives
+  White 81%. This move cost Black 79%."
+- **What the network would have played instead**, ringed on the board, for the position the
+  move you are looking at was played into. It says so plainly when the network would have
+  played the same move you did.
+- A closing count of what each side gave away on an average move, said as what it is: one
+  network's second thoughts about one game, and not a measure of how strong anybody is.
+
+### Notes
+
+- **Nothing is analysed until you ask for it.** A run is one network call per position, over
+  a second each on 19x19, so a whole game is minutes of a laptop's battery. It draws as it
+  goes, it can be stopped, and stopping keeps what it drew; asking again picks up where it
+  left off rather than paying for the opening twice.
+- **It runs where every other network run in Joseki runs: on your machine.** No position,
+  no move and no game is sent anywhere, and the privacy notice needed no new sentence.
+- The network is asked at one fixed strength, 9 dan, rather than at the players' ranks. It
+  is rank-conditioned, so asked at 20k it reports what a 20k believes, which is the right
+  way to pick a 20k's move and the wrong way to say who was winning. One standard also
+  means two graphs can be compared with each other.
+- What it does not do: there is no search behind the number, only one look per position,
+  and there is no score lead, because only the policy and value heads were exported.
+
 ## v0.7.2.0 (2026-09-12)
 
 ### Added

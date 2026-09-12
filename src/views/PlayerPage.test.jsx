@@ -34,6 +34,7 @@ const askFriend = vi.fn();
 const acceptFriend = vi.fn();
 const forgetFriend = vi.fn();
 const presence = vi.fn();
+const archive = vi.fn();
 
 vi.mock("../net/api.js", () => ({
   api: {
@@ -43,6 +44,8 @@ vi.mock("../net/api.js", () => ({
     acceptFriend: (...a) => acceptFriend(...a),
     forgetFriend: (...a) => forgetFriend(...a),
     presence: (...a) => presence(...a),
+    archive: (...a) => archive(...a),
+    sgfUrl: (id) => `https://server.test/api/game/${id}/sgf`,
   },
   serverEnabled: () => true,
   SERVER_URL: "https://server.test",
@@ -72,7 +75,8 @@ beforeEach(() => {
   profile.mockReset();
   loadAccount.mockReset();
   loadAccount.mockReturnValue(null);
-  for (const fn of [friends, askFriend, acceptFriend, forgetFriend, presence]) fn.mockReset();
+  for (const fn of [friends, askFriend, acceptFriend, forgetFriend, presence, archive]) fn.mockReset();
+  archive.mockResolvedValue({ games: [], cursor: null });
   presence.mockResolvedValue({ online: [] });
   friends.mockResolvedValue(EMPTY_BOOK);
 });
@@ -107,14 +111,23 @@ describe("a player who exists", () => {
     expect(screen.getByText(/Here since March 2026/)).toBeTruthy();
   });
 
-  /* The promise in legal.js, asserted rather than trusted. */
-  it("carries no list of their games", async () => {
+  /* The promise in legal.js, asserted rather than trusted, and narrowed
+     deliberately when the featured-games slice widened the sentence it rests
+     on. A player may now show games they chose; what is still forbidden is a
+     list of everything they have played on a page anybody can open, and the
+     page is given no way to fetch one. */
+  it("shows no games at all for a player who chose to show none", async () => {
+    profile.mockResolvedValue({ ...PLAYER, featured: [] });
     show();
     await screen.findByText("Ixchel");
-    const text = document.body.textContent;
-    expect(text).not.toMatch(/\bSGF\b/i);
-    expect(text).not.toMatch(/recent games|their games|game record|\bmoves\b/i);
-    expect(document.querySelectorAll("a[href*='game']").length).toBe(0);
+    expect(screen.queryByText(/is showing/i)).toBe(null);
+    expect(document.body.textContent).not.toMatch(/moves/i);
+  });
+
+  it("never fetches anybody's archive, which is theirs and not public", async () => {
+    show();
+    await screen.findByText("Ixchel");
+    expect(archive).not.toHaveBeenCalled();
   });
 
   /* The other promise: a public page is not a way to learn somebody's hours. */
@@ -328,5 +341,91 @@ describe("whether they are here", () => {
     show();
     await screen.findByText("Ixchel");
     expect(document.body.textContent).not.toMatch(/\d{1,2}:\d{2}/);
+  });
+});
+
+describe("the games they chose to show", () => {
+  const FEATURED = {
+    id: "g1", size: 19, rated: true, pair: false, moves: 210,
+    black: { id: "p_abc", name: "Ixchel" },
+    white: { id: "p_zzz", name: "Balam" },
+    teams: { b: [{ id: "p_abc", name: "Ixchel" }], w: [{ id: "p_zzz", name: "Balam" }] },
+    result: { winner: "b", method: "resign" },
+    endedAt: new Date(2026, 5, 1).getTime(),
+    note: "The one where I finally killed a dragon.",
+  };
+
+  it("draws each one, naming the opponent and how it went", async () => {
+    profile.mockResolvedValue({ ...PLAYER, featured: [FEATURED] });
+    show();
+    await screen.findByText(/is showing/i);
+    expect(screen.getByText("Balam")).toBeTruthy();
+    expect(screen.getByText(/won by resignation/)).toBeTruthy();
+  });
+
+  /* A game is two people's. The line beside it is one person's, and the page
+     says whose rather than letting it float free next to somebody else's game. */
+  it("attributes the line to the player who wrote it", async () => {
+    profile.mockResolvedValue({ ...PLAYER, featured: [FEATURED] });
+    show();
+    const note = await screen.findByText(/finally killed a dragon/);
+    expect(note.textContent).toContain("Ixchel");
+  });
+
+  it("draws a game with no line beside it just the same", async () => {
+    profile.mockResolvedValue({ ...PLAYER, featured: [{ ...FEATURED, note: "" }] });
+    show();
+    await screen.findByText(/is showing/i);
+    expect(screen.getByText("Balam")).toBeTruthy();
+  });
+
+  it("says nothing at all when the server sends no featured field", async () => {
+    profile.mockResolvedValue(PLAYER);
+    show();
+    await screen.findByText("Ixchel");
+    expect(screen.queryByText(/is showing/i)).toBe(null);
+  });
+
+  it("opens the game when a row is pressed", async () => {
+    const go = vi.fn();
+    profile.mockResolvedValue({ ...PLAYER, featured: [FEATURED] });
+    show({ go });
+    (await screen.findByRole("button", { name: /open the game against balam/i })).click();
+    await waitFor(() => expect(go).toHaveBeenCalledWith("play", { gameId: "g1" }));
+  });
+});
+
+describe("badges", () => {
+  /* They are derived from the record on the card, so a page that shows a badge
+     the numbers do not support is the one thing that cannot happen. */
+  it("shows what the record supports and nothing else", async () => {
+    profile.mockResolvedValue({ ...PLAYER, wins: 40, losses: 20, draws: 0 });   // 60 games
+    show();
+    await screen.findByText("Fifty games");
+    expect(screen.queryByText("A hundred games")).toBe(null);
+  });
+
+  it("shows nothing at all for a handle that has finished nothing", async () => {
+    profile.mockResolvedValue({ ...PLAYER, wins: 0, losses: 0, draws: 0, createdAt: Date.now() });
+    show();
+    await screen.findByText("Ixchel");
+    expect(screen.queryByText(/games$/)).toBe(null);
+    expect(screen.queryByText(/Settled rank/)).toBe(null);
+  });
+
+  it("says what each badge measures, so a stranger can check it", async () => {
+    profile.mockResolvedValue({ ...PLAYER, wins: 40, losses: 20 });   // 60 games
+    show();
+    const badge = await screen.findByText("Fifty games");
+    expect(badge.closest("li").getAttribute("title")).toMatch(/finished fifty games/i);
+  });
+
+  it("shows only the highest of a tier, not the whole staircase", async () => {
+    profile.mockResolvedValue({ ...PLAYER, wins: 300, losses: 250 });
+    show();
+    await screen.findByText("Five hundred games");
+    for (const beaten of ["First game", "Ten games", "Fifty games", "A hundred games"]) {
+      expect(screen.queryByText(beaten), beaten).toBe(null);
+    }
   });
 });

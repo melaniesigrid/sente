@@ -228,3 +228,34 @@ describe("the credits", () => {
     expect(proseOf(documentById("credits"))).toContain(COPYRIGHT);
   });
 });
+
+describe("the stamp covers the bullets, not only the paragraphs", () => {
+  /* Every sentence naming something the server keeps about a person is a
+     bullet in a `list`, not a paragraph. A stamp over `paras` alone guarded
+     the prose around the disclosure and left the disclosure itself unguarded,
+     and two collections were in fact added under that gap without it moving.
+     This is the test that would have caught it. */
+  it("moves when a single bullet changes", () => {
+    const withList = DOCUMENTS.find(d => d.sections.some(s => (s.list ?? []).length));
+    expect(withList, "no document has a list any more; this guard needs rewriting").toBeTruthy();
+    const section = withList.sections.find(s => (s.list ?? []).length);
+    const before = documentStamp();
+    const original = section.list[0];
+    try {
+      section.list[0] = `${original} and one more thing`;
+      expect(documentStamp()).not.toBe(before);
+    } finally {
+      section.list[0] = original;
+    }
+    expect(documentStamp()).toBe(before);
+  });
+
+  it("has every bullet of every document inside the text it hashes", () => {
+    const text = documentText();
+    for (const doc of DOCUMENTS) {
+      for (const section of doc.sections) {
+        for (const item of section.list ?? []) expect(text, `${doc.id}/${section.heading}`).toContain(item);
+      }
+    }
+  });
+});

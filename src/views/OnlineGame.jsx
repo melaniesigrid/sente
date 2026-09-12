@@ -36,7 +36,7 @@ const faceOf = (seat) => avatarUrl(SERVER_URL, seat.id, seat.avatarAt);
    who is watching. Every action is a frame; the server answers with the new
    room or a refusal, and the board never moves ahead of it. Without an account
    or a seat this is the spectator view of the same table. */
-export function OnlineGame({ gameId, onExit, profile, notify }) {
+export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
   const account = useMemo(() => loadAccount(), []);
   const [room, setRoom] = useState(null);
   const [seat, setSeat] = useState(null);
@@ -270,17 +270,11 @@ export function OnlineGame({ gameId, onExit, profile, notify }) {
         {room && (
           <div className={`vs-strip ${room.pair ? "pair-strip" : ""}`}>
             {room.pair ? <OnlineTeam room={room} color="b" up={up} /> : (
-              <div className="vs-side">
-                {blackLead && <Avatar name={blackLead.name} tint={blackLead.tint} size={34} src={faceOf(blackLead)} />}
-                <div className="vs-meta"><strong>{teamName(room, "b")}</strong>{blackLead && <RankBadge rating={blackLead.rating} size="sm" />}</div>
-              </div>
+              <Seat seat={blackLead} name={teamName(room, "b")} gameId={gameId} go={go} />
             )}
             <span className="vs-x">vs</span>
             {room.pair ? <OnlineTeam room={room} color="w" up={up} align="right" /> : (
-              <div className="vs-side">
-                <div className="vs-meta right"><strong>{teamName(room, "w")}</strong>{whiteLead && <RankBadge rating={whiteLead.rating} size="sm" />}</div>
-                {whiteLead && <Avatar name={whiteLead.name} tint={whiteLead.tint} size={34} src={faceOf(whiteLead)} />}
-              </div>
+              <Seat seat={whiteLead} name={teamName(room, "w")} gameId={gameId} go={go} align="right" />
             )}
           </div>
         )}
@@ -422,6 +416,34 @@ const ERRORS = {
 /* One team in an online pair header. The same shape the offline table uses: the
    seat to move is raised out of its team, and no name is dimmed to say it is not
    this player's turn. A bot partner is marked a bot, here as everywhere. */
+/* A seat at the table, and the way to the person sitting in it.
+ *
+ *  These links waited for the dashboard. `linkedGame()` spends the `?game=` in
+ *  the address on first read, so until there was a screen listing the games you
+ *  are in, opening somebody's page from a live table left you in the lobby with
+ *  no way back to your own board. The way back is now on the front page, and
+ *  the link carries where it came from so Back returns to this table.
+ *
+ *  A seat with no id is a house player, which has no page and never gets one. */
+function Seat({ seat, name, gameId, go, align }) {
+  const face = seat ? <Avatar name={seat.name} tint={seat.tint} size={34} src={faceOf(seat)} /> : null;
+  const meta = (
+    <div className={`vs-meta ${align === "right" ? "right" : ""}`}>
+      <strong>{name}</strong>
+      {seat && <RankBadge rating={seat.rating} size="sm" />}
+    </div>
+  );
+  const body = align === "right" ? <>{meta}{face}</> : <>{face}{meta}</>;
+  if (!go || !seat || !seat.id) return <div className="vs-side">{body}</div>;
+  return (
+    <button type="button" className="vs-side vs-open"
+      onClick={() => go("player", { playerId: seat.id, from: "play", fromParams: { gameId } })}
+      aria-label={`Open ${seat.name}'s page`}>
+      {body}
+    </button>
+  );
+}
+
 function OnlineTeam({ room, color, up, align }) {
   return (
     <div className={`vs-side pair-side ${align === "right" ? "right" : ""}`}>

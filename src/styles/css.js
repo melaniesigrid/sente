@@ -59,6 +59,7 @@ ${FONT_FACES}
   --r: 22px;
   --raise: 8px 8px 18px var(--dark), -8px -8px 18px var(--light);
   --raise-sm: 5px 5px 12px var(--dark), -5px -5px 12px var(--light);
+  --press: 2px 2px 6px var(--dark), -2px -2px 6px var(--light);
   --sink: inset 5px 5px 12px var(--dark), inset -5px -5px 12px var(--light);
   --sink-sm: inset 3px 3px 8px var(--dark), inset -3px -3px 8px var(--light);
   min-height: 100vh;
@@ -220,12 +221,63 @@ ${FONT_FACES}
 .neu-inset { box-shadow: var(--sink); }
 .stack { display: flex; flex-direction: column; gap: clamp(20px, 3vw, 34px); }
 
+/* ---- the press ----
+   The two shadows are a material, and a material you can watch stand off the
+   ground is one you expect to move when you push it. Nine controls already sank
+   under a finger; the cards never did, so the tile, the persona and the lesson
+   lifted as the pointer arrived and then went dead at the one moment the reader
+   had committed to them.
+
+   One ladder does the whole job: a press moves a thing one rung toward the
+   ground. --raise contracts to --press, --raise-sm turns inward to --sink-sm,
+   and a thing already sunken deepens to --sink. The invariant holds at every
+   rung, light from the top left and dark from the bottom right, or both of them
+   turned in. A control lands flat, since it has spent its offset entirely; a
+   card keeps two pixels of it and travels the rest.
+
+   In fast, out slow. The shadow under a finger changes in 60ms, which reads as
+   the surface answering; the release rides each element's own transition back
+   up, which reads as the surface returning. */
+
+/* A card goes to --press and no further. Turn a 300px surface inside out and
+   it is not pressed, it is a hole with a heading floating over it, and every
+   raised thing inside it (the kata's streak pill, the card's own icon plate) is
+   left standing proud of a tray. A card keeps its two shadows and spends them:
+   two pixels of offset is a card with a thumb on it. It travels the one pixel
+   that offset gives up, so the card goes down rather than only going quiet. */
+.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active { box-shadow: var(--press); transform: translateY(1px); }
+
+/* A control is small enough to invert, which is what the nine already do. */
+.nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn.active:active { box-shadow: var(--sink-sm); transform: none; }
+.swatch:active { box-shadow: var(--sink-sm), inset 0 0 0 1px var(--belt-edge); transform: none; }
+
+/* The chosen one rests sunken already, so it deepens instead. Without this the
+   control most likely to be pressed twice is the only one that cannot answer.
+   Each keeps the ring it wears, because the ring is what says chosen. */
+.type-btn:active { box-shadow: var(--sink); }
+.legal-tab.active:active, .look-btn[aria-current]:active, .lang-pill.on:active { box-shadow: var(--sink); }
+.tint-dot.active:active, .theme-btn.active:active, .stone-btn.active:active { box-shadow: var(--sink), 0 0 0 2px var(--accent-ring); }
+.swatch.on:active { box-shadow: var(--sink), inset 0 0 0 1px var(--belt-edge), 0 0 0 2px var(--accent-ring); }
+
+/* The nine that already sank now land flat with everything else: a control that
+   sinks while still held two pixels up is being pressed and lifted at once. */
+.profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active { transform: none; }
+
+.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn:active, .swatch:active, .look-btn:active, .lang-pill:active, .btn:active:not(:disabled), .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active, .lp-btn:active, .lp-card-btn:active, .lp-enter:active { transition-duration: .06s; }
+
 /* A screen arrives a beat at a time rather than all at once. It is the front
    door's entrance, applied where a whole screen is swapped in by the nav: the
    eye gets to follow the order the page is meant to be read in. Anything past
    the eighth child simply arrives with the eighth, a stagger you can still
    count is a stagger that has gone on too long. */
-.arrives > * { animation: arrive .7s cubic-bezier(.2,.8,.2,1) both; }
+/* backwards, not both. An animation that fills forwards goes on owning every
+   property it touched for as long as the element lives, and this one touches
+   transform: filling both, the arrive kept every card pinned at transform: none
+   afterwards, so the tile, the persona and the lesson card never lifted under
+   the pointer and could never be pressed by travel either. The last keyframe
+   is the resting state exactly, so there is nothing to hold: backwards covers
+   the stagger's delay, which is the only part that needed holding. */
+.arrives > * { animation: arrive .7s cubic-bezier(.2,.8,.2,1) backwards; }
 .arrives > *:nth-child(1) { animation-delay: .04s; }
 .arrives > *:nth-child(2) { animation-delay: .10s; }
 .arrives > *:nth-child(3) { animation-delay: .16s; }
@@ -361,7 +413,7 @@ ${FONT_FACES}
 .hero-board { flex: 0 1 300px; margin-inline: auto; }
 .hero .row { margin-top: 18px; }
 
-.tile { text-align: left; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease; }
+.tile { text-align: left; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease, box-shadow .15s ease; }
 .tile:hover { transform: translateY(-2px); }
 .stat-head { color: var(--accent-ink); display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
 .stat-head svg { color: var(--accent-ink); }
@@ -409,7 +461,7 @@ ${FONT_FACES}
 .dot-w { background: var(--cream); box-shadow: 0 0 0 1px var(--dark); }
 
 /* ---- lobby / personas ---- */
-.persona-card { text-align: left; border: 0; cursor: pointer; color: var(--ink); display: flex; flex-direction: column; gap: 12px; transition: transform .15s ease; }
+.persona-card { text-align: left; border: 0; cursor: pointer; color: var(--ink); display: flex; flex-direction: column; gap: 12px; transition: transform .15s ease, box-shadow .15s ease; }
 .persona-card:hover { transform: translateY(-2px); }
 .persona-top { display: flex; align-items: center; gap: 13px; }
 .persona-top > div:nth-child(2) { flex: 1; }
@@ -482,6 +534,32 @@ ${FONT_FACES}
 .review-scrub::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; margin-top: -5px; border-radius: 50%; background: var(--ink); box-shadow: var(--raise-sm); }
 .review-scrub::-moz-range-thumb { width: 16px; height: 16px; border: 0; border-radius: 50%; background: var(--ink); box-shadow: var(--raise-sm); }
 .review-scrub:focus-visible { outline-offset: 4px; }
+
+/* The win rate graph. The curve is the border between Black's share of the box and
+   White's, so the two stone colours carry the whole reading and nothing needs a
+   legend. The hairline along it is the room's own ground, which is the one colour
+   that stands out against both stones in every palette. */
+.review-analysis { width: 100%; }
+.wingraph { width: 100%; border-radius: var(--r); box-shadow: var(--sink-sm); padding: 8px; }
+.wingraph svg { display: block; width: 100%; height: 132px; border-radius: calc(var(--r) - 10px); touch-action: none; cursor: pointer; }
+.wingraph-white { fill: var(--stone-w-2); }
+.wingraph-black { fill: var(--stone-b-2); }
+.wingraph-unknown { fill: var(--ground); }
+.wingraph-even { stroke: var(--grid); stroke-opacity: .5; stroke-width: 1; stroke-dasharray: 4 6; }
+.wingraph-line { fill: none; stroke: var(--ground); stroke-width: 2; stroke-linejoin: round; }
+.wingraph-turn { stroke: var(--danger); stroke-width: 1.5; stroke-dasharray: 3 4; }
+.wingraph-cursor { stroke: var(--accent); stroke-width: 2; }
+.wingraph-ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-2); padding: 4px 2px 0; }
+.review-winline { margin: 0; text-align: center; font-size: 14px; color: var(--ink-2); }
+.review-advice { margin: 0; text-align: center; font-size: 14px; color: var(--ink-2); }
+
+/* One turning point: a move the network says decided something. */
+.turn-chip { display: inline-flex; align-items: center; gap: 6px; border: 0; cursor: pointer;
+  background: var(--ground); color: var(--ink); border-radius: 999px; padding: 6px 12px;
+  font-family: inherit; font-size: 13px; box-shadow: var(--raise-sm); }
+.turn-chip svg { color: var(--danger-ink); }
+.turn-chip.on { box-shadow: var(--sink-sm); }
+.turn-cost { color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .stone-num { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; pointer-events: none; }
 .stone-num.on-b { fill: var(--light); }
 .stone-num.on-w { fill: var(--ink); }
@@ -630,7 +708,7 @@ ${FONT_FACES}
 .tint-dot.active { box-shadow: var(--sink-sm), 0 0 0 2px var(--accent-ring); transform: none; }
 
 /* ---- lessons ---- */
-.lesson-card { display: flex; align-items: center; gap: 16px; text-align: left; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease; }
+.lesson-card { display: flex; align-items: center; gap: 16px; text-align: left; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease, box-shadow .15s ease; }
 .lesson-card:hover { transform: translateY(-2px); }
 .lesson-num { color: var(--ink-3); font-family: var(--font-display-italic); font-style: var(--display-italic-style); font-size: 26px; flex: none; }
 .lesson-meta { flex: 1; }
@@ -1464,7 +1542,7 @@ ${FONT_FACES}
 .swatch {
   width: 34px; height: 34px; border: 0; padding: 0; border-radius: 11px; cursor: pointer;
   box-shadow: var(--raise-sm), inset 0 0 0 1px var(--belt-edge);
-  transition: transform .12s ease;
+  transition: transform .12s ease, box-shadow .12s ease;
 }
 .swatch:hover { transform: translateY(-1px); }
 .swatch:focus-visible { outline: 0; box-shadow: var(--raise-sm), 0 0 0 2px var(--accent-ring); }
@@ -1746,6 +1824,86 @@ ${FONT_FACES}
   padding-top: 14px; border-top: 1px solid var(--hairline);
 }
 .who-may-see .fine { margin: 0; }
+/* ---- the archive ----
+   One row a game, the whole person-and-result a button and the SGF a plain
+   link beside it. The mark takes the accent for a win and stays quiet for a
+   loss: a red loss on every other row turns a season of go into a report card. */
+.archive-card { display: flex; flex-direction: column; gap: 14px; }
+.archive-card h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }
+.archive-row { display: flex; align-items: center; gap: 11px; padding: 8px 12px; border-radius: 16px; }
+.archive-mark {
+  display: grid; place-items: center; width: 34px; height: 34px; flex: none;
+  border-radius: 11px; box-shadow: var(--sink-sm); color: var(--ink-2);
+}
+.archive-mark.won { color: var(--accent-ink); }
+.archive-when { flex: none; white-space: nowrap; }
+.archive-row a.btn { flex: none; text-decoration: none; }
+@media (max-width: 560px) {
+  .archive-row { flex-wrap: wrap; }
+  .archive-row .friend-who { flex-basis: 100%; }
+}
+/* ---- the games a player shows ----
+   A short list on somebody's page, and the line they wrote under each one. The
+   attribution is set in italic beside the words rather than under them: it is
+   part of the sentence, not a caption on it. */
+.featured { display: flex; flex-direction: column; gap: 7px; }
+.featured-note { padding-top: 3px; font-style: normal; }
+.featured-note em { opacity: .75; }
+.pin-note {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 12px 14px; margin: -2px 0 6px; border-radius: 16px; box-shadow: var(--sink-sm);
+}
+.pin-note .chat-input { width: 100%; }
+/* ---- every game you are in ----
+   The front page's answer to "whose move is it". A row waiting on you takes
+   the accent on its mark and nothing else: a whole card of coloured rows is a
+   card with no emphasis in it. */
+.dash-card { display: flex; flex-direction: column; gap: 13px; }
+.dash-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.dash-head h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }
+.dash-card .fine { margin: 0; }
+.dash-row { padding: 8px 12px; }
+.dash-mark {
+  display: grid; place-items: center; width: 26px; height: 26px; flex: none;
+  color: var(--ink-2);
+}
+.dash-row.waiting .dash-mark { color: var(--accent-ink); }
+.dash-row.waiting strong { color: var(--accent-ink); }
+/* A seat at the table, when it leads to a page. */
+.vs-open {
+  appearance: none; background: none; border: 0; font: inherit; color: inherit;
+  cursor: pointer; border-radius: 14px; padding: 4px 6px;
+  transition: box-shadow .15s ease;
+}
+.vs-open:hover, .vs-open:focus-visible { box-shadow: var(--raise-sm); }
+.vs-open:active { box-shadow: var(--sink-sm); }
+/* ---- badges ----
+   Small, sunken, and quiet. They are facts about a record, not trophies, so
+   they sit under the record they were worked out from and take no colour of
+   their own. */
+.badges { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 2px 0 0; padding: 0; }
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border-radius: 11px; box-shadow: var(--sink-sm);
+  font-size: 12px; color: var(--ink-2); cursor: default;
+}
+.badge svg { color: var(--accent-ink); opacity: .8; }
+/* ---- the post ----
+   Letters, not chat. They are set as blocks of prose with room to breathe
+   rather than as bubbles in a stream: the shape says "read this" instead of
+   "reply now", which is the difference the feature rests on. */
+.letters-card { display: flex; flex-direction: column; gap: 14px; }
+.letters-card h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }
+.letter-row { align-items: center; }
+.letter-preview { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 42ch; }
+.thread { display: flex; flex-direction: column; gap: 10px; max-height: 52vh; overflow-y: auto; padding: 2px; }
+.letter {
+  display: flex; flex-direction: column; gap: 5px;
+  padding: 12px 15px; border-radius: 16px; box-shadow: var(--sink-sm);
+}
+.letter.mine { box-shadow: var(--raise-sm); }
+.letter-text { margin: 0; font-size: 15px; line-height: 1.65; white-space: pre-line; }
+.letter .fine { margin: 0; align-self: flex-end; }
 .seek-state { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-radius: 14px; box-shadow: var(--sink-sm); font-size: 14.5px; }
 .seek-state .pulse { color: var(--accent-ink); animation: seek-pulse 1.6s ease-in-out infinite; }
 @keyframes seek-pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
@@ -1960,7 +2118,7 @@ ${FONT_FACES}
    somebody would read over a shoulder, and everything under it is the answer
    to that line. */
 .lp-record-headline {
-  margin: clamp(20px, 2.8vw, 34px) 0 0; max-width: 18ch;
+  margin: clamp(20px, 2.8vw, 34px) 0 0; max-width: 22ch;
   font-family: var(--font-display); font-weight: var(--w-display-strong);
   font-size: clamp(34px, 6.4vw, 76px); line-height: .98;
   letter-spacing: calc(-0.025em + var(--display-tracking));

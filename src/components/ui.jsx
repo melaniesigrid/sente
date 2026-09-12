@@ -1,4 +1,4 @@
-import { Bot, Crown, Shield, Star } from "lucide-react";
+import { Bot, Crown, Shield, Star, Medal } from "lucide-react";
 import { TINTS, rankOf, preciseRankOf, beltOf } from "../content/rank.js";
 import { isProvisional } from "../engine/index.js";
 import { Figure } from "./Figure.jsx";
@@ -58,6 +58,23 @@ export const RankBadge = ({ rating, size = "md", precise = false, rd }) => {
     </div>
   );
 };
+
+/* A row of badges. Each one carries what it measures as its title, because a
+   badge nobody can check is decoration; hover or focus one and it says exactly
+   what the arithmetic was. Purely derived from the public record, so it needs
+   no data of its own. */
+export const Badges = ({ badges, className = "" }) => (
+  badges.length === 0 ? null : (
+    <ul className={`badges ${className}`.trim()}>
+      {badges.map((b) => (
+        <li key={b.id} className="badge" title={b.hint}>
+          <Medal size={13} strokeWidth={2.2} aria-hidden="true" />
+          <span>{b.label}</span>
+        </li>
+      ))}
+    </ul>
+  )
+);
 
 /** A tied belt: the band plus a knot. `belt` is an entry from BELTS. */
 export const BeltRibbon = ({ belt, className = "" }) => (

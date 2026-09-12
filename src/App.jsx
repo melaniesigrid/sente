@@ -198,7 +198,11 @@ export default function JosekiApp() {
               onFinish={(where) => go(where)} />
           ) : (<>
           {view === "home" && <Home profile={profile} go={go} onResume={resumeGame} />}
-          {view === "play" && <PlayView profile={profile} setProfile={setProfile} notify={notify} resume={resume} />}
+          {/* Keyed by the game asked for, so opening a second game from the archive or
+              the dashboard remounts the table rather than leaving the first one up. */}
+          {view === "play" && <PlayView key={(params && params.gameId) || "lobby"}
+            profile={profile} setProfile={setProfile} notify={notify} resume={resume}
+            openGame={params ? params.gameId : null} go={go} />}
           {view === "learn" && <LearnView profile={profile} setProfile={setProfile} go={go} />}
           {view === "tsumego" && <ProblemsView profile={profile} setProfile={setProfile} initialId={params ? params.problemId : null} />}
           {view === "recall" && <RecallView profile={profile} setProfile={setProfile} go={go} />}
