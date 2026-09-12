@@ -9,6 +9,7 @@ import { useMokuFacts } from "../components/mokuStore.js";
 import { LIBRARY, trackByKey } from "../content/library.js";
 import { dayKey } from "../content/kata.js";
 import { BOXES, SESSION_SIZE, dueCards, grade, recallSummary } from "../content/recall.js";
+import { attendDay } from "../content/chain.js";
 import { saveProfile } from "../store/profile.js";
 import { initStep, stepReducer, marksFor, boardLocked, canReveal } from "./lessonStep.js";
 import { Response } from "./Learn.jsx";
@@ -150,7 +151,7 @@ export function RecallView({ profile, setProfile, go }) {
   const onGraded = (card, recalled) => {
     setResults(rs => (rs.some(r => r.key === card.key) ? rs : [...rs, { key: card.key, recalled, card }]));
     setProfile(p => {
-      const np = { ...p, recall: grade(p.recall, card.key, recalled, today) };
+      const np = { ...p, recall: grade(p.recall, card.key, recalled, today), ...attendDay(p, today) };
       saveProfile(np);
       return np;
     });
