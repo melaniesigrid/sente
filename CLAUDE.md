@@ -9,7 +9,9 @@ in `server/` (Durable Objects), deployed separately.
 - `npm run dev`: dev server
 - `npm run build`: production build (must pass before commit)
 - `npm run lint`: oxlint
-- `npm test`: vitest (engine, store and server unit tests)
+- `npm test`: vitest (engine, store, view and server unit tests, plus view component
+  suites). `vite.config.js` sets `testTimeout: 15000`: the life-and-death searches and the
+  component suites pass 5s only when every worker is contending, not because they are slow.
 - `npm run dev:server` / `npm run deploy:server`: the Worker, locally on 8787 / to Cloudflare
 
 ## Conventions
@@ -134,4 +136,4 @@ Key routing rules:
 
 - typecheck: npm run build   # no TS yet; vite build is the compile gate
 - lint: npm run lint
-- test: npm test   # vitest, src/engine/*.test.js
+- test: npm test   # vitest, tests beside each module (engine, store, views, server)
