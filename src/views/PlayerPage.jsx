@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { ArrowLeft, Pencil, Swords } from "lucide-react";
-import { Card, Btn, Avatar, RankBadge } from "../components/ui.jsx";
+import { Card, Btn, Avatar, RankBadge, Badges } from "../components/ui.jsx";
 import { api, serverEnabled, SERVER_URL } from "../net/api.js";
 import { avatarUrl } from "../net/avatar.js";
 import { loadAccount } from "../store/account.js";
@@ -8,6 +8,7 @@ import { provisionalText } from "../content/online.js";
 import { joinedText, recordText, factRows, saidAnything, presenceLine } from "./playerCard.js";
 import { standingWith, friendAction } from "./friendship.js";
 import { archiveLine } from "./archiveLine.js";
+import { badgesShown } from "../content/badges.js";
 import { useFriends } from "./useFriends.js";
 import { usePresence } from "./usePresence.js";
 import { FriendButton } from "./FriendsCard.jsx";
@@ -92,6 +93,9 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
                 <span className="fine">{provisionalText(player)}</span>
               </div>
               <span className="fine">{recordText(player)}</span>
+              {/* Worked out from the record on the line above it, so the two
+                  can never disagree. */}
+              <Badges badges={badgesShown(player)} />
             </div>
           </div>
 

@@ -394,3 +394,38 @@ describe("the games they chose to show", () => {
     await waitFor(() => expect(go).toHaveBeenCalledWith("play", { gameId: "g1" }));
   });
 });
+
+describe("badges", () => {
+  /* They are derived from the record on the card, so a page that shows a badge
+     the numbers do not support is the one thing that cannot happen. */
+  it("shows what the record supports and nothing else", async () => {
+    profile.mockResolvedValue({ ...PLAYER, wins: 40, losses: 20, draws: 0 });   // 60 games
+    show();
+    await screen.findByText("Fifty games");
+    expect(screen.queryByText("A hundred games")).toBe(null);
+  });
+
+  it("shows nothing at all for a handle that has finished nothing", async () => {
+    profile.mockResolvedValue({ ...PLAYER, wins: 0, losses: 0, draws: 0, createdAt: Date.now() });
+    show();
+    await screen.findByText("Ixchel");
+    expect(screen.queryByText(/games$/)).toBe(null);
+    expect(screen.queryByText(/Settled rank/)).toBe(null);
+  });
+
+  it("says what each badge measures, so a stranger can check it", async () => {
+    profile.mockResolvedValue({ ...PLAYER, wins: 40, losses: 20 });   // 60 games
+    show();
+    const badge = await screen.findByText("Fifty games");
+    expect(badge.closest("li").getAttribute("title")).toMatch(/finished fifty games/i);
+  });
+
+  it("shows only the highest of a tier, not the whole staircase", async () => {
+    profile.mockResolvedValue({ ...PLAYER, wins: 300, losses: 250 });
+    show();
+    await screen.findByText("Five hundred games");
+    for (const beaten of ["First game", "Ten games", "Fifty games", "A hundred games"]) {
+      expect(screen.queryByText(beaten), beaten).toBe(null);
+    }
+  });
+});
