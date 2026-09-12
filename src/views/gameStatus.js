@@ -27,12 +27,15 @@ export function resultLine(result) {
 }
 
 /** The status pill. `personaName` is null for pass-and-play. `loading` is the
- *  human network's download progress `{loaded, total}` while it is still arriving. */
-export function statusText({ result, thinking, personaName, turn, phase, loading }) {
+ *  human network's download progress `{loaded, total}` while it is still arriving.
+ *  `pending` is true when a stone is staged and waiting to be confirmed; it can
+ *  only be staged on your own turn, so it outranks whose move it is. */
+export function statusText({ result, thinking, personaName, turn, phase, loading, pending }) {
   if (result) return resultLine(result);
   if (phase === "scoring") return "Mark dead stones, then accept";
   if (thinking && loading) return `${personaName} is warming up… ${loadingText(loading)}`;
   if (thinking) return `${personaName} is thinking…`;
+  if (pending) return "Tap the point again to play it";
   if (personaName) return turn === "b" ? "Your move" : `${personaName} to move`;
   return turn === "b" ? "Black to move" : "White to move";
 }
@@ -41,6 +44,12 @@ export function statusText({ result, thinking, personaName, turn, phase, loading
 export function loadingText({ loaded, total }) {
   const mb = (n) => Math.round(n / 1e6);
   return `${mb(loaded)} / ${mb(total)} MB`;
+}
+
+/** Two-step move, for players who keep misfiring: the first tap stages a stone
+ *  and the second plays it. Nothing reaches the engine until the second tap. */
+export function confirmMoveLabel(pending) {
+  return pending ? "Play it" : "Play";
 }
 
 /** Two-step resign button: first click arms it, second click resigns. */
