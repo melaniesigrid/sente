@@ -31,16 +31,21 @@
      GET   /api/players/:id                     -> a public profile
      GET   /api/players/:id/avatar              -> the picture, cached by its stamp
      GET   /api/games           bearer         -> recent games
+     GET   /api/me/archive?cursor=&limit= bearer -> finished games, newest first
+     PUT   /api/me/featured/:gameId bearer {note} -> show a game on your page
+     DELETE /api/me/featured/:gameId bearer     -> take it off again
      GET   /api/ladder                         -> top players
      GET   /api/stats                          -> {players, online, seeking}
      GET   /api/stats/history?days=            -> a row a day, oldest first
      GET   /api/lobby?token=    websocket      -> matchmaking
      GET   /api/game/:id                       -> the room (public)
+     GET   /api/game/:id/sgf                   -> the record as a file (public)
      GET   /api/game/:id/ws?token=  websocket  -> play or watch */
 
 import { json, fail, readJson, bearer, HttpError, CORS, base64, bytes } from "./http.js";
 import { AVATAR_MAX_BYTES } from "./profile.js";
 import { askedIds } from "./presence.js";
+import { toSgf } from "../src/engine/sgf.js";
 import { callerIp } from "./ratelimit.js";
 import { mailConfig, mailLink, verifyMessage, resetMessage } from "./mail.js";
 export { Registry } from "./registry.js";
@@ -75,6 +80,9 @@ export default {
         "already-friends": 409, "no-request": 409,
         "your-list-is-full": 409, "their-list-is-full": 409,
         "too-many-asked": 409, "their-requests-are-full": 409,
+        /* Showing a game you did not play is not a bad request so much as a
+           claim about somebody else's game, so it is a refusal of its own. */
+        "not-your-game": 403, "too-many-featured": 409,
       };
       if (known[e.message]) return fail(known[e.message], e.message);
       console.error("unhandled", e);
@@ -292,6 +300,30 @@ async function route(req, env) {
     return json(await reg.gamesOf(player.id));
   }
 
+  /* The archive: every finished game, newest first, a page at a time. The
+     route above is the lobby's short list of what you are in the middle of;
+     this one is kept for good and read with a cursor, so a player with ten
+     thousand games costs the same to page as one with ten. */
+  if (path === "/api/me/archive" && req.method === "GET") {
+    const player = await requirePlayer(req, reg);
+    return json(await reg.archiveOf(player.id,
+      url.searchParams.get("cursor"), url.searchParams.get("limit")));
+  }
+
+  /* The few games a player shows on their page. PUT rather than POST because
+     pinning a game already pinned is an edit of the line, not a second pin:
+     the same call twice leaves the same thing behind. */
+  const pinned = /^\/api\/me\/featured\/([^/]+)$/.exec(path);
+  if (pinned) {
+    const player = await requirePlayer(req, reg);
+    if (req.method === "PUT") {
+      const b = await readJson(req);
+      return json(await reg.pinGame(player.id, pinned[1], b.note));
+    }
+    if (req.method === "DELETE") return json(await reg.unpinGame(player.id, pinned[1]));
+    return fail(405, "method");
+  }
+
   if (path === "/api/ladder" && req.method === "GET") return json(await reg.ladder(), 200, { "cache-control": "public, max-age=30" });
   if (path === "/api/stats" && req.method === "GET") return json(await reg.stats());
   // Open in a browser and read it. The series is six integers and a date per
@@ -308,11 +340,26 @@ async function route(req, env) {
     return reg.fetch(withPlayer(req, player));
   }
 
-  const m = /^\/api\/game\/([^/]+)(\/ws)?$/.exec(path);
+  const m = /^\/api\/game\/([^/]+)(\/ws|\/sgf)?$/.exec(path);
   if (m) {
     const id = m[1];
     if (!GAME_ID.test(id)) return fail(404, "no-such-game");
     const stub = room(env, id);
+    if (m[2] === "/sgf") {
+      /* The record is already in its Room and is never deleted, so the file is
+         written from it on the way out rather than kept a second time. Public
+         for the same reason the room is: whoever holds the link may read it. */
+      const r = await stub.get();
+      if (!r) return fail(404, "no-such-game");
+      return new Response(toSgf(r.record), {
+        headers: {
+          ...CORS,
+          "content-type": "application/x-go-sgf; charset=utf-8",
+          "content-disposition": `attachment; filename="${id}.sgf"`,
+          "cache-control": "public, max-age=60",
+        },
+      });
+    }
     if (!m[2]) {
       const r = await stub.get();
       return r ? json(r) : fail(404, "no-such-game");
