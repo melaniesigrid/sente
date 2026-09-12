@@ -6,6 +6,26 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.7.2.0 (2026-09-12)
+
+### Added
+
+- **Confirm every move, if you want to.** A new switch in the profile, under "At the table",
+  turns playing a stone into two taps instead of one: the first sets the stone down faintly
+  under a dashed ring, the second plays it. Tap somewhere else and the stone goes there
+  instead; tap Cancel and it was never there. It is off by default, because one tap is the
+  right number of taps for most people and a server should not make everybody pay for one
+  person's fat thumb.
+- The staged stone is put through the engine the moment it is staged, not when it is
+  confirmed. A point that ko, superko or suicide forbids is refused while you are still
+  deciding, and the move you finally confirm is the very position the staging proved legal.
+  Nothing else moves until you confirm: the record stands still, the coach says nothing, and
+  a daily duel does not spend its one attempt.
+- Your clock keeps running while you decide, because deciding is what a clock is for. The
+  clock is read off the record, and a staged move is not in the record yet.
+- Marking dead stones while counting is deliberately exempt: a mark you did not mean is
+  undone by tapping it again, so it costs nothing and does not need a second tap.
+
 ## v0.7.1.0 (2026-09-11)
 
 ### Added

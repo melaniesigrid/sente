@@ -100,6 +100,10 @@ each fixed in its own commit:
       overlay, honest result card with every term ("41 stones + 3 territory = 44" vs
       "35 + 4 + 7.5 komi = 46.5"), a bow, and "Keep playing" to take both passes back.
 - [x] Resign with confirmation; result recorded honestly.
+- [x] Confirm every move, opt-in (`confirmMove` on the profile, "At the table"): the first
+      tap stages a faint stone under a dashed ring, the second plays it, and nothing reaches
+      the record until then. Staging runs the move through the engine immediately, so an
+      illegal point is refused at stage time. The clock keeps running while you decide.
 - [x] Clock UI (2026-09-10, branch `feat/clock`): pressure states, byo-yomi pips, no chrome.
 - [x] Review mode (2026-09-10, branch `feat/review-mode`): scrub with arrows, move number
       overlay, jump to capture, SGF out. The variation tree is NOT done and is not faked:

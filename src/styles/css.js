@@ -384,6 +384,12 @@ ${FONT_FACES}
 .mark-ring { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 4 4; opacity: .85; }
 .wrong-x line { stroke: var(--danger); stroke-width: 3; stroke-linecap: round; opacity: .9; animation: pop .18s ease; }
 .last-dot { fill: var(--accent); opacity: .9; }
+/* A staged move: the stone you are about to play, faint, under a breathing ring.
+   Clearly not on the board yet, and clearly not a hover ghost either. */
+.stone-staged { opacity: .55; }
+.staged-ring { fill: none; stroke: var(--accent); stroke-width: 2.6; stroke-dasharray: 5 5; opacity: .95;
+  animation: staged-breathe 1.8s ease-in-out infinite; }
+@keyframes staged-breathe { 50% { opacity: .4; } }
 .stone-b { filter: drop-shadow(2.5px 2.5px 3px rgba(var(--sh-ink),.45)) drop-shadow(-1.5px -1.5px 2px rgba(var(--sh-lite),.5)); }
 .stone-w { filter: drop-shadow(2.5px 2.5px 3px rgba(var(--sh-ink),.35)) drop-shadow(-1.5px -1.5px 2px rgba(var(--sh-lite),.9)); }
 .stone-in { animation: pop .22s ease; transform-origin: center; transform-box: fill-box; }
