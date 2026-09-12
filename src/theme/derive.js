@@ -130,6 +130,9 @@ export function tokensFor(tones) {
 
   const [d, blur] = dark ? [10, 24] : [8, 18];
   const [ds, blurs] = dark ? [6, 15] : [5, 12];
+  // The rung under --raise-sm: a card held down by a thumb. It is still lit
+  // from the top left, so it is still raised, but it has nowhere left to go.
+  const [dp, blurp] = dark ? [3, 9] : [2, 6];
   const { b, w } = stonesFor(t);
 
   return {
@@ -179,6 +182,7 @@ export function tokensFor(tones) {
 
     "--raise": `${d}px ${d}px ${blur}px var(--dark), -${d}px -${d}px ${blur}px var(--light)`,
     "--raise-sm": `${ds}px ${ds}px ${blurs}px var(--dark), -${ds}px -${ds}px ${blurs}px var(--light)`,
+    "--press": `${dp}px ${dp}px ${blurp}px var(--dark), -${dp}px -${dp}px ${blurp}px var(--light)`,
     "--sink": `inset ${ds}px ${ds}px ${blurs}px var(--dark), inset -${ds}px -${ds}px ${blurs}px var(--light)`,
     "--sink-sm": `inset 3px 3px 8px var(--dark), inset -3px -3px 8px var(--light)`,
   };

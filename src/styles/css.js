@@ -59,6 +59,7 @@ ${FONT_FACES}
   --r: 22px;
   --raise: 8px 8px 18px var(--dark), -8px -8px 18px var(--light);
   --raise-sm: 5px 5px 12px var(--dark), -5px -5px 12px var(--light);
+  --press: 2px 2px 6px var(--dark), -2px -2px 6px var(--light);
   --sink: inset 5px 5px 12px var(--dark), inset -5px -5px 12px var(--light);
   --sink-sm: inset 3px 3px 8px var(--dark), inset -3px -3px 8px var(--light);
   min-height: 100vh;
@@ -220,12 +221,63 @@ ${FONT_FACES}
 .neu-inset { box-shadow: var(--sink); }
 .stack { display: flex; flex-direction: column; gap: clamp(20px, 3vw, 34px); }
 
+/* ---- the press ----
+   The two shadows are a material, and a material you can watch stand off the
+   ground is one you expect to move when you push it. Nine controls already sank
+   under a finger; the cards never did, so the tile, the persona and the lesson
+   lifted as the pointer arrived and then went dead at the one moment the reader
+   had committed to them.
+
+   One ladder does the whole job: a press moves a thing one rung toward the
+   ground. --raise contracts to --press, --raise-sm turns inward to --sink-sm,
+   and a thing already sunken deepens to --sink. The invariant holds at every
+   rung, light from the top left and dark from the bottom right, or both of them
+   turned in. A control lands flat, since it has spent its offset entirely; a
+   card keeps two pixels of it and travels the rest.
+
+   In fast, out slow. The shadow under a finger changes in 60ms, which reads as
+   the surface answering; the release rides each element's own transition back
+   up, which reads as the surface returning. */
+
+/* A card goes to --press and no further. Turn a 300px surface inside out and
+   it is not pressed, it is a hole with a heading floating over it, and every
+   raised thing inside it (the kata's streak pill, the card's own icon plate) is
+   left standing proud of a tray. A card keeps its two shadows and spends them:
+   two pixels of offset is a card with a thumb on it. It travels the one pixel
+   that offset gives up, so the card goes down rather than only going quiet. */
+.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active { box-shadow: var(--press); transform: translateY(1px); }
+
+/* A control is small enough to invert, which is what the nine already do. */
+.nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn.active:active { box-shadow: var(--sink-sm); transform: none; }
+.swatch:active { box-shadow: var(--sink-sm), inset 0 0 0 1px var(--belt-edge); transform: none; }
+
+/* The chosen one rests sunken already, so it deepens instead. Without this the
+   control most likely to be pressed twice is the only one that cannot answer.
+   Each keeps the ring it wears, because the ring is what says chosen. */
+.type-btn:active { box-shadow: var(--sink); }
+.legal-tab.active:active, .look-btn[aria-current]:active, .lang-pill.on:active { box-shadow: var(--sink); }
+.tint-dot.active:active, .theme-btn.active:active, .stone-btn.active:active { box-shadow: var(--sink), 0 0 0 2px var(--accent-ring); }
+.swatch.on:active { box-shadow: var(--sink), inset 0 0 0 1px var(--belt-edge), 0 0 0 2px var(--accent-ring); }
+
+/* The nine that already sank now land flat with everything else: a control that
+   sinks while still held two pixels up is being pressed and lifted at once. */
+.profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active { transform: none; }
+
+.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn:active, .swatch:active, .look-btn:active, .lang-pill:active, .btn:active:not(:disabled), .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active, .lp-btn:active, .lp-card-btn:active, .lp-enter:active { transition-duration: .06s; }
+
 /* A screen arrives a beat at a time rather than all at once. It is the front
    door's entrance, applied where a whole screen is swapped in by the nav: the
    eye gets to follow the order the page is meant to be read in. Anything past
    the eighth child simply arrives with the eighth, a stagger you can still
    count is a stagger that has gone on too long. */
-.arrives > * { animation: arrive .7s cubic-bezier(.2,.8,.2,1) both; }
+/* backwards, not both. An animation that fills forwards goes on owning every
+   property it touched for as long as the element lives, and this one touches
+   transform: filling both, the arrive kept every card pinned at transform: none
+   afterwards, so the tile, the persona and the lesson card never lifted under
+   the pointer and could never be pressed by travel either. The last keyframe
+   is the resting state exactly, so there is nothing to hold: backwards covers
+   the stagger's delay, which is the only part that needed holding. */
+.arrives > * { animation: arrive .7s cubic-bezier(.2,.8,.2,1) backwards; }
 .arrives > *:nth-child(1) { animation-delay: .04s; }
 .arrives > *:nth-child(2) { animation-delay: .10s; }
 .arrives > *:nth-child(3) { animation-delay: .16s; }
@@ -361,7 +413,7 @@ ${FONT_FACES}
 .hero-board { flex: 0 1 300px; margin-inline: auto; }
 .hero .row { margin-top: 18px; }
 
-.tile { text-align: left; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease; }
+.tile { text-align: left; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease, box-shadow .15s ease; }
 .tile:hover { transform: translateY(-2px); }
 .stat-head { color: var(--accent-ink); display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
 .stat-head svg { color: var(--accent-ink); }
@@ -409,7 +461,7 @@ ${FONT_FACES}
 .dot-w { background: var(--cream); box-shadow: 0 0 0 1px var(--dark); }
 
 /* ---- lobby / personas ---- */
-.persona-card { text-align: left; border: 0; cursor: pointer; color: var(--ink); display: flex; flex-direction: column; gap: 12px; transition: transform .15s ease; }
+.persona-card { text-align: left; border: 0; cursor: pointer; color: var(--ink); display: flex; flex-direction: column; gap: 12px; transition: transform .15s ease, box-shadow .15s ease; }
 .persona-card:hover { transform: translateY(-2px); }
 .persona-top { display: flex; align-items: center; gap: 13px; }
 .persona-top > div:nth-child(2) { flex: 1; }
@@ -656,7 +708,7 @@ ${FONT_FACES}
 .tint-dot.active { box-shadow: var(--sink-sm), 0 0 0 2px var(--accent-ring); transform: none; }
 
 /* ---- lessons ---- */
-.lesson-card { display: flex; align-items: center; gap: 16px; text-align: left; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease; }
+.lesson-card { display: flex; align-items: center; gap: 16px; text-align: left; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease, box-shadow .15s ease; }
 .lesson-card:hover { transform: translateY(-2px); }
 .lesson-num { color: var(--ink-3); font-family: var(--font-display-italic); font-style: var(--display-italic-style); font-size: 26px; flex: none; }
 .lesson-meta { flex: 1; }
@@ -1490,7 +1542,7 @@ ${FONT_FACES}
 .swatch {
   width: 34px; height: 34px; border: 0; padding: 0; border-radius: 11px; cursor: pointer;
   box-shadow: var(--raise-sm), inset 0 0 0 1px var(--belt-edge);
-  transition: transform .12s ease;
+  transition: transform .12s ease, box-shadow .12s ease;
 }
 .swatch:hover { transform: translateY(-1px); }
 .swatch:focus-visible { outline: 0; box-shadow: var(--raise-sm), 0 0 0 2px var(--accent-ring); }
