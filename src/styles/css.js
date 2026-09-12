@@ -442,6 +442,10 @@ ${FONT_FACES}
 .star-pt { fill: var(--ink); fill-opacity: .45; }
 .ghost { fill: var(--accent); opacity: .28; }
 .mark-ring { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 4 4; opacity: .85; }
+/* The ring a chat line puts on a point. Wider than a stone rather than inside
+   it, so it reads the same whether the point is empty or has been played on;
+   the atari ring above it is drawn the same way for the same reason. */
+.point-ring { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 5 4; opacity: .9; }
 .wrong-x line { stroke: var(--danger); stroke-width: 3; stroke-linecap: round; opacity: .9; animation: pop .18s ease; }
 .last-dot { fill: var(--accent); opacity: .9; }
 /* A staged move: the stone you are about to play, faint, under a breathing ring.
@@ -653,6 +657,41 @@ ${FONT_FACES}
 }
 .bubble.mine { align-self: flex-end; border-radius: 14px 14px 5px 14px; box-shadow: var(--raise-sm); color: var(--accent-ink); }
 .chat-row { display: flex; gap: 8px; }
+/* A coordinate somebody typed, made tappable. It is a word in a sentence first,
+   so it keeps the sentence's size and only borrows the accent; lit, it sinks,
+   which is the same thing every pressed control in here does.
+
+   Named talk-coord, not coord: the board's own coordinate margin is .coord
+   (above), and a rule that reached it would set every label on every goban in
+   bold. The focus ring is deliberately not redefined here, so this control
+   keeps the one ring .sente-root :focus-visible draws for everything else. The
+   vertical padding is cancelled by an equal negative margin: the finger gets a
+   target, the line of text keeps its rhythm. */
+.talk-coord {
+  border: 0; background: transparent; padding: 3px 4px; margin: -3px -1px;
+  font: inherit; font-weight: 700; color: var(--accent-ink);
+  border-radius: 6px; cursor: pointer;
+}
+/* Hover is not allowed to borrow the sunken shadow: that shadow means this one
+   is lit, and a pointer crossing a sentence full of coordinates would make each
+   of them look lit in turn while the board showed the rings of another line. */
+.talk-coord:hover { text-decoration: underline; text-underline-offset: 3px; }
+.talk-coord.on { box-shadow: var(--sink-sm); background: var(--accent-soft); text-decoration: none; }
+/* The etiquette row. Sentence case at reading size, because these are things a
+   person says, not controls: a greeting set in small caps is a label. The gloss
+   under each line is shown, not hovered: a title attribute never fires on a
+   phone, and the phrase it explains is the one a stranger most needs explained. */
+.talk-offer { display: flex; flex-wrap: wrap; gap: 8px; }
+.talk-line {
+  display: inline-flex; flex-direction: column; align-items: flex-start; gap: 1px;
+  min-height: 36px; justify-content: center;
+  border: 0; background: transparent; color: var(--ink-2);
+  font: 500 13px var(--font-body); padding: 6px 12px; border-radius: 14px;
+  box-shadow: var(--raise-sm); cursor: pointer; text-align: left;
+}
+.talk-line:hover { color: var(--accent-ink); }
+.talk-line:active { box-shadow: var(--sink-sm); }
+.talk-note { font-size: 12px; color: var(--ink-3); }
 .chat-input {
   flex: 1; border: 0; background: var(--ground); color: var(--ink);
   font: 500 14.5px var(--font-body);

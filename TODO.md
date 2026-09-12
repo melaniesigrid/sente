@@ -1879,6 +1879,33 @@ Decisions made in Phase 9, the archive slice (2026-09-12, branch `feat/archive`)
   collections (friends, and the presence setting) were disclosed under that gap without
   the stamp moving once. It now covers the bullets, and a test changes one to prove it.
 
+- [x] **Table talk that knows it is at a board** (branch `feat/table-talk`): a
+      coordinate anybody types is a word you can tap, and tapping it rings every point
+      that line names. `parsePoint` in the engine is the exact inverse of `pointLabel`
+      and is tested as one over every point of 9, 13 and 19; the splitting is pure in
+      `src/views/tableTalk.js` and puts every message back together exactly. A game also
+      opens and closes with one tap, worded plainly with the traditional line offered
+      beside the plain one, never instead of it. No line is an opinion about a move, a
+      line leaves the row once you have used it, and a spectator is offered none of it.
+      - The ring is its own `pointed` prop on `Board`, drawn after the stones and wider
+        than one. `marks` is painted before them and an SVG has no z-index, so a mark on
+        an occupied point sat invisible underneath it. Lessons ring empty points and
+        never noticed; a sentence at a table is almost always about a stone that is
+        already there, which is to say the feature was blind in the case it exists for.
+        No text test can catch that, so the test asserts paint order.
+      - **The token scanner has no lookbehind.** Safari could not parse one until 16.4
+        and a regex literal that cannot be parsed takes its whole module down, so an
+        iPhone one version out of date would have been handed a blank table.
+      - The lobby list is ordered by `dashboard.js`, which `feat/dashboard` landed while
+        this branch was being written. This branch had grown its own `orderTables` and
+        `waitingOn`; they are gone. The front page and the lobby now ask one function
+        whose move it is, because two answers to that question is two answers that can
+        disagree about the same board. `sideOf` and `opponentName` gained the one thing
+        the copy had and they did not: an empty `teams` list falls through to the lead
+        seat instead of beating it, so a summary that arrived empty no longer reports
+        that nobody is sitting where somebody plainly is.
+
+
 Decisions made in Phase 9, the presence slice (2026-09-12, branch `feat/presence`):
 - **Presence is never stored.** Being here is an open lobby socket, which the Registry
   already tags with its player's id, so the question is answered out of memory and

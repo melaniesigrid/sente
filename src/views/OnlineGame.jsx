@@ -19,12 +19,25 @@ import { loadAccount } from "../store/account.js";
 import { refusalText, resignLabel, confirmMoveLabel, resultCard, RESIGN_CONFIRM_MS } from "./gameStatus.js";
 import { tapAction } from "./stagedMove.js";
 import { onlineStatus, settledLine, onlineCaption, teamName } from "./onlineStatus.js";
+import { talkParts, pointsNamed, etiquette } from "./tableTalk.js";
 
 /* `seat` in this view is a seat id ("b1", "w1", "b2", "w2"), which is what the
    server now hands out: at a pair table a colour names two people, and the one
    thing this view must never get wrong is which of them is you. `color` below is
    the colour that seat plays, for everything the rules care about. */
 const seatName = (room, id) => (room.seats[id] ? room.seats[id].name : "");
+/* What the server keeps, kept here too. Appending without a ceiling let anybody
+   who can type grow this browser's log, and its DOM, for as long as the socket
+   stayed open; the server has always trimmed to this on the way past. */
+const CHAT_KEEP = 200;
+/* One chat line, named by who said it, when, and what it said, so a mark
+   survives the server handing back a different window of the same conversation.
+   The text is in the key because two lines from one person can share a
+   millisecond; when they do they are the same sentence, and lighting either of
+   them rings the same points. */
+const lineKey = (m) => `${m.from}:${m.at}:${m.text}`;
+/* One array, so a board with no marks is handed the same empty prop every time. */
+const EMPTY = [];
 const lead = (room, c) => room.seats[c + "1"];
 /* A seat carries the stamp its owner's picture last changed at, so the table
    can draw a face without asking the server who is sitting there. */
@@ -51,6 +64,20 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
   const [watching, setWatching] = useState(0);
   const [chat, setChat] = useState([]);
   const [draft, setDraft] = useState("");
+  /* The chat line whose points are currently lit on the board, named by who
+     said it and when. One at a time: two lines pointing at once would be a
+     board with rings on it and no way to tell which sentence meant which.
+
+     Not an index. The server keeps the last 200 lines and hands the whole
+     window back on every state frame, so in a long room an index quietly
+     slides onto somebody else's sentence and rings a point nobody pointed at. */
+  const [lit, setLit] = useState(null);
+  /* What this browser has already said, counted the moment it is sent rather
+     than when the server echoes it back. Waiting for the round trip would leave
+     an etiquette button live for as long as the network takes, and two taps in
+     that window send the greeting twice, which is the exact thing the row not
+     repeating itself is for. */
+  const [sent, setSent] = useState([]);
   const [confirmResign, setConfirmResign] = useState(false);
   const [gone, setGone] = useState(false);
   const [pending, setPending] = useState(null);
@@ -68,7 +95,7 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
           setRoom(f.room);
           setChat(f.room.chat);
         } else if (f.t === "seat") { setSeat(f.seat); setRuns(f.runs ?? []); setWatching(f.watching); }
-        else if (f.t === "chat") setChat(c => [...c, f.msg]);
+        else if (f.t === "chat") setChat(c => [...c, f.msg].slice(-CHAT_KEEP));
         else if (f.t === "undo") { if (f.status === "declined") notify({ icon: "info", text: "Undo declined" }); }
         else if (f.t === "error") {
           if (f.reason === "no-room") setGone(true);
@@ -111,22 +138,54 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
     () => (scoring ? scoreBoard(rec.board, { dead: rec.dead, komi: rec.komi, handicap: rec.handicap }) : null),
     [scoring, rec],
   );
-
-  /* A staged move belongs to the position it was staged in, so the opponent
-     playing, an undo being agreed, or the table going to scoring all drop it
-     rather than leave a stone hovering over a board that has moved on.
-     Keyed on the position rather than on the room object: the server sends a
+  /* Both of these belong to the position, not to the room: the server sends a
      fresh room for things that change no stone at all - somebody arriving to
-     watch, a seat being filled - and those must not throw your move away. */
+     watch, a seat being filled - and neither a staged stone nor a ring should
+     be thrown away by those. */
   const moveCount = rec ? rec.moves.length : 0;
   const recPhase = rec ? rec.phase : null;
+  /* A staged move belongs to the position it was staged in, so the opponent
+     playing, an undo being agreed, or the table going to scoring all drop it
+     rather than leave a stone hovering over a board that has moved on. */
   useEffect(() => { setPending(null); }, [moveCount, recPhase]);
+  /* A ring points at a board, so it stops meaning anything the moment the board
+     changes. The stones move, the marks go. */
+  useEffect(() => { setLit(null); }, [moveCount, recPhase]);
+  /* Every line in the log, already split into words and points. Parsing inside
+     the render map re-scanned all 200 lines on every keystroke in the draft box,
+     because the draft is state on this same component. */
+  const parsed = useMemo(
+    () => (rec ? chat.map(m => talkParts(m.text, rec.size)) : []),
+    [chat, rec],
+  );
+  const litLine = lit === null ? null : chat.find(m => lineKey(m) === lit);
+  const litText = litLine ? litLine.text : null;
+  const litPoints = useMemo(
+    () => (litText && rec ? pointsNamed(litText, rec.size) : EMPTY),
+    [litText, rec],
+  );
+  /* The etiquette on offer, minus whatever this player has already said here.
+     A spectator is offered none of it: the greeting is between the players. */
+  const said = useMemo(
+    () => [...sent, ...(account ? chat.filter(m => m.from === account.player.id).map(m => m.text) : [])],
+    [chat, account, sent],
+  );
+  const openers = useMemo(
+    () => (rec ? etiquette({ phase: rec.phase, moves: rec.moves.length, seated: !!seat, said }) : []),
+    [rec, seat, said],
+  );
   const resultKind = over && color ? (over.winner === null ? "jigo" : over.winner === color ? "win" : "loss") : null;
   useMokuFacts({ view: "game", phase: rec ? rec.phase : "playing", thinking: false, myAtari: myAtari.length, oppAtari: 0, ko: !!(rec && rec.koPoint !== null), moment: null, result: resultKind, promoted: null, seed: rec ? rec.moves.length : 0 });
   const blackLead = room ? lead(room, "b") : null;
   const whiteLead = room ? lead(room, "w") : null;
 
-  const send = (frame) => { if (!sock.current || !sock.current.send(frame)) notify({ icon: "info", text: "Not connected" }); };
+  /* Says whether the frame actually went, so a caller can tell a thing it said
+     from a thing it only tried to say. */
+  const send = (frame) => {
+    const gone = !!(sock.current && sock.current.send(frame));
+    if (!gone) notify({ icon: "info", text: "Not connected" });
+    return gone;
+  };
 
   /* The partner's turn. Asked of the same human-style network the offline table
      uses, at the rank the seat says, and answered over this socket. The guard is
@@ -220,12 +279,18 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
   const canAskUndo = !!(seat && rec && rec.phase === "playing" && !room.undo
     && (room.pair ? myTurn : !myTurn) && rec.moves.length >= (room.pair ? 4 : 1));
 
-  const sendChat = () => {
-    const t = draft.trim();
-    if (!t) return;
-    send({ t: "chat", text: t });
-    setDraft("");
+  const say = (text) => {
+    const t = (text ?? "").trim();
+    if (!t) return false;
+    /* Only count it as said if the socket actually took it. A tap during a
+       reconnect used to take the line off the row for good and leave the
+       player no way to be polite. */
+    if (!send({ t: "chat", text: t })) return false;
+    setSent(prev => (prev.includes(t) ? prev : [...prev, t]));
+    return true;
   };
+  // A message the socket refused stays in the box, where its author can see it.
+  const sendChat = () => { if (say(draft)) setDraft(""); };
 
   const downloadSgf = () => {
     const blob = new Blob([toSgf(rec)], { type: "application/x-go-sgf" });
@@ -287,7 +352,7 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
           {room ? (
             <Board board={rec.board} onPlay={onPlay} lastMove={lastMoveIndex(rec)} disabled={boardDisabled}
               atari={atariIdx} captured={rec.lastCaptured || []} captureKey={rec.moves.length}
-              territory={preview ? preview.territory : null} dead={rec.dead}
+              territory={preview ? preview.territory : null} dead={rec.dead} pointed={litPoints}
             coordinates={profile.coordinates} mark={profile.lastMoveMark}
             pending={pending ? { c: pending.c, r: pending.r, color } : null} />
           ) : (
@@ -374,11 +439,30 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
             <div className="chat-log" aria-live="polite">
               {chat.map((m, i) => (
                 <div key={i} className={`bubble ${account && m.from === account.player.id ? "mine" : ""}`}>
-                  {(!account || m.from !== account.player.id) && <span className="bubble-who">{m.name}{m.seat ? "" : " (watching)"} · </span>}{m.text}
+                  {(!account || m.from !== account.player.id) && <span className="bubble-who">{m.name}{m.seat ? "" : " (watching)"} · </span>}
+                  {parsed[i] ? parsed[i].map((part, j) => (
+                    part.t === "point" ? (
+                      <button key={j} type="button"
+                        className={`talk-coord ${lit === lineKey(m) ? "on" : ""}`}
+                        onClick={() => setLit(lit === lineKey(m) ? null : lineKey(m))}
+                        aria-pressed={lit === lineKey(m)}
+                      >{part.s}</button>
+                    ) : <span key={j}>{part.s}</span>
+                  )) : m.text}
                 </div>
               ))}
               <div ref={chatEndRef} />
             </div>
+            {account && openers.length > 0 && (
+              <div className="talk-offer">
+                {openers.map(line => (
+                  <button key={line.text} type="button" className="talk-line" onClick={() => say(line.text)}>
+                    <span>{line.text}</span>
+                    {line.note && <span className="talk-note">{line.note}</span>}
+                  </button>
+                ))}
+              </div>
+            )}
             {account ? (
               <div className="chat-row">
                 <input className="chat-input" value={draft} placeholder="Say something…" maxLength={240}

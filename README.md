@@ -9,6 +9,8 @@ problems, climb a Glicko-2 ladder, and keep a persistent profile.
 - **Play people**: claim a handle, pick 9×9, 13×13 or 19×19 and find an opponent. The
   server checks every move with the same engine, keeps the game while you are away,
   and rates it with Glicko-2. Spectate any table from its link, chat, ask for an undo.
+  Any coordinate somebody types in the chat is a word you can tap, and tapping it rings
+  that point on the board; a game opens and closes with one-tap etiquette phrases.
 - **Play**: 9×9 go with a rules engine that enforces suicide, ko and positional superko.
   Area scoring with komi 7.5. Three house players with tuned heuristic weights, labeled
   as bots. The game on the table is saved locally and can be resumed from Home.
@@ -31,7 +33,7 @@ npm install
 npm run dev      # http://localhost:5173
 npm run build    # production build in dist/
 npm run lint     # oxlint
-npm test         # vitest engine tests
+npm test         # vitest: engine, store, views and server
 ```
 
 Requires Node 20+.
@@ -43,7 +45,7 @@ index.html          HTML shell, fonts, favicon
 src/main.jsx        React entry
 src/App.jsx         Shell: nav, routing state, profile store, toasts, error boundaries
 src/engine/         Pure rules kernel, one module per concern, tests beside each:
-  board.js          {size, cells} boards, star points, chains
+  board.js          {size, cells} boards, star points, chains, pointLabel/parsePoint
   rules.js          tryPlay with named reasons; positional superko (zobrist.js)
   record.js         GameRecord: playing -> scoring -> ended, handicap, replay
   score.js          Area scoring, dead stones, komi, territory map
@@ -53,7 +55,11 @@ src/engine/         Pure rules kernel, one module per concern, tests beside each
   index.js          The only import surface for views
 src/content/        Personas, problems, rank helpers, library.js + lessons/tier<N>/ (one file per lesson)
 src/components/     Board (SVG), UI primitives, Toast, ErrorBoundary
-src/views/          Home, Play, Game, Learn, Problems, Rankings, Profile
+src/views/          One file per screen (Home, Play, Game, Learn, Problems, Rankings,
+                    Profile, Landing, Legal, OnlineLobby, OnlineGame, Review, ...), each
+                    with its pure helpers beside it and tested there: dashboard.js orders
+                    the tables you are the hold-up on, tableTalk.js reads the coordinates
+                    and the etiquette in a chat line
 src/store/          localStorage: profile, in-progress game, online account
 src/net/api.js      The one module that knows the server URL and routes
 server/             Cloudflare Worker: router, Registry and Room Durable Objects,

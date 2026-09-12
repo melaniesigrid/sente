@@ -23,10 +23,16 @@
  *  have already finished. Scoring counts: somebody is waiting on you. */
 export const isLive = (game) => !!game && (game.phase === "playing" || game.phase === "scoring");
 
-/** Which colour this player sits on, or null. Pair teams count. */
+/** Which colour this player sits on, or null. Pair teams count.
+  *
+  * An empty team list is not an answer, so it falls through to the lead seat
+  * rather than beating it: a summary whose `teams` arrived empty would
+  * otherwise report that nobody is sitting where somebody plainly is, and the
+  * player would be told their own game was somebody else's. */
 export function sideOf(game, me) {
   for (const colour of ["b", "w"]) {
-    const seats = (game.teams && game.teams[colour]) || [colour === "b" ? game.black : game.white];
+    const named = game.teams && game.teams[colour];
+    const seats = named && named.length ? named : [colour === "b" ? game.black : game.white];
     if ((seats || []).some((p) => p && p.id === me)) return colour;
   }
   return null;
@@ -81,7 +87,8 @@ export function dashLine(game, me, now = Date.now()) {
 export function opponentName(game, me) {
   const mine = sideOf(game, me);
   const other = mine === "b" ? "w" : "b";
-  const seats = (game.teams && game.teams[other]) || [other === "b" ? game.black : game.white];
+  const named = game.teams && game.teams[other];
+  const seats = named && named.length ? named : [other === "b" ? game.black : game.white];
   const names = (seats || []).filter(Boolean).map((p) => p.name).filter(Boolean);
   if (names.length) return names.join(" & ");
   return other === "b" ? "Black" : "White";

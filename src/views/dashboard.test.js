@@ -184,3 +184,30 @@ describe("the board itself", () => {
     expect(r.waiting).toBe(1);
   });
 });
+
+/* An empty team list is not an answer. A stored summary whose `teams` arrived
+   empty used to beat the lead seat sitting right there, so the dashboard told a
+   player that nobody was on a side they were plainly playing: their own game
+   sorted as somebody else's and never counted as waiting on them. */
+describe("a summary whose teams arrived empty", () => {
+  const g = {
+    id: "g", size: 19, phase: "playing", toPlay: "b", updatedAt: 1,
+    black: { id: "a", name: "Ada" }, white: { id: "b", name: "Bea" },
+    teams: { b: [], w: [] },
+  };
+  it("falls through to the lead seat rather than reporting nobody", () => {
+    expect(sideOf(g, "a")).toBe("b");
+    expect(sideOf(g, "b")).toBe("w");
+  });
+  it("still counts the game as waiting on the player whose move it is", () => {
+    expect(isYourMove(g, "a")).toBe(true);
+    expect(dashboard([g], "a").waiting).toBe(1);
+  });
+  it("names the opponent from the lead seat too", () => {
+    expect(opponentName(g, "a")).toBe("Bea");
+  });
+  it("says nothing about somebody at neither seat", () => {
+    expect(sideOf(g, "stranger")).toBe(null);
+    expect(isYourMove(g, "stranger")).toBe(false);
+  });
+});

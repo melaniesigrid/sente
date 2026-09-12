@@ -105,3 +105,20 @@ describe("a pair table's words", () => {
     expect(tableLine(g, "zz").who).toBe("Ada & Cy vs Bea & Dee");
   });
 });
+
+/* A lobby summary is stored and outlives the code that wrote it, so one row
+   that arrived without a side must be a row drawn badly, never a lobby that
+   fails to draw. */
+describe("a lobby summary that is missing a side", () => {
+  const bad = (over) => ({ id: "g", size: 9, phase: "playing", toPlay: "b", moves: 3, ...over });
+  it("describes a row with no players at all rather than throwing", () => {
+    expect(() => tableLine(bad({}), "a")).not.toThrow();
+  });
+  it("describes a row whose teams arrived empty", () => {
+    expect(() => tableLine(bad({ teams: {} }), "a")).not.toThrow();
+  });
+  it("does not put an absent player into a team name", () => {
+    const g = bad({ teams: { b: [{ id: "a", name: "Ada" }, null], w: [{ id: "b" }] } });
+    expect(tableLine(g, "zz").who).toBe("Ada vs ");
+  });
+});

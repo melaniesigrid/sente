@@ -6,6 +6,7 @@
    two-seat room is the same code with only the lead seats filled. */
 import { resultLine } from "./gameStatus.js";
 import { colorOfSeat, seatToPlay, canSeatPlay, teamSeats } from "../engine/index.js";
+import { sideOf } from "./dashboard.js";
 
 const side = (c) => (c === "b" ? "Black" : "White");
 
@@ -64,15 +65,21 @@ export function onlineCaption(room, watching) {
   return parts.join(" · ");
 }
 
+/* Which side a player is sitting on, and who is on a side. `dashboard.js` owns
+   the question of whose move it is; this is only the naming, which that file
+   has no reason to carry. It is total on purpose: one lobby row that arrived
+   without a side is a row drawn badly, never an exception that empties the
+   whole list on the way past. */
+const teamOf = (game, c) => {
+  const named = game.teams && game.teams[c];
+  const side = named && named.length ? named : [c === "b" ? game.black : game.white];
+  return side.filter((p) => p && typeof p === "object");
+};
+
 /** A one-line description of a table for the lobby list. `me` is my player id. */
 export function tableLine(game, me) {
-  /* A pair game lists four people, so "mine" is found by looking through both
-     teams rather than at the two lead seats. A lobby summary from a server that
-     has not sent `teams` still works: the leads stand in for them. */
-  const team = (c) => (game.teams ? game.teams[c] : [c === "b" ? game.black : game.white]);
-  const nameOfTeam = (c) => team(c).map((p) => p.name).join(" & ");
-  const holds = (c) => team(c).some((p) => p.id === me);
-  const mine = holds("b") ? "b" : holds("w") ? "w" : null;
+  const nameOfTeam = (c) => teamOf(game, c).map((p) => p.name).filter(Boolean).join(" & ");
+  const mine = sideOf(game, me);
   const who = mine
     ? `vs ${nameOfTeam(mine === "b" ? "w" : "b")}`
     : `${nameOfTeam("b")} vs ${nameOfTeam("w")}`;
