@@ -1570,18 +1570,51 @@ paragraph, three facts and picture have shipped since the accounts slice, and
       players may pin the same game, and each keeps their own line about it. This is the
       slice that widened `legal.js` to permit a game on a page anybody can open —
       deliberately, with the sentence and the first drawing of one in the same commit.
-- [ ] **The dashboard**: every game you are in, ordered by who is waiting on whom, with
-      how long the board has been waiting. It says plainly that it is not a clock. This
-      is also where a seat at a table becomes a link to a player's page: today
-      `linkedGame()` spends the `?game=` in the address on first read, so navigating away
-      from a live online table strands you in the lobby with no way back to your own game.
-      The dashboard is that way back, and the links wait for it.
+- [x] **The dashboard** (branch `feat/dashboard`): every game you are in, on the front
+      page, ordered by who is waiting on whom and with the longest wait at the top of
+      each group. It says plainly that it is not a clock, because clocks online are still
+      the open Phase 4 item below. Seats at an online table are now links to the people
+      in them: the way back to your own game exists, so they no longer strand anybody.
+      **This also fixed a bug older than the slice**: `noteGame` was called when a room
+      was made and when it ended and never in between, so the lobby's own "your tables"
+      list had been reading "0 moves, your move" for every game in progress since it
+      shipped. `tools/server/dashboard.mjs` proves the live summary from both seats.
 - [ ] **Badges**, computed at settle time and never granted. The set is deliberately not
       enumerated in the design doc: it gets settled against the fields the record actually
       holds, so no badge is designed for data that does not exist.
 - [ ] **Mail**: one thread per pair, between people who have played or are friends. No
       broadcast, no list, no unsubscribe because there is nothing to leave. Rate limited
       and blockable from the first commit.
+
+Decisions made in Phase 9, the dashboard slice (2026-09-12, branch `feat/dashboard`):
+- **A room now reports every move to the Registry, and does not await it.** The players
+  feel the broadcast; the list is a screen they are not looking at, so a cross-object
+  call has no business sitting in front of their stone landing. `ctx.waitUntil` after the
+  emit loop. Without this the whole feature would have been a list of frozen games, and
+  the lobby's list already was one.
+- **"Waiting two minutes" is not a hole in the coarse-time rule.** Everything public is
+  coarse to the day so that a page anybody can open is not a way to work out when
+  somebody is at their desk. This describes a *board*, not a person, and only boards the
+  reader is sitting at: both players are there, either can read the last move's time in
+  the room itself, and a game where you cannot tell whether your opponent has just moved
+  is not a game. The rule governs what strangers learn about somebody, never what an
+  opponent knows about the game the two of them are playing. `dashboard.js` says so at
+  the top of the file and a test asserts the wording names a length of time and never a
+  person.
+- **It is not a clock and the card says so.** Clocks on a networked table are still open.
+  What this shows is how long the board has waited, which is a different fact and an
+  honest one; when the room gets its alarm the card gains the clock and loses the line.
+- **The games waiting on you come first, longest wait at the top.** The person kept
+  waiting longest is the one to answer first. Games nobody is waiting on you for are
+  still listed below: the screen is a full account of what you have going, not a list of
+  chores.
+- **Counting waits on everybody who has not accepted**, so a game in scoring is yours to
+  answer whatever `toPlay` says.
+- **The seat links, deferred since the page slice, land here.** `linkedGame()` spends the
+  `?game=` in the address on first read, so until there was a screen listing your games,
+  opening somebody's page from a live table left you in the lobby with no way back. The
+  link carries where it came from, so Back returns to the table. A seat with no id is a
+  house player and never becomes a link: software has no page.
 
 Decisions made in Phase 9, the featured slice (2026-09-12, branch `feat/featured`):
 - **The notice was widened here, on purpose, in the commit that first drew a game on

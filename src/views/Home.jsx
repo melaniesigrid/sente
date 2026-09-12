@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { serverEnabled } from "../net/api.js";
+import { loadAccount } from "../store/account.js";
+import { DashboardCard } from "./DashboardCard.jsx";
 import { Swords, GraduationCap, Target, Trophy, Play, Trash2, CalendarCheck, Flame, BrainCircuit } from "lucide-react";
 import { MiniSelfPlay } from "../components/MiniSelfPlay.jsx";
 import { Card, Btn, RankBadge, Statement } from "../components/ui.jsx";
@@ -22,6 +25,7 @@ import { loadSession } from "./session.js";
 
 /* ----------------------- HOME ----------------------- */
 export function Home({ profile, go, onResume }) {
+  const account = useMemo(() => (serverEnabled() ? loadAccount() : null), []);
   // A game opened from a file. Review takes the whole view while it is open, the
   // same way it does from a finished game.
   const [opened, setOpened] = useState(null);
@@ -73,6 +77,8 @@ export function Home({ profile, go, onResume }) {
       </Card>
 
       <Statement lines={statementFor("home")} figure="home">{plainFor("home")}</Statement>
+      {account && <DashboardCard account={account} go={go} />}
+
       <Card className="passage-card"><Passage context="home" size="lg" /></Card>
 
       {saved && (

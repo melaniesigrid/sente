@@ -44,7 +44,7 @@ function linkedGame() {
   return null;
 }
 
-export function PlayView({ profile, setProfile, notify, resume, openGame = null }) {
+export function PlayView({ profile, setProfile, notify, resume, openGame = null, go = null }) {
   // session: null | { mode: {kind:'bot', persona, rank, size, handicap} | {kind:'local', size, handicap}
   //                  | {kind:'online', gameId} | duel, record? }
   /* `openGame` is a table asked for by id from somewhere else in the app (the
@@ -212,7 +212,7 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null 
     return <PairGame mode={session.mode} initial={session.record} onExit={() => setSession(null)} profile={profile} notify={notify} />;
   }
   if (session.mode.kind === "online") {
-    return <OnlineGame gameId={session.mode.gameId} onExit={() => setSession(null)} profile={profile} notify={notify} />;
+    return <OnlineGame gameId={session.mode.gameId} onExit={() => setSession(null)} profile={profile} notify={notify} go={go} />;
   }
   return (
     <Game mode={session.mode} initial={session.record} onExit={() => setSession(null)}
