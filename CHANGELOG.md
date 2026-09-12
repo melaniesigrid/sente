@@ -6,6 +6,58 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.7.4.0 (2026-09-12)
+
+### Added
+
+- **Table talk knows it is at a board.** Any coordinate somebody types in the chat at an
+  online table is now a word you can tap, and tapping it rings that point on the board.
+  "The cut at D4 was the whole game" stops being a sentence you have to decode and starts
+  being a thing you can see. A line that names two points rings both, so a comparison
+  shows as one. Lower case works, because people type lower case, and the ring is drawn
+  wider than a stone so it reads whether the point is empty or somebody is already
+  sitting on it.
+- **A game opens and closes with one tap.** The phrases everybody says are offered as
+  buttons at the start of a game and after the last stone: "Have a good game" beside
+  "Onegaishimasu", "Thank you for the game" beside "Arigatou gozaimashita", each with a
+  plain gloss underneath so nobody has to guess at a phrase to be polite in it. Somebody
+  playing in their second language should not have to spell a greeting to use it.
+- **The lobby's list of your tables is ordered by who is waiting on whom**, longest
+  waiting first, with how long each board has sat there. It is the same ordering the
+  front page uses, asked of the same function, so the two screens can never disagree
+  about the same game.
+
+### Changed
+
+- A coordinate refuses the column I, because on a real board that column is called J, and
+  refuses a point that is not on the board in front of you: K5 is a point on 19×19 and
+  just a word on 9×9.
+- No button says anything about a move. A compliment a button pays for you is worth
+  nothing, and the one line that read like agreeing to a count is gone: it sent a message
+  and nothing else, so a player could believe they had accepted while the game sat
+  unfinished. Accepting is its own button, as it always was.
+- A phrase leaves the row once you have used it, so the row cannot become a way to send
+  somebody the same thing twenty times, and a spectator is offered none of it: the
+  greeting is between the players.
+
+### Fixed
+
+- **A ring under a stone is a ring nobody sees.** The board painted highlights before the
+  stones, so a coordinate naming a point that had already been played on lit nothing at
+  all, which is most of what people talk about. Highlights are drawn over the stones now.
+- **Chat works on an older iPhone again.** The scanner that finds coordinates used a
+  regular-expression feature Safari could not read until 16.4, and a pattern that cannot
+  be read takes its whole page with it.
+- A greeting the connection refused no longer disappears from the row, and a message
+  typed while the connection is down stays in the box instead of vanishing.
+- The chat a browser keeps is capped at what the server keeps, so a long conversation no
+  longer grows without end.
+- A screen reader hears an arriving message as the sentence somebody wrote, rather than
+  with the words of every button inside it read out in the middle.
+- A game whose record arrived without one of its sides no longer empties the whole list
+  it was in, and a side that arrived empty falls back to the player sitting there instead
+  of reporting that the seat is empty.
+
 ## v0.7.3.0 (2026-09-12)
 
 ### Added
