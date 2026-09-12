@@ -201,7 +201,7 @@ export default function JosekiApp() {
           {/* A player's page remembers where it was opened from, so coming back
               from a ladder row lands on the ladder and coming back from a table
               lands at the table rather than always at the ladder. */}
-          {view === "player" && <PlayerPage playerId={params ? params.playerId : null} go={go}
+          {view === "player" && <PlayerPage playerId={params ? params.playerId : null} go={go} notify={notify}
             onBack={params && params.from ? () => go(params.from, params.fromParams || null) : null} />}
           {view === "profile" && <ProfileView profile={profile} setProfile={setProfile} go={go} room={room} notify={notify} />}
           {view === "look" && <LookView profile={profile} setProfile={setProfile} go={go} room={room} />}

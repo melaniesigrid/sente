@@ -6,6 +6,9 @@ import { avatarUrl } from "../net/avatar.js";
 import { loadAccount } from "../store/account.js";
 import { provisionalText } from "../content/online.js";
 import { joinedText, seenText, recordText, factRows, saidAnything } from "./playerCard.js";
+import { standingWith, friendAction } from "./friendship.js";
+import { useFriends } from "./useFriends.js";
+import { FriendButton } from "./FriendsCard.jsx";
 
 /* ----------------------- A PLAYER, SEEN FROM OUTSIDE -----------------------
    The page one player opens about another. `GET /api/players/:id` has been live
@@ -23,7 +26,7 @@ import { joinedText, seenText, recordText, factRows, saidAnything } from "./play
    is already a claim about a person, and a paragraph they chose to write is
    less of one. Nothing here is shown that the player did not either type or
    earn at a board. */
-export function PlayerPage({ playerId, go, onBack }) {
+export function PlayerPage({ playerId, go, onBack, notify }) {
   const account = useMemo(() => loadAccount(), []);
   const canAsk = serverEnabled() && !!playerId;
   /* One piece of state, and it carries the id it is an answer about. Opening a
@@ -49,6 +52,10 @@ export function PlayerPage({ playerId, go, onBack }) {
 
   const back = onBack || (() => go("ladder"));
   const mine = !!(account && player && account.player.id === player.id);
+  /* The book is read whenever there is an account, whoever the page is about:
+     it is one small call, it is what the button on this page is derived from,
+     and asking per player would teach the cached public route who is looking. */
+  const { book, busy, act } = useFriends(account ? account.token : null, notify);
 
   return (
     <div className="stack arrives">
@@ -94,6 +101,13 @@ export function PlayerPage({ playerId, go, onBack }) {
           )}
 
           <Whereabouts player={player} />
+
+          {/* Nothing to press on your own page, and nothing to press without a
+              handle: somebody who has not claimed one has no list to add to. */}
+          {!mine && account && (
+            <FriendButton person={player} busy={busy === player.id} act={act}
+              action={friendAction(standingWith(book, player.id))} />
+          )}
 
           {mine && (
             <div className="row">

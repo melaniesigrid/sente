@@ -1682,6 +1682,37 @@ ${FONT_FACES}
 @media (max-width: 520px) {
   .player-page .op-head { flex-direction: column; align-items: flex-start; gap: 12px; }
 }
+/* ---- friends ----
+   Three lists on one card, each headed and each absent when it is empty. A row
+   is one button holding the whole person, with the two acts as loose buttons
+   beside it: the name is a big target, and pressing it never declines anybody. */
+.friends-card { display: flex; flex-direction: column; gap: 16px; }
+.friends-card h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }
+.friend-group { display: flex; flex-direction: column; gap: 7px; }
+.friend-group-head {
+  margin: 0; font-size: 12.5px; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--ink-2); display: flex; align-items: baseline; gap: 7px;
+}
+.friend-rows { display: flex; flex-direction: column; gap: 6px; }
+.friend-row { display: flex; align-items: center; gap: 11px; padding: 8px 12px; border-radius: 16px; }
+.friend-who {
+  appearance: none; background: none; border: 0; font: inherit; color: inherit;
+  display: flex; align-items: center; gap: 11px; flex: 1; min-width: 0;
+  text-align: left; cursor: pointer; padding: 4px; border-radius: 14px;
+  transition: box-shadow .15s ease;
+}
+.friend-who:hover, .friend-who:focus-visible { box-shadow: var(--raise-sm); }
+.friend-who:active { box-shadow: var(--sink-sm); }
+.friend-acts { display: flex; align-items: center; gap: 5px; flex: none; }
+.friend-button { padding-top: 4px; }
+.friend-standing {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 14px; color: var(--ink-2); padding: 7px 2px;
+}
+@media (max-width: 520px) {
+  .friend-row { flex-wrap: wrap; }
+  .friend-who { flex-basis: 100%; }
+}
 .seek-state { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-radius: 14px; box-shadow: var(--sink-sm); font-size: 14.5px; }
 .seek-state .pulse { color: var(--accent-ink); animation: seek-pulse 1.6s ease-in-out infinite; }
 @keyframes seek-pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }

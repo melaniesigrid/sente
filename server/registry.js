@@ -6,6 +6,10 @@
      profiles     what a player says about themselves, on the player record;
                   the picture is `avatar:<id>`, apart so that listing players
                   for the ladder does not drag every picture into memory
+     friends      `friends:<playerId>` three lists of ids: settled friendships,
+                  requests sent and requests received. Every edge is written on
+                  both players' books, so reading your own friends is one key
+                  and never a walk over everybody
      game lists   `games:<playerId>` recent games for the lobby's "your tables"
      matchmaking  `seek:<playerId>` open seeks; lobby sockets are hibernated and
                   tagged with the player id so a match can be pushed to them
@@ -35,6 +39,8 @@ import { fillRengoTable, rengoProgress, teamOf } from "./seating.js";
 import { cleanKey, publicPlayer, hasPlayed, reseeded } from "./players.js";
 import { cleanEmail, cleanKey as cleanDerivedKey, privateFields, KDF } from "./accounts.js";
 import { cleanBio, cleanFacts, avatarProblem, profileOf } from "./profile.js";
+import { readBook, standing, ask, accept, forget, forgetting, everyoneWhoKnows,
+  ASK_LIMIT, ASK_WINDOW_MS } from "./friends.js";
 import { hit, refund, REGISTER_LIMIT, REGISTER_WINDOW_MS, SIGNIN_LIMIT, SIGNIN_WINDOW_MS,
   FORGOT_LIMIT, FORGOT_WINDOW_MS, VERIFY_LIMIT, VERIFY_WINDOW_MS } from "./ratelimit.js";
 import { VERIFY_TTL_MS, RESET_TTL_MS } from "./mail.js";
@@ -456,9 +462,12 @@ export class Registry extends DurableObject {
   async remove(id) {
     const p = await this.ctx.storage.get(`player:${id}`);
     if (!p) return false;
+    // Before this player's own book goes, everybody named in it is told.
+    await this.#unfriendEverybody(id);
     const sessions = (p.sessions ?? [p.tokenHash]).filter(Boolean).map(h => `tok:${h}`);
     await this.ctx.storage.delete([
       `player:${id}`, `tok:${p.tokenHash}`, ...sessions, `games:${id}`, `seek:${id}`, `avatar:${id}`,
+      `friends:${id}`,
       ...(p.email ? [`email:${p.email}`] : []),
       ...Object.values(p.mail ?? {}).filter(Boolean).map(h => `mail:${h}`),
     ]);
@@ -527,6 +536,93 @@ export class Registry extends DurableObject {
   async profile(id) {
     const p = await this.ctx.storage.get(`player:${id}`);
     return p ? profileOf(p, publicPlayer(p)) : null;
+  }
+
+  /* ----- friends ----- */
+
+  /** One player's book. Storage may hold nothing, or hold what an older version
+   *  of `friends.js` put there; `readBook` answers with an empty book either way. */
+  async #book(id) {
+    return readBook(await this.ctx.storage.get(`friends:${id}`));
+  }
+
+  /** Player records for a list of ids, read in chunks because storage takes a
+   *  bounded number of keys at a time. This is the reason an edge is written on
+   *  both books: the ids are already in hand, so showing a friends list is this
+   *  one batched read and never a walk over every player the way the ladder is. */
+  async #peopleByIds(ids) {
+    const found = new Map();
+    for (let i = 0; i < ids.length; i += 100) {
+      const got = await this.ctx.storage.get(ids.slice(i, i + 100).map((x) => `player:${x}`));
+      for (const [key, value] of got) found.set(key.slice("player:".length), value);
+    }
+    return found;
+  }
+
+  /** Run one of `friends.js`'s transitions and store both sides of it together.
+   *  Both books or neither: a single `put` of two keys, so there is no moment
+   *  at which one player holds an edge the other does not.
+   *
+   *  A transition that changed nothing hands back the books it was given, and
+   *  is recognised by identity rather than by comparing them, so asking twice
+   *  costs a read and no write at all. */
+  async #edge(meId, themId, run) {
+    if (!(await this.ctx.storage.get(`player:${themId}`))) throw new Error("no-player");
+    const mine = await this.#book(meId);
+    const theirs = await this.#book(themId);
+    const r = run(mine, theirs);
+    if (r.error) throw new Error(r.error);
+    if (r.mine !== mine || r.theirs !== theirs) {
+      await this.ctx.storage.put({ [`friends:${meId}`]: r.mine, [`friends:${themId}`]: r.theirs });
+    }
+    return { outcome: r.outcome, standing: standing(r.mine, themId) };
+  }
+
+  async askFriend(id, themId) {
+    /* Spent before the ask is looked at, so a script working down the ladder
+       pays for every attempt and not only for the ones that land. */
+    await this.#spend(`rate:ask:${id}`, ASK_LIMIT, ASK_WINDOW_MS, "too-many-requests");
+    return this.#edge(id, themId, (mine, theirs) => ask(mine, theirs, id, themId, Date.now()));
+  }
+
+  async acceptFriend(id, themId) {
+    return this.#edge(id, themId, (mine, theirs) => accept(mine, theirs, id, themId, Date.now()));
+  }
+
+  async forgetFriend(id, themId) {
+    return this.#edge(id, themId, (mine, theirs) => forget(mine, theirs, id, themId));
+  }
+
+  /** The three lists, each filled out with the public row for the person on it.
+   *  Somebody who has left the ladder since is dropped rather than shown as a
+   *  name that answers nothing, which also means a book heals itself by being read. */
+  async friendsOf(id) {
+    const book = await this.#book(id);
+    const people = await this.#peopleByIds(everyoneWhoKnows(book));
+    const fill = (list) => list
+      .map((e) => {
+        const p = people.get(e.id);
+        return p ? { ...publicPlayer(p), at: e.at } : null;
+      })
+      .filter(Boolean);
+    return { friends: fill(book.friends), incoming: fill(book.incoming), outgoing: fill(book.outgoing) };
+  }
+
+  /** Everybody who knew this player, told that they are gone. `DELETE /api/me`
+   *  says nothing is left behind, and a friendship is two records: deleting only
+   *  this player's would leave everybody else holding a name that answers nothing. */
+  async #unfriendEverybody(id) {
+    const mine = await this.#book(id);
+    const others = everyoneWhoKnows(mine);
+    for (let i = 0; i < others.length; i += 100) {
+      const chunk = others.slice(i, i + 100);
+      const got = await this.ctx.storage.get(chunk.map((x) => `friends:${x}`));
+      const next = {};
+      for (const otherId of chunk) {
+        next[`friends:${otherId}`] = forgetting(readBook(got.get(`friends:${otherId}`)), id);
+      }
+      await this.ctx.storage.put(next);
+    }
   }
 
   /* ----- games ----- */
