@@ -5,6 +5,7 @@ import { api, SERVER_URL } from "../net/api.js";
 import { saveAccount } from "../store/account.js";
 import { prepareAvatar, avatarUrl, AVATAR_ERRORS } from "../net/avatar.js";
 import { BIO_MAX, FACTS } from "../../server/profile.js";
+import { SHOW_ONLINE, cleanShowOnline } from "../../server/presence.js";
 import { errorText } from "./accountForm.js";
 
 /* ----------------------- THE PLAYER'S OWN CARD -----------------------
@@ -51,7 +52,52 @@ export function OnlineProfileCard({ account, setAccount, notify }) {
         ? <SaidEditor player={player} token={token} onSaved={(p) => { keep(p); setEditing(false); }}
             onCancel={() => setEditing(false)} notify={notify} />
         : <SaidPlainly player={player} />}
+      <WhoMaySee player={player} token={token} onSaved={keep} notify={notify} />
     </Card>
+  );
+}
+
+/* ----------------------- WHO MAY SEE YOU ARE HERE -----------------------
+   Three choices, set the moment one is pressed rather than behind a save: it is
+   one word, the answer is instant, and a privacy control that needs confirming
+   is a privacy control people leave half-changed.
+
+   Being here is never written down — it is an open connection and nothing else
+   — so this setting governs who may be told, not what is kept. The line under
+   the choices says so, because a person deciding how visible to be deserves to
+   know there is no history behind the question. */
+function WhoMaySee({ player, token, onSaved, notify }) {
+  const [busy, setBusy] = useState(false);
+  const chosen = cleanShowOnline(player.showOnline);
+
+  const pick = async (id) => {
+    if (busy || id === chosen) return;
+    setBusy(true);
+    try {
+      onSaved(await api.setProfile(token, { showOnline: id }));
+    } catch (e) {
+      notify({ icon: "info", text: errorText(e.reason) });
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <div className="who-may-see">
+      <span className="op-label" id="who-may-see">Who may see you are here</span>
+      <div className="seg" role="radiogroup" aria-labelledby="who-may-see">
+        {SHOW_ONLINE.map((o) => (
+          <button key={o.id} type="button" role="radio" aria-checked={chosen === o.id}
+            className={`seg-btn ${chosen === o.id ? "active" : ""}`}
+            disabled={busy} title={o.hint} onClick={() => pick(o.id)}>
+            {o.label}
+          </button>
+        ))}
+      </div>
+      <p className="fine">
+        {SHOW_ONLINE.find((o) => o.id === chosen).hint}. Being here is an open connection and
+        nothing more: arriving writes nothing down and leaving writes nothing down, so there is
+        no record of when you were here for anybody to read later.
+      </p>
+    </div>
   );
 }
 

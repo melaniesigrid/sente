@@ -40,6 +40,7 @@
 
 import { json, fail, readJson, bearer, HttpError, CORS, base64, bytes } from "./http.js";
 import { AVATAR_MAX_BYTES } from "./profile.js";
+import { askedIds } from "./presence.js";
 import { callerIp } from "./ratelimit.js";
 import { mailConfig, mailLink, verifyMessage, resetMessage } from "./mail.js";
 export { Registry } from "./registry.js";
@@ -252,6 +253,19 @@ async function route(req, env) {
     return friend[2]
       ? json(await reg.acceptFriend(player.id, friend[1]))
       : limited(() => reg.askFriend(player.id, friend[1]));
+  }
+
+  /* Who of these people is here. Never cached and never stored: the answer
+     depends on who is asking and it changes the moment somebody closes a tab.
+     The answer is a list of the ones who are here and may be seen; nobody is
+     ever reported as offline, so "away" and "not telling you" are the same
+     silence. A handle is not required — an "anybody" player is visible to a
+     visitor who has not claimed one — so this reads the bearer token if there
+     is one and carries on without it if there is not. */
+  if (path === "/api/presence" && req.method === "GET") {
+    const viewer = await reg.auth(bearer(req));
+    const online = await reg.presenceOf(viewer ? viewer.id : null, askedIds(url.searchParams.get("ids")));
+    return json({ online }, 200, { "cache-control": "no-store" });
   }
 
   const who = /^\/api\/players\/([^/]+?)(\/avatar)?$/.exec(path);

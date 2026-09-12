@@ -20,6 +20,8 @@
    keep their old count until their owner next sets a password. `KDF` carries
    the parameters used, so a record always says how it was made. */
 
+import { cleanShowOnline } from "./presence.js";
+
 /** The stretch the browser is asked to perform. Stored on every account so a
  *  record made under one set of parameters can still be verified later. */
 export const KDF = { v: 1, name: "PBKDF2-SHA256", iterations: 600_000, bytes: 32 };
@@ -74,5 +76,10 @@ export function privateFields(p) {
     // about their play, and it belongs on no page but their own.
     emailVerified: Boolean(p.emailVerifiedAt),
     sessions: (p.sessions ?? []).length,
+    /* Who this player lets see that they are here. On their own view of
+       themselves and nowhere else: `publicPlayer` does not carry it, so
+       reading the ladder cannot tell you who has chosen to be invisible,
+       which is most of what choosing to be invisible was for. */
+    showOnline: cleanShowOnline(p.showOnline),
   };
 }

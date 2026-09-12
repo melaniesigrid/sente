@@ -51,7 +51,7 @@ export const COPYRIGHT = `© ${COPYRIGHT_YEAR} ${STUDIO}`;
    being stopped and handed the line where the date lives. */
 export const REVISION = {
   updated: "12 September 2026",
-  stamp: "39b8ff4a",
+  stamp: "5efc8056",
 };
 
 /** The day the documents last changed. */
@@ -232,7 +232,16 @@ const PRIVACY = {
         "Anything you chose to add to your profile: a paragraph of up to 280 characters, three short facts, and a picture of up to 64 KB.",
         "The games you played online, and up to 200 chat lines in each room alongside the record.",
         "Who your friends here are: the handles you have agreed to be friends with, the requests you have sent, and the requests you have been sent. Three lists of handles with the date each was written, kept on your record and on theirs, and seen by nobody but the two of you. Declining a request deletes it and tells the person who sent it nothing at all.",
+        "Which of the three answers you gave to who may see that you are here: nobody, your friends, or anybody. One word on your record, and not on the ladder, so reading the ladder cannot tell you who has chosen to be invisible.",
         "The address you registered from, kept so that leaving gives back the account it spent, shown to nobody, and deleted with the account.",
+      ],
+    },
+    {
+      heading: "Being here is not written down",
+      paras: [
+        "Whether you are at a board right now is a question about an open connection and nothing else. Arriving writes nothing, leaving writes nothing, and there is no history of when you were here for anybody to read later, this Studio included. Close the tab and the only thing that survives is the date of your last finished game, which is what your page has always shown, to the month or the week and never to the hour.",
+        "Who may be told is yours to set, and the setting starts at your friends rather than at everybody. Somebody who has asked to be your friend and is waiting for an answer is not yet a friend and is told nothing: a request is not a way to watch when you are at your desk while you decide.",
+        "When somebody asks which of a list of people are here, the answer names only the ones who are here and who let them know. Nobody is ever reported as being away, so somebody who is out and somebody who chose not to say look exactly alike.",
       ],
     },
     {

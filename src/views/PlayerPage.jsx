@@ -5,9 +5,10 @@ import { api, serverEnabled, SERVER_URL } from "../net/api.js";
 import { avatarUrl } from "../net/avatar.js";
 import { loadAccount } from "../store/account.js";
 import { provisionalText } from "../content/online.js";
-import { joinedText, seenText, recordText, factRows, saidAnything } from "./playerCard.js";
+import { joinedText, recordText, factRows, saidAnything, presenceLine } from "./playerCard.js";
 import { standingWith, friendAction } from "./friendship.js";
 import { useFriends } from "./useFriends.js";
+import { usePresence } from "./usePresence.js";
 import { FriendButton } from "./FriendsCard.jsx";
 
 /* ----------------------- A PLAYER, SEEN FROM OUTSIDE -----------------------
@@ -56,6 +57,10 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
      it is one small call, it is what the button on this page is derived from,
      and asking per player would teach the cached public route who is looking. */
   const { book, busy, act } = useFriends(account ? account.token : null, notify);
+  /* Asked about one person, and only once there is one to ask about. The
+     answer names them if they are here and have let this viewer know, and is
+     silent for both of the two reasons it might be. */
+  const here = usePresence(account ? account.token : null, player ? [player.id] : []);
 
   return (
     <div className="stack arrives">
@@ -100,7 +105,7 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
             </p>
           )}
 
-          <Whereabouts player={player} />
+          <Whereabouts player={player} here={here.has(player.id)} />
 
           {/* Nothing to press on your own page, and nothing to press without a
               handle: somebody who has not claimed one has no list to add to. */}
@@ -141,8 +146,14 @@ function Facts({ player }) {
 /** When they arrived and how recently they played, both to the month or the
  *  week. Never an hour: a page anybody can open should not be a way to work out
  *  when somebody is at their desk. */
-function Whereabouts({ player }) {
-  const lines = [joinedText(player.createdAt), seenText(player.lastSeen)].filter(Boolean);
+function Whereabouts({ player, here }) {
+  const when = presenceLine(here, player.lastSeen);
+  const lines = [joinedText(player.createdAt), when].filter(Boolean);
   if (!lines.length) return null;
-  return <p className="fine player-when">{lines.join(" · ")}</p>;
+  return (
+    <p className="fine player-when">
+      {here && <span className="here-dot" aria-hidden="true" />}
+      {lines.join(" · ")}
+    </p>
+  );
 }

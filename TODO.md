@@ -1522,10 +1522,15 @@ paragraph, three facts and picture have shipped since the accounts slice, and
       profile screen both derive what they offer from `src/views/friendship.js`, so the
       two can never disagree about the same person. `tools/server/friends.mjs` proves it
       against a deployment in 31 checks.
-- [ ] **Presence**, defaulting to off-the-record. The Registry already holds the lobby
-      sockets. Friends see that you are here; strangers see "played this week" and nothing
-      finer. `showOnline: "friends" | "everyone" | "nobody"` on the profile, and the
-      opt-out the ask called for is therefore the default rather than a setting to find.
+- [x] **Presence** (branch `feat/presence`), defaulting to off-the-record. Being here is
+      a live lobby socket and nothing stored: arriving writes nothing, leaving writes
+      nothing, and there is no history of when anybody was here for anybody to read.
+      `showOnline: "nobody" | "friends" | "everyone"` sits on the profile, defaults to
+      friends, and is never on `publicPlayer`, so the ladder is not a list of who is
+      hiding. `GET /api/presence?ids=` answers with the ids that are here AND may be
+      seen; nobody is ever reported as away, so somebody out and somebody hiding are the
+      same silence. `server/presence.js` holds the policy, pure; `tools/server/presence.mjs`
+      proves it against a deployment in 22 checks, opening real lobby sockets to do it.
 - [ ] **The archive**: lift `KEEP_GAMES` for finished games, paginate from the first
       commit rather than discovering the ceiling later, and give every archived game its
       SGF out of the record the Room already keeps for good.
@@ -1543,6 +1548,32 @@ paragraph, three facts and picture have shipped since the accounts slice, and
 - [ ] **Mail**: one thread per pair, between people who have played or are friends. No
       broadcast, no list, no unsubscribe because there is nothing to leave. Rate limited
       and blockable from the first commit.
+
+Decisions made in Phase 9, the presence slice (2026-09-12, branch `feat/presence`):
+- **Presence is never stored.** Being here is an open lobby socket, which the Registry
+  already tags with its player's id, so the question is answered out of memory and
+  nothing is written when somebody arrives or goes. That is what lets `legal.js` go on
+  saying Joseki has never counted a visit, and it is why there is no log of when anybody
+  was at their desk for a future operator to be asked for.
+- **The default is friends, not everyone.** The complaint that started this server was
+  that the other places "feel not safe", and broadcasting when you are at your desk to
+  anybody who asks is the shape of that complaint. So the opt-out the ask called for is
+  the default, and telling the world is the thing you turn on.
+- **Nothing ever reports somebody as offline.** The answer is a list of who is here and
+  may be seen; everybody else is absent for one of two reasons the caller cannot tell
+  apart. An answer that distinguished them would publish the setting of everybody who
+  chose to hide, which is most of what they were hiding. The tests assert it from both
+  ends, and the dot has no second colour for "away".
+- **A request is not a friendship.** Somebody who has asked you and is waiting is told
+  nothing: asking must not be a way to watch when you are at your desk while you decide.
+- **`showOnline` is on `privateFields` and never on `publicPlayer`.** Otherwise the
+  ladder becomes a list of who has something to hide, which is worse than the presence
+  it was hiding. `presence.test.js` asserts the absence.
+- An unknown value lands on the default rather than being refused, so a browser with a
+  typo in it leaves somebody more private than they asked for, never less.
+- It is a poll, not the lobby socket. The socket exists and could carry this, but it is
+  opened to look for a game: a screen that had to join the lobby to see who is around
+  would announce your own arrival as the price of asking about anybody else's.
 
 Decisions made in Phase 9, the friends slice (2026-09-12, branch `feat/friends`):
 - **An edge is written on both books or on neither**, in one `put` of two keys. The

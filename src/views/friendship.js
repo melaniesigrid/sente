@@ -104,3 +104,14 @@ export const STANDING_AFTER = {
  *  one line rather than showing three empty headings. */
 export const bookIsEmpty = (book) =>
   !book || [book.friends, book.incoming, book.outgoing].every((l) => !l || l.length === 0);
+
+/** Every id on the card, each of them once, so who-is-here can be asked in one
+ *  call instead of one per row. The order is the order the card reads in. */
+export function everyoneIn(book) {
+  if (!book) return [];
+  const seen = new Set();
+  for (const list of [book.incoming, book.friends, book.outgoing]) {
+    for (const p of list || []) if (p && p.id) seen.add(p.id);
+  }
+  return [...seen];
+}

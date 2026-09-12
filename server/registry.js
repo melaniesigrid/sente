@@ -41,6 +41,7 @@ import { cleanEmail, cleanKey as cleanDerivedKey, privateFields, KDF } from "./a
 import { cleanBio, cleanFacts, avatarProblem, profileOf } from "./profile.js";
 import { readBook, standing, ask, accept, forget, forgetting, everyoneWhoKnows,
   ASK_LIMIT, ASK_WINDOW_MS } from "./friends.js";
+import { cleanShowOnline, whoIsHere } from "./presence.js";
 import { hit, refund, REGISTER_LIMIT, REGISTER_WINDOW_MS, SIGNIN_LIMIT, SIGNIN_WINDOW_MS,
   FORGOT_LIMIT, FORGOT_WINDOW_MS, VERIFY_LIMIT, VERIFY_WINDOW_MS } from "./ratelimit.js";
 import { VERIFY_TTL_MS, RESET_TTL_MS } from "./mail.js";
@@ -497,6 +498,12 @@ export class Registry extends DurableObject {
       ...p,
       bio: patch.bio !== undefined ? cleanBio(patch.bio) : (p.bio ?? ""),
       facts: patch.facts !== undefined ? cleanFacts(patch.facts) : (p.facts ?? {}),
+      /* Who may see you are here. It lives on the profile because it is the
+         same kind of thing as the paragraph: a choice about what other people
+         are shown. It is never on `publicPlayer`, so nobody learns from the
+         ladder which of the three anybody picked. */
+      showOnline: patch.showOnline !== undefined
+        ? cleanShowOnline(patch.showOnline) : cleanShowOnline(p.showOnline),
       lastSeen: Date.now(),
     };
     await this.ctx.storage.put(`player:${id}`, next);
@@ -623,6 +630,26 @@ export class Registry extends DurableObject {
       }
       await this.ctx.storage.put(next);
     }
+  }
+
+  /* ----- presence ----- */
+
+  /** Of these people, the ones this viewer may be told are here, and who are.
+   *
+   *  Nothing is read or written about presence: being here is a live lobby
+   *  socket, and `getWebSockets(id)` is a question about memory. That is what
+   *  lets the privacy notice go on saying Joseki has never counted a visit —
+   *  arriving writes nothing, and leaving writes nothing.
+   *
+   *  Who counts as a friend is read from the viewer's own book, which is one
+   *  key, so the whole answer costs that plus the player records asked about. */
+  async presenceOf(viewerId, ids) {
+    if (!ids.length) return [];
+    const people = [...(await this.#peopleByIds(ids)).values()];
+    const friends = viewerId
+      ? new Set((await this.#book(viewerId)).friends.map((e) => e.id))
+      : new Set();
+    return whoIsHere(people, viewerId, friends, (id) => this.ctx.getWebSockets(id).length > 0);
   }
 
   /* ----- games ----- */

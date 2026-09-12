@@ -33,6 +33,7 @@ const friends = vi.fn();
 const askFriend = vi.fn();
 const acceptFriend = vi.fn();
 const forgetFriend = vi.fn();
+const presence = vi.fn();
 
 vi.mock("../net/api.js", () => ({
   api: {
@@ -41,6 +42,7 @@ vi.mock("../net/api.js", () => ({
     askFriend: (...a) => askFriend(...a),
     acceptFriend: (...a) => acceptFriend(...a),
     forgetFriend: (...a) => forgetFriend(...a),
+    presence: (...a) => presence(...a),
   },
   serverEnabled: () => true,
   SERVER_URL: "https://server.test",
@@ -70,7 +72,8 @@ beforeEach(() => {
   profile.mockReset();
   loadAccount.mockReset();
   loadAccount.mockReturnValue(null);
-  for (const fn of [friends, askFriend, acceptFriend, forgetFriend]) fn.mockReset();
+  for (const fn of [friends, askFriend, acceptFriend, forgetFriend, presence]) fn.mockReset();
+  presence.mockResolvedValue({ online: [] });
   friends.mockResolvedValue(EMPTY_BOOK);
 });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
@@ -273,5 +276,57 @@ describe("getting back", () => {
     show({ go, onBack: null });
     (await screen.findByRole("button", { name: /back/i })).click();
     await waitFor(() => expect(go).toHaveBeenCalledWith("ladder"));
+  });
+});
+
+describe("whether they are here", () => {
+  beforeEach(() => { profile.mockResolvedValue(PLAYER); });
+
+  it("says Here now in place of when they last played", async () => {
+    presence.mockResolvedValue({ online: ["p_abc"] });
+    show();
+    await screen.findByText(/Here now/);
+    expect(screen.queryByText(/Played this week/)).toBe(null);
+  });
+
+  /* Away and "did not say I may know" reach this page as the same silence, and
+     the page must not invent a difference by saying one of them out loud. */
+  it("never says anybody is offline, away, or hidden", async () => {
+    presence.mockResolvedValue({ online: [] });
+    show();
+    await screen.findByText("Ixchel");
+    const text = document.body.textContent;
+    for (const word of [/offline/i, /away/i, /hidden/i, /not here/i, /invisible/i]) {
+      expect(text, String(word)).not.toMatch(word);
+    }
+  });
+
+  it("falls back to the last-played bucket when they are not shown as here", async () => {
+    presence.mockResolvedValue({ online: [] });
+    show();
+    await screen.findByText(/Played/);
+  });
+
+  it("asks about the one player the page is about, and nobody else", async () => {
+    signedIn();
+    show({ notify: vi.fn() });
+    await screen.findByText("Ixchel");
+    await waitFor(() => expect(presence).toHaveBeenCalledWith("t", ["p_abc"]));
+  });
+
+  /* A player who lets anybody see them is visible to a visitor with no handle,
+     so the page asks even when there is no token to ask with. */
+  it("asks without a handle too", async () => {
+    loadAccount.mockReturnValue(null);
+    show();
+    await screen.findByText("Ixchel");
+    await waitFor(() => expect(presence).toHaveBeenCalledWith(null, ["p_abc"]));
+  });
+
+  it("still says nothing finer than a day about somebody who is not here", async () => {
+    presence.mockResolvedValue({ online: [] });
+    show();
+    await screen.findByText("Ixchel");
+    expect(document.body.textContent).not.toMatch(/\d{1,2}:\d{2}/);
   });
 });
