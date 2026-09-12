@@ -142,9 +142,14 @@ export default function JosekiApp() {
         ) : (<>
         <nav className="nav" aria-label="Primary">
           {NAV.map(n => (
+            /* The label is the button's name as well as its text: below 760px the
+               stylesheet hides the span, and a hidden span is out of the
+               accessibility tree too, which left five icons announcing nothing
+               on the one device that shows only icons. */
             <button key={n.id}
               className={`nav-btn ${view === n.id ? "active" : ""}`}
               onClick={() => go(n.id)}
+              aria-label={t(`nav.${n.id}`)}
               aria-current={view === n.id ? "page" : undefined}>
               <n.icon size={16} strokeWidth={2.2} />
               <span>{t(`nav.${n.id}`)}</span>

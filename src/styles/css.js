@@ -375,7 +375,15 @@ ${FONT_FACES}
 /* ---- board ---- */
 .play-wrap { display: flex; gap: clamp(18px, 3vw, 30px); align-items: flex-start; flex-wrap: wrap; }
 .board-col { flex: 2 1 520px; min-width: 0; }
-.board-well { border-radius: var(--r); box-shadow: var(--sink); padding: clamp(12px, 1.8vw, 22px); flex: 2 1 520px; min-width: 0; }
+/* A go board is square, and the well has to be square with it. The well sits in
+   two kinds of parent: the play-wrap row, where a flex basis is a width and is
+   what gives the board the larger share, and the column stacks (board-col,
+   look-preview), where the same basis is a HEIGHT. Written unscoped, the 520px
+   basis floored the well at 520px tall while a phone drew the board 334px wide:
+   174px of dead ground under the grid. The basis is only ever written against
+   the row. */
+.board-well { border-radius: var(--r); box-shadow: var(--sink); padding: clamp(12px, 1.8vw, 22px); min-width: 0; }
+.play-wrap > .board-well { flex: 2 1 520px; }
 .side { flex: 1 1 300px; min-width: 260px; max-width: 420px; }
 .goban { width: 100%; height: auto; display: block; }
 .grid-line { stroke: var(--grid); stroke-opacity: .38; stroke-width: 1.1; }
@@ -750,7 +758,11 @@ ${FONT_FACES}
 .track-trains { color: var(--ink-2); text-transform: none; letter-spacing: 0; font-weight: 500; }
 .lesson-chips { display: flex; align-items: center; gap: 5px; margin-top: 5px !important; font-size: 14px !important; }
 .lesson-card .lesson-num { font-style: normal; font-size: 16px; min-width: 34px; color: var(--accent-ink); }
-.search-row { align-items: center; gap: 8px; flex: 0 1 300px; }
+/* 300px is how wide the search box may be, so it is written as a width. As a
+   flex basis it was a width only above 900px, where screen-head is a grid;
+   below that screen-head is a column and the same 300px made the box 300px
+   TALL. Same trap as the board well, two hundred lines up. */
+.search-row { align-items: center; gap: 8px; width: 100%; max-width: 300px; }
 .search-icon { color: var(--ink-2); flex: none; }
 .count-row { margin-top: 12px; }
 .maxim-line { font-family: var(--font-quote); font-size: 19px; line-height: 1.5; font-style: var(--quote-style); margin: 0 0 8px; display: flex; gap: 8px; align-items: baseline; }
@@ -2417,5 +2429,132 @@ ${FONT_FACES}
   .sente-root *, .sente-root *::before, .sente-root *::after {
     animation: none !important; transition: none !important;
   }
+}
+
+/* ---- the phone ----
+   A finger is not a cursor. It is about 9mm across, it cannot hover, and it
+   covers what it is about to press. Three things follow, and they are the only
+   reason this block exists.
+
+   1. Nothing you are meant to press is smaller than 44px. That is the floor
+      every platform agrees on, and the nav, the footer and Moku's off switch
+      were all under it. Where the floor would change how a control looks, the
+      hit area grows and the drawing stays where it is: an invisible ::after is
+      the target, the circle or the underline is still the picture.
+   2. A dark room has no gutter. The dock is chrome pinned to the corner, and
+      on a 390px screen the corner is the content. It keeps its seat, the page
+      is given room to scroll clear of it, and the bubble stops talking over
+      what you are reading unless you ask for it.
+   3. Nothing may rely on hover, because there is none to rely on. */
+@media (max-width: 760px) {
+  /* The nav lost its labels here already; without them the buttons were 40x36,
+     which is a miss waiting to happen on the one control every screen needs. */
+  .nav-btn { padding: 12px; min-width: 44px; min-height: 44px; justify-content: center; }
+  .nav-btn.active::after { left: 10px; right: 10px; bottom: 7px; }
+
+  /* The footer links are 13px type and were 16px tall. The underline stays put;
+     the padding underneath it is what the finger actually lands on. */
+  .foot-link { padding-block: 14px; }
+  .foot-legal { gap: 8px 12px; }
+
+  /* The small controls. Every one of these was between 24px and 38px tall,
+     which is fine under a cursor and a coin toss under a thumb. The type and
+     the shadow do not change; the box grows to the floor and the label centres
+     itself in it, so a row of buttons reads the same and lands better. */
+  .btn-sm, .seg-btn { min-height: 44px; }
+  .btn-sm { padding-inline: 17px; }
+  .seg-btn { padding-inline: 17px; }
+  .btn-icon { min-width: 44px; justify-content: center; }
+  .icon-btn { width: 44px; height: 44px; }
+  .coach-toggle { min-height: 44px; padding-inline: 12px; }
+
+  /* The sources under the landing page are 12.5px links inside a citation, and
+     they are left alone on purpose. Making each its own box to pad it to 44px
+     turns the link atomic, so the rest of the citation can no longer sit on the
+     same line and every entry breaks with an orphaned full stop. Padding them
+     while inline grows the hit area into the neighbouring line instead, which
+     is worse than a small target: it is a target that takes the wrong tap. The
+     rows are far enough apart to aim at, and a miss costs nothing. */
+
+  /* A settings row is an icon, a sentence and a control on one line. A 48px
+     switch leaves room for the sentence; the three-button Dot/Ring/None group
+     does not, and because the copy is flex:1 with an automatic minimum it gave
+     up everything down to its longest word: "How the / stone just / played is"
+     set one or two words to the line. Here the row may wrap, and the copy asks
+     for 12rem before it yields, so a wide control drops to its own line and
+     the sentence gets the width back. */
+  .setting-row { flex-wrap: wrap; }
+  .setting-copy { flex: 1 1 12rem; }
+  .seg { flex-wrap: wrap; }
+
+  /* Two controls are drawn small on purpose: the switch is a switch, and the
+     step rail is a progress bar you may also press. Neither may grow without
+     becoming something else, so the drawing stays and the button around it is
+     padded out to the floor instead. The rail's own padding comes off so the
+     row does not get taller for it. */
+  .toggle { height: 44px; background: none; box-shadow: none; }
+  .toggle::before {
+    content: ""; position: absolute; top: 50%; left: 0; width: 48px; height: 28px;
+    transform: translateY(-50%); border-radius: 14px;
+    background: var(--ground); box-shadow: var(--sink-sm);
+  }
+  .toggle-knob { top: 50%; margin-top: -10px; }
+  /* The segments stay 22px apart because the rail shares its row with the real
+     buttons and any width taken here comes off those. They are contiguous and
+     44px tall, so the rail is one band a thumb can find; a near miss lands on
+     the neighbouring step rather than on nothing, which is the behaviour a
+     progress rail wants anyway. */
+  .step-rail { padding-block: 0; }
+  /* .done sets its own background one class deeper, so it has to be named here
+     too or the finished step paints the whole 44px box instead of the bar. */
+  .step-seg, .step-seg.done {
+    height: 44px; background: none; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-seg::before { content: ""; width: 22px; height: 5px; border-radius: 3px; background: var(--ink); }
+  .step-seg.done::before { background: var(--accent); }
+  .step-seg.current::before { transform: scaleY(1.8); }
+  .step-seg.current { transform: none; }
+
+  /* Room at the very end of the page for the dock to sit in. It belongs on the
+     footer rather than the content: the footer is what the last scroll lands
+     on, and that is where Moku was covering the legal links. */
+  .foot { padding-bottom: 124px; }
+
+  /* The wordmark is a wide target but a short one. */
+  .topbar-brand { padding-block: 7px; }
+
+  .moku-dock { gap: 8px; }
+  .moku-dock .moku { width: 56px; height: 56px; }
+  /* Moku speaks when asked. On a wide screen the line sits in the gutter beside
+     the column and costs nothing; here it would lie across the paragraph you
+     are reading, so the seat becomes the button that opens it. */
+  .moku-bubble { display: none; max-width: min(62vw, 240px); }
+  .moku-bubble.open { display: block; }
+}
+
+/* The seat is a button on every screen: on the phone it opens the line, and a
+   keyboard can always reach the stone the same way it reaches everything else. */
+.moku-seat-btn { display: block; border: 0; padding: 0; background: none; cursor: pointer; border-radius: 50%; }
+
+/* The off switch is drawn at 23px and pressed at 44: the button is the whole
+   44px square and the little circle is a ::before painted in the middle of it,
+   so the target is real rather than an expander stacked over the page. The
+   drawing does not move, only the box around it grows.
+
+   Without the hover rule below it appeared on hover only, which on a touch
+   screen means it never appeared at all: a mascot you cannot send away is an
+   advert, and that is the house rule this file opens with. */
+@media (hover: none) {
+  .moku-off {
+    width: 44px; height: 44px; top: -13px; right: -19px;
+    background: none; box-shadow: none; opacity: .75;
+  }
+  .moku-off::before {
+    content: ""; position: absolute; top: 50%; left: 50%; width: 23px; height: 23px;
+    transform: translate(-50%, -50%); border-radius: 50%;
+    background: var(--ground); box-shadow: var(--raise-sm);
+  }
+  .moku-off > * { position: relative; }
 }
 `;
