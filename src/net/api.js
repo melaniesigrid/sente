@@ -100,6 +100,30 @@ export const api = {
     call(`/api/presence?ids=${encodeURIComponent(ids.join(","))}`, token ? { token } : {}),
 
   games: (token) => call("/api/games", { token }),
+  /* The archive: every finished game, newest first, a page at a time. The
+     cursor is the server's and opaque; hand back what it gave you. */
+  archive: (token, cursor) =>
+    call(`/api/me/archive${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ""}`, { token }),
+  /* The record as a file. Not a fetch: the browser is sent to it so the
+     download lands with the name the server gives it. */
+  sgfUrl: (id) => `${SERVER_URL}/api/game/${encodeURIComponent(id)}/sgf`,
+  /* The games shown on your page. PUT twice is an edit of the line, not a
+     second pin, which is why it is not a POST. */
+  pinGame: (token, id, note) =>
+    call(`/api/me/featured/${encodeURIComponent(id)}`, { method: "PUT", token, body: { note } }),
+  unpinGame: (token, id) =>
+    call(`/api/me/featured/${encodeURIComponent(id)}`, { method: "DELETE", token }),
+
+  /* The post. One thread per pair, read and written by the other person's id;
+     `letters` is the list of them. A thread comes back with whether you may
+     write to them, so a page can offer the box or say plainly why not. */
+  letters: (token) => call("/api/me/letters", { token }),
+  thread: (token, id) => call(`/api/me/letters/${encodeURIComponent(id)}`, { token }),
+  write: (token, id, text) =>
+    call(`/api/me/letters/${encodeURIComponent(id)}`, { method: "POST", token, body: { text } }),
+  setBlocked: (token, id, on) =>
+    call(`/api/me/blocked/${encodeURIComponent(id)}`, { method: on ? "PUT" : "DELETE", token }),
+
   ladder: () => call("/api/ladder"),
   stats: () => call("/api/stats"),
   game: (id) => call(`/api/game/${encodeURIComponent(id)}`),

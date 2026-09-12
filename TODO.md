@@ -589,7 +589,54 @@ two Durable Object classes, deployed at https://api.joseki.online.
       row a day (handles, handles made that day, games started, games finished, and the
       most players in the lobby at once) kept for 365 days. Design:
       `docs/designs/analytics-that-keeps-the-promise.md`.
-- [ ] Analysis: KataGo (or GnuGo) via the backend, or a WASM engine in the browser.
+- [x] Analysis: the win rate graph and the tools around it (2026-09-12, branch
+      `feat/winrate-graph`). The network already in the browser answers for every position
+      of a finished game, and its value head becomes one curve: who the network thought was
+      winning, move by move. Around it: the moves that decided the game as buttons straight
+      to them, a line saying what the move you are standing on cost its player, and the move
+      the network would have played instead, ringed on the board. `src/engine/analysis.js`
+      is the arithmetic, `src/engine/kata/analyse.js` the walk, `src/components/WinGraph.jsx`
+      the picture. Nothing leaves the device and nothing starts without being asked.
+- [ ] What analysis still does NOT do: there is no search behind the number (one look per
+      position, no reading past it), and no score lead, because only the policy and value
+      heads were exported. A score lead needs the ownership head out of `export_human.py`.
+
+Decisions made in Phase 4, the analysis slice (2026-09-12, branch `feat/winrate-graph`):
+- **The graph is always Black's.** The network answers for whoever is to move, so a graph
+  that showed the raw answer would mean the opposite thing on every other move.
+  `winRateForBlack` flips it once, at the seam, and nothing downstream has to remember.
+- **The network is asked at one fixed strength (9d), not at the players' ranks.** It is
+  rank-conditioned: asked at 20k it says what a 20k believes, which is the right way to
+  pick a 20k's move and the wrong way to say who was winning. One standard also means two
+  graphs can be compared. Checked against the model itself first: an empty board answers
+  within a point of even at every size, and a nine-stone board answers 1.00 for Black to
+  play and 0.00 for White.
+- **No-result is divided out.** The value head is three numbers, and the graph is a share
+  of the games that finish, so a position with a triple ko in it does not read as an even
+  game just because nobody wins it.
+- **Nothing is analysed until somebody asks.** A run is a network call per position, over a
+  second each on 19x19, so a whole game is minutes of a laptop's battery. It streams, it
+  can be stopped, and a stopped walk can be picked up again where it left off. What it
+  drew before it stopped stays on screen.
+- **A stopped walk IS cached, and this reverses the first call.** The worry was a cache
+  missing its middle, but a walk goes strictly in move order, so what it leaves behind is
+  always positions 0 to k and never a gap. Throwing that away meant four minutes of 19x19
+  died the moment somebody tapped Back, which is the feature's worst moment for the sake of
+  a state the code cannot produce. A shorter walk never overwrites a longer one.
+- **The cache key names everything the answer depends on**, not just the moves: setup
+  stones, who moved first, komi, handicap, ruleset and the strength it was asked at. An
+  opened SGF can carry setup stones with no handicap at all, so two different games can
+  otherwise share a key and one gets drawn over the other with nothing on screen to say so.
+- **Review's new prose is hardcoded English, like the rest of Review.** It is a knowing
+  exception to "no view names a word": `Review.jsx` names every one of its words today, the
+  i18n rollout has not reached it, and half-migrating one file while the translation stack
+  is still landing would collide with it. The strings are in one block and are the i18n
+  stack's to take. The engine's two new sentences sit beside `resultText` and `reviewLabel`,
+  which have always been English in the engine; when those move, these move with them.
+- **The two stone colours carry the whole picture.** The curve is the border between
+  Black's share of the box and White's, so a graph needs no legend and no third hue, and
+  it themes itself with every palette. The turning points and the cursor are the only
+  marks on it.
 
 Decisions made in Phase 4, the tally slice (2026-09-11, branch `feat/stats-history`):
 - **The privacy notice gained a paragraph; it did not lose one.** `legal.js` still says
@@ -1089,10 +1136,29 @@ letting them say it in the words the place already speaks.
       the hero board settling in. Note that the hero itself is sound: its columns wrap
       (`min-width: auto`), unlike the front door's, which is why the z-index fix in #134 was
       needed there and is not needed here.
-- [ ] Press physics on the neumorphism. `:active` sinks nine elements, but `.tile`,
-      `.persona-card` and `.lesson-card` only translate on hover and never sink. A raised
-      thing that cannot be pressed into the ground is the one place the two-shadow system
-      stops being a material.
+- [x] Press physics on the neumorphism (2026-09-12, branch `feat/press-physics`). The item
+      named three offenders; an audit of the sheet found eleven, because the rule it was
+      really asking for is that a thing which rises to meet the pointer has to go down
+      under it. One ladder does all of them: a press moves a thing one rung toward the
+      ground, `--raise` to `--press`, `--raise-sm` to `--sink-sm`, and something already
+      sunken to `--sink`. `--press` is the one new token, derived per room like every other
+      shadow, because a dark room has less luminance to spend and needs the longer offset
+      (3px there, 2px on paper). A card stops at `--press` rather than inverting: turn a
+      300px surface inside out and it is not pressed, it is a hole with a heading floating
+      over it and the streak pill left standing proud of a tray. In fast, out slow: the
+      shadow answers in 60ms and rides each element's own transition back up.
+      The bug underneath was worth more than the feature. `.arrives > *` staggered every
+      card in with `animation: ... both`, and an animation that fills forwards owns the
+      properties it touched for the life of the element: `transform` was pinned at `none`
+      afterwards, so the hover lift on the tile, the persona and the lesson card had been
+      dead since the stagger shipped, and a press built on travel would have been dead too.
+      The last keyframe is the resting state exactly, so there was nothing to hold:
+      `backwards` covers the delay, which is the only part that needed covering. Measured
+      in Chrome over CDP with the pseudo-state forced, before and after: the tile's rect
+      did not move on hover, and now moves the two pixels the rule asks for.
+      `css.test.js` holds all three: every selector that lifts has a press that moves a
+      shadow, the press duration is shorter than the release, and the stagger does not fill
+      forwards.
 
 ## Parking lot: wild ideas (brainstorm 2026-09-09)
 
@@ -1555,59 +1621,207 @@ paragraph, three facts and picture have shipped since the accounts slice, and
       seen; nobody is ever reported as away, so somebody out and somebody hiding are the
       same silence. `server/presence.js` holds the policy, pure; `tools/server/presence.mjs`
       proves it against a deployment in 22 checks, opening real lobby sockets to do it.
+- [x] **The archive** (branch `feat/archive`): every finished game against a person,
+      kept for good, newest first, a page at a time. One key a game (`arch:<player>:
+      <stamp>:<game>`) rather than a growing array, so a player with a thousand games
+      costs the same to page as one with ten, and the ordering falls out of the keys
+      themselves. `GET /api/me/archive?cursor=&limit=`, and `GET /api/game/:id/sgf`
+      writes the file out of the record the Room already keeps rather than storing a
+      second copy. `server/archive.js` is the key arithmetic, pure;
+      `tools/server/archive.mjs` plays two whole games and reads them back, 24 checks.
+- [x] **Featured games** (branch `feat/featured`): pin up to three onto your page with a
+      line of your own about each. A pin is an id and a sentence; the game stays in its
+      room and in the archive, so pinning copies nothing and a pinned game can never
+      drift out of step with the real one. You may only pin a game you played, both
+      players may pin the same game, and each keeps their own line about it. This is the
+      slice that widened `legal.js` to permit a game on a page anybody can open —
+      deliberately, with the sentence and the first drawing of one in the same commit.
+- [x] **The dashboard** (branch `feat/dashboard`): every game you are in, on the front
+      page, ordered by who is waiting on whom and with the longest wait at the top of
+      each group. It says plainly that it is not a clock, because clocks online are still
+      the open Phase 4 item below. Seats at an online table are now links to the people
+      in them: the way back to your own game exists, so they no longer strand anybody.
+      **This also fixed a bug older than the slice**: `noteGame` was called when a room
+      was made and when it ended and never in between, so the lobby's own "your tables"
+      list had been reading "0 moves, your move" for every game in progress since it
+      shipped. `tools/server/dashboard.mjs` proves the live summary from both seats.
+- [x] **Badges** (branch `feat/badges`), measured and never granted. Nine in a closed
+      set, every one a function of the player's public record and nothing else: games
+      finished, a settled deviation, a settled dan rating, and how long the handle has
+      been here. No grant, no list of who has what, and no way for an operator to give
+      one out or take one away — if the arithmetic says you have it you have it, and a
+      badge goes away again if the record stops supporting it. They are derived in the
+      browser from fields the server already serves, so nothing is stored, nothing is
+      migrated and nothing new is owed to the privacy notice.
+- [x] **The post** (branch `feat/post`): one thread a pair, kept for good, between people
+      who have finished a game together or agreed to be friends. No broadcast, no list
+      anybody can be added to, no unsubscribe because there is nothing to be on. Sixty
+      letters an hour, two thousand characters each, a hundred kept in a thread.
+      Blocking is one-sided and silent, is not the same act as unfriending, and leaves
+      the letters already written where they are. Leaving takes the whole correspondence
+      from both sides. `tools/server/post.mjs` proves it in 30 checks.
+
+**Phase 9 is complete.** Eight slices, eight branches, one design doc.
+
+Decisions made in Phase 9, the post slice (2026-09-12, branch `feat/post`):
+- **The spam policy is one rule and needs no filter, no reporting queue and nobody's
+  judgement**: only somebody you agreed to be friends with, or finished a game against,
+  can write to you at all. Both are things you took part in — one you agreed to, the
+  other you sat down for — so a stranger off the ladder has no way in.
+- **Blocking is silent, and the silence is the feature.** A blocked writer is refused with
+  the words a stranger gets, their own view of the thread says the same and no more, and
+  nothing public carries a block list. `writeLetter` folded `blocked` into `not-met` only
+  after `tools/server/post.mjs` caught it not doing so: `canWrite` folded it and the write
+  path did not, which is exactly the hole a prover exists to find and no unit test would
+  have seen.
+- **Blocking is not unfriending.** The two mean different things, and doing both at once
+  would take the second choice away from the person the first one is protecting. Letters
+  already written stay where they are.
+- **There is no read receipt, and `unread` is absent from the wire.** A receipt is a
+  promise about somebody else's attention. What a person actually wants to know is
+  whether they are the one being waited on, which is the same question the dashboard asks
+  about a board and is answered the same way: who spoke last.
+- **It is shaped like a post, not a chat.** One thread a pair for good, no typing
+  indicator, no notification; the letters are set as blocks of prose rather than bubbles,
+  because the shape says "read this" instead of "reply now".
+- **"Have we played?" is answered out of the archive**, not by keeping a third record of
+  who has met whom. A list of everybody you have ever played is exactly the data this
+  feature exists to avoid needing.
+- `mail:<player>:<other>` is an index of who you have a thread with, so "my letters" is
+  one list read rather than a walk over every thread on the server.
+- Naming the route's regex `post` shadowed the module-level `post()` that hands a letter
+  to Cloudflare Email Sending, which would have broken both account letters. The lint
+  caught it; the comment above the rename says so.
+
+Decisions made in Phase 9, the badges slice (2026-09-12, branch `feat/badges`):
+- **Measured, never awarded.** Every badge is a function of the public record. There is
+  no sportsmanship badge, no helpfulness badge and no early-adopter badge, because those
+  are claims somebody makes about you, and a claim wearing the costume of a measurement
+  is worse than no badge at all. A test reads every `hint` and fails one containing the
+  word "for": if the line needs it, the badge is an award.
+- **A badge can go away**, and that is the proof it is measured. Let a deviation reopen
+  and the settled badge goes with it. Anything that could only ever accumulate would be
+  a grant with extra steps.
+- **No server code and no stored state.** The fields these read are already on every
+  public player the server serves, so a badge is derived where it is drawn. Storing them
+  would be caching the answer to a question that costs nothing to ask, and would owe the
+  privacy notice a sentence for data that need not exist.
+- **Only the highest of a tier is worn.** Somebody with a hundred games should not carry
+  five badges that all say the same thing.
+- **Every badge says what it measures**, as its title, in the words somebody would use to
+  check it themselves. A badge nobody can check is decoration.
+
+Decisions made in Phase 9, the dashboard slice (2026-09-12, branch `feat/dashboard`):
+- **A room now reports every move to the Registry, and does not await it.** The players
+  feel the broadcast; the list is a screen they are not looking at, so a cross-object
+  call has no business sitting in front of their stone landing. `ctx.waitUntil` after the
+  emit loop. Without this the whole feature would have been a list of frozen games, and
+  the lobby's list already was one.
+- **"Waiting two minutes" is not a hole in the coarse-time rule.** Everything public is
+  coarse to the day so that a page anybody can open is not a way to work out when
+  somebody is at their desk. This describes a *board*, not a person, and only boards the
+  reader is sitting at: both players are there, either can read the last move's time in
+  the room itself, and a game where you cannot tell whether your opponent has just moved
+  is not a game. The rule governs what strangers learn about somebody, never what an
+  opponent knows about the game the two of them are playing. `dashboard.js` says so at
+  the top of the file and a test asserts the wording names a length of time and never a
+  person.
+- **It is not a clock and the card says so.** Clocks on a networked table are still open.
+  What this shows is how long the board has waited, which is a different fact and an
+  honest one; when the room gets its alarm the card gains the clock and loses the line.
+- **The games waiting on you come first, longest wait at the top.** The person kept
+  waiting longest is the one to answer first. Games nobody is waiting on you for are
+  still listed below: the screen is a full account of what you have going, not a list of
+  chores.
+- **Counting waits on everybody who has not accepted**, so a game in scoring is yours to
+  answer whatever `toPlay` says.
+- **The seat links, deferred since the page slice, land here.** `linkedGame()` spends the
+  `?game=` in the address on first read, so until there was a screen listing your games,
+  opening somebody's page from a live table left you in the lobby with no way back. The
+  link carries where it came from, so Back returns to the table. A seat with no id is a
+  house player and never becomes a link: software has no page.
+
+Decisions made in Phase 9, the featured slice (2026-09-12, branch `feat/featured`):
+- **The notice was widened here, on purpose, in the commit that first drew a game on
+  somebody else's page.** Since the page slice `legal.js` had said a game may be shown
+  "to the players and to anyone holding the link to that room", and `PlayerPage.test.jsx`
+  asserted the absence of any games list so that nobody could quietly outgrow it. The
+  sentence now also permits a game "if either player chooses to show that game on their
+  own page". The test did not disappear: it narrowed to the thing that is still true,
+  which is that a player's whole archive is never on a page anybody can open, and that
+  the page is given no way to fetch one.
+- **A line about a game is attributed.** A game is two people's, and showing one shows
+  both names, which the room and the ladder already do. What nobody may do is publish a
+  sentence about somebody else under their own name, so the note is drawn as this
+  player's words with their name on it, and the notice says so in a sentence of its own.
+- **A pin is an id, not a copy of a game.** Pinning therefore costs the same whatever the
+  game was, and a pinned game cannot drift out of step with the record.
+- **The row is copied to `pin:<player>:<game>` all the same**, because serving a page
+  would otherwise mean scanning a whole archive to find three games, which is the one
+  thing the archive's key scheme exists to avoid. Leaving deletes that prefix too.
+- **You may only pin a game you played**, checked against your own archive prefix, which
+  is where the right to show it comes from. Refused with 403 rather than 400: showing
+  somebody else's game is a claim about them, not a malformed request.
+- **`PUT`, not `POST`.** Pinning a game already pinned is an edit of the line, and the
+  same call twice leaves the same thing behind. A separate route for editing would be two
+  names for one idea, and a re-pin keeps its place so a page never reorders under its owner.
+- Three is the cap. A page that shows everything shows nothing, and three is enough for a
+  best win, a favourite loss and the strange one.
+
+Decisions made in Phase 9, the archive slice (2026-09-12, branch `feat/archive`):
+- **One key a game, not a longer list.** `games:<id>` stays exactly as it was: capped at
+  24 and answering "what am I in the middle of" for the lobby. An unbounded array would
+  have to be read whole to be read at all, so it would cost more every game you ever
+  play, forever, on a Worker with ten milliseconds to spend. A key each costs the same at
+  ten games and at ten thousand, and storage pages it without reading the rest.
+- **The order is in the key**, as a zero-padded stamp. Ragged widths sort "9" after "10",
+  which would put a game from 2001 above one from next week.
+- **Paging a descending list is `end`, not `startAfter`.** Storage bounds a list
+  lexicographically and `reverse` only flips the order the range comes back in, so
+  `startAfter` on a reversed list hands back everything *newer* than the cursor — which
+  is the page just read. The prover caught it; the pure tests could not have, because the
+  bug was in what storage was asked rather than in what was computed.
+- **A cursor is checked against the caller's own prefix.** It is a storage key, so an
+  invented one would otherwise page somebody else's archive.
+- **The SGF is written from the record on the way out**, never stored. The Room keeps
+  every record for good already; a second copy would be a second thing to keep in step.
+- **The archive holds no moves** — the date, the board, the opponent, the result. What it
+  costs to keep is therefore flat per game and the notice can say exactly what is in it.
+- Bot games are not in it and cannot be: the house players run KataGo in the browser and
+  never reach the Worker. The card says so rather than looking broken to somebody whose
+  games are all against Moku.
+- **The stamp over the privacy notice had a hole in it, and this slice closed it.**
+  `documentText()` hashed `section.paras` and not `section.list`, and every sentence
+  naming something the server keeps about a person is a bullet in a `list`. Two
+  collections (friends, and the presence setting) were disclosed under that gap without
+  the stamp moving once. It now covers the bullets, and a test changes one to prove it.
+
 - [x] **Table talk that knows it is at a board** (branch `feat/table-talk`): a
-      coordinate anybody types is a word you can tap, and tapping it rings every
-      point that line names. `parsePoint` in the engine is the exact inverse of
-      `pointLabel` and is tested as one over every point of 9, 13 and 19; the
-      splitting and the etiquette are pure in `src/views/tableTalk.js`. A game
-      also opens and closes with one tap, plainly worded, with the traditional
-      line offered beside the plain one.
-- [ ] **The archive**: lift `KEEP_GAMES` for finished games, paginate from the first
-      commit rather than discovering the ceiling later, and give every archived game its
-      SGF out of the record the Room already keeps for good.
-- [ ] **Featured games**: pin up to three onto your page with a line of your own about
-      each. The pin is an id; the game is still the record.
-- [ ] **The dashboard**: every game you are in, ordered by who is waiting on whom, with
-      how long the board has been waiting. It says plainly that it is not a clock. This
-      is also where a seat at a table becomes a link to a player's page: today
-      `linkedGame()` spends the `?game=` in the address on first read, so navigating away
-      from a live online table strands you in the lobby with no way back to your own game.
-      The dashboard is that way back, and the links wait for it.
-      - Ordering landed on `feat/table-talk`: `orderTables` and `waitingOn` in
-        `onlineStatus.js` put the tables you are the hold-up on first, longest-waiting
-        first, and `waitingNote` says how long a board has sat there out of the
-        `updatedAt` the lobby summary already carried, so no server change was needed.
-        The list says in words that these games have no clock, because the absence of a
-        countdown is not something anybody notices. Still open: the seat-to-player-page
-        links, and a game you are in that has aged out of `KEEP_GAMES`.
-      - [ ] **P1, and the ordering is wrong until it lands: the lobby summary is frozen.**
-        `noteGame` is called exactly twice in a game's life, at `create`
-        (`server/roomObject.js:38`) and at `maybeSettle` (`:111`). Nothing writes it in
-        between, so every live game's stored summary still says `toPlay: "b"`, `moves: 0`
-        and an `updatedAt` of the moment the table was made. The consequences, in order of
-        how badly they read:
-        - `orderTables` sorts by whose colour you hold, not by whose move it is, and "N
-          tables are waiting on you" counts every live game in which you are Black.
-        - `waitingNote` says how long ago the table was *created*, under a heading that
-          means how long it has been *waiting*.
-        - `tableLine`'s "your move / their move" has read from the same frozen field since
-          long before this branch. This is not a new bug; it is an old one the ordering
-          now leans its whole weight on.
-        The fix is `await this.registry().noteGame(summary(next))` wherever a message
-        changes the room, and the question that has to be answered first is cost: the
-        Registry is a single Durable Object named `main`, so a write per move is a write
-        per move in every game on the server, funnelled through one object. Decide that
-        before writing it. Two smaller things belong in the same slice: the lobby calls
-        `refresh()` once at mount (`OnlineLobby.jsx:56`) and no lobby frame refetches, so
-        an open lobby is frozen too; and `noteGame` files a summary only under the two
-        lead seat ids (`server/registry.js:663`), so a pair partner in seat b2 or w2 never
-        sees their own table in the list at all.
-- [ ] **Badges**, computed at settle time and never granted. The set is deliberately not
-      enumerated in the design doc: it gets settled against the fields the record actually
-      holds, so no badge is designed for data that does not exist.
-- [ ] **Mail**: one thread per pair, between people who have played or are friends. No
-      broadcast, no list, no unsubscribe because there is nothing to leave. Rate limited
-      and blockable from the first commit.
+      coordinate anybody types is a word you can tap, and tapping it rings every point
+      that line names. `parsePoint` in the engine is the exact inverse of `pointLabel`
+      and is tested as one over every point of 9, 13 and 19; the splitting is pure in
+      `src/views/tableTalk.js` and puts every message back together exactly. A game also
+      opens and closes with one tap, worded plainly with the traditional line offered
+      beside the plain one, never instead of it. No line is an opinion about a move, a
+      line leaves the row once you have used it, and a spectator is offered none of it.
+      - The ring is its own `pointed` prop on `Board`, drawn after the stones and wider
+        than one. `marks` is painted before them and an SVG has no z-index, so a mark on
+        an occupied point sat invisible underneath it. Lessons ring empty points and
+        never noticed; a sentence at a table is almost always about a stone that is
+        already there, which is to say the feature was blind in the case it exists for.
+        No text test can catch that, so the test asserts paint order.
+      - **The token scanner has no lookbehind.** Safari could not parse one until 16.4
+        and a regex literal that cannot be parsed takes its whole module down, so an
+        iPhone one version out of date would have been handed a blank table.
+      - The lobby list is ordered by `dashboard.js`, which `feat/dashboard` landed while
+        this branch was being written. This branch had grown its own `orderTables` and
+        `waitingOn`; they are gone. The front page and the lobby now ask one function
+        whose move it is, because two answers to that question is two answers that can
+        disagree about the same board. `sideOf` and `opponentName` gained the one thing
+        the copy had and they did not: an empty `teams` list falls through to the lead
+        seat instead of beating it, so a summary that arrived empty no longer reports
+        that nobody is sitting where somebody plainly is.
+
 
 Decisions made in Phase 9, the presence slice (2026-09-12, branch `feat/presence`):
 - **Presence is never stored.** Being here is an open lobby socket, which the Registry

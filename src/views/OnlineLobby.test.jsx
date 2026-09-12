@@ -1,15 +1,16 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup, act } from "@testing-library/react";
-import { orderTables } from "./onlineStatus.js";
+import { dashboard } from "./dashboard.js";
 
 
 /* ----------------------- THE LOBBY'S LIST OF TABLES -----------------------
-   The order itself is settled in onlineStatus.test.js, which is pure. What is
-   not settled anywhere is that the list on screen is that order: a view that
-   sorts and then renders `tables` instead of `ordered` passes every pure test
-   there is and still shows a pile. So this reads the rows off the DOM and
-   compares them with what `orderTables` says, rather than with a hand-written
+   The order itself is settled in dashboard.test.js, which is pure, and the rule
+   lives there because the front page asks the same question of the same games.
+   What is not settled anywhere is that the list on screen is that order: a view
+   that sorts and then renders `tables` instead of the ordered list passes every
+   pure test there is and still shows a pile. So this reads the rows off the DOM
+   and compares them with what `dashboard` says, rather than with a hand-written
    order that would only be a second copy of the rule.
 
    The other two are sentences. "N tables are waiting on you" has a singular
@@ -73,8 +74,11 @@ const show = () => render(
 const rows = () => [...document.querySelectorAll(".table-row")].map(el => el.textContent);
 /** What the same games look like once the rule has had them. */
 const expected = (list) => {
-  const o = orderTables(list, PLAYER.id);
-  return [...o.live, ...o.done.slice(0, 3)].map(g => g.id);
+  const board = dashboard(list, PLAYER.id);
+  const done = list.filter(g => g.phase === "ended")
+    .sort((a, b) => (b.endedAt || b.updatedAt || 0) - (a.endedAt || a.updatedAt || 0))
+    .slice(0, 3);
+  return [...board.yours, ...board.theirs, ...done].map(g => g.id);
 };
 
 /** Render with these tables and let the two awaited calls in `refresh` settle. */
@@ -108,11 +112,14 @@ describe("the list of tables", () => {
       named("g3", "Counting", { phase: "scoring", updatedAt: now - 9 * HOUR }),
     ];
     await withTables(list);
+    /* A game being counted is waiting on you: it sits there until somebody
+       accepts, and that somebody is usually you. So it groups with your moves
+       and the nine-hour one leads the two of them. */
     const order = expected(list);
-    expect(order, "the rule wants yours first").toEqual(["g2", "g3", "g1"]);
+    expect(order, "yours first, longest waiting at the top").toEqual(["g3", "g2", "g1"]);
     expect(rows().length).toBe(3);
-    expect(rows()[0]).toMatch(/Yours/);
-    expect(rows()[1]).toMatch(/Counting/);
+    expect(rows()[0]).toMatch(/Counting/);
+    expect(rows()[1]).toMatch(/Yours/);
     expect(rows()[2]).toMatch(/Theirs/);
   });
 

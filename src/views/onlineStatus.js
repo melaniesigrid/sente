@@ -6,6 +6,7 @@
    two-seat room is the same code with only the lead seats filled. */
 import { resultLine } from "./gameStatus.js";
 import { colorOfSeat, seatToPlay, canSeatPlay, teamSeats } from "../engine/index.js";
+import { sideOf } from "./dashboard.js";
 
 const side = (c) => (c === "b" ? "Black" : "White");
 
@@ -64,87 +65,21 @@ export function onlineCaption(room, watching) {
   return parts.join(" · ");
 }
 
-/* ----- whose turn it is, and how long the board has been sitting there -----
-
-   A player with six games going does not want a list; they want to know where
-   they are the hold-up. So the tables you are waiting on go to the bottom and
-   the ones waiting on you go to the top, longest-waiting first, because the
-   one you have left the longest is the one somebody is most tired of.
-
-   The elapsed time is not a clock and must never be mistaken for one. Nothing
-   here runs out, nobody loses a game by going to bed, and the lobby says so in
-   words rather than hoping the absence of a countdown is noticed. */
-
-const MINUTE = 60000, HOUR = 60 * MINUTE, DAY = 24 * HOUR;
-
-/** How long this board has been sitting, in words, or "" when it has just
-  * moved and saying so would be noise. */
-export function waitingNote(updatedAt, now = Date.now()) {
-  if (!Number.isFinite(updatedAt)) return "";
-  const ms = now - updatedAt;
-  if (!(ms >= 10 * MINUTE)) return "";
-  const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
-  if (ms < HOUR) return plural(Math.floor(ms / MINUTE), "minute");
-  if (ms < DAY) return plural(Math.floor(ms / HOUR), "hour");
-  return plural(Math.floor(ms / DAY), "day");
-}
-
-/* Your move, then a count waiting on somebody, then their move. A game you
-   are only watching sorts with "their move": it is not waiting on you either. */
-const URGENCY = { yours: 0, counting: 1, theirs: 2 };
-
-/* Who is sitting on one side of a lobby summary. A pair game lists four people,
-   so a side is a list and not a person; a summary from a server that has not
-   sent `teams` falls back to the lead seat. It is total on purpose: one row
-   that arrived without a side is a row the lobby draws badly, never an
-   exception that empties the whole list on the way past. */
+/* Which side a player is sitting on, and who is on a side. `dashboard.js` owns
+   the question of whose move it is; this is only the naming, which that file
+   has no reason to carry. It is total on purpose: one lobby row that arrived
+   without a side is a row drawn badly, never an exception that empties the
+   whole list on the way past. */
 const teamOf = (game, c) => {
   const named = game.teams && game.teams[c];
-  /* An empty list is not an answer. A summary whose teams arrived empty would
-     otherwise beat the lead seat that is sitting right there, and the player
-     would be told their own game was somebody else's. */
   const side = named && named.length ? named : [c === "b" ? game.black : game.white];
   return side.filter((p) => p && typeof p === "object");
 };
-const sideHeld = (game, me) =>
-  (teamOf(game, "b").some((p) => p && p.id === me) ? "b"
-    : teamOf(game, "w").some((p) => p && p.id === me) ? "w"
-    : null);
-
-/** Which of the three a live game is, for a given player. */
-export function waitingOn(game, me) {
-  if (game.phase === "scoring") return "counting";
-  const mine = sideHeld(game, me);
-  return mine && game.toPlay === mine ? "yours" : "theirs";
-}
-
-/** The lobby's tables, ordered so the ones you are the hold-up on come first.
-  *
-  * Returns `{ live, done }`: live games by urgency and then longest-waiting
-  * first, and finished games most recently finished first. Sorting is stable
-  * on the id, so a list that has not changed does not shuffle between polls. */
-export function orderTables(games, me) {
-  const all = Array.isArray(games) ? games : [];
-  const at = (g) => (Number.isFinite(g.updatedAt) ? g.updatedAt : 0);
-  const live = all.filter((g) => g.phase !== "ended").sort((a, b) => {
-    const d = URGENCY[waitingOn(a, me)] - URGENCY[waitingOn(b, me)];
-    if (d !== 0) return d;
-    if (at(a) !== at(b)) return at(a) - at(b);
-    return String(a.id).localeCompare(String(b.id));
-  });
-  const done = all.filter((g) => g.phase === "ended").sort((a, b) => {
-    const ea = Number.isFinite(a.endedAt) ? a.endedAt : at(a);
-    const eb = Number.isFinite(b.endedAt) ? b.endedAt : at(b);
-    if (ea !== eb) return eb - ea;
-    return String(a.id).localeCompare(String(b.id));
-  });
-  return { live, done };
-}
 
 /** A one-line description of a table for the lobby list. `me` is my player id. */
 export function tableLine(game, me) {
   const nameOfTeam = (c) => teamOf(game, c).map((p) => p.name).filter(Boolean).join(" & ");
-  const mine = sideHeld(game, me);
+  const mine = sideOf(game, me);
   const who = mine
     ? `vs ${nameOfTeam(mine === "b" ? "w" : "b")}`
     : `${nameOfTeam("b")} vs ${nameOfTeam("w")}`;

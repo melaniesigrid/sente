@@ -42,6 +42,12 @@ import { cleanBio, cleanFacts, avatarProblem, profileOf } from "./profile.js";
 import { readBook, standing, ask, accept, forget, forgetting, everyoneWhoKnows,
   ASK_LIMIT, ASK_WINDOW_MS } from "./friends.js";
 import { cleanShowOnline, whoIsHere } from "./presence.js";
+import { archivePrefix, archiveKey, pageSize, cursorFor, page as archivePage,
+  archived, playersOf } from "./archive.js";
+import { readFeatured, pin as pinPure, unpin as unpinPure, featuredWith } from "./featured.js";
+import { threadKey, cleanLetter, readThread, withLetter, mayWrite, threadSummary,
+  byRecent, readBlocked, block as blockPure, unblock as unblockPure,
+  POST_LIMIT, POST_WINDOW_MS } from "./post.js";
 import { hit, refund, REGISTER_LIMIT, REGISTER_WINDOW_MS, SIGNIN_LIMIT, SIGNIN_WINDOW_MS,
   FORGOT_LIMIT, FORGOT_WINDOW_MS, VERIFY_LIMIT, VERIFY_WINDOW_MS } from "./ratelimit.js";
 import { VERIFY_TTL_MS, RESET_TTL_MS } from "./mail.js";
@@ -410,7 +416,17 @@ export class Registry extends DurableObject {
   /** The owner's own view of themselves: everything public, plus the few
    *  things only they may see. */
   #self(p) {
-    return { ...profileOf(p, publicPlayer(p)), ...privateFields(p) };
+    /* The owner sees their pins as they are stored: ids and the lines they
+       wrote. The joined rows are for a stranger's view of the page, and this
+       caller already has the archive those rows came from. */
+    return {
+      ...profileOf(p, publicPlayer(p)), ...privateFields(p),
+      featured: readFeatured(p.featured),
+      /* On the owner's view and nowhere else. A public page that carried this
+         would tell somebody they had been blocked, which is the one thing
+         blocking chose not to say. */
+      blocked: readBlocked(p.blocked),
+    };
   }
 
   async self(id) {
@@ -465,6 +481,8 @@ export class Registry extends DurableObject {
     if (!p) return false;
     // Before this player's own book goes, everybody named in it is told.
     await this.#unfriendEverybody(id);
+    await this.#forgetArchive(id);
+    await this.#forgetPost(id);
     const sessions = (p.sessions ?? [p.tokenHash]).filter(Boolean).map(h => `tok:${h}`);
     await this.ctx.storage.delete([
       `player:${id}`, `tok:${p.tokenHash}`, ...sessions, `games:${id}`, `seek:${id}`, `avatar:${id}`,
@@ -538,11 +556,65 @@ export class Registry extends DurableObject {
     return (await this.ctx.storage.get(`avatar:${id}`)) ?? null;
   }
 
-  /** A stranger's view of a player: the ladder's row plus what they chose to
-   *  say. This is the only route that serves one player to another. */
+  /** A stranger's view of a player: the ladder's row, what they chose to say,
+   *  and the few games they chose to show. This is the only route that serves
+   *  one player to another.
+   *
+   *  The pinned games are read here rather than stored on the record, so a page
+   *  can never show a game that has gone and the list heals itself by being
+   *  read. The rows come from this player's own archive, which is where the
+   *  right to show them comes from: you may pin a game you played. */
   async profile(id) {
     const p = await this.ctx.storage.get(`player:${id}`);
-    return p ? profileOf(p, publicPlayer(p)) : null;
+    if (!p) return null;
+    const pins = readFeatured(p.featured);
+    const rows = new Map();
+    if (pins.length) {
+      const got = await this.ctx.storage.get(pins.map((e) => `pin:${id}:${e.id}`));
+      for (const [key, value] of got) rows.set(key.slice(`pin:${id}:`.length), value);
+    }
+    return { ...profileOf(p, publicPlayer(p)), featured: featuredWith(pins, rows) };
+  }
+
+  /* ----- the games a player shows -----
+     A pin is an id and a line; the game itself stays in its room and in the
+     archive. Pinning copies nothing, so a pinned game can never drift out of
+     step with the real one, and the pin costs the same whatever the game was. */
+
+  /** The archive row for one of this player's own games, or null. This is the
+   *  check that a pin is a game they actually played: the row only exists
+   *  under their own prefix if they sat at that board. */
+  async #ownGame(id, gameId) {
+    const got = await this.ctx.storage.list({ prefix: archivePrefix(id) });
+    for (const [key, value] of got) if (value && value.id === gameId) return { key, value };
+    return null;
+  }
+
+  async pinGame(id, gameId, note) {
+    const p = await this.ctx.storage.get(`player:${id}`);
+    if (!p) throw new Error("no-player");
+    const own = await this.#ownGame(id, gameId);
+    if (!own) throw new Error("not-your-game");
+    const r = pinPure(readFeatured(p.featured), gameId, note, Date.now());
+    if (r.error) throw new Error(r.error);
+    /* The row is copied to a key the public profile can read in one batched
+       get. Without it, serving somebody's page would mean scanning their whole
+       archive to find three games, which is the one thing the archive's key
+       scheme exists to avoid. */
+    await this.ctx.storage.put({
+      [`player:${id}`]: { ...p, featured: r.list, lastSeen: Date.now() },
+      [`pin:${id}:${gameId}`]: own.value,
+    });
+    return this.#self({ ...p, featured: r.list });
+  }
+
+  async unpinGame(id, gameId) {
+    const p = await this.ctx.storage.get(`player:${id}`);
+    if (!p) throw new Error("no-player");
+    const r = unpinPure(readFeatured(p.featured), gameId);
+    await this.ctx.storage.put(`player:${id}`, { ...p, featured: r.list, lastSeen: Date.now() });
+    await this.ctx.storage.delete(`pin:${id}:${gameId}`);
+    return this.#self({ ...p, featured: r.list });
   }
 
   /* ----- friends ----- */
@@ -632,6 +704,161 @@ export class Registry extends DurableObject {
     }
   }
 
+  /** One page of a player's finished games, newest first. Storage does the
+   *  ordering (the stamp is in the key) and the paging, so this reads exactly
+   *  the page asked for and never the rest of the archive.
+   *
+   *  A cursor is the key of the last row of the previous page, checked against
+   *  this player's own prefix on the way in so an invented one cannot page
+   *  somebody else's games. */
+  async archiveOf(id, rawCursor, rawLimit) {
+    const limit = pageSize(rawLimit);
+    const after = cursorFor(id, rawCursor);
+    /* `end`, not `startAfter`. Storage bounds a list lexicographically and
+       `reverse` only flips the order it hands the range back in, so paging
+       downwards through a descending list is an exclusive upper bound. With
+       `startAfter` the second page comes back holding everything NEWER than
+       the cursor, which is the page just read. */
+    const got = await this.ctx.storage.list({
+      prefix: archivePrefix(id),
+      reverse: true,
+      limit,
+      ...(after ? { end: after } : {}),
+    });
+    return archivePage([...got].map(([key, value]) => ({ key, value })), limit);
+  }
+
+  /** Every archive key this player has, in pages, so leaving can delete them
+   *  without holding the whole archive of a prolific player in memory. */
+  async #forgetArchive(id) {
+    // The pinned copies go with it: they are rows of the same games, kept
+    // under their own prefix only so a public page can read three of them
+    // without scanning a whole archive.
+    for (const prefix of [archivePrefix(id), `pin:${id}:`]) {
+      for (;;) {
+        const got = await this.ctx.storage.list({ prefix, limit: PAGE });
+        if (got.size === 0) break;
+        await this.ctx.storage.delete([...got.keys()]);
+        if (got.size < PAGE) break;
+      }
+    }
+  }
+
+  /* ----- the post -----
+     One thread per pair, under `post:<sorted pair>`, so either of them reads
+     and writes the same key. `mail:<player>:<other>` is that player's index of
+     who they have a thread with, which is what makes "my letters" one list
+     read rather than a walk over every thread on the server. */
+
+  /** Have these two finished a game together? Answered out of the smaller of
+   *  the two archives rather than by keeping a third record of who has met
+   *  whom: a list of everybody you have ever played is exactly the data this
+   *  feature exists to avoid needing. */
+  async #havePlayed(a, b) {
+    const rows = await this.ctx.storage.list({ prefix: archivePrefix(a) });
+    for (const [, game] of rows) {
+      for (const side of ["b", "w"]) {
+        const seats = (game.teams && game.teams[side]) || [side === "b" ? game.black : game.white];
+        if ((seats || []).some((p) => p && p.id === b)) return true;
+      }
+    }
+    return false;
+  }
+
+  async #mayWrite(fromId, toId) {
+    const to = await this.ctx.storage.get(`player:${toId}`);
+    if (!to) return "no-player";
+    const blocked = readBlocked(to.blocked).includes(fromId);
+    const book = await this.#book(fromId);
+    const friends = book.friends.some((e) => e.id === toId);
+    const played = friends ? false : await this.#havePlayed(fromId, toId);
+    return mayWrite({ from: fromId, to: toId, friends, played, blocked });
+  }
+
+  /** Whether this player could write to that one, so a page can offer the box
+   *  or say plainly why it is not offering it. */
+  async canWrite(fromId, toId) {
+    const why = await this.#mayWrite(fromId, toId);
+    /* A blocked writer is told "not met", not "blocked". Blocking is silent:
+       saying so would turn it into a message, which is the one thing the
+       person who blocked chose not to send. */
+    return { can: why === null, why: why === "blocked" ? "not-met" : why };
+  }
+
+  async writeLetter(fromId, toId, rawText) {
+    const why = await this.#mayWrite(fromId, toId);
+    /* A blocked writer is refused with the words a stranger gets. Blocking is
+       silent, and an error that said "blocked" would be a message — the one
+       message the person who blocked chose not to send. `canWrite` folds it
+       the same way; doing it in one place and not the other is exactly the
+       hole `tools/server/post.mjs` was written to find, and did. */
+    if (why) throw new Error(why === "blocked" ? "not-met" : why);
+    const text = cleanLetter(rawText);
+    if (!text) throw new Error("empty-letter");
+    await this.#spend(`rate:post:${fromId}`, POST_LIMIT, POST_WINDOW_MS, "too-many-letters-sent");
+    const key = `post:${threadKey(fromId, toId)}`;
+    const thread = withLetter(readThread(await this.ctx.storage.get(key)), fromId, text, Date.now());
+    const at = thread[thread.length - 1].at;
+    await this.ctx.storage.put({
+      [key]: thread,
+      [`mail:${fromId}:${toId}`]: at,
+      [`mail:${toId}:${fromId}`]: at,
+    });
+    return { thread, with: toId };
+  }
+
+  /** One thread, and nothing at all for a pair with no thread. Reading is not
+   *  gated on `mayWrite`: somebody who blocks a person keeps the letters that
+   *  person already sent, and somebody who has stopped being a friend does not
+   *  lose the conversation they had. */
+  async threadWith(meId, otherId) {
+    const thread = readThread(await this.ctx.storage.get(`post:${threadKey(meId, otherId)}`));
+    return { thread, with: otherId, ...(await this.canWrite(meId, otherId)) };
+  }
+
+  /** Every thread this player has, newest conversation first, each with the
+   *  person it is with. One list read plus one batched get of the people. */
+  async lettersOf(meId) {
+    const index = await this.ctx.storage.list({ prefix: `mail:${meId}:` });
+    const ids = [...index.keys()].map((k) => k.slice(`mail:${meId}:`.length));
+    if (!ids.length) return [];
+    const people = await this.#peopleByIds(ids);
+    const rows = [];
+    for (const otherId of ids) {
+      const person = people.get(otherId);
+      if (!person) continue;            // they left; the index heals by being read
+      const thread = readThread(await this.ctx.storage.get(`post:${threadKey(meId, otherId)}`));
+      const summary = threadSummary(thread, meId);
+      if (summary) rows.push({ ...summary, player: publicPlayer(person) });
+    }
+    return byRecent(rows);
+  }
+
+  async setBlocked(meId, otherId, on) {
+    const p = await this.ctx.storage.get(`player:${meId}`);
+    if (!p) throw new Error("no-player");
+    const list = readBlocked(p.blocked);
+    const next = on ? blockPure(list, otherId) : unblockPure(list, otherId);
+    await this.ctx.storage.put(`player:${meId}`, { ...p, blocked: next, lastSeen: Date.now() });
+    return { blocked: next };
+  }
+
+  /** Every letter this player was part of, gone, from both sides. A thread is
+   *  two people's, but unlike a game it is not a record of something that
+   *  happened at a board: it is correspondence, and the notice says leaving
+   *  takes it. */
+  async #forgetPost(id) {
+    const index = await this.ctx.storage.list({ prefix: `mail:${id}:` });
+    const others = [...index.keys()].map((k) => k.slice(`mail:${id}:`.length));
+    const gone = [...index.keys()];
+    for (const other of others) {
+      gone.push(`post:${threadKey(id, other)}`, `mail:${other}:${id}`);
+    }
+    for (let i = 0; i < gone.length; i += 100) {
+      await this.ctx.storage.delete(gone.slice(i, i + 100));
+    }
+  }
+
   /* ----- presence ----- */
 
   /** Of these people, the ones this viewer may be told are here, and who are.
@@ -659,12 +886,23 @@ export class Registry extends DurableObject {
     // One call, two events, told apart by the `endedAt` the room sets at the
     // move that finishes the game. Counting both as the same thing would
     // double every game.
-    await this.#note(isFinish(summary) ? "gamesFinished" : "gamesStarted");
+    const finished = isFinish(summary);
+    await this.#note(finished ? "gamesFinished" : "gamesStarted");
     for (const id of [summary.black.id, summary.white.id]) {
       const key = `games:${id}`;
       const list = (await this.ctx.storage.get(key)) || [];
       const rest = list.filter(g => g.id !== summary.id);
       await this.ctx.storage.put(key, [summary, ...rest].slice(0, KEEP_GAMES));
+    }
+    /* The list above is the lobby's, and stays capped: it answers "what am I
+       in the middle of". The archive is the other question, and it is kept for
+       good, one key a game, for everybody who sat at the board — which is four
+       people at a pair table and not the two lead seats. */
+    if (finished) {
+      const row = archived(summary);
+      const keys = {};
+      for (const id of playersOf(summary)) keys[archiveKey(id, summary.endedAt, summary.id)] = row;
+      await this.ctx.storage.put(keys);
     }
   }
 

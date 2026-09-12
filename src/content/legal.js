@@ -51,7 +51,7 @@ export const COPYRIGHT = `© ${COPYRIGHT_YEAR} ${STUDIO}`;
    being stopped and handed the line where the date lives. */
 export const REVISION = {
   updated: "12 September 2026",
-  stamp: "5efc8056",
+  stamp: "bdb9f2d0",
 };
 
 /** The day the documents last changed. */
@@ -145,7 +145,7 @@ const TERMS = {
       heading: "What you write stays yours",
       paras: [
         "Your bio, your chat lines and your picture are yours. Putting them into Joseki allows the Studio to store them and to show them where the product shows them: your profile, the room you are playing in, and the record afterwards.",
-        "A game record is a record of a game two people played. Joseki keeps finished games and may show them to the players and to anyone holding the link to that room.",
+        "A game record is a record of a game two people played. Joseki keeps finished games and may show them to the players, to anyone holding the link to that room, and — if either player chooses to show that game on their own page — to anyone who opens that page. A game is two people's, so showing one shows both names, exactly as the room and the ladder already do. What nobody may do is publish a line about somebody else under their own name: the sentence a player writes beside a game they show is attributed to them and is theirs alone.",
       ],
     },
     {
@@ -231,7 +231,10 @@ const PRIVACY = {
         "The sign-in tokens for your open sessions, kept as hashes, so a stolen store is not a set of working keys.",
         "Anything you chose to add to your profile: a paragraph of up to 280 characters, three short facts, and a picture of up to 64 KB.",
         "The games you played online, and up to 200 chat lines in each room alongside the record.",
+        "An index of your finished games, one entry each, kept for as long as the account is. It holds no moves: it is the date, the board, the opponent and the result, and it is what lets your own archive be paged through without reading every game you have ever played. Leaving deletes the index; the games themselves stay in the rooms they were played in, for the reason given under Leaving.",
         "Who your friends here are: the handles you have agreed to be friends with, the requests you have sent, and the requests you have been sent. Three lists of handles with the date each was written, kept on your record and on theirs, and seen by nobody but the two of you. Declining a request deletes it and tells the person who sent it nothing at all.",
+        "The letters you and another player have written to each other. One thread a pair, keeping the last hundred, readable by the two of you and by nobody else. Only somebody you have agreed to be friends with, or finished a game against, can write to you at all, and you can stop any of them writing again without their being told. There is no list anybody can be added to and nothing to unsubscribe from, because there is nothing to be on.",
+        "The games you chose to show on your page, at most three, each with a line of up to 140 characters that you wrote. Both are public, because the page is. Taking a game off your page removes the line with it.",
         "Which of the three answers you gave to who may see that you are here: nobody, your friends, or anybody. One word on your record, and not on the ladder, so reading the ladder cannot tell you who has chosen to be invisible.",
         "The address you registered from, kept so that leaving gives back the account it spent, shown to nobody, and deleted with the account.",
       ],
@@ -262,7 +265,7 @@ const PRIVACY = {
     {
       heading: "Leaving",
       paras: [
-        "There is a way out that needs nobody's permission. Leaving removes your account, your sessions, your address, your picture, your ladder seat, your friends list, and the record of the address you registered from. Your handle is taken off the lists of everybody who had you on theirs, in the same breath, because a friendship is two records and deleting one of them would leave the other holding a name that answers nothing.",
+        "There is a way out that needs nobody's permission. Leaving removes your account, your sessions, your address, your picture, your ladder seat, your friends list, your letters on both sides, and the record of the address you registered from. Your handle is taken off the lists of everybody who had you on theirs, in the same breath, because a friendship is two records and deleting one of them would leave the other holding a name that answers nothing.",
         "One thing survives, and it should be said plainly: a finished game stays in the room it was played in, under the handle you played it under. It is your opponent's game as much as yours, and taking it away would take away theirs.",
         `To ask for a copy of what is held about you, to correct it, or to have something removed that leaving does not reach, write to ${CONTACT} and a person will do it by hand. There is no export button, and saying otherwise would be the easy sentence to write and the false one.`,
       ],
@@ -341,7 +344,13 @@ export function documentText() {
       for (const item of group.items) parts.push(item.what, item.who, item.terms);
     }
     for (const section of doc.sections) {
-      parts.push(section.heading, ...section.paras);
+      /* The bullets are in, and for a while they were not. Every sentence
+         naming something the server keeps about a person lives in a `list`
+         rather than in `paras` -- the whole of "What the server keeps" is
+         bullets -- so a stamp over the paragraphs alone protected the prose
+         around the disclosure and not the disclosure itself. Two collections
+         were added under that gap without the stamp moving once. */
+      parts.push(section.heading, ...section.paras, ...(section.list ?? []));
     }
   }
   return parts.join("\n");

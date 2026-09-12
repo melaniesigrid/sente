@@ -5,7 +5,8 @@ import { api, lobbySocket, serverEnabled, SERVER_URL } from "../net/api.js";
 import { loadAccount, saveAccount, clearAccount } from "../store/account.js";
 import { provisionalText } from "../content/online.js";
 import { DEFAULT_PARTNER_RANK } from "../engine/index.js";
-import { tableLine, orderTables, waitingNote, waitingOn } from "./onlineStatus.js";
+import { tableLine } from "./onlineStatus.js";
+import { dashboard, waitingText } from "./dashboard.js";
 import { AccountGate } from "./AccountGate.jsx";
 import { avatarUrl } from "../net/avatar.js";
 import { errorText, formProblem } from "./accountForm.js";
@@ -106,12 +107,16 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
     notify({ icon: "info", text: "Handle removed" });
   };
 
-  /* Ordered rather than filtered: the tables you are the hold-up on come
-     first, so six games going is a list of what to do rather than a pile. */
-  const ordered = orderTables(tables, player.id);
-  const live = ordered.live;
-  const done = ordered.done.slice(0, 3);
-  const yours = live.filter(g => waitingOn(g, player.id) === "yours").length;
+  /* Ordered rather than filtered: the tables you are the hold-up on come first,
+     so six games going is a list of what to do rather than a pile. The rule for
+     whose move it is lives in `dashboard.js` and is asked, never restated: the
+     front page and this list must never disagree about the same board. */
+  const board = dashboard(tables, player.id);
+  const live = [...board.yours, ...board.theirs];
+  const done = tables.filter(t => t.phase === "ended")
+    .sort((a, b) => (b.endedAt || b.updatedAt || 0) - (a.endedAt || a.updatedAt || 0))
+    .slice(0, 3);
+  const yours = board.waiting;
 
   return (
     <Card className="online-card">
@@ -313,13 +318,14 @@ function ConfirmRow({ email, token, notify }) {
 function TableRow({ game, me, onOpen }) {
   const line = tableLine(game, me);
   /* How long it has sat there, on a live table only: a finished game has not
-     been waiting for anything. */
-  const waited = line.live ? waitingNote(game.updatedAt) : "";
+     been waiting for anything. "just now" is the one answer worth no words. */
+  const said = line.live ? waitingText(game.updatedAt) : null;
+  const waited = said && said !== "just now" ? said : "";
   return (
     <button className={`table-row ${line.live ? "live" : ""}`} onClick={onOpen}>
       <span className={`dot ${line.live ? "dot-live" : "dot-done"}`} aria-hidden="true" />
       <span className="table-who">{line.who}</span>
-      <span className="fine">{game.size}×{game.size} · {line.detail}{waited ? ` · ${waited}` : ""}</span>
+      <span className="fine">{game.size}×{game.size} · {line.detail}{waited ? ` · waiting ${waited}` : ""}</span>
       {line.live ? <Play size={13} /> : <Eye size={13} />}
     </button>
   );

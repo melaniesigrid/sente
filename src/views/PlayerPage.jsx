@@ -1,12 +1,15 @@
-import { useState, useEffect, useMemo } from "react";
-import { ArrowLeft, Pencil } from "lucide-react";
-import { Card, Btn, Avatar, RankBadge } from "../components/ui.jsx";
+import { useState, useEffect } from "react";
+import { ArrowLeft, Pencil, Swords, Mail } from "lucide-react";
+import { Card, Btn, Avatar, RankBadge, Badges } from "../components/ui.jsx";
 import { api, serverEnabled, SERVER_URL } from "../net/api.js";
 import { avatarUrl } from "../net/avatar.js";
 import { loadAccount } from "../store/account.js";
 import { provisionalText } from "../content/online.js";
 import { joinedText, recordText, factRows, saidAnything, presenceLine } from "./playerCard.js";
 import { standingWith, friendAction } from "./friendship.js";
+import { archiveLine } from "./archiveLine.js";
+import { badgesShown } from "../content/badges.js";
+import { BlockButton } from "./LettersCard.jsx";
 import { useFriends } from "./useFriends.js";
 import { usePresence } from "./usePresence.js";
 import { FriendButton } from "./FriendsCard.jsx";
@@ -17,18 +20,20 @@ import { FriendButton } from "./FriendsCard.jsx";
    play on this server for a week without ever being able to look somebody up.
    This is that link's other end.
 
-   It shows exactly what the route returns and nothing more. There is no games
-   list on it yet: `legal.js` says a finished game may be shown "to the players
-   and to anyone holding the link to that room", and a list on a page anybody
-   can open is wider than that sentence. The archive slice widens the sentence
-   and the page together, in one commit, or not at all.
+   It shows exactly what the route returns and nothing more. The games on it
+   are the few this player chose to show, never a list of everything they have
+   played: `legal.js` permits a game to be shown to anyone who opens a page
+   "if either player chooses to show that game on their own page", and that
+   sentence was widened in the same commit that first drew one. A list of
+   somebody's whole archive on a page anybody can open is still wider than the
+   notice allows, and the suite still says so.
 
    The page is public because the ladder is public: a rank with a name beside it
    is already a claim about a person, and a paragraph they chose to write is
    less of one. Nothing here is shown that the player did not either type or
    earn at a board. */
 export function PlayerPage({ playerId, go, onBack, notify }) {
-  const account = useMemo(() => loadAccount(), []);
+  const [account, setAccount] = useState(() => loadAccount());
   const canAsk = serverEnabled() && !!playerId;
   /* One piece of state, and it carries the id it is an answer about. Opening a
      second player from the first one's page would otherwise show the first
@@ -89,6 +94,9 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
                 <span className="fine">{provisionalText(player)}</span>
               </div>
               <span className="fine">{recordText(player)}</span>
+              {/* Worked out from the record on the line above it, so the two
+                  can never disagree. */}
+              <Badges badges={badgesShown(player)} />
             </div>
           </div>
 
@@ -105,13 +113,24 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
             </p>
           )}
 
+          <Featured player={player} go={go} />
+
           <Whereabouts player={player} here={here.has(player.id)} />
 
           {/* Nothing to press on your own page, and nothing to press without a
               handle: somebody who has not claimed one has no list to add to. */}
           {!mine && account && (
-            <FriendButton person={player} busy={busy === player.id} act={act}
-              action={friendAction(standingWith(book, player.id))} />
+            <>
+              <FriendButton person={player} busy={busy === player.id} act={act}
+                action={friendAction(standingWith(book, player.id))} />
+              <div className="row">
+                <Btn icon={Mail} small onClick={() => go("profile")}>Write to them</Btn>
+                {/* Silent, and never the same act as unfriending: the two mean
+                    different things and doing both at once would take the
+                    second choice away from whoever the first one protects. */}
+                <BlockButton account={account} setAccount={setAccount} player={player} notify={notify} />
+              </div>
+            </>
           )}
 
           {mine && (
@@ -140,6 +159,48 @@ function Facts({ player }) {
         </div>
       ))}
     </dl>
+  );
+}
+
+/** The games this player chose to show, with the line each of them wrote.
+ *
+ *  The line is attributed on purpose. A game is two people's and showing one
+ *  shows both names, which the room and the ladder already do; what nobody may
+ *  do is publish a sentence about somebody else under their own name, so the
+ *  words are marked as this player's rather than floating free beside a game
+ *  the other person also played. */
+function Featured({ player, go }) {
+  const games = player.featured || [];
+  if (!games.length) return null;
+  return (
+    <div className="featured">
+      <h4 className="friend-group-head">Games {player.name} is showing</h4>
+      <div className="friend-rows">
+        {games.map((game) => {
+          const line = archiveLine(game, player.id);
+          return (
+            <div key={game.id} className="archive-row">
+              <button type="button" className="friend-who"
+                onClick={() => go("play", { gameId: game.id })}
+                aria-label={`Open the game against ${line.who}`}>
+                <span className={`archive-mark ${line.won === true ? "won" : ""}`} aria-hidden="true">
+                  <Swords size={15} />
+                </span>
+                <span className="ladder-name">
+                  <strong>{line.who}</strong>
+                  <span className="fine">{line.detail}</span>
+                  {game.note && (
+                    <span className="fine featured-note">
+                      &ldquo;{game.note}&rdquo; <em>&mdash; {player.name}</em>
+                    </span>
+                  )}
+                </span>
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
