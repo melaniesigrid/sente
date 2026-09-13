@@ -193,6 +193,26 @@ describe.each(LIBRARY.map(l => [l.id, l]))("lesson %s", (id, lesson) => {
       });
     }
 
+    /* A verdict that was measured says so, by carrying `net` on every option:
+       the weight and the rank the human network gave that point in that exact
+       position (`tools/joseki/policy.py`). Where a step does that, the author
+       does not get to pick which option is best. The network picked. */
+    if (step.type === "choice" && step.options.some(o => o.net)) {
+      it("marks best the option the network ranked highest, and records both numbers", () => {
+        for (const o of step.options) {
+          expect(o.net, `option (${o.point.c},${o.point.r}) has no measurement`).toBeTruthy();
+          expect(Number.isInteger(o.net.rank) && o.net.rank >= 1, `rank ${o.net.rank}`).toBe(true);
+          expect(o.net.p >= 0 && o.net.p <= 1, `p ${o.net.p}`).toBe(true);
+        }
+        const top = step.options.reduce((a, b) => (b.net.rank < a.net.rank ? b : a));
+        expect(top.verdict, `(${top.point.c},${top.point.r}) is the network's choice`).toBe("best");
+        /* And no two options may share a rank: the same point measured twice,
+           or a number copied from the wrong row. */
+        const ranks = step.options.map(o => o.net.rank);
+        expect(new Set(ranks).size).toBe(ranks.length);
+      });
+    }
+
     if (step.type === "choice") {
       it("offers two or three empty, legal points with exactly one best", () => {
         expect(step.options.length).toBeGreaterThanOrEqual(2);

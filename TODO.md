@@ -848,6 +848,23 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       crossed, and the jump goes through the same prerequisite gate as opening a lesson from
       the grid. The welcome demo is not in the library and is told none of this.
 - [ ] Tier 2 Apprentice and Tier 3 Journeyman authored (20 lessons, 9/13/19).
+- [x] The opening track opens, and its verdicts are measured (2026-09-12, branch
+      `feat/more-lessons`): `opening-big-points` (tier 3, 12k) and
+      `opening-third-and-fourth` (tier 4, 8k), the first lessons on nineteen lines outside
+      the master replays, and the first anywhere in the library whose choice verdicts were
+      not decided by the author. Every option of every `choice` step in them carries `net`:
+      the weight and the rank the shipped human network gave that point in that exact
+      position, read off with `tools/joseki/policy.py --cands` at a professional profile.
+      `library.test.js` now requires, in any step that carries `net`, that the option marked
+      best is the one the network ranked first, and that no two options share a rank.
+      Decisions: the proverb "corners, then sides, then the centre" is taught as a sequence
+      of measurements rather than as a saying, because the same side point is eightieth with
+      two corners open and second once they are gone, and that movement is the lesson. Where
+      the network'"'"'s own first choice on the whole board was not one of the three offered
+      points, the step says so instead of pretending the offered set was the whole question.
+- [ ] The rest of the opening track: direction of play, the approach and its answers in
+      context, and the frameworks. The joseki dictionary covers the corner sequences
+      themselves, so these should be about which corner and which side, not which move.
 - [ ] SGF authoring pipeline: build-time script turns SGF with comments into steps.
 - [ ] Tier 4 Craftsman and Tier 5 Master authored (20 lessons, 19x19).
 - [ ] Tier 6 Dan authored (8 lessons; the last needs Phase 4 analysis). Four are in as of
@@ -1019,7 +1036,31 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
 - [ ] Tsumego and the weekly problem are answered questions too, and neither enters the
       queue. They have their own ids rather than lesson steps, so the card key would have
       to grow a kind.
-- [ ] Joseki and opening library for 9×9 and 19×19.
+- [x] The corner dictionary (2026-09-12, branch `feat/joseki-library`): the app has been
+      called Joseki since the rename and held none. `src/content/joseki.js` is the first
+      edition: `CORNERS` (4-4 written, 3-4 and 3-3 declared unwritten, the way the tiers
+      shipped with empty indexes) and four sequences on the star point, with one line of
+      commentary per move and a paragraph on what each side ended up with.
+      The sequences were not written from memory. `tools/joseki/policy.py` runs the shipped
+      human ONNX at a professional profile and reports, for every position in a sequence,
+      the network's ranked candidates; `--local` restricts the ranking to a box, which is
+      the only honest way to ask a whole-board network a corner question, and `--walk`
+      plays its own first choice forward, which is how all four sequences were found. Every
+      move carries the `rank` and `p` it was given, and the screen shows them.
+      Decisions: a move nobody was forced into carries `chosen` and is labelled a choice
+      rather than an answer, and `joseki.test.js` fails the build if a move the network did
+      not rank first is missing that label, so the dictionary cannot quietly present
+      somebody's taste as the only move. The attachment is ranked ninth in the corner and
+      is in the dictionary anyway, with the number printed under it. `Board` gained `crop`,
+      which moves the viewBox and nothing else, so a corner of nineteen lines is readable
+      at page width and on a phone. The overlay namespaces are `josekiEntry.` and
+      `josekiCorner.`, not `joseki.`: the screen's own chrome already lives under `joseki.`
+      and a content overlay sharing a screen's prefix breaks the parity test.
+- [ ] The 3-4 and the 3-3 points in the dictionary. The tool walks them as readily as the
+      star point; what they need is an author, because the network improvises on an empty
+      board and the komoku lines it produced wandered out of the corner rather than
+      settling in it.
+- [ ] Opening library for 9×9, where no joseki from the big board survives contact.
 
 ## Phase 6: Masters and books
 
@@ -1285,9 +1326,28 @@ Free, because the engine already does the hard part:
 - [ ] Bots that show their work: after each house move, show the top three candidates
       and their weighted scores ("Tetsu: capture 16, atari 6, played here"). Only a
       heuristic bot can be this honest.
-- [ ] Every house player has a tell: make Moku's lobby line literal. Hoshi really forgets
-      ladders; a mirror-go persona copies you through tengen until you take tengen.
-      Exploit a tell to unlock the scouting report.
+- [x] The house players have pages, and the ladder says what it is (2026-09-12, branch
+      `feat/house-players`): `src/views/HousePlayer.jsx` is one page per persona, reached
+      from a roster row or from another player's page. It says what the thing is (software,
+      the same network asked to imitate a different kind of player), how closely it is asked
+      to follow (`faithfulnessOf`, four named bands over `profile.temperature`, with the
+      number printed beside the band), how it plays and what its tell is (`plays` and `tell`
+      on the persona, held by the suite to the house voice and to naming the temperature the
+      data actually carries), what it says at the table, and your own record against it from
+      the device's ring buffer, marked thin under five games.
+      The ladder is three sections with a sentence under each heading instead of two
+      one-word heads. Your rank comes first and on its own, rather than sorted in among the
+      bots. The house list stopped being a ladder: it had been sorted by rating with a crown
+      on the strongest, which is meaningless when every one of them plays at whatever level
+      the table is set to, and which invited the belief the lobby spends a paragraph denying.
+      `PlayView` takes `withBot`, so the page's button sits you down rather than returning
+      you to the lobby beside the card you just left.
+- [ ] The tells are written, not measured. Hoshi really does forget ladders and Tetsu really
+      does answer contact with contact, but nothing in the suite proves either, and the
+      telemetry ring buffer is the thing that could: it keeps enough per-bot to check whether
+      a persona's stated habit shows up in its games. Until then a tell is a claim by the
+      author, which is the one kind of claim this repo usually refuses.
+- [ ] Exploit a tell to unlock the scouting report: make Moku's lobby line literal.
 
 A weekend each:
 - [ ] Tsumego mined from your own games: scan a finished record for positions where a

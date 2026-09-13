@@ -6,7 +6,7 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
-## v0.8.2.0 (2026-09-12)
+## v0.9.3.0 (2026-09-12)
 
 ### Added
 
@@ -24,6 +24,78 @@ They are left as they were written rather than rewritten after the fact.
 
 - The four sets sit in four columns on a wide screen and two on a narrow one, instead of
   three and a widow at the width a laptop actually is.
+
+## v0.9.2.0 (2026-09-12)
+
+### Added
+
+- **Two opening lessons on nineteen lines, and the verdicts in them were measured.**
+  *The Big Points* (12k) is corners, then sides, then the centre, and it shows the
+  numbers: on an empty board the 4-4 point carries a sixth of the network's weight and
+  tengen carries four hundred times less; two moves later the middle of a side is
+  eightieth, and once the corners are gone the same point is second. Nothing about the
+  point changed. *The Third Line and the Fourth* (8k) asks which line a side point goes
+  on between two of your own corner stones, and the network answers 0.235 for the fourth
+  line, 0.050 for the third and a hundred and twelfth place for the second.
+- **A lesson can no longer mark the wrong answer best.** Where a choice step carries
+  `net` on its options, the weight and rank the human network gave that point in that
+  exact position, the suite requires the option marked best to be the one the network
+  ranked first. An author who disagrees with the measurement has to change the
+  measurement or drop it, not quietly overrule it.
+- `tools/joseki/policy.py` grew `--cands`, which reports named points at the last
+  position of a sequence. That is how the verdicts above were read off.
+## v0.9.1.0 (2026-09-12)
+
+### Added
+
+- **Every house player has a page now.** Who it is, what it runs on, how closely it is
+  asked to follow the player it imitates, how it plays, the one habit you can exploit,
+  what it says at the table, and your own record against it. A row on the ladder opens
+  it, and the page has a button that sits you straight down opposite.
+- **The temperature is said out loud.** It is the one number on a house player you can
+  feel at the board and the one nobody could have guessed from the bio: how widely the
+  move is drawn from what the imitated player might have done. Hoshi is at 1.0 and will
+  surprise you; Tatsuo is at 0.4 and will not. Four named bands, with the number beside
+  them.
+- **Your record against a house player**, counted from the device's own ring buffer, rated
+  games only, and it says so: where the count is under five games it says that what you
+  are looking at is a number rather than a rate. The buffer has never left the machine
+  and nothing reads it.
+
+### Changed
+
+- **The ladder is three sections and each one says what it is.** Your rank first, on its
+  own, instead of sorted in among the bots. Then the people. Then the house players.
+- **The house players are no longer drawn as a ladder.** The old table ranked them by
+  rating and put a crown on the strongest, which is meaningless: every one of them plays
+  at whatever level the table is set to. Ranking them invited exactly the belief the
+  lobby spends a paragraph denying, that you have to graduate from one bot to the next.
+  It is a roster, in range order, and it says so above the list.
+## v0.9.0.0 (2026-09-12)
+
+### Added
+
+- **The corner dictionary.** The place has been called Joseki since it was renamed and it
+  held no joseki. It holds four now, all on the star point: the knight's move answer, the
+  high approach, the attachment, and the 3-3 invasion. Each one is a sequence you step
+  through a move at a time, or let run, with the reason for the move you are standing on
+  beside the board and what each side ended up with at the finish. The 3-4 and 3-3 points
+  are on the shelf and marked unwritten rather than left out.
+- **Every move was walked out with the network this server already ships.** A joseki is a
+  claim about judgement and `tryPlay` has no opinions about judgement, so the sequences
+  were not written from memory: `tools/joseki/policy.py` asks the human network, one move
+  at a time at a professional profile, which move it would play in that corner, and every
+  move in the dictionary is the move it named. The rank and the weight it gave are
+  recorded on the move and shown under it.
+- **A move nobody had to play is labelled a choice.** Where to approach, whether to invade
+  the 3-3, whether to attach instead of answering quietly: those are decisions made for
+  reasons off the board, and the dictionary says so rather than dressing them up as the
+  only move. It records what the network thought of them anyway, which is sometimes
+  unflattering: it puts the attachment ninth in the corner, and the attachment is still a
+  joseki.
+- **The board can be cropped.** `Board` takes a `crop` and moves only its viewBox, so a
+  corner sequence on nineteen lines is readable at page width and on a phone. The board is
+  still nineteen lines and the edge is still the edge.
 
 ## v0.8.1.0 (2026-09-12)
 
