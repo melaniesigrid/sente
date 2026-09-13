@@ -1331,6 +1331,23 @@ export class Registry extends DurableObject {
      player's say-so, and there must never be one. `legal.js` says there is no
      list anybody can be added to, and a club is a list. */
 
+  /** The Durable Object that holds one club's hall. Reached only to tell it
+   *  something — a role named, somebody gone, the club renamed, the club
+   *  closed — and never to ask it anything: what is said in a hall is that
+   *  object's business and no screen asks the Registry for it. */
+  #hall(clubId) {
+    return this.env.CLUB.get(this.env.CLUB.idFromName(clubId));
+  }
+
+  /** Tell a hall something, if it has ever been opened.
+   *
+   *  Swallowed and not awaited on the caller's behalf: a club whose hall
+   *  nobody has walked into has no object to tell, and a role change must not
+   *  fail because a room nobody is standing in did not answer. */
+  async #tellHall(clubId, frame) {
+    try { await this.#hall(clubId).announce(frame); } catch { /* never opened */ }
+  }
+
   async #club(id) {
     return readClub(await this.ctx.storage.get(clubKey(id)));
   }
@@ -1514,6 +1531,8 @@ export class Registry extends DurableObject {
       ...(club ? { [clubKey(clubId)]: club } : {}),
       [clubsKey(playerId)]: mine.filter((x) => x !== clubId),
     });
+    // The hall puts them out of the room as well as telling the people in it.
+    await this.#tellHall(clubId, { t: "left", who: playerId });
   }
 
   /** Name or unname a keeper. */
@@ -1524,6 +1543,7 @@ export class Registry extends DurableObject {
     if (r.error) throw new Error(r.error);
     if (r.outcome !== "unchanged") {
       await this.ctx.storage.put(memberKey(clubId, targetId), r.membership);
+      await this.#tellHall(clubId, { t: "role", who: targetId, role: r.membership.role });
     }
     return { outcome: r.outcome, role: r.membership.role };
   }
@@ -1549,6 +1569,7 @@ export class Registry extends DurableObject {
     if (r.error) throw new Error(r.error);
     const index = await this.#reindexClub(club, r.club);
     await this.ctx.storage.put({ [clubKey(clubId)]: r.club, ...index });
+    await this.#tellHall(clubId, { t: "club", club: clubFace(r.club) });
     return this.#clubForMember(r.club, actor);
   }
 
@@ -1591,6 +1612,8 @@ export class Registry extends DurableObject {
       ...(club.code ? [codeKey(club.code)] : []),
       ...this.#clubIndex(club),
     ]);
+    // What was said in it lives in an object of its own, and goes with it.
+    try { await this.#hall(club.id).erase(); } catch { /* never opened */ }
   }
 
   /** Every club this player is in, left. A founder's club is closed rather
@@ -1602,10 +1625,30 @@ export class Registry extends DurableObject {
       const club = await this.#club(clubId);
       if (!club) continue;
       const mine = await this.#membership(clubId, playerId);
-      if (mine && mine.role === "founder") await this.#eraseClub(club);
-      else await this.#unseat(clubId, playerId, { ...club, members: Math.max(0, club.members - 1) });
+      if (mine && mine.role === "founder") { await this.#eraseClub(club); continue; }
+      await this.#unseat(clubId, playerId, { ...club, members: Math.max(0, club.members - 1) });
+      /* And every line they said in it. This is the one case where that
+         happens: walking out of a club and being shown the door both leave
+         what you said where it was, because you said it in a room to the
+         people in it, and taking it with you would rewrite a conversation
+         other people took part in. Leaving Joseki is the promise the other
+         way round, and the notice makes it. */
+      try { await this.#hall(clubId).forgetPlayer(playerId); } catch { /* never opened */ }
     }
     await this.ctx.storage.delete(clubsKey(playerId));
+  }
+
+  /** The member a hall socket should be opened for, or null. The Worker asks
+   *  this before it hands out a socket, so the Club object never has to know
+   *  what a membership is: it is given one, or it is given nothing. */
+  async hallSeat(playerId, clubId) {
+    const club = await this.#club(clubId);
+    if (!club) return null;
+    const mine = await this.#membership(clubId, playerId);
+    if (!mine) return null;
+    const p = await this.ctx.storage.get(`player:${playerId}`);
+    if (!p) return null;
+    return { id: playerId, name: p.name, tint: p.tint, role: mine.role, club: clubId };
   }
 
   /** Which clubs answer to that name. Listed ones only: the index holds nobody

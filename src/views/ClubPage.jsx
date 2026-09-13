@@ -14,6 +14,7 @@ import {
   clubLine, roleLabel, rowActs, clubActs, clubProblem, clubErrorText,
   withoutMember, withRole, NAME_MAX, ABOUT_MAX,
 } from "./club.js";
+import { Hall } from "./Hall.jsx";
 
 /* ----------------------- A CLUB, FROM INSIDE -----------------------
    The place, its roll, and the very small amount of authority anybody has in
@@ -138,6 +139,15 @@ export function ClubPage({ clubId, go, onBack, notify }) {
               </div>
             </div>
           </Card>
+
+          {/* The hall comes before the roll: it is the room, and the roll is
+              the list of who may be in it. A club opened to see what is going
+              on should show what is going on. */}
+          {club.role && account && (
+            /* Keyed on the club, so opening a second one from a roll row
+               mounts its room rather than re-pointing this one at it. */
+            <Hall key={club.id} club={club} token={token} me={account.player.id} notify={notify} />
+          )}
 
           {club.role && (
             <Card className="club-roll">

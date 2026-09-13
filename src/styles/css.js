@@ -2081,6 +2081,43 @@ ${FONT_FACES}
 }
 .club-code-input { font-family: var(--font-typewriter); letter-spacing: .18em; text-transform: uppercase; }
 .find-clubs { display: flex; flex-direction: column; gap: 8px; }
+/* ---- the hall ----
+   A room, drawn as a sunken well with a scroll in it and a box under it. The
+   well is the one sunken thing on the card, so the card stays raised and the
+   room inside it reads as a recess: the same two shadows, the same way round.
+
+   Lines are gathered into blocks by whoever said them, so a conversation reads
+   by the paragraph rather than one repeated name at a time. The cross that
+   unsays a line only appears on hover or focus: it belongs to the line, and a
+   room with a cross on every line is a room that looks like a form. */
+.hall-card { display: flex; flex-direction: column; gap: 12px; }
+.hall-card h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }
+.hall-live { display: inline-flex; align-items: center; gap: 6px; flex: none; color: var(--accent-ink); }
+.hall-channels { display: flex; flex-direction: column; gap: 8px; }
+.hall-channels .seg { flex-wrap: wrap; }
+.hall-channels .seg-btn { display: inline-flex; align-items: center; gap: 5px; }
+.hall-lines {
+  display: flex; flex-direction: column; gap: 13px;
+  max-height: 420px; overflow-y: auto; padding: 14px;
+  border-radius: 16px; box-shadow: var(--sink-sm);
+}
+.hall-block { display: flex; gap: 11px; align-items: flex-start; }
+.hall-said { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.hall-who { display: flex; align-items: baseline; gap: 8px; }
+.hall-who strong { font-size: 14.5px; }
+.hall-line {
+  margin: 0; font-size: 14.5px; line-height: 1.45; white-space: pre-wrap;
+  overflow-wrap: anywhere; position: relative; padding-right: 20px;
+}
+.hall-unsay {
+  position: absolute; top: 1px; right: 0; opacity: 0;
+  border: 0; background: none; color: var(--ink-2); cursor: pointer;
+  padding: 2px; border-radius: 7px; transition: opacity .12s ease;
+}
+.hall-line:hover .hall-unsay, .hall-unsay:focus-visible { opacity: 1; }
+.hall-composer { display: flex; align-items: flex-end; gap: 8px; }
+.hall-input { resize: vertical; min-height: 44px; font: 500 14.5px var(--font-body); }
+.hall-send { display: flex; align-items: center; gap: 8px; flex: none; }
 /* ---- friends who are here ----
    The friends card's rows once more, on their own card above the lobby. It
    only ever exists when somebody is on it, so there is no empty state to

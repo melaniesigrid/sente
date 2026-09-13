@@ -2584,8 +2584,24 @@ on the foundation it was deferred onto.
       see it" would be most of what unlisted was for. A listed one joins the same
       directory handles are in, bounded the same way: two characters, a prefix, twenty
       answers, no count, a session required.
-- [ ] **The hall** (branch `feat/hall`): a Durable Object per club — hibernating sockets,
-      a pure reducer, live talk, who is standing there, and the last 500 lines.
+- [x] **The hall** (branch `feat/hall`): a Durable Object per club — hibernating sockets,
+      a pure reducer, live talk, who is standing there, and the last 500 lines. The Room
+      object's shape applied to a room with no board in it: parse a frame, `applyHall`,
+      store, broadcast. `server/hall.js` is the policy, pure, in 33 cases;
+      `tools/server/hall.mjs` proves it against a deployment in 25 checks over real
+      sockets, and two browser tabs were driven through one room talking to each other.
+      Channels arrived with it rather than after it, because the storage shape needed
+      them from the first write; what slice three adds is the rest of keeping them.
+      **A hall is not the post, and both are worth having.** The post is one thread a
+      pair, kept, with no read receipts, from somebody you agreed to hear from. A hall is
+      live, said to whoever is standing there, and keeps five hundred lines and no more.
+      That last part is where this deliberately parts company with Discord: keeping
+      everything for good on a free Worker is a storage bill nobody agreed to pay, and a
+      promise about other people's words that is easier to make than to keep. The screen
+      says it rather than letting somebody find out.
+      **Presence in a hall is the one place `showOnline` does not decide.** A room you
+      walked into is a room the people in it can see you in. Said on the screen, because
+      it is the only exception to a setting people were told governs this.
 - [ ] **Channels and keeping** (branch `feat/keeping`): several named channels, the four
       powers in use, and a game invitation posted into a channel that any member may take
       up.

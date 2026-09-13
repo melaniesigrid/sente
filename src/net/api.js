@@ -137,6 +137,14 @@ export const api = {
     call(`/api/clubs/${encodeURIComponent(id)}`, { method: "PATCH", token, body: patch }),
   rollClubCode: (token, id) => call(`/api/clubs/${encodeURIComponent(id)}/code`, { method: "POST", token }),
   closeClub: (token, id) => call(`/api/clubs/${encodeURIComponent(id)}`, { method: "DELETE", token }),
+  addChannel: (token, id, name) =>
+    call(`/api/clubs/${encodeURIComponent(id)}/channels`, { method: "POST", token, body: { name } }),
+  renameChannel: (token, id, channelId, name) =>
+    call(`/api/clubs/${encodeURIComponent(id)}/channels/${encodeURIComponent(channelId)}`,
+      { method: "PATCH", token, body: { name } }),
+  removeChannel: (token, id, channelId) =>
+    call(`/api/clubs/${encodeURIComponent(id)}/channels/${encodeURIComponent(channelId)}`,
+      { method: "DELETE", token }),
   setClubRole: (token, id, playerId, role) =>
     call(`/api/clubs/${encodeURIComponent(id)}/members/${encodeURIComponent(playerId)}`,
       { method: "PUT", token, body: { role } }),
@@ -223,5 +231,10 @@ export function openSocket(path, { onFrame, onStatus = () => {} }) {
 }
 
 export const lobbySocket = (token, handlers) => openSocket(`/api/lobby?token=${encodeURIComponent(token)}`, handlers);
+/* A club's hall. Only a member is ever handed one: the Worker asks the
+   Registry before the socket exists, so a refusal here is a closed socket and
+   not an empty room. */
+export const hallSocket = (clubId, token, handlers) =>
+  openSocket(`/api/clubs/${encodeURIComponent(clubId)}/hall?token=${encodeURIComponent(token)}`, handlers);
 export const gameSocket = (id, token, handlers) =>
   openSocket(`/api/game/${encodeURIComponent(id)}/ws${token ? `?token=${encodeURIComponent(token)}` : ""}`, handlers);
