@@ -5,6 +5,7 @@
      POST  /api/register        {name, tint}   -> {token, player}; 429 past a few an hour
      POST  /api/signup          {name, tint, email, key} -> {token, player}
      POST  /api/signin          {email, key}   -> {token, player}; 429 past a few an hour
+     POST  /api/waitlist        {email}        -> {ok:true}; 409 once the list is full
      POST  /api/signout         bearer {everywhere} -> {ok}
      POST  /api/me/account      bearer {email, key}  -> add an account to a handle
      POST  /api/me/password     bearer {oldKey, key} -> change it
@@ -24,6 +25,8 @@
      POST   /api/admin/players/:id/reseed  ADMIN_TOKEN bearer (:id may be an address)
      GET   /api/admin/players          ADMIN_TOKEN bearer
      DELETE /api/admin/ratelimit/:ip   ADMIN_TOKEN bearer
+     GET    /api/admin/waitlist        ADMIN_TOKEN bearer -> who is waiting
+     DELETE /api/admin/waitlist/:email ADMIN_TOKEN bearer
      POST   /api/admin/mail/:kind/:id  ADMIN_TOKEN bearer -> the link, unsent
      PATCH /api/me/profile      bearer {bio, facts}
      PUT   /api/me/avatar       bearer, image body  -> the picture, at most 64 KB
@@ -40,7 +43,7 @@
      PUT   /api/me/featured/:gameId bearer {note} -> show a game on your page
      DELETE /api/me/featured/:gameId bearer     -> take it off again
      GET   /api/ladder                         -> top players
-     GET   /api/stats                          -> {players, online, seeking}
+     GET   /api/stats                          -> {players, online, seeking, cap, full}
      GET   /api/stats/history?days=            -> a row a day, oldest first
      GET   /api/lobby?token=    websocket      -> matchmaking
      GET   /api/game/:id                       -> the room (public)
@@ -76,6 +79,15 @@ export default {
         // one is "check what you pasted", the other "ask for another".
         "bad-token": 400, "token-expired": 410,
         exists: 409, "email-taken": 409, "already-attached": 409, "already-verified": 409,
+        /* A full beta is a conflict with the state of the server and not a bad
+           request: the same call worked last week and will work again when the
+           cap goes up. 503 would say the server is broken, which it is not. */
+        "beta-full": 409,
+        /* And a waiting list with no room left. Said out loud rather than
+           answered `{ok:true}`: uniform answers here exist to stop somebody
+           asking who plays on Joseki, and "the list is full" is a fact about
+           the list and about nobody. */
+        "list-full": 409,
         "mail-failed": 502,
         /* Friends. Everything that is refused here is refused for the state
            the two books are in, which is a conflict and not a bad request:
@@ -118,6 +130,18 @@ async function route(req, env) {
   if (path === "/api/signup" && req.method === "POST") {
     const b = await readJson(req);
     return limited(() => reg.signUp(b.name, b.tint, b.email, b.key, callerIp(req)), 201);
+  }
+
+  /* The beta is a fixed number of seats (server/beta.js). Past it, `register`
+     and `signup` answer 409 `beta-full` and this is where an address goes
+     instead. It answers `{ok: true}` the same way for an address that is new,
+     one already waiting and one that already has an account, so that it cannot
+     be asked who plays here; a list with no room left answers 409 `list-full`
+     to everybody alike, which says something about the list and nothing about
+     anybody on it. */
+  if (path === "/api/waitlist" && req.method === "POST") {
+    const b = await readJson(req);
+    return limited(() => reg.joinWaitlist(b.email, callerIp(req)));
   }
 
   if (path === "/api/signin" && req.method === "POST") {
@@ -224,6 +248,21 @@ async function route(req, env) {
         : await reg.startReset((await reg.self(id))?.email);
       if (!minted) return fail(404, "no-player");
       return json({ kind: minted.kind, link: mailLink(mailConfig(env).appUrl, minted.kind, minted.token) });
+    }
+
+    /* The waiting list: who to invite when the cap goes up, longest wait
+       first, and a way to take one off again once they are in. */
+    const wait = /^\/api\/admin\/waitlist(?:\/([^/]+))?$/.exec(path);
+    if (wait) {
+      if (!wait[1] && req.method === "GET") return json(await reg.waitlist());
+      if (wait[1] && req.method === "DELETE") {
+        // `%zz` throws URIError out of decodeURIComponent, which would leave
+        // the admin block as an unhandled 500 rather than a bad request.
+        let email;
+        try { email = decodeURIComponent(wait[1]); } catch { return fail(400, "bad-email"); }
+        return json({ removed: await reg.forgetWaiting(email) });
+      }
+      return fail(405, "method");
     }
 
     // What the edge tells us about a caller, for checking the limit is seeing addresses.
@@ -418,7 +457,7 @@ async function limited(run, ok = 200) {
     return json(await run(), ok);
   } catch (e) {
     if (!["too-many-handles", "too-many-attempts", "too-many-letters",
-      "too-many-requests", "too-many-letters-sent"].includes(e.message)) throw e;
+      "too-many-requests", "too-many-letters-sent", "too-many-asks"].includes(e.message)) throw e;
     const secs = Math.ceil((e.retryAfterMs ?? 3600000) / 1000);
     return json({ error: e.message }, 429, { "retry-after": String(secs) });
   }
