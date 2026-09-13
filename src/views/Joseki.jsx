@@ -56,7 +56,7 @@ export function JosekiView() {
   const j = authored ? localizeJoseki(authored, t) : null;
   const [at, setAt] = useState(authored?.moves.length ?? 0);
   const [running, setRunning] = useState(false);
-  useMokuFacts({ view: "joseki", seed: authored?.moves.length ?? 0 });
+  useMokuFacts({ view: "joseki", seed: `${selectedOpenId || "none"}:${authored?.moves.length ?? 0}` });
   const defaultAt = authored?.moves.length ?? 0;
   const shownAt = selectedOpenId === openId ? Math.min(at, defaultAt) : defaultAt;
 

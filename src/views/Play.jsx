@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Play, Users, Handshake, Minus, Plus, Home, TrendingUp, TrendingDown, X } from "lucide-react";
 import { Avatar, RankBadge, Btn, Statement } from "../components/ui.jsx";
 import { ScreenHeader } from "../components/ScreenHeader.jsx";
@@ -66,26 +66,18 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
      you just clicked: somebody who pressed "Sit down with Tetsu" has already
      chosen. The level is the table's, exactly as if the card had been
      clicked, so nothing about the game is different from the lobby route. */
-  const initialRouteKey = resume
+  const routeKey = resume
     ? `resume:${resume.mode.kind}:${resume.mode.gameId || resume.mode.persona?.id || ""}:${resume.record?.moves?.length || 0}`
     : openGame ? `online:${openGame}`
      : withBot ? `bot:${withBot}`
        : null;
-  const [sessionState, setSessionState] = useState(() => ({
-    routeKey: initialRouteKey,
-    session: routeSession({ profile, resume, openGame, withBot, t }) || linkedGame(),
-  }));
-  if (sessionState.routeKey !== initialRouteKey) {
-    setSessionState({
-     routeKey: initialRouteKey,
-     session: routeSession({ profile, resume, openGame, withBot, t }) || linkedGame(),
-    });
-  }
-  const session = sessionState.session;
-  const setSession = (next) => setSessionState((state) => ({
-    routeKey: state.routeKey,
-    session: typeof next === "function" ? next(state.session) : next,
-  }));
+  const [session, setSession] = useState(() => routeSession({ profile, resume, openGame, withBot, t }) || linkedGame());
+  const lastRouteKey = useRef(routeKey);
+  useEffect(() => {
+    if (routeKey === lastRouteKey.current) return;
+    lastRouteKey.current = routeKey;
+    setSession(routeSession({ profile, resume, openGame, withBot, t }) || linkedGame());
+  }, [routeKey, profile, resume, openGame, withBot, t]);
   // The level the next game is played at. Starts at the player's own rank; every house
   // player adapts to it, so nobody has to "graduate" to an opponent.
   const myRank = rankOf(profile.rating);
