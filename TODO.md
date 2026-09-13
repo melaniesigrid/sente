@@ -26,8 +26,9 @@ is a snapshot: it will be wrong the week after somebody authors anything.
   rank the table asks for.
 - **1 book series** threaded through the library (the Classic in thirteen chapters, 20
   passages), on a shelf of six books.
-- **4 languages**: English, Spanish, French, German, with the parity suite refusing a
-  missing line, an invented key, or an overlay that names something the data does not have.
+- **8 languages**: English, Spanish, French, German, Simplified Chinese, Japanese,
+  Russian and Ukrainian, with the parity suite refusing a missing line, an invented key,
+  or an overlay that names something the data does not have.
 
 What is thinnest, in order: the joseki dictionary (four sequences, all of them on the star
 point), the tactics tsumego set (four boards, none of them a tesuji), the endgame track (two
@@ -1786,6 +1787,47 @@ that sweep is in this section:
 - The dashboard's duel card read `host.tagline` straight off the persona instead of
   through `localizePersona`, so a translated tagline showed in English on the one card
   every player sees first.
+
+### Russian and Ukrainian (done, 2026-09-13, v0.12.0.0, branch `feat/slavic`)
+
+Two Slavic languages at full parity with the six before them: every non-overlay key
+English has, the design system complete, the small print, the Classic, and the
+thirty-three lessons the other languages carry. Both are informal throughout, `ты` and
+`ти`, because Joseki talks to one person at a board.
+
+- [x] `ru` and `uk` in `LOCALES`, catalogues in `src/i18n/ru/` and `src/i18n/uk/`. Both
+      are four-form Slavic plurals, so a set is `{ one, few, many, other }`: `1 ход`,
+      `2 хода`, `5 ходов`, and `other` for the fractional case Intl keeps separate.
+- [x] The Cyrillic fallback. `withHan` grew up into `withScript` in
+      `content/typeface.js`: no pairing has a Cyrillic glyph either, because the five
+      Google text families are self-hosted as latin and latin-ext alone, which is all
+      Google cuts for them. The two languages share one list, which Chinese and
+      Japanese could not: the same letters, and no shared letter drawn differently.
+- [x] The corner dictionary. `josekiEntry.`, `josekiCorner.` and `josekiSource.` have
+      been in the parity test's namespace list since the dictionary shipped and no
+      language had ever filled them, so that screen was English in all six. A browser
+      sweep found it; these two fill it.
+
+Decisions:
+- Go words go home, and not through Russian on the way. Russian writes the Japanese
+  terms by Polivanov, the way the Russian books do (дзёсэки, цумэго, атари, сэки);
+  Ukrainian gives them Ukrainian phonetics rather than borrowing those spellings
+  (дзьосекі, цумего, атарі, секі). A Ukrainian reader hears the difference.
+- The ladder is `Рейтинг` in both and never `Лестница` or `Драбинка`, which are the
+  ladder *tactic*: the same trap German's `Leiter` and Chinese's 征 set.
+- The Classic is a modern-language rendering of Joseki's English rendering, and the
+  credit line says so, as it does in every other language. The thirty-two names in
+  chapter eleven stay romanised for the same reason they do everywhere else.
+
+Still English in every language, found by the sweep and left for their own change:
+- [ ] The masters' cards. `content/masters.js` assembles its sentences in code with no
+      `t` (the agreement line, the control line, the bios, the table talk), so a card
+      that says "55.3% agreement with the strong-player-of-1835 profile" says it in
+      every language. Fixing it is the documented convention (`t` last, defaulted) plus
+      a catalogue block, and it lands for eight languages at once rather than for two.
+- [ ] The ten library lessons no language has translated, and the front door's four
+      statement bands (`LANDING_STATEMENTS` in `content/plain.js`) and The Record
+      (`content/press.js`), both imported into `views/Landing.jsx` raw.
 
 ## Phase 8: Pair go
 

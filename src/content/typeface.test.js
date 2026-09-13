@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { TYPEFACES, DEFAULT_TYPEFACE, TYPEWRITER, typefaceOf, typefaceVars, withHan, captionOf, quoteOf, GOOGLE_FAMILIES } from "./typeface.js";
+import { TYPEFACES, DEFAULT_TYPEFACE, TYPEWRITER, typefaceOf, typefaceVars, withScript, captionOf, quoteOf, GOOGLE_FAMILIES } from "./typeface.js";
 import { FONT_FACES } from "../styles/fontfaces.js";
 import { GOOGLE_FACES } from "../styles/googleFaces.js";
 import { FAMILIES as FETCHED } from "../../tools/fonts/fetch.mjs";
@@ -173,32 +173,44 @@ describe("the Han fallback", () => {
       const ja = typefaceVars(t.id, "ja");
       for (const v of FONT_VARS) expect(zh[v], `${t.id} ${v}`).not.toBe(ja[v]);
     }
-    expect(withHan("'Fraunces', serif", "zh")).toMatch(/Songti|SC/);
-    expect(withHan("'Fraunces', serif", "ja")).toMatch(/Mincho|JP/);
+    expect(withScript("'Fraunces', serif", "zh")).toMatch(/Songti|SC/);
+    expect(withScript("'Fraunces', serif", "ja")).toMatch(/Mincho|JP/);
   });
 
   it("keeps a serif voice in a serif and a sans voice in a gothic", () => {
     // The pairing's own generic keyword is what says which, and `sans-serif`
     // ends in the letters `serif` without being one: reading it as a serif
     // would put a Mincho under every grotesk in the app.
-    expect(withHan("'Fraunces', serif", "ja")).toMatch(/Mincho/);
-    expect(withHan("'Hanken Grotesk', sans-serif", "ja")).toMatch(/Gothic|Hiragino Sans/);
-    expect(withHan("'Hanken Grotesk', sans-serif", "ja")).not.toMatch(/Mincho/);
-    expect(withHan("'Hanken Grotesk', sans-serif", "zh")).not.toMatch(/Songti/);
+    expect(withScript("'Fraunces', serif", "ja")).toMatch(/Mincho/);
+    expect(withScript("'Hanken Grotesk', sans-serif", "ja")).toMatch(/Gothic|Hiragino Sans/);
+    expect(withScript("'Hanken Grotesk', sans-serif", "ja")).not.toMatch(/Mincho/);
+    expect(withScript("'Hanken Grotesk', sans-serif", "zh")).not.toMatch(/Songti/);
     // The typewriter is a slab to begin with, and a passage set in a gothic
     // would be a notice board.
-    expect(withHan(TYPEWRITER, "zh")).toMatch(/Songti/);
+    expect(withScript(TYPEWRITER, "zh")).toMatch(/Songti/);
+  });
+
+  it("puts a Cyrillic face behind both Slavic languages, in the pairing's register", () => {
+    // Not a CJK-sized problem: a generic keyword resolves to a real face with
+    // real Cyrillic everywhere. It is a better-drawing problem, and the two
+    // languages are set in the same letters, so they get the same list.
+    expect(withScript("'Fraunces', serif", "ru")).toMatch(/PT Serif|Georgia/);
+    expect(withScript("'Fraunces', serif", "uk")).toBe(withScript("'Fraunces', serif", "ru"));
+    expect(withScript("'Hanken Grotesk', sans-serif", "ru")).toMatch(/PT Sans|Segoe UI/);
+    expect(withScript("'Hanken Grotesk', sans-serif", "ru")).not.toMatch(/PT Serif/);
+    // The generic keeps its place at the end, so the browser still has a floor.
+    expect(withScript("'Fraunces', serif", "ru").trimEnd()).toMatch(/serif$/);
   });
 
   it("leaves a latin language, and anything that is not a list, alone", () => {
     for (const locale of ["en", "es", "fr", "de", undefined, null, "tlh", "system"]) {
-      expect(withHan("'Fraunces', serif", locale), String(locale)).toBe("'Fraunces', serif");
+      expect(withScript("'Fraunces', serif", locale), String(locale)).toBe("'Fraunces', serif");
       for (const t of TYPEFACES) {
         expect(typefaceVars(t.id, locale), `${t.id} ${locale}`).toEqual(typefaceVars(t.id));
       }
     }
     for (const junk of [undefined, null, 7, {}]) {
-      expect(withHan(junk, "zh")).toBe(junk);
+      expect(withScript(junk, "zh")).toBe(junk);
     }
   });
 
