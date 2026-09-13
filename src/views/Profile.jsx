@@ -29,6 +29,7 @@ import { OnlineProfileCard } from "./OnlineProfile.jsx";
 import { useT } from "../components/langStore.js";
 import { FriendsCard } from "./FriendsCard.jsx";
 import { FindCard } from "./FindCard.jsx";
+import { ClubsCard } from "./ClubsCard.jsx";
 import { useFriends } from "./useFriends.js";
 import { ArchiveCard } from "./ArchiveCard.jsx";
 import { LettersCard } from "./LettersCard.jsx";
@@ -236,6 +237,7 @@ export function ProfileView({ profile, setProfile, go, room, notify, writeTo = n
           written to. A button that mostly refuses is worse than no button. */}
       {account && <FindCard account={account} go={go} friends={friends} />}
       {account && <FriendsCard account={account} go={go} friends={friends} write={write} />}
+      {account && <ClubsCard account={account} go={go} notify={notify} />}
 
       <Statement lines={statementFor("profile", t)} figure="profile" at="left">{plainFor("profile", t)}</Statement>
       <Card className="passage-card"><Passage context="profile" /></Card>

@@ -19,6 +19,7 @@ import { front } from "./front.js";
 import { rooms } from "./rooms.js";
 import { legal, legalDoc, credit } from "./legal.js";
 import { online } from "./online.js";
+import { club } from "./club.js";
 import { account } from "./account.js";
 import { voice } from "./voice.js";
 import { room, stones, type, belt, badge, fact, seen } from "./overlay.js";
@@ -43,6 +44,7 @@ export const ja = {
   legalDoc,
   credit,
   online,
+  club,
   account,
   voice,
   room,

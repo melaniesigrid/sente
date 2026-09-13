@@ -1,7 +1,8 @@
 {
-  // Joseki game server: one Worker, two Durable Object classes.
+  // Joseki game server: one Worker, three Durable Object classes.
   //   Registry  a single instance ("main"): accounts, tokens, matchmaking, the ladder
   //   Room      one instance per game: the GameRecord, seats, chat, sockets
+  //   Club      one instance per club: the hall, its channels, who is standing in it
   // Deploy with `npm run deploy:server`; develop with `npm run dev:server` (port 8787).
   "$schema": "node_modules/wrangler/config-schema.json",
   // The script name stays `sente-server` for the same reason the storage keys
@@ -39,10 +40,15 @@
   "durable_objects": {
     "bindings": [
       { "name": "REGISTRY", "class_name": "Registry" },
-      { "name": "ROOM", "class_name": "Room" }
+      { "name": "ROOM", "class_name": "Room" },
+      { "name": "CLUB", "class_name": "Club" }
     ]
   },
+  /* A new tag rather than an edit to v1: migrations are a log, and a class
+     that was never in v1 has to arrive in a tag of its own, or a Worker that
+     has already been deployed has nothing left to apply. */
   "migrations": [
-    { "tag": "v1", "new_sqlite_classes": ["Registry", "Room"] }
+    { "tag": "v1", "new_sqlite_classes": ["Registry", "Room"] },
+    { "tag": "v2", "new_sqlite_classes": ["Club"] }
   ]
 }
