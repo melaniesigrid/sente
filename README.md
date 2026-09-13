@@ -23,10 +23,15 @@ problems, climb a Glicko-2 ladder, and keep a persistent profile.
   as many as its free plan carries without failing for everybody. Once the seats are taken
   the account gate offers a waiting list instead of a form: an address and the day it was
   left, kept for one letter and nothing else.
-- **Languages**: English, Spanish, French, German, Simplified Chinese, Japanese, Russian
-  and Ukrainian. Every screen, not a sample: the design system, the small print, the
+- **Languages**: English, Spanish, French, German, Simplified Chinese, Japanese, Russian,
+  Ukrainian and Hebrew. Every screen, not a sample: the design system, the small print, the
   Classic and the library all read in the language you pick, and the picker in the top
-  bar names each one in its own words.
+  bar names each one in its own words. Hebrew is the first of them written right to left.
+  Direction is a fact about the language, so it sits on the language and the shell puts it
+  on the document before React mounts; the stylesheet asks for the start and end of a line
+  rather than the left and right of a screen. The board does not turn around with the page:
+  A1 is in the same corner in Tel Aviv as in Tokyo. Hebrew's library and Classic are still
+  English, because each of those is translated whole or not at all.
 
 ## Design
 
@@ -50,7 +55,7 @@ Requires Node 20+.
 
 ```
 index.html          HTML shell, fonts, favicon
-src/main.jsx        React entry
+src/main.jsx        React entry; sets the document's lang and dir before React mounts
 src/App.jsx         Shell: nav, routing state, profile store, toasts, error boundaries
 src/engine/         Pure rules kernel, one module per concern, tests beside each:
   board.js          {size, cells} boards, star points, chains, pointLabel/parsePoint
@@ -69,6 +74,9 @@ src/views/          One file per screen (Home, Play, Game, Learn, Problems, Rank
                     the tables you are the hold-up on, tableTalk.js reads the coordinates
                     and the etiquette in a chat line
 src/store/          localStorage: profile, in-progress game, online account
+src/i18n/           Languages as data (locales.js, including each one's `dir`) and one
+                    catalogue folder per language; index.js is the import surface and
+                    i18n.test.js holds every catalogue at parity with English
 src/net/api.js      The one module that knows the server URL and routes
 server/             Cloudflare Worker: router, Registry and Room Durable Objects,
                     pure room reducer and Glicko-2 with tests beside them; beta.js is

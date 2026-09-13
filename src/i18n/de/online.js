@@ -57,6 +57,13 @@ export const online = {
     pair: "Paar-Go",
   },
 
+  here: {
+    head: "Gerade hier",
+    note: "Die Freunde, die in der Halle sind und es dich sehen lassen. Niemand wird je als abwesend gezeigt: nicht da zu sein und es nicht zu sagen, sieht von außen gleich aus.",
+    record: "{wins}–{losses}",
+    ask: "{size}×{size} vorschlagen",
+  },
+
   find: {
     head: "Jemanden finden",
     note: "Tipp einen Namen oder einen Teil davon. Nur wer hier spielt, kann jemanden suchen, und eine Suche antwortet mit ein paar Leuten, nie mit einer Liste.",
@@ -138,6 +145,7 @@ export const online = {
     removeName: "{name} entfernen",
     declineName: "{name} ablehnen",
     takeBackName: "Die Anfrage an {name} zurücknehmen",
+    writeName: "{name} schreiben",
     act: {
       friends: "Befreundet",
       remove: "Freund entfernen",
@@ -176,7 +184,7 @@ export const online = {
   lobby: {
     matched: "Zusammengeführt mit {name} · du spielst {side}",
     signedOut: "Abgemeldet. Deine Wertung wartet auf dich.",
-    kept: "Dieser Name gehört dir jetzt auf jedem Gerät. Halte Ausschau nach einem Brief, der die Adresse bestätigt.",
+    kept: "Dieser Name gehört dir jetzt auf jedem Gerät.",
     leaveAsk: "Die Rangliste verlassen? Dieser Name, sein Schlüssel und seine Wertung werden endgültig entfernt. Beendete Partien bleiben.",
     noServer: "Der Server war nicht erreichbar; versuch es noch einmal",
     removed: "Name entfernt",
@@ -222,9 +230,6 @@ export const online = {
     keepHandle: "Behalte diesen Namen",
     notNow: "Jetzt nicht",
     attachNote: "Deine Wertung, deine Partien und dein Name bleiben genau, wie sie sind.",
-    sending: "Wird gesendet…",
-    confirmNudge: "Joseki hat von {email} nie etwas zurückgehört. Bestätige sie, und du weißt, dass ein Brief dich erreichen kann.",
-    confirmSent: "Ein Brief ist unterwegs zu {email}. Der Link darin gilt eine Woche und funktioniert einmal. Kommt er nicht an, sieh im Spam-Ordner nach, bevor du einen weiteren anforderst.",
   },
 
   /* The main room: games in progress a person may sit beside. Which games

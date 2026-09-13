@@ -57,6 +57,13 @@ export const online = {
     pair: "ペア碁",
   },
 
+  here: {
+    head: "いま来ています",
+    note: "広間にいて、それを見せてもよいとしている友だちです。いないことは決して表示しません。いないのと、言わないでおくのとは、外からは同じに見えます。",
+    record: "{wins}勝{losses}敗",
+    ask: "{size}路を誘う",
+  },
+
   find: {
     head: "人を探す",
     note: "名前か、その一部を入れてください。探せるのはここで打つ人だけで、返るのは何人かであって、名簿ではありません。",
@@ -138,6 +145,7 @@ export const online = {
     removeName: "{name}を外す",
     declineName: "{name}を断る",
     takeBackName: "{name}への申し込みを取り下げる",
+    writeName: "{name}さんに手紙を書く",
     act: {
       friends: "友だち",
       remove: "友だちを外す",
@@ -176,7 +184,7 @@ export const online = {
   lobby: {
     matched: "{name}と組み合いました · こちらは{side}",
     signedOut: "出ました。レートはここで待っています。",
-    kept: "この名は、どの端末でも自分のものになりました。宛先を確かめる手紙が届きます。",
+    kept: "この名は、どの端末でも自分のものになりました。",
     leaveAsk: "ランキングを離れますか。この名も、その鍵も、レートも、永久に消えます。打ち終えた対局は残ります。",
     noServer: "サーバーに届きませんでした。もう一度どうぞ",
     removed: "名を消しました",
@@ -221,9 +229,6 @@ export const online = {
     keepHandle: "この名を残す",
     notNow: "いまはやめておく",
     attachNote: "レートも、対局も、名も、そのままです。",
-    sending: "送っています…",
-    confirmNudge: "Joseki は {email} からの返事をまだ受け取っていません。確かめておけば、手紙が届くと分かります。",
-    confirmSent: "{email} あてに手紙を送りました。中のリンクは一週間もち、一度だけ使えます。届かないときは、次を頼む前に迷惑メールを見てください。",
   },
 
   /* The main room: games in progress a person may sit beside. Which games

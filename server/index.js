@@ -37,6 +37,22 @@
      GET   /api/games           bearer         -> recent games
      GET   /api/live            bearer optional -> games in progress you may watch
      GET   /api/me/archive?cursor=&limit= bearer -> finished games, newest first
+     POST  /api/clubs           bearer {name, about, listed} -> found one
+     GET   /api/clubs?q=        bearer         -> listed clubs by name
+     GET   /api/clubs/code/:code bearer        -> what a code opens, its face only
+     GET   /api/clubs/:id       bearer         -> the club, and its roll to a member
+     POST  /api/clubs/:id/join  bearer {code}  -> walk in; the joiner's own call
+     DELETE /api/clubs/:id/me   bearer         -> walk out
+     PATCH /api/clubs/:id       bearer(founder) {name, about, listed}
+     POST  /api/clubs/:id/code  bearer(founder) -> a new code, stopping the old
+     DELETE /api/clubs/:id      bearer(founder) -> close it for good
+     GET   /api/me/clubs        bearer         -> the clubs you are in
+     GET   /api/clubs/:id/hall?token=  websocket -> the hall, for a member
+     POST  /api/clubs/:id/channels bearer(keeper) {name} -> a new channel
+     PATCH /api/clubs/:id/channels/:cid bearer(keeper) {name} -> rename it
+     DELETE /api/clubs/:id/channels/:cid bearer(keeper) -> remove it, and what is in it
+     PUT   /api/clubs/:id/members/:pid bearer(founder) {role} -> name a keeper
+     DELETE /api/clubs/:id/members/:pid bearer(keeper) -> show them the door
      GET   /api/me/invites      bearer         -> games you were asked for, and asked
      POST  /api/me/invites/:id  bearer {size, handicap, rated} -> ask them
      POST  /api/me/invites/:id/accept bearer    -> open the board
@@ -61,12 +77,15 @@ import { AVATAR_MAX_BYTES } from "./profile.js";
 import { askedIds } from "./presence.js";
 import { toSgf } from "../src/engine/sgf.js";
 import { callerIp } from "./ratelimit.js";
+import { may } from "./clubs.js";
 import { mailConfig, mailLink, verifyMessage, resetMessage } from "./mail.js";
 export { Registry } from "./registry.js";
 export { Room } from "./roomObject.js";
+export { Club } from "./clubObject.js";
 
 const registry = (env) => env.REGISTRY.get(env.REGISTRY.idFromName("main"));
 const room = (env, id) => env.ROOM.get(env.ROOM.idFromName(id));
+const hall = (env, id) => env.CLUB.get(env.CLUB.idFromName(id));
 const GAME_ID = /^g_[0-9a-f]{12}$/;
 
 export default {
@@ -114,6 +133,19 @@ export default {
            or will work a moment later. */
         "no-invite": 409, "they-asked-first": 409,
         "too-many-invites": 409, "their-invites-are-full": 409,
+        /* Clubs. `no-club` is a 404 and covers two different truths on
+           purpose: there is no such club, and there is one but it is unlisted
+           and you are not in it. Telling those apart would be most of what
+           being unlisted was for. `not-allowed` is a 403 because the person is
+           in the club and the act is simply not theirs to do. */
+        "no-club": 404, "bad-club-name": 400, "bad-code": 403,
+        /* The hall. A channel is part of a club's shape, so these are refused
+           for the state that shape is in rather than for a bad request. */
+        "too-many-channels": 409, "channel-exists": 409,
+        "bad-channel-name": 400, "no-such-channel": 404,
+        "already-a-member": 409, "club-is-full": 409, "too-many-clubs": 409,
+        "not-a-member": 403, "not-allowed": 403, "not-yourself": 400,
+        "no-such-role": 400, "founder-cannot-leave": 409, "no-code": 503,
       };
       if (known[e.message]) return fail(known[e.message], e.message);
       console.error("unhandled", e);
@@ -390,6 +422,115 @@ async function route(req, env) {
       url.searchParams.get("cursor"), url.searchParams.get("limit")));
   }
 
+  /* ----- clubs -----
+     A named place with a roll of members. Everything about who may see what is
+     in `server/clubs.js`; the routes only carry the caller's own id into it.
+
+     Note what is missing: there is no route that puts one player into a club.
+     Joining is `POST /api/clubs/:id/join` with the joiner's own token, and
+     nothing else. `legal.js` says there is no list anybody can be added to,
+     and a club is a list. */
+  if (path === "/api/clubs" && req.method === "POST") {
+    const player = await requirePlayer(req, reg);
+    const patch = await readJson(req);
+    return limited(() => reg.makeClub(player.id, patch), 201);
+  }
+
+  /* Searching clubs is the handle directory's twin and is bounded the same
+     way: two characters, a prefix, twenty answers, no count, and a session
+     required. Only clubs that chose to be listed are in the index at all. */
+  if (path === "/api/clubs" && req.method === "GET") {
+    await requirePlayer(req, reg);
+    return json(await reg.searchClubs(url.searchParams.get("q")), 200, { "cache-control": "no-store" });
+  }
+
+  if (path === "/api/me/clubs" && req.method === "GET") {
+    const player = await requirePlayer(req, reg);
+    return json(await reg.clubsOf(player.id), 200, { "cache-control": "no-store" });
+  }
+
+  /* What a code opens, before anybody commits to walking in. The face and
+     nothing else: holding a code earns the right to know what you are about to
+     join, not the right to read who is in it. */
+  if (path.startsWith("/api/clubs/code/") && req.method === "GET") {
+    await requirePlayer(req, reg);
+    return json(await reg.clubByCode(decodeURIComponent(path.slice("/api/clubs/code/".length))),
+      200, { "cache-control": "no-store" });
+  }
+
+  /* The hall: a live socket into one club, for a member of it and nobody
+     else. The Registry is asked who this is before a socket exists at all, and
+     the answer rides in a header, so the Club object never has to know what a
+     membership is — it is handed one, or it is handed nothing. */
+  const clubHall = /^\/api\/clubs\/([^/]+)\/hall$/.exec(path);
+  if (clubHall) {
+    if (req.headers.get("upgrade") !== "websocket") return fail(426, "websocket-only");
+    const player = await reg.auth(url.searchParams.get("token"));
+    if (!player) return fail(401, "unauthorized");
+    const seat = await reg.hallSeat(player.id, clubHall[1]);
+    if (!seat) return fail(403, "not-a-member");
+    const headers = new Headers(req.headers);
+    headers.set("x-sente-member", JSON.stringify(seat));
+    return hall(env, clubHall[1]).fetch(new Request(req, { headers }));
+  }
+
+  /* Channels. Keeping them is a keeper's power and a founder's, checked here
+     against the Registry's membership before the hall is told to do anything:
+     the Club object stores channels, it does not police them. */
+  const clubChannels = /^\/api\/clubs\/([^/]+)\/channels(?:\/([^/]+))?$/.exec(path);
+  if (clubChannels) {
+    const player = await requirePlayer(req, reg);
+    const [, clubId, channelId] = clubChannels;
+    const seat = await reg.hallSeat(player.id, clubId);
+    if (!seat) return fail(403, "not-a-member");
+    if (!mayKeepChannels(seat.role)) return fail(403, "not-allowed");
+    const stub = hall(env, clubId);
+    if (!channelId && req.method === "POST") {
+      const b = await readJson(req);
+      return json(await stub.channel("add", "ch_" + crypto.randomUUID().slice(0, 8), b.name), 201);
+    }
+    if (channelId && req.method === "PATCH") {
+      const b = await readJson(req);
+      return json(await stub.channel("rename", channelId, b.name));
+    }
+    if (channelId && req.method === "DELETE") return json(await stub.channel("remove", channelId));
+    return fail(405, "method");
+  }
+
+  const clubMember = /^\/api\/clubs\/([^/]+)\/members\/([^/]+)$/.exec(path);
+  if (clubMember) {
+    const player = await requirePlayer(req, reg);
+    if (req.method === "PUT") {
+      const b = await readJson(req);
+      return json(await reg.setClubRole(player.id, clubMember[1], clubMember[2], b.role));
+    }
+    if (req.method === "DELETE") return json(await reg.removeFromClub(player.id, clubMember[1], clubMember[2]));
+    return fail(405, "method");
+  }
+
+  const clubPath = /^\/api\/clubs\/([^/]+?)(\/join|\/me|\/code)?$/.exec(path);
+  if (clubPath) {
+    const player = await requirePlayer(req, reg);
+    const id = clubPath[1];
+    if (clubPath[2] === "/join") {
+      if (req.method !== "POST") return fail(405, "method");
+      const b = await readJson(req);
+      return json(await reg.joinClub(player.id, id, b.code), 201);
+    }
+    if (clubPath[2] === "/me") {
+      if (req.method !== "DELETE") return fail(405, "method");
+      return json(await reg.leaveClub(player.id, id));
+    }
+    if (clubPath[2] === "/code") {
+      if (req.method !== "POST") return fail(405, "method");
+      return json(await reg.rollClubCode(player.id, id));
+    }
+    if (req.method === "GET") return json(await reg.clubFor(player.id, id), 200, { "cache-control": "no-store" });
+    if (req.method === "PATCH") return json(await reg.changeClub(player.id, id, await readJson(req)));
+    if (req.method === "DELETE") return json(await reg.closeClub(player.id, id));
+    return fail(405, "method");
+  }
+
   /* Invitations: asking one named person for a game, on the same terms as
      writing to one. Both lists come back together for the reason the friends
      lists do: every screen that shows one of them shows the other, and a
@@ -513,7 +654,7 @@ async function limited(run, ok = 200) {
   } catch (e) {
     if (!["too-many-handles", "too-many-attempts", "too-many-letters",
       "too-many-requests", "too-many-letters-sent", "too-many-asks",
-      "too-many-invites-sent"].includes(e.message)) throw e;
+      "too-many-invites-sent", "too-many-clubs-made"].includes(e.message)) throw e;
     const secs = Math.ceil((e.retryAfterMs ?? 3600000) / 1000);
     return json({ error: e.message }, 429, { "retry-after": String(secs) });
   }
@@ -549,6 +690,10 @@ async function post(env, minted) {
     throw new Error("mail-failed");
   }
 }
+
+/** Whether a role may keep channels. Asked of `clubs.js` rather than restated,
+ *  so the powers are written down in exactly one place. */
+const mayKeepChannels = (role) => may(role, "keepChannels");
 
 async function requirePlayer(req, reg) {
   const player = await reg.auth(bearer(req));

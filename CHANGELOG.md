@@ -6,6 +6,53 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.13.0.0 (2026-09-13)
+
+### Added
+
+- **Joseki reads in Hebrew, and runs right to left.** The ninth language, and the first
+  written the other way. Every line the English catalogue has, the design system complete
+  (rooms, stone sets, type, belts, badges, the tones and the contrast rules), the house
+  voices, and all seven house players with their bios, their tells and their table talk.
+  The library, the Classic, the corner dictionary and the small print are still English:
+  each is translated whole or not at all, and half a lesson is worse than an English one.
+- **The interface turns around.** Which way a script runs is a fact about the language,
+  so it sits on the language, and the shell puts it on the document. The stylesheet asks
+  for the start and end of a line rather than the left and right of a screen, so nothing
+  in a view has to know which language it is being read in.
+- **The board does not turn around with it.** A1 is in the same corner in Tel Aviv as in
+  Tokyo. The coordinate margin stays left to right, and so does the drawn belt, which is a
+  picture of a knot rather than a sentence.
+- **A device that still says `iw` gets Hebrew.** The tag was renamed in 1989 and phones
+  shipped the old one for years afterwards.
+
+### Changed
+
+- **Direction is decided a paragraph at a time.** A passage from the Classic is still
+  English, a journal note is English on purpose, and a bio or a line of table talk is
+  whatever the person typed. Each takes its direction from its own first letter, so an
+  English sentence inside a Hebrew page no longer ends up with its full stop at the front.
+- **Slant is decided the same way.** Hebrew has no italic, and a browser asked for one
+  draws it by shearing the upright. The page is set upright for Hebrew, and a run of
+  English inside it takes the pairing's own italic back.
+- **Forward points the way you read.** The arrows and chevrons that mean onward turn over
+  with the page, and so does the arrow key that does the same job in a lesson. The controls
+  that step a game record do not: a record is played on a board, and the board never
+  mirrors.
+- **The page is pointed before it is drawn.** The direction is set as the app starts
+  rather than after React's first paint, so a Hebrew reader no longer watches the whole
+  screen flip on load.
+
+### Fixed
+
+- **The small print no longer claims to be a translation it is not.** A language that has
+  translated the app but not the documents now says so plainly, instead of telling the
+  reader they are looking at a translation of a contract that is still in English.
+- **Fourteen places in the stylesheet that would not have mirrored.** Shorthand spacing,
+  the tight corner on a speech bubble's tail, a drop cap's gutter, a chapter's indent: all
+  of them pinned to a physical side while the thing they were drawn against had already
+  moved. The suite now fails on the next one, shorthands and corner lists included.
+
 ## v0.12.2.0 (2026-09-13)
 
 ### Added

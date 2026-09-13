@@ -4,6 +4,7 @@ export const legal = {
   stamp: "最終更新 {date}",
   tabs: "細かい取り決め",
   translated: "これは、読めるようにするために用意した訳文です。効力を持つのは英語版です。",
+  untranslated: "この文書はまだ翻訳されていません。英語で表示され、効力を持つのは英語版です。",
 
   /* ----- 重ね：三つの文書、src/content/legal.js から -----
      定数は本文に写し込まず、穴として渡されます（{product}、{studio}、

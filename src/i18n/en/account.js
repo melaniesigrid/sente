@@ -60,9 +60,9 @@ export const account = {
     working: "Working…",
     create: "Create the account",
     signinDo: "Sign in",
-    signupFine: "Your password is stretched in this browser and never sent; the server stores a hash of the result and could not read it back if it wanted to. A letter follows, to confirm the address is one you can read.",
+    signupFine: "Your password is stretched in this browser and never sent; the server stores a hash of the result and could not read it back if it wanted to.",
     signinFine: "Signing in takes a moment: the browser does the work of proving the password so the server never has to hold it.",
-    welcomeNew: "Welcome to the ladder, {name}. Look for a letter confirming your address.",
+    welcomeNew: "Welcome to the ladder, {name}.",
     welcomeBack: "Welcome back, {name}",
   },
 

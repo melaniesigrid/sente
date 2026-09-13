@@ -4,6 +4,7 @@ export const legal = {
   stamp: "Dernière modification : {date}",
   tabs: "Petits caractères",
   translated: "Ceci est une traduction, offerte pour pouvoir être lue. C'est la version anglaise qui fait foi.",
+  untranslated: "Ce document n'est pas encore traduit. Il est présenté en anglais, la version qui fait foi.",
 
   /* ----- overlays : les trois documents, depuis src/content/legal.js -----
      Les constantes arrivent sous forme de trous ({product}, {studio},

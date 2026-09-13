@@ -56,9 +56,9 @@ export const account = {
     working: "Travail en cours…",
     create: "Crée le compte",
     signinDo: "Ouvrir une session",
-    signupFine: "Ton mot de passe est étiré dans ce navigateur et n'est jamais envoyé ; le serveur garde une empreinte du résultat et ne saurait pas la relire même s'il le voulait. Une lettre suit, pour confirmer que l'adresse est bien une que tu peux lire.",
+    signupFine: "Ton mot de passe est étiré dans ce navigateur et n'est jamais envoyé ; le serveur garde une empreinte du résultat et ne saurait pas la relire même s'il le voulait.",
     signinFine: "Ouvrir une session prend un instant : le navigateur fait le travail de prouver le mot de passe pour que le serveur n'ait jamais à le détenir.",
-    welcomeNew: "Bienvenue au classement, {name}. Guette une lettre qui confirme ton adresse.",
+    welcomeNew: "Bienvenue au classement, {name}.",
     welcomeBack: "Te revoilà, {name}",
   },
 

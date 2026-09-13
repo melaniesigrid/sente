@@ -173,6 +173,25 @@ const CYRILLIC = {
   serif: "'PT Serif', 'Georgia', 'Times New Roman', 'Noto Serif', serif",
 };
 
+/* Hebrew is the third version of the same problem, and it brings one of its
+   own. None of the pairings has a Hebrew glyph, so the letters come off the
+   device exactly as the Han and the Cyrillic do. But Hebrew also has no italic
+   and no case: there is no second drawing of the alphabet to lean on, and the
+   slanted voices in this design system are load-bearing. A browser asked for
+   italic where no italic exists synthesises one by shearing the upright, which
+   is the faux oblique this file opens by refusing. So a script may say it has
+   no italic, and the pairing's slanted voices come back upright for it.
+
+   The same is arguably true of Han, and Chinese and Japanese are deliberately
+   left alone here: they shipped in the drawing they shipped in, and changing
+   how they are set is a design decision somebody should make on purpose rather
+   than a side effect of adding a language. */
+const HEBREW = {
+  sans: "'Arial Hebrew', 'Segoe UI', 'Noto Sans Hebrew', 'Arial', sans-serif",
+  serif: "'Frank Ruehl CLM', 'FrankRuehl', 'New Peninim MT', 'David', 'Noto Serif Hebrew', serif",
+  italic: false,
+};
+
 const SCRIPTS = {
   zh: {
     sans: "'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Source Han Sans SC', sans-serif",
@@ -184,7 +203,15 @@ const SCRIPTS = {
   },
   ru: CYRILLIC,
   uk: CYRILLIC,
+  he: HEBREW,
 };
+
+/** Does this language have a second, slanted drawing of its alphabet to fall
+ *  back on. False only where the script has no italic at all, and what it buys
+ *  is an upright instead of a sheared upright. */
+export function hasItalic(locale) {
+  return SCRIPTS[locale]?.italic !== false;
+}
 
 /** A family list with the reader's own faces behind it for a script none of
  *  the pairings can set, or the list unchanged for a language written in Latin
@@ -209,16 +236,32 @@ export function withScript(families, locale) {
 export function typefaceVars(id, locale) {
   const t = typefaceOf(id);
   const script = (families) => withScript(families, locale);
+  /* A script with no italic gets upright everywhere a pairing asks for a slant,
+     rather than a sheared upright the browser drew itself.
+
+     Both answers are emitted. The plain token is what the page is set in, and
+     it is upright for a script with no italic; the `-own` token carries the
+     pairing's real answer regardless, so a run of another language inside the
+     page can take its slant back. The stylesheet does that swap for anything
+     marked `lang="en"`, because a partial catalogue leaves real English prose
+     on a Hebrew page and English has an italic to be set in. The same argument
+     the bidi rule makes about direction, made about slant. */
+  const slant = (style) => (hasItalic(locale) ? style : "normal");
+  const quoteStyle = t.quote ? t.quoteStyle : "normal";
+  const captionStyle = captionOf(t) === t.italic ? t.italicStyle : "normal";
   return {
     "--font-display": script(t.display),
     "--font-display-italic": script(t.italic),
-    "--display-italic-style": t.italicStyle,
+    "--display-italic-style": slant(t.italicStyle),
+    "--display-italic-style-own": t.italicStyle,
     "--font-body": script(t.body),
     "--font-quote": script(quoteOf(t)),
     "--font-typewriter": script(TYPEWRITER),
-    "--quote-style": t.quote ? t.quoteStyle : "normal",
+    "--quote-style": t.quote ? slant(t.quoteStyle) : "normal",
+    "--quote-style-own": quoteStyle,
     "--font-caption": script(captionOf(t)),
-    "--caption-style": captionOf(t) === t.italic ? t.italicStyle : "normal",
+    "--caption-style": captionOf(t) === t.italic ? slant(t.italicStyle) : "normal",
+    "--caption-style-own": captionStyle,
     "--w-display": String(t.weight),
     "--w-display-strong": String(t.strong),
     "--display-tracking": t.tracking,

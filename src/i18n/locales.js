@@ -10,7 +10,14 @@
 
    `system` is a pointer at a language rather than a language, exactly like the
    `system` theme: the device says which one, and `resolveLocale` turns it into a
-   real id before anything is read. */
+   real id before anything is read.
+
+   `dir` is the direction the script runs in, and it lives on the language
+   because it is a fact about the language rather than a decision a view is
+   allowed to make. The first eight languages all ran left to right and so
+   nothing ever had to say so; Hebrew is what makes the field earn its place.
+   Absent means `ltr`, which leaves the eight entries saying what is true of
+   them instead of decorating them with a default. */
 
 /** The language everything is authored in, and the floor every lookup lands on. */
 export const BASE_LOCALE = "en";
@@ -27,9 +34,24 @@ export const LOCALES = [
   { id: "ja", tag: "ja", name: "Japanese", endonym: "日本語" },
   { id: "ru", tag: "ru", name: "Russian", endonym: "Русский" },
   { id: "uk", tag: "uk", name: "Ukrainian", endonym: "Українська" },
+  { id: "he", tag: "he", name: "Hebrew", endonym: "עברית", dir: "rtl" },
 ];
 
 const byId = new Map(LOCALES.map(l => [l.id, l]));
+
+/** The direction a language runs, for the one place that sets it on the
+ *  document. Anything that is not explicitly right-to-left is left-to-right:
+ *  a language that forgets the field reads the way eight of nine do. */
+export function dirOf(id) {
+  return localeOf(id).dir === "rtl" ? "rtl" : "ltr";
+}
+
+/* A tag a device may still say for a language we know under another name.
+   Hebrew was `iw` until 1989 and Android shipped `iw` for years after; a
+   reader whose phone still says it is asking for Hebrew and should be given
+   it rather than English. Keyed by the primary subtag, which is all
+   `resolveLocale` ever compares. */
+const LEGACY_TAGS = new Map([["iw", "he"]]);
 
 /** Every id a profile may legally hold: a language we ship, or `system`. */
 export function isLocaleId(id) {
@@ -58,7 +80,8 @@ export function resolveLocale(id, deviceTags = []) {
   for (const tag of deviceTags) {
     if (typeof tag !== "string") continue;
     const primary = tag.toLowerCase().split("-")[0];
-    if (byId.has(primary)) return primary;
+    const match = LEGACY_TAGS.get(primary) || primary;
+    if (byId.has(match)) return match;
   }
   return BASE_LOCALE;
 }

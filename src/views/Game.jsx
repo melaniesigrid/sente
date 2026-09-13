@@ -614,7 +614,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   return (
     <div className="stack">
       <div className="row spread">
-        <Btn icon={ChevronLeft} small onClick={onExit}>{t("game.lobby")}</Btn>
+        <Btn icon={ChevronLeft} small onward onClick={onExit}>{t("game.lobby")}</Btn>
         <div className="vs-strip">
           <div className="vs-side">
             <Avatar name={profile.name} tint={profile.tint} size={34} />
@@ -701,7 +701,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
                   : <Btn icon={RefreshCw} small primary onClick={reset}>{t("game.rematch")}</Btn>}
                 <Btn icon={History} small onClick={() => setReviewing(true)}>{t("game.review")}</Btn>
                 <Btn icon={Download} small onClick={downloadSgf}>{t("game.sgf")}</Btn>
-                {duel && <Btn icon={ChevronLeft} small onClick={onExit}>{t("game.lobby")}</Btn>}
+                {duel && <Btn icon={ChevronLeft} small onward onClick={onExit}>{t("game.lobby")}</Btn>}
               </div>
             </Card>
           )}

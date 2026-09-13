@@ -57,6 +57,13 @@ export const online = {
     pair: "go por parejas",
   },
 
+  here: {
+    head: "Aquí ahora",
+    note: "Los amigos que están en la sala y que te dejan verlo. Nunca se muestra a nadie como ausente: no estar y no querer decirlo se ven igual desde fuera.",
+    record: "{wins}–{losses}",
+    ask: "Pedir {size}×{size}",
+  },
+
   find: {
     head: "Buscar a alguien",
     note: "Escribe un nombre, o parte de uno. Solo quien juega aquí puede buscar a alguien, y una búsqueda responde con unas cuantas personas, nunca con una lista.",
@@ -138,6 +145,7 @@ export const online = {
     removeName: "Quitar a {name}",
     declineName: "Rechazar a {name}",
     takeBackName: "Retirar la petición a {name}",
+    writeName: "Escribir a {name}",
     act: {
       friends: "Amigos",
       remove: "Quitar amigo",
@@ -176,7 +184,7 @@ export const online = {
   lobby: {
     matched: "Emparejada con {name} · juegas con {side}",
     signedOut: "Sesión cerrada. Tu puntuación te está esperando.",
-    kept: "Esa identidad es tuya en cualquier dispositivo. Busca una carta que confirme la dirección.",
+    kept: "Esa identidad es tuya en cualquier dispositivo.",
     leaveAsk: "¿Dejar la clasificación? Esta identidad, su clave y su puntuación se eliminan para siempre. Las partidas terminadas se quedan.",
     noServer: "No se ha podido contactar con el servidor; inténtalo otra vez",
     removed: "Identidad eliminada",
@@ -222,9 +230,6 @@ export const online = {
     keepHandle: "Conserva esta identidad",
     notNow: "Ahora no",
     attachNote: "Tu puntuación, tus partidas y tu identidad se quedan exactamente como están.",
-    sending: "Enviando…",
-    confirmNudge: "Joseki nunca ha tenido respuesta de {email}. Confírmala y sabrás que una carta puede llegarte.",
-    confirmSent: "Va una carta de camino a {email}. El enlace dura una semana y funciona una vez. Si no llega, mira en la carpeta de spam antes de pedir otra.",
   },
 
   /* The main room: games in progress a person may sit beside. Which games

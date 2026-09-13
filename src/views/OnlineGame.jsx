@@ -340,7 +340,7 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
   if (gone) {
     return (
       <div className="stack">
-        <Btn icon={ChevronLeft} small onClick={onExit}>{t("online.game.lobby")}</Btn>
+        <Btn icon={ChevronLeft} small onward onClick={onExit}>{t("online.game.lobby")}</Btn>
         <Card inset><p className="fine">{t("online.game.gone")}</p></Card>
       </div>
     );
@@ -349,7 +349,7 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
   return (
     <div className="stack">
       <div className="row spread">
-        <Btn icon={ChevronLeft} small onClick={onExit}>{t("online.game.lobby")}</Btn>
+        <Btn icon={ChevronLeft} small onward onClick={onExit}>{t("online.game.lobby")}</Btn>
         {room && (
           <div className={`vs-strip ${room.pair ? "pair-strip" : ""}`}>
             {room.pair ? <OnlineTeam room={room} color="b" up={up} /> : (
@@ -434,7 +434,7 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
               <div className="row">
                 <Btn icon={History} small onClick={() => setReviewing(true)}>{t("game.review")}</Btn>
                 <Btn icon={Download} small onClick={downloadSgf}>{t("game.sgf")}</Btn>
-                <Btn icon={ChevronLeft} small onClick={onExit}>{t("online.game.lobby")}</Btn>
+                <Btn icon={ChevronLeft} small onward onClick={onExit}>{t("online.game.lobby")}</Btn>
               </div>
             </Card>
           )}
