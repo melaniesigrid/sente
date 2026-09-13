@@ -23,6 +23,10 @@ problems, climb a Glicko-2 ladder, and keep a persistent profile.
   as many as its free plan carries without failing for everybody. Once the seats are taken
   the account gate offers a waiting list instead of a form: an address and the day it was
   left, kept for one letter and nothing else.
+- **Languages**: English, Spanish, French, German, Simplified Chinese, Japanese, Russian
+  and Ukrainian. Every screen, not a sample: the design system, the small print, the
+  Classic and the library all read in the language you pick, and the picker in the top
+  bar names each one in its own words.
 
 ## Design
 
