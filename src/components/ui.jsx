@@ -10,10 +10,17 @@ export const Card = ({ children, className = "", inset, ...rest }) => (
   <div className={`neu-card ${inset ? "neu-inset" : ""} ${className}`} {...rest}>{children}</div>
 );
 
-export const Btn = ({ icon: Icon, children, onClick, primary, disabled, small, label, ...rest }) => (
+/* `onward` marks an icon that points the way the reader reads: a chevron on
+   back and next, an arrow on a call to action. Those turn around in a
+   right-to-left page. It is opt-in and not automatic, because most icons here
+   are not directional at all and a mirrored play triangle points nowhere, and
+   because the two screens that step a BOARD (review and the corner dictionary)
+   are going forward through a game record whose board never mirrors: their
+   chevrons mean the same thing in every language and must stay put. */
+export const Btn = ({ icon: Icon, children, onClick, primary, disabled, small, label, onward, ...rest }) => (
   <button className={`btn ${primary ? "btn-accent" : ""} ${small ? "btn-sm" : ""} ${children ? "" : "btn-icon"}`}
     onClick={onClick} disabled={disabled} aria-label={label} title={label} {...rest}>
-    {Icon && <Icon size={small ? 14 : 16} strokeWidth={2.2} />}
+    {Icon && <Icon size={small ? 14 : 16} strokeWidth={2.2} className={onward ? "onward" : undefined} />}
     {children && <span>{children}</span>}
   </button>
 );

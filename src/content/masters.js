@@ -1,4 +1,7 @@
 import INDEX from "./masters.json";
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
+
+const EN = makeT(BASE_LOCALE);
 
 /* ----------------------- MASTERS -----------------------
    The lobby's masters row. A master is a house player like any other (a bot, said
@@ -110,14 +113,17 @@ export function mastersFor(evalData, index = INDEX) {
 /** The line under a master's name, and the only claim the card makes. It names
  *  the profile that is actually played, the split it was measured on, and the
  *  control in the same breath. */
-export function agreementLine(master) {
+export function agreementLine(master, t = EN) {
   const c = master.claim;
-  return `${c.agreementText} agreement with the strong-player-of-${master.year} profile, on ${c.positions.toLocaleString("en")} held-out positions`;
+  const positions = c.positions.toLocaleString("en");
+  return t("master.agreement", { pct: c.agreementText, year: master.year, positions },
+    `${c.agreementText} agreement with the strong-player-of-${master.year} profile, on ${positions} held-out positions`);
 }
 
 /** The smaller second line: the book, beside the control that keeps it honest. */
-export function controlLine(master) {
+export function controlLine(master, t = EN) {
   const c = master.claim;
   if (c.withBookText === null || c.controlText === null) return null;
-  return `${c.withBookText} with his own opening book · ${c.controlText} with another master's, the control`;
+  return t("master.control", { own: c.withBookText, other: c.controlText },
+    `${c.withBookText} with his own opening book · ${c.controlText} with another master's, the control`);
 }

@@ -57,6 +57,13 @@ export const online = {
     pair: "ペア碁",
   },
 
+  here: {
+    head: "いま来ています",
+    note: "広間にいて、それを見せてもよいとしている友だちです。いないことは決して表示しません。いないのと、言わないでおくのとは、外からは同じに見えます。",
+    record: "{wins}勝{losses}敗",
+    ask: "{size}路を誘う",
+  },
+
   find: {
     head: "人を探す",
     note: "名前か、その一部を入れてください。探せるのはここで打つ人だけで、返るのは何人かであって、名簿ではありません。",
@@ -138,6 +145,7 @@ export const online = {
     removeName: "{name}を外す",
     declineName: "{name}を断る",
     takeBackName: "{name}への申し込みを取り下げる",
+    writeName: "{name}さんに手紙を書く",
     act: {
       friends: "友だち",
       remove: "友だちを外す",
@@ -176,7 +184,7 @@ export const online = {
   lobby: {
     matched: "{name}と組み合いました · こちらは{side}",
     signedOut: "出ました。レートはここで待っています。",
-    kept: "この名は、どの端末でも自分のものになりました。宛先を確かめる手紙が届きます。",
+    kept: "この名は、どの端末でも自分のものになりました。",
     leaveAsk: "ランキングを離れますか。この名も、その鍵も、レートも、永久に消えます。打ち終えた対局は残ります。",
     noServer: "サーバーに届きませんでした。もう一度どうぞ",
     removed: "名を消しました",
@@ -198,6 +206,9 @@ export const online = {
     wordPlaceholder: "または、二人とも知っている言葉",
     wordLabel: "友だちと打つときの合言葉",
     waitingFor: " · {waited}待機",
+    waitingOnYou: {
+      other: "{count} 卓があなたを待っています。長く待っているものから先です。これらの対局に時計はありません。ここでは時間切れはなく、一日あけても負けにはなりません。",
+    },
     findPair: "{size}×{size} でペア碁の相手を探す",
     pairNote: "自分と{rank}の相棒が、別の打ち手とその相棒に向かい、順番に打ちます。レートなし。相棒はそれぞれ、組んでいる打ち手のブラウザの中で動くので、その人が盤にいるあいだだけ打ちます。",
     pairLooking: "{size}×{size} でペア碁のもう一人を探しています。それぞれに{rank}の相棒がつき、四人で順番に打ちます。",
@@ -223,9 +234,6 @@ export const online = {
     keepHandle: "この名を残す",
     notNow: "いまはやめておく",
     attachNote: "レートも、対局も、名も、そのままです。",
-    sending: "送っています…",
-    confirmNudge: "Joseki は {email} からの返事をまだ受け取っていません。確かめておけば、手紙が届くと分かります。",
-    confirmSent: "{email} あてに手紙を送りました。中のリンクは一週間もち、一度だけ使えます。届かないときは、次を頼む前に迷惑メールを見てください。",
   },
 
   game: {

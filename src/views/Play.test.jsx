@@ -36,6 +36,7 @@ vi.mock("../net/api.js", () => ({
        lobby reads it on mount, so an empty one keeps these cases about the
        board and nothing else. */
     invites: () => Promise.resolve({ incoming: [], outgoing: [] }),
+    friends: () => Promise.resolve({ friends: [], incoming: [], outgoing: [] }),
   },
   lobbySocket: () => ({ send: vi.fn(() => true), close: vi.fn() }),
   serverEnabled: () => true,

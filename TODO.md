@@ -20,20 +20,22 @@ is a snapshot: it will be wrong the week after somebody authors anything.
 - **19 tsumego** in four sets (capture and escape 4, shape 3, eye shapes 8, the corner 4),
   running 25k to 2k. Every board is proved on every build: the stated answer has to be
   exactly the set of moves that work.
-- **136 drills** beside them, running 23k to 5k, searched rather than written: two censuses
-  under `tools/problems/` enumerate capturing positions and sealed eye spaces, solve each
-  one exhaustively, and keep the ones with a single answer. The rank on each is measured by
-  a fitted model rather than assigned, the words are composed from what the search proved,
-  and `drills.test.js` re-proves all 136 from the shipped file on every build.
+- **203 drills** beside them, running 23k to 3k, searched rather than written: three censuses
+  under `tools/problems/` enumerate capturing positions, sealed eye spaces and fights where
+  the winning move pays later, solve each one exhaustively, and keep the ones with a single
+  answer. 99 capture, 37 life and death, 67 tesuji. The rank on each is measured by a model
+  rather than assigned, the words are composed from what the search proved, and
+  `drills.test.js` re-proves all 203 from the shipped file on every build.
 - **4 joseki** on the star point, out of three corner points the dictionary names. The 3-4
   and the 3-3 are declared and unwritten.
 - **7 house players**, each with a page, all of them running the same network at whatever
   rank the table asks for.
 - **1 book series** threaded through the library (the Classic in thirteen chapters, 20
   passages), on a shelf of six books.
-- **8 languages**: English, Spanish, French, German, Simplified Chinese, Japanese,
-  Russian and Ukrainian, with the parity suite refusing a missing line, an invented key,
-  or an overlay that names something the data does not have.
+- **9 languages**: English, Spanish, French, German, Simplified Chinese, Japanese,
+  Russian, Ukrainian and Hebrew, with the parity suite refusing a missing line, an
+  invented key, or an overlay that names something the data does not have. Hebrew is
+  the first that reads right to left, so the app mirrors and the board does not.
 
 What is thinnest, in order: the joseki dictionary (four sequences, all of them on the star
 point), the tactics tsumego set (four boards, none of them a tesuji), the endgame track (two
@@ -624,6 +626,15 @@ two Durable Object classes, deployed at https://api.joseki.online.
       account, and `sente-server` runs on `workers.dev`, which is Cloudflare's and not
       ours. Until `MAIL_FROM` is set, `/api/health` reports `"mail": "off"` and every link
       goes to the log instead of the post. The four steps are in `docs/server-operations.md`.
+      **Still not arriving (2026-09-13, branch `feat/no-letter-pointers`).** With the domain
+      live, `/api/health` says `"mail": "sending"`, but the Email Sending API answers
+      `Unauthorized [code: 2036]` even to a wrangler token that carries the scope, so the
+      zone is not onboarded and no letter lands. Rather than keep promising one, the app
+      stopped pointing at it: the lobby's "confirm it" nudge is gone and the sign-up,
+      welcome, and handle-kept copy no longer say a letter follows, in every language. The
+      server routes, the `?verify=` landing, and `emailVerified` are all still there, so
+      turning the letters back on is onboarding the zone and restoring the nudge, nothing
+      else. The forgotten-password door still offers a letter and is broken in the same way.
 - [x] Joseki's own address: `joseki.online` for the app, `api.joseki.online` for the
       server (branch `feat/online`). The zone is on Cloudflare and Namecheap's nameservers
       point at it (`nadia`/`randy.ns.cloudflare.com`, verified 2026-09-12), so the repository
@@ -1174,17 +1185,42 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       Black moves: no question there at all. A bounded region of eight points or fewer,
       solved exhaustively, tops out around 1 kyu, and the grading model says so instead of
       claiming a range it cannot reach.
-- [ ] The two ends the drills still do not reach. Below 23k there is nothing, because a
-      board with one white stone in atari is the same board however it is drawn. Above 5k
-      there is almost nothing, and the reason is structural rather than lazy: the search
-      wants a bounded region, and everything hard is unbounded. Three families would open
-      it, each needing a solver rather than more enumeration:
-      capturing races, where the verdict is a count and not a search; groups that are not
-      yet sealed, where the answer is a hane or a descent on the second line; and the
-      sacrifice tesuji (snapback, throw-in, under the stones), which `catches` structurally
-      cannot find because the chain that comes off the board is not the chain it was
-      watching. That last one is the same negative result the snapback hunt above reached
-      from the other direction.
+- [x] The third family, and the top of the range (2026-09-13, branch `feat/sacrifice-drills`).
+      67 new drills and the first the collection has had above 5 kyu, which now reaches 3 kyu.
+      The drills stopped at 5 kyu because both searches asked the wrong question: `killers`
+      asks whether a sealed group can make two eyes, `catches` asks whether one named chain
+      comes off the board, and a tesuji is neither. `prisoners` in the prover asks the third
+      question, which is how many stones Black takes over the whole sequence less the stones
+      White takes back, and a stone given away then costs one and comes back as three
+      instead of ending the search. `tools/problems/tesuji.mjs` is the census built on it.
+
+      Two things about the pipeline were quietly wrong and are now fixed, both found by
+      adding a family rather than by reading the code. Drill ids were sequential, so every
+      expansion renumbered the file and a reader's record of what they had solved silently
+      pointed at different boards; ids are derived from the position now and never move.
+      And the per-rank cap was shared across families, so new problems competed for slots
+      with shipped ones; each family has its own shelf at each rank now, and the check that
+      nothing already shipped disappeared is part of the regeneration.
+- [ ] The snapback, which this census did not find, and the reason is worth keeping.
+      The solver can represent one - an early run found two - and they went away when the
+      search region was corrected, because with a stray white stone inside it Black had a
+      bigger capture elsewhere and the sacrifice was only second best. With the region right
+      and one white group on the board, the census turned up none at all across the corner,
+      the edge and the open board, at two liberties and at three.
+
+      The argument says why. A snapback is a two-liberty shape: Black plays one of the two
+      liberties, White captures with the other, and White's chain is then one stone longer
+      with only the point it emptied. But that argument is symmetric, so if it works at one
+      point it works at the other, the position has two right answers, and the census drops
+      it for exactly that reason. A real snapback is asymmetric and the asymmetry comes from
+      the stones around it, which means it wants a group with room to live and one defect in
+      it: a corner position from a real game rather than a chain with stones dropped beside
+      it. That is a different generator, and the honest next attempt is to mine finished
+      games for the shape rather than to enumerate toward it.
+- [ ] The two families still unopened, and the bottom end. Capturing races, where the verdict
+      is a count and not a search; and groups that are not yet sealed, where the answer is a
+      hane or a descent on the second line. Below 23k there is still nothing, because a board
+      with one white stone in atari is the same board however it is drawn.
 - [ ] Translate the drill lines. There are about fifteen of them (`drill.` keys, composed
       rather than per-board, which is what makes a hundred boards translatable at all) and
       they are asked for with an English fallback in hand, so every language shows them in
@@ -1922,6 +1958,85 @@ Still English in every language, found by the sweep and left for their own chang
       statement bands (`LANDING_STATEMENTS` in `content/plain.js`) and The Record
       (`content/press.js`), both imported into `views/Landing.jsx` raw.
 
+### Hebrew, and the direction the app runs (done, 2026-09-13, branch `feat/hebrew`)
+
+The ninth language, and the first written right to left. The words were the smaller
+half: the interface mirrors, and one attribute does it. `dir` is a field on the locale
+in `locales.js`, the shell puts it on the document beside `lang`, and the stylesheet
+asks for start and end instead of left and right, so no view branches on the language
+it is being read in.
+
+- [x] `he` in `LOCALES`, with `dir: "rtl"`, and a catalogue in `src/i18n/he/`. Hebrew
+      plurals are `one` and `other` here: Intl separates a `two`, but modern Hebrew
+      counts two the way it counts five, so `two` is left to fall through rather than
+      authored into a dual nobody says.
+- [x] `iw` resolves to `he`. The tag was renamed in 1989 and Android shipped the old
+      one for years; a device still asking for `iw` is asking for Hebrew.
+- [x] The stylesheet turned around: physical box properties became logical ones
+      (`margin-inline-start`, `inset-inline-end`, `text-align: start`), and the handful
+      of transforms that mean "onward" rather than "rightward" multiply by `--flip`,
+      which is `1` normally and `-1` under `[dir="rtl"]`.
+- [x] The board does not mirror. Its geometry is SVG and was already immune, but its
+      coordinate margin is text, so `.goban` says `direction: ltr` once: A1 is in the
+      same corner in Tel Aviv as in Tokyo. The drawn belt keeps physical left and right
+      for the same reason, being a picture of a knot rather than a sentence.
+- [x] The Hebrew fallback, through the same `SCRIPTS` hook Cyrillic and Han use, plus
+      one thing neither needed: Hebrew has no italic. A browser asked for one shears
+      the upright, which is the faux oblique `typeface.js` opens by refusing, so a
+      script may now declare it has no italic and the slanted voices come back upright.
+      Han arguably wants the same and is deliberately left alone: that is a design
+      decision to make on purpose, not a side effect of adding a language.
+- [x] Direction per paragraph, not per page. A passage from the Classic is still
+      English, a journal note is English on purpose, and a bio or a line of table talk
+      is whatever the person typed; `unicode-bidi: plaintext` resolves each from its
+      own first strong letter. Set on the elements holding the words, not their
+      wrappers, because the property does not inherit.
+- [x] Slant per run too, for the same reason. `typefaceVars` emits the pairing's own
+      answer beside the one the page is set in, and a subtree marked `lang="en"` takes
+      it back, so the English the partial catalogue leaves behind keeps the quotation
+      and caption voices instead of going upright with the Hebrew around it.
+- [x] Forward points the way you read. `Btn` takes an `onward` flag that mirrors a
+      directional icon, and the lesson's arrow keys swap with `dir`. Review and the
+      corner dictionary are deliberately exempt: they step a game record, and a record
+      is played on a board that never mirrors.
+- [x] The document is pointed before React mounts, from the stored profile plus the
+      device, so a Hebrew reader does not watch the page flip after the first paint.
+      Validated with `isLocaleId` and reading the legacy key, because an id this path
+      rejects differently from `sanitizeProfile` would reintroduce the flip it exists
+      to prevent.
+- [x] The small print says which it is. A language that translates the app but not the
+      documents now says so, rather than stamping "this is a translation" over English.
+      `carries(id, prefix)` in the catalogue answers it, and answers about the language
+      asked for rather than falling through to English the way every other reader does.
+
+Decisions:
+- No gendered second person. Hebrew has no neutral one, and the masculine default
+  writes half the readers out of the room, so the screens use the infinitive and the
+  verbal noun: `ללמוד את המשחק`, `חיפוש משחק`. Where direct address is the only
+  natural thing left it is masculine singular, and that is a compromise, not a fix.
+- The ladder is `דירוג` and never `סולם`, which is the ladder *tactic*: the same trap
+  German's `Leiter` and Russian's `Лестница` set.
+- Go terms in Hebrew letters as the Hebrew-speaking go community writes them
+  (גו, ג׳וסקי, צומגו, אטארי, סקי, קו), and digits stay digits.
+
+Still English in Hebrew, and deliberately rather than half-done. Every one of these is
+translated whole or not at all, which is the rule `i18n.test.js` enforces:
+- [ ] The library: the thirty-three lessons the other eight languages carry.
+- [ ] The Classic in thirteen chapters, the nine levels and the thirty-two names.
+- [ ] The corner dictionary (`josekiEntry.`, `josekiCorner.`, `josekiSource.`).
+- [ ] The graded library's own words (`tier.`, `track.`, `book.`, `series.`,
+      `problem.`, `problemSet.`, `shape.`) and the small print (`legalDoc.`, `credit.`).
+
+Measured while shipping it, and left alone on purpose. Both are the existing pattern
+rather than anything the ninth language introduced, and both are an architecture change
+rather than a translation one:
+- [ ] Every catalogue is in the entry chunk, so a reader downloads all nine. Measured at
+      +30.5 kB gzip for this one, 911 kB total. Dynamic-importing the eight non-English
+      catalogues would trade that for roughly 4 kB gzip of the one in force.
+- [ ] `catalog.js` flattens all nine at module load, on the main thread, before the
+      first render: 19,712 keys, 12.98 ms measured. Flattening lazily per locale would
+      do English and the one in force and leave the other seven alone.
+
 ## Phase 8: Pair go
 
 Full design: `docs/designs/pair-go.md`. Four seats, one human and one 7 dan house
@@ -2586,8 +2701,6 @@ friends"; this phase is the three verbs in that sentence that were still missing
       for Black. `server/invites.js` is the policy, pure, in 31 cases;
       `tools/server/invites.mjs` proves it against a deployment in 31 checks, playing a
       whole game out to reach "somebody you have finished a game against".
-- [ ] **The way in** (branch `feat/reach`): the acts on a person — ask, write, invite —
-      reachable from every row and every page that names one of them.
 - [x] **The board the button names** (2026-09-13, branch `fix/online-board-size`): the
       online card said "Find an opponent on 9×9" and the only control over that 9 was
       in the table card three cards down the page, past fourteen other controls, under
@@ -2606,7 +2719,98 @@ friends"; this phase is the three verbs in that sentence that were still missing
       server has already thrown away and nobody can ever match it. Two halves to fix:
       the server should re-send the waiting state on a new lobby socket, and the client
       should stop claiming to be waiting once the connection is gone.
+- [x] **The way in** (branch `feat/reach`): the acts on a person reachable from where
+      somebody is standing when they want one. Three things, and the first is a bug:
+      **"Write to them" on a player page did not write to them.** It landed on the profile
+      screen and left the reader to find the right row in the post. The open thread now
+      belongs to the screen rather than to the card that draws it, so the player page, and
+      a friend row, can open the conversation with one press. **Your friends who are here**
+      are drawn in the lobby, which is where somebody is standing when they want a game;
+      presence has been on this server since it shipped and had only ever been drawn on
+      the profile screen. One press asks a friend who is here for a game on the board the
+      lobby is already set to, and the strip is absent entirely when nobody is around,
+      because that is the state a small club is in most of the time and a heading over
+      nobody is worse than no heading.
+      **And a mobile bug the social rows all shared**: `.ladder-name` had no `min-width: 0`,
+      so a flex item could not shrink below the intrinsic width of a long name or a long
+      letter preview, and the post gave every phone-width screen holding a letter a
+      horizontal scrollbar. Found by driving a real browser at 400px, which is the only
+      way it was ever going to be found.
 
+**Phase 11 is complete.** Three slices, three branches. Browser QA at 1100 and 400 px:
+the invitation card, the search rows, the terms panel and the whole
+invite → accept → board flow, with a clean console and no horizontal overflow.
+
+## Phase 12: The club
+
+Full design: `docs/designs/the-club.md`. The ask was "Discord-like capabilities", which
+taken literally is servers, channels, roles, voice, threads, reactions and bots, and taken
+as a question about what people actually do in a Discord is six much smaller things: a
+place that is ours, rooms in it with a subject, talk that is live, who is here, somebody in
+charge with very little power, and a way in that is a link.
+
+This is also the phase Phase 9 deferred. Option C of the social layer was *club-shaped*,
+written down and put off because "add this one person I met at a tournament" had no home
+in it. The friend edge, the directory and the invitation are all built now, so it arrives
+on the foundation it was deferred onto.
+
+- [x] **The club** (branch `feat/club`): a named place with a roll of members. Founded by
+      anybody, joined by a code or through the front door of a listed one, left at will.
+      Three roles — founder, keeper, member — and four powers, with no permission matrix:
+      a keeper may take a line down and show a member the door, a founder may also name
+      keepers, change the club, roll its code and close it. `server/clubs.js` is the whole
+      policy, pure, in 59 cases; `tools/server/clubs.mjs` proves it against a deployment
+      in 32 checks.
+      **Nobody is added to a club.** There is no route, no client call and no function in
+      the pure module that puts one player into a club on another player's say-so — the
+      signature of `join` cannot express it. `legal.js` says there is no list anybody can
+      be added to, and a club is a list; that sentence stays true only this way, and it
+      happens to be how a person expects a link to work.
+      A club is unlisted until a founder lists it, and an unlisted one answers a stranger
+      exactly as a made-up id does, because an answer that said "it exists and you may not
+      see it" would be most of what unlisted was for. A listed one joins the same
+      directory handles are in, bounded the same way: two characters, a prefix, twenty
+      answers, no count, a session required.
+- [x] **The hall** (branch `feat/hall`): a Durable Object per club — hibernating sockets,
+      a pure reducer, live talk, who is standing there, and the last 500 lines. The Room
+      object's shape applied to a room with no board in it: parse a frame, `applyHall`,
+      store, broadcast. `server/hall.js` is the policy, pure, in 33 cases;
+      `tools/server/hall.mjs` proves it against a deployment in 25 checks over real
+      sockets, and two browser tabs were driven through one room talking to each other.
+      Channels arrived with it rather than after it, because the storage shape needed
+      them from the first write; what slice three adds is the rest of keeping them.
+      **A hall is not the post, and both are worth having.** The post is one thread a
+      pair, kept, with no read receipts, from somebody you agreed to hear from. A hall is
+      live, said to whoever is standing there, and keeps five hundred lines and no more.
+      That last part is where this deliberately parts company with Discord: keeping
+      everything for good on a free Worker is a storage bill nobody agreed to pay, and a
+      promise about other people's words that is easier to make than to keep. The screen
+      says it rather than letting somebody find out.
+      **Presence in a hall is the one place `showOnline` does not decide.** A room you
+      walked into is a room the people in it can see you in. Said on the screen, because
+      it is the only exception to a setting people were told governs this.
+- [x] **The board in the room** (branch `feat/table`): the thing that makes a club a go
+      club rather than a chat room with a go server attached to it. Somebody puts a board
+      up in a channel — a size, a handicap, whether it counts — and any other member sits
+      down at it. The game opens there and then, rated like any other, with the guest on
+      Black for the reason an invitation gives: whoever put the board up chose the terms,
+      and the engine places a handicap for Black.
+      A board is a **line**, not a second kind of object beside the conversation: somebody
+      asking whether anybody wants a game IS a thing they said, and it belongs in the flow
+      it came out of. Three standing boards a person, counted across the whole hall rather
+      than per channel, because a cap on one person's boards is a cap on the room.
+      Sitting down is the one frame the reducer does not handle: it opens a real game,
+      which is the Registry's business, so the object asks a pure `sittable`, opens the
+      board, and writes the answer back with a pure `seated`. Matchmaking, an invitation
+      taken up and a board sat down at now all seat players through one `#openTable`,
+      because three copies of the seating would be three chances to seat somebody the
+      wrong way round.
+      Channel keeping finished here too: a keeper may add, rename and remove one, and the
+      first channel can be renamed like any other but never removed.
+
+**Phase 12 is complete.** Three slices, three branches, one design doc. What is deliberately
+not in it, each for a reason written down in `docs/designs/the-club.md`: voice, reactions,
+threads, bots and uploads.
 ## Principles (do not trade away)
 
 - Rules live in the engine, never in a view.

@@ -38,6 +38,11 @@ vi.mock("../net/api.js", () => ({
     // The shelf of invitations. Empty here: what it draws is its own suite's
     // business, and a lobby with nothing on its shelf draws no card at all.
     invites: () => Promise.resolve({ incoming: [], outgoing: [] }),
+    // The book and who is here, for the strip of friends in the lobby. Nobody
+    // in it here: a lobby with no friends around draws no strip at all, and
+    // what the strip draws is HereNow's own business.
+    friends: () => Promise.resolve({ friends: [], incoming: [], outgoing: [] }),
+    presence: () => Promise.resolve({ online: [] }),
   },
   lobbySocket: (...a) => lobbySocket(...a),
   serverEnabled: () => true,

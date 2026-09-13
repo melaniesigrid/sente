@@ -25,7 +25,7 @@ import { rankOf } from "../content/rank.js";
 import { attendDay } from "../content/chain.js";
 import { modelReady, kataChooseMoveForRecord, profileForRank } from "../engine/index.js";
 import { initStep, stepReducer, marksFor, boardLocked, canReveal, recordAtStop, coordLabel, verdictLabel, withHouseWords } from "./lessonStep.js";
-import { useT } from "../components/langStore.js";
+import { useT, useDir } from "../components/langStore.js";
 import { localizeLesson, lessonField } from "../content/translate.js";
 import { localizeTrack, localizeTier, localizeBook, localizeSeries } from "../content/library.js";
 
@@ -80,6 +80,7 @@ function crossingNote(lesson, next, t) {
 
 export function LessonPlayer({ lesson: authored, nextLesson, onDone, onExit, onOpenNext, rank, onProgress, exitLabel = null }) {
   const t = useT();
+  const dir = useDir();
   const exitWord = exitLabel ?? t("learn.library");
   /* The lesson in the reader's language. Memoised on the pair, so a lesson
      nobody has translated costs one identity check and no copying. */
@@ -158,14 +159,22 @@ export function LessonPlayer({ lesson: authored, nextLesson, onDone, onExit, onO
   const next = () => { if (isLast) { setFinished(true); onDone(); } else goto(stepIdx + 1); };
 
   /* Arrows walk the lesson; Enter fires the primary when nothing else is focused,
-     so it never steals the board's own Enter-to-play or the count field. */
+     so it never steals the board's own Enter-to-play or the count field.
+
+     Which arrow means onward follows the page. A lesson is a sequence of
+     steps, read the way the words are read, so in a right-to-left page the
+     left arrow goes forward and the button beside it has already turned over
+     to agree. Review.jsx deliberately does NOT do this: it steps a game
+     record, and the board a record is played on never mirrors. */
   useEffect(() => {
     const onKey = (e) => {
       if (finished || e.metaKey || e.ctrlKey || e.altKey) return;
       const tag = e.target?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
-      if (e.key === "ArrowLeft" && stepIdx > 0) { e.preventDefault(); back(); }
-      else if (e.key === "ArrowRight" && canGoNext) { e.preventDefault(); next(); }
+      const onward = dir === "rtl" ? "ArrowLeft" : "ArrowRight";
+      const backward = dir === "rtl" ? "ArrowRight" : "ArrowLeft";
+      if (e.key === backward && stepIdx > 0) { e.preventDefault(); back(); }
+      else if (e.key === onward && canGoNext) { e.preventDefault(); next(); }
       else if (e.key === "Enter" && canGoNext && e.target === document.body) { e.preventDefault(); next(); }
     };
     window.addEventListener("keydown", onKey);
@@ -179,7 +188,7 @@ export function LessonPlayer({ lesson: authored, nextLesson, onDone, onExit, onO
     return (
       <div className="stack lesson-player">
         <div className="row spread">
-          <Btn icon={ChevronLeft} small onClick={onExit}>{exitWord}</Btn>
+          <Btn icon={ChevronLeft} small onward onClick={onExit}>{exitWord}</Btn>
           <Pill icon={Check} tone="win">{t("learn.complete")}</Pill>
         </div>
         <div className="play-wrap">
@@ -207,7 +216,7 @@ export function LessonPlayer({ lesson: authored, nextLesson, onDone, onExit, onO
               <div className="lesson-foot">
                 <Btn icon={BookOpen} small onClick={onExit}>{exitWord}</Btn>
                 {nextLesson && (
-                  <Btn icon={ChevronRight} small primary onClick={() => onOpenNext(nextLesson)}>
+                  <Btn icon={ChevronRight} small primary onward onClick={() => onOpenNext(nextLesson)}>
                     {t("learn.nextLesson", { title: lessonField(nextLesson, "title", t) })}
                   </Btn>
                 )}
@@ -232,7 +241,7 @@ export function LessonPlayer({ lesson: authored, nextLesson, onDone, onExit, onO
   return (
     <div className="stack lesson-player">
       <div className="row spread">
-        <Btn icon={ChevronLeft} small onClick={onExit}>{exitWord}</Btn>
+        <Btn icon={ChevronLeft} small onward onClick={onExit}>{exitWord}</Btn>
         <div className="row">
           {replay && (
             <Pill icon={FastForward}>
@@ -313,7 +322,7 @@ export function LessonPlayer({ lesson: authored, nextLesson, onDone, onExit, onO
             </div>
 
             <div className="lesson-foot">
-              <Btn icon={ChevronLeft} small onClick={back} disabled={stepIdx === 0}>{t("learn.back")}</Btn>
+              <Btn icon={ChevronLeft} small onward onClick={back} disabled={stepIdx === 0}>{t("learn.back")}</Btn>
               <div className="row">
                 {replay && state.status === "busy" && !state.refutation && (
                   <Btn icon={FastForward} small onClick={() => dispatch({ type: "advance" })}>{t("learn.nextMove")}</Btn>
@@ -327,7 +336,7 @@ export function LessonPlayer({ lesson: authored, nextLesson, onDone, onExit, onO
                 {canReveal(step, state) && (
                   <Btn icon={Eye} small onClick={() => dispatch({ type: "reveal" })}>{t("learn.showMe")}</Btn>
                 )}
-                <Btn icon={isLast ? Check : ChevronRight} small primary onClick={next} disabled={!canGoNext}>
+                <Btn icon={isLast ? Check : ChevronRight} small primary onward={!isLast} onClick={next} disabled={!canGoNext}>
                   {t(isLast ? "learn.completeLesson" : "learn.continue")}
                 </Btn>
               </div>

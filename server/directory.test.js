@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   fold, terms, findKey, findKeys, idFrom, idsFrom, query, closest,
-  MIN_QUERY, MAX_RESULTS, MAX_TERMS, FIND_PREFIX,
+  MIN_QUERY, MAX_RESULTS, MAX_TERMS, FIND_PREFIX, FIND_CLUB_PREFIX,
 } from "./directory.js";
 
 describe("folding a handle", () => {
@@ -134,5 +134,27 @@ describe("which match comes first", () => {
 
   it("caps at a screen rather than a page", () => {
     expect(MAX_RESULTS).toBe(20);
+  });
+});
+
+describe("the second index, for clubs that let themselves be found", () => {
+  it("writes the same terms under a prefix of its own", () => {
+    expect(findKeys("Go Guatemala", "c_1", FIND_CLUB_PREFIX).sort())
+      .toEqual(["cfind:go:c_1", "cfind:goguatemala:c_1", "cfind:guatemala:c_1"]);
+  });
+
+  /* Two indexes rather than one with a type field: a shared index would answer
+     both questions at once whichever one was asked, so a search for a person
+     would turn up clubs and the other way round. */
+  it("cannot be read as the handle index, nor the handle index as it", () => {
+    expect(idFrom("cfind:go:c_1")).toBe(null);
+    expect(idFrom("find:go:p_1", FIND_CLUB_PREFIX)).toBe(null);
+    expect(idFrom("cfind:go:c_1", FIND_CLUB_PREFIX)).toBe("c_1");
+    expect(idsFrom(["cfind:go:c_1", "find:go:p_1"], FIND_CLUB_PREFIX)).toEqual(["c_1"]);
+  });
+
+  it("still names the handle index by default, so no caller has to say so", () => {
+    expect(findKeys("Ana", "p_1")).toEqual(["find:ana:p_1"]);
+    expect(idFrom("find:ana:p_1")).toBe("p_1");
   });
 });

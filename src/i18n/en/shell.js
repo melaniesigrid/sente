@@ -18,6 +18,7 @@ export const shell = {
     enter: "Enter",
     yourBoard: "Your board",
     look: "The look of the place",
+    lookShort: "Look",
     profile: "Your profile",
   },
   /* The journal: what shipped, and what we think about how it is built. The

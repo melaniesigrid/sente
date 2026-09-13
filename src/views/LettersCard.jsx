@@ -11,16 +11,21 @@ import { writeRefusal } from "./letters.js";
 /* ----------------------- THE POST -----------------------
    Your threads, and one of them open.
 
+   Which one is open is held by the screen and not by this card. Every other
+   card on the profile screen is about a person, and each of them now offers to
+   write to that person; a card that kept the open thread to itself would mean
+   every one of those buttons had to walk somebody to this card and leave them
+   to find the right row.
+
    It is shaped like a post and not like a chat on purpose: no typing
    indicator, no read receipt, no notification. You write, and the other person
    finds it when they next look. The list says who spoke last rather than what
    has been read, because a read receipt is a promise about somebody else's
    attention and the thing a person actually wants to know is whether they are
    the one being waited on. */
-export function LettersCard({ account, go }) {
+export function LettersCard({ account, go, open, setOpen }) {
   const t = useT();
   const [rows, setRows] = useState(null);
-  const [open, setOpen] = useState(null);      // the id of the thread being read
   const { token } = account;
 
   const refresh = useCallback(async () => {
@@ -36,7 +41,7 @@ export function LettersCard({ account, go }) {
   }, [token]);
 
   if (rows === null) {
-    return <Card className="letters-card"><p className="fine">Fetching your letters…</p></Card>;
+    return <Card className="letters-card"><p className="fine">{t("letters.fetching", null, "Fetching your letters…")}</p></Card>;
   }
 
   if (open) {
@@ -111,7 +116,7 @@ function Thread({ account, otherId, onBack, go }) {
   return (
     <Card className="letters-card">
       <div className="row">
-        <Btn icon={ArrowLeft} small onClick={onBack}>{t("letters.head")}</Btn>
+        <Btn icon={ArrowLeft} small onward onClick={onBack}>{t("letters.head")}</Btn>
         <Btn small onClick={() => go("player", { playerId: otherId, from: "profile" })}>{t("letters.theirPage")}</Btn>
       </div>
 

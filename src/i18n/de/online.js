@@ -57,6 +57,13 @@ export const online = {
     pair: "Paar-Go",
   },
 
+  here: {
+    head: "Gerade hier",
+    note: "Die Freunde, die in der Halle sind und es dich sehen lassen. Niemand wird je als abwesend gezeigt: nicht da zu sein und es nicht zu sagen, sieht von außen gleich aus.",
+    record: "{wins}–{losses}",
+    ask: "{size}×{size} vorschlagen",
+  },
+
   find: {
     head: "Jemanden finden",
     note: "Tipp einen Namen oder einen Teil davon. Nur wer hier spielt, kann jemanden suchen, und eine Suche antwortet mit ein paar Leuten, nie mit einer Liste.",
@@ -138,6 +145,7 @@ export const online = {
     removeName: "{name} entfernen",
     declineName: "{name} ablehnen",
     takeBackName: "Die Anfrage an {name} zurücknehmen",
+    writeName: "{name} schreiben",
     act: {
       friends: "Befreundet",
       remove: "Freund entfernen",
@@ -176,7 +184,7 @@ export const online = {
   lobby: {
     matched: "Zusammengeführt mit {name} · du spielst {side}",
     signedOut: "Abgemeldet. Deine Wertung wartet auf dich.",
-    kept: "Dieser Name gehört dir jetzt auf jedem Gerät. Halte Ausschau nach einem Brief, der die Adresse bestätigt.",
+    kept: "Dieser Name gehört dir jetzt auf jedem Gerät.",
     leaveAsk: "Die Rangliste verlassen? Dieser Name, sein Schlüssel und seine Wertung werden endgültig entfernt. Beendete Partien bleiben.",
     noServer: "Der Server war nicht erreichbar; versuch es noch einmal",
     removed: "Name entfernt",
@@ -199,6 +207,10 @@ export const online = {
     wordLabel: "Treffwort, um mit einem Freund zu spielen",
     note: "Partien über das Netz sind ohne Vorgabe und ohne Uhr, gleich welche Vorgabe und Bedenkzeit du für das Haus einstellst. Verabredet mit einem Freund ein Wort und ihr findet einander, wie voll es auch ist.",
     waitingFor: " · wartet seit {waited}",
+    waitingOnYou: {
+      one: "Ein Tisch wartet auf dich. Diese Partien haben keine Uhr: Hier läuft nichts ab und niemand verliert, weil ein Tag vergeht.",
+      other: "{count} Tische warten auf dich, der längste zuerst. Diese Partien haben keine Uhr: Hier läuft nichts ab und niemand verliert, weil ein Tag vergeht.",
+    },
     findPair: "Eine Paar-Partie auf {size}×{size} suchen",
     pairNote: "Du und ein {rank}-Partner gegen einen anderen Spieler und dessen Partner, abwechselnd. Ohne Wertung. Jeder Partner läuft im Browser des Spielers, den er begleitet, und spielt darum so lange, wie dieser Spieler am Tisch ist.",
     pairLooking: "Suche nach einem weiteren Paar-Spieler auf {size}×{size}. Ihr bekommt jeder einen {rank}-Partner, und die vier von euch ziehen abwechselnd.",
@@ -223,9 +235,6 @@ export const online = {
     keepHandle: "Behalte diesen Namen",
     notNow: "Jetzt nicht",
     attachNote: "Deine Wertung, deine Partien und dein Name bleiben genau, wie sie sind.",
-    sending: "Wird gesendet…",
-    confirmNudge: "Joseki hat von {email} nie etwas zurückgehört. Bestätige sie, und du weißt, dass ein Brief dich erreichen kann.",
-    confirmSent: "Ein Brief ist unterwegs zu {email}. Der Link darin gilt eine Woche und funktioniert einmal. Kommt er nicht an, sieh im Spam-Ordner nach, bevor du einen weiteren anforderst.",
   },
 
   game: {

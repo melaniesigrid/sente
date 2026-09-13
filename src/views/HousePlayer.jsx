@@ -45,7 +45,7 @@ export function HousePlayerPage({ id, go, onBack }) {
   return (
     <div className="stack arrives">
       <div className="row">
-        <Btn icon={ArrowLeft} small onClick={onBack}>{t("house.back")}</Btn>
+        <Btn icon={ArrowLeft} small onward onClick={onBack}>{t("house.back")}</Btn>
       </div>
 
       <ScreenHeader

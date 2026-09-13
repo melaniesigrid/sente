@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Check, Pencil, Trophy, Flame, Sparkles, Sparkle, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Mountain, Palette, Grid3x3, Dot, Hammer, History, Trash2 } from "lucide-react";
 import { Card, Btn, Pill, Avatar, RankBadge, BeltRibbon, Toggle, PullQuote, Statement } from "../components/ui.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
@@ -29,6 +29,7 @@ import { OnlineProfileCard } from "./OnlineProfile.jsx";
 import { useT } from "../components/langStore.js";
 import { FriendsCard } from "./FriendsCard.jsx";
 import { FindCard } from "./FindCard.jsx";
+import { ClubsCard } from "./ClubsCard.jsx";
 import { useFriends } from "./useFriends.js";
 import { ArchiveCard } from "./ArchiveCard.jsx";
 import { LettersCard } from "./LettersCard.jsx";
@@ -156,7 +157,7 @@ const l0 = (s) => s.charAt(0).toLowerCase() + s.slice(1);
 
 /* ----------------------- PROFILE ----------------------- */
 
-export function ProfileView({ profile, setProfile, go, room, notify }) {
+export function ProfileView({ profile, setProfile, go, room, notify, writeTo = null }) {
   const t = useT();
   // The account's card, when there is an account. Two profiles sound like one
   // too many, so each says what it is: this device's, and the server's.
@@ -168,6 +169,22 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
      rather than in either of them so that asking somebody from the search
      results moves their row in the list below without a second fetch. */
   const friends = useFriends(account?.token, notify);
+  /* Which letter thread is open, held here rather than in the card that draws
+     it: three cards on this screen are about people, and each of them offers
+     to write to one. The first value comes from the address — a player page
+     says "write to them" and lands here with a name — and this screen is
+     mounted fresh when it does, so there is nothing to keep in step. */
+  const [thread, setThread] = useState(writeTo);
+  const write = useCallback((id) => {
+    setThread(id);
+    /* The letters sit above the cards the press came from, so the thread that
+       just opened can be off the top of the screen. Scrolling to it is
+       synchronising with something outside React, which is what an effect-free
+       callback like this is allowed to do. */
+    requestAnimationFrame(() => {
+      document.querySelector(".letters-card")?.scrollIntoView({ block: "start", behavior: "smooth" });
+    });
+  }, []);
   const games = profile.wins + profile.losses;
   const moku = useMoku();
   useMokuFacts({ view: "profile", seed: profile.wins + profile.losses });
@@ -214,9 +231,13 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
 
       {account && <OnlineProfileCard account={account} setAccount={setAccount} notify={notify} />}
       {account && <ArchiveCard account={account} setAccount={setAccount} notify={notify} go={go} />}
-      {account && <LettersCard account={account} go={go} />}
+      {account && <LettersCard account={account} go={go} open={thread} setOpen={setThread} />}
+      {/* No way to write from a search row on purpose: a search turns up
+          strangers, and only a friend or somebody you have played may be
+          written to. A button that mostly refuses is worse than no button. */}
       {account && <FindCard account={account} go={go} friends={friends} />}
-      {account && <FriendsCard account={account} go={go} friends={friends} />}
+      {account && <FriendsCard account={account} go={go} friends={friends} write={write} />}
+      {account && <ClubsCard account={account} go={go} notify={notify} />}
 
       <Statement lines={statementFor("profile", t)} figure="profile" at="left">{plainFor("profile", t)}</Statement>
       <Card className="passage-card"><Passage context="profile" /></Card>
@@ -351,15 +372,22 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
           the one sentence about today, and this has the half year behind it. */}
       {run.total > 0 && (
         <Card className="chain-card">
-          <div className="stat-head"><CalendarCheck size={16} /><span>{t("profile.stats.kata")}</span></div>
+          <div className="stat-head"><CalendarCheck size={16} /><span>{t("chain.title", null, "The chain")}</span></div>
           <div className="chain-head">
-            <div className="stat-num">{run.days}<em>{t("profile.stats.kataDays", { count: run.days })}</em></div>
+            <div className="stat-num">{run.days}<em>{t("chain.running", { count: run.days },
+              run.days === 1 ? "day running" : "days running")}</em></div>
             <div className="chain-facts">
-              {run.best > run.days && <span>{t("profile.stats.kataBest", { count: run.best }).trim()}</span>}
+              <span><strong>{run.best}</strong> {t("chain.best", null, "longest run")}</span>
+              <span><strong>{run.total}</strong> {t("chain.total", null, "days on the record")}</span>
+              {run.alive && <span><strong>{run.rest}</strong> {t("chain.rest", { count: run.rest },
+                run.rest === 1 ? "rest day in hand" : "rest days in hand")}</span>}
             </div>
           </div>
           <ChainYear profile={profile} today={dayKey()} />
-          <p className="fine">{chainNote(run)}</p>
+          <p className="fine">{chainNote(run, t)} {t("chain.rules", null,
+            "A day counts when you solve a problem, finish a lesson, sit a recall or play a rated "
+            + "game. Seven days of practice earn a rest day, you can hold two, and a missed day "
+            + "spends one. The record goes back thirteen months and lives on this device only.")}</p>
         </Card>
       )}
 

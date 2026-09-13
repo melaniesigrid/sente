@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { BASE_LOCALE, localeOf, makeT, resolveLocale } from "../i18n/index.js";
+import { BASE_LOCALE, dirOf, localeOf, makeT, resolveLocale } from "../i18n/index.js";
 
 /* ----------------------- THE LANGUAGE STORE -----------------------
    The context and the hooks live apart from the provider, the way Moku's do,
@@ -14,7 +14,9 @@ import { BASE_LOCALE, localeOf, makeT, resolveLocale } from "../i18n/index.js";
    a component, so a line can go into an `aria-label` or a `title` as easily as
    into a paragraph. */
 
-export const LangCtx = createContext({ locale: localeOf(BASE_LOCALE), t: makeT(BASE_LOCALE) });
+export const LangCtx = createContext({
+  locale: localeOf(BASE_LOCALE), t: makeT(BASE_LOCALE), dir: dirOf(BASE_LOCALE),
+});
 
 const readLanguages = () =>
   (typeof navigator === "undefined"
@@ -39,16 +41,27 @@ export function useDeviceLanguages() {
  *  from it and hands the same value to LangProvider, so the stored id is
  *  resolved in exactly one place.
  *
- *  The document's `lang` is set here and nowhere else. It is not decoration: it
- *  is what a screen reader picks a voice from and what a browser hyphenates by,
- *  so it has to follow the words on the screen rather than the file they were
- *  served from. */
+ *  The document's `lang` and `dir` are set here and nowhere else. Neither is
+ *  decoration: `lang` is what a screen reader picks a voice from and what a
+ *  browser hyphenates by, and `dir` is what turns every logical property in the
+ *  stylesheet around. Both have to follow the words on the screen rather than
+ *  the file they were served from.
+ *
+ *  Setting `dir` on the root and nowhere else is the whole of the right-to-left
+ *  support, and that is on purpose: the stylesheet asks for start and end
+ *  rather than left and right, so one attribute mirrors the app and no view
+ *  ever branches on the language it is being read in. */
 export function useLang(id) {
   const devices = useDeviceLanguages();
   const resolved = resolveLocale(id, devices);
-  const value = useMemo(() => ({ locale: localeOf(resolved), t: makeT(resolved) }), [resolved]);
+  const value = useMemo(
+    () => ({ locale: localeOf(resolved), t: makeT(resolved), dir: dirOf(resolved) }),
+    [resolved],
+  );
   useEffect(() => {
-    if (typeof document !== "undefined") document.documentElement.lang = value.locale.tag;
+    if (typeof document === "undefined") return;
+    document.documentElement.lang = value.locale.tag;
+    document.documentElement.dir = value.dir;
   }, [value]);
   return value;
 }
@@ -56,6 +69,16 @@ export function useLang(id) {
 /** `t(key, vars, fallback)`: the reader for the language in force. */
 export function useT() {
   return useContext(LangCtx).t;
+}
+
+/** Which way the page runs: `"ltr"` or `"rtl"`.
+ *
+ *  The stylesheet turns the boxes around on its own, so a view almost never
+ *  needs this. It is here for the handful of things CSS cannot reach: which
+ *  arrow key means onward, and anything else where a direction is behaviour
+ *  rather than layout. Reach for a logical property first. */
+export function useDir() {
+  return useContext(LangCtx).dir;
 }
 
 /** The language in force, resolved: `{ id, tag, name, endonym }`. For the

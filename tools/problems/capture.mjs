@@ -35,16 +35,16 @@ import { idx, chainAt, tryPlay } from "../../src/engine/index.js";
 
 const SIZE = 9;
 const BOX = 4;
-const ANCHORS = { corner: { c: 0, r: 0 }, edge: { c: 2, r: 0 }, open: { c: 2, r: 2 } };
+export const ANCHORS = { corner: { c: 0, r: 0 }, edge: { c: 2, r: 0 }, open: { c: 2, r: 2 } };
 const N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
-const inB = (p) => p.c >= 0 && p.r >= 0 && p.c < SIZE && p.r < SIZE;
-const same = (a, b) => a.c === b.c && a.r === b.r;
-const has = (list, p) => list.some(q => same(q, p));
+export const inB = (p) => p.c >= 0 && p.r >= 0 && p.c < SIZE && p.r < SIZE;
+export const same = (a, b) => a.c === b.c && a.r === b.r;
+export const has = (list, p) => list.some(q => same(q, p));
 
 /** Every connected set of `n` points inside the box, anchored so that it
  *  touches the box's corner: a chain drawn floating in the middle of the box
  *  is the same chain drawn against its edge, one square over. */
-function chains(n, off) {
+export function chains(n, off) {
   const cells = [];
   for (let r = 0; r < BOX; r++) for (let c = 0; c < BOX; c++) cells.push(P(c, r));
   const out = new Map();
@@ -69,7 +69,7 @@ function chains(n, off) {
 }
 
 /** The liberties of a set of points, on the board. */
-function liberties(stones) {
+export function liberties(stones) {
   const out = [];
   for (const p of stones) for (const [dc, dr] of N4) {
     const q = P(p.c + dc, p.r + dr);
@@ -79,7 +79,7 @@ function liberties(stones) {
 }
 
 /** Every subset of `list` of size `k`. */
-function subsets(list, k) {
+export function subsets(list, k) {
   if (k === 0) return [[]];
   const out = [];
   const walk = (chosen, start) => {
@@ -152,7 +152,7 @@ function ask(setup, target, area) {
  *  out is where the liberties are, two is where a block or an extension goes,
  *  and a chain that grows a liberty past that ring has got out, which is what
  *  `catches` already counts as an escape. */
-function around(chain) {
+export function around(chain) {
   const out = [];
   for (const p of chain) {
     for (let dc = -2; dc <= 2; dc++) for (let dr = -2; dr <= 2; dr++) {

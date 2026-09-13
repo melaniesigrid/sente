@@ -57,6 +57,13 @@ export const online = {
     pair: "双人围棋",
   },
 
+  here: {
+    head: "此刻在线",
+    note: "在大厅里、并且愿意让你看到的好友。这里从不显示谁不在：不在和不想说，从外面看是一样的。",
+    record: "{wins}胜{losses}负",
+    ask: "邀 {size} 路",
+  },
+
   find: {
     head: "找一位棋手",
     note: "输入一个名字，或者名字的一部分。只有在这里下棋的人才能查人，一次搜索给的是几个人，不是一份名单。",
@@ -138,6 +145,7 @@ export const online = {
     removeName: "移除{name}",
     declineName: "拒绝{name}",
     takeBackName: "收回发给{name}的请求",
+    writeName: "给{name}写信",
     act: {
       friends: "好友",
       remove: "解除好友",
@@ -176,7 +184,7 @@ export const online = {
   lobby: {
     matched: "配到了{name} · 你执{side}",
     signedOut: "已退出。你的分数在这儿等着你。",
-    kept: "这个名号现在在任何设备上都是你的了。留意一封确认地址的信。",
+    kept: "这个名号现在在任何设备上都是你的了。",
     leaveAsk: "离开排行榜？这个名号、它的密钥和它的分数都会永久删除。下完的棋会留着。",
     noServer: "连不上服务器，再试一次",
     removed: "名号已删除",
@@ -198,6 +206,9 @@ export const online = {
     wordPlaceholder: "或者一个你们俩都知道的词",
     wordLabel: "跟朋友下棋用的碰头暗号",
     waitingFor: " · 等了{waited}",
+    waitingOnYou: {
+      other: "有 {count} 张棋桌在等你，等得最久的排在前面。这些对局没有棋钟：这里不会超时，也不会因为隔了一天才下就判负。",
+    },
     findPair: "在 {size}×{size} 上找一局双人围棋",
     pairNote: "你和一位{rank}的同伴，对上另一位棋手和他的同伴，轮流下。不计分。每位同伴都跑在它所搭档的那位棋手的浏览器里，所以那位棋手在桌上多久，它就下多久。",
     pairLooking: "正在 {size}×{size} 上找另一位打双人围棋的人。你们各会分到一位{rank}的同伴，四个人轮流下。",
@@ -223,9 +234,6 @@ export const online = {
     keepHandle: "留住这个名号",
     notNow: "以后再说",
     attachNote: "你的分数、你的棋和你的名号，原样不动。",
-    sending: "正在发…",
-    confirmNudge: "Joseki 从来没有收到过 {email} 的回音。确认一下，你就知道信真的能到你手上。",
-    confirmSent: "一封信正在发往 {email}。里面的链接一周内有效，只能用一次。要是没收到，先去垃圾邮件里找找，再来要下一封。",
   },
 
   game: {

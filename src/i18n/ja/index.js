@@ -13,12 +13,13 @@
    one, because the library arrives a tier at a time. */
 import { shell } from "./shell.js";
 import { look } from "./look.js";
-import { screens } from "./screens.js";
+import { screens, chain, master, clock } from "./screens.js";
 import { game } from "./game.js";
 import { front } from "./front.js";
 import { rooms } from "./rooms.js";
 import { legal, legalDoc, credit } from "./legal.js";
 import { online } from "./online.js";
+import { club } from "./club.js";
 import { account } from "./account.js";
 import { voice } from "./voice.js";
 import { room, stones, type, belt, badge, fact, seen } from "./overlay.js";
@@ -36,6 +37,9 @@ export const ja = {
   ...shell,
   ...look,
   ...screens,
+  chain,
+  master,
+  clock,
   ...game,
   ...front,
   ...rooms,
@@ -43,6 +47,7 @@ export const ja = {
   legalDoc,
   credit,
   online,
+  club,
   account,
   voice,
   room,

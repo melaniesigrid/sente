@@ -67,6 +67,13 @@ export const online = {
   /* Finding somebody by their handle, which is the way into everything below:
      the ladder only ever held a hundred people, and a club whose members have
      not played a rated game yet is not on it at all. */
+  here: {
+    head: "Here now",
+    note: "The friends who are in the lobby, and who let you see it. Nobody is ever shown as away: not here and not telling you look the same from the outside.",
+    record: "{wins}–{losses}",
+    ask: "Ask for {size}×{size}",
+  },
+
   find: {
     head: "Find a player",
     note: "Type a handle, or any part of one. Only players here can look anybody up, and a search answers with a few people rather than with a list.",
@@ -152,6 +159,7 @@ export const online = {
     removeName: "Remove {name}",
     declineName: "Decline {name}",
     takeBackName: "Take back the request to {name}",
+    writeName: "Write to {name}",
     act: {
       friends: "Friends",
       remove: "Remove friend",
@@ -194,7 +202,7 @@ export const online = {
   lobby: {
     matched: "Matched with {name} · you play {side}",
     signedOut: "Signed out. Your rating is waiting for you.",
-    kept: "That handle is yours on any device now. Look for a letter confirming the address.",
+    kept: "That handle is yours on any device now.",
     leaveAsk: "Leave the ladder? This handle, its key and its rating are removed for good. Finished games stay.",
     noServer: "Could not reach the server; try again",
     removed: "Handle removed",
@@ -217,6 +225,10 @@ export const online = {
     wordPlaceholder: "or a word you both know",
     wordLabel: "Rendezvous word for playing a friend",
     waitingFor: " · waiting {waited}",
+    waitingOnYou: {
+      one: "One table is waiting on you. These games have no clock: nothing here runs out and nobody loses by taking a day.",
+      other: "{count} tables are waiting on you, longest first. These games have no clock: nothing here runs out and nobody loses by taking a day.",
+    },
     /* Pair go over the network: you and a house partner against another pair.
        The partner runs in its own player's browser, which is the one thing
        about it a player has to be told. */
@@ -246,9 +258,6 @@ export const online = {
     keepHandle: "Keep this handle",
     notNow: "Not now",
     attachNote: "Your rating, your games and your handle stay exactly as they are.",
-    sending: "Sending…",
-    confirmNudge: "Joseki has never heard back from {email}. Confirm it and you will know a letter can reach you.",
-    confirmSent: "A letter is on its way to {email}. The link in it lasts a week and works once. If it does not arrive, look in the spam folder before asking for another.",
   },
 
   game: {

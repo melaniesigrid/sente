@@ -14,12 +14,13 @@
 
 import { shell } from "./shell.js";
 import { look } from "./look.js";
-import { screens } from "./screens.js";
+import { screens, chain, master, clock } from "./screens.js";
 import { game } from "./game.js";
 import { front } from "./front.js";
 import { rooms } from "./rooms.js";
 import { legal } from "./legal.js";
 import { online } from "./online.js";
+import { club } from "./club.js";
 import { account } from "./account.js";
 import { voice } from "./voice.js";
 
@@ -29,11 +30,15 @@ export const en = {
   ...shell,
   ...look,
   ...screens,
+  chain,
+  master,
+  clock,
   ...game,
   ...front,
   ...rooms,
   legal,
   online,
+  club,
   account,
   voice,
 };

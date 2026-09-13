@@ -1,6 +1,7 @@
 // es · front
 export const front = {
   landing: {
+    recordMast: "El Registro",
     label: "El juego más antiguo, con luz suave",
     displayBefore: "Juega al go,",
     displayEm: "con belleza",

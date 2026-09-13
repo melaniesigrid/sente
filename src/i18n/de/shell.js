@@ -25,6 +25,7 @@ export const shell = {
     enter: "Eintreten",
     yourBoard: "Dein Brett",
     look: "Das Aussehen des Ortes",
+    lookShort: "Aussehen",
     profile: "Dein Profil",
   },
   journal: {

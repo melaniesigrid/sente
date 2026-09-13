@@ -10,6 +10,8 @@ import { dashboard, waitingText, waitedMinutes } from "./dashboard.js";
 import { AccountGate } from "./AccountGate.jsx";
 import { InvitesCard } from "./InvitesCard.jsx";
 import { useInvites } from "./useInvites.js";
+import { HereNow } from "./HereNow.jsx";
+import { useFriends } from "./useFriends.js";
 import { avatarUrl } from "../net/avatar.js";
 import { errorText, formProblem } from "./accountForm.js";
 import { useT } from "../components/langStore.js";
@@ -77,6 +79,11 @@ function Lobby({ account, setAccount, notify, onPlay, size, setSize, go }) {
   const shelf = useInvites(token, notify, (table) => onPlayRef.current({ mode: { kind: "online", gameId: table.gameId } }));
   const shelfRef = useRef(shelf.refresh);
   useEffect(() => { shelfRef.current = shelf.refresh; }, [shelf.refresh]);
+  /* The book, for the strip of friends who are here. One small call, and the
+     only reason the lobby needs it: presence has been on this server since it
+     shipped and has only ever been drawn on the profile screen, which is not
+     where anybody is standing when they want a game. */
+  const { book } = useFriends(token, notify);
 
   const refresh = useCallback(async () => {
     try {
@@ -154,6 +161,7 @@ function Lobby({ account, setAccount, notify, onPlay, size, setSize, go }) {
      so six games going is a list of what to do rather than a pile. The rule for
      whose move it is lives in `dashboard.js` and is asked, never restated: the
      front page and this list must never disagree about the same board. */
+  const openPage = (person) => (go ? go("player", { playerId: person.id, from: "play" }) : null);
   const board = dashboard(tables, player.id);
   const live = [...board.yours, ...board.theirs];
   const done = tables.filter(t => t.phase === "ended")
@@ -167,7 +175,8 @@ function Lobby({ account, setAccount, notify, onPlay, size, setSize, go }) {
         inside a raised thing is the one shape the house does not draw. It is
         above because it is the shorter way into a game than looking for a
         stranger, and it is absent entirely when the shelf is empty. */}
-    <InvitesCard shelf={shelf} onOpen={(person) => (go ? go("player", { playerId: person.id, from: "play" }) : null)} />
+    <InvitesCard shelf={shelf} onOpen={openPage} />
+    <HereNow token={token} book={book} invites={shelf} size={size} onOpen={openPage} />
     <Card className="online-card">
       <div className="persona-top">
         <Avatar name={player.name} tint={player.tint} size={52} src={avatarUrl(SERVER_URL, player.id, player.avatarAt)} />
@@ -265,19 +274,11 @@ function Lobby({ account, setAccount, notify, onPlay, size, setSize, go }) {
           {live.map(g => <TableRow key={g.id} game={g} me={player.id} onOpen={() => onPlay({ mode: { kind: "online", gameId: g.id } })} />)}
           {done.map(g => <TableRow key={g.id} game={g} me={player.id} onOpen={() => onPlay({ mode: { kind: "online", gameId: g.id } })} />)}
           {yours > 0 && (
-            <p className="fine">
-              {yours === 1
-                ? "One table is waiting on you."
-                : `${yours} tables are waiting on you, longest first.`}{" "}
-              These games have no clock: nothing here runs out and nobody loses by taking a day.
-            </p>
+            <p className="fine">{t("online.lobby.waitingOnYou", { count: yours })}</p>
           )}
         </div>
       )}
       {!player.email && <AttachRow onAttach={attach} />}
-      {player.email && !player.emailVerified && (
-        <ConfirmRow email={player.email} token={token} notify={notify} />
-      )}
       <div className="row spread">
         <p className="fine">{t("online.lobby.rated")}</p>
         <div className="row">
@@ -332,44 +333,6 @@ function AttachRow({ onAttach }) {
       </div>
       <p className="fine">{t("online.lobby.attachNote")}</p>
     </div>
-  );
-}
-
-/** The nudge an account whose address has never answered should keep seeing.
- *
- *  What confirming buys is worth being straight about: it does not unlock
- *  anything and it is not a gate: a forgotten password can be posted to an
- *  unconfirmed address exactly as it can to a confirmed one. What it proves is
- *  that the address was typed correctly and can be reached, which is the thing
- *  you want to have found out before it is the only way back to your handle. */
-function ConfirmRow({ email, token, notify }) {
-  const t = useT();
-  const [busy, setBusy] = useState(false);
-  const [sent, setSent] = useState(false);
-
-  const send = async () => {
-    if (busy) return;
-    setBusy(true);
-    try {
-      await api.sendConfirmation(token);
-      setSent(true);
-    } catch (e) {
-      notify({ icon: "info", text: errorText(e.reason) });
-    } finally { setBusy(false); }
-  };
-
-  if (sent) {
-    return (
-      <p className="fine" role="status">{t("online.lobby.confirmSent", { email })}</p>
-    );
-  }
-  return (
-    <button className="attach-row" onClick={send} disabled={busy}>
-      <Mail size={14} />
-      <span>
-        {busy ? t("online.lobby.sending") : t("online.lobby.confirmNudge", { email })}
-      </span>
-    </button>
   );
 }
 

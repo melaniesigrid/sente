@@ -47,7 +47,7 @@ export const REQUIRED_TONES = TONES.filter(t => t.required).map(t => t.key);
  *  may name no colour outside its house-default block, so this list is also
  *  the list of things the stylesheet is allowed to ask for. */
 export const TOKEN_NAMES = [
-  "--ground", "--light", "--dark", "--ink", "--ink-2", "--ink-3", "--cream",
+  "--ground", "--board", "--light", "--dark", "--ink", "--ink-2", "--ink-3", "--cream",
   "--accent-rgb", "--accent-soft", "--accent-ring", "--accent-ink", "--danger", "--danger-ink",
   "--sh-ink", "--sh-lite",
   "--wash-a", "--wash-b", "--scrim",
@@ -81,16 +81,32 @@ export const RULES = [
 ];
 
 /** The two stones against each other. Not a tone-against-tone rule, because a
- *  stone is not a tone: the set is data of its own (stones.js), and the black
- *  half of it is seated toward the board it is played on; on a dark board the ink is
- *  the light text and the stone is seated toward the wood. What must never
- *  collapse is the difference between the two stones. (A white stone barely
- *  differs from paper and never has: what separates it there is its rim and its
- *  drop shadow, not its fill.) */
+ *  stone is not a tone: the set is data of its own (stones.js). What must never
+ *  collapse is the difference between the two stones. */
 export const STONE_RULE = {
   id: "stones", label: "The two stones", min: 4.5,
   why: "Black and white have to be unmistakable at a glance, across a board, at speed.",
 };
+
+/** Each stone against the board it is lying on, which is a different question
+ *  from the two stones against each other and the one this design system got
+ *  wrong for a year. Every dark room passed the rule above at 10:1 or better
+ *  and still played badly, because both stones were measured against each other
+ *  and neither was measured against the wood: a black stone on a near-black
+ *  board sat at 1.2:1 while the white one shouted at 14:1. A player reported it
+ *  as getting lost, which is exactly what those two numbers describe.
+ *
+ *  On paper this rule is deliberately one-sided and stays that way: a white
+ *  stone on kaya really is about 1.1:1, and what separates it there is its rim
+ *  and its drop shadow, not its fill. That is a real board, so the floor only
+ *  binds where the room had to invent a board (`deriveBoard`), and there it
+ *  binds on both stones at once. */
+export const BOARD_RULES = [
+  { id: "board-b", label: "Slate on the board", stone: "b", min: 2.5,
+    why: "A black stone has to be findable on the wood it is played on, not only against the white one." },
+  { id: "board-w", label: "Shell on the board", stone: "w", min: 2.5, derivedOnly: true,
+    why: "The other half of the same rule, and only where the room invented its board: a white stone that outshouts the wood is as tiring as a black one that hides in it. On real paper a shell stone is separated by its rim, not by its fill." },
+];
 
 /** The two shadow tones are the illusion, and they fail in the other
  *  direction: too much contrast and they stop being light. */

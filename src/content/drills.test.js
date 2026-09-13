@@ -22,14 +22,17 @@ import {
 import { rankToNumber } from "./library.js";
 import { ratingOfValue } from "./rank.js";
 import {
-  legal, bounded, killers, savers, catchers, fightRegion, fmt, P,
+  legal, bounded, killers, savers, catchers, captureValues, fightRegion, tesujiRegion,
+  readingHorizon, fmt, P,
 } from "../../tools/problems/prove.mjs";
-import { features, rankNumber, rankLabel, captureRank } from "../../tools/problems/grade.mjs";
+import {
+  features, rankNumber, rankLabel, captureRank, tesujiRank,
+} from "../../tools/problems/grade.mjs";
 import { BASE_LOCALE, makeT } from "../i18n/index.js";
 
 const t = makeT(BASE_LOCALE);
-const KINDS = ["capture", "life"];
-const GOALS = ["capture", "kill", "live"];
+const KINDS = ["capture", "life", "tesuji"];
+const GOALS = ["capture", "kill", "live", "tesuji"];
 const WHERES = ["corner", "edge", "open"];
 
 describe("the drill collection", () => {
@@ -90,7 +93,35 @@ describe.each(DRILLS.map(d => [d.id, d]))("drill %s", (id, drill) => {
     expect(drillPrompt(drill, t).length).toBeGreaterThan(20);
   });
 
-  if (drill.kind === "capture") {
+  if (drill.kind === "tesuji") {
+    /* The claim a tesuji drill makes is not "this chain dies" but "counted to
+       the end of the fight, this move is worth more stones than any other".
+       That is what gets re-proved, by the same counting solver the census
+       used, over the region the prover derives from the board. */
+    it("is the one move that wins stones, and wins more than any other", () => {
+      const region = tesujiRegion(bd);
+      expect(region.length - 1).toBe(drill.decoys);
+      /* And the stone count the grade uses is the board's, not a number
+         carried over from the census. */
+      expect(bd.cells.filter(v => v === "w").length).toBe(drill.stones);
+      const v = captureValues(bd, region, "b", { cap: 7 });
+      expect(v.moves.length).toBeGreaterThan(1);
+      expect(fmt([v.moves[0].point])).toBe(fmt(answers));
+      expect(v.moves[0].net).toBe(drill.net);
+      expect(v.moves[0].net).toBeGreaterThan(v.moves[1].net);
+      expect(v.moves[0].net).toBeGreaterThan(v.pass);
+      expect(v.moves[0].sacrifice ? 1 : 0).toBe(drill.sacrifice);
+    });
+
+    it("is graded by the model that produced it, depth and all", () => {
+      const region = tesujiRegion(bd);
+      expect(readingHorizon(bd, region, "b", answers[0])).toBe(drill.depth);
+      const f = { depth: drill.depth, sacrifice: drill.sacrifice,
+        decoys: region.length - 1, whites: drill.stones,
+        corner: drill.where === "corner" ? 1 : 0 };
+      expect(rankLabel(tesujiRank(f))).toBe(drill.rank);
+    });
+  } else if (drill.kind === "capture") {
     it("is caught by the stated point and by no other in the fight", () => {
       const target = P(drill.target[0], drill.target[1]);
       expect(bd.cells[idx(9, target.c, target.r)]).toBe("w");
@@ -132,6 +163,17 @@ describe.each(DRILLS.map(d => [d.id, d]))("drill %s", (id, drill) => {
      stone standing somewhere that changes nothing is a drill with litter in
      it, and litter is what a generated collection fills up with. */
   it("has no chain standing on its own away from the fight", () => {
+    if (drill.kind === "tesuji") {
+      /* A tesuji board has no single target chain, so the fight is the white
+         stones, and every stone has to be within reach of them. */
+      const region = tesujiRegion(bd);
+      for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) {
+        if (bd.cells[idx(9, c, r)] === null) continue;
+        const near = region.some(p => Math.abs(p.c - c) + Math.abs(p.r - r) <= 3);
+        expect(near, `stone at ${c},${r} is nowhere near the fight`).toBe(true);
+      }
+      return;
+    }
     const target = drill.kind === "capture"
       ? P(drill.target[0], drill.target[1])
       : bounded(bd).target;

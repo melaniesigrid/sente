@@ -56,9 +56,9 @@ export const account = {
     working: "Arbeitet…",
     create: "Leg das Konto an",
     signinDo: "Anmelden",
-    signupFine: "Dein Passwort wird in diesem Browser gestreckt und nie gesendet; der Server speichert einen Hash des Ergebnisses und könnte ihn nicht zurücklesen, selbst wenn er wollte. Danach folgt ein Brief, um zu bestätigen, dass die Adresse eine ist, die du lesen kannst.",
+    signupFine: "Dein Passwort wird in diesem Browser gestreckt und nie gesendet; der Server speichert einen Hash des Ergebnisses und könnte ihn nicht zurücklesen, selbst wenn er wollte.",
     signinFine: "Anmelden dauert einen Moment: der Browser erledigt die Arbeit, das Passwort zu beweisen, damit der Server es nie halten muss.",
-    welcomeNew: "Willkommen auf der Rangliste, {name}. Halte Ausschau nach einem Brief, der deine Adresse bestätigt.",
+    welcomeNew: "Willkommen auf der Rangliste, {name}.",
     welcomeBack: "Willkommen zurück, {name}",
   },
 

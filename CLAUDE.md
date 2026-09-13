@@ -45,6 +45,15 @@ in `server/` (Durable Objects), deployed separately.
 - `house` is the reference room and the fallback; `system` is what a profile ships set to,
   and `resolveTheme(id, prefersDark)` turns it into a real room. The theme package is pure:
   `usePrefersDark` in `src/components/` is the only thing that reads the media query.
+- **The board is not the page.** `--board` is its own token: on paper it is the ground, and
+  in a dark room `deriveBoard` lifts it toward the room's shell until it sits at the
+  geometric mean of the two stones, where both read against it equally. Stones are cut once
+  and never bent to suit a room — a stone is the same rock everywhere. Anything drawn *on*
+  the board takes its colour from the board, not the page (the grid, the star points, the
+  territory marks), because in a dark room the ink is light and the ground is dark.
+- Two stones being far apart from *each other* is not the same question as either stone
+  being readable on the wood. `STONE_RULE` asks the first and `BOARD_RULES` the second;
+  a year of dark rooms passed the first at 10:1 while failing the second at 1.2:1.
 - The type scale floor is 12px. Nothing below that carries meaning at arm's length, and the
   wordmark is display-sized: it is the brand, not a card heading.
 - Type is the one themed part. A pairing (display face, italic voice, body face) is data in
@@ -55,14 +64,30 @@ in `server/` (Durable Objects), deployed separately.
   with a `size-adjust` that puts every face on Fraunces' optical size; they are demo cuts,
   see `src/fonts/LICENSES.md` before a public deploy.
 - **No view names a word.** User-facing text is a key into `src/i18n/`, read with `t()` from
-  `useT()`; the language is themed the way the palette and the type are. `en.js` is the
-  floor every lookup lands on, so an unfinished language shows English rather than a hole.
+  `useT()`; the language is themed the way the palette and the type are. `src/i18n/en/` is
+  the floor every lookup lands on, so an unfinished language shows English rather than a hole.
   Prose a data file already owns (a room's note, a stone set's name, a pairing's note)
   stays there and a translation overlays it by id (`t(key, vars, dataString)`). `i18n.test.js`
   fails when a catalogue drifts from English or from the data. `system` is what a profile
   ships set to; `src/components/langStore.js` is the only thing that reads
   `navigator.languages`, the way `usePrefersDark` is for the media query. A name is never
-  translated, a description always is.
+  translated, a description always is. A language may not carry a whole namespace (the
+  library, the Classic and the corner dictionary are translated whole or not at all);
+  `carries(id, prefix)` in `catalog.js` is how a view asks, and the parity test reads the
+  same answer rather than keeping a second list.
+- **Direction is a fact about the language, not a decision a view makes.** `dir` sits on the
+  locale in `src/i18n/locales.js` and `dirOf(id)` is the one reader; `src/main.jsx` puts it
+  on the document before React mounts, so the first paint is already the right way round.
+  The stylesheet therefore names the start and end of a line, never left and right:
+  `padding-inline-*`, `inset-inline-*`, `text-align: start`, and `--flip` (1, or -1 under
+  `[dir="rtl"]`) for the transforms that have to mirror. Two things stay put. The board is
+  pinned `direction: ltr` — A1 is in the same corner in every language — and prose whose
+  language is whatever the author typed (a bio, a chat line, a passage of the Classic) takes
+  its direction from its own first letter with `unicode-bidi: plaintext`. Hebrew has no
+  italic: `hasItalic(locale)` in `src/content/typeface.js` sets the page upright and the
+  `-own` slant tokens hand a run of English back the pairing's own italic. `css.test.js`
+  holds all of it, because a shorthand that quietly restores `left`/`right` is the way this
+  regresses.
 - House players are labeled honestly as bots in the UI. Keep that. They play with
   KataGo's human-style network (`src/engine/kata/`, model in `public/models/`, export and
   fixture scripts in `tools/kata/`); each persona is a rank profile. `src/engine/kata/net.js`
@@ -92,9 +117,9 @@ in `server/` (Durable Objects), deployed separately.
   goes instead. `BETA_CAP` in the environment overrides the constant for a deployment, which
   is how `node tools/server/beta.mjs --fill` proves the refusal against a small server. The
   number is also written out in prose no test can reach: `account.full.tagline` and
-  `account.full.bio` in all four catalogues under `src/i18n/`, and the waiting-list section of
+  `account.full.bio` in all nine catalogues under `src/i18n/`, and the waiting-list section of
   `src/content/legal.js`, whose `REVISION` stamp has to move with it. Change the constant and
-  those nine sentences change with it.
+  those nineteen sentences change with it.
 - A deployed Durable Object keeps running the previous code until its instance restarts, so
   a change to `registry.js` or `roomObject.js` may not be live in the seconds after
   `npm run deploy:server`. Verify against a fresh instance, and do not conclude a change

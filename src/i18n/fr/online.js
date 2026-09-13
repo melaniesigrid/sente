@@ -57,6 +57,13 @@ export const online = {
     pair: "go en paires",
   },
 
+  here: {
+    head: "Ici maintenant",
+    note: "Les amis qui sont dans le salon et qui te laissent le voir. Personne n’est jamais montré comme absent : ne pas être là et ne pas le dire se ressemblent de l’extérieur.",
+    record: "{wins}–{losses}",
+    ask: "Proposer {size}×{size}",
+  },
+
   find: {
     head: "Trouver un joueur",
     note: "Écris un pseudo, ou un bout de pseudo. Seuls les joueurs d’ici peuvent chercher quelqu’un, et une recherche répond par quelques personnes, jamais par une liste.",
@@ -138,6 +145,7 @@ export const online = {
     removeName: "Retirer {name}",
     declineName: "Refuser {name}",
     takeBackName: "Reprendre la demande à {name}",
+    writeName: "Écrire à {name}",
     act: {
       friends: "Amis",
       remove: "Retirer l’ami",
@@ -176,7 +184,7 @@ export const online = {
   lobby: {
     matched: "Appariée avec {name} · tu joues {side}",
     signedOut: "Session fermée. Ton score t'attend.",
-    kept: "Cette identité est à toi sur n'importe quel appareil. Guette une lettre qui confirme l'adresse.",
+    kept: "Cette identité est à toi sur n'importe quel appareil.",
     leaveAsk: "Quitter le classement ? Cette identité, sa clé et son score sont supprimés pour de bon. Les parties terminées restent.",
     noServer: "Impossible de joindre le serveur ; réessaie",
     removed: "Identité supprimée",
@@ -199,6 +207,10 @@ export const online = {
     wordLabel: "Mot de rendez-vous pour jouer avec un ami",
     note: "Les parties en ligne sont à égalité et sans pendule, quels que soient le handicap et la cadence que tu règles pour la maison. Convenez d'un mot avec un ami et vous vous trouverez, si chargé que ce soit.",
     waitingFor: " · attend depuis {waited}",
+    waitingOnYou: {
+      one: "Une table t'attend. Ces parties n'ont pas d'horloge : rien ici ne s'épuise et personne ne perd pour avoir pris une journée.",
+      other: "{count} tables t'attendent, la plus ancienne d'abord. Ces parties n'ont pas d'horloge : rien ici ne s'épuise et personne ne perd pour avoir pris une journée.",
+    },
     findPair: "Chercher une partie en paires en {size}×{size}",
     pairNote: "Toi et un partenaire {rank} contre un autre joueur et le sien, chacun son tour. Non classée. Chaque partenaire tourne dans le navigateur du joueur qu'il accompagne, il joue donc tant que ce joueur est à la table.",
     pairLooking: "Recherche d'un autre joueur en paires en {size}×{size}. Vous aurez chacun un partenaire {rank}, et vous jouerez à quatre, chacun son tour.",
@@ -223,9 +235,6 @@ export const online = {
     keepHandle: "Garde cette identité",
     notNow: "Pas maintenant",
     attachNote: "Ton score, tes parties et ton identité restent exactement comme ils sont.",
-    sending: "Envoi…",
-    confirmNudge: "Joseki n'a jamais eu de réponse de {email}. Confirme-la et tu sauras qu'une lettre peut t'atteindre.",
-    confirmSent: "Une lettre est en route vers {email}. Le lien dure une semaine et ne marche qu'une fois. S'il n'arrive pas, regarde dans les indésirables avant d'en demander un autre.",
   },
 
   game: {

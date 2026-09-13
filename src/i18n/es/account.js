@@ -56,9 +56,9 @@ export const account = {
     working: "Trabajando…",
     create: "Crea la cuenta",
     signinDo: "Iniciar sesión",
-    signupFine: "Tu contraseña se estira en este navegador y nunca se envía; el servidor guarda un hash del resultado y no podría leerlo aunque quisiera. Después va una carta, para confirmar que la dirección es una que puedes leer.",
+    signupFine: "Tu contraseña se estira en este navegador y nunca se envía; el servidor guarda un hash del resultado y no podría leerlo aunque quisiera.",
     signinFine: "Iniciar sesión tarda un momento: el navegador hace el trabajo de demostrar la contraseña para que el servidor no tenga que guardarla nunca.",
-    welcomeNew: "Bienvenida a la clasificación, {name}. Busca una carta que confirme tu dirección.",
+    welcomeNew: "Bienvenida a la clasificación, {name}.",
     welcomeBack: "Vuelves a estar dentro, {name}",
   },
 
