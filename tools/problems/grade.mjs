@@ -149,3 +149,37 @@ export const captureRank = (f) =>
   CAPTURE.base + CAPTURE.libs * (f.libs - 1) + CAPTURE.decoys * f.decoys
   + CAPTURE.placement * f.placement + CAPTURE.whites * (f.whites - 1)
   + CAPTURE.corner * f.corner;
+
+/* ----------------------- GRADING A TESUJI -----------------------
+   A third family and a third model, for the same reason the second one needed
+   its own: what makes a capturing problem hard is which liberty, what makes a
+   life-and-death problem hard is the shape of the space, and what makes a
+   tesuji hard is that the move does not look like a move.
+
+   The feature that carries it is reading depth, measured as the smallest
+   horizon at which the answer is still the answer. A move that pays at two
+   plies is a move anybody sees; one that only comes out on top at seven has to
+   be read. Beside it sits the single hardest thing in the family, giving a
+   stone away on purpose: a sacrifice is worth three ranks on its own, because
+   a player who has not met a snapback will not consider the move at all, and a
+   player who has will see it at once.
+
+   These weights are a judgement and are not fitted, because there is nothing
+   to fit them to: the collection had no hand-graded tesuji before this census
+   found any. They are stated here rather than buried, and the honest way to
+   read them is as the author's ordering of difficulty with the scale borrowed
+   from the two families that were fitted. */
+export const TESUJI = {
+  base: -14.0,       // a two-move tesuji in the open, nothing else going on
+  depth: 1.6,        // per ply past the second before the answer settles
+  sacrifice: 3.0,    // the answer is a stone Black gives away
+  decoys: 0.3,       // per other legal point in the fight
+  stones: 0.4,       // per white stone past the second
+  corner: 0.8,       // the fight wraps the 1-1 point
+};
+
+/** The rank number of a tesuji, from the facts the census recorded. */
+export const tesujiRank = (f) =>
+  TESUJI.base + TESUJI.depth * (f.depth - 2) + TESUJI.sacrifice * f.sacrifice
+  + TESUJI.decoys * f.decoys + TESUJI.stones * (f.whites - 2)
+  + TESUJI.corner * f.corner;

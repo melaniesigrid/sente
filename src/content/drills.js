@@ -5,14 +5,19 @@
    A drill is repetition at the right weight, and repetition needs volume.
 
    So these boards were not written. They were searched for, proved, graded and
-   sorted by machine, and they say so. Two censuses under `tools/problems/`
-   enumerated every position of two kinds and solved each one exhaustively:
+   sorted by machine, and they say so. Three censuses under `tools/problems/`
+   enumerated every position of three kinds and solved each one exhaustively:
 
      capture   a white chain in trouble, and exactly one black move that takes
                it off the board. Everything from 23 kyu to 18 kyu.
 
      life      a sealed eye space with exactly one point that settles it, from
-               either side. Everything from 16 kyu down.
+               either side. The middle of the range.
+
+     tesuji    a fight where the move that wins is not the move that takes
+               something now: counted in stones over the whole sequence rather
+               than chased one chain at a time. This is the half that reaches
+               above 5 kyu, which the other two could not.
 
    Three things about this file are worth knowing before trusting it.
 
@@ -102,6 +107,11 @@ const whereName = (drill, t) => {
 /** The question, in the language in force. */
 export function drillPrompt(drill, t) {
   const where = whereName(drill, t);
+  if (drill.kind === "tesuji") {
+    return t("drill.prompt.tesuji", { where, n: drill.net },
+      "Black to play {where}. One move settles this fight and is worth {n} stones "
+      + "against White's best defence. Every other point in it is worth less.");
+  }
   if (drill.kind === "capture") {
     return drill.libs === 1
       ? t("drill.prompt.atari", { where },
@@ -120,6 +130,21 @@ export function drillPrompt(drill, t) {
 /** What the search established, once the drill is solved. Every one of these
  *  is a fact the prover proved, stated and not dressed up. */
 export function drillExplain(drill, t) {
+  /* Both of these say only what the census established: the net over best play,
+     and whether the stone Black played could be taken straight back. */
+  if (drill.kind === "tesuji") {
+    return drill.sacrifice
+      ? t("drill.explain.sacrifice", { n: drill.net },
+        "Black gives a stone away. White may take it at once and taking it is the "
+        + "mistake, because the capture leaves the chain a single liberty and Black "
+        + "takes it back with everything attached. Counted to the end of the fight "
+        + "the move is worth {n} stones, and nothing else in the fight comes close.")
+      : t("drill.explain.tesuji", { n: drill.net, d: drill.depth },
+        "Every other point in the fight was played out and answered, and this is the "
+        + "only one that comes out ahead: {n} stones. The search had to look {d} moves "
+        + "deep before it was the best move on the board, which is why it does not "
+        + "look like one.");
+  }
   if (drill.kind === "capture") {
     return t("drill.explain.capture", {},
       "That was the only point that catches it. The search played every other point "
