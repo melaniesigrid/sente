@@ -24,6 +24,7 @@ export const shell = {
     label: "En qué hemos estado",
     titleA: "El ",
     titleEm: "diario",
+    titleAfter: ".",
     lede: "Todo lo que se ha publicado, directamente del registro de cambios, {notes} notas más largas sobre cómo está hecho esto y {posts} sobre el propio juego. {releases} versiones hasta ahora.",
     english: "Las notas están escritas en inglés y no se traducen. Una nota es lo que alguien escribió, no una etiqueta, y preferimos darte la de verdad antes que la versión de una máquina. Todo lo demás en esta pantalla sigue el idioma que elegiste.",
     note: "Nota",

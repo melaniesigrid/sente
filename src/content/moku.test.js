@@ -29,6 +29,18 @@ describe("mokuState", () => {
   it("names the belt on promotion", () => {
     expect(mokuState({ promoted: "Green belt" }).line).toMatch(/^Green belt/);
   });
+  /* A view with nothing to count passes a string naming what it is showing.
+     Math.floor made that NaN, and NaN reached past the end of the list and put
+     the catalogue key on the screen: Moku said "moku.idle.NaN" out loud on the
+     joseki screen, in every language. */
+  it("takes a string seed and still says something", () => {
+    const spoken = mokuState({ view: "joseki", seed: "hoshi:5" });
+    expect(spoken.line).not.toMatch(/NaN|^moku\./);
+    expect(spoken.line.length).toBeGreaterThan(0);
+    expect(mokuState({ view: "joseki", seed: "hoshi:5" })).toEqual(spoken);
+    expect(mokuState({ view: "joseki", seed: undefined }).line.length).toBeGreaterThan(0);
+  });
+
   it("speaks per view outside a game and is deterministic by seed", () => {
     expect(mokuState({ view: "play" }).state).toBe("lobby");
     expect(mokuState({ view: "learn" }).state).toBe("learn");

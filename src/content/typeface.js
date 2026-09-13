@@ -135,19 +135,59 @@ export function typefaceOf(id) {
   return TYPEFACES.find(t => t.id === id) || TYPEFACES[0];
 }
 
+/* ----------------------- THE HAN FALLBACK -----------------------
+   None of the pairings has a Han glyph in it, and none of them ever will: a
+   full CJK family is five to fifteen megabytes and this whole app is smaller
+   than one of them. So Chinese and Japanese are set in the faces the reader
+   already has, and the pairing still does its job, because a browser falls
+   through per character: the Latin in a Chinese sentence is still Fraunces,
+   and only the Han comes off the device.
+
+   The two scripts get different lists on purpose. They share characters and
+   draw several of them differently, so a Japanese reader served a Chinese face
+   sees the wrong shapes rather than a missing glyph, which is the harder kind
+   of wrong to notice.
+
+   A serif voice keeps a serif fallback. The quotation voice and the didone
+   display are the whole reason the pairings exist, and Songti or Mincho under
+   them is nearer to the intent than a gothic would be; `serif` and `sans-serif`
+   at the end of the pairing's own list is what says which, and the typewriter
+   counts as one: a passage from the Classic set in a gothic would be a notice
+   board, and the machine that types it is a slab face to begin with. */
+const HAN = {
+  zh: {
+    sans: "'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Source Han Sans SC', sans-serif",
+    serif: "'Songti SC', 'SimSun', 'Noto Serif CJK SC', 'Source Han Serif SC', serif",
+  },
+  ja: {
+    sans: "'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', 'Noto Sans CJK JP', sans-serif",
+    serif: "'Hiragino Mincho ProN', 'Yu Mincho', 'YuMincho', 'Noto Serif CJK JP', 'Source Han Serif JP', serif",
+  },
+};
+
+/** A family list with the reader's Han faces behind it, or the list unchanged
+ *  for a language written in Latin letters. The pairing's own generic keyword
+ *  picks the register, so a didone keeps a Mincho and a grotesk keeps a gothic. */
+export function withHan(families, locale) {
+  const han = HAN[locale];
+  if (!han || typeof families !== "string") return families;
+  return `${families}, ${/(^|,\s*)(serif|monospace)\s*$/.test(families) ? han.serif : han.sans}`;
+}
+
 /** The custom properties `.sente-root` needs for a pairing. The shell spreads
  *  these onto the root element's style, so no stylesheet is rewritten. */
-export function typefaceVars(id) {
+export function typefaceVars(id, locale) {
   const t = typefaceOf(id);
+  const han = (families) => withHan(families, locale);
   return {
-    "--font-display": t.display,
-    "--font-display-italic": t.italic,
+    "--font-display": han(t.display),
+    "--font-display-italic": han(t.italic),
     "--display-italic-style": t.italicStyle,
-    "--font-body": t.body,
-    "--font-quote": quoteOf(t),
-    "--font-typewriter": TYPEWRITER,
+    "--font-body": han(t.body),
+    "--font-quote": han(quoteOf(t)),
+    "--font-typewriter": han(TYPEWRITER),
     "--quote-style": t.quote ? t.quoteStyle : "normal",
-    "--font-caption": captionOf(t),
+    "--font-caption": han(captionOf(t)),
     "--caption-style": captionOf(t) === t.italic ? t.italicStyle : "normal",
     "--w-display": String(t.weight),
     "--w-display-strong": String(t.strong),

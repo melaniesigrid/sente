@@ -23,6 +23,8 @@ export const LOCALES = [
   { id: "es", tag: "es", name: "Spanish", endonym: "Español" },
   { id: "fr", tag: "fr", name: "French", endonym: "Français" },
   { id: "de", tag: "de", name: "German", endonym: "Deutsch" },
+  { id: "zh", tag: "zh-Hans", name: "Chinese", endonym: "简体中文" },
+  { id: "ja", tag: "ja", name: "Japanese", endonym: "日本語" },
 ];
 
 const byId = new Map(LOCALES.map(l => [l.id, l]));
@@ -43,7 +45,12 @@ export function localeOf(id) {
  *  and hands the list in, so this module still knows nothing about a browser.
  *  The device is asked in its own order of preference, and only the primary
  *  subtag is matched: a reader who asked for `es-419` wants Spanish, and we do
- *  not ship a Latin American cut to tell them apart from a reader in Madrid. */
+ *  not ship a Latin American cut to tell them apart from a reader in Madrid.
+ *
+ *  Chinese is the uncomfortable case of the same rule. We ship one cut, and it
+ *  is Simplified, so `zh-TW` and `zh-Hant` land on Simplified characters rather
+ *  than on English. That is the better of two wrong answers and not a right one:
+ *  a Traditional catalogue is a second entry here whenever somebody writes it. */
 export function resolveLocale(id, deviceTags = []) {
   if (id !== SYSTEM_LOCALE) return byId.has(id) ? id : BASE_LOCALE;
   for (const tag of deviceTags) {

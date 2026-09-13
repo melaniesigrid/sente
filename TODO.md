@@ -1663,6 +1663,49 @@ Decisions made in Phase 7 (change deliberately, not by accident):
   `seenText` puts it in a sentence, because `seenText(...).replace("Played ", "")` is a
   trick that works in exactly one language.
 
+### Chinese and Japanese (done, 2026-09-13, branch `feat/cjk`)
+
+The two languages with the most players, and the two the game came from. Both at full
+parity with the other three: every non-overlay key English has, the design system
+complete, the Classic, and the thirty-three lessons the other languages carry.
+
+- [x] `zh` (Simplified) and `ja` in `LOCALES`, catalogues in `src/i18n/zh/` and
+      `src/i18n/ja/`. Both have one plural form, so a set is `{ other }` alone.
+- [x] The Han fallback, `withHan` in `content/typeface.js`. No pairing has a Han glyph
+      and none ever will: a full CJK family is five to fifteen megabytes and the whole
+      app is smaller than one of them. So the Latin keeps its pairing and only the Han
+      comes off the reader's device, which is what a browser's per-character fallback is
+      for. `typefaceVars` takes the locale; the two scripts get different lists, because
+      they share characters and draw several of them differently.
+- [x] The Journal's title is `titleA` + `titleEm` + `titleAfter` like the other six split
+      titles, instead of a space and a full stop hard-coded in the JSX. A CJK title needs
+      neither.
+
+Decisions:
+- One Chinese cut, and it is Simplified, so `zh-TW` and `zh-Hant` land on Simplified
+  characters rather than on English. That is the better of two wrong answers and not a
+  right one; a Traditional catalogue is a second entry in `LOCALES` whenever somebody
+  writes it.
+- Go words go home. The nav reads 定式 / 定石, 死活 / 詰碁, and the ladder is 排行榜 /
+  ランキング, never 征 / シチョウ: that is the ladder *tactic*, the same trap German's
+  `Leiter` set.
+- The Classic is a modern-language rendering of Joseki's English rendering, not Zhang
+  Ni's Song text and not a quotation of any edition, and the credit line says so in
+  every language. Chapter names and the nine levels use the characters that came down
+  with them (論局, 得算, 入神, 守拙), because those are names and not renderings.
+- The thirty-two names in chapter eleven stay romanised, as they do in every other
+  language. That chapter argues the names must be set right before the shapes can be
+  seen, so replacing them is the one change the chapter forbids.
+
+Two bugs the suite could not see and a browser sweep could, which is the whole reason
+that sweep is in this section:
+- Moku said `moku.idle.NaN` out loud on the joseki screen, in every language including
+  English: the view passes a string seed, `Math.floor` made it NaN, and the index reached
+  past the end of the list. `seedOf` in `content/moku.js` hashes a string seed now.
+- The dashboard's duel card read `host.tagline` straight off the persona instead of
+  through `localizePersona`, so a translated tagline showed in English on the one card
+  every player sees first.
+
 ## Phase 8: Pair go
 
 Full design: `docs/designs/pair-go.md`. Four seats, one human and one 7 dan house

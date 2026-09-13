@@ -32,6 +32,7 @@ export const shell = {
     label: "Woran wir gearbeitet haben",
     titleA: "Das ",
     titleEm: "Journal",
+    titleAfter: ".",
     lede: "Alles, was erschienen ist, direkt aus dem Änderungsprotokoll, {notes} längere Notizen darüber, wie das Ding gebaut ist, und {posts} über das Spiel selbst. Bisher {releases} Versionen.",
     english: "Die Notizen sind auf Englisch geschrieben und werden nicht übersetzt. Eine Notiz ist das, was jemand geschrieben hat, und kein Etikett, und wir geben dir lieber die echte als die Fassung einer Maschine. Alles andere auf diesem Bildschirm folgt der Sprache, die du gewählt hast.",
     note: "Notiz",

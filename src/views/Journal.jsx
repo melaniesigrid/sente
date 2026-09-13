@@ -188,7 +188,7 @@ export function JournalView({ entryId, go }) {
     <div className="screen jr" ref={root}>
       <ScreenHeader
         label={t("journal.label")}
-        title={<>{t("journal.titleA")} <em>{t("journal.titleEm")}</em>.</>}
+        title={<>{t("journal.titleA")}<em>{t("journal.titleEm")}</em>{t("journal.titleAfter")}</>}
         lede={t("journal.lede", { posts: COUNTS.posts, notes: COUNTS.notes, releases: COUNTS.releases })} />
       {/* No figure on this screen. A figure is drawn to stand behind display
           type and bleed off the side of it; behind a paragraph in a trough it

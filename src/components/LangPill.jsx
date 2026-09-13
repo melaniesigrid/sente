@@ -27,6 +27,11 @@ import { saveProfile } from "../store/profile.js";
    English. Which of the two got them there is the menu's business, and the
    menu is where the tick goes. */
 
+/* The pill has room for a language, not for a language and a script. A tag
+ *  is `zh-Hans` where the script matters to a browser picking a font and to
+ *  `Intl`, and neither of those is the reader looking at a two-letter chip. */
+const shortTag = (tag) => String(tag).split("-")[0].toUpperCase();
+
 export function LangPill({ profile, setProfile }) {
   const t = useT();
   const locale = useLocale();
@@ -77,7 +82,7 @@ export function LangPill({ profile, setProfile }) {
         <Languages size={16} strokeWidth={2.1} />
         {/* The tag, not the endonym: a header has room for two letters and the
             two letters are the same in every language. */}
-        <span className="lang-tag">{locale.tag.toUpperCase()}</span>
+        <span className="lang-tag">{shortTag(locale.tag)}</span>
       </button>
       {open && (
         <div className="lang-menu" role="menu" aria-label={t("lang.menu")}>
@@ -87,7 +92,7 @@ export function LangPill({ profile, setProfile }) {
               className={`lang-row ${chosen === r.id ? "on" : ""}`}
               onClick={() => pick(r.id)}>
               <span className="lang-row-name">{r.endonym}</span>
-              <span className="lang-row-note">{r.tag ? r.tag.toUpperCase() : r.note}</span>
+              <span className="lang-row-note">{r.tag ? shortTag(r.tag) : r.note}</span>
               <span className="lang-row-tick">{chosen === r.id ? <Check size={15} strokeWidth={2.6} /> : null}</span>
             </button>
           ))}

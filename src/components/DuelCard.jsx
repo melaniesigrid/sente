@@ -3,6 +3,7 @@ import { Swords, Play, Share2, Check, Hourglass } from "lucide-react";
 import { Avatar, Btn, RankBadge } from "./ui.jsx";
 import { ratingOfRank } from "../content/rank.js";
 import { duelState, duelResultText, duelShareText, duelShareUrl } from "../content/duel.js";
+import { localizePersona } from "../content/personas.js";
 import { useT } from "./langStore.js";
 
 /* ----------------------- DAILY DUEL CARD -----------------------
@@ -47,7 +48,7 @@ export function DuelCard({ profile, today, mode, saved, onPlay }) {
       <Avatar name={host.name} tint={host.tint} size={52} bot />
       <div className="duel-copy">
         <div className="stat-head"><Swords size={16} /><span>{t("duel.head")}</span></div>
-        <strong className="duel-title">{t("duel.vs", { name: host.name })} <span className="fine-inline">{t("duel.host", { tagline: host.tagline })}</span></strong>
+        <strong className="duel-title">{t("duel.vs", { name: host.name })} <span className="fine-inline">{t("duel.host", { tagline: localizePersona(host, t).tagline })}</span></strong>
         <div className="row"><RankBadge rating={ratingOfRank(mode.rank)} size="sm" /><span className="fine">{t("duel.level")}</span></div>
         <span className="fine">{line}</span>
       </div>

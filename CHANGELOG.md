@@ -6,6 +6,41 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.9.4.0 (2026-09-13)
+
+### Added
+
+- **Joseki reads in Chinese and Japanese.** The two languages with the most players, and
+  the two the game came from. Both at full parity with Spanish, French and German: every
+  line the English catalogue has, the design system complete (rooms, stone sets, type,
+  belts, badges, the tones and the contrast rules), the small print, the Classic in
+  thirteen chapters, and the thirty-three lessons the other languages carry. Chinese is
+  Simplified; `zh-TW` lands there rather than on English, which is the better of two wrong
+  answers and not a right one.
+- Go words go home. The nav reads 定式 and 死活 in Chinese, 定石 and 詰碁 in Japanese, and
+  the ladder is 排行榜 / ランキング and never 征 / シチョウ: that is the ladder *tactic*, the
+  same trap German's `Leiter` set.
+- **A Han fallback behind every pairing.** No display face here has a Han glyph and none
+  ever will, because a full CJK family is five to fifteen megabytes and the whole app is
+  smaller than one of them. So the Latin in a Chinese sentence is still Fraunces and only
+  the Han comes off the reader's own device, which is what a browser's per-character
+  fallback is for. A serif voice keeps a serif fallback, so a didone display and the
+  quotation voice get Songti or Mincho rather than a gothic, and the two scripts get
+  different lists because they draw several shared characters differently.
+
+### Fixed
+
+- Moku said `moku.idle.NaN` out loud on the joseki screen, in every language including
+  English. The view passes a seed naming what it is showing rather than a visit count,
+  `Math.floor` turned that string into NaN, and the index reached past the end of the
+  list to put the catalogue key itself on the screen. A string seed is hashed now.
+- The daily duel card on the dashboard read the house player's tagline straight off the
+  persona instead of through the overlay, so a translated tagline showed in English on
+  the first card every player sees.
+- The language pill printed the whole tag, which is `ZH-HANS` for Chinese. It prints the
+  primary subtag now; there is room in that chip for a language, not for a language and
+  a script.
+
 ## v0.9.3.0 (2026-09-12)
 
 ### Added
