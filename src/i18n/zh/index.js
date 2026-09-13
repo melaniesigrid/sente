@@ -22,7 +22,7 @@ import { account } from "./account.js";
 import { voice } from "./voice.js";
 import { room, stones, type, belt, badge, fact, seen } from "./overlay.js";
 import { plain, statement, moku, ruleset, preset, persona } from "./content.js";
-import { tier, track, book, series, problem, shape } from "./library.js";
+import { tier, track, book, series, problemSet, problem, shape } from "./library.js";
 import { josekiCorner, josekiSource, josekiEntry } from "./joseki.js";
 import { classicBook, preface, kind, level, belowTheLevels, chapter, name, passage } from "./classic.js";
 import { lessons1 } from "./lessons1.js";
@@ -61,6 +61,7 @@ export const zh = {
   track,
   book,
   series,
+  problemSet,
   problem,
   shape,
   josekiCorner,

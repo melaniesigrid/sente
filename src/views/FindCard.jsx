@@ -55,6 +55,8 @@ export function FindCard({ account, go, friends }) {
               go={go} friends={friends} />
           ))}
         </div>
+      ) : state.kind === "error" ? (
+        <p className="fine" role="status">{t("online.friends.error.offline")}</p>
       ) : (
         <p className="fine" role="status">{t(`online.find.${state.kind}`, { typed: typed.trim() })}</p>
       )}
@@ -106,7 +108,11 @@ function useSearch(token, typed) {
 
   const q = searchable(typed);
   useEffect(() => {
-    if (!q || !token || !serverEnabled()) return undefined;
+    if (!q || !token || !serverEnabled()) {
+      latest.current += 1;
+      const clear = setTimeout(() => setAnswer(null), 0);
+      return () => clearTimeout(clear);
+    }
     const mine = ++latest.current;
     /* Everything happens after the pause, the spinner included. Nothing is set
        in the body of this effect: a render that sets state on its way out is a
@@ -116,7 +122,7 @@ function useSearch(token, typed) {
       setAsking(true);
       api.find(token, q)
         .then((r) => { if (mine === latest.current) setAnswer({ for: q, people: r.people }); })
-        .catch(() => { if (mine === latest.current) setAnswer({ for: q, people: [] }); })
+        .catch(() => { if (mine === latest.current) setAnswer({ for: q, error: "offline" }); })
         .finally(() => { if (mine === latest.current) setAsking(false); });
     }, TYPING_PAUSE_MS);
     return () => clearTimeout(timer);

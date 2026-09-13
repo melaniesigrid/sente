@@ -22,6 +22,10 @@ export const track = {
 };
 
 export const book = {
+  shapes: {
+    name: "Das Buch der Formen",
+    blurb: "Was jede Form kauft, was sie kostet, und die Stellung, in der der Handel ein schlechter ist.",
+  },
   proverbs: {
     name: "Die Sprichwörter",
     blurb: "Volkswissen als Kata: eine feste Form, geübt, bis man sie mit Absicht brechen kann.",
@@ -85,6 +89,103 @@ export const problem = {
     title: "Gerade drei: leben",
     prompt: "Jetzt ist es deine Gruppe. Schwarz am Zug und lebt.",
     explain: "Derselbe vitale Punkt, die Dringlichkeit umgekehrt: der Zug in die Mitte teilt den Raum in zwei echte Augen. Wer den vitalen Punkt zuerst erreicht, entscheidet über das Schicksal der Gruppe: Sente im Kleinen.",
+  },
+  p7: {
+    theme: "Leben und Tod",
+    title: "Die klumpige Fünf",
+    prompt: "Fünf Punkte Augenraum, zusammengedrängt. Schwarz am Zug und tötet.",
+    explain: "Die Mitte der klumpigen Fünf. Ein Raum aus fünf Punkten lebt, indem er sich in zwei Augen teilt, und das hier ist der eine Punkt, der zu beiden Hälften gehört: nimm ihn, und es bleibt nichts mehr zu teilen. Spiel irgendwo sonst in den Raum, und Weiß nimmt ihn stattdessen und lebt.",
+  },
+  p8: {
+    theme: "Leben und Tod",
+    title: "Die Blumenfünf",
+    prompt: "Die fünf Punkte bilden ein Kreuz. Schwarz am Zug und tötet.",
+    explain: "Die Mitte des Kreuzes, und es ist der einzige Zug: es ist der Punkt, durch den jeder Arm der Form läuft. Derselbe Punkt ist der einzige Zug, der die Gruppe rettet, wenn Weiß zuerst dort ist, und genau das heißt vitaler Punkt: ein Feld, das beide Spieler aus entgegengesetzten Gründen wollen.",
+  },
+  p9: {
+    theme: "Leben und Tod",
+    title: "Sechs Punkte in der Ecke",
+    prompt: "Sechs Punkte Augenraum in der Ecke, drei mal zwei. Das Sprichwort sagt, sechs Punkte in der Ecke leben. Schwarz am Zug und tötet.",
+    explain: "Der 2-2-Punkt. Sechs Punkte leben normalerweise, und dieses Rechteck ist die berühmte Ausnahme: die Setzung verhindert, dass der Raum sich in zwei jeweils große genug Hälften teilt, und Weiß hat keine Außenfreiheit, auf die sie sich berufen könnte.",
+  },
+  p10: {
+    theme: "Form",
+    title: "Das Maul, das nicht zugeht",
+    prompt: "Schwarz muss diese beiden Steine verbinden. Es gibt einen verlockenden Weg und einen richtigen.",
+    explain: "Massiv, und sonst nichts. Das Tigermaul auf dem Punkt darunter würde normalerweise verbinden, und hier tut es das nicht: Weiß schneidet in die Lücke und schließt den Stein darüber zu einer Kette mit drei Freiheiten zusammen, statt mit einer zu sterben. Ein Tigermaul ist nur so lange eine Verbindung, wie der Eindringling allein ist.",
+  },
+  p11: {
+    theme: "Form",
+    title: "Die Taille",
+    prompt: "Die beiden weißen Steine stehen im Keima, und Schwarz hat auf jeder Seite der Lücke einen Stein. Schwarz am Zug.",
+    explain: "Schlag an der Taille an. Mit Unterstützung auf beiden Seiten ist der schneidende Stein nicht allein: er schließt sich zu einer Kette mit fünf Freiheiten zusammen, während Weiß' zwei Steine mit drei und vier zurückbleiben, getrennt und ohne etwas zum Angreifen. Ohne die beiden stützenden Steine ist derselbe Zug eine Einladung zum Kampf und kein Schnitt.",
+  },
+  p12: {
+    theme: "Form",
+    title: "Hineingekeilt",
+    prompt: "Weiß hat sich in eine Zweifelder-Erweiterung hineingekeilt. Schwarz am Zug.",
+    explain: "Blocke auf der breiteren Seite. Schwarz versucht gar nicht, beide Steine zu behalten, und muss es auch nicht: der Keilstein bleibt mit zwei Freiheiten zwischen zwei schwarzen Steinen zurück und kann nicht leben, es war also nie ein Schnitt. Die Wahl der Seite ist die ganze Entscheidung; zu zögern und oben auf den Keil zu spielen schenkt Weiß die bessere Form.",
+  },
+  p13: {
+    theme: "Leben und Tod",
+    title: "Drei mit Schwanz",
+    prompt: "Vier Punkte Augenraum: drei am Rand entlang, einer darunter am mittleren. Schwarz am Zug und tötet.",
+    explain: "Der Punkt, an dem der Schwanz ansetzt. Vier Punkte leben gewöhnlich, und das hier ist die Form, die die Bücher neben die gerade Vier drucken, um zu zeigen, dass die Zahl nicht die ganze Geschichte ist: der hängende Punkt macht ein Feld zu einem, das beiden Hälften des Raums gehört, und davon gibt es immer nur eines. Nimm es, und der Raum kann sich nicht teilen.",
+  },
+  p14: {
+    theme: "Leben und Tod",
+    title: "Drei mit Schwanz: leben",
+    prompt: "Dieselben vier Punkte, und diesmal ist die Gruppe deine. Schwarz am Zug und lebt.",
+    explain: "Dasselbe Feld, und es ist das einzige. Füll den Schwanz oder eines der Enden, und Weiß nimmt den Verbindungspunkt, und der ganze Raum fällt zu einem einzigen Auge zusammen. Ein vitaler Punkt ist kein tötender und kein lebender Zug: er ist ein Feld, das die Frage entscheidet, und wer zuerst dort ist, bestimmt, wie sie entschieden wird.",
+  },
+  p15: {
+    theme: "Leben und Tod",
+    title: "Die Biegung, die die Ecke tötet",
+    prompt: "Vier Punkte Augenraum, um den 1-1-Punkt gebogen. Dieselbe Biegung draußen am Rand lebt. Schwarz am Zug und tötet.",
+    explain: "Der 2-1-Punkt, und die Biegung ist die Form, bei der die Ecke es sich anders überlegt. Am Rand hat dieser Raum zwei lebende Punkte und keinen tötenden, was der Beweiser neben diesem Brett mitprüft; in der Ecke hat er genau einen von jedem, weil der 1-1-Punkt ein Feld ist, das Weiß gezwungen werden kann zu füllen. Das ist die gebogene Vier in der Ecke, und die klassischen Bücher streiten darüber, weil die tötende Linie durch ein Ko läuft, das Weiß nie zurückschlagen darf. Nach den Regeln, die dieser Server spielt, ist die Gruppe tot.",
+  },
+  p16: {
+    theme: "Leben und Tod",
+    title: "Die Blume in der Ecke",
+    prompt: "Sechs Punkte Augenraum in der Ecke, in Form einer Blume. Schwarz am Zug und tötet.",
+    explain: "Die Mitte der Blume. Sechs Punkte sind gewöhnlich mehr als genug, und die Blume ist die Sechs, die es nicht ist: jeder ihrer Arme läuft durch das mittlere Feld, sodass dieses Feld zu nehmen Blütenblätter von je einem Punkt übrig lässt, aus denen nie zwei Augen werden. Wenn Weiß zuerst dort ist, lebt sie, und das ist es, was diesen Zug wert macht.",
+  },
+  p17: {
+    theme: "Leben und Tod",
+    title: "Der Knick in der Drei",
+    prompt: "Wieder drei Punkte Augenraum, und diesmal sind sie geknickt. Schwarz am Zug und tötet.",
+    explain: "Die Mitte der drei, genau wie vorher. Ein Knick ist keine andere Form, er ist dieselben drei Punkte mit einer Ecke darin, und der Punkt, der beiden Hälften gehört, ist immer noch der mittlere. Die Suche sagt es so deutlich, wie sie kann: dieser Raum hat einen tötenden und einen lebenden Punkt, und es ist dasselbe Feld, was die Definition eines vitalen Punktes ist.",
+  },
+  p18: {
+    theme: "Leben und Tod",
+    title: "Eine Chance, drei Antworten",
+    prompt: "Fünf Punkte Augenraum am Rand. Schwarz am Zug und tötet.",
+    explain: "Ein Punkt tötet und drei Punkte leben. Diese Schieflage ist der ganze Grund, warum Leben und Tod von der Angriffsseite schwer ist: Weiß hat drei Arten, auf diese Form richtig zu antworten, und Schwarz hat eine, also ist ein Fehler von Weiß überlebbar und ein Fehler von Schwarz verschenkt die Gruppe. Zähl die Möglichkeiten des Verteidigers, bevor du eine Gruppe für tot erklärst.",
+  },
+  p19: {
+    theme: "Leben und Tod",
+    title: "Die Form, die die Ecke in Ruhe lässt",
+    prompt: "Drei am Rand entlang mit einem unter dem mittleren, diesmal in die Ecke gewickelt. Schwarz am Zug und tötet.",
+    explain: "Derselbe Punkt wie draußen am Rand, und das ist die Antwort auf die Frage, die diese Reihe immer wieder stellt. Die Ecke verändert eine Form, wenn die Form sich um den 1-1-Punkt wickelt und ihn braucht, was der Biegung am Ende dieser Reihe passiert. Sie verändert nichts an einer Form, deren vitaler Punkt von Anfang an nicht in der Nähe des 1-1-Punktes lag. Die Ecke ist keine Regel, sie ist eine Wand, die manchmal im Weg steht.",
+  },
+};
+
+export const problemSet = {
+  tactics: {
+    name: "Fangen und entkommen",
+    blurb: "Freiheiten, gezählt, bevor der Stein fällt. Jede andere Reihe ist diese, angewandt auf einen kleineren Raum.",
+  },
+  shape: {
+    name: "Form",
+    blurb: "Der Zug, der wegen der Steine richtig ist, die schon dastehen, und zwei Punkte weiter falsch.",
+  },
+  eyes: {
+    name: "Augenformen",
+    blurb: "Die Räume, mit denen jede klassische Sammlung beginnt. Jeder enthält einen Punkt, den beide Spieler wollen, aus entgegengesetzten Gründen.",
+  },
+  corner: {
+    name: "Die Ecke",
+    blurb: "Dieselben Formen, um den 1-1-Punkt gewickelt, wo der Rand die Hälfte des Tötens übernimmt und die Rechnung anders aufgeht.",
   },
 };
 

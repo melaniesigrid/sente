@@ -22,6 +22,10 @@ export const track = {
 };
 
 export const book = {
+  shapes: {
+    name: "Le livre des formes",
+    blurb: "Ce que chaque forme achète, ce qu'elle coûte, et la position où le marché est mauvais.",
+  },
   proverbs: {
     name: "Les proverbes",
     blurb: "La sagesse populaire comme kata : une forme fixe travaillée jusqu'à pouvoir la casser exprès.",
@@ -85,6 +89,103 @@ export const problem = {
     title: "Trois en ligne : vivre",
     prompt: "Cette fois le groupe est le tien. Aux noirs de jouer et de vivre.",
     explain: "Le même point vital, l'urgence inversée : le coup au centre coupe l'espace en deux vrais yeux. Celui qui atteint le point vital le premier décide du sort du groupe : le sente en miniature.",
+  },
+  p7: {
+    theme: "Vie et mort",
+    title: "Le cinq massif",
+    prompt: "Cinq points d'espace d'yeux, ramassés. Aux noirs de jouer et de tuer.",
+    explain: "Le centre du cinq massif. Un espace de cinq points vit en se coupant en deux yeux, et voici le seul point qui appartient aux deux moitiés : prends-le et il ne reste plus rien à couper. Joue ailleurs dans l'espace et ce sont les blancs qui le prennent, et qui vivent.",
+  },
+  p8: {
+    theme: "Vie et mort",
+    title: "Le cinq en fleur",
+    prompt: "Les cinq points forment une croix. Aux noirs de jouer et de tuer.",
+    explain: "Le milieu de la croix, et c'est le seul coup : c'est le point par lequel passe chaque branche de la forme. Ce même point est le seul coup qui sauve le groupe quand les blancs y arrivent les premiers, et c'est cela qu'on appelle un point vital : une case que les deux joueurs veulent pour des raisons opposées.",
+  },
+  p9: {
+    theme: "Vie et mort",
+    title: "Six points dans le coin",
+    prompt: "Six points d'espace d'yeux dans le coin, trois sur deux. Le proverbe dit que six points dans le coin vivent. Aux noirs de jouer et de tuer.",
+    explain: "Le point 2-2. Six points vivent normalement, et ce rectangle est la fameuse exception : le placement empêche l'espace de se couper en deux moitiés assez grandes chacune, et les blancs n'ont aucune liberté extérieure à faire valoir.",
+  },
+  p10: {
+    theme: "Forme",
+    title: "La bouche qui ne se ferme pas",
+    prompt: "Les noirs doivent relier ces deux pierres. Il y a une manière tentante et une manière juste.",
+    explain: "En solide, et rien d'autre. La bouche du tigre au point du dessous connecterait d'ordinaire, et ici non : les blancs coupent dans le trou et relient la pierre du dessus en une chaîne à trois libertés au lieu de mourir avec une. Une bouche du tigre n'est une connexion que tant que l'intrus est seul.",
+  },
+  p11: {
+    theme: "Forme",
+    title: "La taille",
+    prompt: "Les deux pierres blanches sont à distance de keima, et les noirs ont une pierre de chaque côté du trou. Aux noirs de jouer.",
+    explain: "Frappe à la taille. Avec du soutien des deux côtés, la pierre de coupe n'est pas seule : elle se relie en une chaîne à cinq libertés tandis que les deux pierres blanches restent à trois et quatre, séparées, sans rien à attaquer. Sans les deux pierres de soutien, ce même coup est une invitation à la bagarre plutôt qu'une coupe.",
+  },
+  p12: {
+    theme: "Forme",
+    title: "Le coin enfoncé",
+    prompt: "Les blancs se sont enfoncés dans une extension de deux espaces. Aux noirs de jouer.",
+    explain: "Bloque du côté large. Les noirs ne cherchent pas à garder les deux pierres et n'en ont pas besoin : la pierre enfoncée se retrouve avec deux libertés entre deux pierres noires et ne peut pas vivre, donc ce n'était jamais une coupe. Choisir de quel côté bloquer, c'est toute la décision ; hésiter et jouer par-dessus offre aux blancs la meilleure forme.",
+  },
+  p13: {
+    theme: "Vie et mort",
+    title: "Trois et une queue",
+    prompt: "Quatre points d'espace d'yeux : trois le long du bord, avec un qui pend sous celui du milieu. Aux noirs de jouer et de tuer.",
+    explain: "Le point où la queue se rattache. Quatre points vivent d'habitude, et c'est la forme que les livres impriment à côté du quatre en ligne pour montrer que le compte ne dit pas tout : le point qui pend fait qu'une case appartient aux deux moitiés de l'espace, et il n'y en a jamais qu'une. Prends-la et l'espace ne peut plus se diviser.",
+  },
+  p14: {
+    theme: "Vie et mort",
+    title: "Trois et une queue : vivre",
+    prompt: "Les mêmes quatre points, et cette fois le groupe est à toi. Aux noirs de jouer et de vivre.",
+    explain: "La même case, et c'est la seule. Remplis la queue ou l'une des extrémités et les blancs prennent le point de jonction, et tout l'espace s'effondre en un seul œil. Un point vital n'est pas un coup qui tue ni un coup qui fait vivre : c'est une case qui tranche la question, et celui qui y arrive le premier décide dans quel sens.",
+  },
+  p15: {
+    theme: "Vie et mort",
+    title: "Le coude que le coin tue",
+    prompt: "Quatre points d'espace d'yeux, coudés autour du point 1-1. Le même coude au large sur le bord est vivant. Aux noirs de jouer et de tuer.",
+    explain: "Le point 2-1, et le coude est la forme sur laquelle le coin change d'avis. Sur le bord, cet espace a deux points de vie et aucun de mort, ce que le prouveur vérifie à côté de ce goban ; dans le coin, il en a exactement un de chaque, parce que le point 1-1 est une case qu'on peut forcer les blancs à remplir. C'est le quatre coudé dans le coin, et si les livres classiques se disputent à son sujet, c'est que la ligne qui tue passe par un ko que les blancs n'ont jamais le droit de reprendre. Sous les règles que ce serveur applique, le groupe est mort.",
+  },
+  p16: {
+    theme: "Vie et mort",
+    title: "La fleur dans le coin",
+    prompt: "Six points d'espace d'yeux dans le coin, en forme de fleur. Aux noirs de jouer et de tuer.",
+    explain: "Le centre de la fleur. Six points suffisent largement d'ordinaire, et la fleur est le six qui ne suffit pas : chacune de ses branches passe par la case du milieu, si bien que prendre cette case laisse des pétales d'un point chacun qui ne feront jamais deux yeux. Les blancs qui y arrivent les premiers vivent, et c'est ce qui vaut un coup.",
+  },
+  p17: {
+    theme: "Vie et mort",
+    title: "Le coude du trois",
+    prompt: "Trois points d'espace d'yeux de nouveau, et cette fois ils sont coudés. Aux noirs de jouer et de tuer.",
+    explain: "Le milieu des trois, exactement comme avant. Un coude n'est pas une autre forme, ce sont les mêmes trois points avec un angle dedans, et le point qui appartient aux deux moitiés reste celui du milieu. La recherche le dit aussi clairement qu'elle peut : cet espace a un point qui tue et un point qui fait vivre, et c'est la même case, ce qui est la définition d'un point vital.",
+  },
+  p18: {
+    theme: "Vie et mort",
+    title: "Une seule chance, trois réponses",
+    prompt: "Cinq points d'espace d'yeux sur le bord. Aux noirs de jouer et de tuer.",
+    explain: "Un point tue et trois points font vivre. Cette asymétrie est toute la raison pour laquelle la vie et la mort est difficile du côté de l'attaque : les blancs ont trois façons correctes de répondre à cette forme et les noirs en ont une, si bien qu'une erreur des blancs se survit et qu'une erreur des noirs offre le groupe. Compte les options du défenseur avant de décider qu'un groupe est mort.",
+  },
+  p19: {
+    theme: "Vie et mort",
+    title: "La forme que le coin laisse tranquille",
+    prompt: "Trois le long du bord avec un sous celui du milieu, enroulés cette fois dans le coin. Aux noirs de jouer et de tuer.",
+    explain: "Le même point qu'au large sur le bord, et voilà la réponse à la question que cette série n'arrête pas de poser. Le coin change une forme quand la forme s'enroule autour du point 1-1 et en a besoin, ce qui arrive au coude à la fin de cette série. Il ne change rien à une forme dont le point vital n'a jamais été près du 1-1. Le coin n'est pas une règle, c'est un mur qui est parfois sur le chemin.",
+  },
+};
+
+export const problemSet = {
+  tactics: {
+    name: "Capturer et s'échapper",
+    blurb: "Les libertés, comptées avant que la pierre ne descende. Toutes les autres séries sont celle-ci appliquée à un espace plus petit.",
+  },
+  shape: {
+    name: "La forme",
+    blurb: "Le coup qui est juste à cause des pierres déjà posées là, et faux deux points plus loin.",
+  },
+  eyes: {
+    name: "Les formes d'yeux",
+    blurb: "Les espaces par lesquels s'ouvre toute collection classique. Chacun renferme un point que les deux joueurs veulent, pour des raisons opposées.",
+  },
+  corner: {
+    name: "Le coin",
+    blurb: "Les mêmes formes enroulées autour du point 1-1, où le bord tue la moitié à ta place et où le compte ne tombe pas pareil.",
   },
 };
 
