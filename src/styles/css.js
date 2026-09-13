@@ -53,11 +53,14 @@ ${FONT_FACES}
   --font-display: 'Fraunces', serif;
   --font-display-italic: 'Fraunces', serif;
   --display-italic-style: italic;
+  --display-italic-style-own: italic;
   --font-body: 'Hanken Grotesk', sans-serif;
   --font-quote: 'Fraunces', serif;
   --quote-style: italic;
+  --quote-style-own: italic;
   --font-caption: 'Fraunces', serif;
   --caption-style: italic;
+  --caption-style-own: italic;
   --font-typewriter: 'Courier Prime', 'Courier New', monospace;
   --w-display: 560;
   --w-display-strong: 640;
@@ -80,6 +83,41 @@ ${FONT_FACES}
 }
 [dir="rtl"] .sente-root, [dir="rtl"].sente-root { --flip: -1; }
 .sente-root * { box-sizing: border-box; }
+
+/* An emphasis takes its slant from the pairing, never from the browser. The
+   rules further down name the places an em is display type; this one catches
+   every other one, because a user agent answers a request for italic on a
+   script that has no italic by shearing the upright, and a sheared Hebrew is
+   the faux oblique typeface.js opens by refusing. Set early on purpose: the
+   later rules that want an upright em outrank it on source order alone. */
+.sente-root em { font-style: var(--display-italic-style); }
+
+/* A run of another language takes its own slant back. A partial catalogue
+   leaves real English prose on a Hebrew page: the Classic, the small print,
+   a lesson nobody has translated yet. Hebrew has no italic and the page is
+   set upright for it, but English does, and the quotation and caption voices
+   are the whole reason the pairings exist. Anything marked lang="en" is
+   handed the pairing's own answer again. Direction already works this way;
+   this is the same argument about slant. */
+/* Forward is not rightward. An icon that points the way the reader reads is
+   marked onward at its call site and turns over with the page; the inline
+   arrows and the disclosure caret say the same thing and are named here.
+   Mirrored rather than swapped for a left-pointing icon, so one rule covers
+   every glyph and nothing has to be kept in pairs. The board controls in
+   review and the corner dictionary are deliberately absent: they step a game
+   record, and a game record does not mirror. */
+[dir="rtl"] .onward,
+[dir="rtl"] .log-next svg,
+[dir="rtl"] .lp-more svg,
+[dir="rtl"] .jr-more svg,
+[dir="rtl"] .jr-back svg,
+[dir="rtl"] .chapter-caret:not(.open) { transform: scaleX(-1); }
+
+[lang="en" i], [lang|="en" i] {
+  --display-italic-style: var(--display-italic-style-own, italic);
+  --quote-style: var(--quote-style-own, italic);
+  --caption-style: var(--caption-style-own, italic);
+}
 
 /* ---- which way a run of text goes ----
    The interface follows the language it was chosen in. The words inside it do
@@ -104,10 +142,11 @@ ${FONT_FACES}
    kept its full stop at the wrong end after the rest of it came right. */
 .display, .passage-cite, .foot-line,
 .passage-text, .passage-typed, .passage-ghost,
-.jr-p, .jr-standfirst, .jr-dek,
-.chat-row, .talk-line, .letter-text, .letter-preview,
+.jr-p, .jr-standfirst, .jr-dek, .jr-item,
+.legal-section p, .legal-section h2, .legal-list li,
+.bubble, .moku-bubble, .talk-line, .letter-text, .letter-preview,
 .persona-bio, .op-bio, .lesson-text,
-.fine, .master-claim, .master-control {
+.masters-head .fine, .masters-title, .master-claim, .master-control {
   unicode-bidi: plaintext;
 }
 
@@ -176,7 +215,7 @@ ${FONT_FACES}
 .profile-chip {
   display: flex; align-items: center; gap: 10px;
   border: 0; background: var(--ground); cursor: pointer; color: var(--ink);
-  padding: 7px 14px 7px 8px; border-radius: 16px; box-shadow: var(--raise-sm);
+  padding-block: 7px; padding-inline: 8px 14px; border-radius: 16px; box-shadow: var(--raise-sm);
   transition: transform .15s ease, box-shadow .15s ease;
 }
 .profile-chip:hover { transform: translateY(-1px); }
@@ -209,7 +248,7 @@ ${FONT_FACES}
    against the element's own font, and the figure is still set in the body face,
    so a measure declared there is counted in the wrong characters and lands the
    column at about three quarters of the line it asked for. */
-.passage { margin: 0; padding: 4px 0 4px clamp(16px, 2.4vw, 26px); border-inline-start: 1px solid color-mix(in srgb, var(--accent) 55%, transparent); cursor: pointer; }
+.passage { margin: 0; padding-block: 4px; padding-inline: clamp(16px, 2.4vw, 26px) 0; border-inline-start: 1px solid color-mix(in srgb, var(--accent) 55%, transparent); cursor: pointer; }
 .passage-text { margin: 0; max-width: 58ch; font-family: var(--font-typewriter); font-style: normal; font-weight: 400; font-size: clamp(16px, 1.75vw, 19px); line-height: 1.7; letter-spacing: -.01em; color: var(--ink); }
 .passage-cite { color: var(--ink-2); margin: 10px 0 0; font-family: var(--font-body); font-style: normal; font-size: 14px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
 .passage.lg .passage-text { font-size: clamp(19px, 2.4vw, 25px); line-height: 1.55; }
@@ -696,10 +735,10 @@ ${FONT_FACES}
 .chat-log { display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; padding: 4px 2px; }
 .bubble {
   align-self: flex-start; max-width: 88%;
-  padding: 9px 13px; border-radius: 14px 14px 14px 5px;
+  padding: 9px 13px; border-radius: 14px; border-end-start-radius: 5px;
   box-shadow: var(--sink-sm); font-size: 15.5px; line-height: 1.45;
 }
-.bubble.mine { align-self: flex-end; border-radius: 14px 14px 5px 14px; box-shadow: var(--raise-sm); color: var(--accent-ink); }
+.bubble.mine { align-self: flex-end; border-radius: 14px; border-end-end-radius: 5px; box-shadow: var(--raise-sm); color: var(--accent-ink); }
 .chat-row { display: flex; gap: 8px; }
 /* A coordinate somebody typed, made tappable. It is a word in a sentence first,
    so it keeps the sentence's size and only borrows the accent; lit, it sinks,
@@ -843,7 +882,8 @@ ${FONT_FACES}
 .log.reserve { min-height: 74px; }
 .response {
   display: flex; gap: 10px; align-items: flex-start;
-  padding: 11px 13px 11px 12px; border-radius: 5px 14px 14px 5px;
+  padding-block: 11px; padding-inline: 12px 13px;
+  border-radius: 14px; border-start-start-radius: 5px; border-end-start-radius: 5px;
   box-shadow: var(--sink-sm); border-inline-start: 3px solid var(--rule);
   animation: rise-l .26s ease;
 }
@@ -865,7 +905,7 @@ ${FONT_FACES}
   font: 700 13px var(--font-body); letter-spacing: .05em;
   transition: transform .15s ease, box-shadow .15s ease;
 }
-.log-next:hover { transform: translateX(calc(2px * var(--flip))); }
+.log-next:hover { transform: translateX(calc(2px * var(--flip, 1))); }
 .log-next:active { box-shadow: var(--sink-sm); }
 
 .lesson-foot {
@@ -898,7 +938,7 @@ ${FONT_FACES}
 .prob-modes { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(10px, 1.6vw, 16px); }
 @media (max-width: 560px) { .prob-modes { grid-template-columns: 1fr; } }
 .prob-mode {
-  display: flex; flex-direction: column; gap: 5px; text-align: left;
+  display: flex; flex-direction: column; gap: 5px; text-align: start;
   padding: 13px 16px; border-radius: 16px; border: 0; cursor: pointer;
   background: var(--ground); color: var(--ink); box-shadow: var(--raise-sm);
   transition: box-shadow .18s ease, color .18s ease;
@@ -944,12 +984,12 @@ ${FONT_FACES}
 .house-top { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: clamp(14px, 2vw, 22px); align-items: start; }
 .house-card { display: flex; flex-direction: column; gap: 14px; }
 .house-face { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.house-line { font-style: italic; color: var(--ink-2); }
+.house-line { font-style: var(--display-italic-style); color: var(--ink-2); }
 .house-line + .house-line { margin-top: 10px; }
 .house-chips { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 12px; }
 .house-chip {
   display: flex; align-items: center; gap: 9px; border: 0; cursor: pointer;
-  background: var(--ground); color: var(--ink); padding: 7px 13px 7px 7px;
+  background: var(--ground); color: var(--ink); padding-block: 7px; padding-inline: 7px 13px;
   border-radius: 999px; box-shadow: var(--raise-sm);
   transition: box-shadow .18s ease, color .18s ease, transform .18s ease;
 }
@@ -1082,7 +1122,7 @@ ${FONT_FACES}
 .chapter-title strong { font-family: var(--font-display); font-weight: var(--w-display); font-size: 17px; }
 .chapter-caret { color: var(--ink-2); flex: none; transition: transform .18s ease; }
 .chapter-caret.open { transform: rotate(90deg); }
-.chapter-body { display: flex; flex-direction: column; gap: 12px; padding: 4px 12px 16px 42px; }
+.chapter-body { display: flex; flex-direction: column; gap: 12px; padding: 4px 12px 16px; padding-inline-start: 42px; }
 .chapter-body.preface { padding-top: 12px; }
 .chapter-body .lesson-text { color: var(--ink-2); }
 /* A chapter whose lessons are finished says so in the head, so the book can be
@@ -1391,6 +1431,9 @@ ${FONT_FACES}
    box, and a fade anchored on the bleeding edge left the far stones at a third
    of their strength, which on a pale ground turns a black stone white. A stone
    here is either the colour it was played or it is not there. */
+/* Named for the side they take in a left-to-right page. Both are logical:
+   in Hebrew the fig-right element renders on the left, because a figure sits
+   opposite the words, and the words have moved. */
 .fig-right, .fig-left {
   top: 50%;
   -webkit-mask-image: radial-gradient(var(--fig-r, 86%) var(--fig-r, 86%) at var(--fig-cx, 50%) var(--fig-cy, 50%),
@@ -1398,8 +1441,8 @@ ${FONT_FACES}
   mask-image: radial-gradient(var(--fig-r, 86%) var(--fig-r, 86%) at var(--fig-cx, 50%) var(--fig-cy, 50%),
     var(--ink) var(--fig-s, 46%), rgba(0,0,0,.42) var(--fig-m, 74%), transparent 100%);
 }
-.fig-right { inset-inline-end: -6%; transform: translate(calc(26% * var(--flip)), -50%); }
-.fig-left { inset-inline-start: -6%; transform: translate(calc(-26% * var(--flip)), -50%); }
+.fig-right { inset-inline-end: -6%; transform: translate(calc(26% * var(--flip, 1)), -50%); }
+.fig-left { inset-inline-start: -6%; transform: translate(calc(-26% * var(--flip, 1)), -50%); }
 
 /* The playing of it. A stone lands on the move it was played on and a captured
    stone leaves on the move it was captured on, both off the one beat in
@@ -1495,13 +1538,13 @@ ${FONT_FACES}
    out as a front-door band would lose the stone that makes it the shape it is.
    A ponnuki missing one of its four is a tiger's mouth. */
 .statement .fig { --fig-h: clamp(190px, 27vw, 400px); }
-.statement .fig-right { inset-inline-end: -1%; transform: translate(calc(9% * var(--flip)), -50%); }
-.statement .fig-left { inset-inline-start: -1%; transform: translate(calc(-9% * var(--flip)), -50%); }
+.statement .fig-right { inset-inline-end: -1%; transform: translate(calc(9% * var(--flip, 1)), -50%); }
+.statement .fig-left { inset-inline-start: -1%; transform: translate(calc(-9% * var(--flip, 1)), -50%); }
 .lp-band { overflow: hidden; }
 .statement.lp.has-fig { overflow: visible; }
 .statement.lp .fig { --fig-h: clamp(280px, 42vw, 640px); }
-.statement.lp .fig-right { inset-inline-end: calc(50% - 50vw); transform: translate(calc(30% * var(--flip)), -50%); }
-.statement.lp .fig-left { inset-inline-start: calc(50% - 50vw); transform: translate(calc(-30% * var(--flip)), -50%); }
+.statement.lp .fig-right { inset-inline-end: calc(50% - 50vw); transform: translate(calc(30% * var(--flip, 1)), -50%); }
+.statement.lp .fig-left { inset-inline-start: calc(50% - 50vw); transform: translate(calc(-30% * var(--flip, 1)), -50%); }
 /* A centred statement has no margin to put a figure in, so its figure goes
    behind the words and drops to the strength of a watermark -- a seal under the
    type rather than a shape beside it. This is the one place the figure gives up
@@ -1509,7 +1552,7 @@ ${FONT_FACES}
    last thing on the front door and the words are the whole of it. */
 .statement.lp.center .fig {
   --fig-h: clamp(320px, 46vw, 720px);
-  top: 50%; inset-inline: auto; left: 50%; transform: translate(-50%, -50%); opacity: .26;
+  top: 50%; inset-inline: 50% auto; transform: translate(-50%, -50%); opacity: .26;
 }
 /* On a narrow screen the words take the whole measure, so the figure goes
    behind them and drops to a shadow of itself rather than fighting for room.
@@ -1522,8 +1565,8 @@ ${FONT_FACES}
   .statement .fig, .statement.lp .fig {
     --fig-h: clamp(210px, 56vw, 360px); opacity: .26; top: 0;
   }
-  .statement .fig-right, .statement.lp .fig-right { inset-inline-end: -14%; transform: translate(calc(14% * var(--flip)), -12%); }
-  .statement .fig-left, .statement.lp .fig-left { inset-inline-start: -14%; transform: translate(calc(-14% * var(--flip)), -12%); }
+  .statement .fig-right, .statement.lp .fig-right { inset-inline-end: -14%; transform: translate(calc(14% * var(--flip, 1)), -12%); }
+  .statement .fig-left, .statement.lp .fig-left { inset-inline-start: -14%; transform: translate(calc(-14% * var(--flip, 1)), -12%); }
   .statement.lp.center .fig { top: 50%; transform: translate(-50%, -50%); }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1550,7 +1593,7 @@ ${FONT_FACES}
 .names-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
 .name-cell { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 11px; box-shadow: var(--sink-sm); }
 .name-cell.unsure { color: var(--ink-2); }
-.name-word { font-family: var(--font-display-italic); font-style: italic; font-size: 16px; }
+.name-word { font-family: var(--font-display-italic); font-style: var(--display-italic-style); font-size: 16px; }
 .name-modern { font-size: 13px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--accent-ink); }
 .name-cell.unsure .name-modern { color: var(--ink-2); text-transform: none; letter-spacing: 0; font-weight: 600; }
 .name-gloss { line-height: 1.5; }
@@ -1559,7 +1602,7 @@ ${FONT_FACES}
 .level-list { list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 .level-row { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 2px 12px; padding: 8px 10px; border-radius: 9px; align-items: baseline; }
 .level-row .level-rank { color: var(--ink-2); font-family: var(--font-display); font-weight: var(--w-display); font-size: 14px; }
-.level-row .level-name { font-family: var(--font-display-italic); font-style: italic; font-size: 16px; }
+.level-row .level-name { font-family: var(--font-display-italic); font-style: var(--display-italic-style); font-size: 16px; }
 .level-row .level-text { color: var(--ink-2); grid-column: 2; }
 .level-row.here { background: var(--ground); box-shadow: inset 2px 2px 5px var(--dark), inset -2px -2px 5px var(--light); }
 .level-row.here .level-rank { opacity: 1; color: var(--accent-ink); }
@@ -1572,7 +1615,7 @@ ${FONT_FACES}
 .setting-copy strong { font-size: 15px; }
 .toggle { flex: none; width: 48px; height: 28px; border: 0; border-radius: 14px; background: var(--ground); box-shadow: var(--sink-sm); cursor: pointer; position: relative; transition: box-shadow .2s ease; }
 .toggle-knob { position: absolute; top: 4px; inset-inline-start: 4px; width: 20px; height: 20px; border-radius: 50%; background: var(--ground); box-shadow: var(--raise-sm); transition: transform .2s ease, background .2s ease; }
-.toggle.on .toggle-knob { transform: translateX(calc(20px * var(--flip))); background: var(--accent); }
+.toggle.on .toggle-knob { transform: translateX(calc(20px * var(--flip, 1))); background: var(--accent); }
 
 /* ---- typeface picker ---- */
 /* The theme picker. Each swatch carries its own theme's custom properties, so
@@ -1916,7 +1959,7 @@ ${FONT_FACES}
    runs out, which is the narrow case the rule below already handles. */
 .moku-bubble {
   max-width: min(250px, max(158px, calc(50vw - 566px)));
-  padding: 10px 14px; border-radius: 14px 14px 14px 4px;
+  padding: 10px 14px; border-radius: 14px; border-end-start-radius: 4px;
   background: var(--ground); box-shadow: var(--raise-sm);
   font-family: var(--font-quote); font-style: var(--quote-style); font-size: 16px; line-height: 1.4; color: var(--ink);
   animation: rise-l .35s ease;
@@ -2073,7 +2116,7 @@ ${FONT_FACES}
   background: var(--accent-ink); margin-inline-start: 7px; vertical-align: middle;
   flex: none;
 }
-.player-when .here-dot { margin: 0 7px 0 0; }
+.player-when .here-dot { margin: 0; margin-inline-end: 7px; }
 /* ---- who may see you are here ----
    Three choices on the same segmented control the lobby sets a board size
    with, so a preference that changes what other people see reads as the same
@@ -2415,7 +2458,7 @@ ${FONT_FACES}
    something, and one asked of "the first paragraph" lands on the kicker. */
 .lp-col p.lp-drop::first-letter {
   float: inline-start; font-family: var(--font-display); font-weight: var(--w-display-strong);
-  font-size: 3.4em; line-height: .82; padding: .06em .09em 0 0; color: var(--ink);
+  font-size: 3.4em; line-height: .82; padding: .06em 0 0; padding-inline-end: .09em; color: var(--ink);
 }
 /* A signed column ends on its signature, set in the caption italic and ruled
    off short. It is the one column with no numbered line under it, so the
@@ -2682,10 +2725,10 @@ ${FONT_FACES}
 
    Vertically they stay inside their section on purpose: a mark that spilled
    into the band above it would cross the seam the floors were put in to make. */
-.lp-decor-left { top: 50%; inset-inline-start: calc(50% - 50vw); transform: translate(calc(-34% * var(--flip)), -50%); }
-.lp-decor-right { top: 50%; inset-inline-end: calc(50% - 50vw); transform: translate(calc(34% * var(--flip)), -50%); }
-.lp-decor-tr { top: 4%; inset-inline-end: calc(50% - 50vw); transform: translate(calc(18% * var(--flip)), 0); }
-.lp-decor-bl { bottom: 4%; inset-inline-start: calc(50% - 50vw); transform: translate(calc(-18% * var(--flip)), 0); }
+.lp-decor-left { top: 50%; inset-inline-start: calc(50% - 50vw); transform: translate(calc(-34% * var(--flip, 1)), -50%); }
+.lp-decor-right { top: 50%; inset-inline-end: calc(50% - 50vw); transform: translate(calc(34% * var(--flip, 1)), -50%); }
+.lp-decor-tr { top: 4%; inset-inline-end: calc(50% - 50vw); transform: translate(calc(18% * var(--flip, 1)), 0); }
+.lp-decor-bl { bottom: 4%; inset-inline-start: calc(50% - 50vw); transform: translate(calc(-18% * var(--flip, 1)), 0); }
 .lp-decor-center { top: 50%; left: 50%; transform: translate(-50%, -50%); }
 /* The page is clipped at its own edge instead, so a mark hanging off the side
    never turns into a sideways scrollbar. clip rather than hidden: hidden
