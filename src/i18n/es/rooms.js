@@ -90,8 +90,8 @@ export const rooms = {
     startOver: "Empieza de cero",
     clear: "Borra",
     blocked: {
-      one: "Hay una regla rota, así que esta sala todavía no se puede llevar. Todas las salas con nombre de Joseki pasan las seis.",
-      other: "Hay {count} reglas rotas, así que esta sala todavía no se puede llevar. Todas las salas con nombre de Joseki pasan las seis.",
+      one: "Hay una regla rota, así que esta sala todavía no se puede llevar. Todas las salas con nombre de Joseki las pasan todas.",
+      other: "Hay {count} reglas rotas, así que esta sala todavía no se puede llevar. Todas las salas con nombre de Joseki las pasan todas.",
     },
     overriddenBefore: "Estás jugando todas las salas con {stones}, elegidas en ",
     overriddenLink: "la página del aspecto",
@@ -155,6 +155,14 @@ export const rooms = {
     stones: {
       label: "Las dos piedras",
       why: "El negro y el blanco tienen que distinguirse de un vistazo, de un extremo a otro del tablero y deprisa.",
+    },
+    "board-b": {
+      label: "Pizarra sobre el tablero",
+      why: "Una piedra negra tiene que poder encontrarse sobre la madera en la que se juega, no solo frente a la blanca.",
+    },
+    "board-w": {
+      label: "Concha sobre el tablero",
+      why: "La otra mitad de la misma regla, y solo donde la sala tuvo que inventarse el tablero: una piedra blanca que grita más que la madera cansa tanto como una negra que se esconde en ella. Sobre papel de verdad, a la piedra de concha la separa su borde, no su relleno.",
     },
     "close-light": { label: "Luz cerca del fondo" },
     "close-dark": { label: "Sombra cerca del fondo" },

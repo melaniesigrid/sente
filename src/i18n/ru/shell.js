@@ -32,6 +32,7 @@ export const shell = {
     enter: "Войти",
     yourBoard: "Твоя доска",
     look: "Как здесь всё выглядит",
+    lookShort: "Вид",
     profile: "Твой профиль",
   },
   journal: {

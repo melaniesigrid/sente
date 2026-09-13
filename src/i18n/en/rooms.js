@@ -102,8 +102,8 @@ export const rooms = {
     startOver: "Start over",
     clear: "Clear",
     blocked: {
-      one: "One rule is broken, so this room cannot be worn yet. Every named room in Joseki clears all six.",
-      other: "{count} rules are broken, so this room cannot be worn yet. Every named room in Joseki clears all six.",
+      one: "One rule is broken, so this room cannot be worn yet. Every named room in Joseki clears them all.",
+      other: "{count} rules are broken, so this room cannot be worn yet. Every named room in Joseki clears them all.",
     },
     overriddenBefore: "You are playing every room with {stones}, chosen on ",
     overriddenLink: "the look page",

@@ -26,6 +26,7 @@ export const shell = {
     enter: "Entrer",
     yourBoard: "Ton goban",
     look: "L'allure du lieu",
+    lookShort: "Allure",
     profile: "Ton profil",
   },
   journal: {

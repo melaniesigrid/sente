@@ -4,8 +4,8 @@ import {
   themeOf, themeVars, isDark, isThemeId, resolveTheme, sanitizePalette, paletteFrom, auditPalette,
 } from "./index.js";
 import { TOKEN_NAMES, TONE_KEYS, REQUIRED_TONES, READING } from "./tokens.js";
-import { completeTones, deriveLights, deriveStoneB, deriveAccentInk } from "./derive.js";
-import { stonesOf, cutWhite } from "./stones.js";
+import { completeTones, deriveLights, deriveAccentInk } from "./derive.js";
+import { stonesOf, cutBlack, cutWhite } from "./stones.js";
 import { contrast, isHex, luminance } from "./color.js";
 
 const MINE = { ground: "#101014", ink: "#e6e6ea", accent: "#b98cff", cream: "#f2f2f6" };
@@ -51,14 +51,18 @@ describe("the named rooms", () => {
     }
   });
 
-  // Two things have to hold at once on a dark board, and they pull against each
-  // other: the stone must stay black rather than turning into grey slate, and its
-  // crown must still sit above the wood or the piece disappears into it.
-  it("seats a black stone into a dark board without letting it vanish", () => {
+  // A dark room's board is not its page. The stones stopped being bent toward
+  // the ground to cope with a near-black board; the board is lifted off the
+  // page instead, which is the thing a player was actually missing.
+  it("lifts a dark room's board off its page, and leaves a light room's alone", () => {
     for (const p of PALETTES.filter(isDark)) {
-      const stones = deriveStoneB(p.ground, stonesOf(p.stones).b);
-      expect(luminance(stones[0]), `${p.id} crown above ground`).toBeGreaterThan(luminance(p.ground));
-      expect(luminance(stones[1]), `${p.id} stone stays dark`).toBeLessThan(luminance("#4b463c"));
+      const vars = themeVars(p.id);
+      expect(luminance(vars["--board"]), `${p.id} board above the page`)
+        .toBeGreaterThan(luminance(vars["--ground"]));
+    }
+    for (const p of PALETTES.filter(x => !isDark(x))) {
+      const vars = themeVars(p.id);
+      expect(vars["--board"], `${p.id} plays on its own paper`).toBe(vars["--ground"]);
     }
   });
 
@@ -196,14 +200,14 @@ describe("derivation", () => {
     }
   });
 
-  // What a stone is cut from, and what happens to it in a dark room, is the
+  // What a stone is cut from, and how the board under it is found, is the
   // subject of stones.test.js: there is a drawer of sets to hold to it now
   // rather than one pair. What belongs here is that every room hands the board
   // a set to be played with.
   it("draws every room with the set that room names", () => {
     for (const p of PALETTES) {
       const set = stonesOf(p.stones);
-      expect(themeVars(p.id)["--stone-b-2"], p.id).toBe(deriveStoneB(p.ground, set.b)[1]);
+      expect(themeVars(p.id)["--stone-b-2"], p.id).toBe(cutBlack(set.b)[1]);
       expect(themeVars(p.id)["--stone-w-2"], p.id).toBe(cutWhite(set.w)[1]);
     }
   });
