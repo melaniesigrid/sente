@@ -82,11 +82,7 @@ export const account = {
     back: "Never mind",
   },
   forgot: {
-    asked: "If there is an account on that address, a way back in is on its way to it. The link lasts an hour, and using it signs the account out everywhere else.",
-    open: "Forgotten your password? Joseki can post you a way back in.",
-    address: "The address on the account",
-    post: "Post me a way back in",
-    nevermind: "Never mind",
+    write: "Forgotten your password? Write to {contact} from the address on the account, and a way back in will be sent to you by hand.",
   },
 
   guest: {

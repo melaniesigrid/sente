@@ -74,11 +74,7 @@ export const account = {
     back: "Laisse tomber",
   },
   forgot: {
-    asked: "S'il y a un compte sur cette adresse, un moyen d'y revenir est en route. Le lien dure une heure, et l'utiliser ferme la session du compte partout ailleurs.",
-    open: "Mot de passe oublié ? Joseki peut t'envoyer un moyen de revenir.",
-    address: "L'adresse du compte",
-    post: "Envoie-moi un moyen de revenir",
-    nevermind: "Laisse tomber",
+    write: "Mot de passe oublié ? Écris à {contact} depuis l'adresse du compte, et un moyen de revenir t'est envoyé à la main.",
   },
 
   guest: {

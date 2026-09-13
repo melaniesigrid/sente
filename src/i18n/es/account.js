@@ -74,11 +74,7 @@ export const account = {
     back: "Déjalo",
   },
   forgot: {
-    asked: "Si hay una cuenta en esa dirección, va de camino una forma de volver a entrar. El enlace dura una hora, y usarlo cierra la sesión de la cuenta en todos los demás sitios.",
-    open: "¿Has olvidado la contraseña? Joseki puede enviarte una forma de volver a entrar.",
-    address: "La dirección de la cuenta",
-    post: "Envíame una forma de volver a entrar",
-    nevermind: "Déjalo",
+    write: "¿Has olvidado la contraseña? Escribe a {contact} desde la dirección de la cuenta, y te enviaremos a mano una forma de volver a entrar.",
   },
 
   guest: {

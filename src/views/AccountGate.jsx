@@ -6,6 +6,7 @@ import { saveAccount } from "../store/account.js";
 import { formProblem, passwordNote, errorText } from "./accountForm.js";
 import { askSeats, seatsAreGone } from "./seats.js";
 import { useT } from "../components/langStore.js";
+import { CONTACT } from "../content/legal.js";
 
 /* ----------------------- ACCOUNT GATE (card) -----------------------
    The three doors into the ladder, in the order most people want them:
@@ -15,8 +16,8 @@ import { useT } from "../components/langStore.js";
      guest      a handle and nothing else, kept in this browser only
 
    A fourth door, folded away under the first: having forgotten the password.
-   It is a disclosure rather than a tab because it is not a way most people
-   get in, and a row of four would suggest it was.
+   For now it is one line naming a person to write to, because the reset
+   letter cannot be delivered yet (see `ForgotRow`).
 
    There is no third party here. Joseki holds the address, and it holds a hash
    of a key the browser derives from the password, never the password, which
@@ -176,7 +177,7 @@ function CredentialForm({ mode, profile, notify, onSignedIn, onFull = null }) {
    and it does not imply a place in a queue it cannot promise.
 
    The door for the people who are already in stays on the card, folded away
-   the way the forgotten-password row is: somebody with an account who has
+   the way the forgotten-password line is: somebody with an account who has
    cleared their browser is not a newcomer and must not be handed a waiting
    list as though they were. */
 function BetaFull({ profile, notify, onSignedIn }) {
@@ -215,8 +216,7 @@ function BetaFull({ profile, notify, onSignedIn }) {
 /** Leave an address. What it says afterwards is the same whether the address
  *  was new, already waiting, or already has an account here, because the
  *  server answers the same way to all three: a box that answered honestly
- *  would be a way to ask who plays on Joseki, which is the same reason the
- *  forgotten-password row below is written the way it is. */
+ *  would be a way to ask who plays on Joseki. */
 function WaitlistForm() {
   const t = useT();
   const [email, setEmail] = useState("");
@@ -261,59 +261,23 @@ function WaitlistForm() {
   );
 }
 
-/** The way back in for somebody who cannot sign in. Folded away until asked
- *  for, because it is not how most people arrive.
+/** The door for a forgotten password, while the letters do not arrive.
  *
- *  What it says afterwards is deliberately conditional ("if there is an
- *  account on that address") and it says the same thing whether or not there
- *  was one. Answering honestly here would turn this box into a way to ask
- *  whether any address you like has an account on Joseki, which is not a
- *  question a go server should answer about its players. */
+ *  Joseki has a reset letter and a `?reset=` landing to receive it, but
+ *  Cloudflare has not onboarded the zone for Email Sending, so a letter asked
+ *  for here would never land. Until it does, the honest door is a person:
+ *  write from the address on the account, and an operator mints the same
+ *  link by hand (`POST /api/admin/mail/reset/:id`) and posts it. */
 function ForgotRow() {
   const t = useT();
-  const [open, setOpen] = useState(false);
-  const [email, setEmail] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [shown, setShown] = useState(null);
-  const [asked, setAsked] = useState(false);
-
-  const ask = async () => {
-    if (busy) return;
-    const problem = formProblem("forgot", { email }, t);
-    if (problem) { setShown(problem); return; }
-    setShown(null);
-    setBusy(true);
-    try { await api.forgot(email); setAsked(true); }
-    catch (e) { setShown(errorText(e.reason, t)); }
-    finally { setBusy(false); }
-  };
-
-  if (asked) {
-    return (
-      <p className="fine" role="status">{t("account.forgot.asked")}</p>
-    );
-  }
-  if (!open) {
-    return (
-      <button className="attach-row" onClick={() => setOpen(true)}>
-        <KeyRound size={14} />
-        <span>{t("account.forgot.open")}</span>
-      </button>
-    );
-  }
+  const line = t("account.forgot.write", { contact: CONTACT });
+  const [before, after] = line.split(CONTACT);
   return (
-    <div className="gate-fields">
-      <input className="chat-input" type="email" value={email} placeholder={t("account.forgot.address")}
-        autoComplete="email" inputMode="email" onChange={e => setEmail(e.target.value)}
-        onKeyDown={e => e.key === "Enter" && ask()} aria-label={t("account.forgot.address")} />
-      {shown && <p className="gate-problem" role="alert">{shown}</p>}
-      <div className="row">
-        <Btn icon={busy ? Loader : Mail} primary small onClick={ask} disabled={busy}>
-          {t(busy ? "account.gate.working" : "account.forgot.post")}
-        </Btn>
-        <Btn small onClick={() => setOpen(false)}>{t("account.forgot.nevermind")}</Btn>
-      </div>
-    </div>
+    <p className="fine">
+      {before}
+      <a href={`mailto:${CONTACT}`}>{CONTACT}</a>
+      {after}
+    </p>
   );
 }
 

@@ -74,11 +74,7 @@ export const account = {
     back: "Lass gut sein",
   },
   forgot: {
-    asked: "Wenn es auf dieser Adresse ein Konto gibt, ist ein Weg zurück unterwegs dorthin. Der Link gilt eine Stunde, und ihn zu benutzen meldet das Konto überall sonst ab.",
-    open: "Passwort vergessen? Joseki kann dir einen Weg zurück schicken.",
-    address: "Die Adresse des Kontos",
-    post: "Schick mir einen Weg zurück",
-    nevermind: "Lass gut sein",
+    write: "Passwort vergessen? Schreib von der Adresse des Kontos an {contact}, und ein Weg zurück wird dir von Hand geschickt.",
   },
 
   guest: {

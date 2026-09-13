@@ -632,7 +632,10 @@ two Durable Object classes, deployed at https://api.joseki.online.
       welcome, and handle-kept copy no longer say a letter follows, in every language. The
       server routes, the `?verify=` landing, and `emailVerified` are all still there, so
       turning the letters back on is onboarding the zone and restoring the nudge, nothing
-      else. The forgotten-password door still offers a letter and is broken in the same way.
+      else. The forgotten-password form went the same way: it is one line now, asking the
+      player to write to `CONTACT` from the address on the account, and an operator mints
+      the reset link by hand (`POST /api/admin/mail/reset/:id`) and posts it. `POST
+      /api/forgot` and the `?reset=` landing are still there for when the post works.
 - [x] Joseki's own address: `joseki.online` for the app, `api.joseki.online` for the
       server (branch `feat/online`). The zone is on Cloudflare and Namecheap's nameservers
       point at it (`nadia`/`randy.ns.cloudflare.com`, verified 2026-09-12), so the repository
