@@ -847,6 +847,10 @@ ${FONT_FACES}
    a line saying what it trains, and its own row of circles; the set the open
    board belongs to is the one whose heading is sunk into the ground. */
 .prob-sets { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: clamp(16px, 2.2vw, 26px); }
+/* Four sets want four columns or two, never three and a widow. auto-fit picks
+   three at the width a laptop actually is, so the count is stated instead. */
+@media (min-width: 1080px) { .prob-sets { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 620px) and (max-width: 1079px) { .prob-sets { grid-template-columns: repeat(2, 1fr); } }
 .prob-set { display: flex; flex-direction: column; gap: 9px; padding: 14px 16px; border-radius: 18px; transition: box-shadow .18s ease; }
 .prob-set.here { box-shadow: var(--sink-sm); }
 .prob-set-head { gap: 9px; }

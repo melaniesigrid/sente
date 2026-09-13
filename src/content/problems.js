@@ -143,6 +143,22 @@ export const PROBLEMS = [
      four, five and six points in a corner, on an edge and out in the open,
      walling each one in and asking the prover which points kill and which
      live. It is the only four-point space on the edge with exactly one of each. */
+  /* The bend, and the fact that it changes nothing. Found by the same
+     enumeration as the rest: every connected space of three points on an edge,
+     walled in and solved. Straight three and bent three come back with the
+     same answer, which is why a learner who has met one has met both. */
+  {
+    id: "p17", set: "eyes", rank: "14k", theme: "Life & Death",
+    title: "The bend in the three",
+    setup: {
+      w: [pt(1, 0), pt(3, 0), pt(4, 0), pt(1, 1), pt(4, 1), pt(1, 2), pt(2, 2), pt(3, 2), pt(4, 2)],
+      b: [pt(0, 0), pt(5, 0), pt(0, 1), pt(5, 1), pt(0, 2), pt(5, 2),
+        pt(0, 3), pt(1, 3), pt(2, 3), pt(3, 3), pt(4, 3), pt(5, 3)],
+    },
+    toPlay: "b", answers: [pt(2, 1)],
+    prompt: "Three points of eye space again, and this time they are bent. Black to play and kill.",
+    explain: "The middle of the three, exactly as before. A bend is not a different shape, it is the same three points with a corner in them, and the point that belongs to both halves is still the middle one. The search says so as plainly as it can: this space has one killing point and one living point, and they are the same square, which is the definition of a vital point.",
+  },
   {
     id: "p13", set: "eyes", rank: "13k", theme: "Life & Death",
     title: "Three and a tail",
@@ -179,6 +195,18 @@ export const PROBLEMS = [
     explain: "The centre of the bulky five. A five-point space lives by dividing into two eyes, and this is the one point that belongs to both halves: take it and there is nothing left to divide. Play anywhere else in the space and White takes it instead and lives.",
   },
   {
+    id: "p18", set: "eyes", rank: "9k", theme: "Life & Death",
+    title: "One chance, three answers",
+    setup: {
+      w: [pt(1, 0), pt(5, 0), pt(1, 1), pt(4, 1), pt(5, 1), pt(1, 2), pt(2, 2), pt(3, 2), pt(4, 2)],
+      b: [pt(0, 0), pt(6, 0), pt(0, 1), pt(6, 1), pt(0, 2), pt(5, 2), pt(6, 2),
+        pt(0, 3), pt(1, 3), pt(2, 3), pt(3, 3), pt(4, 3), pt(5, 3)],
+    },
+    toPlay: "b", answers: [pt(3, 0)],
+    prompt: "Five points of eye space on the edge. Black to play and kill.",
+    explain: "One point kills and three points live. That asymmetry is the whole reason life and death is hard from the attacking side: White has three ways to answer this shape correctly and Black has one, so a mistake by White is survivable and a mistake by Black hands the group away. Count the defender's options before you decide a group is dead.",
+  },
+  {
     id: "p8", set: "eyes", rank: "8k", theme: "Life & Death",
     title: "The flowered five",
     setup: {
@@ -195,6 +223,17 @@ export const PROBLEMS = [
      is two of the four walls, a space needs fewer stones to enclose, and the
      count comes out differently: a bend that lives on the edge dies at the 1-1
      point, and six points that are normally alive are not. */
+  {
+    id: "p19", set: "corner", rank: "7k", theme: "Life & Death",
+    title: "The shape the corner leaves alone",
+    setup: {
+      w: [pt(0, 1), pt(2, 1), pt(3, 0), pt(3, 1), pt(0, 2), pt(1, 2), pt(2, 2)],
+      b: [pt(4, 0), pt(4, 1), pt(3, 2), pt(4, 2), pt(0, 3), pt(1, 3), pt(2, 3), pt(3, 3)],
+    },
+    toPlay: "b", answers: [pt(1, 0)],
+    prompt: "Three along the edge with one under the middle, wrapped into the corner this time. Black to play and kill.",
+    explain: "The same point as out on the edge, and that is the answer to the question this set keeps asking. The corner changes a shape when the shape wraps round the 1-1 point and needs it, which is what happens to the bend at the end of this set. It changes nothing for a shape whose vital point was never near the 1-1 point in the first place. The corner is not a rule, it is a wall that is sometimes in the way.",
+  },
   {
     id: "p16", set: "corner", rank: "6k", theme: "Life & Death",
     title: "The flower in the corner",
