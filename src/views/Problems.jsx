@@ -7,7 +7,10 @@ import { ScreenHeader } from "../components/ScreenHeader.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
-import { PROBLEMS, SETS, setById, problemsInSet, localizeProblem, localizeSet } from "../content/problems.js";
+import {
+  PROBLEMS, SETS, setById, problemsInSet, setProgress, setsComplete, nextProblem,
+  localizeProblem, localizeSet,
+} from "../content/problems.js";
 import { setupToBoard } from "../content/positions.js";
 import { dayKey, dailyProblem, attend, liveStreak } from "../content/kata.js";
 import { attendDay } from "../content/chain.js";
@@ -31,7 +34,13 @@ export function ProblemsView({ profile, setProfile, initialId }) {
   const t = useT();
   const today = dayKey();
   const kata = dailyProblem(PROBLEMS, today);
-  const startId = initialId && PROBLEMS.some(p => p.id === initialId) ? initialId : PROBLEMS[0].id;
+  /* Where the screen opens. The kata card asks for a specific board and always
+     wins; otherwise it is the first board still open in the set the reader is
+     working through, because opening on board one for somebody who solved board
+     one last week is asking them to find their own place in a list. */
+  const startId = initialId && PROBLEMS.some(p => p.id === initialId)
+    ? initialId
+    : nextProblem(profile.problemsDone).id;
   const [activeId, setActiveId] = useState(startId);
   const authored = PROBLEMS.find(p => p.id === activeId);
   const prob = localizeProblem(authored, t);
@@ -39,6 +48,11 @@ export function ProblemsView({ profile, setProfile, initialId }) {
   const streak = liveStreak(profile, today);
   const isKata = kata && prob.id === kata.id;
   const set = localizeSet(setById(authored.set), t);
+  const done = setsComplete(profile.problemsDone);
+  /* Whether the board just solved was the last one open in its set. Read from
+     the profile after the solve, so it is a fact about the collection rather
+     than a flag the solve handler had to remember to set. */
+  const justFinished = state.status === "solved" && setProgress(authored.set, profile.problemsDone).complete;
   useMokuFacts({ view: "tsumego", seed: profile.problemsDone.length });
 
   const load = (id) => {
@@ -91,14 +105,20 @@ export function ProblemsView({ profile, setProfile, initialId }) {
         {SETS.map(raw => {
           const s = localizeSet(raw, t);
           const mine = problemsInSet(s.id);
-          const done = mine.filter(p => profile.problemsDone.includes(p.id)).length;
+          const { solved, total, complete } = setProgress(s.id, profile.problemsDone);
           const Icon = SET_ICONS[s.id] || Eye;
           return (
-            <section key={s.id} className={`prob-set ${s.id === set.id ? "here" : ""}`}>
+            <section key={s.id} className={`prob-set ${s.id === set.id ? "here" : ""} ${complete ? "complete" : ""}`}>
               <div className="stat-head prob-set-head">
                 <Icon size={16} />
                 <span>{s.name}</span>
-                <span className="prob-set-count">{t("tsumego.setProgress", { done, total: mine.length })}</span>
+                {/* A finished set says so instead of saying 4 of 4. A count is
+                    what you read while you are still counting. */}
+                <span className="prob-set-count">
+                  {complete
+                    ? <><Check size={13} /> {t("tsumego.setDone")}</>
+                    : t("tsumego.setProgress", { done: solved, total })}
+                </span>
               </div>
               <p className="fine prob-set-blurb">{s.blurb}</p>
               <div className="prob-tabs" role="tablist" aria-label={s.name}>
@@ -119,6 +139,11 @@ export function ProblemsView({ profile, setProfile, initialId }) {
           );
         })}
       </div>
+      {done.length > 0 && (
+        <p className="fine prob-sets-done">
+          {t("tsumego.setsDone", { done: done.length, total: SETS.length })}
+        </p>
+      )}
 
       <div className="play-wrap">
         <Board board={state.board} onPlay={onPlay} disabled={state.status === "solved"} flash={state.flash} captured={state.flash} captureKey={state.status} />
@@ -136,6 +161,9 @@ export function ProblemsView({ profile, setProfile, initialId }) {
             )}
             {state.status === "solved" && state.byKo && prob.koNote && (
               <p className="fine hint-row">{prob.koNote}</p>
+            )}
+            {justFinished && (
+              <p className="fine hint-row"><Check size={14} /> {t("tsumego.setFinished", { set: set.name })}</p>
             )}
             {state.status === "solved" && isKata && profile.kataDate === today && (
               <p className="fine hint-row"><Flame size={14} /> {t("tsumego.attendance", { count: streak })}</p>

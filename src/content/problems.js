@@ -50,6 +50,40 @@ export const setById = (id) => SETS.find(s => s.id === id) || null;
 /** The problems of one set, in the order they are meant to be read. */
 export const problemsInSet = (id) => PROBLEMS.filter(p => p.set === id);
 
+/* ----------------------- WHERE A READER IS -----------------------
+   A count of nineteen boards is not a place. These say which set somebody is
+   in the middle of and how far through it they are, which is what a dashboard
+   tile and a screen heading both want, and they are pure: the list of solved
+   ids goes in, nothing is stored. */
+
+/** How much of one set is done. */
+export function setProgress(setId, done = []) {
+  const mine = problemsInSet(setId);
+  const solved = mine.filter(p => done.includes(p.id)).length;
+  return { total: mine.length, solved, complete: mine.length > 0 && solved === mine.length };
+}
+
+/** The set a reader is working through: the first one they have not finished,
+ *  and the last one when every board is solved. A reader who has finished
+ *  everything is not sent back to the beginning. */
+export function currentSet(done = []) {
+  const open = SETS.find(s => !setProgress(s.id, done).complete);
+  return open || SETS[SETS.length - 1];
+}
+
+/** Every set that is finished, in declaration order. */
+export const setsComplete = (done = []) => SETS.filter(s => setProgress(s.id, done).complete);
+
+/** The board to open on: the first one not yet solved in the set the reader is
+ *  working through, and the last board of the collection once they have solved
+ *  everything. Opening on board one for somebody who solved board one last
+ *  week is asking them to find their own place in a list. */
+export function nextProblem(done = []) {
+  const set = currentSet(done);
+  const open = problemsInSet(set.id).find(p => !done.includes(p.id));
+  return open || PROBLEMS[PROBLEMS.length - 1];
+}
+
 export const PROBLEMS = [
   /* ----------------------- CAPTURE AND ESCAPE ----------------------- */
   {

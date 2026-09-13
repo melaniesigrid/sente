@@ -6,6 +6,26 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.9.4.0 (2026-09-12)
+
+### Added
+
+- **A finished set says so.** Its heading stops counting and says done, the last board
+  you solve in it tells you it was the last, and a line under the index says how many of
+  the four you have closed. Finishing something and being told nothing is the worst
+  possible answer to having finished something.
+
+### Changed
+
+- **The dashboard tile counts the set you are in, not the whole pile.** It names that set
+  and shows your progress through it. Nineteen boards in four sets is a place to be, and
+  a flat number out of nineteen is not one: it cannot say what is next or whether the
+  thing in front of you is nearly done.
+- **The screen opens on the board you are up to.** The first one still unsolved in the
+  set you are working through, rather than board one every time. Opening on board one
+  for somebody who solved board one last week is asking them to find their own place in
+  a list. The kata card still wins: a card that asks for a specific board gets it.
+
 ## v0.9.3.0 (2026-09-12)
 
 ### Added

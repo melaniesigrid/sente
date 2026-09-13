@@ -1001,6 +1001,17 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       four-point shape from the eye set wrapped into the corner, where the answer does not
       move, which is the honest other half of `p15`, where it does. All three came out of
       `tools/problems/shapes.mjs` and all three are proved by the search on every build.
+- [x] The sets remember you (2026-09-12, branch `feat/set-progress`): `setProgress`,
+      `currentSet`, `setsComplete` and `nextProblem` in `content/problems.js`, pure over
+      the list of solved ids, nothing stored. A finished set says done instead of counting,
+      the last board solved in a set says it was the last, a line under the index says how
+      many of the four are closed, the dashboard tile names the set in front of the reader
+      instead of totalling nineteen boards, and the screen opens on the first board still
+      open in that set rather than on board one.
+      Decisions: a reader who has solved everything is sent to the last set and the last
+      board, not back to the beginning, because a dashboard that tells a finisher to start
+      again is lying about what is left. The kata card still outranks all of it: a card
+      that asks for a specific board gets that board.
 - [ ] The tactics set is still the four boards it always was, and the snapback, the ladder
       and the net all belong in it. A bounded chase search was written and thrown away, and
       the numbers are why: the attacker is confined to a box and the defender escapes on
