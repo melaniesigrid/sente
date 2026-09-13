@@ -6,6 +6,25 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.9.2.0 (2026-09-12)
+
+### Added
+
+- **Two opening lessons on nineteen lines, and the verdicts in them were measured.**
+  *The Big Points* (12k) is corners, then sides, then the centre, and it shows the
+  numbers: on an empty board the 4-4 point carries a sixth of the network's weight and
+  tengen carries four hundred times less; two moves later the middle of a side is
+  eightieth, and once the corners are gone the same point is second. Nothing about the
+  point changed. *The Third Line and the Fourth* (8k) asks which line a side point goes
+  on between two of your own corner stones, and the network answers 0.235 for the fourth
+  line, 0.050 for the third and a hundred and twelfth place for the second.
+- **A lesson can no longer mark the wrong answer best.** Where a choice step carries
+  `net` on its options, the weight and rank the human network gave that point in that
+  exact position, the suite requires the option marked best to be the one the network
+  ranked first. An author who disagrees with the measurement has to change the
+  measurement or drop it, not quietly overrule it.
+- `tools/joseki/policy.py` grew `--cands`, which reports named points at the last
+  position of a sequence. That is how the verdicts above were read off.
 ## v0.9.1.0 (2026-09-12)
 
 ### Added
@@ -33,7 +52,6 @@ They are left as they were written rather than rewritten after the fact.
   at whatever level the table is set to. Ranking them invited exactly the belief the
   lobby spends a paragraph denying, that you have to graduate from one bot to the next.
   It is a roster, in range order, and it says so above the list.
-
 ## v0.9.0.0 (2026-09-12)
 
 ### Added

@@ -10,9 +10,9 @@ export const Card = ({ children, className = "", inset, ...rest }) => (
   <div className={`neu-card ${inset ? "neu-inset" : ""} ${className}`} {...rest}>{children}</div>
 );
 
-export const Btn = ({ icon: Icon, children, onClick, primary, disabled, small, label }) => (
+export const Btn = ({ icon: Icon, children, onClick, primary, disabled, small, label, ...rest }) => (
   <button className={`btn ${primary ? "btn-accent" : ""} ${small ? "btn-sm" : ""} ${children ? "" : "btn-icon"}`}
-    onClick={onClick} disabled={disabled} aria-label={label} title={label}>
+    onClick={onClick} disabled={disabled} aria-label={label} title={label} {...rest}>
     {Icon && <Icon size={small ? 14 : 16} strokeWidth={2.2} />}
     {children && <span>{children}</span>}
   </button>

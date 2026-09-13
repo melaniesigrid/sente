@@ -7,8 +7,10 @@ import classicEmptiness from "./classic-emptiness.js";
 import classicMiscellany from "./classic-miscellany.js";
 import shapeTigersMouth from "./shape-tigers-mouth.js";
 import shapePonnuki from "./shape-ponnuki.js";
+import openingBigPoints from "./opening-big-points.js";
 
 export const TIER3 = [
   classicTerritory, classicConflict, classicEmptiness, classicMiscellany,
   shapeTigersMouth, shapePonnuki,
+  openingBigPoints,
 ];

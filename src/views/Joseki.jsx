@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ChevronLeft, ChevronRight, CornerDownRight, Play, Pause, BookOpen, Bot } from "lucide-react";
 import { createBoard, tryPlay, idx } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
@@ -47,19 +47,30 @@ function replay(moves, n) {
 export function JosekiView() {
   const t = useT();
   const written = CORNERS.filter(c => c.written);
-  const [cornerId, setCornerId] = useState(written[0].id);
-  const list = josekiForCorner(cornerId);
-  const [openId, setOpenId] = useState(list[0].id);
-  const authored = list.find(j => j.id === openId) || list[0];
-  const j = localizeJoseki(authored, t);
-  const [at, setAt] = useState(j.moves.length);
+  const [cornerId, setCornerId] = useState(written[0]?.id ?? null);
+  const list = useMemo(() => (cornerId ? josekiForCorner(cornerId) : []), [cornerId]);
+  const firstOpenId = list[0]?.id ?? null;
+  const [openId, setOpenId] = useState(list[0]?.id ?? null);
+  const selectedOpenId = list.some(item => item.id === openId) ? openId : firstOpenId;
+  const authored = list.find(item => item.id === selectedOpenId) || null;
+  const j = authored ? localizeJoseki(authored, t) : null;
+  const [at, setAt] = useState(authored?.moves.length ?? 0);
   const [running, setRunning] = useState(false);
-  useMokuFacts({ view: "joseki", seed: j.moves.length });
+  useMokuFacts({ view: "joseki", seed: authored?.moves.length ?? 0 });
+  const defaultAt = authored?.moves.length ?? 0;
+  const shownAt = selectedOpenId === openId ? Math.min(at, defaultAt) : defaultAt;
+
+  useEffect(() => {
+    if (selectedOpenId === openId) return;
+    setOpenId(selectedOpenId);
+    setAt(defaultAt);
+    setRunning(false);
+  }, [selectedOpenId, openId, defaultAt]);
 
   const pick = (id) => {
-    const next = josekiForCorner(cornerId).find(x => x.id === id) || list[0];
-    setOpenId(id);
-    setAt(next.moves.length);
+    const next = cornerId ? josekiForCorner(cornerId).find(x => x.id === id) || list[0] : null;
+    setOpenId(next?.id ?? null);
+    setAt(next?.moves.length ?? 0);
     setRunning(false);
   };
 
@@ -67,25 +78,27 @@ export function JosekiView() {
     const first = josekiForCorner(id)[0];
     setCornerId(id);
     if (first) { setOpenId(first.id); setAt(first.moves.length); }
+    else { setOpenId(null); setAt(0); }
     setRunning(false);
   };
 
   /* Play it out: one move a beat until the end, then stop. A reader who wants
      to go faster drags the slider; this is for watching it happen. */
-  const total = j.moves.length;
+  const total = j?.moves.length ?? 0;
   useEffect(() => {
-    if (!running || at >= total) return undefined;
+    if (!j || !running || shownAt >= total) return undefined;
     const id = setTimeout(() => {
-      const next = at + 1;
+      const next = shownAt + 1;
       setAt(next);
       if (next >= total) setRunning(false);
     }, REPLAY_MS);
     return () => clearTimeout(id);
-  }, [running, at, total]);
+  }, [j, running, shownAt, total]);
 
-  const { board, numbers } = replay(j.moves, at);
-  const here = at > 0 ? j.moves[at - 1] : null;
-  const corner = localizeCorner(cornerById(cornerId), t);
+  const { board, numbers } = replay(j?.moves || [], shownAt);
+  const here = j && shownAt > 0 ? j.moves[shownAt - 1] : null;
+  const corner = cornerId ? localizeCorner(cornerById(cornerId), t) : null;
+  const replayLabel = shownAt === 0 || !j ? t("joseki.beforeFirst") : t("joseki.moveN", { n: shownAt, total: j.moves.length });
 
   return (
     <div className="stack arrives">
@@ -117,13 +130,13 @@ export function JosekiView() {
             );
           })}
         </div>
-        <p className="fine jos-corner-blurb">{corner.blurb}</p>
-        <div className="jos-tabs" role="tablist" aria-label={corner.name}>
+        {corner && <p className="fine jos-corner-blurb">{corner.blurb}</p>}
+        <div className="jos-tabs" role="tablist" aria-label={corner?.name || t("joseki.cornersLabel")}>
           {list.map(raw => {
             const item = localizeJoseki(raw, t);
             return (
-              <button key={item.id} role="tab" aria-selected={item.id === openId}
-                className={`jos-tab ${item.id === openId ? "active" : ""}`}
+              <button key={item.id} role="tab" aria-selected={item.id === selectedOpenId}
+                className={`jos-tab ${item.id === selectedOpenId ? "active" : ""}`}
                 onClick={() => pick(item.id)}>
                 <span className="jos-tab-name">{item.name}</span>
                 <span className="fine">{item.rank}</span>
@@ -140,56 +153,67 @@ export function JosekiView() {
         <Board board={board} numbers={numbers} disabled sizePx={760} crop={CROP}
           lastMove={here ? { c: here.c, r: here.r } : null} />
         <div className="side stack-sm">
-          <Card>
-            <div className="prob-head">
-              <span className="rank-chip">{j.rank}</span>
-              {j.term && <span className="theme-chip">{j.term}</span>}
-            </div>
-            <h3 className="prob-title">{j.name}</h3>
-            <p className="lesson-text">{j.blurb}</p>
-          </Card>
+          {j ? (
+            <>
+              <Card>
+                <div className="prob-head">
+                  <span className="rank-chip">{j.rank}</span>
+                  {j.term && <span className="theme-chip">{j.term}</span>}
+                </div>
+                <h3 className="prob-title">{j.name}</h3>
+                <p className="lesson-text">{j.blurb}</p>
+              </Card>
 
-          <Card inset className="jos-move">
-            <div className="stat-head">
-              <CornerDownRight size={15} />
-              <span>{at === 0 ? t("joseki.beforeFirst") : t("joseki.moveN", { n: at, total: j.moves.length })}</span>
-            </div>
-            {here ? (
-              <>
-                <p className="lesson-text">{here.text}</p>
-                {/* What the network thought of this move, said plainly.
-                    A choice is labelled a choice; a first-choice answer
-                    carries the number it was given. */}
-                <p className="fine hint-row">
-                  <Bot size={14} />
-                  {!here.chosen
-                    ? t("joseki.answerNote", { pct: Math.round(here.check.p * 100) })
-                    : here.check.rank === 1
-                      ? t("joseki.choiceTopNote")
-                      : t("joseki.choiceNote", { rank: here.check.rank })}
-                </p>
-              </>
-            ) : (
-              <p className="fine">{t("joseki.emptyCorner")}</p>
-            )}
-          </Card>
+              <Card inset className="jos-move">
+                <div className="stat-head">
+                  <CornerDownRight size={15} />
+                  <span>{replayLabel}</span>
+                </div>
+                {here ? (
+                  <>
+                    <p className="lesson-text">{here.text}</p>
+                    {/* What the network thought of this move, said plainly.
+                        A choice is labelled a choice; a first-choice answer
+                        carries the number it was given. */}
+                    <p className="fine hint-row">
+                      <Bot size={14} />
+                      {!here.chosen
+                        ? t("joseki.answerNote", { pct: Math.round(here.check.p * 100) })
+                        : here.check.rank === 1
+                          ? t("joseki.choiceTopNote")
+                          : t("joseki.choiceNote", { rank: here.check.rank })}
+                    </p>
+                  </>
+                ) : (
+                  <p className="fine">{t("joseki.emptyCorner")}</p>
+                )}
+              </Card>
 
-          <div className="row">
-            <Btn icon={ChevronLeft} small onClick={() => { setRunning(false); setAt(n => Math.max(0, n - 1)); }}
-              disabled={at === 0}>{t("joseki.back")}</Btn>
-            <Btn icon={running ? Pause : Play} small
-              onClick={() => { if (at >= j.moves.length) setAt(0); setRunning(r => !r); }}>
-              {running ? t("joseki.pause") : t("joseki.playOut")}
-            </Btn>
-            <Btn icon={ChevronRight} small primary
-              onClick={() => { setRunning(false); setAt(n => Math.min(j.moves.length, n + 1)); }}
-              disabled={at >= j.moves.length}>{t("joseki.forward")}</Btn>
-          </div>
+              <div className="stack-xs" role="region" aria-label={j.name}>
+                <div className="visually-hidden" role="status" aria-live="polite">{replayLabel}</div>
+                <div className="row">
+                  <Btn icon={ChevronLeft} small onClick={() => { setRunning(false); setAt(n => Math.max(0, n - 1)); }}
+                    disabled={shownAt === 0}>{t("joseki.back")}</Btn>
+                  <Btn icon={running ? Pause : Play} small aria-pressed={running}
+                    onClick={() => { if (at >= j.moves.length) setAt(0); setRunning(r => !r); }}>
+                    {running ? t("joseki.pause") : t("joseki.playOut")}
+                  </Btn>
+                  <Btn icon={ChevronRight} small primary
+                    onClick={() => { setRunning(false); setAt(n => Math.min(j.moves.length, n + 1)); }}
+                    disabled={shownAt >= j.moves.length}>{t("joseki.forward")}</Btn>
+                </div>
+              </div>
 
-          {at >= j.moves.length && (
+              {shownAt >= j.moves.length && (
+                <Card inset>
+                  <div className="stat-head"><BookOpen size={15} /><span>{t("joseki.resultHead")}</span></div>
+                  <p className="lesson-text">{j.result}</p>
+                </Card>
+              )}
+            </>
+          ) : (
             <Card inset>
-              <div className="stat-head"><BookOpen size={15} /><span>{t("joseki.resultHead")}</span></div>
-              <p className="lesson-text">{j.result}</p>
+              <p className="fine">{t("joseki.cornerOpen")}</p>
             </Card>
           )}
         </div>
