@@ -227,6 +227,15 @@ export const online = {
     confirmSent: "Ein Brief ist unterwegs zu {email}. Der Link darin gilt eine Woche und funktioniert einmal. Kommt er nicht an, sieh im Spam-Ordner nach, bevor du einen weiteren anforderst.",
   },
 
+  /* The main room: games in progress a person may sit beside. Which games
+     is the server's rule (server/watch.js); these are the words. */
+  watch: {
+    head: "Partien zum Zuschauen",
+    none: "Gerade gibt es keine Partie zum Zuschauen.",
+    note: "Eine Partie steht nur so lange auf deiner Liste, wie jeder Spieler an diesem Brett dich sehen lässt, dass er da ist. Wer den Link eines Tisches hat, kann ihn öffnen, wie bisher.",
+    open: "{who} zuschauen",
+  },
+
   game: {
     lobby: "Hinaus",
     gone: "Diesen Tisch gibt es nicht, oder er ist fort.",

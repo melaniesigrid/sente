@@ -105,6 +105,10 @@ export const api = {
     call(`/api/presence?ids=${encodeURIComponent(ids.join(","))}`, token ? { token } : {}),
 
   games: (token) => call("/api/games", { token }),
+  /* Games in progress you may watch. The token is optional, like presence:
+     a game is listed only when every player at that board lets you see they
+     are here, so a visitor with no handle sees the ones open to anybody. */
+  live: (token) => call("/api/live", token ? { token } : {}),
   /* The archive: every finished game, newest first, a page at a time. The
      cursor is the server's and opaque; hand back what it gave you. */
   archive: (token, cursor) =>

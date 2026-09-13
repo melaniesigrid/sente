@@ -226,6 +226,15 @@ export const online = {
     confirmSent: "{email} あてに手紙を送りました。中のリンクは一週間もち、一度だけ使えます。届かないときは、次を頼む前に迷惑メールを見てください。",
   },
 
+  /* The main room: games in progress a person may sit beside. Which games
+     is the server's rule (server/watch.js); these are the words. */
+  watch: {
+    head: "観戦できる対局",
+    none: "いま観戦できる対局はありません。",
+    note: "その盤のすべての対局者が、自分がここにいることをあなたに見せている間だけ、その対局はあなたの一覧に載ります。卓のリンクを持つ人は、これまでどおり開けます。",
+    open: "{who}を観戦",
+  },
+
   game: {
     lobby: "ロビー",
     gone: "その盤はないか、もうなくなっています。",

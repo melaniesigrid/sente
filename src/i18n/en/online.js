@@ -249,6 +249,15 @@ export const online = {
     confirmSent: "A letter is on its way to {email}. The link in it lasts a week and works once. If it does not arrive, look in the spam folder before asking for another.",
   },
 
+  /* The main room: games in progress a person may sit beside. Which games
+     is the server's rule (server/watch.js); these are the words. */
+  watch: {
+    head: "Games to watch",
+    none: "No game to watch just now.",
+    note: "A game is listed for you only while every player at that board lets you see they are here. Anybody holding a table's link can open it, as before.",
+    open: "Watch {who}",
+  },
+
   game: {
     lobby: "Lobby",
     gone: "That table does not exist, or it is gone.",
