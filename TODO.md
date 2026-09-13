@@ -7,6 +7,31 @@ Full reasoning: `docs/designs/classiest-go-server.md` (CEO review, 2026-09-09).
 Priority order. Check items off as they land. Phases are sequential; items inside a phase
 are ordered too.
 
+## What is actually in the box (snapshot, 2026-09-13, v0.9.3.0)
+
+A phase list says what was planned. This says what a reader would find if they opened the
+app this morning, because the two drift apart and the phases below are the half that
+flatters. Every number here was counted from the data on `main`, not from memory, and it
+is a snapshot: it will be wrong the week after somebody authors anything.
+
+- **43 lessons** over six tiers (10 / 7 / 7 / 8 / 7 / 4, Foundations to Dan) and seven
+  tracks: judgement 9, life 8, tactics 7, shape 7, opening 5, middle game 5, endgame 2.
+  Every position in every one of them is replayed by the engine on every build.
+- **19 tsumego** in four sets (capture and escape 4, shape 3, eye shapes 8, the corner 4),
+  running 25k to 2k. Every board is proved on every build: the stated answer has to be
+  exactly the set of moves that work.
+- **4 joseki** on the star point, out of three corner points the dictionary names. The 3-4
+  and the 3-3 are declared and unwritten.
+- **7 house players**, each with a page, all of them running the same network at whatever
+  rank the table asks for.
+- **1 book series** threaded through the library (the Classic in thirteen chapters, 20
+  passages), on a shelf of six books.
+- **4 languages**: English, Spanish, French, German, with the parity suite refusing a
+  missing line, an invented key, or an overlay that names something the data does not have.
+
+What is thinnest, in order: the tactics tsumego set (four boards, none of them a tesuji),
+the endgame track (two lessons), life and death below 15k, and the middle game everywhere.
+
 ## Phase 0: Foundation (done)
 
 - [x] Extract the pure engine and AI into `src/engine/` (go.js, ai.js)
@@ -475,8 +500,12 @@ Decisions:
 ## House players (done 2026-09-09, branch `feat/kata-bots`)
 
 The heuristic bots played one-ply captures and felt random. House players now run
-KataGo's human-style network (`b18c384nbt-humanv0`, MIT) in the browser and each one
-imitates a rank: Hoshi 20k, Tetsu 15k, Yuki 10k, Ren 5k, Sora 1k, Kaede 2d, Tatsuo 5d.
+KataGo's human-style network (`b18c384nbt-humanv0`, MIT) in the browser, and every one of
+them imitates whatever rank the table is set to. A persona is a personality and a home
+range, never a strength: the fixed ranks this paragraph used to list (Hoshi 20k, Tetsu
+15k, and so on) stopped being true when the rank picker shipped, and reading them as
+strengths is what put the seven of them in a rating-sorted ladder with a crown on the
+top one until 2026-09-12. Each one has a page now, under the parking lot below.
 
 - [x] `src/engine/kata/`: KataGo board port (chains, ladders, Benson), v7 input features
       checked plane-for-plane against KataGo's Python, metadata row for rank profiles,
@@ -635,9 +664,12 @@ two Durable Object classes, deployed at https://api.joseki.online.
       memory, and served immutable at a URL carrying the stamp it last changed at. Every
       public view of a player now carries that stamp, so the lobby, the ladder and both
       seats at an online table draw the face. `tools/server/profile.mjs <url>` proves it.
-- [ ] The card, seen from outside: a page for another player, reachable from the ladder and
-      from a seat at a table. The route (`GET /api/players/:id`) is live and tested; nothing
-      links to it yet.
+- [x] The card, seen from outside: a page for another player, reachable from the ladder and
+      from a seat at a table. The route (`GET /api/players/:id`) is live and tested, and it
+      is linked from four places: a row on the global ladder (`Rankings.jsx`), either seat
+      at an online table (`OnlineGame.jsx`), a friend (`FriendsCard.jsx`) and a
+      correspondent (`LettersCard.jsx`). Each passes `from`, so coming back lands where the
+      page was opened rather than always on the ladder.
 - [x] CI deploy for the Worker (2026-09-11): the `CLOUDFLARE_API_TOKEN` secret is set and
       `deploy-server.yml` has deployed from `main` on its own. A push that touches
       `server/`, `src/engine/` or `wrangler.jsonc` ships the Worker; anything else does not.
@@ -847,7 +879,11 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       the last lesson in the library ends, and it says so. The recap names the boundary being
       crossed, and the jump goes through the same prerequisite gate as opening a lesson from
       the grid. The welcome demo is not in the library and is told none of this.
-- [ ] Tier 2 Apprentice and Tier 3 Journeyman authored (20 lessons, 9/13/19).
+- [ ] Tier 2 Apprentice and Tier 3 Journeyman authored (20 lessons, 9/13/19). Fourteen of
+      the twenty are in as of 2026-09-13, seven a tier, and they are not evenly spread:
+      both tiers are carried by the Classic and the Proverbs, and tier 3 gained its first
+      opening lesson only in `feat/more-lessons`. What is thin is life and death below 15k
+      and the middle game everywhere.
 - [x] The opening track opens, and its verdicts are measured (2026-09-12, branch
       `feat/more-lessons`): `opening-big-points` (tier 3, 12k) and
       `opening-third-and-fourth` (tier 4, 8k), the first lessons on nineteen lines outside
@@ -925,7 +961,12 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       saying the reader has already met, and check that the Play line still says in plain
       words that a house player is a bot.
 - [ ] The rest of chapter thirteen's named shapes: the five-point flower, and the two-by-three
-      that lives in the open and dies in the corner.
+      that lives in the open and dies in the corner. Both of those claims are now measured
+      rather than owed: `tools/problems/shapes.mjs` walls in every connected space of four,
+      five and six points at a corner, an edge and in the open and solves each one, and the
+      result is already on three boards in the tsumego sets (`p15` the bend that the corner
+      kills, `p16` the flower in the corner, `p19` the shape the corner leaves alone). The
+      lesson is still to write; the proof is not.
 - [ ] Restore the Chinese characters for chapter eleven's thirty-two names from the original,
       and revisit the sixteen marked uncertain.
 - [x] The endgame book (2026-09-10): the endgame track had no lessons at all, so the
@@ -1024,7 +1065,11 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       bounded region, and a search will not find them. They want a different argument:
       positions taken from a real game, or a lesson that teaches the shape from the
       victim's side rather than a board with one right move.
-- [ ] Tsumego graded 30k → 5k with categories and a daily set (reuses the verifier).
+- [ ] Tsumego graded 30k → 5k. The categories and the daily set are done (four sets in
+      `feat/problem-sets`, the kata of the day older than that); the grade band is not.
+      Nineteen boards run 25k to 2k as of 2026-09-13, which leaves the two ends open: there
+      is nothing at all between 30k and 25k, where a beginner actually starts, and the
+      handful below 5k are life and death only.
 - [x] Spaced repetition (2026-09-11, branch `feat/recall`): finished quiz steps enter a
       recall queue, and Home carries the Review card. `src/content/recall.js` is the
       scheduler (pure, dates as day keys, the library passed in) and `src/views/Recall.jsx`
