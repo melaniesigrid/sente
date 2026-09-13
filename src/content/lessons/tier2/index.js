@@ -10,5 +10,11 @@ import classicCalculation from "./classic-calculation.js";
 import classicTerms from "./classic-terms.js";
 import classicKnowYourself from "./classic-know-yourself.js";
 import classicLevels from "./classic-levels.js";
+import lifeFalseEye from "./life-false-eye.js";
+import lifeEyeSpace from "./life-eye-space.js";
 
-export const TIER2 = [proverbLadder, proverbBambooJoint, classicBoard, classicCalculation, classicTerms, classicKnowYourself, classicLevels];
+export const TIER2 = [
+  proverbLadder, proverbBambooJoint,
+  classicBoard, classicCalculation, classicTerms, classicKnowYourself, classicLevels,
+  lifeFalseEye, lifeEyeSpace,
+];

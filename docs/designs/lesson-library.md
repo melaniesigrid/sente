@@ -66,9 +66,9 @@ lessons across six tiers; content is authored tier by tier so each tier ships co
 - `ladder` 19k tactics: reading a ladder to the edge, ladder breakers
 - `net` 18k tactics: the net catches what the ladder cannot
 - `snapback` 17k tactics: sacrifice one to capture more
-- `false-eye` 18k life: an eye that is not an eye
-- `eye-shapes` 17k life: three-in-a-row, bent four, straight four, the vital point
-- `corner-life` 16k life: the L group and the tripod group, live or dead
+- `life-false-eye` 18k life: what counts as an eye, and the diagonal test (authored)
+- `life-eye-space` 16k life: three in a row dies, four in a row lives, the square dies
+  anyway (authored)
 - `empty-triangle` 17k shape: the worst shape and why
 - `tigers-mouth` 16k shape: hane, tiger's mouth, bamboo joint
 - `extend-from-corner` 16k opening: the two-space extension on 13x13
@@ -78,6 +78,10 @@ lessons across six tiers; content is authored tier by tier so each tier ships co
 ### Tier 3 Journeyman (15k–10k, 13x13 and 19x19)
 - `liberty-race` 14k tactics: counting liberties in a capturing race, outside first
 - `throw-in` 13k tactics: reducing eyes with a throw-in
+- `life-big-eye` 13k life: a big eye is one eye, and the placement that keeps it one
+  (authored)
+- `life-corner-live` 11k life: the defender's move, where the point that kills is the point
+  that lives (authored)
 - `seki` 13k life: mutual life
 - `ko-threats` 12k life: fighting a ko, what counts as a threat
 - `cutting-points` 13k shape: counting cuts, when a peep is a threat
@@ -219,6 +223,55 @@ space, generous to the defender (passes allowed both ways, a repeated position c
 survival), reports that White lives moving first, dies to Black's 2-2 placement, and lives
 against every other black move in the space. The same search runs in `problems.test.js` over
 the three classical shapes added there.
+
+## The eye course, and a census to back it
+
+Added 2026-09-13 (branch `feat/eye-course`). The snapshot in `TODO.md` had life and death
+below 15k on its list of thinnest things: between `two-eyes` at 24k and `classic-miscellany`
+at 12k the track said nothing at all, which is exactly the stretch where a player loses
+groups without knowing why. Four lessons close it, and they are meant to be read in order:
+recognise an eye, measure the space, see that a big space can still be one eye, and then
+turn the board around and make one live.
+
+| Lesson | Tier / rank | What the engine proved |
+|--------|-------------|------------------------|
+| `life-false-eye` | 2 / 18k | Both eyes illegal for Black in the live shape; one stone changed on the diagonal makes the second one legal, and the capture kills |
+| `life-eye-space` | 2 / 16k | Three in a row: one killing point. Four in a row: none. The square of four: dead as it stands, and all four points kill |
+| `life-big-eye` | 3 / 13k | The bulky five dies to one placement out of five, and the line ends with Black filling his own last liberty to take 17 stones |
+| `life-corner-live` | 3 / 11k | Of White's three moves exactly one lives, and the point that saves the corner is the only point that kills it |
+| `life-seki` | 3 / 12k | Neither group is killable; every move on a shared liberty loses the mover's own group, and `territoryMap` calls both points neutral |
+| `life-dead-shapes` | 4 / 9k | The cross five and the flower six die to one point each; the rectangular six has no killing point in the open |
+| `life-throw-in` | 4 / 6k | One killing move out of four, and its chain has one liberty: White captures three and is still dead |
+
+The new dev tool is `tools/lessons/eyes.mjs`. It enumerates connected eye spaces, walls each
+one in so the surrounded chain has no liberty except the space itself, and solves the life
+and death exhaustively from both sides, with the ko rule threaded through the search and a
+pass treated as a ko threat played elsewhere. `koSensitive` re-runs each verdict with the ko
+rule switched off, because a shape whose life rests on a ko is a rules argument rather than
+a shape to know by sight, and a lesson should say so rather than call it a clean kill.
+
+The census it prints is what the lessons rest on. Of the 54 distinct eye spaces of three to
+six points, solved in the open board, exactly 7 die:
+
+| Points | Shapes | Dead | Which |
+|--------|--------|------|-------|
+| 3 | 2 | 2 | the straight three and the bent three, each to one killing point |
+| 4 | 5 | 2 | the pyramid four to one point, the square four dead as it stands |
+| 5 | 12 | 2 | the bulky five and the cross five |
+| 6 | 35 | 1 | the flower six |
+
+Everything else lives. That is a short enough list to learn by sight, which is the argument
+`life-big-eye` makes and `life-dead-shapes` makes in full at Tier 4.
+
+Two of the seven lessons are not about the census. `life-seki` is the first lesson in the
+library to admit that a group can live with no eyes at all, and it is placed right after the
+eye-space lessons on purpose, because that is where a reader has just been told that eyes are
+the whole story. `life-throw-in` is a sacrifice, and it was found rather than composed: an
+exhaustive sweep of corner positions with stones of both colours inside, filtered for exactly
+one killing move whose chain has one liberty. Its region taught the tool something, too. A
+search confined to the currently empty points cannot play back into a space a capture has
+cleared, and that is precisely where a throw-in lives, so `space` in `LESSON_POSITIONS` is the
+whole contested area including occupied points.
 
 ## Problems have a verifier now
 
