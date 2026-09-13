@@ -9,7 +9,7 @@ import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { LESSONS } from "../content/lessons.js";
 import { lessonById } from "../content/library.js";
-import { PROBLEMS, localizeProblem } from "../content/problems.js";
+import { PROBLEMS, localizeProblem, localizeSet, currentSet, setProgress } from "../content/problems.js";
 import { preciseRankOf } from "../content/rank.js";
 import { PERSONAS } from "../content/personas.js";
 import { duelMode } from "../content/duel.js";
@@ -35,7 +35,11 @@ export function Home({ profile, go, onResume }) {
   // Count only ids that still exist in the library, so a renamed lesson does not inflate progress.
   const lessonsDone = profile.lessonsDone.filter(id => lessonById(id)).length;
   const lessonPct = Math.round((lessonsDone / LESSONS.length) * 100);
-  const probPct = Math.round((profile.problemsDone.length / PROBLEMS.length) * 100);
+  /* The set in front of the reader, and how far through it they are. The whole
+     pile is still there under the tile: opening it lands on the set index. */
+  const openSet = localizeSet(currentSet(profile.problemsDone), t);
+  const setSoFar = setProgress(openSet.id, profile.problemsDone);
+  const setPct = setSoFar.total ? Math.round((setSoFar.solved / setSoFar.total) * 100) : 0;
   const games = profile.wins + profile.losses;
   const today = dayKey();
   const [saved, setSaved] = useState(() => loadSession({ today, profile, t }));
@@ -152,10 +156,14 @@ export function Home({ profile, go, onResume }) {
           <div className="stat-num">{lessonsDone}<em>/{LESSONS.length}</em></div>
           <div className="meter"><div className="meter-fill" style={{ width: `${lessonPct}%` }} /></div>
         </button>
+        {/* The tsumego tile counts the set somebody is in the middle of, not
+            the whole pile. Nineteen boards in four sets is a place to be, and
+            a flat count out of nineteen is not one: it cannot say what is next
+            or whether the thing in front of you is nearly done. */}
         <button className="neu-card tile" onClick={() => go("tsumego")}>
-          <div className="stat-head"><Target size={17} /><span>{t("home.tiles.tsumego")}</span></div>
-          <div className="stat-num">{profile.problemsDone.length}<em>/{PROBLEMS.length}</em></div>
-          <div className="meter"><div className="meter-fill" style={{ width: `${probPct}%` }} /></div>
+          <div className="stat-head"><Target size={17} /><span>{openSet.name}</span></div>
+          <div className="stat-num">{setSoFar.solved}<em>/{setSoFar.total}</em></div>
+          <div className="meter"><div className="meter-fill" style={{ width: `${setPct}%` }} /></div>
         </button>
         <button className="neu-card tile" onClick={() => go("profile")}>
           <div className="stat-head"><Trophy size={17} /><span>{t("home.tiles.rank")}</span></div>

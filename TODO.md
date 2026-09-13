@@ -7,6 +7,31 @@ Full reasoning: `docs/designs/classiest-go-server.md` (CEO review, 2026-09-09).
 Priority order. Check items off as they land. Phases are sequential; items inside a phase
 are ordered too.
 
+## What is actually in the box (snapshot, 2026-09-13, v0.9.3.0)
+
+A phase list says what was planned. This says what a reader would find if they opened the
+app this morning, because the two drift apart and the phases below are the half that
+flatters. Every number here was counted from the data on `main`, not from memory, and it
+is a snapshot: it will be wrong the week after somebody authors anything.
+
+- **43 lessons** over six tiers (10 / 7 / 7 / 8 / 7 / 4, Foundations to Dan) and seven
+  tracks: judgement 9, life 8, tactics 7, shape 7, opening 5, middle game 5, endgame 2.
+  Every position in every one of them is replayed by the engine on every build.
+- **19 tsumego** in four sets (capture and escape 4, shape 3, eye shapes 8, the corner 4),
+  running 25k to 2k. Every board is proved on every build: the stated answer has to be
+  exactly the set of moves that work.
+- **4 joseki** on the star point, out of three corner points the dictionary names. The 3-4
+  and the 3-3 are declared and unwritten.
+- **7 house players**, each with a page, all of them running the same network at whatever
+  rank the table asks for.
+- **1 book series** threaded through the library (the Classic in thirteen chapters, 20
+  passages), on a shelf of six books.
+- **4 languages**: English, Spanish, French, German, with the parity suite refusing a
+  missing line, an invented key, or an overlay that names something the data does not have.
+
+What is thinnest, in order: the tactics tsumego set (four boards, none of them a tesuji),
+the endgame track (two lessons), life and death below 15k, and the middle game everywhere.
+
 ## Phase 0: Foundation (done)
 
 - [x] Extract the pure engine and AI into `src/engine/` (go.js, ai.js)
@@ -475,8 +500,12 @@ Decisions:
 ## House players (done 2026-09-09, branch `feat/kata-bots`)
 
 The heuristic bots played one-ply captures and felt random. House players now run
-KataGo's human-style network (`b18c384nbt-humanv0`, MIT) in the browser and each one
-imitates a rank: Hoshi 20k, Tetsu 15k, Yuki 10k, Ren 5k, Sora 1k, Kaede 2d, Tatsuo 5d.
+KataGo's human-style network (`b18c384nbt-humanv0`, MIT) in the browser, and every one of
+them imitates whatever rank the table is set to. A persona is a personality and a home
+range, never a strength: the fixed ranks this paragraph used to list (Hoshi 20k, Tetsu
+15k, and so on) stopped being true when the rank picker shipped, and reading them as
+strengths is what put the seven of them in a rating-sorted ladder with a crown on the
+top one until 2026-09-12. Each one has a page now, under the parking lot below.
 
 - [x] `src/engine/kata/`: KataGo board port (chains, ladders, Benson), v7 input features
       checked plane-for-plane against KataGo's Python, metadata row for rank profiles,
@@ -635,9 +664,12 @@ two Durable Object classes, deployed at https://api.joseki.online.
       memory, and served immutable at a URL carrying the stamp it last changed at. Every
       public view of a player now carries that stamp, so the lobby, the ladder and both
       seats at an online table draw the face. `tools/server/profile.mjs <url>` proves it.
-- [ ] The card, seen from outside: a page for another player, reachable from the ladder and
-      from a seat at a table. The route (`GET /api/players/:id`) is live and tested; nothing
-      links to it yet.
+- [x] The card, seen from outside: a page for another player, reachable from the ladder and
+      from a seat at a table. The route (`GET /api/players/:id`) is live and tested, and it
+      is linked from four places: a row on the global ladder (`Rankings.jsx`), either seat
+      at an online table (`OnlineGame.jsx`), a friend (`FriendsCard.jsx`) and a
+      correspondent (`LettersCard.jsx`). Each passes `from`, so coming back lands where the
+      page was opened rather than always on the ladder.
 - [x] CI deploy for the Worker (2026-09-11): the `CLOUDFLARE_API_TOKEN` secret is set and
       `deploy-server.yml` has deployed from `main` on its own. A push that touches
       `server/`, `src/engine/` or `wrangler.jsonc` ships the Worker; anything else does not.
@@ -847,7 +879,11 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       the last lesson in the library ends, and it says so. The recap names the boundary being
       crossed, and the jump goes through the same prerequisite gate as opening a lesson from
       the grid. The welcome demo is not in the library and is told none of this.
-- [ ] Tier 2 Apprentice and Tier 3 Journeyman authored (20 lessons, 9/13/19).
+- [ ] Tier 2 Apprentice and Tier 3 Journeyman authored (20 lessons, 9/13/19). Fourteen of
+      the twenty are in as of 2026-09-13, seven a tier, and they are not evenly spread:
+      both tiers are carried by the Classic and the Proverbs, and tier 3 gained its first
+      opening lesson only in `feat/more-lessons`. What is thin is life and death below 15k
+      and the middle game everywhere.
 - [x] The opening track opens, and its verdicts are measured (2026-09-12, branch
       `feat/more-lessons`): `opening-big-points` (tier 3, 12k) and
       `opening-third-and-fourth` (tier 4, 8k), the first lessons on nineteen lines outside
@@ -925,7 +961,12 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       saying the reader has already met, and check that the Play line still says in plain
       words that a house player is a bot.
 - [ ] The rest of chapter thirteen's named shapes: the five-point flower, and the two-by-three
-      that lives in the open and dies in the corner.
+      that lives in the open and dies in the corner. Both of those claims are now measured
+      rather than owed: `tools/problems/shapes.mjs` walls in every connected space of four,
+      five and six points at a corner, an edge and in the open and solves each one, and the
+      result is already on three boards in the tsumego sets (`p15` the bend that the corner
+      kills, `p16` the flower in the corner, `p19` the shape the corner leaves alone). The
+      lesson is still to write; the proof is not.
 - [ ] Restore the Chinese characters for chapter eleven's thirty-two names from the original,
       and revisit the sixteen marked uncertain.
 - [x] The endgame book (2026-09-10): the endgame track had no lessons at all, so the
@@ -1001,6 +1042,17 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       four-point shape from the eye set wrapped into the corner, where the answer does not
       move, which is the honest other half of `p15`, where it does. All three came out of
       `tools/problems/shapes.mjs` and all three are proved by the search on every build.
+- [x] The sets remember you (2026-09-12, branch `feat/set-progress`): `setProgress`,
+      `currentSet`, `setsComplete` and `nextProblem` in `content/problems.js`, pure over
+      the list of solved ids, nothing stored. A finished set says done instead of counting,
+      the last board solved in a set says it was the last, a line under the index says how
+      many of the four are closed, the dashboard tile names the set in front of the reader
+      instead of totalling nineteen boards, and the screen opens on the first board still
+      open in that set rather than on board one.
+      Decisions: a reader who has solved everything is sent to the last set and the last
+      board, not back to the beginning, because a dashboard that tells a finisher to start
+      again is lying about what is left. The kata card still outranks all of it: a card
+      that asks for a specific board gets that board.
 - [ ] The tactics set is still the four boards it always was, and the snapback, the ladder
       and the net all belong in it. A bounded chase search was written and thrown away, and
       the numbers are why: the attacker is confined to a box and the defender escapes on
@@ -1013,7 +1065,11 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       bounded region, and a search will not find them. They want a different argument:
       positions taken from a real game, or a lesson that teaches the shape from the
       victim's side rather than a board with one right move.
-- [ ] Tsumego graded 30k → 5k with categories and a daily set (reuses the verifier).
+- [ ] Tsumego graded 30k → 5k. The categories and the daily set are done (four sets in
+      `feat/problem-sets`, the kata of the day older than that); the grade band is not.
+      Nineteen boards run 25k to 2k as of 2026-09-13, which leaves the two ends open: there
+      is nothing at all between 30k and 25k, where a beginner actually starts, and the
+      handful below 5k are life and death only.
 - [x] Spaced repetition (2026-09-11, branch `feat/recall`): finished quiz steps enter a
       recall queue, and Home carries the Review card. `src/content/recall.js` is the
       scheduler (pure, dates as day keys, the library passed in) and `src/views/Recall.jsx`
@@ -1789,6 +1845,199 @@ even games only), and whether a partner may ever resign or accept a score for yo
 Out of scope, and named here so it does not creep in: reviewing the finished game and
 asking *why* the partner played there. Analysis is its own feature for every kind of
 game, not a wing of this one.
+
+## Phase 10: The controlled beta (branch `feat/beta-cap`)
+
+A hundred seats, and a waiting list for the hundred-and-first. Joseki has been reachable
+at joseki.online for days; this is the part that decides how many people may be in it.
+
+- [x] The cap (`server/beta.js`, `BETA_CAP = 100`), enforced in `Registry.register`,
+      which is the single door `POST /api/register` and `POST /api/signup` both come
+      through. Past it: `409 beta-full`.
+- [x] The waiting list. `POST /api/waitlist` takes an address and answers `{ok: true}`
+      whatever happened, the way `forgot` does, so it cannot be asked who plays here.
+      `wait:<address>` holds the address and the day and nothing else. Three an hour
+      from one address, and a ceiling on the list itself.
+- [x] The card. A full beta takes over the account gate: what it is, how many seats
+      there are, a box for an address, and the door for the hundred already in folded
+      away underneath rather than replaced by a waiting list they do not need.
+- [x] The privacy notice, in all four languages. It used to promise there was "no list
+      to be on"; there is one now, and it has a section of its own.
+- [x] `GET /api/admin/waitlist` and `DELETE /api/admin/waitlist/:email`, plus
+      `node tools/server/beta.mjs` to check the whole door against a deployment.
+
+Decisions made here:
+- The number is a hundred because the free plan's ceiling is 100,000 requests a day, a
+  WebSocket message counts as one, and an engaged player costs about 350. A hundred
+  accounts all active on their heaviest day is 70,000. A hundred and fifty is over the
+  line, and over the line means every further operation fails until 00:00 UTC. The
+  arithmetic is in the header of `server/beta.js` and in `docs/server-operations.md`.
+- The cap counts every handle, guest handles included: a handle with no address polls,
+  sits in the lobby and plays rated games exactly like an account, so it costs the same.
+- It is checked in the Registry rather than in the router, because `signUp` comes through
+  `register` too, and a door with two frames is a door that is eventually left open.
+- The cheapest way to raise it is not a bigger number, it is the two polls:
+  `PRESENCE_EVERY_MS` (30s) and `DASH_EVERY_MS` (20s) are most of what a player costs.
+  60s and 45s roughly double the safe cap. Not done: a friend arriving should not take a
+  minute to appear while there are ninety-six seats free.
+
+What the ship-time review army found, and what came of it. Six specialists over a
+540-line diff; everything below is fixed unless it says otherwise.
+
+Confirmed by three specialists at once (testing, maintainability, performance):
+- `waitlist()` read an unpaged `list({ prefix: "wait:" })`. `PAGE` is 1000 and
+  `WAITLIST_MAX` is 2000, so past a thousand addresses the operator route silently
+  returned half a list, cut by address rather than by how long anybody had waited. The
+  same file states that hazard in its own counter and then walked into it. Paged now,
+  and the two counting loops are one `#count(prefix)`. The loops that WALK a prefix
+  (`waitlist`, `#forgetArchive`) still each carry their own; one shared page iterator
+  would fold those three together and is not done.
+
+Security:
+- `POST /api/waitlist` was a membership oracle once the list was full: 200 for an address
+  already stored, 409 for one that was not, so anybody could ask whether a given person
+  had asked for a seat. It was a timing oracle at any size too, because reading the row
+  first let the count be skipped. The decision is `listFull(count)` now: it takes no
+  address, so it cannot leak one, and a full list refuses everybody alike.
+- `POST /api/signup` answered `email-taken` before spending any budget, which made signup
+  an unmetered way to ask whether an address has an account here: the exact question
+  `signIn` and `forgot` are written never to answer. Pre-existing on main, not introduced
+  here. It spends the sign-in budget before the lookup now.
+- The waiting list skipped its rate limit entirely when the edge named no caller. A
+  stripped header is not a reason for unlimited writes; those callers share one bucket.
+- Leaving did not remove a `wait:` row, and neither did claiming a seat, while the notice
+  said being invited takes your address off the list. Both do it now, so the notice is
+  true.
+- The comment called a waiting-list row a CASL consent record. Nothing proves the person
+  who typed an address owns it. The claim is now the smaller true one.
+
+Testing:
+- The refusal this whole feature exists for had no executing proof: a server with seats
+  cannot exercise it. `BETA_CAP` in the environment now overrides the constant when it is
+  a positive whole number, and `tools/server/beta.mjs --fill` stands up a capped server,
+  fills it, and proves both doors answer `beta-full`. Ran green against `wrangler dev`.
+
+Design:
+- The card was rendered optimistically and swapped for the waiting list when `/api/stats`
+  answered, which took the form out from under the hundred-and-first person mid-keystroke.
+  It holds until the answer is in.
+- `/api/stats` was asked on every mount of the gate, spending a request per visit from the
+  daily budget the cap exists to protect. Asked once a page session (`src/views/seats.js`).
+- Two Enters inside one tick sent two asks against a three-an-hour budget. A ref guards it.
+- "Already have a handle? Sign in." named the one credential that form does not take: a
+  handle alone is the guest door and cannot be signed into. "Already have an account" now,
+  in all four languages.
+
+A second review pass over those fixes (security, maintainability, red team) found more,
+and they are fixed too:
+- `api.stats()` has no timeout, and the card was holding its render until it answered. A
+  half-open Worker would have left the whole online screen as a title and nothing else.
+  `SEATS_TIMEOUT_MS` is 2.5s and a server that does not answer is assumed to have room.
+- The remembered answer was never updated when a form was refused, so somebody turned
+  away, then leaving the screen and coming back, was offered the same form again and
+  refused a second time after waiting for the key to derive. `seatsAreGone()` now.
+- `register` still skipped its rate limit entirely for a caller the edge could not name,
+  and it is the door that spends a seat: a stripped header could have emptied the beta
+  unmetered. Metered now, sharing one `anon` bucket, and leaving refunds that bucket.
+- `signUp` was borrowing the sign-in budget, so a signup flood could have locked people
+  with accounts out of getting back in. Its own bucket now.
+- `capFrom` accepted `1e6` and `0x64` while its own comment promised a typo could not
+  open the door. Plain decimal digits and a ceiling of 1000 now.
+- The prover wrote two addresses to the LIVE waiting list by default and swept only one.
+  It sweeps both, and the list an operator sends letters from stays clean.
+- The ops doc told the operator to take an address off the list when writing the letter,
+  which is redundant (arriving removes it) and destructive (somebody refused after the
+  seat went is then off the list too). It now says not to.
+
+A third pass (adversarial, fresh context) found what the other two missed:
+- **The German, Spanish and French privacy notices still said there is "no list to be
+  on"** while this change starts keeping one. The English sentence was corrected here and
+  the three overlays were not, which is the same failure this branch fixed twice already,
+  committed a third time by the person fixing it. Corrected in all three.
+- `register` checked the cap, then hashed a token, then wrote. `sha256` is not a storage
+  call, so a Durable Object lets requests interleave across it: two people arriving
+  together both passed and the beta went one seat over its cap for good. The check is
+  repeated immediately against the write, with only storage between the two.
+- A `signUp` whose address turned out to be taken left the handle written, holding a seat,
+  belonging to nobody, with a token that was never returned to anyone. It rolls back now.
+- `capFrom` fell back silently for a well-formed number above the ceiling, so an operator
+  who set `BETA_CAP=2000` to open the beta wider got 100 and no word about it. It says so.
+
+Verified how:
+- The suite (2569 tests) and, for the door itself, `tools/server/beta.mjs --fill` against
+  a `wrangler dev` server capped at 2: both `/api/register` and `/api/signup` answered
+  `409 beta-full` at the cap, signup never leaked `email-taken`, `/api/stats` agreed, and
+  every handle the script made was deleted after. Fourteen checks, all green.
+- That run proved the code as it stood BEFORE the second review pass. The later changes
+  to `register`'s rate limiting and the player-count memo are covered by reasoning and by
+  the suite only: local wrangler stopped serving in that session and re-running it was
+  not worth more time. **Run `node tools/server/beta.mjs --fill` against a capped local
+  server once more before the first invitations go out.**
+
+Not done, on purpose:
+- **No reservation for an invited person.** Raising the cap frees seats to whoever asks
+  first, and `/api/stats` publishes `seatsLeft` publicly, so somebody invited by letter
+  can arrive to find the seat gone. The fix is an invite token the door accepts past the
+  cap. Worth doing before the first invitation goes out, not before this lands.
+- **The cap is spelled out in nine sentences of prose** that no test can reach (two per
+  catalogue plus the privacy notice). Threading the number out of `/api/stats` needs the
+  i18n suite's no-holes-in-an-overlay rule to learn about it first. A checklist comment
+  at `BETA_CAP` names all nine in the meantime.
+- **A guest handle holds a seat for ever.** Twenty an hour from one address, no email, no
+  password, and nothing reclaims an abandoned one, so five addresses can fill the beta in
+  an hour and the only remedy is deleting them one at a time. An expiry sweep on the
+  daily seal is the shape of the fix.
+- **The waiting list takes an address without proving who owns it.** Anybody can enrol a
+  stranger. The comment no longer claims the row is a consent record; a confirmation
+  letter is what would make it one.
+- **The whole German, Spanish and French privacy notice has one section in English.**
+  "Being here is not written down" was never translated; before this branch the overlay
+  misalignment filled its slot with the WRONG translation, and fixing the alignment
+  surfaced the honest English fallback. Better than the lie it replaced, and still worth
+  translating: three paragraphs, three languages.
+- **`/api/register` needs nothing but a name.** Guest handles hold seats, twenty an hour
+  per address, nothing reclaims an abandoned one, and no proof of work stands in the way.
+  A proxy pool fills the beta and the only remedy is deleting a hundred accounts by hand.
+  The same shape fills the waiting list at 2000. Turnstile on the door plus an expiry
+  sweep on the daily seal is the fix, and it is a feature, not a ship-time patch.
+- **The waiting-list count scans every row on each POST**, where the player count is
+  memoised. It is 3 requests an hour per caller, so it waits for the same sweep.
+- The simplification lens wanted `waitRow`, `waiting`, `byWaiting` and `seatsLeft` inlined
+  as one-caller indirection. Kept: they are the tested pure surface that exists so the
+  Durable Object beside them needs no harness, which is this server's whole convention.
+
+Three defects the ship-time coverage audit found in this work, fixed here:
+- `signUp` answered `email-taken` before it checked the cap, so a full server still told
+  a stranger whether an address had an account. The cap is checked first now. `signIn`
+  and `forgot` are written never to answer that question; this was the hole beside them.
+- `joinWaitlist` spent the caller's three-an-hour budget before checking the address
+  parsed, so three typos cost a real person the hour. A script does not make typos.
+- A waiting list at `WAITLIST_MAX` answered `{ok: true}` and stored nothing, so the card
+  said "your address is on the list" to somebody who was not on it. The decision is
+  `listFull(count)` in `beta.js` now, where a test reaches it, and a full list refuses
+  with `409 list-full`. Uniform answers here hide whether a PERSON is known; how full
+  the list is is a fact about nobody.
+
+Open:
+- [ ] The invitation is written by hand. When the cap goes up, somebody reads
+      `GET /api/admin/waitlist` and writes to the people on it from the studio address,
+      then takes them off. A third letter out of `server/mail.js` would automate it, and
+      it should wait until there has been an invitation worth sending twice.
+- [ ] Nothing tells the operator the beta has filled. The day `players` reaches `cap` is
+      a day worth knowing about, and right now the way to know is to look.
+
+Found while doing this, and fixed here because the same files had to be touched:
+- The German, Spanish and French privacy notices were **overlaid onto the wrong
+  sections** from "Being here is not written down" down. The overlay is positional
+  (`legalDoc.privacy.sections.4`), the presence section landed after the three
+  translations were written, and every section below it slid onto its neighbour's words.
+  Renumbered, and `src/i18n/i18n.test.js` now checks that a translated section exists
+  and that the translation is not longer than the section it is poured into, which is
+  what catches a shift.
+- The same three notices still named **Google Fonts** as a third party that sees a
+  request. That stopped being true when the typefaces were self-hosted; the English
+  notice was corrected then and the translations were not. A privacy notice claiming a
+  data flow that does not exist is the same failure as one hiding a flow that does.
 
 ## Phase 9: The social layer
 

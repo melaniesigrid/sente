@@ -210,6 +210,12 @@ export const screens = {
     next: "Siguiente problema",
     nextSet: "Siguiente serie",
     setProgress: "{done} de {total}",
+    setDone: "completa",
+    setsDone: {
+      one: "{done} serie de {total} terminada.",
+      other: "{done} series de {total} terminadas.",
+    },
+    setFinished: "Con eso {set} queda terminada, tablero a tablero.",
     openProblem: "{set}, número {n}, {rank}",
   },
   profile: {

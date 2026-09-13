@@ -84,6 +84,17 @@ in `server/` (Durable Objects), deployed separately.
   and loading a stored room is a hash check rather than a replay, because the free plan
   allows 10 ms of CPU per invocation. `node tools/server/bench.mjs` fails if a room load
   ever costs more than a millisecond. Operator notes: `docs/server-operations.md`.
+- The beta is a fixed number of seats, and the number is policy rather than a branch:
+  `server/beta.js` holds `BETA_CAP` (100), the waiting-list limits, and the arithmetic that
+  picked the number, pure so a test can read it without a Durable Object. It is enforced in
+  `Registry.register`, the one door `POST /api/register` and `POST /api/signup` both come
+  through; past it they answer `409 beta-full` and `POST /api/waitlist` is where an address
+  goes instead. `BETA_CAP` in the environment overrides the constant for a deployment, which
+  is how `node tools/server/beta.mjs --fill` proves the refusal against a small server. The
+  number is also written out in prose no test can reach: `account.full.tagline` and
+  `account.full.bio` in all four catalogues under `src/i18n/`, and the waiting-list section of
+  `src/content/legal.js`, whose `REVISION` stamp has to move with it. Change the constant and
+  those nine sentences change with it.
 - A deployed Durable Object keeps running the previous code until its instance restarts, so
   a change to `registry.js` or `roomObject.js` may not be live in the seconds after
   `npm run deploy:server`. Verify against a fresh instance, and do not conclude a change

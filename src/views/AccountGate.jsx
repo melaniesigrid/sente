@@ -1,9 +1,10 @@
-import { useState } from "react";
-import { Globe, KeyRound, LogIn, UserPlus, Loader, Mail } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Globe, KeyRound, LogIn, UserPlus, Loader, Mail, Hourglass } from "lucide-react";
 import { Card, Btn } from "../components/ui.jsx";
 import { api } from "../net/api.js";
 import { saveAccount } from "../store/account.js";
 import { formProblem, passwordNote, errorText } from "./accountForm.js";
+import { askSeats, seatsAreGone } from "./seats.js";
 import { useT } from "../components/langStore.js";
 
 /* ----------------------- ACCOUNT GATE (card) -----------------------
@@ -26,6 +27,39 @@ import { useT } from "../components/langStore.js";
 export function AccountGate({ profile, notify, onSignedIn }) {
   const t = useT();
   const [mode, setMode] = useState("signin");   // signin | signup | guest
+  const [full, setFull] = useState(null);       // null while the answer is unknown
+  useEffect(() => {
+    let live = true;
+    askSeats().then(v => { if (live) setFull(v); });
+    return () => { live = false; };
+  }, []);
+
+  /* Nothing but the card's own head until the answer is in. Rendering the
+     three doors first and swapping them for the waiting list a moment later
+     took the form out from under the hundred-and-first person mid-keystroke,
+     and left the focus ring on a field that no longer existed. */
+  if (full === null) {
+    return (
+      <Card className="online-card">
+        <div className="persona-top">
+          <div className="avatar duo"><Globe size={22} strokeWidth={2} /></div>
+          <div>
+            <h3>{t("account.gate.title")}</h3>
+            <p className="persona-tag">{t("account.gate.tagline")}</p>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+  if (full) return <BetaFull profile={profile} notify={notify} onSignedIn={onSignedIn} />;
+
+  /* The card and the remembered answer move together. Setting only the state
+     left the memo saying there was room, so leaving the screen and coming back
+     offered the same form to somebody the server had already turned away, and
+     they filled it in and waited a second for the key to derive to be refused
+     a second time. */
+  const shut = () => { seatsAreGone(); setFull(true); };
+
   return (
     <Card className="online-card">
       <div className="persona-top">
@@ -42,13 +76,13 @@ export function AccountGate({ profile, notify, onSignedIn }) {
         ))}
       </div>
       {mode === "guest"
-        ? <GuestForm profile={profile} notify={notify} onSignedIn={onSignedIn} />
-        : <CredentialForm mode={mode} profile={profile} notify={notify} onSignedIn={onSignedIn} />}
+        ? <GuestForm profile={profile} notify={notify} onSignedIn={onSignedIn} onFull={shut} />
+        : <CredentialForm mode={mode} profile={profile} notify={notify} onSignedIn={onSignedIn} onFull={shut} />}
     </Card>
   );
 }
 
-function CredentialForm({ mode, profile, notify, onSignedIn }) {
+function CredentialForm({ mode, profile, notify, onSignedIn, onFull = null }) {
   const t = useT();
   const signup = mode === "signup";
   const [name, setName] = useState(profile.name === "Player" ? "" : profile.name);
@@ -81,7 +115,14 @@ function CredentialForm({ mode, profile, notify, onSignedIn }) {
         text: t(signup ? "account.gate.welcomeNew" : "account.gate.welcomeBack", { name: player.name }),
       });
     } catch (e) {
-      setShown(errorText(e.reason, t));
+      /* The last seat can go between asking and arriving. A form that only
+         said so in red would leave the person with nothing to do about it, so
+         a full server takes over the card instead and offers the list. */
+      /* No `onFull` means this form is already inside the card that says the
+         beta is full, where nothing is refused for the cap. Falling through to
+         the message is what a surprise should do, not silence. */
+      if (e.reason === "beta-full" && onFull) onFull();
+      else setShown(errorText(e.reason, t));
     } finally { setBusy(false); }
   };
 
@@ -120,6 +161,102 @@ function CredentialForm({ mode, profile, notify, onSignedIn }) {
       <p className="fine">
         {t(signup ? "account.gate.signupFine" : "account.gate.signinFine")}
       </p>
+    </>
+  );
+}
+
+/* ----------------------- A FULL BETA (card) -----------------------
+   Joseki is open to a fixed number of people at a time, because the server it
+   runs on has a daily ceiling rather than a bill (`server/beta.js`). This is
+   the card the hundred-and-first person meets.
+
+   It says the true thing plainly and in the first sentence: the beta is full,
+   here is how many seats there are, leave an address and you will be written
+   to when one opens. It does not say "coming soon", it does not count down,
+   and it does not imply a place in a queue it cannot promise.
+
+   The door for the people who are already in stays on the card, folded away
+   the way the forgotten-password row is: somebody with an account who has
+   cleared their browser is not a newcomer and must not be handed a waiting
+   list as though they were. */
+function BetaFull({ profile, notify, onSignedIn }) {
+  const t = useT();
+  const [signin, setSignin] = useState(false);
+  return (
+    <Card className="online-card">
+      <div className="persona-top">
+        <div className="avatar duo"><Hourglass size={22} strokeWidth={2} /></div>
+        <div>
+          <h3>{t("account.full.title")}</h3>
+          <p className="persona-tag">{t("account.full.tagline")}</p>
+        </div>
+      </div>
+      {signin
+        ? <>
+            {/* The way back sits where the way in sat, above the form, rather
+                than below the fine print where the eye has already stopped. */}
+            <button className="attach-row" onClick={() => setSignin(false)}>
+              <Hourglass size={14} />
+              <span>{t("account.full.back")}</span>
+            </button>
+            <CredentialForm mode="signin" profile={profile} notify={notify} onSignedIn={onSignedIn} />
+          </>
+        : <>
+            <WaitlistForm />
+            <button className="attach-row" onClick={() => setSignin(true)}>
+              <LogIn size={14} />
+              <span>{t("account.full.haveOne")}</span>
+            </button>
+          </>}
+    </Card>
+  );
+}
+
+/** Leave an address. What it says afterwards is the same whether the address
+ *  was new, already waiting, or already has an account here, because the
+ *  server answers the same way to all three: a box that answered honestly
+ *  would be a way to ask who plays on Joseki, which is the same reason the
+ *  forgotten-password row below is written the way it is. */
+function WaitlistForm() {
+  const t = useT();
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [shown, setShown] = useState(null);
+  const [asked, setAsked] = useState(false);
+  /* A ref and not `busy`: two Enters inside one tick both read the state from
+     a closure where it was still false, and the budget this form spends from
+     is three an hour. A double tap must not cost somebody a third of it. */
+  const sending = useRef(false);
+
+  const ask = async () => {
+    if (sending.current) return;
+    const problem = formProblem("forgot", { email }, t);
+    if (problem) { setShown(problem); return; }
+    setShown(null);
+    sending.current = true;
+    setBusy(true);
+    try { await api.waitlist(email); setAsked(true); }
+    catch (e) { setShown(errorText(e.reason, t)); }
+    finally { sending.current = false; setBusy(false); }
+  };
+
+  if (asked) return <p className="fine" role="status">{t("account.full.asked")}</p>;
+
+  return (
+    <>
+      <p className="persona-bio">{t("account.full.bio")}</p>
+      <div className="gate-fields">
+        <input className="chat-input" type="email" value={email} placeholder={t("account.full.address")}
+          autoComplete="email" inputMode="email" onChange={e => setEmail(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && ask()} aria-label={t("account.full.address")} />
+        {shown && <p className="gate-problem" role="alert">{shown}</p>}
+        <div className="row">
+          <Btn icon={busy ? Loader : Mail} primary small onClick={ask} disabled={busy}>
+            {t(busy ? "account.gate.working" : "account.full.leave")}
+          </Btn>
+        </div>
+      </div>
+      <p className="fine">{t("account.full.fine")}</p>
     </>
   );
 }
@@ -180,7 +317,7 @@ function ForgotRow() {
   );
 }
 
-function GuestForm({ profile, notify, onSignedIn }) {
+function GuestForm({ profile, notify, onSignedIn, onFull = null }) {
   const t = useT();
   const [name, setName] = useState(profile.name === "Player" ? "" : profile.name);
   const [busy, setBusy] = useState(false);
@@ -195,7 +332,11 @@ function GuestForm({ profile, notify, onSignedIn }) {
       onSignedIn({ token, player });
       notify({ icon: "medal", text: t("account.guest.welcome", { name: player.name }) });
     } catch (e) {
-      setShown(errorText(e.reason, t));
+      /* No `onFull` means this form is already inside the card that says the
+         beta is full, where nothing is refused for the cap. Falling through to
+         the message is what a surprise should do, not silence. */
+      if (e.reason === "beta-full" && onFull) onFull();
+      else setShown(errorText(e.reason, t));
     } finally { setBusy(false); }
   };
   return (

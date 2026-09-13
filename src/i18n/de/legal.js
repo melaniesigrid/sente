@@ -131,12 +131,20 @@ export const legalDoc = {
         },
       },
       3: {
-        heading: "Wofür deine E-Mail-Adresse gebraucht wird",
+        heading: "Die Warteliste",
         paras: {
-          0: "Zwei Briefe, und sonst nichts: einer, der bestätigt, dass die Adresse dir gehört, und einer, mit dem du ein neues Passwort setzen kannst. Es gibt keinen Newsletter, keine Produktankündigung und keine Liste, auf der man stünde. Die Adresse wird nie verkauft, vermietet oder jemandem zum eigenen Gebrauch überlassen.",
+          0: "Joseki steht hundert Spielenden offen, solange es neu ist, denn so viele trägt der Server, auf dem es läuft, ohne für alle auszufallen. Sind diese Plätze belegt, gibt es nur noch eine Warteliste, und sie ist die einzige Adresse hier, die ohne ein Konto dahinter aufbewahrt wird.",
+          1: "Sie hält die Adresse, die du eingetippt hast, und den Tag, an dem du es getan hast, unter einem eigenen Schlüssel, und sonst geht nichts mit: kein Name, kein Kürzel, nicht die Adresse, von der aus du verbunden warst, nicht die Seite, auf der du warst. Sie wird einmal benutzt, um dir zu sagen, dass ein Platz frei ist. Sie ist kein Newsletter und wird auch nicht stillschweigend einer.",
+          2: "Eine Einladung nimmt deine Adresse von der Liste. Nachfragen auch: schreib an {contact}, und sie wird entfernt, ob sich ein Platz ergeben hat oder nicht.",
         },
       },
-      4: {
+      5: {
+        heading: "Wofür deine E-Mail-Adresse gebraucht wird",
+        paras: {
+          0: "Zwei Briefe an ein Konto, und sonst nichts: einer, der bestätigt, dass die Adresse dir gehört, und einer, mit dem du ein neues Passwort setzen kannst. Es gibt keinen Newsletter und keine Produktankündigung. Die einzige Liste, auf der überhaupt jemand stehen kann, ist die Warteliste oben, auf die du dich selbst setzt und die einmal benutzt und dann erledigt ist. Die Adresse wird nie verkauft, vermietet oder jemandem zum eigenen Gebrauch überlassen.",
+        },
+      },
+      6: {
         heading: "Wer sonst etwas davon sieht",
         paras: {
           0: "Drei Unternehmen, und alle drei stehen der Seite eher im Weg, als dass sie sich für sie interessierten.",
@@ -144,11 +152,10 @@ export const legalDoc = {
         list: {
           0: "Cloudflare betreibt den Spielserver und verschickt die beiden Briefe. Alles, was der Server bewahrt, liegt in ihrem Netz, das Länder außerhalb Kanadas umfasst.",
           1: "GitHub liefert die App selbst aus, über GitHub Pages, und ihre Server sehen die Anfrage, die sie holt.",
-          2: "Google Fonts liefert fünf Schriften. Sie zu holen sagt Google, von welcher Adresse die Anfrage kam, genau wie es eine von irgendwoher gelieferte Schrift täte.",
-          3: "Sonst niemand. Es gibt keine vierte Partei und keine Abmachung mit einer.",
+          2: "Sonst niemand. Jede Schrift wird von Joseki selbst ausgeliefert und nicht von einem Font-CDN, sodass das Öffnen einer Seite hier keiner dritten Partei verrät, dass du es getan hast. Es gibt keine dritte Partei und keine Abmachung mit einer.",
         },
       },
-      5: {
+      7: {
         heading: "Gehen",
         paras: {
           0: "Es gibt einen Weg hinaus, der niemandes Erlaubnis braucht. Zu gehen entfernt dein Konto, deine Sitzungen, deine Adresse, dein Bild, deinen Platz in der Rangliste und die Spur der Adresse, von der aus du dich angemeldet hast.",
@@ -156,19 +163,19 @@ export const legalDoc = {
           2: "Um eine Kopie dessen zu verlangen, was über dich gespeichert ist, um es zu berichtigen oder um etwas entfernen zu lassen, das ein Austritt nicht erreicht, schreib an {contact}, und ein Mensch erledigt es von Hand. Es gibt keinen Export-Knopf, und etwas anderes zu sagen wäre der leicht zu schreibende Satz und der falsche.",
         },
       },
-      6: {
+      8: {
         heading: "Kinder",
         paras: {
           0: "Joseki richtet sich nicht an Kinder unter 13, und für eines sollte kein Konto angelegt werden. Ist es doch geschehen, schreib, und es wird entfernt, ohne dass vorher noch etwas anderes verlangt wird.",
         },
       },
-      7: {
+      9: {
         heading: "Änderungen",
         paras: {
           0: "Dieser Hinweis ändert sich, indem er hier neu geschrieben und das Datum oben weitergerückt wird. Sollte er sich je ändern, weil Joseki angefangen hat, etwas Neues zu erheben, wird die Änderung das in einem eigenen Satz sagen, statt in einen Absatz gefaltet zu werden.",
         },
       },
-      8: {
+      10: {
         heading: "Wie man Kontakt aufnimmt",
         paras: {
           0: "Jede Frage zu all dem: {contact}.",

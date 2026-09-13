@@ -20,6 +20,9 @@ export const account = {
     "token-expired": "That link has been used, or it is too old. Ask for another.",
     "already-verified": "That address is already confirmed",
     "mail-failed": "The letter could not be sent. That is ours to fix, not yours.",
+    "beta-full": "The beta is full. Leave an address and you will be written to when a seat opens.",
+    "too-many-asks": "That is a lot of addresses from one place today. Try again in an hour.",
+    "list-full": "The waiting list is full for now. Write to hello@northboundsoftwarestudio.com and a person will answer.",
     unknown: "Something went wrong ({reason})",
   },
 
@@ -63,6 +66,21 @@ export const account = {
     welcomeBack: "Welcome back, {name}",
   },
 
+  /* A hundred seats, all taken. The card that says so is `BetaFull` in
+     AccountGate.jsx, and the number it is talking about is `BETA_CAP` in
+     server/beta.js. Nothing here promises a date, because nothing here knows
+     one. */
+  full: {
+    title: "The beta is full",
+    tagline: "A hundred seats, and all of them taken",
+    bio: "Joseki is open to a hundred players while it is new, which is as many as the server can carry without falling over on its best day. Leave an address and you will be written to when a seat opens.",
+    address: "Your email address",
+    leave: "Put me on the list",
+    asked: "Your address is on the list. You will hear from Joseki when a seat opens, and not otherwise.",
+    fine: "The list holds your address and the day you left it, and nothing else. It is used to tell you a seat is free, once. Ask at any time and it is forgotten.",
+    haveOne: "Already have an account? Sign in.",
+    back: "Never mind",
+  },
   forgot: {
     asked: "If there is an account on that address, a way back in is on its way to it. The link lasts an hour, and using it signs the account out everywhere else.",
     open: "Forgotten your password? Joseki can post you a way back in.",
