@@ -64,6 +64,64 @@ export const online = {
     pair: "pair go",
   },
 
+  /* Friends, agreed on both sides or not at all. The four standings are four
+     buttons, and the one that matters is somebody who has already asked you:
+     offering "Add friend" there would send a second request across a table
+     where the answer was already waiting. */
+  friends: {
+    head: "Your friends",
+    note: "Friendship here is agreed, never claimed: both of you have to press. Nobody is told when a request is declined.",
+    fetching: "Fetching your lists\u2026",
+    empty: "Nobody yet. Open a player\u2019s page from the ladder and ask them.",
+    incoming: "Asking to be friends",
+    friends: "Friends",
+    outgoing: "You asked",
+    hereNow: "Here now",
+    working: "Working",
+    workingEllipsis: "Working\u2026",
+    acceptName: "Accept {name}",
+    removeName: "Remove {name}",
+    declineName: "Decline {name}",
+    takeBackName: "Take back the request to {name}",
+    act: {
+      friends: "Friends",
+      remove: "Remove friend",
+      asked: "Asked",
+      takeBack: "Take the request back",
+      accept: "Accept",
+      decline: "Decline",
+      add: "Add friend",
+    },
+    /* What just happened, said back to the person who pressed. "withdrawn" and
+       "declined" come back from the same call and mean opposite things. */
+    outcome: {
+      friends: "You are friends",
+      asked: "Request sent",
+      unfriended: "No longer friends",
+      declined: "Request declined",
+      withdrawn: "Request taken back",
+      nothing: "Nothing to undo",
+      done: "Done",
+    },
+    /* The two full-list messages are deliberately different: one is something
+       the reader can do something about, and the other is not theirs to fix. */
+    error: {
+      offline: "The server is out of reach right now",
+      "no-server": "This copy of Joseki is running without a server",
+      unauthorized: "Claim a handle before making friends",
+      "no-player": "That player is not here any more",
+      yourself: "You are already your own",
+      "already-friends": "You are already friends",
+      "no-request": "There is no request from them to accept",
+      "your-list-is-full": "Your friends list is full. Remove somebody first.",
+      "their-list-is-full": "Their friends list is full",
+      "too-many-asked": "You have a lot of requests waiting already. Tidy those up first.",
+      "their-requests-are-full": "They have a lot of requests waiting already",
+      "too-many-requests": "That is a lot of requests in an hour. Try again later.",
+      unknown: "Something went wrong ({reason})",
+    },
+  },
+
   lobby: {
     matched: "Matched with {name} · you play {side}",
     signedOut: "Signed out. Your rating is waiting for you.",

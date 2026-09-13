@@ -1,5 +1,6 @@
 import { Bot, Crown, Shield, Star, Medal } from "lucide-react";
 import { TINTS, rankOf, preciseRankOf, beltOf, beltLabel } from "../content/rank.js";
+import { localizeBadge } from "../content/badges.js";
 import { useT } from "./langStore.js";
 import { isProvisional } from "../engine/index.js";
 import { Figure } from "./Figure.jsx";
@@ -66,18 +67,23 @@ export const RankBadge = ({ rating, size = "md", precise = false, rd }) => {
    badge nobody can check is decoration; hover or focus one and it says exactly
    what the arithmetic was. Purely derived from the public record, so it needs
    no data of its own. */
-export const Badges = ({ badges, className = "" }) => (
-  badges.length === 0 ? null : (
+export const Badges = ({ badges, className = "" }) => {
+  const t = useT();
+  if (badges.length === 0) return null;
+  return (
     <ul className={`badges ${className}`.trim()}>
-      {badges.map((b) => (
-        <li key={b.id} className="badge" title={b.hint}>
-          <Medal size={13} strokeWidth={2.2} aria-hidden="true" />
-          <span>{b.label}</span>
-        </li>
-      ))}
+      {badges.map((badge) => {
+        const b = localizeBadge(badge, t);
+        return (
+          <li key={b.id} className="badge" title={b.hint}>
+            <Medal size={13} strokeWidth={2.2} aria-hidden="true" />
+            <span>{b.label}</span>
+          </li>
+        );
+      })}
     </ul>
-  )
-);
+  );
+};
 
 /** A tied belt: the band plus a knot. `belt` is an entry from BELTS. */
 export const BeltRibbon = ({ belt, className = "" }) => {

@@ -8,6 +8,10 @@
    must not learn who is asking, and a page that had to ask a second question
    to know what its own button says would be slower and no more correct. */
 
+import { BASE_LOCALE, makeT, lineOr } from "../i18n/index.js";
+
+const EN = makeT(BASE_LOCALE);
+
 /** Where these two stand, from the three lists the server sent me. */
 export function standingWith(book, id) {
   if (!book || !id) return "none";
@@ -24,16 +28,16 @@ export function standingWith(book, id) {
  *  Four standings, four buttons, and the one that matters is "asking": a page
  *  that showed "Add friend" to somebody who has already asked you would send a
  *  second request across a table where the answer was already waiting. */
-export function friendAction(standing) {
+export function friendAction(standing, t = EN) {
   switch (standing) {
     case "friends":
-      return { act: null, label: "Friends", done: true, undo: { act: "forget", label: "Remove friend" } };
+      return { act: null, label: t("online.friends.act.friends"), done: true, undo: { act: "forget", label: t("online.friends.act.remove") } };
     case "asked":
-      return { act: null, label: "Asked", done: true, undo: { act: "forget", label: "Take the request back" } };
+      return { act: null, label: t("online.friends.act.asked"), done: true, undo: { act: "forget", label: t("online.friends.act.takeBack") } };
     case "asking":
-      return { act: "accept", label: "Accept", done: false, undo: { act: "forget", label: "Decline" } };
+      return { act: "accept", label: t("online.friends.act.accept"), done: false, undo: { act: "forget", label: t("online.friends.act.decline") } };
     default:
-      return { act: "ask", label: "Add friend", done: false, undo: null };
+      return { act: "ask", label: t("online.friends.act.add"), done: false, undo: null };
   }
 }
 
@@ -41,36 +45,22 @@ export function friendAction(standing) {
  *  every one of these with an outcome rather than a bare 200, because
  *  "withdrawn" and "declined" come back from the same call and mean opposite
  *  things to the person who pressed. */
-export const OUTCOME_TEXT = {
-  friends: "You are friends",
-  asked: "Request sent",
-  unfriended: "No longer friends",
-  declined: "Request declined",
-  withdrawn: "Request taken back",
-  nothing: "Nothing to undo",
-};
+export const OUTCOMES = ["friends", "asked", "unfriended", "declined", "withdrawn", "nothing"];
 
-export const outcomeText = (outcome) => OUTCOME_TEXT[outcome] ?? "Done";
+export const outcomeText = (outcome, t = EN) =>
+  lineOr(t, `online.friends.outcome.${outcome}`, t("online.friends.outcome.done"));
 
 /** Every reason a friend call can be refused, in the house voice. The two
  *  full-list messages are deliberately different: one is something the person
  *  reading it can do something about, and the other is not theirs to fix. */
-export const FRIEND_ERRORS = {
-  offline: "The server is out of reach right now",
-  "no-server": "This copy of Joseki is running without a server",
-  unauthorized: "Claim a handle before making friends",
-  "no-player": "That player is not here any more",
-  yourself: "You are already your own",
-  "already-friends": "You are already friends",
-  "no-request": "There is no request from them to accept",
-  "your-list-is-full": "Your friends list is full. Remove somebody first.",
-  "their-list-is-full": "Their friends list is full",
-  "too-many-asked": "You have a lot of requests waiting already. Tidy those up first.",
-  "their-requests-are-full": "They have a lot of requests waiting already",
-  "too-many-requests": "That is a lot of requests in an hour. Try again later.",
-};
+export const FRIEND_ERRORS = [
+  "offline", "no-server", "unauthorized", "no-player", "yourself",
+  "already-friends", "no-request", "your-list-is-full", "their-list-is-full",
+  "too-many-asked", "their-requests-are-full", "too-many-requests",
+];
 
-export const friendErrorText = (reason) => FRIEND_ERRORS[reason] ?? `Something went wrong (${reason})`;
+export const friendErrorText = (reason, t = EN) =>
+  lineOr(t, `online.friends.error.${reason}`, t("online.friends.error.unknown", { reason }));
 
 /** The book with one person moved by hand, so a press shows its result at once
  *  instead of after a second round trip. The server is still the authority:

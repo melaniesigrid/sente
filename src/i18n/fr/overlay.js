@@ -70,3 +70,21 @@ export const belt = {
   blue: { label: "Ceinture bleue" },
   black: { label: "Ceinture noire" },
 };
+
+export const badge = {
+  first: { label: "Première partie", hint: "Une partie terminée contre une personne" },
+  ten: { label: "Dix parties", hint: "Dix parties terminées contre des personnes" },
+  fifty: { label: "Cinquante parties", hint: "Cinquante parties terminées contre des personnes" },
+  hundred: { label: "Cent parties", hint: "Cent parties terminées contre des personnes" },
+  fivehundred: { label: "Cinq cents parties", hint: "Cinq cents parties terminées contre des personnes" },
+  settled: { label: "Rang stabilisé", hint: "Assez joué pour que le classement soit sûr de ton rang" },
+  dan: { label: "Dan", hint: "Un rang stabilisé au niveau dan" },
+  season: { label: "Une saison ici", hint: "Quatre-vingt-dix jours depuis la création de ce pseudonyme" },
+  year: { label: "Un an ici", hint: "Trois cent soixante-cinq jours depuis la création de ce pseudonyme" },
+};
+
+export const fact = {
+  home: { label: "Où tu joues", hint: "Un club, une ville, une table de cuisine" },
+  since: { label: "Tu joues depuis", hint: "Une année" },
+  likes: { label: "Ce que tu aimes jouer", hint: "Une ouverture, une forme, une façon de perdre" },
+};

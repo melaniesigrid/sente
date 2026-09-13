@@ -369,4 +369,112 @@ export const screens = {
     finish: "Finish",
     next: "Next card",
   },
+
+  /* A month and a year, and the dozen words that name a month. Not Intl: the
+     order of the two is a sentence ("March 2026", "marzo de 2026") and the
+     catalogue is where a translator can move it. */
+  date: {
+    monthYear: "{month} {year}",
+    month: {
+      1: "January", 2: "February", 3: "March", 4: "April", 5: "May", 6: "June",
+      7: "July", 8: "August", 9: "September", 10: "October", 11: "November", 12: "December",
+    },
+  },
+
+  /* Somebody else's page. Everything about time here is deliberately coarse:
+     what is said about a stranger is "played this week", never an hour of a
+     day. See views/playerCard.js. */
+  player: {
+    since: "Here since {when}",
+    played: "Played {when}",
+    lastPlayed: "Last played {when}",
+    when: {
+      today: "today",
+      yesterday: "yesterday",
+      thisWeek: "this week",
+      thisMonth: "this month",
+    },
+    noGames: "No finished games yet",
+    wins: "{count} W",
+    losses: "{count} L",
+    draws: "{count} drawn",
+    noSuchPlayer: "No player by that name here. A handle that has left the ladder leaves its page behind with it.",
+    noServer: "This copy of Joseki is not talking to a server, so there is nobody to look up.",
+    lookingUp: "Looking them up\u2026",
+    youSaidNothing: "You have not written anything on your card yet.",
+    theySaidNothing: "{name} has not written anything on their card. The board will have to do the talking.",
+    writeToThem: "Write to them",
+    editCard: "Edit your card",
+    showing: "Games {name} is showing",
+    openGame: "Open the game against {name}",
+  },
+
+  /* Every game you have played against a person, kept and paged. */
+  archive: {
+    head: "Your games",
+    note: "Every game you have finished against a person here, newest first. Games against the house players are played in your browser and never reach the server, so they are not in this list.",
+    fetching: "Fetching your games\u2026",
+    empty: "No finished games against a person yet. The online card in Play is where that starts.",
+    older: "Older games",
+    fetchingMore: "Fetching\u2026",
+    unfinished: "unfinished",
+    draw: "a draw",
+    byResignation: "by resignation",
+    onTime: "on time",
+    byMargin: "by {margin}",
+    onTheCount: "on the count",
+    youWon: "won {verdict}",
+    youLost: "lost {verdict}",
+    sideWon: "{side} won {verdict}",
+    moves: { one: "{count} move", other: "{count} moves" },
+    takenOff: "Taken off your page",
+    shown: "Shown on your page",
+    pinLabel: "Show the game against {name} on your page",
+    unpinLabel: "Take the game against {name} off your page",
+    saveSgf: "Save the record of the game against {name}",
+    noteLabel: "A line about this game, if you like",
+    notePlaceholder: "The one where I finally killed a dragon",
+    saving: "Saving\u2026",
+    showIt: "Show it",
+    pinNote: "At most {max} games. Everybody who opens your page sees this.",
+    error: {
+      "too-many-featured": "You are already showing {max} games. Take one off first.",
+      "not-your-game": "You can only show a game you played",
+      offline: "The server is out of reach right now",
+    },
+  },
+
+  /* The post. One thread a person, kept for good.
+
+     `not-met` is doing careful work: somebody who has been blocked is told the
+     same thing a stranger is told, because blocking is silent and a line saying
+     "you have been blocked" is the one message the blocker chose not to send. */
+  letters: {
+    head: "Letters",
+    note: "One thread a person, kept for good. Only somebody you are friends with, or have finished a game against, can write to you.",
+    empty: "Nothing yet. Open somebody\u2019s page from your friends or the ladder and write to them.",
+    readWith: "Read your letters with {name}",
+    waitingOnYou: "Waiting on you",
+    theirPage: "Their page",
+    opening: "Opening\u2026",
+    threadEmpty: "Nothing written yet. Yours to begin.",
+    placeholder: "About the game, or anything else",
+    send: "Send",
+    sending: "Sending\u2026",
+    left: "{count} left",
+    blocked: "{name} can no longer write to you",
+    unblocked: "{name} can write to you again",
+    letThemWrite: "Let them write",
+    stopThemWriting: "Stop them writing",
+    refusal: {
+      "not-met": "You can write to your friends, and to anybody you have finished a game against.",
+      yourself: "You cannot write to yourself",
+      "no-player": "That player is not here any more",
+      "empty-letter": "A letter needs something in it",
+      "too-many-letters-sent": "That is a lot of letters in an hour. Try again later.",
+      offline: "The server is out of reach right now",
+      "no-server": "This copy of Joseki is running without a server",
+      unauthorized: "Claim a handle before writing",
+    },
+  },
 };

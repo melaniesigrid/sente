@@ -6,6 +6,7 @@ import { avatarUrl } from "../net/avatar.js";
 import { loadAccount } from "../store/account.js";
 import { provisionalText } from "../content/online.js";
 import { joinedText, recordText, factRows, saidAnything, presenceLine } from "./playerCard.js";
+import { useT } from "../components/langStore.js";
 import { standingWith, friendAction } from "./friendship.js";
 import { archiveLine } from "./archiveLine.js";
 import { badgesShown } from "../content/badges.js";
@@ -66,22 +67,21 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
      answer names them if they are here and have let this viewer know, and is
      silent for both of the two reasons it might be. */
   const here = usePresence(account ? account.token : null, player ? [player.id] : []);
+  const t = useT();
 
   return (
     <div className="stack arrives">
       <div className="row">
-        <Btn icon={ArrowLeft} small onClick={back}>Back</Btn>
+        <Btn icon={ArrowLeft} small onClick={back}>{t("review.back")}</Btn>
       </div>
       {missing ? (
         <Card className="player-page">
           <p className="fine">
-            {serverEnabled()
-              ? "No player by that name here. A handle that has left the ladder leaves its page behind with it."
-              : "This copy of Joseki is not talking to a server, so there is nobody to look up."}
+            {t(serverEnabled() ? "player.noSuchPlayer" : "player.noServer")}
           </p>
         </Card>
       ) : player === null ? (
-        <Card className="player-page"><p className="fine">Looking them up…</p></Card>
+        <Card className="player-page"><p className="fine">{t("player.lookingUp")}</p></Card>
       ) : (
         <Card className="player-page online-profile">
           <div className="op-head">
@@ -93,7 +93,7 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
                 <RankBadge rating={player.rating} rd={player.rd} precise size="lg" />
                 <span className="fine">{provisionalText(player)}</span>
               </div>
-              <span className="fine">{recordText(player)}</span>
+              <span className="fine">{recordText(player, t)}</span>
               {/* Worked out from the record on the line above it, so the two
                   can never disagree. */}
               <Badges badges={badgesShown(player)} />
@@ -108,8 +108,8 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
           ) : (
             <p className="fine">
               {mine
-                ? "You have not written anything on your card yet."
-                : `${player.name} has not written anything on their card. The board will have to do the talking.`}
+                ? t("player.youSaidNothing")
+                : t("player.theySaidNothing", { name: player.name })}
             </p>
           )}
 
@@ -122,9 +122,9 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
           {!mine && account && (
             <>
               <FriendButton person={player} busy={busy === player.id} act={act}
-                action={friendAction(standingWith(book, player.id))} />
+                action={friendAction(standingWith(book, player.id), t)} />
               <div className="row">
-                <Btn icon={Mail} small onClick={() => go("profile")}>Write to them</Btn>
+                <Btn icon={Mail} small onClick={() => go("profile")}>{t("player.writeToThem")}</Btn>
                 {/* Silent, and never the same act as unfriending: the two mean
                     different things and doing both at once would take the
                     second choice away from whoever the first one protects. */}
@@ -135,7 +135,7 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
 
           {mine && (
             <div className="row">
-              <Btn icon={Pencil} small onClick={() => go("profile")}>Edit your card</Btn>
+              <Btn icon={Pencil} small onClick={() => go("profile")}>{t("player.editCard")}</Btn>
               <span className="fine">This is you, as everybody else sees you.</span>
             </div>
           )}
@@ -148,7 +148,8 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
 /** The three short facts, read from `server/profile.js` so this page and the
  *  form that fills it in can never disagree about what the fields are. */
 function Facts({ player }) {
-  const rows = factRows(player);
+  const t = useT();
+  const rows = factRows(player, t);
   if (!rows.length) return null;
   return (
     <dl className="op-facts">
@@ -170,19 +171,20 @@ function Facts({ player }) {
  *  words are marked as this player's rather than floating free beside a game
  *  the other person also played. */
 function Featured({ player, go }) {
+  const t = useT();
   const games = player.featured || [];
   if (!games.length) return null;
   return (
     <div className="featured">
-      <h4 className="friend-group-head">Games {player.name} is showing</h4>
+      <h4 className="friend-group-head">{t("player.showing", { name: player.name })}</h4>
       <div className="friend-rows">
         {games.map((game) => {
-          const line = archiveLine(game, player.id);
+          const line = archiveLine(game, player.id, t);
           return (
             <div key={game.id} className="archive-row">
               <button type="button" className="friend-who"
                 onClick={() => go("play", { gameId: game.id })}
-                aria-label={`Open the game against ${line.who}`}>
+                aria-label={t("player.openGame", { name: line.who })}>
                 <span className={`archive-mark ${line.won === true ? "won" : ""}`} aria-hidden="true">
                   <Swords size={15} />
                 </span>
@@ -208,8 +210,9 @@ function Featured({ player, go }) {
  *  week. Never an hour: a page anybody can open should not be a way to work out
  *  when somebody is at their desk. */
 function Whereabouts({ player, here }) {
-  const when = presenceLine(here, player.lastSeen);
-  const lines = [joinedText(player.createdAt), when].filter(Boolean);
+  const t = useT();
+  const when = presenceLine(here, player.lastSeen, t);
+  const lines = [joinedText(player.createdAt, t), when].filter(Boolean);
   if (!lines.length) return null;
   return (
     <p className="fine player-when">

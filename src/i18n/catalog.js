@@ -93,7 +93,7 @@ const NO_LINE = "\u0000no line\u0000";
  *  mistake: a refusal the server invented, a reason this build has never met.
  *  It asks with a fallback, which is what keeps the development warning for
  *  keys that really are missing from a screen that expected one. */
-export function lineOr(t, key, otherwise) {
-  const line = t(key, null, NO_LINE);
+export function lineOr(t, key, otherwise, vars = null) {
+  const line = t(key, vars, NO_LINE);
   return line === NO_LINE ? otherwise : line;
 }

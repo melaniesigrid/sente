@@ -4,6 +4,22 @@
    label — and these lines stand in front of it by id. `i18n.test.js` holds
    them complete against the data rather than against en.js. */
 export const overlay = {
+  fact: {
+    home: { label: "Dónde juegas", hint: "Un club, una ciudad, la mesa de la cocina" },
+    since: { label: "Juegas desde", hint: "Un año" },
+    likes: { label: "Qué te gusta jugar", hint: "Una apertura, una forma, una manera de perder" },
+  },
+  badge: {
+    first: { label: "Primera partida", hint: "Terminaste una partida contra una persona" },
+    ten: { label: "Diez partidas", hint: "Terminaste diez partidas contra personas" },
+    fifty: { label: "Cincuenta partidas", hint: "Terminaste cincuenta partidas contra personas" },
+    hundred: { label: "Cien partidas", hint: "Terminaste cien partidas contra personas" },
+    fivehundred: { label: "Quinientas partidas", hint: "Terminaste quinientas partidas contra personas" },
+    settled: { label: "Rango asentado", hint: "Has jugado lo suficiente para que la clasificación esté segura de tu rango" },
+    dan: { label: "Dan", hint: "Un rango asentado en nivel dan" },
+    season: { label: "Una temporada aquí", hint: "Noventa días desde que se creó este nombre" },
+    year: { label: "Un año aquí", hint: "Trescientos sesenta y cinco días desde que se creó este nombre" },
+  },
   belt: {
     white: { label: "Cintur\u00f3n blanco" },
     yellow: { label: "Cintur\u00f3n amarillo" },

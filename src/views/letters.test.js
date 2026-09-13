@@ -1,16 +1,24 @@
 import { describe, it, expect } from "vitest";
 import { WRITE_REFUSALS, writeRefusal, waitingOnMe, waitingCount } from "./letters.js";
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
+
+/* The refusals live in the catalogue now. These read them in English; the
+   parity test holds the other three languages to the same set. */
+const EN = makeT(BASE_LOCALE);
+const refusal = (reason) => writeRefusal(reason, EN);
 
 describe("what is said when a letter is refused", () => {
   it("has a line for every reason the server can give", () => {
     for (const reason of ["not-met", "yourself", "no-player", "empty-letter", "too-many-letters-sent"]) {
-      expect(WRITE_REFUSALS[reason], reason).toBeTruthy();
+      expect(WRITE_REFUSALS, reason).toContain(reason);
+      expect(refusal(reason), reason).not.toBe(refusal("invented"));
     }
   });
 
   it("covers the reasons the client raises before anything is sent", () => {
     for (const reason of ["offline", "no-server", "unauthorized"]) {
-      expect(WRITE_REFUSALS[reason], reason).toBeTruthy();
+      expect(WRITE_REFUSALS, reason).toContain(reason);
+      expect(refusal(reason), reason).not.toBe(refusal("invented"));
     }
   });
 
@@ -19,24 +27,24 @@ describe("what is said when a letter is refused", () => {
      message saying "you have been blocked" is a message, and it is the one
      thing the person who blocked chose not to send. */
   it("has no line for being blocked, because nobody is ever told they were", () => {
-    expect(WRITE_REFUSALS.blocked).toBeUndefined();
-    for (const line of Object.values(WRITE_REFUSALS)) {
+    expect(WRITE_REFUSALS).not.toContain("blocked");
+    for (const line of WRITE_REFUSALS.map(refusal)) {
       expect(line).not.toMatch(/block/i);
     }
   });
 
   it("says the same thing to a stranger and to somebody who was blocked", () => {
     // The server answers "not-met" for both, so there is one line and one only.
-    expect(writeRefusal("not-met")).toBe(WRITE_REFUSALS["not-met"]);
+    expect(refusal("not-met")).not.toContain("not-met");
   });
 
   it("says who may write, rather than only that this person may not", () => {
-    expect(writeRefusal("not-met")).toMatch(/friends/i);
-    expect(writeRefusal("not-met")).toMatch(/finished a game/i);
+    expect(refusal("not-met")).toMatch(/friends/i);
+    expect(refusal("not-met")).toMatch(/finished a game/i);
   });
 
   it("names an unknown reason rather than swallowing it", () => {
-    expect(writeRefusal("brand-new")).toContain("brand-new");
+    expect(refusal("brand-new")).toContain("brand-new");
   });
 });
 

@@ -4,6 +4,8 @@ import { Card, Btn } from "../components/ui.jsx";
 import { api, serverEnabled } from "../net/api.js";
 import { saveAccount } from "../store/account.js";
 import { monthYear } from "./playerCard.js";
+import { useT } from "../components/langStore.js";
+import { lineOr } from "../i18n/index.js";
 import { archiveLine } from "./archiveLine.js";
 import { MAX_FEATURED, NOTE_MAX } from "../../server/featured.js";
 
@@ -51,25 +53,21 @@ export function ArchiveCard({ account, setAccount, notify, go }) {
     return () => { live = false; };
   }, [token]);
 
+  const t = useT();
+
   return (
     <Card className="archive-card">
       <div className="op-head">
         <div className="op-id">
-          <h3>Your games</h3>
-          <p className="fine">
-            Every game you have finished against a person here, newest first. Games against
-            the house players are played in your browser and never reach the server, so they
-            are not in this list.
-          </p>
+          <h3>{t("archive.head")}</h3>
+          <p className="fine">{t("archive.note")}</p>
         </div>
       </div>
 
       {games === null ? (
-        <p className="fine">Fetching your games…</p>
+        <p className="fine">{t("archive.fetching")}</p>
       ) : games.length === 0 ? (
-        <p className="fine">
-          No finished games against a person yet. The online card in Play is where that starts.
-        </p>
+        <p className="fine">{t("archive.empty")}</p>
       ) : (
         <>
           <div className="friend-rows">
@@ -81,7 +79,7 @@ export function ArchiveCard({ account, setAccount, notify, go }) {
           {cursor && (
             <div className="row">
               <Btn icon={busy ? Loader : ChevronDown} small disabled={busy}
-                onClick={() => more(cursor)}>{busy ? "Fetching…" : "Older games"}</Btn>
+                onClick={() => more(cursor)}>{t(busy ? "archive.fetchingMore" : "archive.older")}</Btn>
             </div>
           )}
         </>
@@ -91,7 +89,8 @@ export function ArchiveCard({ account, setAccount, notify, go }) {
 }
 
 function ArchiveRow({ game, me, go, account, setAccount, notify }) {
-  const line = archiveLine(game, me);
+  const t = useT();
+  const line = archiveLine(game, me, t);
   const pins = account.player.featured || [];
   const pinned = pins.some((e) => e.id === game.id);
   const [editing, setEditing] = useState(false);
@@ -106,10 +105,10 @@ function ArchiveRow({ game, me, go, account, setAccount, notify }) {
         : await api.pinGame(account.token, game.id, next);
       setAccount({ token: account.token, player });
       saveAccount({ token: account.token, player });
-      notify({ icon: "info", text: next === null ? "Taken off your page" : "Shown on your page" });
+      notify({ icon: "info", text: t(next === null ? "archive.takenOff" : "archive.shown") });
       setEditing(false);
     } catch (e) {
-      notify({ icon: "info", text: pinError(e.reason) });
+      notify({ icon: "info", text: pinError(e.reason, t) });
     } finally { setBusy(false); }
   };
 
@@ -118,7 +117,7 @@ function ArchiveRow({ game, me, go, account, setAccount, notify }) {
     <div className="archive-row">
       <button type="button" className="friend-who"
         onClick={() => go("play", { gameId: game.id })}
-        aria-label={`Open the game against ${line.who}`}>
+        aria-label={t("player.openGame", { name: line.who })}>
         <span className={`archive-mark ${line.won === true ? "won" : line.won === false ? "lost" : ""}`}
           aria-hidden="true"><Swords size={15} /></span>
         <span className="ladder-name">
@@ -126,29 +125,28 @@ function ArchiveRow({ game, me, go, account, setAccount, notify }) {
           <span className="fine">{line.detail}</span>
         </span>
       </button>
-      <span className="fine archive-when">{monthYear(game.endedAt)}</span>
+      <span className="fine archive-when">{monthYear(game.endedAt, t)}</span>
       <Btn icon={pinned ? StarOff : Star} small disabled={busy}
         onClick={() => (pinned ? save(null) : setEditing((v) => !v))}
-        label={pinned ? `Take the game against ${line.who} off your page`
-          : `Show the game against ${line.who} on your page`} />
+        label={t(pinned ? "archive.unpinLabel" : "archive.pinLabel", { name: line.who })} />
       {/* A plain link, so the browser saves the file the server names rather
           than the page holding a game in memory to hand it over. */}
       <a className="btn btn-sm" href={api.sgfUrl(game.id)} download
-        aria-label={`Save the record of the game against ${line.who}`}>
+        aria-label={t("archive.saveSgf", { name: line.who })}>
         <Download size={14} strokeWidth={2.2} /><span>SGF</span>
       </a>
     </div>
     {editing && !pinned && (
       <div className="pin-note">
-        <label className="op-label" htmlFor={`pin-${game.id}`}>A line about this game, if you like</label>
+        <label className="op-label" htmlFor={`pin-${game.id}`}>{t("archive.noteLabel")}</label>
         <input id={`pin-${game.id}`} className="chat-input" value={note} maxLength={NOTE_MAX}
-          placeholder="The one where I finally killed a dragon"
+          placeholder={t("archive.notePlaceholder")}
           onChange={(e) => setNote(e.target.value)} />
         <div className="row">
           <Btn icon={busy ? Loader : Star} small primary disabled={busy}
-            onClick={() => save(note)}>{busy ? "Saving…" : "Show it"}</Btn>
-          <Btn small onClick={() => setEditing(false)}>Cancel</Btn>
-          <span className="fine">At most {MAX_FEATURED} games. Everybody who opens your page sees this.</span>
+            onClick={() => save(note)}>{t(busy ? "archive.saving" : "archive.showIt")}</Btn>
+          <Btn small onClick={() => setEditing(false)}>{t("game.cancel")}</Btn>
+          <span className="fine">{t("archive.pinNote", { max: MAX_FEATURED })}</span>
         </div>
       </div>
     )}
@@ -156,9 +154,6 @@ function ArchiveRow({ game, me, go, account, setAccount, notify }) {
   );
 }
 
-/** The two ways pinning is refused, in the house voice. */
-const pinError = (reason) => ({
-  "too-many-featured": `You are already showing ${MAX_FEATURED} games. Take one off first.`,
-  "not-your-game": "You can only show a game you played",
-  offline: "The server is out of reach right now",
-}[reason] ?? `Something went wrong (${reason})`);
+/** The three ways pinning is refused, in the house voice. */
+const pinError = (reason, t) =>
+  lineOr(t, `archive.error.${reason}`, t("online.friends.error.unknown", { reason }), { max: MAX_FEATURED });

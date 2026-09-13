@@ -8,19 +8,17 @@
    been blocked" is a message, and it is the one thing the person who blocked
    chose not to send. */
 
-export const WRITE_REFUSALS = {
-  "not-met": "You can write to your friends, and to anybody you have finished a game against.",
-  yourself: "You cannot write to yourself",
-  "no-player": "That player is not here any more",
-  "empty-letter": "A letter needs something in it",
-  "too-many-letters-sent": "That is a lot of letters in an hour. Try again later.",
-  offline: "The server is out of reach right now",
-  "no-server": "This copy of Joseki is running without a server",
-  unauthorized: "Claim a handle before writing",
-};
+import { BASE_LOCALE, makeT, lineOr } from "../i18n/index.js";
 
-export const writeRefusal = (reason) =>
-  WRITE_REFUSALS[reason] ?? `Something went wrong (${reason})`;
+const EN = makeT(BASE_LOCALE);
+
+export const WRITE_REFUSALS = [
+  "not-met", "yourself", "no-player", "empty-letter", "too-many-letters-sent",
+  "offline", "no-server", "unauthorized",
+];
+
+export const writeRefusal = (reason, t = EN) =>
+  lineOr(t, `letters.refusal.${reason}`, t("online.friends.error.unknown", { reason }));
 
 /** Is this thread waiting on me? The list says who spoke last rather than what
  *  has been read: a read receipt is a promise about somebody else's attention,

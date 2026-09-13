@@ -25,6 +25,10 @@
 
 import { isProvisional } from "../engine/index.js";
 import { rankOf } from "./rank.js";
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
+import { localize } from "./translate.js";
+
+const EN = makeT(BASE_LOCALE);
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -123,3 +127,8 @@ export function badgesShown(player, now = Date.now()) {
   }
   return have.filter((b) => !beaten.has(b.id));
 }
+
+/** A badge in the language in force. Its label and the line saying what it
+ *  measures are prose the data file owns, overlaid by id under `badge.`; the
+ *  id and the arithmetic are data and are never touched. */
+export const localizeBadge = (b, t = EN) => localize(b, `badge.${b.id}`, t);

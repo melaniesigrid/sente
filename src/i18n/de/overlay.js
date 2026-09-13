@@ -71,3 +71,21 @@ export const belt = {
   blue: { label: "Blauer Gürtel" },
   black: { label: "Schwarzer Gürtel" },
 };
+
+export const badge = {
+  first: { label: "Erste Partie", hint: "Eine Partie gegen einen Menschen beendet" },
+  ten: { label: "Zehn Partien", hint: "Zehn Partien gegen Menschen beendet" },
+  fifty: { label: "Fünfzig Partien", hint: "Fünfzig Partien gegen Menschen beendet" },
+  hundred: { label: "Hundert Partien", hint: "Hundert Partien gegen Menschen beendet" },
+  fivehundred: { label: "Fünfhundert Partien", hint: "Fünfhundert Partien gegen Menschen beendet" },
+  settled: { label: "Gefestigter Rang", hint: "Genug gespielt, dass die Rangliste deines Rangs sicher ist" },
+  dan: { label: "Dan", hint: "Ein gefestigter Rang auf Dan-Niveau" },
+  season: { label: "Eine Saison hier", hint: "Neunzig Tage, seit dieser Name angelegt wurde" },
+  year: { label: "Ein Jahr hier", hint: "Dreihundertfünfundsechzig Tage, seit dieser Name angelegt wurde" },
+};
+
+export const fact = {
+  home: { label: "Wo du spielst", hint: "Ein Verein, eine Stadt, ein Küchentisch" },
+  since: { label: "Du spielst seit", hint: "Ein Jahr" },
+  likes: { label: "Was du gern spielst", hint: "Eine Eröffnung, eine Form, eine Art zu verlieren" },
+};
