@@ -330,12 +330,10 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
           <div className="setting-row">
             <Sparkle size={20} />
             <div className="setting-copy">
-              <strong>Déjà vu</strong>
-              <span className="fine">When a game reaches a position you have played before, the table
-                says so, and how those games went. It reads only this device's own memory of your
-                finished games, and it never suggests a move.</span>
+              <strong>{t("profile.deja.head")}</strong>
+              <span className="fine">{t("profile.deja.note")}</span>
             </div>
-            <Toggle on={!!profile.dejaVu} onChange={v => commit({ dejaVu: v })} label="Déjà vu" />
+            <Toggle on={!!profile.dejaVu} onChange={v => commit({ dejaVu: v })} label={t("profile.deja.head")} />
           </div>
           <div className="setting-row">
             <MokuMark size={34} state={moku && moku.off ? "idle" : "watching"} />
@@ -353,20 +351,15 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
           the one sentence about today, and this has the half year behind it. */}
       {run.total > 0 && (
         <Card className="chain-card">
-          <div className="stat-head"><CalendarCheck size={16} /><span>The chain</span></div>
+          <div className="stat-head"><CalendarCheck size={16} /><span>{t("profile.stats.kata")}</span></div>
           <div className="chain-head">
-            <div className="stat-num">{run.days}<em>{run.days === 1 ? "day" : "days"} running</em></div>
+            <div className="stat-num">{run.days}<em>{t("profile.stats.kataDays", { count: run.days })}</em></div>
             <div className="chain-facts">
-              <span><strong>{run.best}</strong> longest run</span>
-              <span><strong>{run.total}</strong> days on the record</span>
-              {run.alive && <span><strong>{run.rest}</strong> {run.rest === 1 ? "rest day" : "rest days"} in hand</span>}
+              {run.best > run.days && <span>{t("profile.stats.kataBest", { count: run.best }).trim()}</span>}
             </div>
           </div>
           <ChainYear profile={profile} today={dayKey()} />
-          <p className="fine">{chainNote(run)} A day counts when you solve a problem, finish a
-            lesson, sit a recall or play a rated game. Seven days of practice earn a rest day,
-            you can hold two, and a missed day spends one. The record goes back thirteen months
-            and lives on this device only.</p>
+          <p className="fine">{chainNote(run)}</p>
         </Card>
       )}
 

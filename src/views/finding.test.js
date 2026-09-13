@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { findState, searchable, MIN_QUERY, TYPING_PAUSE_MS } from "./finding.js";
 
 const answer = (q, names = []) => ({ for: q, people: names.map((name) => ({ id: name, name })) });
+const failed = (q) => ({ for: q, error: "offline" });
 
 describe("what the search box says", () => {
   it("says nothing at all before anything is typed", () => {
@@ -30,6 +31,10 @@ describe("what the search box says", () => {
   it("says nobody by that name only once the answer is in", () => {
     expect(findState("ana", answer("ana"), false).kind).toBe("empty");
     expect(findState("ana", answer("ana"), true).kind).toBe("searching");
+  });
+
+  it("shows an error state when the request failed", () => {
+    expect(findState("ana", failed("ana"), false).kind).toBe("error");
   });
 
   it("never paints an older answer under a newer word", () => {
