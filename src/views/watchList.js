@@ -17,7 +17,7 @@ export const WATCH_POLL_MS = 20_000;
 /** `{ who, detail }` for one row. `t` is the catalogue reader. */
 export function watchLine(game, t) {
   const who = t("online.table.between", { black: game.black ? game.black.name : "?", white: game.white ? game.white.name : "?" });
-  const moves = t("online.table.moves", { count: game.moves || 0 });
+  const moves = t("online.table.moves", { count: game.moves ?? 0 });
   const turn = game.phase === "scoring"
     ? t("online.table.counting")
     : t("online.table.toMove", { side: t(game.toPlay === "w" ? "game.side.w" : "game.side.b") });

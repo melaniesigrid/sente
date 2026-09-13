@@ -40,6 +40,20 @@ const CHAT_KEEP = 200;
    millisecond; when they do they are the same sentence, and lighting either of
    them rings the same points. */
 const lineKey = (m) => `${m.from}:${m.at}:${m.text}`;
+const sameLine = (a, b) => lineKey(a) === lineKey(b);
+const reconcileChat = (prev, next, seq) => {
+  const out = new Array(next.length);
+  let i = prev.length - 1;
+  for (let j = next.length - 1; j >= 0; j -= 1) {
+    if (i >= 0 && sameLine(prev[i], next[j])) {
+      out[j] = { ...next[j], chatKey: prev[i].chatKey };
+      i -= 1;
+    } else {
+      out[j] = { ...next[j], chatKey: `${lineKey(next[j])}:${seq.current++}` };
+    }
+  }
+  return out;
+};
 /* One array, so a board with no marks is handed the same empty prop every time. */
 const EMPTY = [];
 const lead = (room, c) => room.seats[c + "1"];
@@ -98,6 +112,7 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
   const sock = useRef(null);
   const resignTimer = useRef(null);
   const chatEndRef = useRef(null);
+  const nextChatKey = useRef(0);
   const lastMoves = useRef(-1);
   const sound = !!profile.sound;
 
@@ -107,9 +122,9 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
       onFrame: (f) => {
         if (f.t === "state") {
           setRoom(f.room);
-          setChat(f.room.chat);
+          setChat((c) => reconcileChat(c, f.room.chat, nextChatKey));
         } else if (f.t === "seat") { setSeat(f.seat); setRuns(f.runs ?? []); setWatching(f.watching); }
-        else if (f.t === "chat") setChat(c => [...c, f.msg].slice(-CHAT_KEEP));
+        else if (f.t === "chat") setChat((c) => reconcileChat(c, [...c, f.msg].slice(-CHAT_KEEP), nextChatKey));
         else if (f.t === "undo") { if (f.status === "declined") notify({ icon: "info", text: tRef.current("online.game.undoDeclined") }); }
         else if (f.t === "error") {
           if (f.reason === "no-room") setGone(true);
@@ -465,7 +480,7 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
             </div>
             <div className="chat-log" aria-live="polite">
               {chat.map((m, i) => (
-                <div key={`${lineKey(m)}:${i}`} className={`bubble ${account && m.from === account.player.id ? "mine" : ""}`}>
+                <div key={m.chatKey} className={`bubble ${account && m.from === account.player.id ? "mine" : ""}`}>
                   {(!account || m.from !== account.player.id) && <span className="bubble-who">{m.name}{m.seat ? "" : t("online.game.watchingWho")} · </span>}
                   {parsed[i] ? parsed[i].map((part, j) => (
                     part.t === "point" ? (

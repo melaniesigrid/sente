@@ -34,16 +34,16 @@ export function WatchCard({ token, onWatch }) {
   }, [token]);
 
   useEffect(() => {
+    if (typeof document === "undefined") return undefined;
     let alive = true;
-    const doc = typeof document === "undefined" ? null : document;
-    const tick = () => { if (alive && (!doc || doc.visibilityState !== "hidden")) refresh(); };
+    const tick = () => { if (alive && document.visibilityState !== "hidden") refresh(); };
     Promise.resolve().then(tick);
     const id = setInterval(tick, WATCH_POLL_MS);
-    if (doc) doc.addEventListener("visibilitychange", tick);
+    document.addEventListener("visibilitychange", tick);
     return () => {
       alive = false;
       clearInterval(id);
-      if (doc) doc.removeEventListener("visibilitychange", tick);
+      document.removeEventListener("visibilitychange", tick);
     };
   }, [refresh]);
 
