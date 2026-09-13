@@ -267,6 +267,15 @@ describe("the friend button", () => {
     expect(screen.getByText(/play a game together first/i)).toBeTruthy();
     expect(screen.queryByRole("button", { name: /invite to a game/i })).toBe(null);
   });
+
+  it("keeps the invitation panel loading until the shelf arrives", async () => {
+    signedIn();
+    invites.mockReturnValue(new Promise(() => {}));
+    show({ notify: vi.fn() });
+    await screen.findByText("Ixchel");
+    expect(screen.getByText(/working/i)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /invite to a game/i })).toBe(null);
+  });
 });
 
 describe("a player who is not there", () => {

@@ -113,13 +113,17 @@ function InviteRow({ invite, kind, busy, act, onOpen }) {
    underneath it. The terms only unfold when there is a question to ask: a
    board picker on a row where the answer is already waiting would be asking
    somebody to choose a size for a game somebody else has already proposed. */
-export function InvitePanel({ person, standing, busy, act }) {
+export function InvitePanel({ person, standing, busy, act, loading = false }) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const [size, setSize] = useState(19);
   const [handicap, setHandicap] = useState(0);
   const [rated, setRated] = useState(true);
   const action = inviteAction(standing, t);
+
+  if (loading) {
+    return <div className="row"><Btn icon={Loader} small disabled>{t("online.friends.workingEllipsis")}</Btn></div>;
+  }
 
   if (busy) {
     return <div className="row"><Btn icon={Loader} small disabled>{t("online.friends.workingEllipsis")}</Btn></div>;

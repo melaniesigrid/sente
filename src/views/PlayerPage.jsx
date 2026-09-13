@@ -138,6 +138,7 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
                   from the lists it happens to hold would be a second opinion
                   about a question that already has one. */}
               <InvitePanel person={player} busy={invites.busy === player.id} act={invites.act}
+                loading={invites.invites === null}
                 standing={standingOver(invites.invites, player.id, player.canReach ?? true)} />
               <div className="row">
                 <Btn icon={Mail} small onClick={() => go("profile")}>{t("player.writeToThem")}</Btn>
