@@ -6,6 +6,7 @@ export const shell = {
     home: "Home",
     play: "Play",
     learn: "Learn",
+    joseki: "Joseki",
     tsumego: "Tsumego",
     ladder: "Ladder",
   },

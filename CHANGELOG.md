@@ -34,6 +34,32 @@ They are left as they were written rather than rewritten after the fact.
   lobby spends a paragraph denying, that you have to graduate from one bot to the next.
   It is a roster, in range order, and it says so above the list.
 
+## v0.9.0.0 (2026-09-12)
+
+### Added
+
+- **The corner dictionary.** The place has been called Joseki since it was renamed and it
+  held no joseki. It holds four now, all on the star point: the knight's move answer, the
+  high approach, the attachment, and the 3-3 invasion. Each one is a sequence you step
+  through a move at a time, or let run, with the reason for the move you are standing on
+  beside the board and what each side ended up with at the finish. The 3-4 and 3-3 points
+  are on the shelf and marked unwritten rather than left out.
+- **Every move was walked out with the network this server already ships.** A joseki is a
+  claim about judgement and `tryPlay` has no opinions about judgement, so the sequences
+  were not written from memory: `tools/joseki/policy.py` asks the human network, one move
+  at a time at a professional profile, which move it would play in that corner, and every
+  move in the dictionary is the move it named. The rank and the weight it gave are
+  recorded on the move and shown under it.
+- **A move nobody had to play is labelled a choice.** Where to approach, whether to invade
+  the 3-3, whether to attach instead of answering quietly: those are decisions made for
+  reasons off the board, and the dictionary says so rather than dressing them up as the
+  only move. It records what the network thought of them anyway, which is sometimes
+  unflattering: it puts the attachment ninth in the corner, and the attachment is still a
+  joseki.
+- **The board can be cropped.** `Board` takes a `crop` and moves only its viewBox, so a
+  corner sequence on nineteen lines is readable at page width and on a phone. The board is
+  still nineteen lines and the edge is still the edge.
+
 ## v0.8.1.0 (2026-09-12)
 
 ### Added

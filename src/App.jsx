@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Swords, GraduationCap, Target, LayoutDashboard, Medal, ArrowRight, Palette } from "lucide-react";
+import { Swords, GraduationCap, Target, LayoutDashboard, Medal, ArrowRight, Palette, CornerDownRight } from "lucide-react";
 import { sayingBySeed, localizeSaying } from "./content/classic.js";
 
 /* ================================================================
@@ -37,6 +37,7 @@ import { PlayView } from "./views/Play.jsx";
 import { LearnView } from "./views/Learn.jsx";
 import { ProblemsView } from "./views/Problems.jsx";
 import { RecallView } from "./views/Recall.jsx";
+import { JosekiView } from "./views/Joseki.jsx";
 import { RankingsView } from "./views/Rankings.jsx";
 import { HousePlayerPage } from "./views/HousePlayer.jsx";
 import { PlayerPage } from "./views/PlayerPage.jsx";
@@ -56,6 +57,10 @@ const NAV = [
   { id: "home", icon: LayoutDashboard },
   { id: "play", icon: Swords },
   { id: "learn", icon: GraduationCap },
+  /* The dictionary is in the nav rather than tucked inside the library,
+     because the place is named after it and a reader who comes looking for
+     joseki should not have to guess which screen keeps them. */
+  { id: "joseki", icon: CornerDownRight },
   { id: "tsumego", icon: Target },
   { id: "ladder", icon: Medal },
 ];
@@ -205,6 +210,7 @@ export default function JosekiApp() {
             profile={profile} setProfile={setProfile} notify={notify} resume={resume}
             openGame={params ? params.gameId : null} withBot={params ? params.botId : null} go={go} />}
           {view === "learn" && <LearnView profile={profile} setProfile={setProfile} go={go} />}
+          {view === "joseki" && <JosekiView />}
           {view === "tsumego" && <ProblemsView profile={profile} setProfile={setProfile} initialId={params ? params.problemId : null} />}
           {view === "recall" && <RecallView profile={profile} setProfile={setProfile} go={go} />}
           {view === "ladder" && <RankingsView profile={profile} go={go} />}
