@@ -176,7 +176,7 @@ export const online = {
   lobby: {
     matched: "Emparejada con {name} · juegas con {side}",
     signedOut: "Sesión cerrada. Tu puntuación te está esperando.",
-    kept: "Esa identidad es tuya en cualquier dispositivo. Busca una carta que confirme la dirección.",
+    kept: "Esa identidad es tuya en cualquier dispositivo.",
     leaveAsk: "¿Dejar la clasificación? Esta identidad, su clave y su puntuación se eliminan para siempre. Las partidas terminadas se quedan.",
     noServer: "No se ha podido contactar con el servidor; inténtalo otra vez",
     removed: "Identidad eliminada",
@@ -218,9 +218,6 @@ export const online = {
     keepHandle: "Conserva esta identidad",
     notNow: "Ahora no",
     attachNote: "Tu puntuación, tus partidas y tu identidad se quedan exactamente como están.",
-    sending: "Enviando…",
-    confirmNudge: "Joseki nunca ha tenido respuesta de {email}. Confírmala y sabrás que una carta puede llegarte.",
-    confirmSent: "Va una carta de camino a {email}. El enlace dura una semana y funciona una vez. Si no llega, mira en la carpeta de spam antes de pedir otra.",
   },
 
   game: {

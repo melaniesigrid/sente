@@ -176,7 +176,7 @@ export const online = {
   lobby: {
     matched: "Zusammengeführt mit {name} · du spielst {side}",
     signedOut: "Abgemeldet. Deine Wertung wartet auf dich.",
-    kept: "Dieser Name gehört dir jetzt auf jedem Gerät. Halte Ausschau nach einem Brief, der die Adresse bestätigt.",
+    kept: "Dieser Name gehört dir jetzt auf jedem Gerät.",
     leaveAsk: "Die Rangliste verlassen? Dieser Name, sein Schlüssel und seine Wertung werden endgültig entfernt. Beendete Partien bleiben.",
     noServer: "Der Server war nicht erreichbar; versuch es noch einmal",
     removed: "Name entfernt",
@@ -218,9 +218,6 @@ export const online = {
     keepHandle: "Behalte diesen Namen",
     notNow: "Jetzt nicht",
     attachNote: "Deine Wertung, deine Partien und dein Name bleiben genau, wie sie sind.",
-    sending: "Wird gesendet…",
-    confirmNudge: "Joseki hat von {email} nie etwas zurückgehört. Bestätige sie, und du weißt, dass ein Brief dich erreichen kann.",
-    confirmSent: "Ein Brief ist unterwegs zu {email}. Der Link darin gilt eine Woche und funktioniert einmal. Kommt er nicht an, sieh im Spam-Ordner nach, bevor du einen weiteren anforderst.",
   },
 
   game: {

@@ -56,9 +56,9 @@ export const account = {
     working: "处理中…",
     create: "创建这个账号",
     signinDo: "登录",
-    signupFine: "你的密码在这个浏览器里拉伸过，从不发出去；服务器只存结果的哈希，就算它想读也读不回来。随后会有一封信，确认这个地址你收得到。",
+    signupFine: "你的密码在这个浏览器里拉伸过，从不发出去；服务器只存结果的哈希，就算它想读也读不回来。",
     signinFine: "登录要花一点时间：证明密码这件苦力活由浏览器来干，好让服务器永远不必拿着它。",
-    welcomeNew: "欢迎上榜，{name}。留意一封确认地址的信。",
+    welcomeNew: "欢迎上榜，{name}。",
     welcomeBack: "欢迎回来，{name}",
   },
 
