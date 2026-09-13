@@ -6,6 +6,41 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.12.0.0 (2026-09-13)
+
+### Added
+
+- **Joseki reads in Russian and Ukrainian.** Two Slavic languages at full parity with the
+  six already here: every line the English catalogue has, the design system complete
+  (rooms, stone sets, type, belts, badges, the tones and the contrast rules), the small
+  print, the Classic in thirteen chapters, and the thirty-three lessons the other
+  languages carry. Both are informal throughout, `ты` and `ти` rather than the polite
+  plural, because Joseki talks to one person at a board.
+- Go words go home, and they are not the same words. Russian writes the Japanese terms by
+  Polivanov, the way the Russian books do: дзёсэки, цумэго, атари, сэки. Ukrainian gives
+  them Ukrainian phonetics rather than borrowing the Russian spellings: дзьосекі, цумего,
+  атарі, секі. The ladder is Рейтинг in both and never Лестница or Драбинка, which are
+  the ladder *tactic*, the same trap German's `Leiter` and Chinese's 征 set.
+- **A Cyrillic fallback behind every pairing.** The Han fallback grew up into a script
+  fallback: no display face here has a Cyrillic glyph either, and the five Google text
+  families are self-hosted as the latin and latin-ext subsets alone, because that is all
+  Google cuts for them. A generic keyword would resolve to a real face on every platform;
+  a named stack is a better drawing, and a serif voice keeps a serif. Russian and
+  Ukrainian share one list, which Chinese and Japanese could not: the two are set in the
+  same letters, and nothing in either asks for a different shape of a shared one.
+- **The corner dictionary reads in both.** The `josekiEntry`, `josekiCorner` and
+  `josekiSource` overlays have been in the parity test's list of namespaces since the
+  dictionary shipped and no language had ever filled them, so that screen was English in
+  all six. A browser sweep found it. It is Russian and Ukrainian now; the other six are
+  still waiting for theirs.
+
+### Fixed
+
+- What a corner is worth once the sequence is finished (`result`, in the dictionary) was
+  the one field of a joseki entry the overlay walked past, because it was never declared
+  prose. It is prose, and it is declared now, so a translated dictionary is translated all
+  the way to the bottom of the card.
+
 ## v0.11.0.0 (2026-09-13)
 
 ### Added

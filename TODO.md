@@ -26,8 +26,9 @@ is a snapshot: it will be wrong the week after somebody authors anything.
   rank the table asks for.
 - **1 book series** threaded through the library (the Classic in thirteen chapters, 20
   passages), on a shelf of six books.
-- **4 languages**: English, Spanish, French, German, with the parity suite refusing a
-  missing line, an invented key, or an overlay that names something the data does not have.
+- **8 languages**: English, Spanish, French, German, Simplified Chinese, Japanese,
+  Russian and Ukrainian, with the parity suite refusing a missing line, an invented key,
+  or an overlay that names something the data does not have.
 
 What is thinnest, in order: the tactics tsumego set (four boards, none of them a tesuji),
 the endgame track (two lessons), life and death below 15k, and the middle game everywhere.

@@ -19,6 +19,10 @@ problems, climb a Glicko-2 ladder, and keep a persistent profile.
 - **Tsumego**: life-and-death and tesuji problems with hints and progress tracking.
 - **Ladder**: Elo-style rating with rank badges (kyu/dan), win streaks, and standings.
 - **Profile**: name, avatar tint, record, and lesson/problem completion, persisted locally.
+- **Languages**: English, Spanish, French, German, Simplified Chinese, Japanese, Russian
+  and Ukrainian. Every screen, not a sample: the design system, the small print, the
+  Classic and the library all read in the language you pick, and the picker in the top
+  bar names each one in its own words.
 
 ## Design
 
