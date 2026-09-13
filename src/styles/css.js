@@ -2050,6 +2050,37 @@ ${FONT_FACES}
 .invite-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .invite-rated { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-2); }
 .invite-rated input { accent-color: var(--accent-ink); width: 15px; height: 15px; }
+/* ---- clubs ----
+   A club is drawn as the friends card's rows once more, with a mark where a
+   face would be: a club is a place and not a person, and a picture of one
+   would be a picture of nothing. The mark is the same sunken well an avatar
+   sits in, so a row of clubs and a row of people line up.
+
+   The code is set in the monospaced face the rest of the app keeps for things
+   that are read character by character, and it is spaced out for the same
+   reason: it is copied off one screen and typed into another. */
+.clubs-card { display: flex; flex-direction: column; gap: 14px; }
+.clubs-card h3, .club-page h3, .club-roll h3 {
+  font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0;
+}
+.club-row { width: 100%; }
+.club-mark {
+  display: grid; place-items: center; width: 38px; height: 38px; flex: none;
+  border-radius: 13px; box-shadow: var(--sink-sm); color: var(--accent-ink);
+}
+.club-mark-lg { width: 64px; height: 64px; border-radius: 20px; }
+.club-page, .club-roll { display: flex; flex-direction: column; gap: 14px; }
+.club-face {
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 11px 13px; border-radius: 14px; box-shadow: var(--sink-sm);
+}
+.club-code { display: flex; flex-direction: column; gap: 7px; }
+.club-code-text {
+  font-family: var(--font-typewriter); font-size: 17px; letter-spacing: .22em;
+  padding: 9px 13px; border-radius: 12px; box-shadow: var(--sink-sm); color: var(--ink);
+}
+.club-code-input { font-family: var(--font-typewriter); letter-spacing: .18em; text-transform: uppercase; }
+.find-clubs { display: flex; flex-direction: column; gap: 8px; }
 /* ---- friends who are here ----
    The friends card's rows once more, on their own card above the lobby. It
    only ever exists when somebody is on it, so there is no empty state to

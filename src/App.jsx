@@ -42,6 +42,7 @@ import { RankingsView } from "./views/Rankings.jsx";
 import { HousePlayerPage } from "./views/HousePlayer.jsx";
 import { PlayerPage } from "./views/PlayerPage.jsx";
 import { ProfileView } from "./views/Profile.jsx";
+import { ClubPage } from "./views/ClubPage.jsx";
 import { DojoView } from "./views/Dojo.jsx";
 import { LookView } from "./views/Look.jsx";
 import { MailLinkView } from "./views/MailLink.jsx";
@@ -223,6 +224,11 @@ export default function JosekiApp() {
               from a ladder row lands on the ladder and coming back from a table
               lands at the table rather than always at the ladder. */}
           {view === "player" && <PlayerPage playerId={params ? params.playerId : null} go={go} notify={notify}
+            onBack={params && params.from ? () => go(params.from, params.fromParams || null) : null} />}
+          {/* A club takes the same `from` as a player's page: opened from a
+              roll it goes back to the roll, opened from your own list it goes
+              back to the list. */}
+          {view === "club" && <ClubPage clubId={params ? params.clubId : null} go={go} notify={notify}
             onBack={params && params.from ? () => go(params.from, params.fromParams || null) : null} />}
           {view === "profile" && <ProfileView profile={profile} setProfile={setProfile} go={go} room={room} notify={notify}
             writeTo={params ? params.writeTo : null} />}

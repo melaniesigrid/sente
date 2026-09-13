@@ -80,24 +80,30 @@ export function terms(name) {
   return [...found].slice(0, MAX_TERMS);
 }
 
-/** The prefix every key of this index shares. */
+/** The prefix every key of this index shares. Two of them: handles and the
+ *  clubs that have chosen to be listed. They are separate indexes rather than
+ *  one with a type field, because every search is a search for one or the
+ *  other and a shared index would answer both questions at once whichever was
+ *  asked. */
 export const FIND_PREFIX = "find:";
+export const FIND_CLUB_PREFIX = "cfind:";
 
-/** The key one term of one player's handle is written under. The id is last so
- *  that a term shared by two people is two keys under one prefix, and the id
- *  can be read back off the end without storing it twice. */
-export const findKey = (term, id) => `${FIND_PREFIX}${term}:${id}`;
+/** The key one term of one name is written under. The id is last so that a
+ *  term shared by two of them is two keys under one prefix, and the id can be
+ *  read back off the end without storing it twice. */
+export const findKey = (term, id, prefix = FIND_PREFIX) => `${prefix}${term}:${id}`;
 
-/** Every key a player's handle should have. */
-export const findKeys = (name, id) => terms(name).map((t) => findKey(t, id));
+/** Every key a name should have in one of the indexes. */
+export const findKeys = (name, id, prefix = FIND_PREFIX) =>
+  terms(name).map((t) => findKey(t, id, prefix));
 
 /** The id in an index key, or null for a key that is not one. Read from the
  *  last colon rather than by splitting: a folded term never contains one, but
  *  reading from the end is true whatever an older version of `fold` allowed. */
-export function idFrom(key) {
-  if (typeof key !== "string" || !key.startsWith(FIND_PREFIX)) return null;
+export function idFrom(key, prefix = FIND_PREFIX) {
+  if (typeof key !== "string" || !key.startsWith(prefix)) return null;
   const at = key.lastIndexOf(":");
-  const id = at > FIND_PREFIX.length - 1 ? key.slice(at + 1) : "";
+  const id = at > prefix.length - 1 ? key.slice(at + 1) : "";
   return id || null;
 }
 
@@ -112,10 +118,10 @@ export function query(raw) {
 
 /** The ids one page of index keys names, each of them once and in the order
  *  the keys came back. A person matching on two terms is one result. */
-export function idsFrom(keys) {
+export function idsFrom(keys, prefix = FIND_PREFIX) {
   const seen = new Set();
   for (const key of keys) {
-    const id = idFrom(key);
+    const id = idFrom(key, prefix);
     if (id) seen.add(id);
   }
   return [...seen];

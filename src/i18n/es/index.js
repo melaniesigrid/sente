@@ -21,6 +21,7 @@ import { front } from "./front.js";
 import { rooms } from "./rooms.js";
 import { legal, legalDoc, credit } from "./legal.js";
 import { online } from "./online.js";
+import { club } from "./club.js";
 import { account } from "./account.js";
 import { voice, plain, statement, moku, ruleset, preset, persona } from "./voice.js";
 import { tier, track, book, series, problem, shape } from "./library.js";
@@ -45,6 +46,7 @@ export const es = {
   ...rooms,
   legal,
   online,
+  club,
   account,
   voice,
   plain,
