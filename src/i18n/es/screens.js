@@ -354,6 +354,7 @@ export const screens = {
     },
     classic: {
       read: "{done}/{total} cap\u00edtulos le\u00eddos",
+      chapterRead: "Le\u00eddo",
       close: "Cierra el libro",
       open: "Lee los trece cap\u00edtulos",
     },
@@ -362,6 +363,7 @@ export const screens = {
       body: "Esta lecci\u00f3n se apoya en {list}. Puedes empezar por ah\u00ed, o abrirla de todos modos.",
       startWith: "Empieza por {title}",
       anyway: "\u00c1brela de todos modos",
+      dismiss: "Ahora no",
     },
     recall: {
       head: "Repaso",

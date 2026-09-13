@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, Fragment } from "react";
+import { useState, useEffect, useMemo, useRef, Fragment } from "react";
 import {
   ChevronLeft, ChevronRight, Check, X, Lightbulb, BookOpen, RotateCcw, Play, Search, Clock, Lock, Quote, FastForward,
   CornerDownRight, Eye, BrainCircuit,
@@ -11,11 +11,11 @@ import { Passage } from "../components/Passage.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
 import {
   LIBRARY, TIERS, TRACKS, BOOKS, lessonById, prereqsMissing, nextLessonFor, currentTierFor, searchLibrary,
-  lessonsInTier, lessonsInBook, lessonsInSeries, lessonAfter, bookProgressFor, trackByKey, isDone,
+  lessonsInTier, lessonsInBook, lessonAfter, bookProgressFor, trackByKey, isDone,
   tierById, seriesByKey,
 } from "../content/library.js";
 import {
-  CLASSIC, CHAPTERS, NAMES, lessonIdsForChapter,
+  CHAPTERS, NAMES, lessonIdsForChapter,
   localizeChapter, localizePreface, localizeName, localizeClassic,
 } from "../content/classic.js";
 import { saveProfile } from "../store/profile.js";
@@ -339,21 +339,53 @@ export function LessonPlayer({ lesson: authored, nextLesson, onDone, onExit, onO
   );
 }
 
-/* ----------------------- LESSON CARD ----------------------- */
-function LessonCard({ lesson, done, onOpen }) {
+/* ----------------------- LESSON CARD -----------------------
+   A card and, underneath it, whatever the view has to say about this lesson
+   right now. The gate is the only thing that ever goes there, and it goes
+   there rather than at the head of the view because a learner reading chapter
+   eight is two thousand pixels down the page and would see the press do
+   nothing at all. `slot` says where the press happened. */
+function LessonCard({ lesson, done, onOpen, slot = null, gate = null }) {
   const t = useT();
   return (
-    <button className="neu-card lesson-card" onClick={() => onOpen(lesson)}>
-      <div className="lesson-num">{lesson.rank}</div>
-      <div className="lesson-meta">
-        <h3>{lessonField(lesson, "title", t)}</h3>
-        <p>{lessonField(lesson, "subtitle", t)}</p>
-        <p className="lesson-chips"><Clock size={12} /> {t("learn.minutes", { min: lesson.minutes, track: localizeTrack(trackByKey(lesson.track), t)?.name })}</p>
+    <div className="lesson-slot">
+      <button className={`neu-card lesson-card ${gate ? "gated" : ""}`}
+        onClick={() => onOpen(lesson, slot)} aria-expanded={gate ? true : undefined}>
+        <div className="lesson-num">{lesson.rank}</div>
+        <div className="lesson-meta">
+          <h3>{lessonField(lesson, "title", t)}</h3>
+          <p>{lessonField(lesson, "subtitle", t)}</p>
+          <p className="lesson-chips"><Clock size={12} /> {t("learn.minutes", { min: lesson.minutes, track: localizeTrack(trackByKey(lesson.track), t)?.name })}</p>
+        </div>
+        <div className={`lesson-state ${done ? "done" : ""}`}>
+          {done ? <Check size={16} /> : <Play size={15} />}
+        </div>
+      </button>
+      {gate}
+    </div>
+  );
+}
+
+/* What a lesson that builds on unfinished ones says before it opens. Nothing
+   in the library is locked: "open anyway" is a real door, and the gate can be
+   waved off without taking either. */
+function PrereqGate({ lesson, missing, onStart, onAnyway, onDismiss }) {
+  const t = useT();
+  const first = missing[0];
+  return (
+    <Card inset className="gate-card">
+      <div className="gate-copy">
+        <div className="stat-head"><Lock size={15} /><span>{t("learn.gate.head", { title: lessonField(lesson, "title", t) })}</span></div>
+        <span className="fine">{t("learn.gate.body", { list: missing.map(l => lessonField(l, "title", t)).join(", ") })}</span>
       </div>
-      <div className={`lesson-state ${done ? "done" : ""}`}>
-        {done ? <Check size={16} /> : <Play size={15} />}
+      <div className="row">
+        <Btn icon={Play} primary small onClick={() => onStart(first)}>
+          {t("learn.gate.startWith", { title: lessonField(first, "title", t) })}
+        </Btn>
+        <Btn small onClick={onAnyway}>{t("learn.gate.anyway")}</Btn>
+        <Btn icon={X} small onClick={onDismiss} label={t("learn.gate.dismiss")} />
       </div>
-    </button>
+    </Card>
   );
 }
 
@@ -361,27 +393,32 @@ function LessonCard({ lesson, done, onOpen }) {
    Books are a grouping over lessons that carry `book`; a book with no lessons yet
    says so and takes no space beyond its line. Guess-the-move points come from
    `bookProgress`, the best run per study. */
-function Shelf({ profile, onOpen }) {
+function Shelf({ profile, onOpen, gateFor }) {
   const t = useT();
   const rows = BOOKS.map(b => ({ book: localizeBook(b, t), lessons: lessonsInBook(b.id), progress: bookProgressFor(profile, b.id) }));
   return (
     <div className="stack-sm shelf">
       <div className="stat-head track-head"><span>{t("learn.shelf.head")}</span><span className="fine track-trains">{t("learn.shelf.note")}</span></div>
       {rows.map(({ book, lessons, progress }) => (
-        <Card key={book.id} inset className="shelf-book">
-          <div className="resume-copy">
-            <div className="stat-head"><BookOpen size={15} /><span>{book.name}</span>
-              {progress.total > 0 && <span className="fine">{t("learn.shelf.pts", { score: progress.score, total: progress.total })}</span>}
+        <div key={book.id} id={`shelf-${book.id}`}>
+          <Card inset className="shelf-book">
+            <div className="resume-copy">
+              <div className="stat-head"><BookOpen size={15} /><span>{book.name}</span>
+                {progress.total > 0 && <span className="fine">{t("learn.shelf.pts", { score: progress.score, total: progress.total })}</span>}
+              </div>
+              <span className="fine">{book.blurb}</span>
+              {lessons.length === 0 && <span className="fine">{book.note || t("learn.shelf.empty")}</span>}
             </div>
-            <span className="fine">{book.blurb}</span>
-            {lessons.length === 0 && <span className="fine">{book.note || t("learn.shelf.empty")}</span>}
-          </div>
-          {lessons.length > 0 && (
-            <div className="grid2">
-              {lessons.map(l => <LessonCard key={l.id} lesson={l} done={isDone(profile, l.id)} onOpen={onOpen} />)}
-            </div>
-          )}
-        </Card>
+            {lessons.length > 0 && (
+              <div className="grid2">
+                {lessons.map(l => (
+                  <LessonCard key={l.id} lesson={l} done={isDone(profile, l.id)} onOpen={onOpen}
+                    slot={`shelf-${book.id}`} gate={gateFor(l, `shelf-${book.id}`)} />
+                ))}
+              </div>
+            )}
+          </Card>
+        </div>
       ))}
     </div>
   );
@@ -430,17 +467,25 @@ function Prose({ text, plain }) {
   ));
 }
 
-function ChapterRow({ chapter: authored, lessons, done, onOpen }) {
+/** The slot key and the DOM id of a chapter, so a lesson opened from the book
+ *  knows which chapter to come back to. */
+const chapterSlot = (n) => `chapter-${n}`;
+
+function ChapterRow({ chapter: authored, lessons, done, onOpen, open, onToggle, gateFor }) {
   const t = useT();
   const chapter = localizeChapter(authored, t);
-  const [open, setOpen] = useState(false);
+  const read = lessons.length > 0 && lessons.every(l => done(l.id));
+  const slot = chapterSlot(chapter.n);
   return (
-    <div className="chapter-row">
-      <button className="chapter-head" onClick={() => setOpen(o => !o)} aria-expanded={open}>
+    <div className={`chapter-row ${read ? "read" : ""}`} id={slot}>
+      <button className="chapter-head" onClick={onToggle} aria-expanded={open}>
         <span className="chapter-n">{chapter.n}</span>
         <span className="chapter-title">
           <strong>{chapter.title}</strong>
           <span className="fine">{chapter.theme}</span>
+        </span>
+        <span className="chapter-state">
+          {read ? <Check size={15} strokeWidth={2.4} aria-label={t("learn.classic.chapterRead")} /> : null}
         </span>
         <ChevronRight size={15} className={`chapter-caret ${open ? "open" : ""}`} />
       </button>
@@ -448,30 +493,38 @@ function ChapterRow({ chapter: authored, lessons, done, onOpen }) {
         <div className="chapter-body">
           <Prose text={chapter.text} plain={chapter.plain} />
           {chapter.n === 11 && <NamesTable />}
-          {lessons.map(l => <LessonCard key={l.id} lesson={l} done={done(l.id)} onOpen={onOpen} />)}
+          {lessons.map(l => (
+            <LessonCard key={l.id} lesson={l} done={done(l.id)} onOpen={onOpen}
+              slot={slot} gate={gateFor(l, slot)} />
+          ))}
         </div>
       )}
     </div>
   );
 }
 
-function ClassicCard({ done, onOpen }) {
+/* The book stays where the reader left it: which chapters are open is the
+   view's state, not the row's, so playing a chapter's lesson and coming back
+   does not shut the book and lose the place. */
+function ClassicCard({ done, onOpen, open, onToggle, isOpen, onToggleChapter, gateFor }) {
   const t = useT();
-  const [openList, setOpenList] = useState(false);
-  const lessons = lessonsInSeries(CLASSIC.key);
-  const finished = lessons.filter(l => done(l.id)).length;
+  /* Counted in chapters, because that is what the line says. Chapter thirteen
+     carries two lessons and the series holds fourteen; the book still has
+     thirteen chapters, and a chapter is read when its lessons are. */
+  const chapters = CHAPTERS.map(ch => lessonIdsForChapter(ch).map(lessonById).filter(Boolean));
+  const finished = chapters.filter(ls => ls.length > 0 && ls.every(l => done(l.id))).length;
   return (
     <Card inset className="stack-sm">
       <div className="stat-head"><Quote size={15} /><span>{localizeClassic(t).title}</span></div>
       <Statement lines={statementFor("learn", t)} figure="learn">{plainFor("learn", t)}</Statement>
       <Passage context="learn" />
       <div className="row spread">
-        <span className="fine">{t("learn.classic.read", { done: finished, total: lessons.length })}</span>
-        <Btn icon={openList ? ChevronLeft : BookOpen} small onClick={() => setOpenList(o => !o)}>
-          {t(openList ? "learn.classic.close" : "learn.classic.open")}
+        <span className="fine">{t("learn.classic.read", { done: finished, total: CHAPTERS.length })}</span>
+        <Btn icon={open ? ChevronLeft : BookOpen} small onClick={onToggle}>
+          {t(open ? "learn.classic.close" : "learn.classic.open")}
         </Btn>
       </div>
-      {openList && (
+      {open && (
         <div className="stack-sm">
           <p className="fine">{localizeClassic(t).blurb} {localizeClassic(t).credit}</p>
           <div className="chapter-list">
@@ -481,10 +534,10 @@ function ClassicCard({ done, onOpen }) {
                 <Prose text={localizePreface(t).text} plain={localizePreface(t).plain} />
               </div>
             </div>
-            {CHAPTERS.map(ch => (
-              <ChapterRow key={ch.n} chapter={ch}
-                lessons={lessonIdsForChapter(ch).map(lessonById).filter(Boolean)}
-                done={done} onOpen={onOpen} />
+            {CHAPTERS.map((ch, i) => (
+              <ChapterRow key={ch.n} chapter={ch} lessons={chapters[i]}
+                done={done} onOpen={onOpen} gateFor={gateFor}
+                open={isOpen(ch.n)} onToggle={() => onToggleChapter(ch.n)} />
             ))}
           </div>
         </div>
@@ -500,14 +553,47 @@ export function LearnView({ profile, setProfile, go }) {
   const [pending, setPending] = useState(null);    // lesson with missing prereqs awaiting a decision
   const [tier, setTier] = useState(() => currentTierFor(profile));
   const [query, setQuery] = useState("");
+  const [bookOpen, setBookOpen] = useState(false);
+  const [openChapters, setOpenChapters] = useState(() => new Set());
+  const returnTo = useRef(null);                   // slot to scroll back to on leaving a lesson
   useMokuFacts({ view: "learn", seed: profile.lessonsDone.length });
 
   const done = (id) => isDone(profile, id);
-  const open = (lesson) => {
-    const missing = prereqsMissing(lesson, profile);
-    if (missing.length) setPending({ lesson, missing });
-    else { setPending(null); setActive(lesson.id); }
+  /* `slot` is where the press happened. The gate has to answer in that place,
+     and leaving the lesson has to come back to it. */
+  const start = (lesson, slot) => {
+    setPending(null);
+    returnTo.current = slot || null;
+    setActive(lesson.id);
   };
+  const open = (lesson, slot) => {
+    const missing = prereqsMissing(lesson, profile);
+    if (missing.length) setPending({ lesson, missing, slot: slot || null });
+    else start(lesson, slot);
+  };
+
+  /* Coming back from a lesson lands on the chapter it was opened from rather
+     than at the top of a library the reader has already scrolled past. */
+  useEffect(() => {
+    if (active || !returnTo.current) return;
+    const el = document.getElementById(returnTo.current);
+    returnTo.current = null;
+    el?.scrollIntoView({ block: "center" });
+  }, [active]);
+
+  const toggleChapter = (n) => setOpenChapters(s => {
+    const next = new Set(s);
+    if (!next.delete(n)) next.add(n);
+    return next;
+  });
+
+  const gateFor = (lesson, slot = null) =>
+    (pending && pending.lesson.id === lesson.id && pending.slot === slot ? (
+      <PrereqGate lesson={pending.lesson} missing={pending.missing}
+        onStart={(l) => start(l, slot)}
+        onAnyway={() => start(pending.lesson, slot)}
+        onDismiss={() => setPending(null)} />
+    ) : null);
   /* Completing records the lesson but leaves the player mounted: it shows its own
      recap and offers the next lesson there, so the learner sees what the lesson
      taught before moving on. The session is dropped so a replay starts at step one. */
@@ -573,19 +659,6 @@ export function LearnView({ profile, setProfile, go }) {
       </ScreenHeader>
       <p className="lede">{t("learn.sub")}</p>
 
-      {pending && (
-        <Card inset className="resume-card">
-          <div className="resume-copy">
-            <div className="stat-head"><Lock size={15} /><span>{t("learn.gate.head", { title: lessonField(pending.lesson, "title", t) })}</span></div>
-            <span className="fine">{t("learn.gate.body", { list: pending.missing.map(l => lessonField(l, "title", t)).join(", ") })}</span>
-          </div>
-          <div className="row">
-            <Btn icon={Play} primary small onClick={() => { setPending(null); setActive(pending.missing[0].id); }}>{t("learn.gate.startWith", { title: lessonField(pending.missing[0], "title", t) })}</Btn>
-            <Btn small onClick={() => { setPending(null); setActive(pending.lesson.id); }}>{t("learn.gate.anyway")}</Btn>
-          </div>
-        </Card>
-      )}
-
       {/* What you have already read, asked back. It comes before Continue: a
           question that is due is worth more than the next lesson, because it is
           the one thing here that is about to be forgotten. */}
@@ -601,17 +674,24 @@ export function LearnView({ profile, setProfile, go }) {
       )}
 
       {!searching && continueLesson && (
-        <Card inset className="resume-card">
-          <div className="resume-copy">
-            <div className="stat-head"><Play size={15} /><span>{t("learn.continueHead")}</span></div>
-            <strong>{lessonField(continueLesson, "title", t)}</strong>
-            <span className="fine">{t("learn.continueMeta", { rank: continueLesson.rank, min: continueLesson.minutes, track: localizeTrack(trackByKey(continueLesson.track), t)?.name })}</span>
-          </div>
-          <Btn icon={Play} primary small onClick={() => open(continueLesson)}>{t("learn.recall.start")}</Btn>
-        </Card>
+        <div className="lesson-slot">
+          <Card inset className="resume-card">
+            <div className="resume-copy">
+              <div className="stat-head"><Play size={15} /><span>{t("learn.continueHead")}</span></div>
+              <strong>{lessonField(continueLesson, "title", t)}</strong>
+              <span className="fine">{t("learn.continueMeta", { rank: continueLesson.rank, min: continueLesson.minutes, track: localizeTrack(trackByKey(continueLesson.track), t)?.name })}</span>
+            </div>
+            <Btn icon={Play} primary small onClick={() => open(continueLesson, "continue")}>{t("learn.recall.start")}</Btn>
+          </Card>
+          {gateFor(continueLesson, "continue")}
+        </div>
       )}
 
-      {!searching && <ClassicCard done={done} onOpen={open} />}
+      {!searching && (
+        <ClassicCard done={done} onOpen={open} gateFor={gateFor}
+          open={bookOpen} onToggle={() => setBookOpen(o => !o)}
+          isOpen={(n) => openChapters.has(n)} onToggleChapter={toggleChapter} />
+      )}
 
       <div className="library">
         {!searching && (
@@ -651,11 +731,13 @@ export function LearnView({ profile, setProfile, go }) {
             <div key={g.track.key} className="stack-sm">
               <div className="stat-head track-head"><span>{localizeTrack(g.track, t).name}</span><span className="fine track-trains">{localizeTrack(g.track, t).trains}</span></div>
               <div className="grid2">
-                {g.lessons.map(l => <LessonCard key={l.id} lesson={l} done={done(l.id)} onOpen={open} />)}
+                {g.lessons.map(l => (
+                  <LessonCard key={l.id} lesson={l} done={done(l.id)} onOpen={open} gate={gateFor(l)} />
+                ))}
               </div>
             </div>
           ))}
-          {!searching && <Shelf profile={profile} onOpen={open} />}
+          {!searching && <Shelf profile={profile} onOpen={open} gateFor={gateFor} />}
         </div>
       </div>
     </div>
