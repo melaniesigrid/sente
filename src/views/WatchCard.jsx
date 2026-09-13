@@ -35,11 +35,16 @@ export function WatchCard({ token, onWatch }) {
 
   useEffect(() => {
     let alive = true;
-    const tick = () => { if (alive && document.visibilityState !== "hidden") refresh(); };
+    const doc = typeof document === "undefined" ? null : document;
+    const tick = () => { if (alive && (!doc || doc.visibilityState !== "hidden")) refresh(); };
     Promise.resolve().then(tick);
     const id = setInterval(tick, WATCH_POLL_MS);
-    document.addEventListener("visibilitychange", tick);
-    return () => { alive = false; clearInterval(id); document.removeEventListener("visibilitychange", tick); };
+    if (doc) doc.addEventListener("visibilitychange", tick);
+    return () => {
+      alive = false;
+      clearInterval(id);
+      if (doc) doc.removeEventListener("visibilitychange", tick);
+    };
   }, [refresh]);
 
   return (
