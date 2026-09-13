@@ -136,7 +136,7 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
           {mine && (
             <div className="row">
               <Btn icon={Pencil} small onClick={() => go("profile")}>{t("player.editCard")}</Btn>
-              <span className="fine">This is you, as everybody else sees you.</span>
+              <span className="fine">{t("player.thisIsYou", null, "This is you, as everybody else sees you.")}</span>
             </div>
           )}
         </Card>

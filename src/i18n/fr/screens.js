@@ -441,6 +441,7 @@ export const screens = {
   },
 
   player: {
+    thisIsYou: "C’est toi, tel que tout le monde te voit.",
     since: "Ici depuis {when}",
     played: "A joué {when}",
     lastPlayed: "A joué pour la dernière fois en {when}",
@@ -500,6 +501,7 @@ export const screens = {
   },
 
   letters: {
+    fetching: "Récupération de tes lettres…",
     head: "Lettres",
     note: "Un fil par personne, gardé pour de bon. Seul quelqu’un dont tu es l’ami, ou contre qui tu as terminé une partie, peut t’écrire.",
     empty: "Rien pour l’instant. Ouvre la page de quelqu’un depuis tes amis ou le classement et écris-lui.",
@@ -569,4 +571,41 @@ export const screens = {
     whoMaySee: "Qui peut voir que tu es là",
     note: "{hint}. Être là est une connexion ouverte et rien de plus : arriver n’écrit rien et partir n’écrit rien, il n’y a donc aucune trace du moment où tu étais là que quiconque pourrait lire ensuite.",
   },
+};
+
+export const chain = {
+  title: "La chaîne",
+  days: { one: "jour", other: "jours" },
+  running: { one: "jour d'affilée", other: "jours d'affilée" },
+  best: "plus longue série",
+  total: "jours au relevé",
+  rest: { one: "jour de repos en réserve", other: "jours de repos en réserve" },
+  rules: "Un jour compte quand tu résous un problème, termines une leçon, passes un rappel ou joues une partie classée. Sept jours de pratique donnent un jour de repos, tu peux en garder deux, et un jour manqué en dépense un. Le relevé remonte à treize mois et ne vit que sur cet appareil.",
+  strip: { one: "{count} jour pratiqué sur les {days} derniers", other: "{count} jours pratiqués sur les {days} derniers" },
+  year: { one: "{count} jour pratiqué sur les {weeks} dernières semaines", other: "{count} jours pratiqués sur les {weeks} dernières semaines" },
+  note: {
+    broken: { one: "Aucune série en cours. La plus longue a été de {count} jour, et aujourd'hui commence la suivante.", other: "Aucune série en cours. La plus longue a été de {count} jours, et aujourd'hui commence la suivante." },
+    none: "Pratique aujourd'hui et la chaîne commence.",
+    done: "Pratiqué aujourd'hui.",
+      doneHeld: { one: "Pratiqué aujourd'hui. {count} jour de repos en réserve.", other: "Pratiqué aujourd'hui. {count} jours de repos en réserve." },
+    last: "Aujourd'hui est encore ouvert, et c'est le jour dont cette série a besoin.",
+    open: { one: "Aujourd'hui est encore ouvert. {count} jour de repos en réserve si cela reste ainsi.", other: "Aujourd'hui est encore ouvert. {count} jours de repos en réserve si cela reste ainsi." },
+  },
+};
+
+export const master = {
+  title: "Les maîtres",
+  blurb: "Des bots, comme tous les joueurs de la maison ici. Chacun joue le profil que le réseau de style humain de KataGo garde pour un fort professionnel de son année, avec le livre d'ouvertures du maître lui-même sur les premiers coups. {size}×{size}, non classé : s'accorder avec un profil n'est pas une force, et Joseki n'y mettra pas de rang.",
+  agreement: "{pct} d'accord avec le profil de fort joueur de {year}, sur {positions} positions réservées",
+  control: "{own} avec son propre livre d'ouvertures · {other} avec celui d'un autre maître, le témoin",
+  lean: "Un penchant mesuré de son côté figure dans la propre liste courte du réseau.",
+  failed: "Ses parties n'ont pas pu être chargées. Réessaie",
+  opening: "Ouverture de ses parties…",
+  sit: "Assieds-toi · {size}×{size}, non classé",
+};
+
+export const clock = {
+  untimed: "sans pendule",
+  flagged: "temps écoulé",
+  byoyomi: { one: "{time}, byo-yomi, il reste {count} période", other: "{time}, byo-yomi, il reste {count} périodes" },
 };

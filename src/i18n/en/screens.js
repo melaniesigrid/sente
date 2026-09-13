@@ -462,6 +462,7 @@ export const screens = {
      what is said about a stranger is "played this week", never an hour of a
      day. See views/playerCard.js. */
   player: {
+    thisIsYou: "This is you, as everybody else sees you.",
     since: "Here since {when}",
     played: "Played {when}",
     lastPlayed: "Last played {when}",
@@ -527,6 +528,7 @@ export const screens = {
      same thing a stranger is told, because blocking is silent and a line saying
      "you have been blocked" is the one message the blocker chose not to send. */
   letters: {
+    fetching: "Fetching your letters…",
     head: "Letters",
     note: "One thread a person, kept for good. Only somebody you are friends with, or have finished a game against, can write to you.",
     empty: "Nothing yet. Open somebody\u2019s page from your friends or the ladder and write to them.",
@@ -604,4 +606,53 @@ export const screens = {
     whoMaySee: "Who may see you are here",
     note: "{hint}. Being here is an open connection and nothing more: arriving writes nothing down and leaving writes nothing down, so there is no record of when you were here for anybody to read later.",
   },
+};
+
+/* ----------------------- THE CHAIN -----------------------
+   The record of days practised, on the dashboard and on the profile. The
+   notes are whole sentences rather than pieces, because the run, the rest
+   days and the day still open do not fall in the same order in every
+   language. */
+export const chain = {
+  title: "The chain",
+  days: { one: "day", other: "days" },
+  running: { one: "day running", other: "days running" },
+  best: "longest run",
+  total: "days on the record",
+  rest: { one: "rest day in hand", other: "rest days in hand" },
+  rules: "A day counts when you solve a problem, finish a lesson, sit a recall or play a rated game. Seven days of practice earn a rest day, you can hold two, and a missed day spends one. The record goes back thirteen months and lives on this device only.",
+  strip: { one: "{count} day practised in the last {days}", other: "{count} days practised in the last {days}" },
+  year: { one: "{count} day practised in the last {weeks} weeks", other: "{count} days practised in the last {weeks} weeks" },
+  note: {
+    broken: { one: "No run going. Your longest was {count} day, and today starts the next one.", other: "No run going. Your longest was {count} days, and today starts the next one." },
+    none: "Practise today and the chain starts.",
+    done: "Practised today.",
+      doneHeld: { one: "Practised today. {count} rest day in hand.", other: "Practised today. {count} rest days in hand." },
+    last: "Today is still open, and it is the day this run needs.",
+    open: { one: "Today is still open. {count} rest day in hand if it stays that way.", other: "Today is still open. {count} rest days in hand if it stays that way." },
+  },
+};
+
+/* ----------------------- THE MASTERS -----------------------
+   `agreement` and `control` carry measured numbers. The numbers arrive as
+   holes and are never written into a line here: a translation may move them
+   but may not restate them, which is the whole of the house rule about a
+   claim that was counted. */
+export const master = {
+  title: "The masters",
+  blurb: "Bots, like every house player here. Each one plays the profile KataGo's human-style network holds for a strong professional of its year, with that master's own opening book over the first moves. {size}×{size}, unrated: agreement with a profile is not a strength, and Joseki will not put a rank on it.",
+  agreement: "{pct} agreement with the strong-player-of-{year} profile, on {positions} held-out positions",
+  control: "{own} with his own opening book · {other} with another master's, the control",
+  lean: "A measured lean his way ships on the network's own shortlist.",
+  failed: "His games could not be loaded. Try again",
+  opening: "Opening his games…",
+  sit: "Sit down · {size}×{size}, unrated",
+};
+
+/* The clock's accessible name. A sighted reader sees the digits; this is
+   what is read instead, so it is a sentence and not a row of numbers. */
+export const clock = {
+  untimed: "no clock",
+  flagged: "out of time",
+  byoyomi: { one: "{time}, byo-yomi, {count} period left", other: "{time}, byo-yomi, {count} periods left" },
 };

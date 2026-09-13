@@ -67,6 +67,8 @@ export const rooms = {
   },
 
   dojo: {
+    lookNote: "Zwischen den benannten Räumen, den Steinen und der Schrift wechselt man auf {link}.",
+    lookLink: "der Aussehen-Seite",
     title: "Bau dein eigenes Dojo",
     sub: "Sechs Farben machen einen Raum, und jede Farbe, die hier angeboten wird, ist eine, mit der Joseki irgendwo schon spielt: nimm den Grund dieses Raums, die Marke jenes Raums und die Steine eines dritten. Das Brett bewegt sich unterwegs mit ihnen: Steine, Gitter, Schatten und alles. Nichts wird gespeichert, bis du es sagst, und die Zahlen unten sind dieselben, die der Build prüft.",
     resetBoard: "Brett zurücksetzen",

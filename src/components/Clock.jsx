@@ -1,4 +1,5 @@
 import { faceOf } from "../content/clockFace.js";
+import { useT } from "./langStore.js";
 
 /* ----------------------- CLOCK FACE -----------------------
    One side's clock, drawn to sit inside the vs-strip rather than in a bar of its own:
@@ -16,13 +17,20 @@ import { faceOf } from "../content/clockFace.js";
 const dots = (n) => Array.from({ length: n }, (_, i) => i);
 
 export function ClockFace({ clock, color, active = false, timed = true, align = "left" }) {
+  const t = useT();
   if (!clock) return null;
-  if (!timed) return <span className={`clock-face untimed ${align}`}>no clock</span>;
+  if (!timed) return <span className={`clock-face untimed ${align}`}>{t("clock.untimed", null, "no clock")}</span>;
 
   const face = faceOf(clock, color);
+  /* The accessible name is a sentence, so it is one catalogue line and not
+     three glued together: a language that puts the periods before the clock
+     cannot be served by concatenation. */
   const label = face.flagged
-    ? "out of time"
-    : `${face.text}${face.inByoyomi ? `, byo-yomi, ${face.periods} period${face.periods === 1 ? "" : "s"} left` : ""}`;
+    ? t("clock.flagged", null, "out of time")
+    : face.inByoyomi
+      ? t("clock.byoyomi", { time: face.text, count: face.periods },
+          `${face.text}, byo-yomi, ${face.periods} period${face.periods === 1 ? "" : "s"} left`)
+      : face.text;
 
   return (
     <span

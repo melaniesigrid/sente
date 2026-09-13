@@ -434,6 +434,7 @@ export const screens = {
   },
 
   player: {
+    thisIsYou: "Este eres tú, tal como te ve todo el mundo.",
     since: "Aquí desde {when}",
     played: "Jugó {when}",
     lastPlayed: "Jugó por última vez en {when}",
@@ -493,6 +494,7 @@ export const screens = {
   },
 
   letters: {
+    fetching: "Recogiendo tus cartas…",
     head: "Cartas",
     note: "Un hilo por persona, guardado para siempre. Solo puede escribirte alguien con quien seas amigo o contra quien hayas terminado una partida.",
     empty: "Todavía nada. Abre la página de alguien desde tus amigos o desde la clasificación y escríbele.",
@@ -562,4 +564,41 @@ export const screens = {
     whoMaySee: "Quién puede ver que estás aquí",
     note: "{hint}. Estar aquí es una conexión abierta y nada más: llegar no anota nada e irse no anota nada, así que no queda registro de cuándo estuviste aquí para que nadie lo lea después.",
   },
+};
+
+export const chain = {
+  title: "La cadena",
+  days: { one: "día", other: "días" },
+  running: { one: "día seguido", other: "días seguidos" },
+  best: "racha más larga",
+  total: "días en el registro",
+  rest: { one: "día de descanso guardado", other: "días de descanso guardados" },
+  rules: "Un día cuenta cuando resuelves un problema, terminas una lección, te sientas a un repaso o juegas una partida puntuada. Siete días de práctica dan un día de descanso, puedes guardar dos, y un día perdido gasta uno. El registro llega trece meses atrás y vive solo en este dispositivo.",
+  strip: { one: "{count} día practicado en los últimos {days}", other: "{count} días practicados en los últimos {days}" },
+  year: { one: "{count} día practicado en las últimas {weeks} semanas", other: "{count} días practicados en las últimas {weeks} semanas" },
+  note: {
+    broken: { one: "No hay racha en marcha. La más larga fue de {count} día, y hoy empieza la siguiente.", other: "No hay racha en marcha. La más larga fue de {count} días, y hoy empieza la siguiente." },
+    none: "Practica hoy y la cadena empieza.",
+    done: "Practicado hoy.",
+      doneHeld: { one: "Practicado hoy. {count} día de descanso guardado.", other: "Practicado hoy. {count} días de descanso guardados." },
+    last: "Hoy sigue abierto, y es el día que esta racha necesita.",
+    open: { one: "Hoy sigue abierto. {count} día de descanso guardado si sigue así.", other: "Hoy sigue abierto. {count} días de descanso guardados si sigue así." },
+  },
+};
+
+export const master = {
+  title: "Los maestros",
+  blurb: "Bots, como todos los jugadores de la casa de aquí. Cada uno juega el perfil que la red de estilo humano de KataGo guarda para un profesional fuerte de su año, con el libro de aperturas del propio maestro sobre las primeras jugadas. {size}×{size}, sin puntuar: coincidir con un perfil no es fuerza, y Joseki no le va a poner un rango.",
+  agreement: "{pct} de coincidencia con el perfil de jugador fuerte de {year}, sobre {positions} posiciones reservadas",
+  control: "{own} con su propio libro de aperturas · {other} con el de otro maestro, el control",
+  lean: "Una inclinación medida hacia su lado viaja en la propia lista corta de la red.",
+  failed: "No se pudieron cargar sus partidas. Inténtalo otra vez",
+  opening: "Abriendo sus partidas…",
+  sit: "Siéntate · {size}×{size}, sin puntuar",
+};
+
+export const clock = {
+  untimed: "sin reloj",
+  flagged: "sin tiempo",
+  byoyomi: { one: "{time}, byo-yomi, queda {count} periodo", other: "{time}, byo-yomi, quedan {count} periodos" },
 };

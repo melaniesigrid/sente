@@ -185,7 +185,7 @@ export function Landing({ profile, onEnter, go }) {
       <section className="lp-section wide" id="record">
         <div className="lp-record">
           <div className="lp-record-head">
-            <h2 className="lp-record-mast">The Record</h2>
+            <h2 className="lp-record-mast">{t("landing.recordMast", null, "The Record")}</h2>
             <p className="lp-record-rule">{RECORD_STANDFIRST}</p>
           </div>
           <h3 className="lp-record-headline reveal">{RECORD_HEADLINE}</h3>
