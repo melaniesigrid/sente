@@ -31,7 +31,6 @@ They are left as they were written rather than rewritten after the fact.
 - **The board can be cropped.** `Board` takes a `crop` and moves only its viewBox, so a
   corner sequence on nineteen lines is readable at page width and on a phone. The board is
   still nineteen lines and the edge is still the edge.
-
 ## v0.8.1.0 (2026-09-12)
 
 ### Added

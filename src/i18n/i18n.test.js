@@ -16,9 +16,8 @@ import { PERSONAS } from "../content/personas.js";
 import { RULESET_IDS } from "../engine/rulesets.js";
 import { CLOCK_PRESETS } from "../content/clockFace.js";
 import { TIERS, TRACKS, BOOKS, SERIES } from "../content/library.js";
-import { PROBLEMS } from "../content/problems.js";
+import { PROBLEMS, SETS } from "../content/problems.js";
 import { JOSEKI, CORNERS } from "../content/joseki.js";
-import { SETS } from "../content/problems.js";
 import { COMMENTARY } from "../content/commentary.js";
 import { CHAPTERS, LEVELS, NAMES, KINDS, PASSAGES } from "../content/classic.js";
 import {
@@ -282,10 +281,10 @@ describe.each(others)("$name is complete", (locale) => {
       book: BOOKS.map(x => x.id),
       series: SERIES.map(x => x.key),
       problem: PROBLEMS.map(x => x.id),
+      problemSet: SETS.map(x => x.id),
       josekiEntry: JOSEKI.map(x => x.id),
       josekiCorner: CORNERS.map(x => x.id),
       josekiSource: ["credit"],
-      problemSet: SETS.map(x => x.id),
       shape: Object.keys(COMMENTARY),
       classicBook: ["title", "short", "era", "blurb", "credit"],
       preface: ["title", "plain", "text"],
