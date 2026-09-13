@@ -64,6 +64,10 @@ def main():
                          "about the local answer.")
     ap.add_argument("--walk", type=int, default=0,
                     help="after the sequence, keep playing the network's own first choice N times")
+    ap.add_argument("--cands", default="",
+                    help="c,r c,r ... : also report these points at the last position, "
+                         "with their rank and weight. For setting a lesson's verdicts "
+                         "from the network's order instead of from the author's taste.")
     ap.add_argument("--show", type=int, default=0,
                     help="print the first N by N corner as move numbers when the walk ends")
     ap.add_argument("--json", action="store_true")
@@ -127,6 +131,7 @@ def main():
         rank = ranked.index(played) + 1 if played in ranked else 0
         rec = {"k": k, "colour": colour, "played": [c, r],
                "p": round(float(probs[played]), 4), "rank": rank, "top": top}
+        rec["_probs"] = probs
         records.append(rec)
         if not args.json:
             marks = " ".join(
@@ -134,6 +139,15 @@ def main():
                 for t in top)
             print(f"{k + 1:>2}. {colour} {c},{r}  p={rec['p']:.3f} rank={rank:<3} | {marks}")
         gs.play(pla, gs.board.loc(c, r))
+    if args.cands and records:
+        last = records[-1]
+        print()
+        print("candidates at move %d (%s to play):" % (len(records), last["colour"]))
+        for tok in args.cands.split():
+            c, r = (int(v) for v in tok.split(","))
+            i = r * SIZE + c
+            place = int(np.where(np.argsort(-last["_probs"]) == i)[0][0]) + 1
+            print("  %-7s p=%.4f  rank %d" % (tok, last["_probs"][i], place))
     if args.show:
         n = args.show
         grid = [[" ." for _ in range(n)] for _ in range(n)]
@@ -145,7 +159,8 @@ def main():
         for r, row in enumerate(grid):
             print(f"{r:>2} " + "".join(f"{v:>3}" for v in row))
     if args.json:
-        print(json.dumps(records, separators=(",", ":")))
+        print(json.dumps([{k: v for k, v in r.items() if not k.startswith("_")} for r in records],
+                         separators=(",", ":")))
 
 
 if __name__ == "__main__":
