@@ -71,6 +71,7 @@ export function OnlineProfileCard({ account, setAccount, notify }) {
    the choices says so, because a person deciding how visible to be deserves to
    know there is no history behind the question. */
 function WhoMaySee({ player, token, onSaved, notify }) {
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const chosen = cleanShowOnline(player.showOnline);
 
@@ -80,26 +81,24 @@ function WhoMaySee({ player, token, onSaved, notify }) {
     try {
       onSaved(await api.setProfile(token, { showOnline: id }));
     } catch (e) {
-      notify({ icon: "info", text: errorText(e.reason) });
+      notify({ icon: "info", text: errorText(e.reason, t) });
     } finally { setBusy(false); }
   };
 
   return (
     <div className="who-may-see">
-      <span className="op-label" id="who-may-see">Who may see you are here</span>
+      <span className="op-label" id="who-may-see">{t("presence.whoMaySee")}</span>
       <div className="seg" role="radiogroup" aria-labelledby="who-may-see">
         {SHOW_ONLINE.map((o) => (
           <button key={o.id} type="button" role="radio" aria-checked={chosen === o.id}
             className={`seg-btn ${chosen === o.id ? "active" : ""}`}
-            disabled={busy} title={o.hint} onClick={() => pick(o.id)}>
-            {o.label}
+            disabled={busy} title={t(`seen.${o.id}.hint`, null, o.hint)} onClick={() => pick(o.id)}>
+            {t(`seen.${o.id}.label`, null, o.label)}
           </button>
         ))}
       </div>
       <p className="fine">
-        {SHOW_ONLINE.find((o) => o.id === chosen).hint}. Being here is an open connection and
-        nothing more: arriving writes nothing down and leaving writes nothing down, so there is
-        no record of when you were here for anybody to read later.
+        {t("presence.note", { hint: t(`seen.${chosen}.hint`, null, SHOW_ONLINE.find((o) => o.id === chosen).hint) })}
       </p>
     </div>
   );

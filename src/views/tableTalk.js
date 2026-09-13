@@ -74,23 +74,24 @@ export function pointsNamed(text, size) {
    No line is an opinion about a move. "Nice move" belongs to whoever means it
    and can type it; a button that says it for you makes the compliment worth
    nothing. */
-const OPENING = [
-  { text: "Have a good game", note: "the usual opening" },
-  { text: "Onegaishimasu", note: "please, let us play" },
-];
-const CLOSING = [
-  { text: "Thank you for the game", note: "the usual closing" },
-  { text: "Arigatou gozaimashita", note: "thank you very much" },
-];
+/* Each is an id, and the words are catalogue lines: the text is what gets
+   sent, so it is said in the language of whoever is saying it, and the note is
+   the gloss under the button. The two Japanese lines are names of phrases
+   rather than sentences, so they are the same in every language and only their
+   glosses move. */
+import { BASE_LOCALE, makeT, lineOr } from "../i18n/index.js";
+
+const EN = makeT(BASE_LOCALE);
+
+const OPENING = ["goodGame", "onegaishimasu"];
+const CLOSING = ["thankYou", "arigatou"];
 /* Only one line while counting, and it is a question rather than a verdict.
    "That marking looks right to me" was here and is gone: it sends a chat line
    and nothing else, so a player who tapped it had every reason to believe they
    had accepted the count, and the game would sit unfinished with both sides
    sure they had agreed. It was also an opinion about the position, which the
    rule two paragraphs up forbids. Accepting is a button of its own. */
-const COUNTING = [
-  { text: "Shall we count?", note: "" },
-];
+const COUNTING = ["shallWeCount"];
 
 /** The etiquette offered at this moment, already filtered by what this player
   * has said in this room.
@@ -100,12 +101,15 @@ const COUNTING = [
   * it: the row is for the thing that is said once, and a button that can be
   * pressed twenty times is a button for flooding somebody. Spectators get no
   * row at all, because the greeting is between the players. */
-export function etiquette({ phase, moves = 0, seated = true, said = [] } = {}) {
+export function etiquette({ phase, moves = 0, seated = true, said = [] } = {}, t = EN) {
   if (!seated) return [];
   const pool = phase === "ended" ? CLOSING
     : phase === "scoring" ? COUNTING
     : moves <= 2 ? OPENING
     : [];
   const already = new Set(said);
-  return pool.filter((line) => !already.has(line.text));
+  return pool
+    // A line whose meaning is plain has no gloss, and an empty one is not a line.
+    .map((id) => ({ id, text: t(`talk.${id}.text`), note: lineOr(t, `talk.${id}.note`, "") }))
+    .filter((line) => !already.has(line.text));
 }

@@ -51,6 +51,10 @@ export const rooms = {
     whiteShort: "W",
     turnMove: "Move {move}",
     turnAria: "Move {move}, where {side} lost {cost}",
+    underAMinute: "under a minute left",
+    minutesLeft: { one: "about {count} minute left", other: "about {count} minutes left" },
+    networkUnreachable: "The network could not be reached, so the graph stops where it does.",
+    graphFailed: "The graph could not be drawn.",
     /* The line under the graph, assembled from a lead and then what the last
        move did to it, because "gained" and "cost" are not the same sentence
        in every language and neither is the side that did it. */

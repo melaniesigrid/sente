@@ -180,8 +180,8 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
     [chat, account, sent],
   );
   const openers = useMemo(
-    () => (rec ? etiquette({ phase: rec.phase, moves: rec.moves.length, seated: !!seat, said }) : []),
-    [rec, seat, said],
+    () => (rec ? etiquette({ phase: rec.phase, moves: rec.moves.length, seated: !!seat, said }, t) : []),
+    [rec, seat, said, t],
   );
   const resultKind = over && color ? (over.winner === null ? "jigo" : over.winner === color ? "win" : "loss") : null;
   useMokuFacts({ view: "game", phase: rec ? rec.phase : "playing", thinking: false, myAtari: myAtari.length, oppAtari: 0, ko: !!(rec && rec.koPoint !== null), moment: null, result: resultKind, promoted: null, seed: rec ? rec.moves.length : 0 });
@@ -470,7 +470,7 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
             {account && openers.length > 0 && (
               <div className="talk-offer">
                 {openers.map(line => (
-                  <button key={line.text} type="button" className="talk-line" onClick={() => say(line.text)}>
+                  <button key={line.id} type="button" className="talk-line" onClick={() => say(line.text)}>
                     <span>{line.text}</span>
                     {line.note && <span className="talk-note">{line.note}</span>}
                   </button>

@@ -88,3 +88,9 @@ export const fact = {
   since: { label: "Tu joues depuis", hint: "Une année" },
   likes: { label: "Ce que tu aimes jouer", hint: "Une ouverture, une forme, une façon de perdre" },
 };
+
+export const seen = {
+  nobody: { label: "Personne", hint: "Même tes amis ne voient pas quand tu es là" },
+  friends: { label: "Tes amis", hint: "Les personnes avec qui vous vous êtes mis d’accord tous les deux" },
+  everyone: { label: "N’importe qui", hint: "Quiconque ouvre ta page" },
+};

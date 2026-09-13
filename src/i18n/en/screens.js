@@ -113,6 +113,10 @@ export const screens = {
     challengeHome: "Challenge at {rank} · at home here",
     challenge: "Challenge at {rank}",
     passPlay: "Pass & play",
+    nudgePlay: "Play {rank}",
+    keepLevel: "Keep this level",
+    nudgeWon: { one: "{count} even win in a row at {from}. {to} would be a harder game.", other: "{count} even wins in a row at {from}. {to} would be a harder game." },
+    nudgeLost: { one: "{count} even loss in a row at {from}. {to} would be a fairer game.", other: "{count} even losses in a row at {from}. {to} would be a fairer game." },
     passTag: "Two players, one board",
     passBio: "The original multiplayer. Black and White share the device; the ladder sits this one out.",
     sitDown: "Sit down",
@@ -476,5 +480,55 @@ export const screens = {
       "no-server": "This copy of Joseki is running without a server",
       unauthorized: "Claim a handle before writing",
     },
+  },
+
+  /* Pair go: four seats, one rotation, and nobody plays twice running. Unrated
+     is not a footnote here but the first thing said, because a win in which a
+     7 dan played half your moves is evidence about the pair and not about you. */
+  pair: {
+    head: "Pair go",
+    tag: "Four seats, one board",
+    bio: "You and a {rank} house player against {name}, who plays at your level, and one of their own. The four of you take turns in one rotation and nobody plays twice running, so every move you make is answered by an opponent and then built on by a player far stronger than you, in your game, on your mistake. Your partner is silent: what it has to teach, it teaches by playing it.",
+    howStrong: "How strong a partner",
+    weaker: "A weaker partner",
+    stronger: "A stronger partner",
+    partnersAt: "partners at {rank}",
+    levelEach: "{rank} each side",
+    yourLevelEach: "your level each side",
+    cardNote: "{ours} against {theirs} \u00b7 unrated, because a win in which a {rank} played half your moves is evidence about the pair and not about you. Both partners are the same strength; no clock yet. Every player above except you is a bot, and says so.",
+    seatLine: "{name} \u00b7 {side}",
+    opponent: "{name} \u00b7 pair go",
+    youWin: "Your pair wins \u00b7 unrated",
+    theyWin: "Their pair wins \u00b7 unrated",
+    jigo: "Jigo \u00b7 unrated",
+    keepPlaying: "Keep playing",
+    undoRound: "Undo the round",
+    resultNote: "Unrated, as every pair game is: half of your team\u2019s moves were played at {rank}, so the result is evidence about the pair and not about you.",
+    total: "{side} {total}",
+    countingNote: "Tap a stone to mark its whole group dead; tap again to revive it. All three house players are bots with no opinion on life and death, so your marking stands.",
+    tableTalk: "Table talk",
+    threeBots: "three house players",
+    nothingToType: "There is nothing to type here. Partners may not consult in pair go (that is the rule the game is built on) so {name} will not take a question and you would not be allowed to ask one.",
+    howItWorks: "How a pair table works",
+    rotation: "The four of you take turns in one rotation and nobody plays twice running, so every move you make is answered by an opponent and then built on by your partner. {name} plays your team\u2019s other half at {rank} and will not tell you what to play: what it has to teach, it teaches by playing it.",
+    noClock: "No clock at a pair table yet: timing a team is its own question, and guessing at it would be worse than leaving it off.",
+  },
+
+  /* The etiquette row. The text is what gets sent, so it is said in the
+     language of whoever sends it; the two Japanese lines are names of phrases
+     rather than sentences and only their glosses move. */
+  talk: {
+    goodGame: { text: "Have a good game", note: "the usual opening" },
+    onegaishimasu: { text: "Onegaishimasu", note: "please, let us play" },
+    thankYou: { text: "Thank you for the game", note: "the usual closing" },
+    arigatou: { text: "Arigatou gozaimashita", note: "thank you very much" },
+    shallWeCount: { text: "Shall we count?" },
+  },
+
+  /* Who may see you are here. The three choices live in server/presence.js and
+     are overlaid by id under `seen.`; this is the frame around them. */
+  presence: {
+    whoMaySee: "Who may see you are here",
+    note: "{hint}. Being here is an open connection and nothing more: arriving writes nothing down and leaving writes nothing down, so there is no record of when you were here for anybody to read later.",
   },
 };

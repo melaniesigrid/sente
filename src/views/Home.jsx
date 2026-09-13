@@ -38,7 +38,7 @@ export function Home({ profile, go, onResume }) {
   const probPct = Math.round((profile.problemsDone.length / PROBLEMS.length) * 100);
   const games = profile.wins + profile.losses;
   const today = dayKey();
-  const [saved, setSaved] = useState(() => loadSession({ today, profile }));
+  const [saved, setSaved] = useState(() => loadSession({ today, profile, t }));
   const discard = () => { clearGame(); setSaved(null); };
   const duel = duelMode(PERSONAS, today);
   const authoredKata = dailyProblem(PROBLEMS, today);

@@ -4,6 +4,11 @@
    label — and these lines stand in front of it by id. `i18n.test.js` holds
    them complete against the data rather than against en.js. */
 export const overlay = {
+  seen: {
+    nobody: { label: "Nadie", hint: "Ni siquiera tus amigos ven cuándo estás aquí" },
+    friends: { label: "Tus amigos", hint: "Las personas con las que lo habéis acordado los dos" },
+    everyone: { label: "Cualquiera", hint: "Cualquiera que abra tu página" },
+  },
   fact: {
     home: { label: "Dónde juegas", hint: "Un club, una ciudad, la mesa de la cocina" },
     since: { label: "Juegas desde", hint: "Un año" },

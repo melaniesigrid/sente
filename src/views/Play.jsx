@@ -73,7 +73,7 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
   const [dismissed, setDismissed] = useState(null);
   const today = dayKey();
   // The saved table is re-read whenever the lobby shows, so leaving a duel mid-game is reflected.
-  const saved = useMemo(() => (session ? null : loadSession({ today, profile })), [session, today, profile]);
+  const saved = useMemo(() => (session ? null : loadSession({ today, profile, t })), [session, today, profile, t]);
   if (!session) {
     const first = RANK_LADDER[0], last = RANK_LADDER[RANK_LADDER.length - 1];
     const hi = HANDICAPS.indexOf(table.handicap);
@@ -120,9 +120,9 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
           {suggestion && dismissed !== suggestion.to && (
             <div className="level-nudge">
               {suggestion.won ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-              <span className="fine">{suggestionText(suggestion)}</span>
-              <Btn small onClick={() => setRank(suggestion.to)}>Play {suggestion.to}</Btn>
-              <Btn icon={X} small label="Keep this level" onClick={() => setDismissed(suggestion.to)} />
+              <span className="fine">{suggestionText(suggestion, t)}</span>
+              <Btn small onClick={() => setRank(suggestion.to)}>{t("play.nudgePlay", { rank: suggestion.to })}</Btn>
+              <Btn icon={X} small label={t("play.keepLevel")} onClick={() => setDismissed(suggestion.to)} />
             </div>
           )}
         </div>

@@ -55,6 +55,7 @@ const BOARD_PX = { 9: 460, 13: 560, 19: 680 };
    burned it) and guessing at it would be worse than leaving it off and
    saying so. */
 export function PairGame({ mode, onExit, profile, notify, initial }) {
+  const t = useT();
   const partnerRank = mode.partnerRank ?? PARTNER_RANK;
   const roster = useMemo(
     () => pairRoster({ profile, persona: mode.persona, partnerRank }),
@@ -123,11 +124,11 @@ export function PairGame({ mode, onExit, profile, notify, initial }) {
   useEffect(() => {
     const off = onModelProgress((e) => {
       if (!alive.current) return;
-      setLoading(e.phase === "download" || e.phase === "compile" ? loadingText(e) : null);
+      setLoading(e.phase === "download" || e.phase === "compile" ? loadingText(e, t) : null);
     });
     if (!modelReady()) loadModel().catch(() => {});
     return off;
-  }, []);
+  }, [t]);
 
   /* ----- board facts (read-only, from the engine) ----- */
   const myAtari = useMemo(() => rec.phase === "playing" ? chainsInAtari(rec.board, "b") : [], [rec.board, rec.phase]);
@@ -188,11 +189,12 @@ export function PairGame({ mode, onExit, profile, notify, initial }) {
       }
       notify({
         icon: next.result.winner === "b" ? "trophy" : "flag",
-        text: `${next.result.winner === "b" ? "Your pair wins" : next.result.winner === null ? "Jigo" : "Their pair wins"} · unrated`,
+        text: t(next.result.winner === "b" ? "pair.youWin"
+          : next.result.winner === null ? "pair.jigo" : "pair.theyWin"),
       });
     }
     return next;
-  }, [sound, notify, roster, say, mode.persona, mode.rank]);
+  }, [sound, notify, roster, say, mode.persona, mode.rank, t]);
 
   /* One house player's turn, whichever of the three it is. The seat says what
      rank to ask the network for and who it is answering; if the network cannot
@@ -371,15 +373,16 @@ export function PairGame({ mode, onExit, profile, notify, initial }) {
   };
 
   const status = pairStatus({
-    result: over, resultLine: resultLine(over), thinking, roster, seatId, phase: rec.phase, loading,
-  });
-  const card = over ? resultCard(over) : null;
+    result: over, resultLine: resultLine(over, t), thinking, roster, seatId, phase: rec.phase,
+    loading,
+  }, t);
+  const card = over ? resultCard(over, t) : null;
   const boardDisabled = !!over || thinking || (!scoring && !myTurn);
 
   return (
     <div className="stack">
       <div className="row spread">
-        <Btn icon={ChevronLeft} small onClick={onExit}>Lobby</Btn>
+        <Btn icon={ChevronLeft} small onClick={onExit}>{t("online.game.lobby")}</Btn>
         <div className="vs-strip pair-strip">
           <TeamSide roster={roster} color="b" profile={profile} seatId={seatId} />
           <span className="vs-x">vs</span>
@@ -401,20 +404,20 @@ export function PairGame({ mode, onExit, profile, notify, initial }) {
             pending={pending ? { c: pending.c, r: pending.r, color: "b" } : null} />
           {scoring ? (
             <div className="row">
-              <Btn icon={Check} small primary onClick={onAccept}>Accept score</Btn>
-              <Btn icon={Undo2} small onClick={onResumePlay}>Keep playing</Btn>
-              <Btn icon={Handshake} small onClick={onResign} disabled={!canResign}>{resignLabel(confirmResign)}</Btn>
+              <Btn icon={Check} small primary onClick={onAccept}>{t("online.game.acceptScore")}</Btn>
+              <Btn icon={Undo2} small onClick={onResumePlay}>{t("pair.keepPlaying")}</Btn>
+              <Btn icon={Handshake} small onClick={onResign} disabled={!canResign}>{resignLabel(confirmResign, t)}</Btn>
             </div>
           ) : (
             <div className="row">
               <Btn icon={Check} small primary onClick={onConfirmMove} disabled={!pending}>
-                {confirmMoveLabel(!!pending)}
+                {confirmMoveLabel(!!pending, t)}
               </Btn>
-              {pending && <Btn icon={X} small onClick={() => setPending(null)}>Cancel</Btn>}
-              <Btn icon={Flag} small onClick={onPass} disabled={!!over || !myTurn}>Pass</Btn>
-              <Btn icon={RotateCcw} small onClick={onUndo} disabled={!canUndo}>Undo the round</Btn>
-              <Btn icon={Handshake} small onClick={onResign} disabled={!canResign}>{resignLabel(confirmResign)}</Btn>
-              <Btn icon={RefreshCw} small onClick={reset}>New game</Btn>
+              {pending && <Btn icon={X} small onClick={() => setPending(null)}>{t("game.cancel")}</Btn>}
+              <Btn icon={Flag} small onClick={onPass} disabled={!!over || !myTurn}>{t("game.pass")}</Btn>
+              <Btn icon={RotateCcw} small onClick={onUndo} disabled={!canUndo}>{t("pair.undoRound")}</Btn>
+              <Btn icon={Handshake} small onClick={onResign} disabled={!canResign}>{resignLabel(confirmResign, t)}</Btn>
+              <Btn icon={RefreshCw} small onClick={reset}>{t("game.newGame")}</Btn>
             </div>
           )}
         </div>
@@ -437,35 +440,32 @@ export function PairGame({ mode, onExit, profile, notify, initial }) {
                   ))}
                 </div>
               )}
-              <p className="fine">
-                Unrated, as every pair game is: half of your team's moves were played
-                at {partnerRank}, so the result is evidence about the pair and not about you.
-              </p>
+              <p className="fine">{t("pair.resultNote", { rank: partnerRank })}</p>
               <div className="row">
-                <Btn icon={RefreshCw} small primary onClick={reset}>Play again</Btn>
+                <Btn icon={RefreshCw} small primary onClick={reset}>{t("review.playAgain")}</Btn>
                 <Btn icon={Download} small onClick={downloadSgf}>SGF</Btn>
               </div>
             </Card>
           )}
           {scoring && preview && (
             <Card inset className="caps">
-              <div className="stat-head"><Scale size={15} /><span>Counting</span></div>
-              <div><span className="dot dot-b" /> Black {preview.totals.b}</div>
-              <div><span className="dot dot-w" /> White {preview.totals.w}</div>
-              <p className="fine">Tap a stone to mark its whole group dead; tap again to revive it. All three house players are bots with no opinion on life and death, so your marking stands.</p>
+              <div className="stat-head"><Scale size={15} /><span>{t("online.dash.counting")}</span></div>
+              <div><span className="dot dot-b" /> {t("pair.total", { side: t("game.side.b"), total: preview.totals.b })}</div>
+              <div><span className="dot dot-w" /> {t("pair.total", { side: t("game.side.w"), total: preview.totals.w })}</div>
+              <p className="fine">{t("pair.countingNote")}</p>
             </Card>
           )}
           {!over && !scoring && (
             <Card inset className="caps">
-              <div><span className="dot dot-b" /> Black captures: {rec.captures.b}</div>
-              <div><span className="dot dot-w" /> White captures: {rec.captures.w}</div>
-              <div className="fine">{pairCaption({ size: rec.size, komi: rec.komi, partnerRank, myRank: roster.b1.rank })}{hints ? " · atari hints on" : ""}</div>
+              <div><span className="dot dot-b" /> {t("game.captures.b", { n: rec.captures.b })}</div>
+              <div><span className="dot dot-w" /> {t("game.captures.w", { n: rec.captures.w })}</div>
+              <div className="fine">{pairCaption({ size: rec.size, komi: rec.komi, partnerRank, myRank: roster.b1.rank }, t)}{hints ? t("game.hintsOn") : ""}</div>
             </Card>
           )}
           <Card className="chat-card">
             <div className="chat-head">
-              <MessageCircle size={15} /><span>Table talk</span>
-              <span className="bot-chip"><Bot size={11} /> three house players</span>
+              <MessageCircle size={15} /><span>{t("pair.tableTalk")}</span>
+              <span className="bot-chip"><Bot size={11} /> {t("pair.threeBots")}</span>
             </div>
             <div className="chat-log" aria-live="polite">
               {chat.map((m, i) => (
@@ -476,21 +476,12 @@ export function PairGame({ mode, onExit, profile, notify, initial }) {
               <div ref={chatEndRef} />
             </div>
             {/* No input box, and the reason is a rule and not an omission. */}
-            <p className="fine">
-              There is nothing to type here. Partners may not consult in pair go (that is
-              the rule the game is built on) so {roster.b2.name} will not take a question
-              and you would not be allowed to ask one.
-            </p>
+            <p className="fine">{t("pair.nothingToType", { name: roster.b2.name })}</p>
           </Card>
           <Card inset>
-            <div className="stat-head"><Users size={15} /><span>How a pair table works</span></div>
-            <p className="fine">
-              The four of you take turns in one rotation and nobody plays twice running, so
-              every move you make is answered by an opponent and then built on by your
-              partner. {roster.b2.name} plays your team's other half at {partnerRank} and
-              will not tell you what to play: what it has to teach, it teaches by playing it.
-            </p>
-            <p className="fine">No clock at a pair table yet: timing a team is its own question, and guessing at it would be worse than leaving it off.</p>
+            <div className="stat-head"><Users size={15} /><span>{t("pair.howItWorks")}</span></div>
+            <p className="fine">{t("pair.rotation", { name: roster.b2.name, rank: partnerRank })}</p>
+            <p className="fine">{t("pair.noClock")}</p>
           </Card>
         </div>
       </div>

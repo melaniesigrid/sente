@@ -4,6 +4,7 @@ import { TYPEFACES } from "../content/typeface.js";
 import { BELTS } from "../content/rank.js";
 import { BADGES } from "../content/badges.js";
 import { FACTS } from "../../server/profile.js";
+import { SHOW_ONLINE } from "../../server/presence.js";
 import { LIBRARY } from "../content/library.js";
 import { WELCOME_LESSON } from "../content/welcome.js";
 import { localize } from "../content/translate.js";
@@ -33,7 +34,7 @@ import {
    checked there is that every key names something real. */
 const OVERLAYS = [
   "room.", "stones.", "type.", "belt.", "tone.", "rule.",        // the design system
-  "badge.", "fact.",                                             // what a record has earned, and what a card says
+  "badge.", "fact.", "seen.",                                    // what a record has earned, what a card says, who may see
   "lesson.", "legalDoc.", "credit.",                             // the documents and the library
   "plain.", "statement.", "moku.", "ruleset.", "preset.", "persona.",  // the house's voices
   "tier.", "track.", "book.", "series.", "problem.", "shape.",   // the library and the coach
@@ -258,6 +259,7 @@ describe.each(others)("$name is complete", (locale) => {
       belt: BELTS.map(b => b.id),
       badge: BADGES.map(b => b.id),
       fact: FACTS.map(f => f.key),
+      seen: SHOW_ONLINE.map(o => o.id),
       lesson: [...LIBRARY.map(l => l.id), WELCOME_LESSON.id],
       tone: TONES.map(t2 => t2.key),
       // The audit prints one row per rule, plus the stones and the two
