@@ -82,6 +82,11 @@ export const api = {
   setAvatar: (token, blob) => call("/api/me/avatar", { method: "PUT", token, blob }),
   clearAvatar: (token) => call("/api/me/avatar", { method: "DELETE", token }),
   profile: (id) => call(`/api/players/${encodeURIComponent(id)}`),
+  /* Finding somebody by their handle. A session is required: you have to play
+     here before you may look anybody up. The answer is capped and carries no
+     count and no cursor, so it is a way to find one person and never a way to
+     read out the membership. */
+  find: (token, q) => call(`/api/players?q=${encodeURIComponent(q)}`, { token }),
 
   /* Friends. The three lists arrive together, and every call that changes one
      of them answers with the outcome and the new standing rather than a bare

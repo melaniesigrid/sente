@@ -28,6 +28,8 @@ import { serverEnabled } from "../net/api.js";
 import { OnlineProfileCard } from "./OnlineProfile.jsx";
 import { useT } from "../components/langStore.js";
 import { FriendsCard } from "./FriendsCard.jsx";
+import { FindCard } from "./FindCard.jsx";
+import { useFriends } from "./useFriends.js";
 import { ArchiveCard } from "./ArchiveCard.jsx";
 import { LettersCard } from "./LettersCard.jsx";
 
@@ -161,6 +163,11 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
   const [account, setAccount] = useState(() => (serverEnabled() ? loadAccount() : null));
   const [editing, setEditing] = useState(false);
   const [nameDraft, setNameDraft] = useState(profile.name);
+  /* One book, read once, shown by both of the cards that stand on it: the one
+     that finds people and the one that lists the ones you know. It is read here
+     rather than in either of them so that asking somebody from the search
+     results moves their row in the list below without a second fetch. */
+  const friends = useFriends(account?.token, notify);
   const games = profile.wins + profile.losses;
   const moku = useMoku();
   useMokuFacts({ view: "profile", seed: profile.wins + profile.losses });
@@ -208,7 +215,8 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
       {account && <OnlineProfileCard account={account} setAccount={setAccount} notify={notify} />}
       {account && <ArchiveCard account={account} setAccount={setAccount} notify={notify} go={go} />}
       {account && <LettersCard account={account} go={go} />}
-      {account && <FriendsCard account={account} notify={notify} go={go} />}
+      {account && <FindCard account={account} go={go} friends={friends} />}
+      {account && <FriendsCard account={account} go={go} friends={friends} />}
 
       <Statement lines={statementFor("profile", t)} figure="profile" at="left">{plainFor("profile", t)}</Statement>
       <Card className="passage-card"><Passage context="profile" /></Card>
