@@ -6,6 +6,28 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.10.0.1 (2026-09-13)
+
+### Fixed
+
+- **Pressing play on a chapter's lesson did nothing.** Every one of the thirteen chapters
+  builds on something, so opening one from the book always raised the prerequisite gate,
+  and the gate drew at the head of the Learn screen. A reader who had scrolled down to
+  chapter eight was two thousand pixels from the only thing that answered the press. The
+  gate now opens under the card that was pressed, wherever that card is: a chapter, the
+  shelf, the tier grid or Continue. It can also be waved off now, which it could not be.
+- The book said `0/14 chapters read` for a book of thirteen chapters, because it counted
+  lessons and chapter thirteen carries two. It counts chapters, and a chapter is read
+  when its lessons are.
+
+### Changed
+
+- A chapter whose lessons are finished is marked in the head of the row, so the book can
+  be read down at a glance instead of opened row by row to find the place.
+- The book keeps its place across a lesson. Which chapters are open moved out of the row
+  and into the view, and leaving a lesson returns to the chapter it was opened from,
+  rather than shutting the book and landing back at the top of the library.
+
 ## v0.10.0.0 (2026-09-13)
 
 ### Added
