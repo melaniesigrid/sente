@@ -57,11 +57,22 @@ export const online = {
     pair: "go por parejas",
   },
 
+  find: {
+    head: "Buscar a alguien",
+    note: "Escribe un nombre, o parte de uno. Solo quien juega aquí puede buscar a alguien, y una búsqueda responde con unas cuantas personas, nunca con una lista.",
+    placeholder: "Un nombre",
+    label: "Buscar a alguien por su nombre",
+    idle: "Con dos letras de un nombre basta para empezar.",
+    short: "Dos letras, al menos.",
+    searching: "Buscando…",
+    empty: "Aquí nadie responde a “{typed}”.",
+  },
+
   friends: {
     head: "Tus amigos",
     note: "Aquí la amistad se acuerda, nunca se reclama: tenéis que pulsar los dos. A nadie se le dice cuándo se rechaza una petición.",
     fetching: "Cargando tus listas\u2026",
-    empty: "Todavía nadie. Abre la página de alguien desde la clasificación y pídeselo.",
+    empty: "Todavía nadie. Busca a alguien por su nombre arriba y pídeselo.",
     incoming: "Piden ser amigos",
     friends: "Amigos",
     outgoing: "Lo has pedido",

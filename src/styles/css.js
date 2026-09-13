@@ -2074,6 +2074,13 @@ ${FONT_FACES}
 @media (max-width: 520px) {
   .player-page .op-head { flex-direction: column; align-items: flex-start; gap: 12px; }
 }
+.find-box {
+  display: flex; align-items: center; gap: 9px; padding: 0 13px;
+  border-radius: 13px; box-shadow: var(--sink-sm); color: var(--ink-2);
+}
+.find-box:focus-within { box-shadow: var(--sink-sm), 0 0 0 2px var(--accent-ring); }
+.find-input { padding-inline: 0; box-shadow: none; }
+.find-input:focus { box-shadow: none; }
 /* ---- friends ----
    Three lists on one card, each headed and each absent when it is empty. A row
    is one button holding the whole person, with the two acts as loose buttons
