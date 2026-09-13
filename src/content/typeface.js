@@ -171,7 +171,15 @@ const HAN = {
 export function withHan(families, locale) {
   const han = HAN[locale];
   if (!han || typeof families !== "string") return families;
-  return `${families}, ${/(^|,\s*)(serif|monospace)\s*$/.test(families) ? han.serif : han.sans}`;
+  const generic = /(^|,\s*)(serif|sans-serif|monospace|system-ui|cursive|fantasy)\s*$/.exec(families);
+  const stack = /(^|,\s*)(serif|monospace)\s*$/.test(families) ? han.serif : han.sans;
+  /* Ahead of the generic, not behind it. A generic family always matches, so a
+     generic sitting in front of the Han names ends per-character fallback before
+     the browser ever reads them. Blink and Gecko resolve the generic and carry on
+     in practice, but the spec does not promise that and the fix is free. */
+  return generic
+    ? `${families.slice(0, generic.index)}, ${stack}`
+    : `${families}, ${stack}`;
 }
 
 /** The custom properties `.sente-root` needs for a pairing. The shell spreads

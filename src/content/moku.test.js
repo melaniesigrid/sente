@@ -41,6 +41,30 @@ describe("mokuState", () => {
     expect(mokuState({ view: "joseki", seed: undefined }).line.length).toBeGreaterThan(0);
   });
 
+  /* A seed arrives from whatever the screen happens to be counting, and a
+     count is only a number while the thing being counted exists. NaN is the
+     shape that got through before: `?? 0` catches a missing seed and not a
+     spoiled one. */
+  it("says something whatever junk arrives as a seed", () => {
+    for (const seed of [NaN, Infinity, -Infinity, -3, 2.7, true, {}, [], null]) {
+      const spoken = mokuState({ view: "home", seed });
+      expect(MOKU_STATES, String(seed)).toContain(spoken.state);
+      expect(spoken.line, String(seed)).not.toMatch(/NaN|undefined|^moku\./);
+      expect(spoken.line.length, String(seed)).toBeGreaterThan(0);
+    }
+  });
+
+  /* Deterministic by seed is the promise, and a hash that answered the same
+     for every string would keep it while quietly making Moku say one line
+     forever on the screens that pass one. */
+  it("spreads string seeds over the list rather than parking on one line", () => {
+    const lines = new Set(
+      ["hoshi:0", "hoshi:5", "komoku:2", "takamoku:11", "none:0", "sansan:7", "mokuhazushi:3"]
+        .map(seed => mokuState({ view: "joseki", seed }).line),
+    );
+    expect(lines.size).toBeGreaterThan(1);
+  });
+
   it("speaks per view outside a game and is deterministic by seed", () => {
     expect(mokuState({ view: "play" }).state).toBe("lobby");
     expect(mokuState({ view: "learn" }).state).toBe("learn");
