@@ -12,7 +12,9 @@ const call = async (path, { method = "GET", token, body } = {}) => {
   if (token) headers.authorization = `Bearer ${token}`;
   const r = await fetch(base + path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
   const data = await r.json().catch(() => null);
-  return { status: r.status, data };
+  // `retry-after` is half of what a 429 is for: a refusal that does not say
+  // when to come back is a refusal a client can only answer by hammering.
+  return { status: r.status, data, retryAfter: Number(r.headers.get("retry-after") || 0) };
 };
 const ok = async (path, opts) => {
   const r = await call(path, opts);
@@ -89,6 +91,98 @@ try {
   assert(backIn.player.id === guest.player.id, "and that handle can now be signed into from anywhere");
   const twice = await call("/api/me/account", { method: "POST", token: guest.token, body: { email: `x-${stamp}@example.com`, key: guestKey } });
   assert(twice.status === 409, "a handle cannot collect a second address");
+
+  /* ----- guessing at one account, from anywhere -----
+     The per-caller limit meters whoever is asking, so a guesser spread over a
+     thousand addresses gets a thousand budgets. This is the one keyed on the
+     address being guessed at, and it is the only one that bounds guessing at a
+     person. Two things have to hold and only a running server can show them:
+     the refusal arrives, and it arrives the same way for an address with
+     nothing behind it, or the 429 becomes the membership oracle that every
+     other answer on this route is written to avoid.
+
+     Needs a server stood up with the limit lowered, because proving a limit of
+     thirty from one caller runs into the per-caller thirty first:
+
+       npx wrangler dev --var SIGNIN_ACCOUNT_LIMIT:3 --var SIGNIN_ACCOUNT_WINDOW_S:5
+       SIGNIN_ACCOUNT_LIMIT=3 SIGNIN_ACCOUNT_WINDOW_S=5 node tools/server/accounts.mjs
+
+     The vars go to the server, the environment goes to this script, and they
+     have to agree: this script is only told what to expect. */
+  const guessLimit = Number(process.env.SIGNIN_ACCOUNT_LIMIT || 0);
+  if (!guessLimit || guessLimit > 10) {
+    console.log("--  guess limit not lowered, skipping (see the comment above this line)");
+  } else {
+    const guessed = `guessed-${stamp}@example.com`;
+    const guessedKey = await deriveKey(guessed, password);
+    const victim = await ok("/api/signup", { method: "POST", body: { name: "Vic" + stamp.slice(0, 3), tint: "mint", email: guessed, key: guessedKey } });
+    cleanup.push(victim.token);
+
+    // Wrong answers up to the limit are refused as wrong answers, not as too many.
+    const wrong = await deriveKey(guessed, "not the password at all");
+    for (let i = 0; i < guessLimit; i++) {
+      const r = await call("/api/signin", { method: "POST", body: { email: guessed, key: wrong } });
+      assert(r.status === 401 && r.data.error === "bad-credentials", `guess ${i + 1} of ${guessLimit} is simply wrong`);
+    }
+    const done = await call("/api/signin", { method: "POST", body: { email: guessed, key: wrong } });
+    assert(done.status === 429 && done.data.error === "too-many-attempts",
+      "one guess past the limit is refused for being one too many");
+    assert(done.retryAfter > 0 && done.retryAfter <= 3600, `and says when to come back (${done.retryAfter}s)`);
+
+    /* The oracle check, and the reason the charge happens after the lookup and
+       the key is the address that was typed. An address nobody has ever used
+       must run out of guesses exactly as the real one did. */
+    const ghost = `ghost-${stamp}@example.com`;
+    const ghostKey = await deriveKey(ghost, password);
+    for (let i = 0; i < guessLimit; i++) {
+      const r = await call("/api/signin", { method: "POST", body: { email: ghost, key: ghostKey } });
+      assert(r.status === 401 && r.data.error === "bad-credentials", `an address with no account: guess ${i + 1} answers as a wrong password`);
+    }
+    const ghostDone = await call("/api/signin", { method: "POST", body: { email: ghost, key: ghostKey } });
+    assert(ghostDone.status === 429 && ghostDone.data.error === "too-many-attempts",
+      "and runs out of guesses identically, so the refusal names nobody");
+
+    /* The cost of the limit, proved rather than hoped for. A spent budget is
+       read before the password is, so it refuses the owner too. This is the
+       assertion that caught the comment claiming otherwise. */
+    const owner = await call("/api/signin", { method: "POST", body: { email: guessed, key: guessedKey } });
+    assert(owner.status === 429,
+      "the owner is refused too while the budget is spent: the read has to come before the password");
+
+    /* What keeps that bounded: the window is anchored at the first wrong
+       answer, and a spent bucket is never written to again. So a guesser who
+       keeps hammering cannot hold the door shut any longer than one window. */
+    const first = await call("/api/signin", { method: "POST", body: { email: guessed, key: wrong } });
+    for (let i = 0; i < 3; i++) await call("/api/signin", { method: "POST", body: { email: guessed, key: wrong } });
+    const later = await call("/api/signin", { method: "POST", body: { email: guessed, key: wrong } });
+    assert(later.retryAfter <= first.retryAfter,
+      `hammering never extends the lockout (${first.retryAfter}s then ${later.retryAfter}s)`);
+
+    /* And that it ENDS. Only provable against a window short enough to sit
+       through, which is what SIGNIN_ACCOUNT_WINDOW_S is for. */
+    const windowS = Number(process.env.SIGNIN_ACCOUNT_WINDOW_S || 0);
+    if (windowS && windowS <= 20) {
+      await new Promise((r) => setTimeout(r, windowS * 1000 + 500));
+      const back = await call("/api/signin", { method: "POST", body: { email: guessed, key: guessedKey } });
+      assert(back.status === 200 && back.data.player.id === victim.player.id,
+        `the lockout ends on its own: the owner is back in after ${windowS}s`);
+      cleanup.push(back.data.token);
+
+      // And a clean slate: one wrong answer after the window is only wrong.
+      const fresh = await call("/api/signin", { method: "POST", body: { email: guessed, key: wrong } });
+      assert(fresh.status === 401 && fresh.data.error === "bad-credentials",
+        "and the count started over, so the next wrong guess is only wrong again");
+    } else {
+      console.log("--  window not shortened, skipping the it-ends check (set SIGNIN_ACCOUNT_WINDOW_S)");
+    }
+
+    /* The other half of not being locked out: the way back in never went
+       through this counter. Someone who can read their mail is never stuck,
+       whatever a guesser has spent. */
+    const letter = await call("/api/forgot", { method: "POST", body: { email: guessed } });
+    assert(letter.status === 200 && letter.data.ok === true,
+      "asking for a way back in still works while sign-in is locked: a different budget on a different key");
+  }
 
   /* ----- nothing leaks ----- */
   const ladder = await ok("/api/ladder");
