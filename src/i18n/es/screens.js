@@ -183,6 +183,9 @@ export const screens = {
     wrong: "El grupo responde: reiniciando.",
     reset: "Reiniciar",
     next: "Siguiente problema",
+    nextSet: "Siguiente serie",
+    setProgress: "{done} de {total}",
+    openProblem: "{set}, número {n}, {rank}",
   },
   profile: {
     displayName: "Nombre visible",

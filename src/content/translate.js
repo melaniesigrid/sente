@@ -36,6 +36,8 @@ export const TEXT_FIELDS = new Set([
   "sayings", "modern",
   // A book says in its own sentence what it owes and what it does not claim.
   "credit",
+  // A tsumego's footnote, for an answer that works only because of a ko.
+  "koNote",
 ]);
 
 /** Fields that name a thing rather than describe it, and are never translated:

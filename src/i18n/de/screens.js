@@ -187,6 +187,9 @@ export const screens = {
     wrong: "Die Gruppe antwortet. Wir setzen zurück.",
     reset: "Zurücksetzen",
     next: "Nächstes Problem",
+    nextSet: "Nächste Reihe",
+    setProgress: "{done} von {total}",
+    openProblem: "{set}, Nummer {n}, {rank}",
   },
 
   profile: {

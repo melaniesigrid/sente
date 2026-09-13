@@ -194,6 +194,9 @@ export const screens = {
     wrong: "The group answers back. Resetting.",
     reset: "Reset",
     next: "Next problem",
+    nextSet: "Next set",
+    setProgress: "{done} of {total}",
+    openProblem: "{set}, number {n}, {rank}",
   },
   /* The profile: who you are on this device, and what it has watched you do. */
   profile: {
