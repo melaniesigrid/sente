@@ -173,6 +173,7 @@ const BY_SCREEN = {
   profile: "bamboo",
   ladder: "ko",
   recall: "net",
+  joseki: "ponnuki",
   rules: "tigers-mouth",
   fell: "net",
   honest: "empty-triangle",
