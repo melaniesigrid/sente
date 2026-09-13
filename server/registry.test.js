@@ -29,6 +29,33 @@ describe("publicPlayer", () => {
   it("treats a missing draw count as zero", () => {
     expect(publicPlayer({ rating: 1500, rd: 350, wins: 0, losses: 0 }).draws).toBe(0);
   });
+
+  /* `showOnline` lets a player refuse to say when they are here. `lastSeen`
+     moves on nearly everything they do, so serving it to the millisecond let
+     anybody rebuild that answer by polling a profile in a loop. It is served
+     to the day instead: the same bucket `seenText` already speaks in. */
+  it("serves lastSeen to the day, so polling a profile cannot rebuild presence", () => {
+    const morning = Date.UTC(2026, 8, 13, 9, 41, 17, 250);
+    const evening = Date.UTC(2026, 8, 13, 22, 58, 4, 900);
+    const base = { rating: 1500, rd: 350, wins: 0, losses: 0 };
+    const seen = (at) => publicPlayer({ ...base, lastSeen: at }).lastSeen;
+    expect(seen(morning)).toBe(Date.UTC(2026, 8, 13));
+    expect(seen(morning)).toBe(seen(evening));
+    // Which day it was still survives, because "has not played since March" is
+    // a fair thing to know before asking somebody for a game.
+    expect(seen(Date.UTC(2026, 8, 12, 23, 59, 59, 999))).toBe(Date.UTC(2026, 8, 12));
+  });
+
+  it("leaves createdAt exact: it never moves, and the operator's list sorts on it", () => {
+    const at = Date.UTC(2026, 8, 13, 9, 41, 17, 250);
+    expect(publicPlayer({ rating: 1500, rd: 350, wins: 0, losses: 0, createdAt: at }).createdAt).toBe(at);
+  });
+
+  it("passes a missing or nonsense lastSeen through rather than inventing a day", () => {
+    const base = { rating: 1500, rd: 350, wins: 0, losses: 0 };
+    expect(publicPlayer(base).lastSeen).toBeUndefined();
+    expect(publicPlayer({ ...base, lastSeen: null }).lastSeen).toBeNull();
+  });
 });
 
 describe("reseeded", () => {
