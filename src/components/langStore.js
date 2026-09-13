@@ -71,6 +71,16 @@ export function useT() {
   return useContext(LangCtx).t;
 }
 
+/** Which way the page runs: `"ltr"` or `"rtl"`.
+ *
+ *  The stylesheet turns the boxes around on its own, so a view almost never
+ *  needs this. It is here for the handful of things CSS cannot reach: which
+ *  arrow key means onward, and anything else where a direction is behaviour
+ *  rather than layout. Reach for a logical property first. */
+export function useDir() {
+  return useContext(LangCtx).dir;
+}
+
 /** The language in force, resolved: `{ id, tag, name, endonym }`. For the
  *  places that name it rather than read in it: the picker, and any Intl
  *  formatter that has to agree with the words around it. */

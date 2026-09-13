@@ -227,7 +227,7 @@ export function RecallView({ profile, setProfile, go }) {
           </ul>
           <div className="lesson-foot">
             <Btn icon={GraduationCap} small onClick={() => go("learn")}>{t("recall.library")}</Btn>
-            <Btn icon={ChevronRight} small primary onClick={() => go("home")}>{t("recall.done")}</Btn>
+            <Btn icon={ChevronRight} small primary onward onClick={() => go("home")}>{t("recall.done")}</Btn>
           </div>
         </Card>
       </div>
@@ -241,7 +241,7 @@ export function RecallView({ profile, setProfile, go }) {
       <CardPlayer key={card.key} card={card} n={i + 1} of={cards.length} onGraded={onGraded} t={t} />
       <div className="row spread">
         <span className="fine">{t("recall.counts", { due: summary.due, known: summary.known, total: summary.total })}</span>
-        <Btn icon={ChevronRight} small primary
+        <Btn icon={ChevronRight} small primary onward
           disabled={!results.some(r => r.key === card.key)}
           onClick={() => setI(n => n + 1)}>
           {i === cards.length - 1 ? t("recall.finish") : t("recall.next")}

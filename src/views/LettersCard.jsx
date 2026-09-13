@@ -111,7 +111,7 @@ function Thread({ account, otherId, onBack, go }) {
   return (
     <Card className="letters-card">
       <div className="row">
-        <Btn icon={ArrowLeft} small onClick={onBack}>{t("letters.head")}</Btn>
+        <Btn icon={ArrowLeft} small onward onClick={onBack}>{t("letters.head")}</Btn>
         <Btn small onClick={() => go("player", { playerId: otherId, from: "profile" })}>{t("letters.theirPage")}</Btn>
       </div>
 
