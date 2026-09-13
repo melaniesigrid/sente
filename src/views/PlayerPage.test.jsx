@@ -268,6 +268,13 @@ describe("the friend button", () => {
     expect(screen.queryByRole("button", { name: /invite to a game/i })).toBe(null);
   });
 
+  it("still offers an invitation when the server sent no reachability field", async () => {
+    signedIn();
+    show({ notify: vi.fn() });
+    await screen.findByText("Ixchel");
+    expect(screen.getByRole("button", { name: /invite to a game/i })).toBeTruthy();
+  });
+
   it("keeps the invitation panel loading until the shelf arrives", async () => {
     signedIn();
     invites.mockReturnValue(new Promise(() => {}));
