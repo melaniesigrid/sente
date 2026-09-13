@@ -335,17 +335,50 @@ Three consequences worth knowing before you touch any of it:
   Every stored record carries the parameters it was made under (`pw.v`,
   `pw.iterations`); a real raise means verifying at the record's own count and
   re-stashing on the next successful sign-in. Nobody has needed that yet.
-- **There is no password reset and no address verification.** Both need mail out
-  of the Worker. Until they exist an address is a way to sign in from another
-  device, not a proven identity, and a forgotten password means claiming a new
-  handle. The sign-up copy does not pretend otherwise.
+- **The reset letter is the only way back in, and it is a way in.** Anyone
+  holding a live reset token can set the password, so the link is short-lived
+  and single-use (`RESET_TTL_MS`), and spending it signs every other session
+  out. It is also the escape hatch from a spent sign-in budget: it is metered
+  on its own key, so a guesser cannot close it.
 - **`ADMIN_TOKEN` cannot read a password and neither can you.** The operator
   routes list players; they do not expose addresses beyond what the owner sees.
 
-Sign-in is rate limited to thirty attempts an hour from one address
-(`SIGNIN_LIMIT`), counted whether the attempt succeeded or not. A wrong password
-and an address with no account here give the identical answer, so the endpoint
-cannot be used to ask who has an account.
+Sign-in carries two budgets, because they bound different things.
+
+`SIGNIN_LIMIT` is thirty attempts an hour from one caller, counted whether the
+attempt succeeded or not. It stops one script working down a list of addresses.
+A caller the edge cannot name shares one `anon` bucket rather than going
+unmetered.
+
+`SIGNIN_ACCOUNT_LIMIT` is thirty an hour against one **address**, counted on the
+address that was typed, and only **wrong** answers are charged. It is the one
+that bounds guessing at a person: the per-caller limit gives a guesser spread
+over a thousand addresses a thousand budgets, and this one does not care who is
+asking. Getting in clears the count, so ordinary use never meets it.
+
+It can lock somebody out, and that is deliberate. A spent budget is read before
+the password is, because a limit that checked first and refused only wrong
+answers would bound nothing. So a guesser who knows your address can spend your
+hour. What keeps it bounded: the window is anchored at the first wrong answer
+and a spent bucket is never written to again, so hammering cannot hold the door
+shut longer than one window; and the reset letter is on a different key, so
+somebody who can read their mail is never stuck.
+
+A wrong password, an address with no account, and an address whose budget is
+spent all answer identically for an account that exists and one that does not,
+so none of the three can be used to ask who plays here.
+
+Both limits, and the account window, are overridable per deployment so the
+refusals can be **proved** rather than asserted, the same way `BETA_CAP` is:
+
+```sh
+npx wrangler dev --var SIGNIN_ACCOUNT_LIMIT:3 --var SIGNIN_ACCOUNT_WINDOW_S:5   --var SIGNIN_LIMIT:500
+SIGNIN_ACCOUNT_LIMIT=3 SIGNIN_ACCOUNT_WINDOW_S=5   node tools/server/accounts.mjs http://127.0.0.1:8787
+```
+
+The vars go to the server and the environment goes to the script; they have to
+agree, because the script is only told what to expect. Nothing is set on the
+live deployment, so the constants in `server/ratelimit.js` are what is running.
 
 ## Checking a deployment
 

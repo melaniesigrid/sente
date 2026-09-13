@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { hit, refund, callerIp, REGISTER_LIMIT, REGISTER_WINDOW_MS } from "./ratelimit.js";
+import { hit, refund, over, limitFrom, callerIp,
+  REGISTER_LIMIT, REGISTER_WINDOW_MS, SIGNIN_ACCOUNT_LIMIT, LIMIT_MAX } from "./ratelimit.js";
 
 const W = 1000;
 
@@ -90,5 +91,80 @@ describe("callerIp", () => {
     expect(callerIp(req({}))).toBeNull();
     expect(callerIp(req({ "cf-connecting-ip": "  " }))).toBeNull();
     expect(callerIp(req({ "cf-connecting-ip": "x".repeat(200) }))).toBeNull();
+  });
+});
+
+/* The counter behind the guess limit on sign-in. Only wrong answers are
+   charged, so reading a bucket must not spend from it: `hit` would make a
+   person pay for having asked, and the whole anti-lockout property is that
+   somebody who knows their password spends nothing. */
+describe("over: reading a bucket without spending", () => {
+  it("is not over while there is budget left", () => {
+    expect(over({ at: 0, n: 2 }, 10, 3, W).over).toBe(false);
+  });
+
+  it("is over at the limit, and stays over past it", () => {
+    expect(over({ at: 0, n: 3 }, 10, 3, W).over).toBe(true);
+    expect(over({ at: 0, n: 99 }, 10, 3, W).over).toBe(true);
+  });
+
+  it("is never over on an empty or expired bucket", () => {
+    expect(over(null, 10, 3, W).over).toBe(false);
+    expect(over(undefined, 10, 3, W).over).toBe(false);
+    expect(over({ at: 0, n: 99 }, W, 3, W).over).toBe(false);
+    expect(over({ n: 99 }, 10, 3, W).over).toBe(false);
+  });
+
+  it("says how long is left, and never a negative wait", () => {
+    expect(over({ at: 0, n: 3 }, 400, 3, W).retryAfterMs).toBe(600);
+    expect(over({ at: 0, n: 3 }, 400, 3, W).over).toBe(true);
+    expect(over(null, 400, 3, W).retryAfterMs).toBe(0);
+  });
+
+  it("does not spend: the same bucket reads the same way forever", () => {
+    const bucket = { at: 0, n: 2 };
+    for (let i = 0; i < 50; i++) expect(over(bucket, 10, 3, W).over).toBe(false);
+    expect(bucket).toEqual({ at: 0, n: 2 });
+  });
+
+  /* The pair the sign-in path actually uses: read, and only charge a wrong
+     answer. Three wrong answers against a limit of three, and the fourth
+     question is refused before anything is looked up. */
+  it("with hit, bounds wrong answers and leaves right ones free", () => {
+    let bucket = null;
+    for (let i = 0; i < 3; i++) {
+      expect(over(bucket, 10, 3, W).over).toBe(false);
+      bucket = hit(bucket, 10, 3, W).bucket;
+    }
+    expect(over(bucket, 10, 3, W).over).toBe(true);
+  });
+});
+
+describe("limitFrom", () => {
+  it("takes a plain decimal number in range", () => {
+    expect(limitFrom("3", 30)).toBe(3);
+    expect(limitFrom(" 7 ", 30)).toBe(7);
+  });
+
+  it("ignores anything that is not one, rather than removing the limit", () => {
+    for (const v of [undefined, null, "", "  ", "lots", "-1", "0", "1.5", "3abc"]) {
+      expect(limitFrom(v, 30)).toBe(30);
+    }
+  });
+
+  /* `Number()` alone accepts both of these and both are positive whole
+     numbers, and neither is a limit anybody typed on purpose. */
+  it("refuses the two numbers that are not written as numbers", () => {
+    expect(limitFrom("1e6", 30)).toBe(30);
+    expect(limitFrom("0x64", 30)).toBe(30);
+  });
+
+  it("falls back when a well-formed number is out of range", () => {
+    expect(limitFrom(String(LIMIT_MAX + 1), 30)).toBe(30);
+    expect(limitFrom(String(LIMIT_MAX), 30)).toBe(LIMIT_MAX);
+  });
+
+  it("leaves the shipped sign-in guess limit alone when nothing is set", () => {
+    expect(limitFrom(undefined, SIGNIN_ACCOUNT_LIMIT)).toBe(SIGNIN_ACCOUNT_LIMIT);
   });
 });
