@@ -48,8 +48,10 @@ import { readFeatured, pin as pinPure, unpin as unpinPure, featuredWith } from "
 import { threadKey, cleanLetter, readThread, withLetter, mayWrite, threadSummary,
   byRecent, readBlocked, block as blockPure, unblock as unblockPure,
   POST_LIMIT, POST_WINDOW_MS } from "./post.js";
-import { hit, refund, REGISTER_LIMIT, REGISTER_WINDOW_MS, SIGNIN_LIMIT, SIGNIN_WINDOW_MS,
-  FORGOT_LIMIT, FORGOT_WINDOW_MS, VERIFY_LIMIT, VERIFY_WINDOW_MS } from "./ratelimit.js";
+import { hit, refund, over, limitFrom, REGISTER_LIMIT, REGISTER_WINDOW_MS,
+  SIGNIN_LIMIT, SIGNIN_WINDOW_MS, SIGNIN_ACCOUNT_LIMIT, SIGNIN_ACCOUNT_WINDOW_MS,
+  SIGNIN_ACCOUNT_WINDOW_MAX_S, FORGOT_LIMIT, FORGOT_WINDOW_MS,
+  VERIFY_LIMIT, VERIFY_WINDOW_MS } from "./ratelimit.js";
 import { VERIFY_TTL_MS, RESET_TTL_MS } from "./mail.js";
 import { isFull, seatsLeft, capFrom, waitKey, waiting, byWaiting, listFull,
   WAIT_PREFIX, WAITLIST_LIMIT, WAITLIST_WINDOW_MS } from "./beta.js";
@@ -273,25 +275,90 @@ export class Registry extends DurableObject {
     return { token, player: await this.self(player.id) };
   }
 
+  /** What this deployment is actually running. Both are the constant unless the
+   *  environment says otherwise, which is what lets a staging server be stood
+   *  up with a limit of 3 and the refusal proved (`tools/server/accounts.mjs`). */
+  #signinLimit() { return limitFrom(this.env.SIGNIN_LIMIT, SIGNIN_LIMIT); }
+  #guessLimit() { return limitFrom(this.env.SIGNIN_ACCOUNT_LIMIT, SIGNIN_ACCOUNT_LIMIT); }
+  #guessWindow() {
+    const secs = limitFrom(this.env.SIGNIN_ACCOUNT_WINDOW_S,
+      SIGNIN_ACCOUNT_WINDOW_MS / 1000, SIGNIN_ACCOUNT_WINDOW_MAX_S);
+    return secs * 1000;
+  }
+
   /** Sign in from anywhere. A wrong address and a wrong password answer the
-   *  same way and spend the same budget, so this endpoint cannot be used to
-   *  ask whether somebody has an account here. */
+   *  same way and spend the same budgets, so this endpoint cannot be used to
+   *  ask whether somebody has an account here.
+   *
+   *  TWO BUDGETS, BECAUSE THEY BOUND DIFFERENT THINGS
+   *  One on the caller, which stops a script working down a list of addresses.
+   *  One on the address being typed, which stops a thousand callers working on
+   *  one person's password; without it the per-caller limit is a thousand
+   *  budgets wide to anybody who can spread the guessing out, and the door this
+   *  looked like it was holding shut was never shut. `server/ratelimit.js`
+   *  carries the reasoning and the anti-lockout rule.
+   *
+   *  WHY THE ORDER OF THE LINES BELOW IS THE WHOLE THING
+   *  The account's budget is READ before the address is looked up and CHARGED
+   *  only after the answer is known to be wrong, and it is keyed on the address
+   *  that was typed rather than on a player that was found. So a refusal for
+   *  too many guesses arrives identically for an address with an account behind
+   *  it and one with nothing behind it. Charging it only where there was
+   *  something to guess at would have made the 429 mean "yes, somebody plays
+   *  here", which is the one answer this endpoint is written never to give, and
+   *  it would have been given by the very line added to protect people.
+   *
+   *  AND THE READ COMES BEFORE THE PASSWORD, WHICH LOCKS THE OWNER OUT TOO
+   *  It has to: checking first and refusing only wrong answers would tell a
+   *  guesser 401, 401, 401, 200 and bound nothing. So a spent budget refuses
+   *  everybody, its owner included, until the window passes. `ratelimit.js`
+   *  argues the trade and what keeps it bounded; the short version is that the
+   *  window never extends and the reset letter is on another key. */
   async signIn(rawEmail, rawKey, ip = null) {
-    if (ip) {
-      const rkey = `rate:in:${ip}`;
-      const r = hit(await this.ctx.storage.get(rkey), Date.now(), SIGNIN_LIMIT, SIGNIN_WINDOW_MS);
-      await this.ctx.storage.put(rkey, r.bucket);
-      if (!r.allowed) {
+    /* `ip ?? "anon"` and not `if (ip)`. `register` and `joinWaitlist` both
+       carried the `if` and both lost it, for the reason written out at each:
+       a stripped header or a proxy that passes no address is not a state a
+       real request reaches, and "no limit at all" is the wrong answer to not
+       knowing who somebody is. On the door where guessing pays, most of all. */
+    await this.#spend(`rate:in:${ip ?? "anon"}`, this.#signinLimit(), SIGNIN_WINDOW_MS, "too-many-attempts");
+
+    const email = cleanEmail(rawEmail);
+    const key = cleanDerivedKey(rawKey);
+    /* An address too malformed to be one is not a guess at anybody: it can
+       never match an account, so there is nothing to bound and no bucket to
+       key. It falls through to the same `bad-credentials` as everything else. */
+    const guesses = email ? `rate:guess:${email}` : null;
+    const limit = this.#guessLimit();
+
+    const window = this.#guessWindow();
+
+    if (guesses) {
+      const spent = over(await this.ctx.storage.get(guesses), Date.now(), limit, window);
+      if (spent.over) {
         const e = new Error("too-many-attempts");
-        e.retryAfterMs = r.retryAfterMs;
+        e.retryAfterMs = spent.retryAfterMs;
         throw e;
       }
     }
-    const email = cleanEmail(rawEmail);
-    const key = cleanDerivedKey(rawKey);
+
     const id = email ? await this.ctx.storage.get(`email:${email}`) : null;
     const p = id ? await this.ctx.storage.get(`player:${id}`) : null;
-    if (!p || !key || !(await this.#keyMatches(p.pw, key))) throw new Error("bad-credentials");
+    if (!p || !key || !(await this.#keyMatches(p.pw, key))) {
+      // Charged here and nowhere else: a wrong answer is the only thing this
+      // budget is counting, so a person who knows their password never spends.
+      if (guesses) {
+        const r = hit(await this.ctx.storage.get(guesses), Date.now(), limit, window);
+        await this.ctx.storage.put(guesses, r.bucket);
+      }
+      throw new Error("bad-credentials");
+    }
+    /* Getting in clears the wrong answers behind it: this address is in the
+       hands of somebody who knows its password, so the failures are no longer
+       evidence of anything. It is why ordinary use never meets the limit at
+       all, and why a handful of forgotten-which-password tries followed by the
+       right one costs nothing. It does NOT rescue somebody whose budget is
+       already spent, because they never reach this line. */
+    if (guesses) await this.ctx.storage.delete(guesses);
     const { token, player } = await this.#newSession(p);
     return { token, player: this.#self(player) };
   }
@@ -561,8 +628,15 @@ export class Registry extends DurableObject {
       /* The waiting list too. The notice says being invited takes your address
          off it, and until this line nothing did: somebody who waited, got a
          seat and later left kept a row holding the address they had asked us
-         to forget. */
-      ...(p.email ? [`email:${p.email}`, waitKey(p.email)] : []),
+         to forget.
+
+         And the two buckets keyed on the address rather than on the player:
+         guessing at a sign-in, and asking for a way back in. Both hold the
+         address in the KEY, so leaving one behind leaves the address behind,
+         which is the same bug as the waiting list wearing a different prefix.
+         `rate:fgt:` predates the guess counter and was never swept either. */
+      ...(p.email ? [`email:${p.email}`, waitKey(p.email),
+        `rate:guess:${p.email}`, `rate:fgt:${p.email}`] : []),
       ...Object.values(p.mail ?? {}).filter(Boolean).map(h => `mail:${h}`),
     ]);
     if (p.claimedFrom) {
