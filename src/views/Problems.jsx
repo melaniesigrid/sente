@@ -48,11 +48,14 @@ export function ProblemsView({ profile, setProfile, initialId }) {
   const streak = liveStreak(profile, today);
   const isKata = kata && prob.id === kata.id;
   const set = localizeSet(setById(authored.set), t);
-  const done = setsComplete(profile.problemsDone);
+  const solvedIds = state.status === "solved" && !profile.problemsDone.includes(prob.id)
+    ? [...profile.problemsDone, prob.id]
+    : profile.problemsDone;
+  const done = setsComplete(solvedIds);
   /* Whether the board just solved was the last one open in its set. Read from
      the profile after the solve, so it is a fact about the collection rather
      than a flag the solve handler had to remember to set. */
-  const justFinished = state.status === "solved" && setProgress(authored.set, profile.problemsDone).complete;
+  const justFinished = state.status === "solved" && setProgress(authored.set, solvedIds).complete;
   useMokuFacts({ view: "tsumego", seed: profile.problemsDone.length });
 
   const load = (id) => {
