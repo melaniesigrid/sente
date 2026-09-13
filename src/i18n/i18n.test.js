@@ -17,6 +17,7 @@ import { RULESET_IDS } from "../engine/rulesets.js";
 import { CLOCK_PRESETS } from "../content/clockFace.js";
 import { TIERS, TRACKS, BOOKS, SERIES } from "../content/library.js";
 import { PROBLEMS } from "../content/problems.js";
+import { JOSEKI, CORNERS } from "../content/joseki.js";
 import { COMMENTARY } from "../content/commentary.js";
 import { CHAPTERS, LEVELS, NAMES, KINDS, PASSAGES } from "../content/classic.js";
 import {
@@ -37,7 +38,8 @@ const OVERLAYS = [
   "badge.", "fact.", "seen.",                                    // what a record has earned, what a card says, who may see
   "lesson.", "legalDoc.", "credit.",                             // the documents and the library
   "plain.", "statement.", "moku.", "ruleset.", "preset.", "persona.",  // the house's voices
-  "tier.", "track.", "book.", "series.", "problem.", "shape.",   // the library and the coach
+  "tier.", "track.", "book.", "series.", "problem.", "shape.",
+  "josekiEntry.", "josekiCorner.", "josekiSource.",              // the corner dictionary   // the library and the coach
   "classicBook.", "preface.", "kind.", "level.", "chapter.", "name.", "passage.", // the Classic
   "belowTheLevels",
 ];
@@ -279,6 +281,9 @@ describe.each(others)("$name is complete", (locale) => {
       book: BOOKS.map(x => x.id),
       series: SERIES.map(x => x.key),
       problem: PROBLEMS.map(x => x.id),
+      josekiEntry: JOSEKI.map(x => x.id),
+      josekiCorner: CORNERS.map(x => x.id),
+      josekiSource: ["credit"],
       shape: Object.keys(COMMENTARY),
       classicBook: ["title", "short", "era", "blurb", "credit"],
       preface: ["title", "plain", "text"],

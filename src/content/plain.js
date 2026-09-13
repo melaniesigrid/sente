@@ -18,6 +18,7 @@ export const PLAIN_WORDS = {
   tsumego: "A tsumego is a corner of a board with one right answer: make the group live, or take its second eye away. They are how reading gets quick, because the same handful of shapes turn up in real games for the rest of your life.",
   ladder: "A rating is a guess at your strength, and the ladder keeps track of how sure that guess is. A new handle moves a long way after a few games; a settled one barely moves at all, because the ladder already knows where you play.",
   recall: "A lesson is read once, and then it fades. A question you answered a week ago comes back here, and if you still know it the wait until the next time doubles, so the things you have learned are the things you are asked about least.",
+  joseki: "A joseki is the settled answer in one corner: a run of moves where neither side can do better, so both play it and the argument moves on. There is no one right answer, which is why it is a dictionary rather than a rulebook, and every sequence here says what it cost and what it bought.",
   profile: "Your rank is measured, not awarded. It is your rating read off the ladder, so it moves with results rather than with the hours you have put in, and the belt is simply the band of ranks you are standing in.",
 };
 
@@ -47,6 +48,7 @@ export const STATEMENTS = {
   ladder: ["A rating", "is a guess.", "The ladder knows."],
   profile: ["Measured.", "Not awarded.", "That is the rank."],
   recall: ["Answered", "once", "is not known."],
+  joseki: ["One corner.", "Both sides", "satisfied."],
 };
 
 /* ----------------------- THE FRONT DOOR'S STATEMENTS -----------------------

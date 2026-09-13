@@ -860,6 +860,31 @@ ${FONT_FACES}
 .rank-chip { color: var(--accent-ink); }
 .prob-title { font-family: var(--font-display); font-weight: var(--w-display); font-size: 21px; margin: 0 0 8px; }
 
+/* ---- the corner dictionary ---- */
+/* A sequence read one move at a time: the same rail and body the library uses,
+   a row of named sequences instead of numbered circles, and the reason for the
+   move you are standing on beside the board. */
+.tier-btn.locked { opacity: .55; cursor: default; }
+.tier-btn.locked:hover { transform: none; }
+.jos-tabs { display: flex; gap: 9px; flex-wrap: wrap; margin: 4px 0 2px; }
+.jos-tab {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
+  border: 0; background: var(--ground); color: var(--ink); cursor: pointer;
+  padding: 9px 14px; border-radius: 13px; box-shadow: var(--raise-sm); text-align: left;
+  transition: box-shadow .18s ease, color .18s ease;
+}
+.jos-tab-name { font: 700 13.5px var(--font-body); letter-spacing: .04em; }
+.jos-tab .fine { margin: 0 !important; }
+.jos-tab.active { box-shadow: var(--sink-sm); color: var(--accent-ink); }
+.jos-corner { min-width: 148px; }
+.jos-tab.locked { opacity: .5; cursor: default; box-shadow: var(--sink-sm); }
+.jos-corner-blurb { margin: 0 !important; max-width: 68ch; }
+.jos-index { margin-bottom: clamp(10px, 1.6vw, 18px); }
+.jos-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.jos-move .lesson-text { margin-top: 10px; }
+.jos-source { margin-top: clamp(14px, 2vw, 22px); }
+.jos-source .fine { margin-top: 10px !important; }
+
 /* ---- toast ---- */
 .toast {
   position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%);

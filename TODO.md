@@ -982,7 +982,31 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
 - [ ] Tsumego and the weekly problem are answered questions too, and neither enters the
       queue. They have their own ids rather than lesson steps, so the card key would have
       to grow a kind.
-- [ ] Joseki and opening library for 9×9 and 19×19.
+- [x] The corner dictionary (2026-09-12, branch `feat/joseki-library`): the app has been
+      called Joseki since the rename and held none. `src/content/joseki.js` is the first
+      edition: `CORNERS` (4-4 written, 3-4 and 3-3 declared unwritten, the way the tiers
+      shipped with empty indexes) and four sequences on the star point, with one line of
+      commentary per move and a paragraph on what each side ended up with.
+      The sequences were not written from memory. `tools/joseki/policy.py` runs the shipped
+      human ONNX at a professional profile and reports, for every position in a sequence,
+      the network's ranked candidates; `--local` restricts the ranking to a box, which is
+      the only honest way to ask a whole-board network a corner question, and `--walk`
+      plays its own first choice forward, which is how all four sequences were found. Every
+      move carries the `rank` and `p` it was given, and the screen shows them.
+      Decisions: a move nobody was forced into carries `chosen` and is labelled a choice
+      rather than an answer, and `joseki.test.js` fails the build if a move the network did
+      not rank first is missing that label, so the dictionary cannot quietly present
+      somebody's taste as the only move. The attachment is ranked ninth in the corner and
+      is in the dictionary anyway, with the number printed under it. `Board` gained `crop`,
+      which moves the viewBox and nothing else, so a corner of nineteen lines is readable
+      at page width and on a phone. The overlay namespaces are `josekiEntry.` and
+      `josekiCorner.`, not `joseki.`: the screen's own chrome already lives under `joseki.`
+      and a content overlay sharing a screen's prefix breaks the parity test.
+- [ ] The 3-4 and the 3-3 points in the dictionary. The tool walks them as readily as the
+      star point; what they need is an author, because the network improvises on an empty
+      board and the komoku lines it produced wandered out of the corner rather than
+      settling in it.
+- [ ] Opening library for 9×9, where no joseki from the big board survives contact.
 
 ## Phase 6: Masters and books
 

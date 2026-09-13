@@ -143,6 +143,32 @@ export const screens = {
     currentStreak: "\u00b7 current:",
   },
   /* Life and death. */
+  /* The corner dictionary. */
+  joseki: {
+    label: "The corner dictionary",
+    titleBefore: "The settled ",
+    titleEm: "corner",
+    titleAfter: ".",
+    lede: "A joseki is the run of moves where neither side in one corner can do better, so both of them play it and the game moves on. Four of them, on the star point, every move walked out with the network this server ships.",
+    cornersLabel: "Opening points",
+    cornerCount: {
+      one: "{count} sequence",
+      other: "{count} sequences",
+    },
+    cornerOpen: "not written yet",
+    moveN: "Move {n} of {total}",
+    beforeFirst: "The empty corner",
+    emptyCorner: "Step forward, or play it out, and the reason for each move is here.",
+    answerNote: "The network's first choice in this corner, at {pct}% of its weight.",
+    choiceTopNote: "A choice rather than an answer, and one the network would have made too.",
+    choiceNote: "A choice, not an answer: the network ranked this {rank} in the corner.",
+    back: "Back",
+    forward: "Forward",
+    playOut: "Play it out",
+    pause: "Pause",
+    resultHead: "What each side got",
+    sourceHead: "What this was checked against",
+  },
   tsumego: {
     label: "Life and death",
     titleBefore: "Read it ",
