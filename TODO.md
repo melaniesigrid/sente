@@ -2554,6 +2554,42 @@ friends"; this phase is the three verbs in that sentence that were still missing
 the invitation card, the search rows, the terms panel and the whole
 invite → accept → board flow, with a clean console and no horizontal overflow.
 
+## Phase 12: The club
+
+Full design: `docs/designs/the-club.md`. The ask was "Discord-like capabilities", which
+taken literally is servers, channels, roles, voice, threads, reactions and bots, and taken
+as a question about what people actually do in a Discord is six much smaller things: a
+place that is ours, rooms in it with a subject, talk that is live, who is here, somebody in
+charge with very little power, and a way in that is a link.
+
+This is also the phase Phase 9 deferred. Option C of the social layer was *club-shaped*,
+written down and put off because "add this one person I met at a tournament" had no home
+in it. The friend edge, the directory and the invitation are all built now, so it arrives
+on the foundation it was deferred onto.
+
+- [x] **The club** (branch `feat/club`): a named place with a roll of members. Founded by
+      anybody, joined by a code or through the front door of a listed one, left at will.
+      Three roles — founder, keeper, member — and four powers, with no permission matrix:
+      a keeper may take a line down and show a member the door, a founder may also name
+      keepers, change the club, roll its code and close it. `server/clubs.js` is the whole
+      policy, pure, in 59 cases; `tools/server/clubs.mjs` proves it against a deployment
+      in 32 checks.
+      **Nobody is added to a club.** There is no route, no client call and no function in
+      the pure module that puts one player into a club on another player's say-so — the
+      signature of `join` cannot express it. `legal.js` says there is no list anybody can
+      be added to, and a club is a list; that sentence stays true only this way, and it
+      happens to be how a person expects a link to work.
+      A club is unlisted until a founder lists it, and an unlisted one answers a stranger
+      exactly as a made-up id does, because an answer that said "it exists and you may not
+      see it" would be most of what unlisted was for. A listed one joins the same
+      directory handles are in, bounded the same way: two characters, a prefix, twenty
+      answers, no count, a session required.
+- [ ] **The hall** (branch `feat/hall`): a Durable Object per club — hibernating sockets,
+      a pure reducer, live talk, who is standing there, and the last 500 lines.
+- [ ] **Channels and keeping** (branch `feat/keeping`): several named channels, the four
+      powers in use, and a game invitation posted into a channel that any member may take
+      up.
+
 ## Principles (do not trade away)
 
 - Rules live in the engine, never in a view.

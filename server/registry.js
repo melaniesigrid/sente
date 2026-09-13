@@ -12,7 +12,12 @@
                   and never a walk over everybody
      the directory `find:<term>:<playerId>` one key per searchable piece of a
                   handle, so finding somebody is a walk over the matches and
-                  never over the players
+                  never over the players; `cfind:` is the same index for the
+                  clubs that have chosen to be listed
+     clubs        `club:<id>` the record, `member:<clubId>:<playerId>` one row a
+                  member so a roll is one bounded list, `clubs:<playerId>` the
+                  ids one player is in so "what are my clubs" is one key, and
+                  `code:<code>` the club a code opens
      invitations  `inv:<owner>:<other>` one row on each of the two shelves, so
                   reading who has asked you for a game is one bounded list
      game lists   `games:<playerId>` recent games for the lobby's "your tables"
@@ -47,7 +52,12 @@ import { cleanBio, cleanFacts, avatarProblem, profileOf } from "./profile.js";
 import { readBook, standing, ask, accept, forget, forgetting, everyoneWhoKnows,
   ASK_LIMIT, ASK_WINDOW_MS } from "./friends.js";
 import { cleanShowOnline, whoIsHere } from "./presence.js";
-import { findKeys, idsFrom, closest, query as searchQuery, FIND_PREFIX, MAX_RESULTS } from "./directory.js";
+import { findKeys, idsFrom, closest, query as searchQuery, FIND_PREFIX, FIND_CLUB_PREFIX,
+  MAX_RESULTS } from "./directory.js";
+import { cleanCode, codeFrom, readClub, readMembership,
+  readMyClubs, clubFace, maySee, found as foundClub, join as walkIn, leave as walkOut,
+  setRole, showTheDoor, change as amendClub, roll, clubKey, memberKey, memberPrefix,
+  clubsKey, codeKey, FOUND_LIMIT, FOUND_WINDOW_MS } from "./clubs.js";
 import { archivePrefix, archiveKey, pageSize, cursorFor, page as archivePage,
   archived, playersOf } from "./archive.js";
 import { readFeatured, pin as pinPure, unpin as unpinPure, featuredWith } from "./featured.js";
@@ -678,6 +688,7 @@ export class Registry extends DurableObject {
     if (!p) return false;
     // Before this player's own book goes, everybody named in it is told.
     await this.#unfriendEverybody(id);
+    await this.#leaveEveryClub(id);
     await this.#forgetShelf(id);
     await this.#forgetArchive(id);
     await this.#forgetPost(id);
@@ -1307,6 +1318,309 @@ export class Registry extends DurableObject {
     if (r.error) throw new Error(r.error);
     if (r.outcome !== "nothing") await this.#dropInvite(meId, themId);
     return { outcome: r.outcome };
+  }
+
+  /* ----- clubs -----
+     A named place with a roll of members. The policy is in `server/clubs.js`,
+     pure; what is here is storage, and the one rule storage itself enforces:
+     every write that changes a club and a membership writes both together, or
+     neither, so there is never a moment where a club counts somebody it has no
+     row for.
+
+     There is no method here that puts one player into a club on another
+     player's say-so, and there must never be one. `legal.js` says there is no
+     list anybody can be added to, and a club is a list. */
+
+  async #club(id) {
+    return readClub(await this.ctx.storage.get(clubKey(id)));
+  }
+
+  async #membership(clubId, playerId) {
+    return readMembership(await this.ctx.storage.get(memberKey(clubId, playerId)));
+  }
+
+  async #myClubIds(playerId) {
+    return readMyClubs(await this.ctx.storage.get(clubsKey(playerId)));
+  }
+
+  /** The whole roll of a club, which is one bounded list: membership is capped
+   *  at two hundred, so this is a page and never a scan. */
+  async #roll(clubId) {
+    const got = await this.ctx.storage.list({ prefix: memberPrefix(clubId) });
+    return [...got.values()].map(readMembership).filter(Boolean);
+  }
+
+  /** The index keys a listed club has in the directory, or none for an
+   *  unlisted one. A club that is not listed is not in the index at all, which
+   *  is what makes unlisted mean unfindable rather than merely unadvertised. */
+  #clubIndex(club) {
+    return club.listed ? findKeys(club.name, club.id, FIND_CLUB_PREFIX) : [];
+  }
+
+  /** Rewrite a club's rows in the directory for a change of name or listing.
+   *  Old keys go before new ones are written, so a rename cannot leave a club
+   *  answering to the name it stopped using. */
+  async #reindexClub(was, now) {
+    const before = this.#clubIndex(was);
+    const after = this.#clubIndex(now);
+    const gone = before.filter((k) => !after.includes(k));
+    if (gone.length) await this.ctx.storage.delete(gone);
+    return Object.fromEntries(after.map((k) => [k, 1]));
+  }
+
+  /** Found one. The founder is its first member, and there is never a club
+   *  with nobody in it. */
+  async makeClub(playerId, patch) {
+    const p = await this.ctx.storage.get(`player:${playerId}`);
+    if (!p) throw new Error("no-player");
+    await this.#spend(`rate:club:${playerId}`, FOUND_LIMIT, FOUND_WINDOW_MS, "too-many-clubs-made");
+    const mine = await this.#myClubIds(playerId);
+    const id = "c_" + randomHex(6);
+    /* The code is minted here because randomness is not this file's business
+       and is not `clubs.js`'s either: that file shapes the bytes into something
+       a person can read aloud, and this one supplies them. */
+    const code = await this.#freshCode();
+    const r = foundClub({
+      id, name: patch?.name, about: patch?.about, listed: patch?.listed === true,
+      code, founderId: playerId, mine, now: Date.now(),
+    });
+    if (r.error) throw new Error(r.error);
+    await this.ctx.storage.put({
+      [clubKey(id)]: r.club,
+      [memberKey(id, playerId)]: r.membership,
+      [clubsKey(playerId)]: [id, ...mine],
+      [codeKey(code)]: id,
+      ...Object.fromEntries(this.#clubIndex(r.club).map((k) => [k, 1])),
+    });
+    return this.#clubForMember(r.club, r.membership);
+  }
+
+  /** A code nobody is using. Two tries and then a longer one: eight characters
+   *  of a thirty-one letter alphabet is far more room than a beta has clubs, so
+   *  a collision is a curiosity rather than a case to design for, but answering
+   *  a second club's code with the first club's door is not a thing to leave to
+   *  arithmetic. */
+  async #freshCode() {
+    for (let i = 0; i < 5; i += 1) {
+      const code = codeFrom(crypto.getRandomValues(new Uint8Array(16)));
+      if (!(await this.ctx.storage.get(codeKey(code)))) return code;
+    }
+    throw new Error("no-code");
+  }
+
+  /** A club as one of its own members reads it: the face, their own standing,
+   *  and the code, which only a member may see because it is the key to the
+   *  front door. */
+  #clubForMember(club, membership) {
+    return {
+      ...clubFace(club),
+      code: club.code,
+      role: membership.role,
+      founder: club.founder === membership.id,
+    };
+  }
+
+  /** The clubs this player is in, newest first, each with their role in it.
+   *  One key gives the ids and one batched read gives the records, so a screen
+   *  that opens on "your clubs" costs two reads however many there are. */
+  async clubsOf(playerId) {
+    const ids = await this.#myClubIds(playerId);
+    if (!ids.length) return { clubs: [] };
+    const records = await this.ctx.storage.get(ids.map(clubKey));
+    const roles = await this.ctx.storage.get(ids.map((id) => memberKey(id, playerId)));
+    const clubs = ids
+      .map((id) => {
+        const club = readClub(records.get(clubKey(id)));
+        const mine = readMembership(roles.get(memberKey(id, playerId)));
+        /* A club that is gone, or a row this player no longer has, is dropped
+           rather than drawn as a name that answers nothing: the list heals
+           itself by being read, the way the friends book does. */
+        return club && mine ? this.#clubForMember(club, mine) : null;
+      })
+      .filter(Boolean);
+    return { clubs };
+  }
+
+  /** One club, seen by whoever is asking. A member gets the roll; anybody may
+   *  see the face of a listed one; an unlisted club answers a stranger exactly
+   *  as a made-up id does, because an answer that said "it exists and you may
+   *  not see it" is most of what unlisted was for. */
+  async clubFor(playerId, clubId) {
+    const club = await this.#club(clubId);
+    const mine = playerId ? await this.#membership(clubId, playerId) : null;
+    if (!maySee(club, mine)) throw new Error("no-club");
+    if (!mine) return { ...clubFace(club), role: null, founder: false, members: club.members };
+    const members = roll(await this.#roll(clubId));
+    const people = await this.#peopleByIds(members.map((m) => m.id));
+    return {
+      ...this.#clubForMember(club, mine),
+      roll: members
+        .map((m) => {
+          const p = people.get(m.id);
+          return p ? { ...publicPlayer(p), role: m.role, at: m.at } : null;
+        })
+        .filter(Boolean),
+    };
+  }
+
+  /** What a code opens, before anybody commits to walking in. The face and
+   *  nothing else: somebody holding a code has earned the right to know what
+   *  they are about to join and not the right to read its roll. */
+  async clubByCode(rawCode) {
+    const code = cleanCode(rawCode);
+    if (!code) throw new Error("bad-code");
+    const id = await this.ctx.storage.get(codeKey(code));
+    const club = id ? await this.#club(id) : null;
+    if (!club) throw new Error("bad-code");
+    return clubFace(club);
+  }
+
+  /** Walk in. The only caller is the person joining, with their own token. */
+  async joinClub(playerId, clubId, rawCode) {
+    if (!(await this.ctx.storage.get(`player:${playerId}`))) throw new Error("no-player");
+    const club = await this.#club(clubId);
+    const mine = await this.#myClubIds(playerId);
+    const r = walkIn({
+      club,
+      membership: club ? await this.#membership(clubId, playerId) : null,
+      mine, playerId, code: cleanCode(rawCode), now: Date.now(),
+    });
+    if (r.error) throw new Error(r.error);
+    await this.ctx.storage.put({
+      [clubKey(clubId)]: r.club,
+      [memberKey(clubId, playerId)]: r.membership,
+      [clubsKey(playerId)]: [clubId, ...mine.filter((x) => x !== clubId)],
+    });
+    return this.#clubForMember(r.club, r.membership);
+  }
+
+  /** Walk out. A founder may not; they hand it on or close it. */
+  async leaveClub(playerId, clubId) {
+    const club = await this.#club(clubId);
+    const mine = await this.#membership(clubId, playerId);
+    const r = walkOut({ club, membership: mine });
+    if (r.error) throw new Error(r.error);
+    await this.#unseat(clubId, playerId, r.club);
+    return { left: clubId };
+  }
+
+  /** Take one member off a club: the row, the count, and the club's id off
+   *  their own list. One place, so leaving, being shown the door and leaving
+   *  Joseki altogether cannot come to disagree about what any of them means. */
+  async #unseat(clubId, playerId, club) {
+    const mine = await this.#myClubIds(playerId);
+    await this.ctx.storage.delete(memberKey(clubId, playerId));
+    await this.ctx.storage.put({
+      ...(club ? { [clubKey(clubId)]: club } : {}),
+      [clubsKey(playerId)]: mine.filter((x) => x !== clubId),
+    });
+  }
+
+  /** Name or unname a keeper. */
+  async setClubRole(playerId, clubId, targetId, role) {
+    const actor = await this.#membership(clubId, playerId);
+    const target = await this.#membership(clubId, targetId);
+    const r = setRole({ actor, target, role });
+    if (r.error) throw new Error(r.error);
+    if (r.outcome !== "unchanged") {
+      await this.ctx.storage.put(memberKey(clubId, targetId), r.membership);
+    }
+    return { outcome: r.outcome, role: r.membership.role };
+  }
+
+  /** Show somebody the door. They keep everything of their own; what they lose
+   *  is the room. */
+  async removeFromClub(playerId, clubId, targetId) {
+    const club = await this.#club(clubId);
+    const actor = await this.#membership(clubId, playerId);
+    const target = await this.#membership(clubId, targetId);
+    const r = showTheDoor({ actor, target, club });
+    if (r.error) throw new Error(r.error);
+    await this.#unseat(clubId, targetId, r.club);
+    return { removed: targetId };
+  }
+
+  /** The name, the description, and whether it is listed. */
+  async changeClub(playerId, clubId, patch) {
+    const club = await this.#club(clubId);
+    const actor = await this.#membership(clubId, playerId);
+    if (!club) throw new Error("no-club");
+    const r = amendClub({ actor, club, patch });
+    if (r.error) throw new Error(r.error);
+    const index = await this.#reindexClub(club, r.club);
+    await this.ctx.storage.put({ [clubKey(clubId)]: r.club, ...index });
+    return this.#clubForMember(r.club, actor);
+  }
+
+  /** A new code, which stops the old one. Revocable rather than timed: a code
+   *  is a front-door key, and the answer to a key that got out is a new lock. */
+  async rollClubCode(playerId, clubId) {
+    const club = await this.#club(clubId);
+    const actor = await this.#membership(clubId, playerId);
+    if (!club) throw new Error("no-club");
+    if (!actor || actor.role !== "founder") throw new Error("not-allowed");
+    const code = await this.#freshCode();
+    if (club.code) await this.ctx.storage.delete(codeKey(club.code));
+    const next = { ...club, code };
+    await this.ctx.storage.put({ [clubKey(clubId)]: next, [codeKey(code)]: clubId });
+    return this.#clubForMember(next, actor);
+  }
+
+  /** Close it for good: every row, the code, the directory entries, the club's
+   *  id off every member's list, and the hall's own store. */
+  async closeClub(playerId, clubId) {
+    const club = await this.#club(clubId);
+    const actor = await this.#membership(clubId, playerId);
+    if (!club) throw new Error("no-club");
+    if (!actor || actor.role !== "founder") throw new Error("not-allowed");
+    await this.#eraseClub(club);
+    return { closed: clubId };
+  }
+
+  /** Everything a club is, gone. Used by closing one and by the founder
+   *  leaving Joseki, which are the same erasure reached two ways. */
+  async #eraseClub(club) {
+    const members = await this.#roll(club.id);
+    for (const m of members) {
+      const theirs = await this.#myClubIds(m.id);
+      await this.ctx.storage.put(clubsKey(m.id), theirs.filter((x) => x !== club.id));
+    }
+    await this.ctx.storage.delete([
+      ...members.map((m) => memberKey(club.id, m.id)),
+      clubKey(club.id),
+      ...(club.code ? [codeKey(club.code)] : []),
+      ...this.#clubIndex(club),
+    ]);
+  }
+
+  /** Every club this player is in, left. A founder's club is closed rather
+   *  than left, because a club with no founder has nobody who can close it.
+   *  `DELETE /api/me` says nothing is left behind, and a membership is a row on
+   *  a club as well as an id on a person. */
+  async #leaveEveryClub(playerId) {
+    for (const clubId of await this.#myClubIds(playerId)) {
+      const club = await this.#club(clubId);
+      if (!club) continue;
+      const mine = await this.#membership(clubId, playerId);
+      if (mine && mine.role === "founder") await this.#eraseClub(club);
+      else await this.#unseat(clubId, playerId, { ...club, members: Math.max(0, club.members - 1) });
+    }
+    await this.ctx.storage.delete(clubsKey(playerId));
+  }
+
+  /** Which clubs answer to that name. Listed ones only: the index holds nobody
+   *  else, which is what unlisted means. */
+  async searchClubs(raw) {
+    const q = searchQuery(raw);
+    if (!q) return { clubs: [] };
+    const keys = await this.ctx.storage.list({ prefix: FIND_CLUB_PREFIX + q, limit: MAX_RESULTS * 3 });
+    const ids = idsFrom([...keys.keys()], FIND_CLUB_PREFIX).slice(0, MAX_RESULTS);
+    const records = await this.ctx.storage.get(ids.map(clubKey));
+    const clubs = ids
+      .map((id) => readClub(records.get(clubKey(id))))
+      .filter((c) => c && c.listed)
+      .map(clubFace);
+    return { clubs: closest(clubs, q) };
   }
 
   /* ----- the ladder ----- */
