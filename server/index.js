@@ -46,6 +46,10 @@
      POST  /api/clubs/:id/code  bearer(founder) -> a new code, stopping the old
      DELETE /api/clubs/:id      bearer(founder) -> close it for good
      GET   /api/me/clubs        bearer         -> the clubs you are in
+     GET   /api/clubs/:id/hall?token=  websocket -> the hall, for a member
+     POST  /api/clubs/:id/channels bearer(keeper) {name} -> a new channel
+     PATCH /api/clubs/:id/channels/:cid bearer(keeper) {name} -> rename it
+     DELETE /api/clubs/:id/channels/:cid bearer(keeper) -> remove it, and what is in it
      PUT   /api/clubs/:id/members/:pid bearer(founder) {role} -> name a keeper
      DELETE /api/clubs/:id/members/:pid bearer(keeper) -> show them the door
      GET   /api/me/invites      bearer         -> games you were asked for, and asked
@@ -72,12 +76,15 @@ import { AVATAR_MAX_BYTES } from "./profile.js";
 import { askedIds } from "./presence.js";
 import { toSgf } from "../src/engine/sgf.js";
 import { callerIp } from "./ratelimit.js";
+import { may } from "./clubs.js";
 import { mailConfig, mailLink, verifyMessage, resetMessage } from "./mail.js";
 export { Registry } from "./registry.js";
 export { Room } from "./roomObject.js";
+export { Club } from "./clubObject.js";
 
 const registry = (env) => env.REGISTRY.get(env.REGISTRY.idFromName("main"));
 const room = (env, id) => env.ROOM.get(env.ROOM.idFromName(id));
+const hall = (env, id) => env.CLUB.get(env.CLUB.idFromName(id));
 const GAME_ID = /^g_[0-9a-f]{12}$/;
 
 export default {
@@ -131,6 +138,10 @@ export default {
            being unlisted was for. `not-allowed` is a 403 because the person is
            in the club and the act is simply not theirs to do. */
         "no-club": 404, "bad-club-name": 400, "bad-code": 403,
+        /* The hall. A channel is part of a club's shape, so these are refused
+           for the state that shape is in rather than for a bad request. */
+        "too-many-channels": 409, "channel-exists": 409,
+        "bad-channel-name": 400, "no-such-channel": 404,
         "already-a-member": 409, "club-is-full": 409, "too-many-clubs": 409,
         "not-a-member": 403, "not-allowed": 403, "not-yourself": 400,
         "no-such-role": 400, "founder-cannot-leave": 409, "no-code": 503,
@@ -435,6 +446,45 @@ async function route(req, env) {
       200, { "cache-control": "no-store" });
   }
 
+  /* The hall: a live socket into one club, for a member of it and nobody
+     else. The Registry is asked who this is before a socket exists at all, and
+     the answer rides in a header, so the Club object never has to know what a
+     membership is — it is handed one, or it is handed nothing. */
+  const clubHall = /^\/api\/clubs\/([^/]+)\/hall$/.exec(path);
+  if (clubHall) {
+    if (req.headers.get("upgrade") !== "websocket") return fail(426, "websocket-only");
+    const player = await reg.auth(url.searchParams.get("token"));
+    if (!player) return fail(401, "unauthorized");
+    const seat = await reg.hallSeat(player.id, clubHall[1]);
+    if (!seat) return fail(403, "not-a-member");
+    const headers = new Headers(req.headers);
+    headers.set("x-sente-member", JSON.stringify(seat));
+    return hall(env, clubHall[1]).fetch(new Request(req, { headers }));
+  }
+
+  /* Channels. Keeping them is a keeper's power and a founder's, checked here
+     against the Registry's membership before the hall is told to do anything:
+     the Club object stores channels, it does not police them. */
+  const clubChannels = /^\/api\/clubs\/([^/]+)\/channels(?:\/([^/]+))?$/.exec(path);
+  if (clubChannels) {
+    const player = await requirePlayer(req, reg);
+    const [, clubId, channelId] = clubChannels;
+    const seat = await reg.hallSeat(player.id, clubId);
+    if (!seat) return fail(403, "not-a-member");
+    if (!mayKeepChannels(seat.role)) return fail(403, "not-allowed");
+    const stub = hall(env, clubId);
+    if (!channelId && req.method === "POST") {
+      const b = await readJson(req);
+      return json(await stub.channel("add", "ch_" + crypto.randomUUID().slice(0, 8), b.name), 201);
+    }
+    if (channelId && req.method === "PATCH") {
+      const b = await readJson(req);
+      return json(await stub.channel("rename", channelId, b.name));
+    }
+    if (channelId && req.method === "DELETE") return json(await stub.channel("remove", channelId));
+    return fail(405, "method");
+  }
+
   const clubMember = /^\/api\/clubs\/([^/]+)\/members\/([^/]+)$/.exec(path);
   if (clubMember) {
     const player = await requirePlayer(req, reg);
@@ -628,6 +678,10 @@ async function post(env, minted) {
     throw new Error("mail-failed");
   }
 }
+
+/** Whether a role may keep channels. Asked of `clubs.js` rather than restated,
+ *  so the powers are written down in exactly one place. */
+const mayKeepChannels = (role) => may(role, "keepChannels");
 
 async function requirePlayer(req, reg) {
   const player = await reg.auth(bearer(req));
