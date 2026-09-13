@@ -2692,8 +2692,98 @@ friends"; this phase is the three verbs in that sentence that were still missing
       for Black. `server/invites.js` is the policy, pure, in 31 cases;
       `tools/server/invites.mjs` proves it against a deployment in 31 checks, playing a
       whole game out to reach "somebody you have finished a game against".
-- [ ] **The way in** (branch `feat/reach`): the acts on a person — ask, write, invite —
-      reachable from every row and every page that names one of them.
+- [x] **The way in** (branch `feat/reach`): the acts on a person reachable from where
+      somebody is standing when they want one. Three things, and the first is a bug:
+      **"Write to them" on a player page did not write to them.** It landed on the profile
+      screen and left the reader to find the right row in the post. The open thread now
+      belongs to the screen rather than to the card that draws it, so the player page, and
+      a friend row, can open the conversation with one press. **Your friends who are here**
+      are drawn in the lobby, which is where somebody is standing when they want a game;
+      presence has been on this server since it shipped and had only ever been drawn on
+      the profile screen. One press asks a friend who is here for a game on the board the
+      lobby is already set to, and the strip is absent entirely when nobody is around,
+      because that is the state a small club is in most of the time and a heading over
+      nobody is worse than no heading.
+      **And a mobile bug the social rows all shared**: `.ladder-name` had no `min-width: 0`,
+      so a flex item could not shrink below the intrinsic width of a long name or a long
+      letter preview, and the post gave every phone-width screen holding a letter a
+      horizontal scrollbar. Found by driving a real browser at 400px, which is the only
+      way it was ever going to be found.
+
+**Phase 11 is complete.** Three slices, three branches. Browser QA at 1100 and 400 px:
+the invitation card, the search rows, the terms panel and the whole
+invite → accept → board flow, with a clean console and no horizontal overflow.
+
+## Phase 12: The club
+
+Full design: `docs/designs/the-club.md`. The ask was "Discord-like capabilities", which
+taken literally is servers, channels, roles, voice, threads, reactions and bots, and taken
+as a question about what people actually do in a Discord is six much smaller things: a
+place that is ours, rooms in it with a subject, talk that is live, who is here, somebody in
+charge with very little power, and a way in that is a link.
+
+This is also the phase Phase 9 deferred. Option C of the social layer was *club-shaped*,
+written down and put off because "add this one person I met at a tournament" had no home
+in it. The friend edge, the directory and the invitation are all built now, so it arrives
+on the foundation it was deferred onto.
+
+- [x] **The club** (branch `feat/club`): a named place with a roll of members. Founded by
+      anybody, joined by a code or through the front door of a listed one, left at will.
+      Three roles — founder, keeper, member — and four powers, with no permission matrix:
+      a keeper may take a line down and show a member the door, a founder may also name
+      keepers, change the club, roll its code and close it. `server/clubs.js` is the whole
+      policy, pure, in 59 cases; `tools/server/clubs.mjs` proves it against a deployment
+      in 32 checks.
+      **Nobody is added to a club.** There is no route, no client call and no function in
+      the pure module that puts one player into a club on another player's say-so — the
+      signature of `join` cannot express it. `legal.js` says there is no list anybody can
+      be added to, and a club is a list; that sentence stays true only this way, and it
+      happens to be how a person expects a link to work.
+      A club is unlisted until a founder lists it, and an unlisted one answers a stranger
+      exactly as a made-up id does, because an answer that said "it exists and you may not
+      see it" would be most of what unlisted was for. A listed one joins the same
+      directory handles are in, bounded the same way: two characters, a prefix, twenty
+      answers, no count, a session required.
+- [x] **The hall** (branch `feat/hall`): a Durable Object per club — hibernating sockets,
+      a pure reducer, live talk, who is standing there, and the last 500 lines. The Room
+      object's shape applied to a room with no board in it: parse a frame, `applyHall`,
+      store, broadcast. `server/hall.js` is the policy, pure, in 33 cases;
+      `tools/server/hall.mjs` proves it against a deployment in 25 checks over real
+      sockets, and two browser tabs were driven through one room talking to each other.
+      Channels arrived with it rather than after it, because the storage shape needed
+      them from the first write; what slice three adds is the rest of keeping them.
+      **A hall is not the post, and both are worth having.** The post is one thread a
+      pair, kept, with no read receipts, from somebody you agreed to hear from. A hall is
+      live, said to whoever is standing there, and keeps five hundred lines and no more.
+      That last part is where this deliberately parts company with Discord: keeping
+      everything for good on a free Worker is a storage bill nobody agreed to pay, and a
+      promise about other people's words that is easier to make than to keep. The screen
+      says it rather than letting somebody find out.
+      **Presence in a hall is the one place `showOnline` does not decide.** A room you
+      walked into is a room the people in it can see you in. Said on the screen, because
+      it is the only exception to a setting people were told governs this.
+- [x] **The board in the room** (branch `feat/table`): the thing that makes a club a go
+      club rather than a chat room with a go server attached to it. Somebody puts a board
+      up in a channel — a size, a handicap, whether it counts — and any other member sits
+      down at it. The game opens there and then, rated like any other, with the guest on
+      Black for the reason an invitation gives: whoever put the board up chose the terms,
+      and the engine places a handicap for Black.
+      A board is a **line**, not a second kind of object beside the conversation: somebody
+      asking whether anybody wants a game IS a thing they said, and it belongs in the flow
+      it came out of. Three standing boards a person, counted across the whole hall rather
+      than per channel, because a cap on one person's boards is a cap on the room.
+      Sitting down is the one frame the reducer does not handle: it opens a real game,
+      which is the Registry's business, so the object asks a pure `sittable`, opens the
+      board, and writes the answer back with a pure `seated`. Matchmaking, an invitation
+      taken up and a board sat down at now all seat players through one `#openTable`,
+      because three copies of the seating would be three chances to seat somebody the
+      wrong way round.
+      Channel keeping finished here too: a keeper may add, rename and remove one, and the
+      first channel can be renamed like any other but never removed.
+
+**Phase 12 is complete.** Three slices, three branches, one design doc. What is deliberately
+not in it, each for a reason written down in `docs/designs/the-club.md`: voice, reactions,
+threads, bots and uploads.
 
 ## Principles (do not trade away)
 

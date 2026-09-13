@@ -817,7 +817,14 @@ ${FONT_FACES}
 .ladder-open:active:not(.me) { box-shadow: var(--sink-sm); }
 .ladder-pos { color: var(--ink-2); width: 26px; text-align: center; font-family: var(--font-display); font-weight: var(--w-display); font-size: 17px; display: grid; place-items: center; }
 .ladder-pos.gold { color: var(--accent-ink); opacity: 1; }
-.ladder-name { flex: 1; display: flex; flex-direction: column; line-height: 1.2; }
+/* A min-width of zero is the whole of why a long name or a long letter preview
+   cannot push the thing beside it off the screen. A flex item will not shrink
+   below the intrinsic width of its content without it, so the rows that carry
+   a name and something after it: the ladder, the friends, the search results,
+   the invitations, the post - all overflow at phone width the moment the name
+   is long. It cost the post a horizontal scrollbar at 400px on every screen
+   holding a letter, which is where this was found. */
+.ladder-name { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }
 .ladder-name strong { font-size: 15.5px; }
 .ladder-rating { color: var(--ink-2); font-family: var(--font-display); font-weight: var(--w-display); font-size: 18px; }
 .streak-note { display: flex; align-items: center; gap: 9px; font-size: 15px; }
@@ -2150,6 +2157,94 @@ ${FONT_FACES}
 .invite-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .invite-rated { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-2); }
 .invite-rated input { accent-color: var(--accent-ink); width: 15px; height: 15px; }
+/* ---- clubs ----
+   A club is drawn as the friends card's rows once more, with a mark where a
+   face would be: a club is a place and not a person, and a picture of one
+   would be a picture of nothing. The mark is the same sunken well an avatar
+   sits in, so a row of clubs and a row of people line up.
+
+   The code is set in the monospaced face the rest of the app keeps for things
+   that are read character by character, and it is spaced out for the same
+   reason: it is copied off one screen and typed into another. */
+.clubs-card { display: flex; flex-direction: column; gap: 14px; }
+.clubs-card h3, .club-page h3, .club-roll h3 {
+  font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0;
+}
+.club-row { width: 100%; }
+.club-mark {
+  display: grid; place-items: center; width: 38px; height: 38px; flex: none;
+  border-radius: 13px; box-shadow: var(--sink-sm); color: var(--accent-ink);
+}
+.club-mark-lg { width: 64px; height: 64px; border-radius: 20px; }
+.club-page, .club-roll { display: flex; flex-direction: column; gap: 14px; }
+.club-face {
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 11px 13px; border-radius: 14px; box-shadow: var(--sink-sm);
+}
+.club-code { display: flex; flex-direction: column; gap: 7px; }
+.club-code-text {
+  font-family: var(--font-typewriter); font-size: 17px; letter-spacing: .22em;
+  padding: 9px 13px; border-radius: 12px; box-shadow: var(--sink-sm); color: var(--ink);
+}
+.club-code-input { font-family: var(--font-typewriter); letter-spacing: .18em; text-transform: uppercase; }
+.find-clubs { display: flex; flex-direction: column; gap: 8px; }
+/* ---- the hall ----
+   A room, drawn as a sunken well with a scroll in it and a box under it. The
+   well is the one sunken thing on the card, so the card stays raised and the
+   room inside it reads as a recess: the same two shadows, the same way round.
+
+   Lines are gathered into blocks by whoever said them, so a conversation reads
+   by the paragraph rather than one repeated name at a time. The cross that
+   unsays a line only appears on hover or focus: it belongs to the line, and a
+   room with a cross on every line is a room that looks like a form. */
+.hall-card { display: flex; flex-direction: column; gap: 12px; }
+.hall-card h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }
+.hall-live { display: inline-flex; align-items: center; gap: 6px; flex: none; color: var(--accent-ink); }
+.hall-channels { display: flex; flex-direction: column; gap: 8px; }
+.hall-channels .seg { flex-wrap: wrap; }
+.hall-channels .seg-btn { display: inline-flex; align-items: center; gap: 5px; }
+.hall-lines {
+  display: flex; flex-direction: column; gap: 13px;
+  max-height: 420px; overflow-y: auto; padding: 14px;
+  border-radius: 16px; box-shadow: var(--sink-sm);
+}
+.hall-block { display: flex; gap: 11px; align-items: flex-start; }
+.hall-said { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.hall-who { display: flex; align-items: baseline; gap: 8px; }
+.hall-who strong { font-size: 14.5px; }
+.hall-line {
+  margin: 0; font-size: 14.5px; line-height: 1.45; white-space: pre-wrap;
+  overflow-wrap: anywhere; position: relative; padding-right: 20px;
+}
+.hall-unsay {
+  position: absolute; top: 1px; right: 0; opacity: 0;
+  border: 0; background: none; color: var(--ink-2); cursor: pointer;
+  padding: 2px; border-radius: 7px; transition: opacity .12s ease;
+}
+.hall-line:hover .hall-unsay, .hall-unsay:focus-visible { opacity: 1; }
+/* A board put up in the room: a line, but a raised one, because it is the one
+   line in the flow that can be pressed. Once somebody is sitting at it the
+   raise goes and it reads as what it now is, a record of a game that started. */
+.hall-table {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 9px 12px; border-radius: 14px; box-shadow: var(--raise-sm);
+}
+.hall-table.taken { box-shadow: var(--sink-sm); }
+.hall-table-terms { display: inline-flex; align-items: center; gap: 7px; font-size: 14px; flex: 1; min-width: 0; }
+.hall-table-open {
+  appearance: none; border: 0; background: none; font: inherit; cursor: pointer;
+  color: var(--accent-ink); font-size: 13.5px; padding: 4px 2px; text-align: left;
+}
+.hall-table-open:hover, .hall-table-open:focus-visible { text-decoration: underline; }
+.hall-composer { display: flex; align-items: flex-end; gap: 8px; }
+.hall-input { resize: vertical; min-height: 44px; font: 500 14.5px var(--font-body); }
+.hall-send { display: flex; align-items: center; gap: 8px; flex: none; }
+/* ---- friends who are here ----
+   The friends card's rows once more, on their own card above the lobby. It
+   only ever exists when somebody is on it, so there is no empty state to
+   design and no heading over nothing. */
+.here-card { display: flex; flex-direction: column; gap: 14px; }
+.here-card h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }
 /* ---- here now ----
    One small dot in the accent, and nothing anywhere for somebody who is not
    here: away and "did not say" are the same silence, so there is no second
@@ -2242,7 +2337,10 @@ ${FONT_FACES}
 .letters-card { display: flex; flex-direction: column; gap: 14px; }
 .letters-card h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }
 .letter-row { align-items: center; }
-.letter-preview { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 42ch; }
+/* A ceiling in characters on a wide screen, and never wider than the row it is
+   in on a narrow one: a fixed maximum is a floor as well as a ceiling once the
+   column it sits in is narrower than the number. */
+.letter-preview { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: min(42ch, 100%); }
 .thread { display: flex; flex-direction: column; gap: 10px; max-height: 52vh; overflow-y: auto; padding: 2px; }
 .letter {
   display: flex; flex-direction: column; gap: 5px;

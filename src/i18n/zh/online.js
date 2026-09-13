@@ -57,6 +57,13 @@ export const online = {
     pair: "双人围棋",
   },
 
+  here: {
+    head: "此刻在线",
+    note: "在大厅里、并且愿意让你看到的好友。这里从不显示谁不在：不在和不想说，从外面看是一样的。",
+    record: "{wins}胜{losses}负",
+    ask: "邀 {size} 路",
+  },
+
   find: {
     head: "找一位棋手",
     note: "输入一个名字，或者名字的一部分。只有在这里下棋的人才能查人，一次搜索给的是几个人，不是一份名单。",
@@ -138,6 +145,7 @@ export const online = {
     removeName: "移除{name}",
     declineName: "拒绝{name}",
     takeBackName: "收回发给{name}的请求",
+    writeName: "给{name}写信",
     act: {
       friends: "好友",
       remove: "解除好友",
