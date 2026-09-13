@@ -45,6 +45,15 @@ function linkedGame() {
   return null;
 }
 
+function routeSession({ profile, resume, openGame, withBot, t }) {
+  if (resume) return resume;
+  if (openGame) return { mode: { kind: "online", gameId: openGame } };
+  const persona = withBot ? personaById(withBot) : null;
+  if (!persona) return null;
+  const lobby = loadLobby();
+  return { mode: { kind: "bot", persona: localizePersona(persona, t), rank: lobby.rank ?? rankOf(profile.rating) } };
+}
+
 export function PlayView({ profile, setProfile, notify, resume, openGame = null, withBot = null, go = null }) {
   const t = useT();
   // session: null | { mode: {kind:'bot', persona, rank, size, handicap} | {kind:'local', size, handicap}
@@ -57,16 +66,26 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
      you just clicked: somebody who pressed "Sit down with Tetsu" has already
      chosen. The level is the table's, exactly as if the card had been
      clicked, so nothing about the game is different from the lobby route. */
-  const [session, setSession] = useState(() => {
-    if (resume) return resume;
-    if (openGame) return { mode: { kind: "online", gameId: openGame } };
-    const persona = withBot ? personaById(withBot) : null;
-    if (persona) {
-      const lobby = loadLobby();
-      return { mode: { kind: "bot", persona: localizePersona(persona, t), rank: lobby.rank ?? rankOf(profile.rating) } };
-    }
-    return linkedGame();
-  });
+  const initialRouteKey = resume
+    ? `resume:${resume.mode.kind}:${resume.mode.gameId || resume.mode.persona?.id || ""}:${resume.record?.moves?.length || 0}`
+    : openGame ? `online:${openGame}`
+     : withBot ? `bot:${withBot}`
+       : null;
+  const [sessionState, setSessionState] = useState(() => ({
+    routeKey: initialRouteKey,
+    session: routeSession({ profile, resume, openGame, withBot, t }) || linkedGame(),
+  }));
+  if (sessionState.routeKey !== initialRouteKey) {
+    setSessionState({
+     routeKey: initialRouteKey,
+     session: routeSession({ profile, resume, openGame, withBot, t }) || linkedGame(),
+    });
+  }
+  const session = sessionState.session;
+  const setSession = (next) => setSessionState((state) => ({
+    routeKey: state.routeKey,
+    session: typeof next === "function" ? next(state.session) : next,
+  }));
   // The level the next game is played at. Starts at the player's own rank; every house
   // player adapts to it, so nobody has to "graduate" to an opponent.
   const myRank = rankOf(profile.rating);
