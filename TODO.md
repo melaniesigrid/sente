@@ -1902,6 +1902,23 @@ it is being read in.
       is whatever the person typed; `unicode-bidi: plaintext` resolves each from its
       own first strong letter. Set on the elements holding the words, not their
       wrappers, because the property does not inherit.
+- [x] Slant per run too, for the same reason. `typefaceVars` emits the pairing's own
+      answer beside the one the page is set in, and a subtree marked `lang="en"` takes
+      it back, so the English the partial catalogue leaves behind keeps the quotation
+      and caption voices instead of going upright with the Hebrew around it.
+- [x] Forward points the way you read. `Btn` takes an `onward` flag that mirrors a
+      directional icon, and the lesson's arrow keys swap with `dir`. Review and the
+      corner dictionary are deliberately exempt: they step a game record, and a record
+      is played on a board that never mirrors.
+- [x] The document is pointed before React mounts, from the stored profile plus the
+      device, so a Hebrew reader does not watch the page flip after the first paint.
+      Validated with `isLocaleId` and reading the legacy key, because an id this path
+      rejects differently from `sanitizeProfile` would reintroduce the flip it exists
+      to prevent.
+- [x] The small print says which it is. A language that translates the app but not the
+      documents now says so, rather than stamping "this is a translation" over English.
+      `carries(id, prefix)` in the catalogue answers it, and answers about the language
+      asked for rather than falling through to English the way every other reader does.
 
 Decisions:
 - No gendered second person. Hebrew has no neutral one, and the masculine default
@@ -1920,6 +1937,16 @@ translated whole or not at all, which is the rule `i18n.test.js` enforces:
 - [ ] The corner dictionary (`josekiEntry.`, `josekiCorner.`, `josekiSource.`).
 - [ ] The graded library's own words (`tier.`, `track.`, `book.`, `series.`,
       `problem.`, `problemSet.`, `shape.`) and the small print (`legalDoc.`, `credit.`).
+
+Measured while shipping it, and left alone on purpose. Both are the existing pattern
+rather than anything the ninth language introduced, and both are an architecture change
+rather than a translation one:
+- [ ] Every catalogue is in the entry chunk, so a reader downloads all nine. Measured at
+      +30.5 kB gzip for this one, 911 kB total. Dynamic-importing the eight non-English
+      catalogues would trade that for roughly 4 kB gzip of the one in force.
+- [ ] `catalog.js` flattens all nine at module load, on the main thread, before the
+      first render: 19,712 keys, 12.98 ms measured. Flattening lazily per locale would
+      do English and the one in force and leave the other seven alone.
 
 ## Phase 8: Pair go
 
