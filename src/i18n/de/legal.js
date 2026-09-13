@@ -4,6 +4,7 @@ export const legal = {
   stamp: "Zuletzt geändert: {date}",
   tabs: "Kleingedrucktes",
   translated: "Dies ist eine Übersetzung, damit es gelesen werden kann. Maßgeblich ist die englische Fassung.",
+  untranslated: "Dieses Dokument ist noch nicht übersetzt. Es steht hier auf Englisch, und die englische Fassung ist die maßgebliche.",
 
   /* ----- Overlays: die drei Dokumente, aus src/content/legal.js -----
      Die Konstanten kommen als Löcher an ({product}, {studio}, {contact},

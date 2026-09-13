@@ -13,6 +13,13 @@ ${GOOGLE_FACES}
 ${FONT_FACES}
 
 .sente-root {
+  /* Which way "forward" points, as a number to multiply a translation by.
+     Logical properties turn the boxes around on their own; a transform is
+     geometry and does not know the difference, so the handful of nudges that
+     mean "onward" rather than "rightward" ask for this instead of a literal
+     sign. One rule below flips it, and nothing else in the app tests the
+     direction it is being read in. */
+  --flip: 1;
   --ground: #e8e4db;
   --light: #fbf8f2;
   --dark: #c4beb1;
@@ -47,11 +54,14 @@ ${FONT_FACES}
   --font-display: 'Fraunces', serif;
   --font-display-italic: 'Fraunces', serif;
   --display-italic-style: italic;
+  --display-italic-style-own: italic;
   --font-body: 'Hanken Grotesk', sans-serif;
   --font-quote: 'Fraunces', serif;
   --quote-style: italic;
+  --quote-style-own: italic;
   --font-caption: 'Fraunces', serif;
   --caption-style: italic;
+  --caption-style-own: italic;
   --font-typewriter: 'Courier Prime', 'Courier New', monospace;
   --w-display: 560;
   --w-display-strong: 640;
@@ -72,7 +82,74 @@ ${FONT_FACES}
   font-family: var(--font-body);
   display: flex; flex-direction: column;
 }
+[dir="rtl"] .sente-root, [dir="rtl"].sente-root { --flip: -1; }
 .sente-root * { box-sizing: border-box; }
+
+/* An emphasis takes its slant from the pairing, never from the browser. The
+   rules further down name the places an em is display type; this one catches
+   every other one, because a user agent answers a request for italic on a
+   script that has no italic by shearing the upright, and a sheared Hebrew is
+   the faux oblique typeface.js opens by refusing. Set early on purpose: the
+   later rules that want an upright em outrank it on source order alone. */
+.sente-root em { font-style: var(--display-italic-style); }
+
+/* A run of another language takes its own slant back. A partial catalogue
+   leaves real English prose on a Hebrew page: the Classic, the small print,
+   a lesson nobody has translated yet. Hebrew has no italic and the page is
+   set upright for it, but English does, and the quotation and caption voices
+   are the whole reason the pairings exist. Anything marked lang="en" is
+   handed the pairing's own answer again. Direction already works this way;
+   this is the same argument about slant. */
+/* Forward is not rightward. An icon that points the way the reader reads is
+   marked onward at its call site and turns over with the page; the inline
+   arrows and the disclosure caret say the same thing and are named here.
+   Mirrored rather than swapped for a left-pointing icon, so one rule covers
+   every glyph and nothing has to be kept in pairs. The board controls in
+   review and the corner dictionary are deliberately absent: they step a game
+   record, and a game record does not mirror. */
+[dir="rtl"] .onward,
+[dir="rtl"] .log-next svg,
+[dir="rtl"] .lp-more svg,
+[dir="rtl"] .jr-more svg,
+[dir="rtl"] .jr-back svg,
+[dir="rtl"] .chapter-caret:not(.open) { transform: scaleX(-1); }
+
+[lang="en" i], [lang|="en" i] {
+  --display-italic-style: var(--display-italic-style-own, italic);
+  --quote-style: var(--quote-style-own, italic);
+  --caption-style: var(--caption-style-own, italic);
+}
+
+/* ---- which way a run of text goes ----
+   The interface follows the language it was chosen in. The words inside it do
+   not always: a passage from the Classic is still English in most languages, a
+   journal note is English on purpose and says so, a lesson arrives translated
+   whole or not at all, and a bio, a letter or a line of table talk is whatever
+   the person who wrote it typed.
+
+   So the direction of a paragraph is taken from the paragraph. The plaintext
+   value resolves each one from its own first strong letter, which puts an
+   English sentence the English way round inside a Hebrew page and leaves a
+   Hebrew sentence alone. Without it an English line in a right-to-left page
+   ends up with its full stop at the front, which is the one bidi bug a reader
+   is guaranteed to notice.
+
+   Numbers and punctuation are not strong letters, so a line opening with a rank
+   or a score still follows the words that come after it.
+
+   It is set on the elements that hold the words and not on their wrappers,
+   because unicode-bidi does not inherit: a rule on a grid whose children carry
+   the text reaches none of it, which is how the last line of a typed passage
+   kept its full stop at the wrong end after the rest of it came right. */
+.display, .passage-cite, .foot-line,
+.passage-text, .passage-typed, .passage-ghost,
+.jr-p, .jr-standfirst, .jr-dek, .jr-item,
+.legal-section p, .legal-section h2, .legal-list li,
+.bubble, .moku-bubble, .talk-line, .letter-text, .letter-preview,
+.persona-bio, .op-bio, .lesson-text,
+.masters-head .fine, .masters-title, .master-claim, .master-control {
+  unicode-bidi: plaintext;
+}
 
 /* ---- chrome ---- */
 .topbar {
@@ -139,7 +216,7 @@ ${FONT_FACES}
 .profile-chip {
   display: flex; align-items: center; gap: 10px;
   border: 0; background: var(--ground); cursor: pointer; color: var(--ink);
-  padding: 7px 14px 7px 8px; border-radius: 16px; box-shadow: var(--raise-sm);
+  padding-block: 7px; padding-inline: 8px 14px; border-radius: 16px; box-shadow: var(--raise-sm);
   transition: transform .15s ease, box-shadow .15s ease;
 }
 .profile-chip:hover { transform: translateY(-1px); }
@@ -172,11 +249,11 @@ ${FONT_FACES}
    against the element's own font, and the figure is still set in the body face,
    so a measure declared there is counted in the wrong characters and lands the
    column at about three quarters of the line it asked for. */
-.passage { margin: 0; padding: 4px 0 4px clamp(16px, 2.4vw, 26px); border-left: 1px solid color-mix(in srgb, var(--accent) 55%, transparent); cursor: pointer; }
+.passage { margin: 0; padding-block: 4px; padding-inline: clamp(16px, 2.4vw, 26px) 0; border-inline-start: 1px solid color-mix(in srgb, var(--accent) 55%, transparent); cursor: pointer; }
 .passage-text { margin: 0; max-width: 58ch; font-family: var(--font-typewriter); font-style: normal; font-weight: 400; font-size: clamp(16px, 1.75vw, 19px); line-height: 1.7; letter-spacing: -.01em; color: var(--ink); }
 .passage-cite { color: var(--ink-2); margin: 10px 0 0; font-family: var(--font-body); font-style: normal; font-size: 14px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
 .passage.lg .passage-text { font-size: clamp(19px, 2.4vw, 25px); line-height: 1.55; }
-.passage.sm { padding-left: 14px; }
+.passage.sm { padding-inline-start: 14px; }
 .passage.sm .passage-text { font-size: 15.5px; line-height: 1.62; }
 /* The typed passage and its hidden twin share one grid cell, so the box is the
    size of the finished passage from the first frame and nothing below it moves. */
@@ -349,7 +426,7 @@ ${FONT_FACES}
 .avatar:has(.avatar-img) > span { visibility: hidden; }
 .avatar-img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; z-index: 0; }
 .avatar-bot {
-  position: absolute; right: -3px; bottom: -3px; width: 17px; height: 17px;
+  position: absolute; inset-inline-end: -3px; bottom: -3px; width: 17px; height: 17px;
   border-radius: 50%; background: var(--ground); box-shadow: var(--raise-sm);
   display: grid; place-items: center; color: var(--ink); z-index: 2;
 }
@@ -414,12 +491,12 @@ ${FONT_FACES}
 .hero-board { flex: 0 1 300px; margin-inline: auto; }
 .hero .row { margin-top: 18px; }
 
-.tile { text-align: left; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease, box-shadow .15s ease; }
+.tile { text-align: start; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease, box-shadow .15s ease; }
 .tile:hover { transform: translateY(-2px); }
 .stat-head { color: var(--accent-ink); display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
 .stat-head svg { color: var(--accent-ink); }
 .stat-num { font-family: var(--font-display); font-weight: var(--w-display); font-size: clamp(34px, 4vw, 46px); line-height: 1.02; margin-top: 14px; }
-.stat-num em { color: var(--ink-2); font-style: normal; font-size: 16px; margin-left: 5px; }
+.stat-num em { color: var(--ink-2); font-style: normal; font-size: 16px; margin-inline-start: 5px; }
 
 .roadmap ul { list-style: none; padding: 0; margin: 14px 0 0; display: flex; flex-direction: column; gap: 10px; }
 .roadmap li { display: flex; gap: 10px; align-items: baseline; font-size: 15px; line-height: 1.5; }
@@ -441,7 +518,13 @@ ${FONT_FACES}
 .board-well { border-radius: var(--r); box-shadow: var(--sink); padding: clamp(12px, 1.8vw, 22px); min-width: 0; background: var(--board); }
 .play-wrap > .board-well { flex: 2 1 520px; }
 .side { flex: 1 1 300px; min-width: 260px; max-width: 420px; }
-.goban { width: 100%; height: auto; display: block; }
+/* The board is a diagram, not a paragraph, and it does not mirror. Its geometry
+   is in SVG coordinates and so is already immune to the document direction, but
+   the coordinate margin is text, and text in a right-to-left document is laid
+   out right-to-left unless it is told otherwise. A1 is in the same corner in
+   Tel Aviv as in Tokyo, so the board says ltr once, here, and the rest of the
+   app is free to turn around it. */
+.goban { width: 100%; height: auto; display: block; direction: ltr; }
 .grid-line { stroke: var(--grid); stroke-opacity: .38; stroke-width: 1.1; }
 /* A star point is a fat full stop on the grid and is drawn in the grid's own
    colour. It used to take the ink, which is the same thing on paper and the
@@ -476,12 +559,12 @@ ${FONT_FACES}
 .deja svg { flex: none; color: var(--accent-ink); transform: translateY(2px); }
 @media (prefers-reduced-motion: reduce) { .deja { animation: none; } }
 
-.dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 8px; vertical-align: -1px; }
+.dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-inline-end: 8px; vertical-align: -1px; }
 .dot-b { background: var(--ink); }
 .dot-w { background: var(--cream); box-shadow: 0 0 0 1px var(--dark); }
 
 /* ---- lobby / personas ---- */
-.persona-card { text-align: left; border: 0; cursor: pointer; color: var(--ink); display: flex; flex-direction: column; gap: 12px; transition: transform .15s ease, box-shadow .15s ease; }
+.persona-card { text-align: start; border: 0; cursor: pointer; color: var(--ink); display: flex; flex-direction: column; gap: 12px; transition: transform .15s ease, box-shadow .15s ease; }
 .persona-card:hover { transform: translateY(-2px); }
 .persona-top { display: flex; align-items: center; gap: 13px; }
 .persona-top > div:nth-child(2) { flex: 1; }
@@ -504,7 +587,7 @@ ${FONT_FACES}
 .rank-picker-label { display: flex; flex-direction: column; gap: 2px; }
 .rank-picker-label strong { font-family: var(--font-display); font-weight: var(--w-display); font-size: 18px; }
 .rank-picker-controls { display: flex; align-items: center; gap: 10px; }
-.btn-icon { padding-left: 10px; padding-right: 10px; }
+.btn-icon { padding-inline-start: 10px; padding-inline-end: 10px; }
 .table-picker .rank-picker-controls { gap: 18px; flex-wrap: wrap; }
 /* The level nudge: a full-width row under the stepper, not a third column beside
    it. It is a remark about the games just played, so it sits below the control it
@@ -655,14 +738,14 @@ ${FONT_FACES}
    keyboard user is still on it when the label changes. */
 .coach-toggle[aria-disabled="true"] { cursor: default; }
 .coach-toggle[aria-disabled="true"]:not(.on) { box-shadow: var(--sink-sm); opacity: .7; }
-.bot-chip { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; padding: 4px 8px; border-radius: 8px; box-shadow: var(--sink-sm); color: var(--accent-ink); text-transform: uppercase; letter-spacing: .1em; }
+.bot-chip { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; padding: 4px 8px; border-radius: 8px; box-shadow: var(--sink-sm); color: var(--accent-ink); text-transform: uppercase; letter-spacing: .1em; }
 .chat-log { display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; padding: 4px 2px; }
 .bubble {
   align-self: flex-start; max-width: 88%;
-  padding: 9px 13px; border-radius: 14px 14px 14px 5px;
+  padding: 9px 13px; border-radius: 14px; border-end-start-radius: 5px;
   box-shadow: var(--sink-sm); font-size: 15.5px; line-height: 1.45;
 }
-.bubble.mine { align-self: flex-end; border-radius: 14px 14px 5px 14px; box-shadow: var(--raise-sm); color: var(--accent-ink); }
+.bubble.mine { align-self: flex-end; border-radius: 14px; border-end-end-radius: 5px; box-shadow: var(--raise-sm); color: var(--accent-ink); }
 .chat-row { display: flex; gap: 8px; }
 /* A coordinate somebody typed, made tappable. It is a word in a sentence first,
    so it keeps the sentence's size and only borrows the accent; lit, it sinks,
@@ -694,7 +777,7 @@ ${FONT_FACES}
   min-height: 36px; justify-content: center;
   border: 0; background: transparent; color: var(--ink-2);
   font: 500 13px var(--font-body); padding: 6px 12px; border-radius: 14px;
-  box-shadow: var(--raise-sm); cursor: pointer; text-align: left;
+  box-shadow: var(--raise-sm); cursor: pointer; text-align: start;
 }
 .talk-line:hover { color: var(--accent-ink); }
 .talk-line:active { box-shadow: var(--sink-sm); }
@@ -728,7 +811,7 @@ ${FONT_FACES}
    into looking like somebody else's row under the pointer. */
 .ladder-open {
   appearance: none; background: none; border: 0; font: inherit; color: inherit;
-  width: 100%; text-align: left; cursor: pointer;
+  width: 100%; text-align: start; cursor: pointer;
 }
 .ladder-open:hover:not(.me), .ladder-open:focus-visible:not(.me) { box-shadow: var(--raise-sm); }
 .ladder-open:active:not(.me) { box-shadow: var(--sink-sm); }
@@ -763,7 +846,7 @@ ${FONT_FACES}
 .tint-dot.active { box-shadow: var(--sink-sm), 0 0 0 2px var(--accent-ring); transform: none; }
 
 /* ---- lessons ---- */
-.lesson-card { display: flex; align-items: center; gap: 16px; text-align: left; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease, box-shadow .15s ease; }
+.lesson-card { display: flex; align-items: center; gap: 16px; text-align: start; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease, box-shadow .15s ease; }
 .lesson-card:hover { transform: translateY(-2px); }
 .lesson-num { color: var(--ink-3); font-family: var(--font-display-italic); font-style: var(--display-italic-style); font-size: 26px; flex: none; }
 .lesson-meta { flex: 1; }
@@ -800,14 +883,15 @@ ${FONT_FACES}
 }
 .hint-toggle:hover { opacity: 1; }
 .hint-toggle:disabled { box-shadow: var(--sink-sm); cursor: default; opacity: .55; }
-.hint-text { margin-top: 9px !important; padding-left: 2px; animation: rise-l .28s ease; }
+.hint-text { margin-top: 9px !important; padding-inline-start: 2px; animation: rise-l .28s ease; }
 
 .log { display: flex; flex-direction: column; gap: 9px; margin-top: 14px; }
 .log.reserve { min-height: 74px; }
 .response {
   display: flex; gap: 10px; align-items: flex-start;
-  padding: 11px 13px 11px 12px; border-radius: 5px 14px 14px 5px;
-  box-shadow: var(--sink-sm); border-left: 3px solid var(--rule);
+  padding-block: 11px; padding-inline: 12px 13px;
+  border-radius: 14px; border-start-start-radius: 5px; border-end-start-radius: 5px;
+  box-shadow: var(--sink-sm); border-inline-start: 3px solid var(--rule);
   animation: rise-l .26s ease;
 }
 .response svg { flex: none; transform: translateY(3px); color: var(--rule); }
@@ -819,7 +903,7 @@ ${FONT_FACES}
 .response.tone-commentary .lesson-text { color: var(--ink-2); }
 .verdict-label {
   font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
-  color: var(--accent-ink); margin-right: 8px;
+  color: var(--accent-ink); margin-inline-end: 8px;
 }
 .log-next {
   align-self: flex-start; display: inline-flex; align-items: center; gap: 6px;
@@ -828,7 +912,7 @@ ${FONT_FACES}
   font: 700 13px var(--font-body); letter-spacing: .05em;
   transition: transform .15s ease, box-shadow .15s ease;
 }
-.log-next:hover { transform: translateX(2px); }
+.log-next:hover { transform: translateX(calc(2px * var(--flip, 1))); }
 .log-next:active { box-shadow: var(--sink-sm); }
 
 .lesson-foot {
@@ -861,7 +945,7 @@ ${FONT_FACES}
 .prob-modes { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(10px, 1.6vw, 16px); }
 @media (max-width: 560px) { .prob-modes { grid-template-columns: 1fr; } }
 .prob-mode {
-  display: flex; flex-direction: column; gap: 5px; text-align: left;
+  display: flex; flex-direction: column; gap: 5px; text-align: start;
   padding: 13px 16px; border-radius: 16px; border: 0; cursor: pointer;
   background: var(--ground); color: var(--ink); box-shadow: var(--raise-sm);
   transition: box-shadow .18s ease, color .18s ease;
@@ -880,7 +964,7 @@ ${FONT_FACES}
 .prob-set { display: flex; flex-direction: column; gap: 9px; padding: 14px 16px; border-radius: 18px; transition: box-shadow .18s ease; }
 .prob-set.here { box-shadow: var(--sink-sm); }
 .prob-set-head { gap: 9px; }
-.prob-set-count { margin-left: auto; color: var(--ink-2); letter-spacing: .08em; }
+.prob-set-count { margin-inline-start: auto; color: var(--ink-2); letter-spacing: .08em; }
 .prob-set-blurb { margin: 0 !important; }
 /* A finished set says so. The circles inside it are already all ticked, so the
    set itself only needs to stop asking to be counted. */
@@ -907,12 +991,12 @@ ${FONT_FACES}
 .house-top { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: clamp(14px, 2vw, 22px); align-items: start; }
 .house-card { display: flex; flex-direction: column; gap: 14px; }
 .house-face { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.house-line { font-style: italic; color: var(--ink-2); }
+.house-line { font-style: var(--display-italic-style); color: var(--ink-2); }
 .house-line + .house-line { margin-top: 10px; }
 .house-chips { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 12px; }
 .house-chip {
   display: flex; align-items: center; gap: 9px; border: 0; cursor: pointer;
-  background: var(--ground); color: var(--ink); padding: 7px 13px 7px 7px;
+  background: var(--ground); color: var(--ink); padding-block: 7px; padding-inline: 7px 13px;
   border-radius: 999px; box-shadow: var(--raise-sm);
   transition: box-shadow .18s ease, color .18s ease, transform .18s ease;
 }
@@ -938,7 +1022,7 @@ ${FONT_FACES}
 .jos-tab {
   display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
   border: 0; background: var(--ground); color: var(--ink); cursor: pointer;
-  padding: 9px 14px; border-radius: 13px; box-shadow: var(--raise-sm); text-align: left;
+  padding: 9px 14px; border-radius: 13px; box-shadow: var(--raise-sm); text-align: start;
   transition: box-shadow .18s ease, color .18s ease;
 }
 .jos-tab-name { font: 700 13.5px var(--font-body); letter-spacing: .04em; }
@@ -967,7 +1051,7 @@ ${FONT_FACES}
 /* ---- learn: library ---- */
 .library { display: flex; gap: clamp(16px, 2.5vw, 26px); align-items: flex-start; flex-wrap: wrap; }
 .tier-rail { display: flex; flex-direction: column; gap: 8px; flex: 0 0 200px; padding: 8px; border-radius: 18px; box-shadow: var(--sink-sm); }
-.tier-btn { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; border: 0; background: transparent; color: var(--ink); cursor: pointer; text-align: left; padding: 10px 12px; border-radius: 13px; transition: box-shadow .18s ease, color .18s ease; }
+.tier-btn { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; border: 0; background: transparent; color: var(--ink); cursor: pointer; text-align: start; padding: 10px 12px; border-radius: 13px; transition: box-shadow .18s ease, color .18s ease; }
 .tier-btn .tier-name { font: 700 13px var(--font-body); letter-spacing: .08em; text-transform: uppercase; }
 .tier-btn .tier-sub { color: var(--ink-2); font-size: 14px; }
 .tier-btn.active { box-shadow: var(--raise-sm); color: var(--accent-ink); }
@@ -989,7 +1073,7 @@ ${FONT_FACES}
 .maxim-analogy { margin: 0 0 12px; }
 .shelf { margin-top: 18px; }
 .shelf-book { display: flex; flex-direction: column; gap: 12px; }
-.shelf-book .stat-head .fine { margin-left: auto; }
+.shelf-book .stat-head .fine { margin-inline-start: auto; }
 @media (max-width: 760px) { .tier-rail { flex-direction: row; flex-wrap: wrap; flex-basis: 100%; } }
 
 /* ---- shell: resume + error cards ---- */
@@ -1022,6 +1106,11 @@ ${FONT_FACES}
 .goban rect[role="gridcell"]:focus:not(:focus-visible) { outline: none; }
 
 /* ---- belts (the dojo) ---- */
+/* The belt is a picture of a belt: a band, a knot in the middle of it and two
+   tails hanging off the knot. It is drawn from the centre out and stays put in
+   a right-to-left document, which is why this block keeps saying left and right
+   where the rest of the file asks for start and end. Mirroring a knot would
+   move it nowhere and cost a reading of the code. */
 .rank-badge { position: relative; overflow: hidden; }
 .belt-stripe { position: absolute; left: 10px; right: 10px; bottom: 0; height: 3px; border-radius: 3px 3px 0 0; opacity: .9; }
 .rank-badge.sm .belt-stripe { left: 7px; right: 7px; height: 2px; }
@@ -1037,14 +1126,14 @@ ${FONT_FACES}
 /* ---- the Classic: the thirteen chapters, read straight through ---- */
 .chapter-list { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
 .chapter-row { border-radius: 12px; }
-.chapter-head { width: 100%; display: grid; grid-template-columns: 30px minmax(0, 1fr) auto 18px; align-items: center; gap: 12px; padding: 11px 12px; border: 0; border-radius: 12px; background: transparent; cursor: pointer; text-align: left; color: inherit; }
+.chapter-head { width: 100%; display: grid; grid-template-columns: 30px minmax(0, 1fr) auto 18px; align-items: center; gap: 12px; padding: 11px 12px; border: 0; border-radius: 12px; background: transparent; cursor: pointer; text-align: start; color: inherit; }
 .chapter-head:hover { background: var(--ground); box-shadow: inset 2px 2px 5px var(--dark), inset -2px -2px 5px var(--light); }
 .chapter-n { color: var(--ink-2); font-family: var(--font-display); font-weight: var(--w-display); font-size: 16px; }
 .chapter-title { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .chapter-title strong { font-family: var(--font-display); font-weight: var(--w-display); font-size: 17px; }
 .chapter-caret { color: var(--ink-2); flex: none; transition: transform .18s ease; }
 .chapter-caret.open { transform: rotate(90deg); }
-.chapter-body { display: flex; flex-direction: column; gap: 12px; padding: 4px 12px 16px 42px; }
+.chapter-body { display: flex; flex-direction: column; gap: 12px; padding: 4px 12px 16px; padding-inline-start: 42px; }
 .chapter-body.preface { padding-top: 12px; }
 .chapter-body .lesson-text { color: var(--ink-2); }
 /* A chapter whose lessons are finished says so in the head, so the book can be
@@ -1107,7 +1196,7 @@ ${FONT_FACES}
    carries the raise every other card on the site carries. */
 .jr-card {
   display: flex; flex-direction: column; gap: 9px; align-items: flex-start;
-  text-align: left; width: 100%; cursor: pointer; padding: 22px 24px;
+  text-align: start; width: 100%; cursor: pointer; padding: 22px 24px;
   transition: transform .18s ease, box-shadow .18s ease;
 }
 .jr-card:hover { transform: translateY(-2px); }
@@ -1131,7 +1220,7 @@ ${FONT_FACES}
 }
 .jr-date {
   font-family: var(--font-caption); font-size: 13px; color: var(--ink-3);
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 .jr-title {
   margin: 0; font-family: var(--font-display); font-weight: var(--w-display-strong);
@@ -1179,7 +1268,7 @@ ${FONT_FACES}
 }
 .jr-piece > .jr-h:first-child, .jr-section:first-child .jr-h { margin-top: 8px; }
 .jr-p { margin: 0 0 14px; font-size: 16px; line-height: 1.7; color: var(--ink); }
-.jr-list { margin: 0; padding-left: 20px; }
+.jr-list { margin: 0; padding-inline-start: 20px; }
 .jr-item { margin-bottom: 11px; font-size: 15.5px; line-height: 1.66; }
 .jr-item strong { font-weight: 700; }
 /* A path in a release note is set in the typewriter, the same machine a
@@ -1203,20 +1292,20 @@ ${FONT_FACES}
 }
 .jr-sources ol { margin: 0; padding: 0; list-style: none; counter-reset: jrsrc; }
 .jr-sources li {
-  position: relative; padding-left: 26px; margin-bottom: 9px;
+  position: relative; padding-inline-start: 26px; margin-bottom: 9px;
   font-family: var(--font-caption); font-style: var(--caption-style);
   font-size: 13px; line-height: 1.6; color: var(--ink-3);
 }
 .jr-sources li::before {
   counter-increment: jrsrc; content: counter(jrsrc);
-  position: absolute; left: 0; top: 0; font-family: var(--font-body);
+  position: absolute; inset-inline-start: 0; top: 0; font-family: var(--font-body);
   font-style: normal; font-size: 12px; font-weight: 700; color: var(--accent-ink);
 }
 .jr-sources a { color: inherit; text-decoration-color: var(--hairline); text-underline-offset: 3px; }
 .jr-sources a:hover { text-decoration-color: var(--accent-ink); }
 @media (max-width: 620px) {
   .jr-card { padding: 18px 18px; }
-  .jr-date { margin-left: 0; }
+  .jr-date { margin-inline-start: 0; }
   .jr-p { font-size: 15.5px; }
 }
 
@@ -1353,6 +1442,9 @@ ${FONT_FACES}
    box, and a fade anchored on the bleeding edge left the far stones at a third
    of their strength, which on a pale ground turns a black stone white. A stone
    here is either the colour it was played or it is not there. */
+/* Named for the side they take in a left-to-right page. Both are logical:
+   in Hebrew the fig-right element renders on the left, because a figure sits
+   opposite the words, and the words have moved. */
 .fig-right, .fig-left {
   top: 50%;
   -webkit-mask-image: radial-gradient(var(--fig-r, 86%) var(--fig-r, 86%) at var(--fig-cx, 50%) var(--fig-cy, 50%),
@@ -1360,8 +1452,8 @@ ${FONT_FACES}
   mask-image: radial-gradient(var(--fig-r, 86%) var(--fig-r, 86%) at var(--fig-cx, 50%) var(--fig-cy, 50%),
     var(--ink) var(--fig-s, 46%), rgba(0,0,0,.42) var(--fig-m, 74%), transparent 100%);
 }
-.fig-right { right: -6%; transform: translate(26%, -50%); }
-.fig-left { left: -6%; transform: translate(-26%, -50%); }
+.fig-right { inset-inline-end: -6%; transform: translate(calc(26% * var(--flip, 1)), -50%); }
+.fig-left { inset-inline-start: -6%; transform: translate(calc(-26% * var(--flip, 1)), -50%); }
 
 /* The playing of it. A stone lands on the move it was played on and a captured
    stone leaves on the move it was captured on, both off the one beat in
@@ -1457,13 +1549,13 @@ ${FONT_FACES}
    out as a front-door band would lose the stone that makes it the shape it is.
    A ponnuki missing one of its four is a tiger's mouth. */
 .statement .fig { --fig-h: clamp(190px, 27vw, 400px); }
-.statement .fig-right { right: -1%; transform: translate(9%, -50%); }
-.statement .fig-left { left: -1%; transform: translate(-9%, -50%); }
+.statement .fig-right { inset-inline-end: -1%; transform: translate(calc(9% * var(--flip, 1)), -50%); }
+.statement .fig-left { inset-inline-start: -1%; transform: translate(calc(-9% * var(--flip, 1)), -50%); }
 .lp-band { overflow: hidden; }
 .statement.lp.has-fig { overflow: visible; }
 .statement.lp .fig { --fig-h: clamp(280px, 42vw, 640px); }
-.statement.lp .fig-right { right: calc(50% - 50vw); transform: translate(30%, -50%); }
-.statement.lp .fig-left { left: calc(50% - 50vw); transform: translate(-30%, -50%); }
+.statement.lp .fig-right { inset-inline-end: calc(50% - 50vw); transform: translate(calc(30% * var(--flip, 1)), -50%); }
+.statement.lp .fig-left { inset-inline-start: calc(50% - 50vw); transform: translate(calc(-30% * var(--flip, 1)), -50%); }
 /* A centred statement has no margin to put a figure in, so its figure goes
    behind the words and drops to the strength of a watermark -- a seal under the
    type rather than a shape beside it. This is the one place the figure gives up
@@ -1471,7 +1563,7 @@ ${FONT_FACES}
    last thing on the front door and the words are the whole of it. */
 .statement.lp.center .fig {
   --fig-h: clamp(320px, 46vw, 720px);
-  top: 50%; left: 50%; right: auto; transform: translate(-50%, -50%); opacity: .26;
+  top: 50%; inset-inline: 50% auto; transform: translate(-50%, -50%); opacity: .26;
 }
 /* On a narrow screen the words take the whole measure, so the figure goes
    behind them and drops to a shadow of itself rather than fighting for room.
@@ -1484,8 +1576,8 @@ ${FONT_FACES}
   .statement .fig, .statement.lp .fig {
     --fig-h: clamp(210px, 56vw, 360px); opacity: .26; top: 0;
   }
-  .statement .fig-right, .statement.lp .fig-right { right: -14%; transform: translate(14%, -12%); }
-  .statement .fig-left, .statement.lp .fig-left { left: -14%; transform: translate(-14%, -12%); }
+  .statement .fig-right, .statement.lp .fig-right { inset-inline-end: -14%; transform: translate(calc(14% * var(--flip, 1)), -12%); }
+  .statement .fig-left, .statement.lp .fig-left { inset-inline-start: -14%; transform: translate(calc(-14% * var(--flip, 1)), -12%); }
   .statement.lp.center .fig { top: 50%; transform: translate(-50%, -50%); }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1505,14 +1597,14 @@ ${FONT_FACES}
   .fig.playing .fig-grid line { animation: none; stroke-dasharray: none; }
 }
 
-@media (max-width: 620px) { .chapter-body { padding-left: 12px; } }
+@media (max-width: 620px) { .chapter-body { padding-inline-start: 12px; } }
 
 /* ---- the thirty-two names (Classic, ch. 11) ---- */
 .names-block { display: flex; flex-direction: column; gap: 12px; }
 .names-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
 .name-cell { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 11px; box-shadow: var(--sink-sm); }
 .name-cell.unsure { color: var(--ink-2); }
-.name-word { font-family: var(--font-display-italic); font-style: italic; font-size: 16px; }
+.name-word { font-family: var(--font-display-italic); font-style: var(--display-italic-style); font-size: 16px; }
 .name-modern { font-size: 13px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--accent-ink); }
 .name-cell.unsure .name-modern { color: var(--ink-2); text-transform: none; letter-spacing: 0; font-weight: 600; }
 .name-gloss { line-height: 1.5; }
@@ -1521,7 +1613,7 @@ ${FONT_FACES}
 .level-list { list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 .level-row { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 2px 12px; padding: 8px 10px; border-radius: 9px; align-items: baseline; }
 .level-row .level-rank { color: var(--ink-2); font-family: var(--font-display); font-weight: var(--w-display); font-size: 14px; }
-.level-row .level-name { font-family: var(--font-display-italic); font-style: italic; font-size: 16px; }
+.level-row .level-name { font-family: var(--font-display-italic); font-style: var(--display-italic-style); font-size: 16px; }
 .level-row .level-text { color: var(--ink-2); grid-column: 2; }
 .level-row.here { background: var(--ground); box-shadow: inset 2px 2px 5px var(--dark), inset -2px -2px 5px var(--light); }
 .level-row.here .level-rank { opacity: 1; color: var(--accent-ink); }
@@ -1533,8 +1625,8 @@ ${FONT_FACES}
 .setting-copy { flex: 1; display: flex; flex-direction: column; gap: 3px; }
 .setting-copy strong { font-size: 15px; }
 .toggle { flex: none; width: 48px; height: 28px; border: 0; border-radius: 14px; background: var(--ground); box-shadow: var(--sink-sm); cursor: pointer; position: relative; transition: box-shadow .2s ease; }
-.toggle-knob { position: absolute; top: 4px; left: 4px; width: 20px; height: 20px; border-radius: 50%; background: var(--ground); box-shadow: var(--raise-sm); transition: transform .2s ease, background .2s ease; }
-.toggle.on .toggle-knob { transform: translateX(20px); background: var(--accent); }
+.toggle-knob { position: absolute; top: 4px; inset-inline-start: 4px; width: 20px; height: 20px; border-radius: 50%; background: var(--ground); box-shadow: var(--raise-sm); transition: transform .2s ease, background .2s ease; }
+.toggle.on .toggle-knob { transform: translateX(calc(20px * var(--flip, 1))); background: var(--accent); }
 
 /* ---- typeface picker ---- */
 /* The theme picker. Each swatch carries its own theme's custom properties, so
@@ -1553,8 +1645,8 @@ ${FONT_FACES}
 .theme-stone { width: 17px; height: 17px; border-radius: 50%; flex: none; }
 .theme-stone.b { background: radial-gradient(circle at 36% 34%, var(--stone-b-1), var(--stone-b-2) 55%, var(--stone-b-3)); box-shadow: 2px 2px 4px rgba(var(--sh-ink),.45), -1px -1px 2px rgba(var(--sh-lite),.5); }
 .theme-stone.w { background: radial-gradient(circle at 36% 34%, var(--stone-w-1), var(--stone-w-2) 60%, var(--stone-w-3)); box-shadow: 2px 2px 4px rgba(var(--sh-ink),.35), -1px -1px 2px rgba(var(--sh-lite),.9); }
-.theme-mark { width: 11px; height: 11px; border-radius: 50%; background: var(--accent); margin-left: auto; flex: none; }
-.theme-meta { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding-left: 2px; }
+.theme-mark { width: 11px; height: 11px; border-radius: 50%; background: var(--accent); margin-inline-start: auto; flex: none; }
+.theme-meta { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding-inline-start: 2px; }
 .theme-title { font-family: var(--font-display); font-weight: var(--w-display-strong); font-size: 16px; line-height: 1.1; }
 .theme-mood { color: var(--ink-2); font: 700 12px var(--font-body); letter-spacing: .14em; text-transform: uppercase; }
 .theme-btn.active .theme-mood { color: var(--accent-ink); opacity: 1; }
@@ -1589,10 +1681,10 @@ ${FONT_FACES}
 .lang-pill.on, .lang-pill:active { box-shadow: var(--sink-sm); color: var(--accent-ink); transform: none; }
 .lang-tag { font: 700 13px var(--font-body); letter-spacing: .11em; }
 
-/* The menu hangs from the pill's own right edge, so it opens inward on every
-   screen rather than off the side of the bar. */
+/* The menu hangs from the pill's own trailing edge, so it opens inward on
+   every screen rather than off the side of the bar, in either direction. */
 .lang-menu {
-  position: absolute; top: calc(100% + 9px); right: 0; z-index: 50;
+  position: absolute; top: calc(100% + 9px); inset-inline-end: 0; z-index: 50;
   min-width: 214px; padding: 7px; border-radius: 18px;
   background: var(--ground); box-shadow: var(--raise);
   display: flex; flex-direction: column; gap: 2px;
@@ -1600,7 +1692,7 @@ ${FONT_FACES}
 }
 .lang-row {
   display: grid; grid-template-columns: 1fr auto 18px; align-items: baseline; gap: 10px;
-  width: 100%; border: 0; background: none; cursor: pointer; text-align: left;
+  width: 100%; border: 0; background: none; cursor: pointer; text-align: start;
   padding: 11px 12px; border-radius: 13px; color: var(--ink);
   transition: box-shadow .14s ease, color .14s ease;
 }
@@ -1643,7 +1735,7 @@ ${FONT_FACES}
 .stone-plate { width: 100%; height: 46px; border-radius: 12px; box-shadow: var(--sink-sm); display: flex; align-items: center; justify-content: center; gap: 10px; }
 /* The set's name is the plate's title, so it is set like one: a room's name and
    a set's name have the same rank on this page. */
-.stone-name { font-family: var(--font-display); font-weight: var(--w-display-strong); font-size: 16px; line-height: 1.1; padding-left: 2px; text-align: left; }
+.stone-name { font-family: var(--font-display); font-weight: var(--w-display-strong); font-size: 16px; line-height: 1.1; padding-inline-start: 2px; text-align: start; }
 .stone-btn.active .stone-name { color: var(--accent-ink); }
 /* The profile keeps a strip of plates rather than the whole picker: enough to
    say the rooms are there, not enough to be a second place to choose one. */
@@ -1712,7 +1804,7 @@ ${FONT_FACES}
 .tone-derived { display: flex; gap: 12px; align-items: flex-start; padding: 13px 15px; border-radius: 16px; box-shadow: var(--sink-sm); }
 .tone-derived-plate { display: flex; flex: 0 0 auto; }
 .tone-chip { width: 26px; height: 34px; border-radius: 11px; box-shadow: var(--raise-sm), inset 0 0 0 1px var(--belt-edge); }
-.tone-chip + .tone-chip { margin-left: -8px; }
+.tone-chip + .tone-chip { margin-inline-start: -8px; }
 
 .dojo-stones { display: flex; flex-direction: column; gap: 8px; }
 .dojo-stones .stone-row { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); margin-top: 2px; }
@@ -1757,7 +1849,7 @@ ${FONT_FACES}
 .lang-tag { font: 700 12px var(--font-body); letter-spacing: .1em; text-transform: uppercase; }
 .lang-btn.open { box-shadow: var(--sink-sm); }
 .lang-pop {
-  position: absolute; top: calc(100% + 10px); right: 0; z-index: 40;
+  position: absolute; top: calc(100% + 10px); inset-inline-end: 0; z-index: 40;
   display: flex; flex-direction: column; gap: 2px; min-width: 220px;
   background: var(--ground); border-radius: var(--r); box-shadow: var(--raise);
   padding: 8px;
@@ -1765,7 +1857,7 @@ ${FONT_FACES}
 .lang-item {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   border: 0; background: transparent; color: var(--ink); cursor: pointer;
-  font: 600 14px var(--font-body); text-align: left;
+  font: 600 14px var(--font-body); text-align: start;
   padding: 9px 11px; border-radius: 12px;
 }
 .lang-item:hover { box-shadow: var(--raise-sm); }
@@ -1786,7 +1878,7 @@ ${FONT_FACES}
 .kata-card.done .kata-streak { color: var(--accent-ink); }
 /* The kata's own state, sunken like the streak pill it replaced, so the card
    keeps its two-part shape now that the flame has moved to the hero. */
-.kata-state { display: flex; align-items: center; gap: 8px; margin-left: auto; padding: 10px 16px; border-radius: 16px; box-shadow: var(--sink-sm); color: var(--ink-2); font: 700 13px var(--font-body); letter-spacing: .11em; text-transform: uppercase; }
+.kata-state { display: flex; align-items: center; gap: 8px; margin-inline-start: auto; padding: 10px 16px; border-radius: 16px; box-shadow: var(--sink-sm); color: var(--ink-2); font: 700 13px var(--font-body); letter-spacing: .11em; text-transform: uppercase; }
 .kata-card.done .kata-state { color: var(--accent-ink); }
 
 /* ---- the chain ----
@@ -1825,7 +1917,7 @@ ${FONT_FACES}
 
 .chain-card .chain-head { display: flex; align-items: baseline; gap: 20px; flex-wrap: wrap; }
 .chain-facts { display: flex; gap: 18px; flex-wrap: wrap; color: var(--ink-2); font-size: 14px; }
-.chain-facts strong { color: var(--ink); font-family: var(--font-display); font-weight: var(--w-display); font-size: 17px; margin-right: 4px; }
+.chain-facts strong { color: var(--ink); font-family: var(--font-display); font-weight: var(--w-display); font-size: 17px; margin-inline-end: 4px; }
 .duel-card { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
 .duel-card .avatar { flex: 0 0 auto; }
 .duel-copy { flex: 1 1 240px; display: flex; flex-direction: column; gap: 4px; }
@@ -1852,7 +1944,7 @@ ${FONT_FACES}
 .result-sub { color: var(--ink-2); font-family: var(--font-quote); font-style: var(--quote-style); font-size: 17px; }
 .result-rows { display: flex; flex-direction: column; gap: 6px; }
 .result-row { display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 13px; font-size: 15.5px; }
-.result-row .dot { margin-right: 0; }
+.result-row .dot { margin-inline-end: 0; }
 .result-row.winner { box-shadow: var(--sink-sm); }
 .result-side { font-weight: 700; }
 .result-detail { color: var(--ink-2); font-size: 15px; }
@@ -1867,7 +1959,7 @@ ${FONT_FACES}
 .ceremony-card .lesson-text { color: var(--ink-2); font-size: 16px; }
 
 /* ---- Moku ---- */
-.moku-dock { position: fixed; left: clamp(12px, 2vw, 24px); bottom: clamp(12px, 2vw, 24px); z-index: 40; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; pointer-events: none; }
+.moku-dock { position: fixed; inset-inline-start: clamp(12px, 2vw, 24px); bottom: clamp(12px, 2vw, 24px); z-index: 40; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; pointer-events: none; }
 .moku-dock > * { pointer-events: auto; }
 /* The bubble is sized to the margin it stands in, not to itself.
    It was a flat 250px in a dock pinned to the bottom left, and the content
@@ -1882,14 +1974,14 @@ ${FONT_FACES}
    runs out, which is the narrow case the rule below already handles. */
 .moku-bubble {
   max-width: min(250px, max(158px, calc(50vw - 566px)));
-  padding: 10px 14px; border-radius: 14px 14px 14px 4px;
+  padding: 10px 14px; border-radius: 14px; border-end-start-radius: 4px;
   background: var(--ground); box-shadow: var(--raise-sm);
   font-family: var(--font-quote); font-style: var(--quote-style); font-size: 16px; line-height: 1.4; color: var(--ink);
   animation: rise-l .35s ease;
 }
 @keyframes rise-l { from { transform: translateY(6px); opacity: 0; } to { transform: none; opacity: 1; } }
-.moku-seat { position: relative; margin-left: 2px; }
-.moku-off { position: absolute; top: -2px; right: -8px; width: 23px; height: 23px; border: 0; border-radius: 50%; background: var(--ground); color: var(--ink); box-shadow: var(--raise-sm); display: grid; place-items: center; cursor: pointer; opacity: 0; transition: opacity .18s ease; }
+.moku-seat { position: relative; margin-inline-start: 2px; }
+.moku-off { position: absolute; top: -2px; inset-inline-end: -8px; width: 23px; height: 23px; border: 0; border-radius: 50%; background: var(--ground); color: var(--ink); box-shadow: var(--raise-sm); display: grid; place-items: center; cursor: pointer; opacity: 0; transition: opacity .18s ease; }
 .moku-seat:hover .moku-off, .moku-off:focus-visible { opacity: .85; }
 @media (max-width: 760px) { .moku-bubble { max-width: 180px; font-size: 15px; } .moku-off { opacity: .6; } .moku-dock .moku { width: 68px; height: 68px; } }
 
@@ -1961,7 +2053,7 @@ ${FONT_FACES}
 .gate-fields .chat-input { width: 100%; }
 .gate-problem { margin: 0; font-size: 14px; line-height: 1.5; color: var(--danger-ink); }
 .attach-row {
-  display: flex; align-items: center; gap: 9px; width: 100%; text-align: left; cursor: pointer;
+  display: flex; align-items: center; gap: 9px; width: 100%; text-align: start; cursor: pointer;
   border: 0; background: transparent; color: var(--ink-2); border-radius: 12px; padding: 10px 12px;
   font: 400 13.5px var(--font-body); transition: box-shadow .15s ease, color .15s ease;
 }
@@ -2010,7 +2102,7 @@ ${FONT_FACES}
   border-radius: 13px; box-shadow: var(--sink-sm); color: var(--ink-2);
 }
 .find-box:focus-within { box-shadow: var(--sink-sm), 0 0 0 2px var(--accent-ring); }
-.find-input { padding-left: 0; padding-right: 0; box-shadow: none; }
+.find-input { padding-inline: 0; box-shadow: none; }
 .find-input:focus { box-shadow: none; }
 /* ---- friends ----
    Three lists on one card, each headed and each absent when it is empty. A row
@@ -2028,7 +2120,7 @@ ${FONT_FACES}
 .friend-who {
   appearance: none; background: none; border: 0; font: inherit; color: inherit;
   display: flex; align-items: center; gap: 11px; flex: 1; min-width: 0;
-  text-align: left; cursor: pointer; padding: 4px; border-radius: 14px;
+  text-align: start; cursor: pointer; padding: 4px; border-radius: 14px;
   transition: box-shadow .15s ease;
 }
 .friend-who:hover, .friend-who:focus-visible { box-shadow: var(--raise-sm); }
@@ -2066,10 +2158,10 @@ ${FONT_FACES}
    already say "Here now" and a tooltip would repeat them. */
 .here-dot {
   display: inline-block; width: 7px; height: 7px; border-radius: 50%;
-  background: var(--accent-ink); margin-left: 7px; vertical-align: middle;
+  background: var(--accent-ink); margin-inline-start: 7px; vertical-align: middle;
   flex: none;
 }
-.player-when .here-dot { margin: 0 7px 0 0; }
+.player-when .here-dot { margin: 0; margin-inline-end: 7px; }
 /* ---- who may see you are here ----
    Three choices on the same segmented control the lobby sets a board size
    with, so a preference that changes what other people see reads as the same
@@ -2163,7 +2255,7 @@ ${FONT_FACES}
 .seek-state .pulse { color: var(--accent-ink); animation: seek-pulse 1.6s ease-in-out infinite; }
 @keyframes seek-pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
 .table-list { display: flex; flex-direction: column; gap: 6px; }
-.table-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 0; border-radius: 12px; background: transparent; color: var(--ink); text-align: left; cursor: pointer; transition: box-shadow .15s ease; }
+.table-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 0; border-radius: 12px; background: transparent; color: var(--ink); text-align: start; cursor: pointer; transition: box-shadow .15s ease; }
 .table-row:hover { box-shadow: var(--sink-sm); }
 .table-row .table-who { font-weight: 600; font-size: 14.5px; flex: 0 0 auto; }
 .table-row .fine { flex: 1; }
@@ -2172,7 +2264,7 @@ ${FONT_FACES}
 .dot-done { background: var(--dark); }
 .board-placeholder { aspect-ratio: 1; width: 100%; border-radius: 18px; box-shadow: var(--sink); opacity: .5; }
 .bubble-who { color: var(--ink-2); font-weight: 700; font-size: 13px; }
-.chip-btn { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; border: 0; background: transparent; color: var(--accent-ink); font: 700 11.5px var(--font-body); letter-spacing: .1em; text-transform: uppercase; cursor: pointer; padding: 4px 6px; border-radius: 8px; }
+.chip-btn { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 4px; border: 0; background: transparent; color: var(--accent-ink); font: 700 11.5px var(--font-body); letter-spacing: .1em; text-transform: uppercase; cursor: pointer; padding: 4px 6px; border-radius: 8px; }
 .chip-btn:hover { box-shadow: var(--sink-sm); }
 .ladder-sub { color: var(--ink-2); font-size: 13px; margin: -6px 0 0; }
 
@@ -2278,7 +2370,7 @@ ${FONT_FACES}
 
 .lp-card { display: flex; flex-direction: column; gap: 14px; padding: clamp(24px, 3vw, 34px); }
 .lp-card .lp-icon { margin-bottom: 4px; }
-.lp-card-btn { text-align: left; border: 0; cursor: pointer; color: var(--ink); background: var(--ground); transition: transform .16s ease, box-shadow .16s ease; }
+.lp-card-btn { text-align: start; border: 0; cursor: pointer; color: var(--ink); background: var(--ground); transition: transform .16s ease, box-shadow .16s ease; }
 .lp-card-btn:hover { transform: translateY(-3px); }
 .lp-card-btn:hover .lp-more { opacity: 1; gap: 10px; }
 .lp-card-btn:active { box-shadow: var(--sink-sm); transform: none; }
@@ -2393,7 +2485,7 @@ ${FONT_FACES}
 /* The rule between columns, and only between them: a rule on the outside edge
    of a broadsheet is a box, and a box is a card, which is the thing this
    section exists to not be. */
-.lp-col + .lp-col { border-left: 1px solid var(--hairline); }
+.lp-col + .lp-col { border-inline-start: 1px solid var(--hairline); }
 .lp-col-kicker {
   font-family: var(--font-body); font-size: 12px; font-weight: 700;
   letter-spacing: .22em; text-transform: uppercase; color: var(--accent-ink);
@@ -2410,8 +2502,8 @@ ${FONT_FACES}
    A drop cap in every column reads as a pattern rather than as the start of
    something, and one asked of "the first paragraph" lands on the kicker. */
 .lp-col p.lp-drop::first-letter {
-  float: left; font-family: var(--font-display); font-weight: var(--w-display-strong);
-  font-size: 3.4em; line-height: .82; padding: .06em .09em 0 0; color: var(--ink);
+  float: inline-start; font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: 3.4em; line-height: .82; padding: .06em 0 0; padding-inline-end: .09em; color: var(--ink);
 }
 /* A signed column ends on its signature, set in the caption italic and ruled
    off short. It is the one column with no numbered line under it, so the
@@ -2453,17 +2545,17 @@ ${FONT_FACES}
 .lp-sources li {
   counter-increment: src; color: var(--ink-2);
   font-family: var(--font-caption); font-style: var(--caption-style);
-  font-size: 12.5px; line-height: 1.5; padding-left: 24px; position: relative;
+  font-size: 12.5px; line-height: 1.5; padding-inline-start: 24px; position: relative;
 }
 .lp-sources li::before {
-  content: counter(src); position: absolute; left: 0; top: 0;
+  content: counter(src); position: absolute; inset-inline-start: 0; top: 0;
   font-family: var(--font-body); font-style: normal; font-size: 12px; font-weight: 700;
   color: var(--accent-ink);
 }
 .lp-sources a { color: inherit; text-decoration-color: var(--hairline); text-underline-offset: 3px; }
 .lp-sources a:hover { text-decoration-color: var(--accent-ink); }
 @media (max-width: 620px) {
-  .lp-col + .lp-col { border-left: 0; }
+  .lp-col + .lp-col { border-inline-start: 0; }
   .lp-record-head { padding-bottom: 10px; }
 }
 
@@ -2678,10 +2770,10 @@ ${FONT_FACES}
 
    Vertically they stay inside their section on purpose: a mark that spilled
    into the band above it would cross the seam the floors were put in to make. */
-.lp-decor-left { top: 50%; left: calc(50% - 50vw); transform: translate(-34%, -50%); }
-.lp-decor-right { top: 50%; right: calc(50% - 50vw); transform: translate(34%, -50%); }
-.lp-decor-tr { top: 4%; right: calc(50% - 50vw); transform: translate(18%, 0); }
-.lp-decor-bl { bottom: 4%; left: calc(50% - 50vw); transform: translate(-18%, 0); }
+.lp-decor-left { top: 50%; inset-inline-start: calc(50% - 50vw); transform: translate(calc(-34% * var(--flip, 1)), -50%); }
+.lp-decor-right { top: 50%; inset-inline-end: calc(50% - 50vw); transform: translate(calc(34% * var(--flip, 1)), -50%); }
+.lp-decor-tr { top: 4%; inset-inline-end: calc(50% - 50vw); transform: translate(calc(18% * var(--flip, 1)), 0); }
+.lp-decor-bl { bottom: 4%; inset-inline-start: calc(50% - 50vw); transform: translate(calc(-18% * var(--flip, 1)), 0); }
 .lp-decor-center { top: 50%; left: 50%; transform: translate(-50%, -50%); }
 /* The page is clipped at its own edge instead, so a mark hanging off the side
    never turns into a sideways scrollbar. clip rather than hidden: hidden
@@ -2756,7 +2848,7 @@ ${FONT_FACES}
 .typed { font-family: var(--font-quote); font-style: var(--quote-style); font-weight: 420; letter-spacing: .005em; }
 .typed-key { color: var(--accent-ink); font-weight: 700; font-style: inherit; }
 .type-caret {
-  display: inline-block; width: .5em; height: 1.02em; margin-left: 1px;
+  display: inline-block; width: .5em; height: 1.02em; margin-inline-start: 1px;
   vertical-align: -.16em; background: var(--accent); opacity: .75;
   animation: type-caret 1.05s steps(1) infinite;
 }
@@ -2811,7 +2903,7 @@ ${FONT_FACES}
 }
 .legal-section p { margin: 0 0 12px; line-height: 1.68; font-size: 15.5px; }
 .legal-section p:last-child { margin-bottom: 0; }
-.legal-list { margin: 0; padding-left: 20px; }
+.legal-list { margin: 0; padding-inline-start: 20px; }
 .legal-list li { margin-bottom: 9px; line-height: 1.62; font-size: 15.5px; }
 
 /* A credit answers three questions, so it is set as three columns and not as
@@ -2828,7 +2920,7 @@ ${FONT_FACES}
 .credit-who { color: var(--ink-2); font-size: 14.5px; flex: 1 1 auto; }
 .credit-terms {
   color: var(--accent-ink); font-family: var(--font-caption); font-style: var(--caption-style);
-  font-size: 13px; letter-spacing: .05em; white-space: nowrap; margin-left: auto;
+  font-size: 13px; letter-spacing: .05em; white-space: nowrap; margin-inline-start: auto;
 }
 
 /* The footer grew a legal row: the notice, then the three ways into it. */
@@ -2907,7 +2999,7 @@ ${FONT_FACES}
      row does not get taller for it. */
   .toggle { height: 44px; background: none; box-shadow: none; }
   .toggle::before {
-    content: ""; position: absolute; top: 50%; left: 0; width: 48px; height: 28px;
+    content: ""; position: absolute; top: 50%; inset-inline-start: 0; width: 48px; height: 28px;
     transform: translateY(-50%); border-radius: 14px;
     background: var(--ground); box-shadow: var(--sink-sm);
   }
@@ -2960,7 +3052,7 @@ ${FONT_FACES}
    advert, and that is the house rule this file opens with. */
 @media (hover: none) {
   .moku-off {
-    width: 44px; height: 44px; top: -13px; right: -19px;
+    width: 44px; height: 44px; top: -13px; inset-inline-end: -19px;
     background: none; box-shadow: none; opacity: .75;
   }
   .moku-off::before {

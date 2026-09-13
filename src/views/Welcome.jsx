@@ -62,7 +62,7 @@ export function Welcome({ profile, setProfile, onFinish }) {
             <p className="lede">{t("welcome.hello.lede")}</p>
             <p className="fine">{t("welcome.hello.fine")}</p>
             <div className="row">
-              <Btn icon={ArrowRight} primary onClick={() => setStage("you")}>{t("welcome.hello.show")}</Btn>
+              <Btn icon={ArrowRight} primary onward onClick={() => setStage("you")}>{t("welcome.hello.show")}</Btn>
               <Btn icon={SkipForward} onClick={() => finish("home")}>{t("welcome.hello.already")}</Btn>
             </div>
           </div>
@@ -93,7 +93,7 @@ export function Welcome({ profile, setProfile, onFinish }) {
             ))}
           </div>
           <div className="row">
-            <Btn icon={ArrowRight} primary onClick={() => setStage("demo")}>{t("welcome.you.continue")}</Btn>
+            <Btn icon={ArrowRight} primary onward onClick={() => setStage("demo")}>{t("welcome.you.continue")}</Btn>
             <Btn icon={SkipForward} onClick={() => finish("home")}>{t("welcome.you.skip")}</Btn>
           </div>
         </Card>

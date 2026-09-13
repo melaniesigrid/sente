@@ -81,7 +81,7 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
   return (
     <div className="stack arrives">
       <div className="row">
-        <Btn icon={ArrowLeft} small onClick={back}>{t("review.back")}</Btn>
+        <Btn icon={ArrowLeft} small onward onClick={back}>{t("review.back")}</Btn>
       </div>
       {missing ? (
         <Card className="player-page">

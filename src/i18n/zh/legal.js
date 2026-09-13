@@ -4,6 +4,7 @@ export const legal = {
   stamp: "最后修改于 {date}",
   tabs: "小字条款",
   translated: "这是一份译文，提供出来是为了让人读得懂。以英文版为准。",
+  untranslated: "本文件尚未翻译，以英文显示，并以英文版为准。",
 
   /* ----- 叠加层：三份文件，来自 src/content/legal.js -----
      那几个常量是以「洞」的形式送进来的（{product}、{studio}、{contact}、

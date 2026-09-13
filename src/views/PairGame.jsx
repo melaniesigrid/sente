@@ -382,7 +382,7 @@ export function PairGame({ mode, onExit, profile, notify, initial }) {
   return (
     <div className="stack">
       <div className="row spread">
-        <Btn icon={ChevronLeft} small onClick={onExit}>{t("online.game.lobby")}</Btn>
+        <Btn icon={ChevronLeft} small onward onClick={onExit}>{t("online.game.lobby")}</Btn>
         <div className="vs-strip pair-strip">
           <TeamSide roster={roster} color="b" profile={profile} seatId={seatId} />
           <span className="vs-x">vs</span>

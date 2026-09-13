@@ -338,7 +338,7 @@ describe("the motion switch", () => {
 const COLUMN_DWELLERS = [
   // subject class, and the row-scoped selector it is allowed to be pinned to
   [".board-well", /\.play-wrap\s*>\s*\.board-well$/],
-  [".search-row", /never$/],
+  [".search-row", /\bnever$/],
 ];
 
 describe("a flex basis in px", () => {
@@ -362,6 +362,172 @@ describe("a flex basis in px", () => {
     for (const r of own) {
       expect(r.body, ".board-well pins a main size").not.toMatch(/(^|;)\s*flex:/);
       expect(r.body, ".board-well pins a height").not.toMatch(/(^|;)\s*height:/);
+    }
+  });
+});
+
+/* ----------------------- THE SHEET RUNS BOTH WAYS -----------------------
+   Hebrew is the first language read right to left, and the whole of the
+   support for it is one attribute on the document element. That only works
+   while the sheet asks for start and end rather than left and right, so this
+   is the suite that keeps it asking.
+
+   The failure a physical property causes is quiet: nothing throws, no snapshot
+   moves, and a Hebrew page simply has one card left-aligned in a column of
+   right-aligned ones, or an arrow pointing back the way it came. Nobody
+   reading English will ever see it, which is exactly why it has to be a test
+   and not a review. */
+describe("the sheet runs in both directions", () => {
+  /* Two rules keep their physical sides on purpose.
+
+     `.goban` pins `direction: ltr` because its coordinate margin is text: A1
+     belongs in the same corner in Tel Aviv as in Tokyo, and a board that
+     mirrored would be a different board.
+
+     The belt is a drawing of a knot rather than a sentence. Its stripe, tails
+     and knot are a picture, and a picture does not turn around when the words
+     beside it do. */
+  const DRAWN = /^\.(goban|belt-|rank-badge)/;
+
+  it("aligns text to the start of the line, never to the left of the screen", () => {
+    for (const { selector, body } of rules(CSS)) {
+      if (DRAWN.test(selector)) continue;
+      expect(/text-align:\s*(left|right)\b/.test(body), `${selector}: ${body.trim()}`).toBe(false);
+    }
+  });
+
+  it("spaces and rules a box by its start and end, not by its left and right", () => {
+    for (const { selector, body } of rules(CSS)) {
+      if (DRAWN.test(selector)) continue;
+      const physical = body.match(/\b(padding|margin|border)-(left|right)\s*:/g) || [];
+      expect(physical, `${selector}: ${physical.join(" ")}`).toEqual([]);
+    }
+  });
+
+  /* A longhand is the easy half. The sides also hide inside shorthands, and a
+     four-value `padding: a b c d` puts b on the right and d on the left as
+     surely as `padding-left` does: the review that found these found five of
+     them, every one beside a longhand sibling that HAD been converted. Only
+     asymmetry matters — `padding: 7px 13px` is the same on both sides and
+     mirrors for free. */
+  it("spaces a box symmetrically, or logically, shorthand included", () => {
+    const parts = (v) => v.match(/(?:[a-z-]+\([^()]*(?:\([^()]*\)[^()]*)*\)|[^\s])+/gi) || [];
+    for (const { selector, body } of rules(CSS)) {
+      if (DRAWN.test(selector)) continue;
+      for (const m of body.matchAll(/\b(padding|margin):\s*([^;]+)/g)) {
+        const v = parts(m[2]);
+        if (v.length !== 4) continue;
+        expect(v[1], `${selector}: ${m[0].trim()}`).toBe(v[3]);
+      }
+    }
+  });
+
+  /* A corner list is the other half. A speech bubble's tail, a card's notch:
+     the tight corner is drawn to sit on the same edge as the thing that
+     anchors it, and when that anchor is logical the corner has to be too, or
+     every bubble in Hebrew points away from the person who said it. */
+  it("turns an asymmetric corner around when its anchor is logical", () => {
+    const ANCHORED = /inset-inline-(start|end)|border-inline-(start|end)|align-self:\s*flex-(start|end)|margin-inline-(start|end)|float:\s*inline-/;
+    for (const { selector, body } of rules(CSS)) {
+      if (DRAWN.test(selector) || !ANCHORED.test(body)) continue;
+      const r = /border-radius:\s*([^;]+)/.exec(body);
+      if (!r) continue;
+      const v = r[1].trim().split(/\s+/);
+      if (v.length !== 4) continue;
+      expect(v[0] === v[1] && v[2] === v[3], `${selector}: ${r[0].trim()}`).toBe(true);
+    }
+  });
+
+  /* A float is a side too, and `float: left` on a drop cap is the same bug in
+     a third spelling. */
+  it("floats to a side of the line, not a side of the screen", () => {
+    for (const { selector, body } of rules(CSS)) {
+      if (DRAWN.test(selector)) continue;
+      expect(/float:\s*(left|right)\b/.test(body), `${selector}: ${body.trim()}`).toBe(false);
+    }
+  });
+
+  /* The pairing decides the slant, so no rule may name one. A literal
+     `font-style: italic` walks straight past `hasItalic` and asks a browser
+     for an italic Hebrew, which it draws by shearing the upright. */
+  it("takes its slant from the pairing and never from a literal", () => {
+    for (const { selector, body } of rules(CSS)) {
+      // A face declaring which cut it is, is the one place the word belongs.
+      if (selector.startsWith("@font-face")) continue;
+      const m = /font-style:\s*(italic|oblique)\b/.exec(body);
+      expect(m, `${selector}: ${m && m[0]}`).toBe(null);
+    }
+  });
+
+  it("keeps the board left to right, whatever the page around it does", () => {
+    const goban = rules(CSS).find(r => r.selector === ".goban");
+    expect(goban).toBeTruthy();
+    expect(goban.body).toMatch(/direction:\s*ltr/);
+  });
+
+  /* A transform is the one thing a direction cannot turn around by itself:
+     `translateX(2px)` means two pixels rightward in every language, and the
+     handful of places that mean "onward" rather than "rightward" multiply by
+     `--flip`. It is 1 by default and -1 under a right-to-left document, so a
+     knob slides toward the end of its track and a decoration hangs off the
+     side it was placed on. */
+  it("declares the flip once, and turns it over for a right-to-left page", () => {
+    expect(CSS).toMatch(/--flip:\s*1\s*;/);
+    expect(CSS).toMatch(/\[dir="rtl"\][^{]*\{[^}]*--flip:\s*-1\s*;/);
+  });
+
+  it("multiplies every offset transform by the flip, wherever it is anchored logically", () => {
+    // A rule anchored to a logical side and then nudged horizontally is by
+    // definition talking about onward, not about rightward.
+    for (const { selector, body } of rules(CSS)) {
+      if (!/inset-inline-(start|end)/.test(body)) continue;
+      if (!/transform:[^;]*translate(X\(|\()/.test(body)) continue;
+      expect(/var\(--flip[,)]/.test(body), `${selector}: ${body.trim()}`).toBe(true);
+    }
+  });
+
+  /* The rule above only sees a nudge that is anchored by an inset. A nudge
+     anchored by flex, grid or a logical margin means "onward" just as much,
+     and would slip past it — which is how the reply arrow nearly shipped
+     pointing the wrong way. So every horizontal translate in the sheet has to
+     either carry the flip or be a drawing: a keyframe step, a mascot leaning,
+     a shape centred on its own middle. */
+  it("multiplies every horizontal nudge by the flip, however it is anchored", () => {
+    const DRAWING = /^(\d|\.moku|\.belt-|\.goban|\.rank-badge|\.fig-|\.lp-decor)/;
+    for (const { selector, body } of rules(CSS)) {
+      if (DRAWING.test(selector)) continue;
+      const m = /transform:\s*([^;]+)/.exec(body);
+      if (!m) continue;
+      // A shape centred on its own middle is direction-neutral: -50% of itself
+      // is the same distance whichever way the page runs.
+      const moved = /translateX?\(\s*(-?[\d.]+px|calc\()/.test(m[1]);
+      if (!moved) continue;
+      expect(/var\(--flip[,)]/.test(m[1]), `${selector}: ${m[0].trim()}`).toBe(true);
+    }
+  });
+
+  /* The interface follows the language it was chosen in; the words inside it
+     do not always. A passage from the Classic is still English in most
+     languages, a journal note is English on purpose, a bio or a line of table
+     talk is whatever the person typed. `plaintext` resolves each paragraph
+     from its own first strong letter, and it does not inherit, so it has to
+     sit on the element that holds the words rather than on its wrapper. */
+  it("reads every run of prose from its own first strong letter", () => {
+    /* Read straight out of the sheet rather than through `rules()`, whose
+       selector is the last line of a list: this one is a list on purpose, and
+       every name in it matters. */
+    const blocks = [...CSS.matchAll(/([^{}]+)\{([^{}]*unicode-bidi:\s*plaintext[^{}]*)\}/g)];
+    expect(blocks.length).toBeGreaterThan(0);
+    const classes = blocks.flatMap(m => m[1].match(/\.[a-z][a-z0-9-]*/g) || []);
+    expect(classes.length).toBeGreaterThan(10);
+    /* Every name in the list is a class the sheet actually draws. A typo here
+       is the quietest failure of the lot: the rule parses, the sheet loads,
+       and one paragraph keeps its full stop at the wrong end forever. Some of
+       these set no type of their own (`.passage-typed` inherits the passage's)
+       so what is checked is that the class exists, not that it sizes itself. */
+    for (const cls of classes) {
+      const drawn = rules(CSS).filter(r => r.selector.includes(cls) && !/unicode-bidi/.test(r.body));
+      expect(drawn.length, `${cls} is declared plaintext and styled nowhere`).toBeGreaterThan(0);
     }
   });
 });

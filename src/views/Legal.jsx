@@ -6,7 +6,7 @@ import {
 } from "../content/legal.js";
 import { localize } from "../content/translate.js";
 import { useT, useLocale } from "../components/langStore.js";
-import { BASE_LOCALE } from "../i18n/index.js";
+import { BASE_LOCALE, carries } from "../i18n/index.js";
 
 /* ----------------------- THE SMALL PRINT -----------------------
    Three documents, one screen, one tab strip. It renders what
@@ -28,7 +28,10 @@ import { BASE_LOCALE } from "../i18n/index.js";
    The documents are offered in the reader's language and say so. A translated
    contract is a courtesy rather than a second contract, so every language but
    the one they were written in carries a line naming which version governs,
-   which is the honest half of offering a translation at all. The constants the
+   which is the honest half of offering a translation at all. A language may
+   translate the app without translating the small print, so the line asks the
+   catalogue whether THIS document is carried before it claims to be a
+   translation of it, and says plainly that it is English otherwise. The constants the
    documents are written around arrive as holes rather than copied in, so the
    address to write to is one string in every language. */
 
@@ -91,6 +94,16 @@ export function LegalView({ docId, onPick }) {
   const doc = useMemo(() => localize(authored, `legalDoc.${authored.id}`, t, VARS), [authored, t]);
   const Icon = ICONS[doc.id];
   /* The day it last changed, set the way this language sets a date. */
+  /* Whether THIS document is actually carried in this language, rather than
+     whether the reader is reading in one. A language may translate the app and
+     not the small print, and then the documents below are English: saying "this
+     is a translation" over them would be a false claim about which version they
+     are reading, on the one screen where that is a legal question rather than a
+     polish one. Asked of the catalogue by prefix, so a document translated
+     later starts saying so on its own. */
+  const carried = carries(locale.id, `legalDoc.${authored.id}.`);
+  const docLang = carried ? undefined : BASE_LOCALE;
+
   const stamped = useMemo(() => {
     try {
       return new Intl.DateTimeFormat(locale.tag, { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })
@@ -104,10 +117,16 @@ export function LegalView({ docId, onPick }) {
     <div className="stack legal">
       <div className="legal-head">
         <p className="eyebrow">{t("legal.eyebrow")}</p>
-        <h1 className="legal-title">{doc.title}</h1>
-        <p className="legal-lede">{doc.blurb}</p>
+        {/* The document's own words, which are English until somebody
+            translates them. The chrome around them is not: the eyebrow, both
+            stamps and the tabs are this language, so the mark goes on the
+            document rather than on the screen. */}
+        <h1 className="legal-title" lang={docLang}>{doc.title}</h1>
+        <p className="legal-lede" lang={docLang}>{doc.blurb}</p>
         <p className="legal-stamp">{t("legal.stamp", { date: stamped })}</p>
-        {locale.id !== BASE_LOCALE && <p className="legal-stamp">{t("legal.translated")}</p>}
+        {locale.id !== BASE_LOCALE && (
+          <p className="legal-stamp">{t(carried ? "legal.translated" : "legal.untranslated")}</p>
+        )}
       </div>
 
       <nav className="legal-tabs" aria-label={t("legal.tabs")}>
@@ -125,7 +144,7 @@ export function LegalView({ docId, onPick }) {
         })}
       </nav>
 
-      <article className="neu-card legal-doc">
+      <article className="neu-card legal-doc" lang={docLang}>
         <div className="stat-head"><Icon size={17} /><span>{doc.title}</span></div>
         {doc.credits && <Credits />}
         {doc.sections.map(s => <Section key={s.heading} section={s} />)}
