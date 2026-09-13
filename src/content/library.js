@@ -10,6 +10,7 @@ import { TIER4 } from "./lessons/tier4/index.js";
 import { TIER5 } from "./lessons/tier5/index.js";
 import { TIER6 } from "./lessons/tier6/index.js";
 import { SHAPES_BOOK } from "./shapes.js";
+import { SHAPEUP_BOOK } from "./shapeup.js";
 import { BASE_LOCALE, makeT } from "../i18n/index.js";
 import { localize } from "./translate.js";
 
@@ -64,6 +65,7 @@ export const BOOKS = [
   { id: "classic", name: "The Classic of Weiqi in Thirteen Chapters", blurb: "Zhang Ni, c. 1050, in original words, one verified position per maxim.",
     note: "Read it in the chapters card below: the whole book, with its lessons under each chapter." },
   { id: "xuanxuan", name: "The Mysterious Classic", blurb: "Yan Defu and Yan Tianzhang, 1349. Life and death, from the collection of it. Its first volume is the Classic already on this shelf." },
+  { id: SHAPEUP_BOOK.id, name: SHAPEUP_BOOK.title, blurb: SHAPEUP_BOOK.blurb },
   { id: "guanzi", name: "The Book of Endgame Moves", blurb: "Guo Bailing, 1660. The classical collection of the closing moves, and the one place a lesson may state a number." },
 ];
 export const bookById = (id) => BOOKS.find(b => b.id === id) || null;
@@ -73,6 +75,7 @@ export const bookById = (id) => BOOKS.find(b => b.id === id) || null;
    and sayings live in content/classic.js. */
 export const SERIES = [
   { key: "classic", name: "The Classic in Thirteen Chapters", by: "Zhang Ni, eleventh century" },
+  { key: "shapeup", name: "Shape Up", by: "Charles Matthews and Seong-June Kim, 2005" },
 ];
 
 export const trackByKey = (key) => TRACKS.find(t => t.key === key) || null;
