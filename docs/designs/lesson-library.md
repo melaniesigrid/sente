@@ -199,6 +199,41 @@ Sources are the standard shape literature and the traditional names; no modern t
 quoted and no diagram is reproduced. The proverbs are Joseki's own renderings, as in the
 Classic. Shape vocabulary itself is nobody's property.
 
+## Book: Shape Up
+
+Added 2026-09-13. Charles Matthews and Seong-June Kim's *Shape Up!* (2005), the one book on
+the shelf that is about shape and nothing else. Where the Book of Shapes catalogues what each
+shape buys and costs, this one works through the patterns one at a time and asks, for each,
+which point is the vital one and why. Lessons carry `book: "shapeup"` for the shelf and
+`series: "shapeup"` with the book's own chapter numbers, so the lessons read in book order
+however they are spread across tiers.
+
+| Chapter | Lesson | Tier / rank | Track |
+|---------|--------|-------------|-------|
+| 1 Table Shapes | `shape-table` | 3 / 13k | shape |
+| 2 Shape Basics | `shape-liberty-problem` | 3 / 12k | shape |
+
+Two of fifteen chapters, and the gaps are deliberate rather than a queue. Most of the rest
+argue whole-board judgement (which extension is stable, when an invasion point is worth
+invading, how to attack on a larger scale), and a bounded search does not settle those: point
+`killable()` at an invasion under an extension and it answers a question about the region you
+drew, not about the extension. A chapter becomes a lesson here when there is a position the
+engine can prove. Chapter seven is absent for a different reason: the Book of Shapes already
+drills the waist of the knight's move in `shape-keima-waist`, and one proverb does not need
+two lessons.
+
+**Rights.** The book is in copyright and nothing of it is reproduced: no sentence of its
+prose, no diagram, no problem position. What travels is the idea, restated in the house voice
+on positions built here. `src/content/shapeup.js` holds `SHAPEUP_SOURCE` so both lessons cite
+the book they came from, the same rule the Classic and the Book of Endgame Moves follow.
+
+Every claim was proved before the prose was written, and `tools/lessons/shapeup.mjs` re-proves
+all of it in one run: the bamboo joint answers either cut in a single move and leaves the
+cutting stone on one liberty, while after the wedge into the table shape no two black moves
+rejoin the four stones even with White never answering, and it takes three; the pressed pair
+on the third line holds three liberties and goes to five by extending or four by either
+descent, with White taking any of the same three points leaving it on two.
+
 ## Tier 6 Dan: what is authored
 
 Added 2026-09-11. Four of the eight from the syllabus, and the tier has its own rule: it is the

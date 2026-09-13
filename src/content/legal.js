@@ -51,7 +51,7 @@ export const COPYRIGHT = `© ${COPYRIGHT_YEAR} ${STUDIO}`;
    being stopped and handed the line where the date lives. */
 export const REVISION = {
   updated: "13 September 2026",
-  stamp: "67a90e94",
+  stamp: "3e708443",
 };
 
 /** The day the documents last changed. */
@@ -241,6 +241,8 @@ const PRIVACY = {
         "The games you played online, and up to 200 chat lines in each room alongside the record.",
         "An index of your finished games, one entry each, kept for as long as the account is. It holds no moves: it is the date, the board, the opponent and the result, and it is what lets your own archive be paged through without reading every game you have ever played. Leaving deletes the index; the games themselves stay in the rooms they were played in, for the reason given under Leaving.",
         "Who your friends here are: the handles you have agreed to be friends with, the requests you have sent, and the requests you have been sent. Three lists of handles with the date each was written, kept on your record and on theirs, and seen by nobody but the two of you. Declining a request deletes it and tells the person who sent it nothing at all.",
+        "A way to look up your handle: each word of it, folded to lower case with the accents and punctuation taken out, kept beside your record so that another player typing part of it can find you. It is made from the handle you chose and from nothing else, it is rewritten when you change your handle and deleted when you leave, and only somebody who has a handle here can search it. A search answers with at most twenty people and never with a count, so it cannot be paged through to read out who plays here.",
+        "The invitations to a game between you and another player: who asked whom, the board, the handicap, whether it counts, and when it was asked. One row on each of your records, seen by the two of you and by nobody else, gone the moment either of you answers it, and gone by itself a day after it was written. Only somebody you have agreed to be friends with, or finished a game against, can ask you at all, and declining one deletes it and tells the person who asked nothing.",
         "The letters you and another player have written to each other. One thread a pair, keeping the last hundred, readable by the two of you and by nobody else. Only somebody you have agreed to be friends with, or finished a game against, can write to you at all, and you can stop any of them writing again without their being told. There is no list anybody can be added to and nothing to unsubscribe from, because there is nothing to be on.",
         "The games you chose to show on your page, at most three, each with a line of up to 140 characters that you wrote. Both are public, because the page is. Taking a game off your page removes the line with it.",
         "Which of the three answers you gave to who may see that you are here: nobody, your friends, or anybody. One word on your record, and not on the ladder, so reading the ladder cannot tell you who has chosen to be invisible.",
@@ -281,7 +283,7 @@ const PRIVACY = {
     {
       heading: "Leaving",
       paras: [
-        "There is a way out that needs nobody's permission. Leaving removes your account, your sessions, your address, your picture, your ladder seat, your friends list, your letters on both sides, and the record of the address you registered from. Your handle is taken off the lists of everybody who had you on theirs, in the same breath, because a friendship is two records and deleting one of them would leave the other holding a name that answers nothing.",
+        "There is a way out that needs nobody's permission. Leaving removes your account, your sessions, your address, your picture, your ladder seat, your friends list, the invitations you sent and the ones sent to you, your letters on both sides, and the record of the address you registered from. Your handle is taken off the lists of everybody who had you on theirs, in the same breath, because a friendship is two records and deleting one of them would leave the other holding a name that answers nothing.",
         "One thing survives, and it should be said plainly: a finished game stays in the room it was played in, under the handle you played it under. It is your opponent's game as much as yours, and taking it away would take away theirs.",
         `To ask for a copy of what is held about you, to correct it, or to have something removed that leaving does not reach, write to ${CONTACT} and a person will do it by hand. There is no export button, and saying otherwise would be the easy sentence to write and the false one.`,
       ],

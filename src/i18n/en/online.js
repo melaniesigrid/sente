@@ -64,15 +64,84 @@ export const online = {
     pair: "pair go",
   },
 
+  /* Finding somebody by their handle, which is the way into everything below:
+     the ladder only ever held a hundred people, and a club whose members have
+     not played a rated game yet is not on it at all. */
+  find: {
+    head: "Find a player",
+    note: "Type a handle, or any part of one. Only players here can look anybody up, and a search answers with a few people rather than with a list.",
+    placeholder: "A handle",
+    label: "Find a player by handle",
+    idle: "Two letters of a handle is enough to start.",
+    short: "Two letters, at least.",
+    searching: "Looking…",
+    empty: "Nobody here answers to “{typed}”.",
+  },
+
   /* Friends, agreed on both sides or not at all. The four standings are four
      buttons, and the one that matters is somebody who has already asked you:
      offering "Add friend" there would send a second request across a table
      where the answer was already waiting. */
+  invites: {
+    head: "Invitations",
+    note: "A game with somebody you know, on terms the two of you agree. An invitation waits a day for an answer.",
+    incoming: "Asked you for a game",
+    outgoing: "You asked",
+    arrived: "{name} has asked you for a game",
+    opened: "The board with {name} is open",
+    declineName: "Decline the game with {name}",
+    takeBackName: "Take back the game you asked {name} for",
+    board: "Board",
+    handicap: "Handicap",
+    even: "Even",
+    sizeChip: "{size}×{size}",
+    counts: "It counts towards both ratings",
+    handicapUnrated: "A handicap game counts towards nobody’s rating. A number that read a four-stone win as an even one would be the wrong number.",
+    terms: {
+      board: "{size}×{size}",
+      handicap: "handicap {count}",
+      rated: "rated",
+      unrated: "not rated",
+    },
+    act: {
+      invite: "Invite to a game",
+      invited: "Invited",
+      accept: "Play",
+      decline: "Decline",
+      takeBack: "Take it back",
+      cannot: "Play a game together first",
+      ask: "Ask {name}",
+      never: "Not now",
+    },
+    outcome: {
+      invited: "Invitation sent",
+      changed: "The terms are changed",
+      declined: "Invitation declined",
+      withdrawn: "Invitation taken back",
+      nothing: "Nothing to undo",
+      done: "Done",
+    },
+    error: {
+      offline: "The server is out of reach right now",
+      "no-server": "This copy of Joseki is running without a server",
+      unauthorized: "Claim a handle before asking anybody for a game",
+      "no-player": "That player is not here any more",
+      yourself: "You cannot ask yourself for a game",
+      "not-met": "You can ask a friend, or somebody you have finished a game against",
+      "no-invite": "There is no invitation from them to take up",
+      "they-asked-first": "They have already asked you. Their invitation is on your shelf.",
+      "too-many-invites": "You have a lot of invitations out already. Tidy those up first.",
+      "their-invites-are-full": "They have a lot of invitations waiting already",
+      "too-many-invites-sent": "That is a lot of invitations in an hour. Try again later.",
+      unknown: "Something went wrong ({reason})",
+    },
+  },
+
   friends: {
     head: "Your friends",
     note: "Friendship here is agreed, never claimed: both of you have to press. Nobody is told when a request is declined.",
     fetching: "Fetching your lists\u2026",
-    empty: "Nobody yet. Open a player\u2019s page from the ladder and ask them.",
+    empty: "Nobody yet. Find somebody by their handle in the box above, and ask them.",
     incoming: "Asking to be friends",
     friends: "Friends",
     outgoing: "You asked",

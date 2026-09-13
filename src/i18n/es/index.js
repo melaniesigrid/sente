@@ -23,12 +23,13 @@ import { legal, legalDoc, credit } from "./legal.js";
 import { online } from "./online.js";
 import { account } from "./account.js";
 import { voice, plain, statement, moku, ruleset, preset, persona } from "./voice.js";
-import { tier, track, book, series, problem, shape } from "./library.js";
+import { tier, track, book, series, problemSet, problem, shape } from "./library.js";
 import { lessons1 } from "./lessons1.js";
 import { lessons2 } from "./lessons2.js";
 import { lessons3 } from "./lessons3.js";
 import { lessons4 } from "./lessons4.js";
 import { lessons5 } from "./lessons5.js";
+import { josekiCorner, josekiSource, josekiEntry } from "./joseki.js";
 import { classicBook, preface, kind, level, belowTheLevels, chapter, name, passage } from "./classic.js";
 import { content } from "./content.js";
 import { overlay } from "./overlay.js";
@@ -57,8 +58,12 @@ export const es = {
   track,
   book,
   series,
+  problemSet,
   problem,
   shape,
+  josekiCorner,
+  josekiSource,
+  josekiEntry,
   classicBook,
   preface,
   kind,

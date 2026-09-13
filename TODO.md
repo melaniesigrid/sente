@@ -975,6 +975,25 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       from trying it: with a single stone on the board every local reply comes back at three
       decimal places of zero, and the ranking between them at that magnitude is noise. The
       measurement needs a position where the local moves are actually the big ones.
+- [x] Shape Up (2026-09-13, branch `feat/shapeup`): a seventh book on the shelf, after
+      Charles Matthews and Seong-June Kim's *Shape Up!* (2005) - the one book here that is
+      about shape and nothing else. Two lessons in tier 3, both proved before a word of prose
+      was written and both re-proved by `tools/lessons/shapeup.mjs`: `shape-table` (13k,
+      shape) sets the table shape beside the bamboo joint, one stone apart, and shows why the
+      reach costs something - the bamboo answers either cut in a single move and leaves the
+      cutting stone on one liberty, while after the wedge into the table no two black moves
+      rejoin the four stones even with White never answering, and it takes three;
+      `shape-liberty-problem` (12k, shape) is the drill the empty-triangle article had been
+      waiting for, on a pair pressed to three liberties where extending buys two and either
+      descent buys one and an empty triangle with it.
+      Lessons carry `book: "shapeup"` for the shelf and `series: "shapeup"` with the book's
+      chapter numbers, so they read in book order across tiers. Two of fifteen chapters, and
+      the gaps are a decision rather than a queue: most of the rest argue whole-board
+      judgement, which a bounded search cannot settle - aimed at an invasion under an
+      extension, `killable()` answers a question about the region you drew, not about the
+      extension. Chapter seven is left out because `shape-keima-waist` already drills that
+      proverb. The book is in copyright, so nothing of it is reproduced - no prose, no
+      diagram, no problem position - and `content/shapeup.js` carries the citation.
 - [x] The Book of Shapes (2026-09-11): the shelf's shape book, and the first one written here
       rather than inherited. `content/shapes.js` is a catalogue of nine articles with the same
       three parts each (what the shape buys, what it costs, and the position where the bargain
@@ -2529,6 +2548,46 @@ Decisions made in Phase 9, the page slice (2026-09-12, branch `feat/player-page`
   first one's page otherwise shows the first player's card for a frame, which reads as the
   wrong person rather than as loading.
 - The house ladder does not link. Only people have pages.
+
+## Phase 11: Finding each other
+
+Phase 9 built friendship, presence and the post, and left one hole under all three: the
+only players anybody could reach were the hundred on the global ladder. A club whose
+members have not played a rated game yet is not on it at all, so "add this person I know"
+had no first step. The founding ask was "I wanted to create my own server to play my
+friends"; this phase is the three verbs in that sentence that were still missing —
+**find** them, **ask** them, **invite** them to a board.
+
+- [x] **The directory** (branch `feat/find-friends`): search for a player by handle.
+      One key per searchable piece of a handle (`find:<term>:<id>`), written with the
+      record at register, rewritten on a rename and deleted on leaving, so finding
+      somebody is a bounded walk over the matches and never a second scan over the
+      players. A handle answers to the whole of itself and to each of its words, folded
+      to lower case without accents or punctuation, so `José Melendez` is found by
+      typing `jose` or `mel`. `server/directory.js` is the whole policy, pure;
+      `tools/server/directory.mjs` proves it against a deployment in 16 checks.
+      The refusals are as deliberate as the feature: two characters minimum, a prefix
+      and never a substring, at most twenty answers, no count and no cursor, and a
+      session required, so it is a way to find one person and never a way to read out
+      who plays here.
+- [x] **The invitation** (branch `feat/invite`): ask a named person for a game, on terms
+      the two of you agree. One row on each of your shelves (`inv:<owner>:<other>`), written
+      in one put or neither, so reading who has asked you is one bounded list. It waits a
+      day and then goes by itself; taking one up opens the board and takes it off both
+      shelves. Who may ask is exactly who may write to you — a friend, or somebody you
+      have finished a game against — asked of `post.js` rather than restated, because a
+      server with two answers to "who can reach me" has not got a rule.
+      **This is also where the handicap arrives online.** The lobby says in a comment that
+      two strangers have no way to agree on one, and it is right; two people who know each
+      other do, and that is the difference an invitation makes. A handicap game is never
+      rated, forced on the server the way a pair table is: a number that read a four-stone
+      win as an even one would be the wrong number on two people's records. The guest
+      takes Black, because whoever asked chose the terms and the engine places the stones
+      for Black. `server/invites.js` is the policy, pure, in 31 cases;
+      `tools/server/invites.mjs` proves it against a deployment in 31 checks, playing a
+      whole game out to reach "somebody you have finished a game against".
+- [ ] **The way in** (branch `feat/reach`): the acts on a person — ask, write, invite —
+      reachable from every row and every page that names one of them.
 
 ## Principles (do not trade away)
 

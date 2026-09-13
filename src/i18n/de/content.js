@@ -4,6 +4,7 @@
    die Bedenkzeiten und die sieben Hausspieler. */
 
 export const plain = {
+  joseki: "Ein Joseki ist die abgeschlossene Antwort in einer Ecke: eine Zugfolge, bei der keine Seite es besser machen kann, also spielen sie beide und der Streit zieht weiter. Es gibt nicht die eine richtige Antwort, und deshalb ist es ein Lexikon und kein Regelbuch, und jede Folge hier sagt, was sie gekostet und was sie eingebracht hat.",
   home: "Go sind zwei Menschen, die abwechselnd mit Steinen Grund beanspruchen. Ein Stein wird erst gefangen, wenn seiner Gruppe kein leerer Punkt mehr daneben bleibt, und es gewinnt, wer mehr vom Brett hält, wenn beide Seiten sich einig sind, dass nichts mehr zu holen ist.",
   play: "Jeder Gegner hier ist entweder ein Mensch über das Netz oder ein Hausspieler, und ein Hausspieler ist ein Bot. Sie sind überall so beschriftet, sie spielen auf dem Niveau, das die Beschriftung nennt, und keiner von ihnen ist ein Mensch, der etwas anderes vorgibt.",
   learn: "Eine Lektion ist hier ein Brett, auf dem du spielst, keine Seite, die du liest. Die Bibliothek beginnt damit, was eine Freiheit ist, und endet bei einem Beamten des elften Jahrhunderts und seinem Blick aufs Temperament, in der Reihenfolge, in der diese Dinge zu zählen beginnen.",
@@ -14,6 +15,11 @@ export const plain = {
 };
 
 export const statement = {
+  joseki: [
+    "Eine Ecke.",
+    "Beide Seiten",
+    "zufrieden.",
+  ],
   home: { 0: "Nimm", 1: "den Grund.", 2: "Stein für Stein." },
   play: { 0: "Jeder", 1: "Gegner.", 2: "Keiner gibt vor." },
   learn: { 0: "Eine Lektion", 1: "ist ein Brett,", 2: "das du spielst." },
@@ -135,6 +141,8 @@ export const preset = {
 
 export const persona = {
   hoshi: {
+    plays: "Alle Hausspieler sind dasselbe Netz, das gebeten wird, einen anderen Spielertyp nachzuahmen, und Hoshi ist der, der locker nachahmen soll. Seine Temperatur ist 1.0, die höchste der sieben, also wird der gespielte Zug breit aus dem gezogen, was sein Modell getan haben könnte, statt auf den wahrscheinlichsten festgelegt zu sein.",
+    tell: "Er spielt ein- oder zweimal pro Partie einen Zug, den auf dem Niveau niemand spielen würde, und antwortet danach zwanzig Züge lang tadellos. Eine Partie gegen Hoshi ist kein Niveau, sie ist eine Spannweite.",
     tagline: "Sanft und neugierig",
     bio: "Lernt neben dir. Vergisst Leitern. Liebt die Sternpunkte, natürlich. Am glücklichsten zwischen 25k und 12k.",
     chat: {
@@ -147,6 +155,8 @@ export const persona = {
     },
   },
   tetsu: {
+    plays: "Gebeten, einen Kämpfer nachzuahmen, bei einer Temperatur von 0.9: immer noch locker, immer noch fähig, sich selbst zu überraschen. Wo das Netz nicht laden kann, gewichtet die Heuristik dahinter das Fangen weit über alles andere, was derselbe Instinkt in kleineren Worten ist.",
+    tell: "Er beantwortet Kontakt mit Kontakt. Berühr einen Stein von Tetsu und du hast einen Kampf; lass einen in Ruhe und er kommt und sucht dich.",
     tagline: "Kämpft um alles",
     bio: "Glaubt, der kürzeste Weg zur Stärke führe geradewegs durch die Mitte deiner Stellung. Zu Hause von 20k bis 6k.",
     chat: {
@@ -159,6 +169,8 @@ export const persona = {
     },
   },
   yuki: {
+    plays: "Temperatur 0.7: eine gesetzte Spielerin, die ihrem Modell recht nah folgt. Die Heuristik hinter Yuki ist die, die tatsächlich vermessen wurde, mit 25 Siegen aus 30 gegen die Standardgewichte.",
+    tell: "Sie nimmt die Ecke und die Seite und überlässt dir die Mitte ohne Streit. Wenn dir die Mitte des Bretts gerade umsonst zufällt, zähl sie nach, bevor du daran glaubst.",
     tagline: "Geduldig und territorial",
     bio: "Nimmt die Ecken, baut die Mauern und lässt dich entdecken, dass die Mitte kleiner ist, als sie aussieht. Zu Hause von 15k bis 1k.",
     chat: {
@@ -171,6 +183,8 @@ export const persona = {
     },
   },
   ren: {
+    plays: "Temperatur 0.7, dieselbe wie Yuki, auf einen anderen Spielertyp gerichtet: ein Vereinsstammgast, der die Formen kennt und die knappen Stellungen nachzählt.",
+    tell: "Er spielt das Joseki und hört dann auf. Ren ist in der Eröffnung am gewöhnlichsten und in den letzten dreißig Zügen am schärfsten, was das Gegenteil der meisten Spieler auf seinem Niveau ist.",
     tagline: "Beständiger Vereinsspieler",
     bio: "Kennt die Joseki, zählt das Endspiel, und liest einmal im Monat immer noch eine Leiter falsch. Zu Hause von 10k bis 1d.",
     chat: {
@@ -183,6 +197,8 @@ export const persona = {
     },
   },
   sora: {
+    plays: "Temperatur 0.6: näher an seinem Modell als die Spieler unter ihm, also kommen die Züge gleichmäßiger heraus und die Fehler seltener.",
+    tell: "Er nimmt Sente und behält es. Wenn du dich dabei ertappst, vier Züge hintereinander zu antworten, ist die Initiative längst weg und Sora ist im Begriff, sie auszugeben.",
     tagline: "Fast Dan",
     bio: "Liest schnell, kämpft mit einem Plan und hasst es, den letzten großen Endspielzug zu verlieren. Zu Hause von 5k bis 3d.",
     chat: {
@@ -195,6 +211,8 @@ export const persona = {
     },
   },
   kaede: {
+    plays: "Temperatur 0.5: nah an ihrem Modell. Eine niedrige Temperatur ist das, was eine Spielerin ruhig aussehen lässt, weil der überraschende Zug derjenige ist, den das Ziehen wegnimmt.",
+    tell: "Sie überzieht nie, also gibt es nichts zu bestrafen. Eine Partie gegen Kaede entscheiden deine Fehler und nicht ihre, was eine unangenehme Art ist herauszufinden, wie viele du machst.",
     tagline: "Still und dick",
     bio: "Überzieht nie, gerät nie in Panik und verwandelt deine kleinen Fehler in einen bequemen Sieg. Zu Hause von 1k bis 6d.",
     chat: {
@@ -207,6 +225,8 @@ export const persona = {
     },
   },
   tatsuo: {
+    plays: "Temperatur 0.4, die niedrigste hier: er spielt fast jedes Mal nah an dem Zug, den sein Modell am wahrscheinlichsten spielen würde. So sieht Turnierstärke von innen aus.",
+    tell: "Er läuft dir nicht über das Brett hinterher. Spiel einen Zug, der eine Frage stellt, die Tatsuo nicht beantworten muss, und er geht woandershin und nimmt einen größeren Punkt.",
     tagline: "Turnierstärke",
     bio: "Spielt die Züge, die ein starker Amateur spielt, scharf und ohne Nachsicht. Bitte um Vorgabe. Zu Hause von 3d bis 9d.",
     chat: {

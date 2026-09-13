@@ -105,14 +105,18 @@ export const legalDoc = {
         heading: "Die kurze Fassung",
         paras: {
           0: "Es gibt kein Analyse-Skript, kein Werbenetzwerk, kein Zählpixel und kein Cookie irgendeiner Art. Joseki hat noch nie einen Besuch gezählt.",
-          1: "Spiel für dich, und nichts verlässt dein Gerät. Spiel gegen Menschen, und der Server bewahrt die Handvoll Dinge auf, die unten aufgezählt sind, weil eine Partie zwischen zwei Menschen ohne sie nicht stattfinden kann.",
+          1: "Seit dem 11. September 2026 führt der Server allerdings eine eigene Strichliste. Einmal am Tag schreibt er auf, wie viele Namen es gibt, wie viele an diesem Tag angelegt wurden, wie viele Partien begonnen und wie viele beendet wurden, und wie viele Leute höchstens gleichzeitig in der Halle waren. Das sind sechs Zahlen und ein Datum, in keiner davon wird jemand genannt, und sie werden 365 Tage aufbewahrt. Eine Partie ist kein Besuch und ein Konto ist kein Besuch, also gilt der Satz oben weiterhin: lies hier jede Seite und setz dich nie an ein Brett, und du tauchst in keiner dieser Zahlen auf.",
+          2: "Spiel allein, und nichts verlässt dein Gerät. Spiel gegen Menschen, und der Server behält die Handvoll Dinge, die unten aufgezählt sind, weil eine Partie zwischen zwei Menschen ohne sie nicht stattfinden kann.",
         },
       },
       1: {
         heading: "Was auf diesem Gerät bleibt",
         paras: {
           0: "Dein Name, die Farbe deines Zeichens, dein Rang, deine erledigten Lektionen und Aufgaben, der Raum und die Schriftpaarung, die du gewählt hast, die laufende Partie und der letzte Tisch, den du hergerichtet hast. Das alles liegt im lokalen Speicher deines Browsers, unter Josekis eigenen Schlüsseln, und nichts davon wird irgendwohin gesendet.",
-          1: "Die Websitedaten für Joseki zu löschen löscht jedes einzelne davon, und es gibt anderswo keine Kopie, aus der sich etwas wiederherstellen ließe.",
+          1: "An welchen Tagen du geübt hast, als Liste von Daten, die dreizehn Monate zurückreicht, damit die Übersicht dir die Serie zeigen kann, die du hältst. Es ist ein Datum und sonst nichts: nicht, was du an dem Tag getan hast, nicht wie lange, und nicht wie gut es lief. Sie wird nie irgendwohin geschickt, und sie liegt im selben lokalen Speicher wie alles darüber, also löscht das Löschen der Seitendaten sie mit.",
+          2: "Joseki behält außerdem die Gestalt deiner letzten fünfzig Partien gegen die Hausspieler (die Brettgröße, das Vorgabesteinmaß, welcher Hausspieler, wie die Partie endete und wie viele Züge sie dauerte), damit die Hausspieler gegen das eingestellt werden können, was am Brett wirklich passiert. Es enthält keine Züge und nichts, womit sich eine Partie nachspielen ließe, es wird nie irgendwohin geschickt, und deine Profilseite zeigt dir genau, was darin steht, und leert es mit einem Druck.",
+          3: "Es behält auch die Stellungen aus der Eröffnung und dem frühen Mittelspiel deiner beendeten Partien, bis zu fünfzehnhundert davon, damit der Tisch dir sagen kann, wenn eine Partie irgendwohin kommt, wo du schon gespielt hast. Eine Stellung wird als Zahl gespeichert, in eine einheitliche Lage gedreht, mit einer Anzahl und einer Sieg-Niederlage-Bilanz daneben. Es stecken keine Züge darin und keine Reihenfolge, also lässt es sich nicht in eine Partie zurückverwandeln, die du gespielt hast; es wird nie irgendwohin geschickt; deine Profilseite sagt, wie viel darin steht, und leert es mit einem Druck; und wenn du Déjà-vu auf dieser Seite ausschaltest, liest der Tisch es nicht mehr.",
+          4: "Die Seitendaten für Joseki zu löschen tilgt jedes einzelne davon, und es gibt anderswo keine Kopie, aus der sich etwas wiederherstellen ließe.",
         },
       },
       2: {
@@ -127,7 +131,12 @@ export const legalDoc = {
           3: "Die Anmeldemarken deiner offenen Sitzungen, als Hashes gespeichert, damit ein gestohlener Speicher kein Bund funktionierender Schlüssel ist.",
           4: "Was du deinem Profil hinzufügen wolltest: einen Absatz von höchstens 280 Zeichen, drei kurze Angaben und ein Bild von höchstens 64 KB.",
           5: "Die Partien, die du online gespielt hast, und bis zu 200 Chat-Zeilen in jedem Raum neben dem Protokoll.",
-          6: "Die Adresse, von der aus du dich angemeldet hast, aufbewahrt, damit ein Austritt das Konto zurückgibt, das sie verbraucht hat, niemandem gezeigt und mit dem Konto gelöscht.",
+          6: "Ein Verzeichnis deiner beendeten Partien, ein Eintrag je Partie, aufbewahrt, solange das Konto besteht. Es enthält keine Züge: es ist das Datum, das Brett, der Gegner und das Ergebnis, und es ist das, was es erlaubt, dein eigenes Archiv durchzublättern, ohne jede Partie zu lesen, die du je gespielt hast. Wer geht, löscht das Verzeichnis; die Partien selbst bleiben in den Räumen, in denen sie gespielt wurden, aus dem Grund, der unter Weggehen steht.",
+          7: "Wer hier deine Freunde sind: die Namen, mit denen du dich auf eine Freundschaft geeinigt hast, die Anfragen, die du geschickt hast, und die, die dir geschickt wurden. Drei Listen von Namen mit dem Datum, an dem jeder geschrieben wurde, auf deinem Eintrag und auf ihrem, und von niemandem gesehen außer euch beiden. Eine Anfrage abzulehnen löscht sie und sagt dem, der sie geschickt hat, überhaupt nichts.",
+          8: "Die Briefe, die du und ein anderer Spieler einander geschrieben habt. Ein Faden je Paar, der die letzten hundert behält, lesbar für euch beide und für sonst niemanden. Nur wer sich mit dir auf eine Freundschaft geeinigt oder eine Partie gegen dich zu Ende gespielt hat, kann dir überhaupt schreiben, und du kannst jeden davon am Wiederschreiben hindern, ohne dass es ihm gesagt wird. Es gibt keine Liste, auf die jemand gesetzt werden kann, und nichts, wovon man sich abmelden müsste, weil es nichts gibt, worauf man stünde.",
+          9: "Die Partien, die du auf deiner Seite zeigen wolltest, höchstens drei, jede mit einer Zeile von höchstens 140 Zeichen, die du geschrieben hast. Beides ist öffentlich, weil die Seite es ist. Eine Partie von deiner Seite zu nehmen nimmt die Zeile mit.",
+          10: "Welche der drei Antworten du darauf gegeben hast, wer sehen darf, dass du da bist: niemand, deine Freunde oder alle. Ein Wort auf deinem Eintrag, und nicht auf der Rangliste, damit das Lesen der Rangliste nicht verraten kann, wer sich für unsichtbar entschieden hat.",
+          11: "Die Adresse, von der aus du dich angemeldet hast, aufbewahrt, damit das Weggehen den Platz zurückgibt, den es gekostet hat, niemandem gezeigt, und mit dem Konto gelöscht.",
         },
       },
       3: {
@@ -136,6 +145,14 @@ export const legalDoc = {
           0: "Joseki steht hundert Spielenden offen, solange es neu ist, denn so viele trägt der Server, auf dem es läuft, ohne für alle auszufallen. Sind diese Plätze belegt, gibt es nur noch eine Warteliste, und sie ist die einzige Adresse hier, die ohne ein Konto dahinter aufbewahrt wird.",
           1: "Sie hält die Adresse, die du eingetippt hast, und den Tag, an dem du es getan hast, unter einem eigenen Schlüssel, und sonst geht nichts mit: kein Name, kein Kürzel, nicht die Adresse, von der aus du verbunden warst, nicht die Seite, auf der du warst. Sie wird einmal benutzt, um dir zu sagen, dass ein Platz frei ist. Sie ist kein Newsletter und wird auch nicht stillschweigend einer.",
           2: "Eine Einladung nimmt deine Adresse von der Liste. Nachfragen auch: schreib an {contact}, und sie wird entfernt, ob sich ein Platz ergeben hat oder nicht.",
+        },
+      },
+      4: {
+        heading: "Dass du da bist, wird nicht aufgeschrieben",
+        paras: {
+          0: "Ob du gerade an einem Brett sitzt, ist eine Frage einer offenen Verbindung und sonst nichts. Ankommen schreibt nichts, Weggehen schreibt nichts, und es gibt keinen Verlauf darüber, wann du da warst, den irgendwer später lesen könnte, dieses Studio eingeschlossen. Schließ den Tab, und das Einzige, was übrig bleibt, ist das Datum deiner letzten beendeten Partie, das deine Seite immer schon gezeigt hat, auf den Monat oder die Woche genau und nie auf die Stunde.",
+          1: "Wem es gesagt werden darf, legst du fest, und die Einstellung beginnt bei deinen Freunden und nicht bei allen. Wer dich um Freundschaft gebeten hat und auf eine Antwort wartet, ist noch kein Freund und erfährt nichts: eine Anfrage ist kein Mittel, um zuzusehen, wann du am Schreibtisch bist, während du dich entscheidest.",
+          2: "Wenn jemand fragt, welche aus einer Liste von Leuten da sind, nennt die Antwort nur die, die da sind und es ihm erlauben. Niemand wird je als abwesend gemeldet, also sehen jemand, der draußen ist, und jemand, der sich entschieden hat, nichts zu sagen, genau gleich aus.",
         },
       },
       5: {
@@ -216,7 +233,11 @@ export const credit = {
     title: "Software",
     note: "Joseki ist auf der Arbeit anderer Menschen gebaut, und sie ist durchweg quelloffen.",
     items: {
-      3: { terms: "MIT, nur für den Build" },
+      0: { what: "React und React DOM", who: "Meta und die Mitwirkenden" },
+      1: { who: "die Mitwirkenden an Lucide" },
+      2: { what: "ONNX Runtime Web", who: "Microsoft" },
+      3: { what: "Vite, Vitest und oxlint", who: "ihre Autoren", terms: "MIT, nur für den Build" },
+      4: { what: "KataGos menschlich spielendes Netz", who: "David J. Wu und das KataGo-Projekt" },
     },
   },
   type: {
@@ -225,20 +246,20 @@ export const credit = {
     items: {
       0: { terms: "Open Font License" },
       1: { terms: "Open Font License" },
-      2: { terms: "Open Font License" },
+      2: { what: "Instrument Sans", who: "Rodrigo Fuenzalida und Jordan Egstad", terms: "Open Font License" },
       3: { terms: "Open Font License" },
-      4: { terms: "Open Font License" },
-      5: { terms: "Bedingungen des Anbieters" },
+      4: { what: "Courier Prime", who: "Alan Dague-Greene, Quote-Unquote Apps", terms: "Open Font License" },
+      5: { what: "Welorac und Qliesya", terms: "Bedingungen des Anbieters" },
     },
   },
   board: {
     title: "Was vom Brett selbst kam",
     note: "Das Spiel ist niemandes Eigentum, und die ältesten Schriften darüber sind es auch nicht.",
     items: {
-      0: { terms: "gemeinfrei" },
-      1: { terms: "gemeinfrei" },
-      2: { terms: "gemeinfrei" },
-      3: { terms: "eigener Text" },
+      0: { what: "Die Dreizehn Kapitel (Qijing Shisan Pian)", who: "Zhang Ni zugeschrieben, Song-Dynastie", terms: "gemeinfrei" },
+      1: { what: "Die Go-Sprichwörter", who: "Volksgut, niemandem zuzuschreiben", terms: "gemeinfrei" },
+      2: { what: "Historische Partieaufzeichnungen", who: "gespielt von den Meistern, die sie nennen", terms: "gemeinfrei" },
+      3: { what: "Die Übersetzungen, die Lektionen und die Kommentare", who: "Northbound Software Studio", terms: "eigener Text" },
     },
   },
 };

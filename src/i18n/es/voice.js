@@ -27,6 +27,7 @@ export const voice = {
 /* ----- overlays: the prose that lives in a data file ----- */
 
 export const plain = {
+  joseki: "Un joseki es la respuesta asentada en una esquina: una tanda de jugadas en la que ninguna de las dos partes puede hacerlo mejor, así que las dos la juegan y la discusión se traslada. No hay una única respuesta correcta, y por eso es un diccionario y no un reglamento, y cada secuencia de aquí dice lo que costó y lo que compró.",
   home: "El go son dos personas que se turnan para reclamar terreno con piedras. Una piedra solo se captura cuando a su grupo no le queda ningún punto vacío al lado, y gana quien tiene más tablero cuando los dos están de acuerdo en que ya no hay nada más que tomar.",
   play: "Aquí todos los rivales son o una persona por la red o un jugador de la casa, y un jugador de la casa es un bot. Están etiquetados así en todas partes, juegan al nivel que dice la etiqueta y ninguno es una persona fingiendo lo contrario.",
   learn: "Una lección aquí es un tablero que juegas, no una página que lees. La biblioteca empieza en qué es una libertad y termina con un funcionario del siglo XI hablando de temperamento, en el orden en que esas cosas empiezan a importar.",
@@ -40,6 +41,11 @@ export const plain = {
    second turns into the italic voice, the third is drawn as an outline. Short
    enough to survive that treatment is the whole constraint. */
 export const statement = {
+  joseki: [
+    "Una esquina.",
+    "Las dos partes",
+    "satisfechas.",
+  ],
   home: { 0: "Toma", 1: "el terreno.", 2: "Piedra a piedra." },
   play: { 0: "Todos", 1: "los rivales.", 2: "Ninguno finge." },
   learn: { 0: "Una lección", 1: "es un tablero", 2: "que juegas." },
@@ -166,6 +172,8 @@ export const preset = {
    talk are theirs, and are written rather than generated. */
 export const persona = {
   hoshi: {
+    plays: "Todos los jugadores de la casa son la misma red a la que se le pide imitar a un tipo de jugador distinto, y a Hoshi se le pide imitar de forma suelta. Su temperatura es 1.0, la más alta de las siete, así que la jugada que hace se muestrea ampliamente de entre lo que su modelo podría haber hecho, en vez de fijarse en la más probable.",
+    tell: "Hará una jugada que nadie de ese nivel haría, una o dos veces por partida, y después responderá perfectamente durante veinte jugadas. Una partida contra Hoshi no es un nivel, es un rango.",
     tagline: "Amable y curioso",
     bio: "Aprende contigo. Se olvida de las escaleras. Le encantan los puntos estrella, claro. Más feliz entre 25k y 12k.",
     chat: {
@@ -178,6 +186,8 @@ export const persona = {
     },
   },
   tetsu: {
+    plays: "Se le pide imitar a un peleón, a una temperatura de 0.9: todavía suelto, todavía capaz de sorprenderse a sí mismo. Donde la red no puede cargarse, la heurística que hay detrás pondera la captura muy por encima de todo lo demás, que es el mismo instinto escrito con palabras más pequeñas.",
+    tell: "Responde al contacto con contacto. Toca una piedra de Tetsu y tendrás pelea; deja una en paz y vendrá a buscarte.",
     tagline: "Pelea por todo",
     bio: "Cree que el camino más corto hacia la fuerza pasa justo por el medio de tu posición. En casa de 20k a 6k.",
     chat: {
@@ -190,6 +200,8 @@ export const persona = {
     },
   },
   yuki: {
+    plays: "Temperatura 0.7: un jugador asentado, que sigue su modelo bastante de cerca. La heurística de reserva que hay detrás de Yuki es la que de verdad se ha medido, con 25 victorias de 30 contra los pesos por defecto.",
+    tell: "Toma la esquina y el lado y te da el centro sin discutir. Si el medio del tablero se está volviendo tuyo gratis, cuéntalo antes de creértelo.",
     tagline: "Paciente y territorial",
     bio: "Se queda las esquinas, levanta las murallas y te deja descubrir que el centro es más pequeño de lo que parece. En casa de 15k a 1k.",
     chat: {
@@ -202,6 +214,8 @@ export const persona = {
     },
   },
   ren: {
+    plays: "Temperatura 0.7, la misma que Yuki, apuntando a otro tipo de jugador: un habitual de club que se sabe las formas y cuenta las que están reñidas.",
+    tell: "Juega el joseki y luego para. Ren es de lo más corriente en la apertura y de lo más afilado en las últimas treinta jugadas, que es lo contrario de la mayoría de los jugadores de su nivel.",
     tagline: "Jugador de club constante",
     bio: "Se sabe los joseki, cuenta el final y todavía lee mal una escalera al mes. En casa de 10k a 1d.",
     chat: {
@@ -214,6 +228,8 @@ export const persona = {
     },
   },
   sora: {
+    plays: "Temperatura 0.6: más cerca de su modelo que los jugadores por debajo de él, así que las jugadas salen más consistentes y los errores salen más raros.",
+    tell: "Toma el sente y se lo queda. Si te ves respondiendo cuatro jugadas seguidas, la iniciativa ya se ha ido y Sora está a punto de gastarla.",
     tagline: "Casi dan",
     bio: "Lee rápido, pelea con un plan y odia perder la última jugada grande del final. En casa de 5k a 3d.",
     chat: {
@@ -226,6 +242,8 @@ export const persona = {
     },
   },
   kaede: {
+    plays: "Temperatura 0.5: cerca de su modelo. Una temperatura baja es lo que hace que un jugador parezca tranquilo, porque la jugada sorprendente es la que el muestreo se lleva por delante.",
+    tell: "Nunca se pasa de la raya, así que no hay nada que castigar. Una partida contra Kaede la deciden tus errores y no los suyos, que es una manera incómoda de averiguar cuántos cometes.",
     tagline: "Silenciosa y espesa",
     bio: "Nunca se pasa, nunca se pone nerviosa y convierte tus pequeños errores en una victoria cómoda. En casa de 1k a 6d.",
     chat: {
@@ -238,6 +256,8 @@ export const persona = {
     },
   },
   tatsuo: {
+    plays: "Temperatura 0.4, la más baja de aquí: juega cerca de la jugada más probable de su modelo casi siempre. Así es como se ve la fuerza de torneo desde dentro.",
+    tell: "No te va a seguir por todo el tablero. Haz una jugada que plantee una pregunta que Tatsuo no tenga que responder y se irá a otra parte a tomar un punto más grande.",
     tagline: "Fuerza de torneo",
     bio: "Juega las jugadas que juega un aficionado fuerte, afilado y sin perdón. Pide hándicap. En casa de 3d a 9d.",
     chat: {

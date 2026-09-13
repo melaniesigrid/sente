@@ -82,6 +82,11 @@ export const api = {
   setAvatar: (token, blob) => call("/api/me/avatar", { method: "PUT", token, blob }),
   clearAvatar: (token) => call("/api/me/avatar", { method: "DELETE", token }),
   profile: (id) => call(`/api/players/${encodeURIComponent(id)}`),
+  /* Finding somebody by their handle. A session is required: you have to play
+     here before you may look anybody up. The answer is capped and carries no
+     count and no cursor, so it is a way to find one person and never a way to
+     read out the membership. */
+  find: (token, q) => call(`/api/players?q=${encodeURIComponent(q)}`, { token }),
 
   /* Friends. The three lists arrive together, and every call that changes one
      of them answers with the outcome and the new standing rather than a bare
@@ -113,6 +118,20 @@ export const api = {
     call(`/api/me/featured/${encodeURIComponent(id)}`, { method: "PUT", token, body: { note } }),
   unpinGame: (token, id) =>
     call(`/api/me/featured/${encodeURIComponent(id)}`, { method: "DELETE", token }),
+
+  /* Invitations: asking one named person for a game. Both lists arrive
+     together, and the call that changes one answers with the outcome rather
+     than a bare 200, because declining an invitation and taking one back come
+     from the same DELETE and mean opposite things to whoever pressed it.
+     Accepting answers with the table it opened, so the browser can walk
+     straight to it without waiting to be told over a socket it may not have. */
+  invites: (token) => call("/api/me/invites", { token }),
+  invite: (token, id, terms) =>
+    call(`/api/me/invites/${encodeURIComponent(id)}`, { method: "POST", token, body: terms }),
+  acceptInvite: (token, id) =>
+    call(`/api/me/invites/${encodeURIComponent(id)}/accept`, { method: "POST", token }),
+  forgetInvite: (token, id) =>
+    call(`/api/me/invites/${encodeURIComponent(id)}`, { method: "DELETE", token }),
 
   /* The post. One thread per pair, read and written by the other person's id;
      `letters` is the list of them. A thread comes back with whether you may
