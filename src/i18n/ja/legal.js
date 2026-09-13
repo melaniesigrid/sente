@@ -234,8 +234,10 @@ export const credit = {
     title: "ソフトウェア",
     note: "Joseki はほかの人たちの仕事の上に建っていて、そのすべてがオープンソースです。",
     items: {
+      0: { what: "React と React DOM", who: "Meta と参加者のみなさん" },
       1: { who: "Lucide の貢献者たち" },
-      3: { who: "それぞれの作者", terms: "MIT、ビルド時のみ" },
+      2: { what: "ONNX Runtime Web", who: "Microsoft" },
+      3: { what: "Vite、Vitest、oxlint", who: "それぞれの作者", terms: "MIT、ビルド時のみ" },
       4: { what: "KataGo の人の打ち方のネットワーク", who: "David J. Wu と KataGo プロジェクト" },
     },
   },
@@ -245,10 +247,10 @@ export const credit = {
     items: {
       0: { terms: "Open Font License" },
       1: { terms: "Open Font License" },
-      2: { terms: "Open Font License" },
+      2: { what: "Instrument Sans", who: "Rodrigo Fuenzalida と Jordan Egstad", terms: "Open Font License" },
       3: { terms: "Open Font License" },
-      4: { terms: "Open Font License" },
-      5: { terms: "提供元の条件" },
+      4: { what: "Courier Prime", who: "Alan Dague-Greene, Quote-Unquote Apps", terms: "Open Font License" },
+      5: { what: "Welorac と Qliesya", terms: "提供元の条件" },
     },
   },
   board: {

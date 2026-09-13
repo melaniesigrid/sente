@@ -106,14 +106,18 @@ export const legalDoc = {
         heading: "La version courte",
         paras: {
           0: "Il n'y a aucun script de mesure d'audience, aucune régie publicitaire, aucun pixel de suivi et aucun cookie d'aucune sorte. Joseki n'a jamais compté une visite.",
-          1: "Joue seul et rien ne quitte ton appareil. Joue contre des personnes et le serveur garde la poignée de choses énumérées ci-dessous, parce qu'une partie entre deux personnes ne peut pas avoir lieu sans elles.",
+          1: "Depuis le 11 septembre 2026, le serveur tient tout de même un compte à lui. Une fois par jour il note combien de pseudonymes existent, combien ont été créés ce jour-là, combien de parties ont commencé, combien se sont terminées, et le plus grand nombre de personnes présentes en même temps dans le hall. Cela fait six nombres et une date, personne n'est nommé dans aucun d'eux, et ils sont gardés 365 jours. Une partie n'est pas une visite et un compte n'est pas une visite, donc la phrase ci-dessus tient toujours : lis chaque page d'ici sans jamais t'asseoir à un goban, et tu n'apparaîtras dans aucun de ces nombres.",
+          2: "Joue seul et rien ne quitte ton appareil. Joue contre des gens et le serveur garde la poignée de choses énumérées plus bas, parce qu'une partie entre deux personnes ne peut pas avoir lieu sans elles.",
         },
       },
       1: {
         heading: "Ce qui reste sur cet appareil",
         paras: {
           0: "Ton nom, la teinte de ton avatar, ton rang, tes leçons et problèmes terminés, la salle et l'appariement typographique que tu as choisis, la partie en cours et la dernière table que tu as préparée. Tout cela se trouve dans le stockage local de ton navigateur, sous des clés propres à Joseki, et rien n'en est envoyé nulle part.",
-          1: "Effacer les données du site pour Joseki les efface toutes, et il n'existe ailleurs aucune copie à partir de laquelle restaurer.",
+          1: "Les jours où tu t'es entraîné, sous forme d'une liste de dates remontant à treize mois, pour que le tableau de bord puisse te montrer la série que tu tiens. C'est une date et rien d'autre : ni ce que tu as fait ce jour-là, ni combien de temps, ni comment cela s'est passé. Elle n'est jamais envoyée nulle part, et elle est dans le même stockage local que tout ce qui précède, donc effacer les données du site l'efface aussi.",
+          2: "Joseki garde aussi la forme de tes cinquante dernières parties contre les joueurs de la maison (la taille du goban, le handicap, quel joueur de la maison, comment la partie s'est terminée et en combien de coups) pour que les joueurs de la maison puissent être réglés sur ce qui se passe réellement au goban. Cela ne contient aucun coup et rien qui permette de rejouer une partie, ce n'est jamais envoyé nulle part, et ta page de profil te montre exactement ce qu'il y a dedans et le vide en une pression.",
+          3: "Il garde aussi les positions de l'ouverture et du début de milieu de partie des parties que tu as terminées, jusqu'à quinze cents, pour que la table puisse te dire quand une partie arrive quelque part où tu as déjà joué. Une position est enregistrée comme un nombre, ramenée à une orientation standard, avec un compte et un bilan victoires-défaites à côté. Il n'y a dedans ni coups ni ordre, donc cela ne peut pas être retransformé en une partie que tu as jouée ; ce n'est jamais envoyé nulle part ; ta page de profil dit combien il y en a et le vide en une pression ; et couper le déjà-vu sur cette page empêche la table de le lire.",
+          4: "Effacer les données du site pour Joseki supprime chacune d'entre elles, et il n'y a aucune copie ailleurs à partir de laquelle restaurer.",
         },
       },
       2: {
@@ -128,7 +132,12 @@ export const legalDoc = {
           3: "Les jetons de connexion de tes sessions ouvertes, gardés sous forme d'empreintes, pour qu'un stock volé ne soit pas un trousseau de clés qui fonctionnent.",
           4: "Ce que tu as choisi d'ajouter à ton profil : un paragraphe d'au plus 280 caractères, trois faits brefs et une image d'au plus 64 Ko.",
           5: "Les parties que tu as jouées en ligne, et jusqu'à 200 lignes de chat dans chaque salle à côté du relevé.",
-          6: "L'adresse depuis laquelle tu t'es inscrit, gardée pour que partir rende le compte qu'elle a dépensé, montrée à personne, et supprimée avec le compte.",
+          6: "Un index de tes parties terminées, une entrée chacune, gardé aussi longtemps que le compte. Il ne contient aucun coup : c'est la date, le goban, l'adversaire et le résultat, et c'est ce qui permet de feuilleter tes propres archives sans relire toutes les parties que tu as jouées. Partir supprime l'index ; les parties elles-mêmes restent dans les salles où elles ont été jouées, pour la raison donnée sous Partir.",
+          7: "Qui sont tes amis ici : les pseudonymes avec lesquels tu as accepté d'être ami, les demandes que tu as envoyées et celles que tu as reçues. Trois listes de pseudonymes avec la date d'écriture de chacune, gardées sur ton dossier et sur le leur, et vues par personne d'autre que vous deux. Refuser une demande la supprime et ne dit strictement rien à la personne qui l'a envoyée.",
+          8: "Les lettres qu'un autre joueur et toi vous êtes écrites. Un fil par paire, gardant les cent dernières, lisible par vous deux et par personne d'autre. Seul quelqu'un avec qui tu as accepté d'être ami, ou contre qui tu as terminé une partie, peut t'écrire, et tu peux empêcher n'importe lequel d'entre eux de réécrire sans qu'il en soit informé. Il n'y a aucune liste à laquelle on puisse ajouter quelqu'un et rien dont se désabonner, parce qu'il n'y a rien sur quoi être.",
+          9: "Les parties que tu as choisi de montrer sur ta page, trois au plus, chacune avec une ligne de 140 caractères au plus que tu as écrite. Les deux sont publiques, parce que la page l'est. Retirer une partie de ta page emporte la ligne avec elle.",
+          10: "Laquelle des trois réponses tu as donnée à la question de qui peut voir que tu es là : personne, tes amis, ou n'importe qui. Un mot sur ton dossier, et pas sur le classement, pour que lire le classement ne puisse pas te dire qui a choisi d'être invisible.",
+          11: "L'adresse depuis laquelle tu t'es inscrit, gardée pour que partir rende le compte que cela a dépensé, montrée à personne, et supprimée avec le compte.",
         },
       },
       3: {
@@ -137,6 +146,14 @@ export const legalDoc = {
           0: "Joseki est ouvert à cent joueurs tant qu'il est neuf, parce que c'est tout ce que porte le serveur sur lequel il tourne sans tomber pour tout le monde. Une fois ces places prises, il ne reste qu'une liste d'attente, et c'est la seule adresse ici qui soit gardée sans compte derrière elle.",
           1: "Elle garde l'adresse que tu as tapée et le jour où tu l'as tapée, sous une clé à elle, et rien d'autre ne l'accompagne : ni un nom, ni un pseudo, ni l'adresse depuis laquelle tu t'es connecté, ni la page où tu étais. Elle sert une fois, pour te dire qu'une place est libre. Ce n'est pas une infolettre et cela ne le deviendra pas en douce.",
           2: "Être invité retire ton adresse de la liste. Le demander aussi : écris à {contact} et elle est supprimée, qu'une place se soit libérée ou non.",
+        },
+      },
+      4: {
+        heading: "Être là n'est pas consigné",
+        paras: {
+          0: "Que tu sois à un goban en ce moment est une question de connexion ouverte et de rien d'autre. Arriver n'écrit rien, partir n'écrit rien, et il n'existe aucun historique des moments où tu étais là que quiconque puisse lire ensuite, ce Studio compris. Ferme l'onglet et la seule chose qui survit est la date de ta dernière partie terminée, ce que ta page a toujours montré, au mois ou à la semaine et jamais à l'heure.",
+          1: "Qui peut en être informé, c'est à toi de le régler, et le réglage commence à tes amis plutôt qu'à tout le monde. Quelqu'un qui a demandé à être ton ami et qui attend une réponse n'est pas encore un ami et n'apprend rien : une demande n'est pas un moyen de regarder quand tu es à ton bureau pendant que tu décides.",
+          2: "Quand quelqu'un demande lesquelles d'une liste de personnes sont là, la réponse ne nomme que celles qui sont là et qui le lui permettent. Personne n'est jamais signalé comme absent, si bien que quelqu'un qui est sorti et quelqu'un qui a choisi de ne rien dire se ressemblent exactement.",
         },
       },
       5: {
@@ -217,7 +234,11 @@ export const credit = {
     title: "Logiciels",
     note: "Joseki est bâti sur le travail d'autres personnes, et tout cela est libre.",
     items: {
-      3: { terms: "MIT, pour la compilation seulement" },
+      0: { what: "React et React DOM", who: "Meta et les contributeurs du projet" },
+      1: { who: "les contributeurs de Lucide" },
+      2: { what: "ONNX Runtime Web", who: "Microsoft" },
+      3: { what: "Vite, Vitest et oxlint", who: "leurs auteurs", terms: "MIT, pour la compilation seulement" },
+      4: { what: "Le réseau de style humain de KataGo", who: "David J. Wu et le projet KataGo" },
     },
   },
   type: {
@@ -226,20 +247,20 @@ export const credit = {
     items: {
       0: { terms: "Licence de police ouverte" },
       1: { terms: "Licence de police ouverte" },
-      2: { terms: "Licence de police ouverte" },
+      2: { what: "Instrument Sans", who: "Rodrigo Fuenzalida et Jordan Egstad", terms: "Licence de police ouverte" },
       3: { terms: "Licence de police ouverte" },
-      4: { terms: "Licence de police ouverte" },
-      5: { terms: "conditions du fournisseur" },
+      4: { what: "Courier Prime", who: "Alan Dague-Greene, Quote-Unquote Apps", terms: "Licence de police ouverte" },
+      5: { what: "Welorac et Qliesya", terms: "conditions du fournisseur" },
     },
   },
   board: {
     title: "Ce qui est venu du goban lui-même",
     note: "Le jeu n'est la propriété de personne, et les plus anciens écrits à son sujet non plus.",
     items: {
-      0: { terms: "domaine public" },
-      1: { terms: "domaine public" },
-      2: { terms: "domaine public" },
-      3: { terms: "écriture originale" },
+      0: { what: "Les Treize Chapitres (Qijing Shisan Pian)", who: "attribué à Zhang Ni, dynastie Song", terms: "domaine public" },
+      1: { what: "Les proverbes du go", who: "populaires, sans auteur à nommer", terms: "domaine public" },
+      2: { what: "Relevés de parties historiques", who: "jouées par les maîtres qu'elles nomment", terms: "domaine public" },
+      3: { what: "Les traductions, les leçons et les commentaires", who: "Northbound Software Studio", terms: "écriture originale" },
     },
   },
 };

@@ -233,8 +233,10 @@ export const credit = {
     title: "软件",
     note: "Joseki 是建在别人的成果上的，而且这些成果全都是开源的。",
     items: {
+      0: { what: "React 与 React DOM", who: "Meta 与项目参与者" },
       1: { who: "Lucide 的贡献者们" },
-      3: { who: "各自的作者", terms: "MIT，仅用于构建" },
+      2: { what: "ONNX Runtime Web", who: "Microsoft" },
+      3: { what: "Vite、Vitest 与 oxlint", who: "各自的作者", terms: "MIT，仅用于构建" },
       4: { what: "KataGo 的人类棋风网络", who: "David J. Wu 与 KataGo 项目" },
     },
   },
@@ -244,10 +246,10 @@ export const credit = {
     items: {
       0: { terms: "开放字体许可" },
       1: { terms: "开放字体许可" },
-      2: { terms: "开放字体许可" },
+      2: { what: "Instrument Sans", who: "Rodrigo Fuenzalida 与 Jordan Egstad", terms: "开放字体许可" },
       3: { terms: "开放字体许可" },
-      4: { terms: "开放字体许可" },
-      5: { terms: "供应方条款" },
+      4: { what: "Courier Prime", who: "Alan Dague-Greene，Quote-Unquote Apps", terms: "开放字体许可" },
+      5: { what: "Welorac 与 Qliesya", terms: "供应方条款" },
     },
   },
   board: {
