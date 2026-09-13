@@ -25,6 +25,36 @@ They are left as they were written rather than rewritten after the fact.
   measurement or drop it, not quietly overrule it.
 - `tools/joseki/policy.py` grew `--cands`, which reports named points at the last
   position of a sequence. That is how the verdicts above were read off.
+## v0.8.1.0 (2026-09-12)
+
+### Added
+
+- **The problems are four sets, not one strip of numbers.** Capture and escape, Shape,
+  Eye shapes and The corner. Each set says what it trains and how much of it you have
+  done, and its boards are in the order they are meant to be read, so finishing one
+  hands you the next. The same circles, the same one click to a board; the words around
+  them are the change.
+- **Four new boards, all of them found rather than drawn.** Three points along the edge
+  with a fourth hanging under the middle, which dies although four points of eye space
+  normally live, and the same shape from the other side, where the same square is the
+  only move that saves it. The flower six in the corner. And bent four in the corner,
+  against the same bend two lines further out, which is alive: the corner is the whole
+  difference and the suite proves both halves of that sentence.
+- **A prover, and every board now proves itself.** `tools/problems/prove.mjs` answers,
+  exhaustively and under the real ko rule, which points in an enclosed space kill the
+  group inside it and which ones save it. `tools/problems/shapes.mjs` walls in every
+  connected space of four, five and six points in a corner, on an edge and out in the
+  open and solves each one; that is where the new boards came from. The suite runs the
+  prover over every board on every build, so a second vital point added by accident
+  fails the build instead of telling a learner their correct move was wrong.
+
+### Fixed
+
+- **Six points in the corner had a second killing move nobody had noticed.** The 2-1
+  point kills as well, and only because White may not retake the ko it runs into. The
+  board used to answer that move with "the group answers back"; it now accepts it and
+  says what it rests on. The old search could not have found it: it ran with the ko rule
+  switched off.
 
 ## v0.8.0.0 (2026-09-12)
 
