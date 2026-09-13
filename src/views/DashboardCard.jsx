@@ -4,6 +4,7 @@ import { Card, Avatar } from "../components/ui.jsx";
 import { api, serverEnabled, SERVER_URL } from "../net/api.js";
 import { avatarUrl } from "../net/avatar.js";
 import { dashboard, dashLine, opponentName, sideOf } from "./dashboard.js";
+import { useT } from "../components/langStore.js";
 
 /** How often the board refreshes itself. A game where somebody has moved and
  *  the list has not noticed for a minute is a list nobody trusts; a game where
@@ -23,6 +24,7 @@ export const DASH_EVERY_MS = 20_000;
    which is a different fact and an honest one. When the room gets its alarm
    this card gains the clock and loses the sentence. */
 export function DashboardCard({ account, go }) {
+  const t = useT();
   const [games, setGames] = useState(null);
   const [now, setNow] = useState(() => Date.now());
   const { token } = account;
@@ -45,11 +47,11 @@ export function DashboardCard({ account, go }) {
   return (
     <Card className="dash-card">
       <div className="dash-head">
-        <h3>Your tables</h3>
+        <h3>{t("online.dash.head")}</h3>
         <span className="fine">
           {board.waiting > 0
-            ? `${board.waiting} waiting on you, ${board.total} in all`
-            : `${board.total} going, none waiting on you`}
+            ? t("online.dash.someWaiting", { waiting: board.waiting, total: board.total })
+            : t("online.dash.noneWaiting", { total: board.total })}
         </span>
       </div>
 
@@ -62,15 +64,14 @@ export function DashboardCard({ account, go }) {
         ))}
       </div>
 
-      <p className="fine">
-        How long the board has been waiting, not a clock. Games online are not timed yet.
-      </p>
+      <p className="fine">{t("online.dash.notAClock")}</p>
     </Card>
   );
 }
 
 function DashRow({ game, me, now, go, yours }) {
-  const who = opponentName(game, me);
+  const t = useT();
+  const who = opponentName(game, me, t);
   const mine = sideOf(game, me);
   const other = mine === "b" ? "w" : "b";
   const seats = (game.teams && game.teams[other]) || [other === "b" ? game.black : game.white];
@@ -80,13 +81,13 @@ function DashRow({ game, me, now, go, yours }) {
   return (
     <button type="button" className={`friend-who dash-row ${yours ? "waiting" : ""}`}
       onClick={() => go("play", { gameId: game.id })}
-      aria-label={`Back to the game against ${who}`}>
+      aria-label={t("online.dash.backTo", { name: who })}>
       <span className="dash-mark" aria-hidden="true"><Icon size={15} /></span>
       <Avatar name={lead.name || who} tint={lead.tint} size={34}
         src={lead.id ? avatarUrl(SERVER_URL, lead.id, lead.avatarAt) : undefined} />
       <span className="ladder-name">
         <strong>{who}</strong>
-        <span className="fine">{dashLine(game, me, now)}</span>
+        <span className="fine">{dashLine(game, me, t, now)}</span>
       </span>
     </button>
   );

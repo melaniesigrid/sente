@@ -11,7 +11,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import {
-  DOCUMENTS, CREDITS, COPYRIGHT, CONTACT, UPDATED, REVISION,
+  DOCUMENTS, CREDITS, COPYRIGHT, CONTACT, UPDATED, UPDATED_ISO, REVISION,
   documentById, documentText, documentStamp,
 } from "./legal.js";
 import { CHAT_KEEP } from "../../server/room.js";
@@ -67,6 +67,12 @@ describe("the documents", () => {
   it("say when they last changed", () => {
     expect(UPDATED).toMatch(/^\d{1,2} \w+ \d{4}$/);
     expect(UPDATED).toBe(REVISION.updated);
+    // The written date and the machine-readable one are the same day. Every
+    // language sets the stamp from the ISO form, so a drift here would date
+    // the English document one way and every other one another.
+    expect(UPDATED_ISO).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })
+      .format(new Date(`${UPDATED_ISO}T00:00:00Z`))).toBe(UPDATED);
   });
 
   it("carry a date that is a real day, and not one in the future", () => {

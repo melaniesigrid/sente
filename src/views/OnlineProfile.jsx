@@ -8,6 +8,7 @@ import { BIO_MAX, FACTS } from "../../server/profile.js";
 import { SHOW_ONLINE, cleanShowOnline } from "../../server/presence.js";
 import { errorText } from "./accountForm.js";
 import { badgesShown } from "../content/badges.js";
+import { useT } from "../components/langStore.js";
 
 /* ----------------------- THE PLAYER'S OWN CARD -----------------------
    What other people see when they meet you at a table: a picture, a paragraph,
@@ -20,6 +21,7 @@ import { badgesShown } from "../content/badges.js";
    you sign in on. The card says which is which rather than hoping nobody
    notices two names for the same idea. */
 export function OnlineProfileCard({ account, setAccount, notify }) {
+  const t = useT();
   const { token } = account;
   const [player, setPlayer] = useState(account.player);
   const [editing, setEditing] = useState(false);
@@ -39,13 +41,13 @@ export function OnlineProfileCard({ account, setAccount, notify }) {
           <h3>{player.name}</h3>
           <div className="row">
             <RankBadge rating={player.rating} rd={player.rd} precise />
-            <span className="fine">{player.wins} W · {player.losses} L</span>
+            <span className="fine">{t("account.card.wl", { wins: player.wins, losses: player.losses })}</span>
           </div>
           <Badges badges={badgesShown(player)} />
-          <p className="fine">Your card on the server. It follows you to any device you sign in on.</p>
+          <p className="fine">{t("account.card.onServer")}</p>
         </div>
         {!editing && (
-          <button className="icon-btn" onClick={() => setEditing(true)} aria-label="Edit what your card says">
+          <button className="icon-btn" onClick={() => setEditing(true)} aria-label={t("account.card.edit")}>
             <Pencil size={14} />
           </button>
         )}
@@ -64,11 +66,12 @@ export function OnlineProfileCard({ account, setAccount, notify }) {
    one word, the answer is instant, and a privacy control that needs confirming
    is a privacy control people leave half-changed.
 
-   Being here is never written down — it is an open connection and nothing else
-   — so this setting governs who may be told, not what is kept. The line under
+   Being here is never written down (it is an open connection and nothing
+   else), so this setting governs who may be told, not what is kept. The line under
    the choices says so, because a person deciding how visible to be deserves to
    know there is no history behind the question. */
 function WhoMaySee({ player, token, onSaved, notify }) {
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const chosen = cleanShowOnline(player.showOnline);
 
@@ -78,26 +81,24 @@ function WhoMaySee({ player, token, onSaved, notify }) {
     try {
       onSaved(await api.setProfile(token, { showOnline: id }));
     } catch (e) {
-      notify({ icon: "info", text: errorText(e.reason) });
+      notify({ icon: "info", text: errorText(e.reason, t) });
     } finally { setBusy(false); }
   };
 
   return (
     <div className="who-may-see">
-      <span className="op-label" id="who-may-see">Who may see you are here</span>
+      <span className="op-label" id="who-may-see">{t("presence.whoMaySee")}</span>
       <div className="seg" role="radiogroup" aria-labelledby="who-may-see">
         {SHOW_ONLINE.map((o) => (
           <button key={o.id} type="button" role="radio" aria-checked={chosen === o.id}
             className={`seg-btn ${chosen === o.id ? "active" : ""}`}
-            disabled={busy} title={o.hint} onClick={() => pick(o.id)}>
-            {o.label}
+            disabled={busy} title={t(`seen.${o.id}.hint`, null, o.hint)} onClick={() => pick(o.id)}>
+            {t(`seen.${o.id}.label`, null, o.label)}
           </button>
         ))}
       </div>
       <p className="fine">
-        {SHOW_ONLINE.find((o) => o.id === chosen).hint}. Being here is an open connection and
-        nothing more: arriving writes nothing down and leaving writes nothing down, so there is
-        no record of when you were here for anybody to read later.
+        {t("presence.note", { hint: t(`seen.${chosen}.hint`, null, SHOW_ONLINE.find((o) => o.id === chosen).hint) })}
       </p>
     </div>
   );
@@ -107,9 +108,10 @@ function WhoMaySee({ player, token, onSaved, notify }) {
  *  says so plainly and invites one line, rather than showing three empty rows
  *  that look like a form somebody failed to fill in. */
 function SaidPlainly({ player }) {
+  const t = useT();
   const said = FACTS.filter(f => player.facts?.[f.key]);
   if (!player.bio && !said.length) {
-    return <p className="fine">Nothing on the card yet. A line about how you play is enough.</p>;
+    return <p className="fine">{t("account.card.empty")}</p>;
   }
   return (
     <>
@@ -129,6 +131,7 @@ function SaidPlainly({ player }) {
 }
 
 function SaidEditor({ player, token, onSaved, onCancel, notify }) {
+  const t = useT();
   const [bio, setBio] = useState(player.bio ?? "");
   const [facts, setFacts] = useState(() => ({ ...(player.facts ?? {}) }));
   const [busy, setBusy] = useState(false);
@@ -139,32 +142,32 @@ function SaidEditor({ player, token, onSaved, onCancel, notify }) {
     setBusy(true);
     try {
       onSaved(await api.setProfile(token, { bio, facts }));
-      notify({ icon: "info", text: "Card updated" });
+      notify({ icon: "info", text: t("account.card.updated") });
     } catch (e) {
-      notify({ icon: "info", text: errorText(e.reason) });
+      notify({ icon: "info", text: errorText(e.reason, t) });
     } finally { setBusy(false); }
   };
 
   return (
     <div className="gate-fields">
-      <label className="op-label" htmlFor="op-bio">About you</label>
+      <label className="op-label" htmlFor="op-bio">{t("account.card.about")}</label>
       <textarea id="op-bio" className="chat-input op-textarea" value={bio} maxLength={BIO_MAX} rows={3}
-        placeholder="How you play, how long you have been at it, what you are working on"
+        placeholder={t("account.card.bioPlaceholder")}
         onChange={e => setBio(e.target.value)} />
-      <p className="fine">{left} left</p>
+      <p className="fine">{t("account.card.left", { count: left })}</p>
       {FACTS.map(f => (
         <div key={f.key}>
-          <label className="op-label" htmlFor={`op-${f.key}`}>{f.label}</label>
+          <label className="op-label" htmlFor={`op-${f.key}`}>{t(`account.fact.${f.key}.label`, null, f.label)}</label>
           <input id={`op-${f.key}`} className="chat-input" value={facts[f.key] ?? ""} maxLength={f.max}
-            inputMode={f.numeric ? "numeric" : undefined} placeholder={f.hint}
+            inputMode={f.numeric ? "numeric" : undefined} placeholder={t(`account.fact.${f.key}.hint`, null, f.hint)}
             onChange={e => setFacts(v => ({ ...v, [f.key]: e.target.value }))} />
         </div>
       ))}
       <div className="row">
-        <Btn icon={busy ? Loader : Check} primary small onClick={save} disabled={busy}>{busy ? "Saving…" : "Save the card"}</Btn>
-        <Btn icon={X} small onClick={onCancel}>Cancel</Btn>
+        <Btn icon={busy ? Loader : Check} primary small onClick={save} disabled={busy}>{t(busy ? "account.card.saving" : "account.card.save")}</Btn>
+        <Btn icon={X} small onClick={onCancel}>{t("account.card.cancel")}</Btn>
       </div>
-      <p className="fine">Everyone who sits down opposite you can read this. Nothing here is required.</p>
+      <p className="fine">{t("account.card.fine")}</p>
     </div>
   );
 }
@@ -173,6 +176,7 @@ function SaidEditor({ player, token, onSaved, onCancel, notify }) {
  *  browser before a byte is sent, so a photograph that is never kept was never
  *  uploaded either. */
 function PictureWell({ player, src, token, onSaved, notify }) {
+  const t = useT();
   const input = useRef(null);
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState(null);
@@ -185,7 +189,7 @@ function PictureWell({ player, src, token, onSaved, notify }) {
       const { blob, url } = await prepareAvatar(file);
       setPreview(url);
       onSaved(await api.setAvatar(token, blob));
-      notify({ icon: "info", text: "That is your picture now" });
+      notify({ icon: "info", text: t("account.card.pictureSaved") });
     } catch (e) {
       notify({ icon: "info", text: AVATAR_ERRORS[e.message] ?? errorText(e.reason ?? e.message) });
     } finally {
@@ -201,7 +205,7 @@ function PictureWell({ player, src, token, onSaved, notify }) {
       if (preview) { URL.revokeObjectURL(preview); setPreview(null); }
       onSaved(await api.clearAvatar(token));
     } catch (e) {
-      notify({ icon: "info", text: errorText(e.reason) });
+      notify({ icon: "info", text: errorText(e.reason, t) });
     } finally { setBusy(false); }
   };
 
@@ -212,9 +216,9 @@ function PictureWell({ player, src, token, onSaved, notify }) {
         <input ref={input} type="file" accept="image/*" className="visually-hidden" id="op-picture"
           onChange={e => choose(e.target.files?.[0])} />
         <Btn icon={busy ? Loader : Camera} small onClick={() => input.current?.click()} disabled={busy}>
-          {busy ? "Working…" : src || preview ? "Change" : "Add a picture"}
+          {t(busy ? "account.card.working" : src || preview ? "account.card.change" : "account.card.addPicture")}
         </Btn>
-        {(src || preview) && !busy && <Btn icon={Trash2} small onClick={remove} label="Remove the picture" />}
+        {(src || preview) && !busy && <Btn icon={Trash2} small onClick={remove} label={t("account.card.removePicture")} />}
       </div>
     </div>
   );

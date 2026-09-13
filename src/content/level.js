@@ -24,6 +24,10 @@
 import { stepRank, RANK_LADDER } from "./rank.js";
 
 /** Games in a row before the level is worth mentioning. */
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
+
+const EN = makeT(BASE_LOCALE);
+
 export const RUN = 3;
 
 /** The most recent rated, even games at `rank`, newest first. */
@@ -63,10 +67,7 @@ export function suggestLevel(log, rank) {
 
 /** The suggestion in words. Says what was counted, not just what to do: a
  *  number a player can check is a suggestion they can disagree with. */
-export function suggestionText(s) {
+export function suggestionText(s, t = EN) {
   if (!s) return "";
-  const n = s.length;
-  return s.won
-    ? `${n} even wins in a row at ${s.from}. ${s.to} would be a harder game.`
-    : `${n} even losses in a row at ${s.from}. ${s.to} would be a fairer game.`;
+  return t(s.won ? "play.nudgeWon" : "play.nudgeLost", { count: s.length, from: s.from, to: s.to });
 }

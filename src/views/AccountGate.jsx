@@ -4,6 +4,7 @@ import { Card, Btn } from "../components/ui.jsx";
 import { api } from "../net/api.js";
 import { saveAccount } from "../store/account.js";
 import { formProblem, passwordNote, errorText } from "./accountForm.js";
+import { useT } from "../components/langStore.js";
 
 /* ----------------------- ACCOUNT GATE (card) -----------------------
    The three doors into the ladder, in the order most people want them:
@@ -23,20 +24,21 @@ import { formProblem, passwordNote, errorText } from "./accountForm.js";
    Deriving that key takes about a second on a phone, on purpose, so every
    button here goes through `busy` and says what it is doing. */
 export function AccountGate({ profile, notify, onSignedIn }) {
+  const t = useT();
   const [mode, setMode] = useState("signin");   // signin | signup | guest
   return (
     <Card className="online-card">
       <div className="persona-top">
         <div className="avatar duo"><Globe size={22} strokeWidth={2} /></div>
         <div>
-          <h3>Play people</h3>
-          <p className="persona-tag">Live games over the network</p>
+          <h3>{t("account.gate.title")}</h3>
+          <p className="persona-tag">{t("account.gate.tagline")}</p>
         </div>
       </div>
-      <div className="gate-tabs" role="tablist" aria-label="How to get in">
-        {[["signin", "Sign in"], ["signup", "Create an account"], ["guest", "Just a handle"]].map(([id, label]) => (
+      <div className="gate-tabs" role="tablist" aria-label={t("account.gate.tabs")}>
+        {["signin", "signup", "guest"].map(id => (
           <button key={id} role="tab" aria-selected={mode === id}
-            className={`gate-tab ${mode === id ? "on" : ""}`} onClick={() => setMode(id)}>{label}</button>
+            className={`gate-tab ${mode === id ? "on" : ""}`} onClick={() => setMode(id)}>{t(`account.gate.${id}`)}</button>
         ))}
       </div>
       {mode === "guest"
@@ -47,6 +49,7 @@ export function AccountGate({ profile, notify, onSignedIn }) {
 }
 
 function CredentialForm({ mode, profile, notify, onSignedIn }) {
+  const t = useT();
   const signup = mode === "signup";
   const [name, setName] = useState(profile.name === "Player" ? "" : profile.name);
   const [email, setEmail] = useState("");
@@ -55,7 +58,7 @@ function CredentialForm({ mode, profile, notify, onSignedIn }) {
   const [busy, setBusy] = useState(false);
   const [shown, setShown] = useState(null);     // the problem, once they have tried
 
-  const problem = formProblem(mode, { name, email, password, confirm });
+  const problem = formProblem(mode, { name, email, password, confirm }, t);
 
   const submit = async () => {
     if (busy) return;
@@ -75,12 +78,10 @@ function CredentialForm({ mode, profile, notify, onSignedIn }) {
       if (signup) api.sendConfirmation(token).catch(() => {});
       notify({
         icon: "medal",
-        text: signup
-          ? `Welcome to the ladder, ${player.name}. Look for a letter confirming your address.`
-          : `Welcome back, ${player.name}`,
+        text: t(signup ? "account.gate.welcomeNew" : "account.gate.welcomeBack", { name: player.name }),
       });
     } catch (e) {
-      setShown(errorText(e.reason));
+      setShown(errorText(e.reason, t));
     } finally { setBusy(false); }
   };
 
@@ -89,39 +90,35 @@ function CredentialForm({ mode, profile, notify, onSignedIn }) {
   return (
     <>
       <p className="persona-bio">
-        {signup
-          ? "An address and a password, kept here and nowhere else. No sign-in with Google, no third party told what you play. The address is how you get your handle back on another device."
-          : "Sign in and your handle, your rating and your games follow you to this device."}
+        {t(signup ? "account.gate.signupBio" : "account.gate.signinBio")}
       </p>
       <div className="gate-fields">
         {signup && (
-          <input className="chat-input" value={name} maxLength={18} placeholder="Your handle" autoComplete="nickname"
-            onChange={e => setName(e.target.value)} onKeyDown={onKey} aria-label="Handle" />
+          <input className="chat-input" value={name} maxLength={18} placeholder={t("account.gate.handlePlaceholder")} autoComplete="nickname"
+            onChange={e => setName(e.target.value)} onKeyDown={onKey} aria-label={t("account.gate.handleLabel")} />
         )}
-        <input className="chat-input" type="email" value={email} placeholder="Email address"
+        <input className="chat-input" type="email" value={email} placeholder={t("account.gate.email")}
           autoComplete={signup ? "email" : "username"} inputMode="email"
-          onChange={e => setEmail(e.target.value)} onKeyDown={onKey} aria-label="Email address" />
-        <input className="chat-input" type="password" value={password} placeholder="Password"
+          onChange={e => setEmail(e.target.value)} onKeyDown={onKey} aria-label={t("account.gate.email")} />
+        <input className="chat-input" type="password" value={password} placeholder={t("account.gate.password")}
           autoComplete={signup ? "new-password" : "current-password"}
-          onChange={e => setPassword(e.target.value)} onKeyDown={onKey} aria-label="Password" />
+          onChange={e => setPassword(e.target.value)} onKeyDown={onKey} aria-label={t("account.gate.password")} />
         {signup && (
-          <input className="chat-input" type="password" value={confirm} placeholder="The same password again"
+          <input className="chat-input" type="password" value={confirm} placeholder={t("account.gate.again")}
             autoComplete="new-password"
-            onChange={e => setConfirm(e.target.value)} onKeyDown={onKey} aria-label="Confirm password" />
+            onChange={e => setConfirm(e.target.value)} onKeyDown={onKey} aria-label={t("account.gate.confirmLabel")} />
         )}
       </div>
-      {signup && passwordNote(password) && <p className="fine">{passwordNote(password)}</p>}
+      {signup && passwordNote(password, t) && <p className="fine">{passwordNote(password, t)}</p>}
       {shown && <p className="gate-problem" role="alert">{shown}</p>}
       <div className="row">
         <Btn icon={busy ? Loader : signup ? UserPlus : LogIn} primary small onClick={submit} disabled={busy}>
-          {busy ? "Working…" : signup ? "Create the account" : "Sign in"}
+          {t(busy ? "account.gate.working" : signup ? "account.gate.create" : "account.gate.signinDo")}
         </Btn>
       </div>
       {!signup && <ForgotRow />}
       <p className="fine">
-        {signup
-          ? "Your password is stretched in this browser and never sent; the server stores a hash of the result and could not read it back if it wanted to. A letter follows, to confirm the address is one you can read."
-          : "Signing in takes a moment: the browser does the work of proving the password so the server never has to hold it."}
+        {t(signup ? "account.gate.signupFine" : "account.gate.signinFine")}
       </p>
     </>
   );
@@ -136,6 +133,7 @@ function CredentialForm({ mode, profile, notify, onSignedIn }) {
  *  whether any address you like has an account on Joseki, which is not a
  *  question a go server should answer about its players. */
 function ForgotRow() {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
@@ -144,48 +142,46 @@ function ForgotRow() {
 
   const ask = async () => {
     if (busy) return;
-    const problem = formProblem("forgot", { email });
+    const problem = formProblem("forgot", { email }, t);
     if (problem) { setShown(problem); return; }
     setShown(null);
     setBusy(true);
     try { await api.forgot(email); setAsked(true); }
-    catch (e) { setShown(errorText(e.reason)); }
+    catch (e) { setShown(errorText(e.reason, t)); }
     finally { setBusy(false); }
   };
 
   if (asked) {
     return (
-      <p className="fine" role="status">
-        If there is an account on that address, a way back in is on its way to it. The link
-        lasts an hour, and using it signs the account out everywhere else.
-      </p>
+      <p className="fine" role="status">{t("account.forgot.asked")}</p>
     );
   }
   if (!open) {
     return (
       <button className="attach-row" onClick={() => setOpen(true)}>
         <KeyRound size={14} />
-        <span>Forgotten your password? Joseki can post you a way back in.</span>
+        <span>{t("account.forgot.open")}</span>
       </button>
     );
   }
   return (
     <div className="gate-fields">
-      <input className="chat-input" type="email" value={email} placeholder="The address on the account"
+      <input className="chat-input" type="email" value={email} placeholder={t("account.forgot.address")}
         autoComplete="email" inputMode="email" onChange={e => setEmail(e.target.value)}
-        onKeyDown={e => e.key === "Enter" && ask()} aria-label="The address on the account" />
+        onKeyDown={e => e.key === "Enter" && ask()} aria-label={t("account.forgot.address")} />
       {shown && <p className="gate-problem" role="alert">{shown}</p>}
       <div className="row">
         <Btn icon={busy ? Loader : Mail} primary small onClick={ask} disabled={busy}>
-          {busy ? "Working…" : "Post me a way back in"}
+          {t(busy ? "account.gate.working" : "account.forgot.post")}
         </Btn>
-        <Btn small onClick={() => setOpen(false)}>Never mind</Btn>
+        <Btn small onClick={() => setOpen(false)}>{t("account.forgot.nevermind")}</Btn>
       </div>
     </div>
   );
 }
 
 function GuestForm({ profile, notify, onSignedIn }) {
+  const t = useT();
   const [name, setName] = useState(profile.name === "Player" ? "" : profile.name);
   const [busy, setBusy] = useState(false);
   const [shown, setShown] = useState(null);
@@ -197,25 +193,21 @@ function GuestForm({ profile, notify, onSignedIn }) {
       const { token, player } = await api.register(v, profile.tint);
       saveAccount({ token, player });
       onSignedIn({ token, player });
-      notify({ icon: "medal", text: `Welcome to the ladder, ${player.name}` });
+      notify({ icon: "medal", text: t("account.guest.welcome", { name: player.name }) });
     } catch (e) {
-      setShown(errorText(e.reason));
+      setShown(errorText(e.reason, t));
     } finally { setBusy(false); }
   };
   return (
     <>
-      <p className="persona-bio">
-        Sit down now and decide later. A handle with no address behind it lives in this
-        browser: it plays rated games like any other, and you can add an address to it at
-        any time without losing the rating you have earned.
-      </p>
+      <p className="persona-bio">{t("account.guest.bio")}</p>
       <div className="row">
-        <input className="chat-input name-input" value={name} maxLength={18} placeholder="Your handle"
-          onChange={e => setName(e.target.value)} onKeyDown={e => e.key === "Enter" && claim()} aria-label="Handle" />
-        <Btn icon={KeyRound} primary small onClick={claim} disabled={busy || name.trim().length < 2}>Claim handle</Btn>
+        <input className="chat-input name-input" value={name} maxLength={18} placeholder={t("account.gate.handlePlaceholder")}
+          onChange={e => setName(e.target.value)} onKeyDown={e => e.key === "Enter" && claim()} aria-label={t("account.gate.handleLabel")} />
+        <Btn icon={KeyRound} primary small onClick={claim} disabled={busy || name.trim().length < 2}>{t("account.guest.claim")}</Btn>
       </div>
       {shown && <p className="gate-problem" role="alert">{shown}</p>}
-      <p className="fine">Clearing this browser's site data lets a handle with no address go for good.</p>
+      <p className="fine">{t("account.guest.fine")}</p>
     </>
   );
 }

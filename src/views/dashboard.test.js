@@ -2,6 +2,11 @@ import { describe, it, expect } from "vitest";
 import {
   isLive, sideOf, isYourMove, waitingText, turnText, dashLine, opponentName, dashboard,
 } from "./dashboard.js";
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
+
+/* These are English assertions about wording, so they ask in English. The
+   parity test is what holds the other languages to the same lines. */
+const EN = makeT(BASE_LOCALE);
 
 const NOW = 1_700_000_000_000;
 const ago = (mins) => NOW - mins * 60_000;
@@ -63,77 +68,77 @@ describe("isYourMove", () => {
 
 describe("waitingText", () => {
   it("widens through minutes, hours and days", () => {
-    expect(waitingText(ago(0), NOW)).toBe("just now");
-    expect(waitingText(ago(1), NOW)).toBe("1 minute");
-    expect(waitingText(ago(40), NOW)).toBe("40 minutes");
-    expect(waitingText(ago(60), NOW)).toBe("1 hour");
-    expect(waitingText(ago(300), NOW)).toBe("5 hours");
-    expect(waitingText(ago(60 * 24), NOW)).toBe("1 day");
-    expect(waitingText(ago(60 * 24 * 9), NOW)).toBe("9 days");
+    expect(waitingText(ago(0), EN, NOW)).toBe("just now");
+    expect(waitingText(ago(1), EN, NOW)).toBe("1 minute");
+    expect(waitingText(ago(40), EN, NOW)).toBe("40 minutes");
+    expect(waitingText(ago(60), EN, NOW)).toBe("1 hour");
+    expect(waitingText(ago(300), EN, NOW)).toBe("5 hours");
+    expect(waitingText(ago(60 * 24), EN, NOW)).toBe("1 day");
+    expect(waitingText(ago(60 * 24 * 9), EN, NOW)).toBe("9 days");
   });
 
   it("says just now rather than a negative for a clock slightly behind", () => {
-    expect(waitingText(NOW + 60_000, NOW)).toBe("just now");
+    expect(waitingText(NOW + 60_000, EN, NOW)).toBe("just now");
   });
 
   it("says nothing without a stamp", () => {
-    expect(waitingText(null, NOW)).toBe(null);
-    expect(waitingText(0, NOW)).toBe(null);
+    expect(waitingText(null, EN, NOW)).toBe(null);
+    expect(waitingText(0, EN, NOW)).toBe(null);
   });
 
   it("never says anything about a person, only a length of time", () => {
     for (const m of [0, 1, 30, 90, 3000]) {
-      expect(waitingText(ago(m), NOW)).not.toMatch(/online|here|away|seen/i);
+      expect(waitingText(ago(m), EN, NOW)).not.toMatch(/online|here|away|seen/i);
     }
   });
 });
 
 describe("turnText", () => {
   it("speaks from your seat", () => {
-    expect(turnText(game({ toPlay: "b" }), "me")).toBe("Your move");
-    expect(turnText(game({ toPlay: "w" }), "me")).toBe("Their move");
+    expect(turnText(game({ toPlay: "b" }), "me", EN)).toBe("Your move");
+    expect(turnText(game({ toPlay: "w" }), "me", EN)).toBe("Their move");
   });
 
   it("names the colour for somebody watching", () => {
-    expect(turnText(game({ toPlay: "w" }), "nobody")).toBe("White to move");
+    expect(turnText(game({ toPlay: "w" }), "nobody", EN)).toBe("White to move");
   });
 
   it("says counting during scoring", () => {
-    expect(turnText(game({ phase: "scoring" }), "me")).toBe("Counting");
+    expect(turnText(game({ phase: "scoring" }), "me", EN)).toBe("Counting");
   });
 });
 
 describe("opponentName", () => {
   it("names who is across the board", () => {
-    expect(opponentName(game(), "me")).toBe("Bo");
-    expect(opponentName(game(), "them")).toBe("Ann");
+    expect(opponentName(game(), "me", EN)).toBe("Bo");
+    expect(opponentName(game(), "them", EN)).toBe("Ann");
   });
 
   it("names both partners of a pair team", () => {
     const four = game({ teams: { b: [{ id: "me", name: "Ann" }], w: [{ id: "them", name: "Bo" }, { id: "y", name: "Di" }] } });
-    expect(opponentName(four, "me")).toBe("Bo & Di");
+    expect(opponentName(four, "me", EN)).toBe("Bo & Di");
   });
 
   it("falls back to a colour when nobody is named", () => {
-    expect(opponentName(game({ teams: { b: [{ id: "me" }], w: [{ id: "them" }] } }), "me")).toBe("White");
+    expect(opponentName(game({ teams: { b: [{ id: "me" }], w: [{ id: "them" }] } }), "me", EN)).toBe("White");
   });
 });
 
 describe("dashLine", () => {
   it("says whose move it is and how long the board has waited", () => {
-    expect(dashLine(game({ toPlay: "b", updatedAt: ago(90) }), "me", NOW))
+    expect(dashLine(game({ toPlay: "b", updatedAt: ago(90) }), "me", EN, NOW))
       .toBe("Your move · waiting 1 hour · 19×19");
   });
 
   it("says moved just now rather than waiting just now", () => {
-    expect(dashLine(game({ updatedAt: NOW }), "me", NOW)).toContain("moved just now");
+    expect(dashLine(game({ updatedAt: NOW }), "me", EN, NOW)).toContain("moved just now");
   });
 
   it("mentions the things that are not the default", () => {
-    const odd = dashLine(game({ pair: true, rated: false }), "me", NOW);
+    const odd = dashLine(game({ pair: true, rated: false }), "me", EN, NOW);
     expect(odd).toContain("pair go");
     expect(odd).toContain("unrated");
-    expect(dashLine(game(), "me", NOW)).not.toContain("unrated");
+    expect(dashLine(game(), "me", EN, NOW)).not.toContain("unrated");
   });
 });
 
@@ -204,7 +209,7 @@ describe("a summary whose teams arrived empty", () => {
     expect(dashboard([g], "a").waiting).toBe(1);
   });
   it("names the opponent from the lead seat too", () => {
-    expect(opponentName(g, "a")).toBe("Bea");
+    expect(opponentName(g, "a", EN)).toBe("Bea");
   });
   it("says nothing about somebody at neither seat", () => {
     expect(sideOf(g, "stranger")).toBe(null);

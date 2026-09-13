@@ -4,15 +4,16 @@ import {
   GitBranch, Undo2, CornerUpLeft, LineChart, Square, Lightbulb, TriangleAlert,
 } from "lucide-react";
 import { Btn, Pill } from "../components/ui.jsx";
-import { startLine, playInLine, backInLine, lineLabel, canBranch } from "./reviewLine.js";
-import { refusalText } from "./gameStatus.js";
+import { startLine, playInLine, backInLine, lineLabel, canBranch, reviewLabelText, winRateLineText } from "./reviewLine.js";
+import { refusalText, resultSentence } from "./gameStatus.js";
+import { useT } from "../components/langStore.js";
 import { Board } from "../components/Board.jsx";
 import { WinGraph } from "../components/WinGraph.jsx";
 import { useAnalysis, remainingText } from "./useAnalysis.js";
 import {
   atMove, moveNumbers, captureMoves, nextCapture, prevCapture,
-  reviewLength, clampMove, markerAt, reviewLabel, resultText, toSgf, lastMoveIndex,
-  turningPoints, winRateLine, pointAt, pct, steadiness, nextTurn, prevTurn, ANALYSIS_RANK,
+  reviewLength, clampMove, markerAt, toSgf, lastMoveIndex,
+  turningPoints, pointAt, pct, steadiness, nextTurn, prevTurn, ANALYSIS_RANK,
 } from "../engine/index.js";
 
 /* ----------------------- REVIEW -----------------------
@@ -37,6 +38,7 @@ import {
 const BOARD_PX = { 9: 460, 13: 560, 19: 680 };
 
 export function Review({ record, onExit, onRematch, profile = {} }) {
+  const t = useT();
   const total = reviewLength(record);
   const [n, setN] = useState(total);
   const [showNumbers, setShowNumbers] = useState(false);
@@ -110,7 +112,7 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
   const onTry = (c, r) => {
     const from = line ?? startLine(record, n);
     const res = playInLine(from, c, r);
-    if (res.error) { setRefused(refusalText(res.error) ?? "That move is not legal here."); return; }
+    if (res.error) { setRefused(refusalText(res.error, t) ?? t("review.illegal")); return; }
     setRefused(null);
     setLine(res.line);
   };
@@ -133,13 +135,13 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
   return (
     <div className="stack">
       <div className="row spread">
-        <Btn icon={ChevronLeft} small onClick={onExit}>Back</Btn>
-        <span className="review-result">{resultText(record) ?? "Unfinished game"}</span>
+        <Btn icon={ChevronLeft} small onClick={onExit}>{t("review.back")}</Btn>
+        <span className="review-result">{resultSentence(record.result, t) ?? t("review.unfinished")}</span>
       </div>
       <div className="play-wrap">
         <div className="board-col stack-sm">
           <Pill icon={line ? GitBranch : Hash} tone={line ? "win" : ""}>
-            {line ? lineLabel(line) : `${reviewLabel(record, n)}${capHere ? ` · ${capHere.stones} captured` : ""}`}
+            {line ? lineLabel(line, t) : reviewLabelText(record, n, t) + (capHere ? ` · ${t("review.captured", { count: capHere.stones })}` : "")}
           </Pill>
           <Board board={(line ? line.record : at).board}
             lastMove={line ? lastMoveIndex(line.record) : marker}
@@ -151,42 +153,46 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
           {refused && <p className="review-refused" role="alert">{refused}</p>}
           {line ? (
             <div className="row review-controls">
-              <Btn icon={Undo2} small onClick={undoTry}>Take back</Btn>
+              <Btn icon={Undo2} small onClick={undoTry}>{t("review.takeBack")}</Btn>
               <Btn icon={CornerUpLeft} small primary onClick={() => { setLine(null); setRefused(null); }}>
-                Back to the game
+                {t("review.backToGame")}
               </Btn>
             </div>
           ) : null}
           <input className="review-scrub" type="range" min={0} max={total} value={n}
-            aria-label="Move" onChange={(e) => go(Number(e.target.value))} />
+            aria-label={t("review.move")} onChange={(e) => go(Number(e.target.value))} />
           {(advice || advisePass) && (
             <p className="review-advice">
               {advisePass
-                ? "The network would pass here."
+                ? t("review.advice.pass")
                 : sameAsPlayed
-                  ? "The network would have played this move too."
+                  ? t("review.advice.same")
                   : n === 0
-                    ? "The network would open on the ringed point."
+                    ? t("review.advice.open")
                     : knowsThisMove
-                      ? "The network would have played the ringed point instead."
-                      : "The network would play the ringed point from here."}
+                      ? t("review.advice.instead")
+                      : t("review.advice.from")}
             </p>
           )}
           {analysis.points.length > 0 && (
             <div className="review-analysis stack-sm">
               <WinGraph points={analysis.points} total={total} current={n} turns={turns} onPick={go} />
               <p className="review-winline" aria-live="polite">
-                {winRateLine(analysis.points, n) ?? "The network has not reached this move yet."}
+                {winRateLineText(analysis.points, n, t) ?? t("review.notYet")}
               </p>
               {turns.length > 0 && (
                 <div className="row review-controls">
-                  {turns.map((t) => (
-                    <button key={t.move} type="button" className={`turn-chip${n === t.move ? " on" : ""}`}
-                      onClick={() => go(t.move)}
-                      aria-label={`Move ${t.move}, where ${t.color === "b" ? "Black" : "White"} lost ${pct(t.cost)}`}>
+                  {turns.map((turn) => (
+                    <button key={turn.move} type="button" className={`turn-chip${n === turn.move ? " on" : ""}`}
+                      onClick={() => go(turn.move)}
+                      aria-label={t("review.turnAria", {
+                        move: turn.move,
+                        side: turn.color === "b" ? t("review.black") : t("review.white"),
+                        cost: pct(turn.cost),
+                      })}>
                       <TriangleAlert size={13} aria-hidden="true" />
-                      <span>Move {t.move}</span>
-                      <span className="turn-cost">{t.color === "b" ? "B" : "W"} &minus;{pct(t.cost)}</span>
+                      <span>{t("review.turnMove", { move: turn.move })}</span>
+                      <span className="turn-cost">{turn.color === "b" ? t("review.blackShort") : t("review.whiteShort")} &minus;{pct(turn.cost)}</span>
                     </button>
                   ))}
                 </div>
@@ -197,38 +203,38 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
             {analysis.running ? (
               <>
                 <Pill icon={LineChart}>
-                  {analysis.done} / {total + 1} positions
-                  {remainingText(analysis.remaining) ? ` · ${remainingText(analysis.remaining)}` : ""}
+                  {t("review.positions", { done: analysis.done, total: total + 1 })}
+                  {remainingText(analysis.remaining, t) ? ` · ${remainingText(analysis.remaining, t)}` : ""}
                 </Pill>
-                <Btn icon={Square} small onClick={analysis.cancel}>Stop</Btn>
+                <Btn icon={Square} small onClick={analysis.cancel}>{t("review.stop")}</Btn>
               </>
             ) : !analysis.complete && total > 0 ? (
               <Btn icon={LineChart} small primary onClick={analysis.start}>
-                {analysis.points.length ? "Keep analysing" : "Win rate graph"}
+                {analysis.points.length ? t("review.keepAnalysing") : t("review.winGraph")}
               </Btn>
             ) : null}
             {analysis.points.length > 0 && (
               <Btn icon={Lightbulb} small onClick={() => setShowBest((v) => !v)}>
-                {showBest ? "Hide the suggestion" : "What the network liked"}
+                {showBest ? t("review.hideBest") : t("review.showBest")}
               </Btn>
             )}
           </div>
           {analysis.error && <p className="review-refused" role="alert">{analysis.error}</p>}
           <div className="row review-controls">
-            <Btn icon={ChevronsLeft} small label="Start" onClick={() => go(0)} disabled={n === 0} />
-            <Btn icon={SkipBack} small label="Previous capture" onClick={() => go(back.move)} disabled={!back} />
-            <Btn icon={ChevronLeft} small label="Back one move" onClick={() => go((c) => c - 1)} disabled={n === 0} />
+            <Btn icon={ChevronsLeft} small label={t("review.start")} onClick={() => go(0)} disabled={n === 0} />
+            <Btn icon={SkipBack} small label={t("review.prevCapture")} onClick={() => go(back.move)} disabled={!back} />
+            <Btn icon={ChevronLeft} small label={t("review.backOne")} onClick={() => go((c) => c - 1)} disabled={n === 0} />
             <span className="review-count" aria-live="polite">{n} / {total}</span>
-            <Btn icon={ChevronRight} small label="Forward one move" onClick={() => go((c) => c + 1)} disabled={n === total} />
-            <Btn icon={SkipForward} small label="Next capture" onClick={() => go(fwd.move)} disabled={!fwd} />
-            <Btn icon={ChevronsRight} small label="End" onClick={() => go(total)} disabled={n === total} />
+            <Btn icon={ChevronRight} small label={t("review.forwardOne")} onClick={() => go((c) => c + 1)} disabled={n === total} />
+            <Btn icon={SkipForward} small label={t("review.nextCapture")} onClick={() => go(fwd.move)} disabled={!fwd} />
+            <Btn icon={ChevronsRight} small label={t("review.end")} onClick={() => go(total)} disabled={n === total} />
           </div>
           <div className="row review-controls">
             <Btn icon={Hash} small onClick={() => setShowNumbers((s) => !s)}>
-              {showNumbers ? "Hide numbers" : "Move numbers"}
+              {t(showNumbers ? "review.hideNumbers" : "review.moveNumbers")}
             </Btn>
-            <Btn icon={Download} small onClick={downloadSgf}>SGF</Btn>
-            {onRematch && <Btn icon={Swords} small onClick={onRematch}>Play again</Btn>}
+            <Btn icon={Download} small onClick={downloadSgf}>{t("review.sgf")}</Btn>
+            {onRematch && <Btn icon={Swords} small onClick={onRematch}>{t("review.playAgain")}</Btn>}
           </div>
           {analysis.complete && steady.b && steady.w && (
             <p className="fine">
@@ -246,12 +252,10 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
             </p>
           )}
           <p className="fine">
-            {total > 0 && analysis.points.length === 0
-              ? "The win rate graph asks the network about every position in turn: quick on a small board, minutes on 19x19. You can stop it part way and keep what it drew. "
-              : ""}
-            {branchable ? "Play on the board to try a line; it is never saved into the game. " : ""}
-            Arrows walk a move, up and down jump ten, Home and End go to the ends, N toggles
-            numbers.{turns.length > 0 ? " Square brackets walk the turning points." : ""} {caps.length === 0 ? "Nothing was captured in this game." : `${caps.length} capture${caps.length === 1 ? "" : "s"} in this game.`}
+            {total > 0 && analysis.points.length === 0 ? t("review.graphNote") : ""}
+            {branchable ? t("review.tryLine") : ""}
+            {t("review.keys")}{turns.length > 0 ? t("review.turnKeys") : ""}{" "}
+            {caps.length === 0 ? t("review.noCaptures") : t("review.captures", { count: caps.length })}
           </p>
         </div>
       </div>

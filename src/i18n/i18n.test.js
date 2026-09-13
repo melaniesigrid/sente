@@ -1,6 +1,24 @@
 import { describe, it, expect } from "vitest";
 import { PALETTES, STONE_SETS } from "../theme/index.js";
 import { TYPEFACES } from "../content/typeface.js";
+import { BELTS } from "../content/rank.js";
+import { BADGES } from "../content/badges.js";
+import { FACTS } from "../../server/profile.js";
+import { SHOW_ONLINE } from "../../server/presence.js";
+import { LIBRARY } from "../content/library.js";
+import { WELCOME_LESSON } from "../content/welcome.js";
+import { localize } from "../content/translate.js";
+import { TONES, RULES, STONE_RULE } from "../theme/tokens.js";
+import { DOCUMENTS, CREDITS } from "../content/legal.js";
+import { PLAIN_WORDS, STATEMENTS } from "../content/plain.js";
+import { MOKU_STATES } from "../content/moku.js";
+import { PERSONAS } from "../content/personas.js";
+import { RULESET_IDS } from "../engine/rulesets.js";
+import { CLOCK_PRESETS } from "../content/clockFace.js";
+import { TIERS, TRACKS, BOOKS, SERIES } from "../content/library.js";
+import { PROBLEMS } from "../content/problems.js";
+import { COMMENTARY } from "../content/commentary.js";
+import { CHAPTERS, LEVELS, NAMES, KINDS, PASSAGES } from "../content/classic.js";
 import {
   BASE_LOCALE, SYSTEM_LOCALE, LOCALES, CATALOGUES, isLocaleId, localeOf, resolveLocale,
   makeT, flatten, interpolate, pluralCategory,
@@ -9,12 +27,30 @@ import {
 /* The three namespaces whose English lives in the data file that owns the
    thing, not in en.js. A translation overlays them by id, so they are checked
    against the data below rather than against English. */
-const OVERLAYS = ["room.", "stones.", "type."];
+/* Namespaces whose English lives in a data file rather than in en.js. The
+   first four are complete-or-fail: every room, set, pairing and belt must have
+   its line. `lesson.` is not, and cannot be: the library is translated a file
+   at a time and an untranslated lesson is simply still in English, so what is
+   checked there is that every key names something real. */
+const OVERLAYS = [
+  "room.", "stones.", "type.", "belt.", "tone.", "rule.",        // the design system
+  "badge.", "fact.", "seen.",                                    // what a record has earned, what a card says, who may see
+  "lesson.", "legalDoc.", "credit.",                             // the documents and the library
+  "plain.", "statement.", "moku.", "ruleset.", "preset.", "persona.",  // the house's voices
+  "tier.", "track.", "book.", "series.", "problem.", "shape.",   // the library and the coach
+  "classicBook.", "preface.", "kind.", "level.", "chapter.", "name.", "passage.", // the Classic
+  "belowTheLevels",
+];
 const isOverlay = (key) => OVERLAYS.some(p => key.startsWith(p));
 const others = LOCALES.filter(l => l.id !== BASE_LOCALE);
 const HOLE = /\{(\w+)\}/g;
 const holesIn = (line) => new Set([...String(line).matchAll(HOLE)].map(m => m[1]));
 const lines = (entry) => (typeof entry === "string" ? [entry] : Object.values(entry));
+/* The field names that carry prose rather than data. Kept in step with
+   `TEXT_FIELDS` by `translate.test.js`; named here as a path suffix because a
+   flattened key ends in the field it came from, or in the index of the line,
+   for the fields that hold a list of them. */
+const PROSE = /\.(title|subtitle|plain|text|hint|success|wrongText|question|commentary|line|analogy|partial)(\.\d+)*$/;
 
 describe("locales", () => {
   it("ships a catalogue for every language it offers", () => {
@@ -139,8 +175,11 @@ describe.each(others)("$name is complete", (locale) => {
     for (const [key, entry] of mine) {
       for (const line of lines(entry)) {
         expect(String(line).trim(), `${locale.id}: ${key}`).not.toBe("");
-        // House style: nothing here shouts.
-        expect(String(line), `${locale.id}: ${key}`).not.toContain("!");
+        /* House style: the app does not shout. A voice it is translating may
+           Moku and the house players have exclamation marks in the English they
+           were written in, and flattening those would make a character quieter
+           in one language than in another. */
+        if (!isOverlay(key)) expect(String(line), `${locale.id}: ${key}`).not.toContain("!");
       }
     }
   });
@@ -152,6 +191,64 @@ describe.each(others)("$name is complete", (locale) => {
       expect(mine.get(`stones.${s.id}.note`), `${locale.id}: stones.${s.id}.note`).toBeTruthy();
     }
     for (const f of TYPEFACES) expect(mine.get(`type.${f.id}.note`), `${locale.id}: type.${f.id}`).toBeTruthy();
+    for (const b of BELTS) expect(mine.get(`belt.${b.id}.label`), `${locale.id}: belt.${b.id}`).toBeTruthy();
+    for (const b of BADGES) {
+      for (const field of ["label", "hint"]) {
+        expect(mine.get(`badge.${b.id}.${field}`), `${locale.id}: badge.${b.id}.${field}`).toBeTruthy();
+      }
+    }
+    for (const tone of TONES) {
+      expect(mine.get(`tone.${tone.key}.label`), `${locale.id}: tone.${tone.key}.label`).toBeTruthy();
+      expect(mine.get(`tone.${tone.key}.role`), `${locale.id}: tone.${tone.key}.role`).toBeTruthy();
+    }
+    for (const r of [...RULES, STONE_RULE]) {
+      expect(mine.get(`rule.${r.id}.label`), `${locale.id}: rule.${r.id}.label`).toBeTruthy();
+      expect(mine.get(`rule.${r.id}.why`), `${locale.id}: rule.${r.id}.why`).toBeTruthy();
+    }
+  });
+
+  /* A stale key is worse than a missing one: it looks translated and shows
+     English. Every path a content overlay names has to exist on the thing it
+     names, which is what walking the lesson and comparing proves. */
+  it("puts every lesson line somewhere the lesson can read it", () => {
+    /* A reader that answers every lookup with the key it was asked for, so
+       that a field the walker reads is a field that changed, even where the
+       translation and the English are the same word. */
+    const probe = (key) => `\u0000${key}`;
+    const all = [...LIBRARY, WELCOME_LESSON];
+    const keys = [...mine.keys()].filter(k => k.startsWith("lesson."));
+    const reached = new Set();
+    for (const lesson of all) {
+      const before = flatten({ lesson: { [lesson.id]: lesson } });
+      const after = flatten({ lesson: { [lesson.id]: localize(lesson, `lesson.${lesson.id}`, probe) } });
+      for (const [k, v] of after) if (before.get(k) !== v) reached.add(k);
+    }
+    for (const key of keys) {
+      expect(reached.has(key), `${locale.id}: ${key} reaches no lesson field`).toBe(true);
+    }
+  });
+
+  /* A lesson is translated whole or not at all. Half a lesson is the one
+     shape the fall-through does not forgive: a step in one language and the
+     next step in another, inside a single board somebody is working through. */
+  it("finishes any lesson it starts", () => {
+    const t = makeT(locale.id);
+    const started = new Set(
+      [...mine.keys()].filter(k => k.startsWith("lesson.")).map(k => k.split(".")[1]),
+    );
+    for (const lesson of [...LIBRARY, WELCOME_LESSON]) {
+      if (!started.has(lesson.id)) continue;
+      const before = flatten({ [lesson.id]: lesson });
+      const after = flatten({ [lesson.id]: localize(lesson, `lesson.${lesson.id}`, t) });
+      for (const [key, value] of before) {
+        if (typeof value !== "string" || !PROSE.test(key)) continue;
+        /* A line the catalogue writes has been through a translator, even
+           where the answer came back the same word: Tengen is Tengen. */
+        if (mine.has(`lesson.${key}`)) continue;
+        expect(after.get(key), `${locale.id}: ${key} is still English in a lesson that is otherwise translated`)
+          .not.toBe(value);
+      }
+    }
   });
 
   it("overlays only things that exist, and leaves their holes alone", () => {
@@ -159,12 +256,52 @@ describe.each(others)("$name is complete", (locale) => {
       room: PALETTES.map(p => p.id),
       stones: STONE_SETS.map(s => s.id),
       type: TYPEFACES.map(f => f.id),
+      belt: BELTS.map(b => b.id),
+      badge: BADGES.map(b => b.id),
+      fact: FACTS.map(f => f.key),
+      seen: SHOW_ONLINE.map(o => o.id),
+      lesson: [...LIBRARY.map(l => l.id), WELCOME_LESSON.id],
+      tone: TONES.map(t2 => t2.key),
+      // The audit prints one row per rule, plus the stones and the two
+      // closeness rows, which share one reason between them.
+      rule: [...RULES.map(r => r.id), STONE_RULE.id, "close-light", "close-dark", "closeness"],
+      legalDoc: DOCUMENTS.map(d => d.id),
+      credit: CREDITS.map(c => c.id),
+      plain: Object.keys(PLAIN_WORDS),
+      statement: Object.keys(STATEMENTS),
+      // Moku also speaks on the screens she visits, which are not board states.
+      moku: [...MOKU_STATES, ...Object.keys(PLAIN_WORDS), "look"],
+      ruleset: RULESET_IDS,
+      preset: CLOCK_PRESETS.map(p2 => p2.id),
+      persona: PERSONAS.map(p2 => p2.id),
+      tier: TIERS.map(x => String(x.id)),
+      track: TRACKS.map(x => x.key),
+      book: BOOKS.map(x => x.id),
+      series: SERIES.map(x => x.key),
+      problem: PROBLEMS.map(x => x.id),
+      shape: Object.keys(COMMENTARY),
+      classicBook: ["title", "short", "era", "blurb", "credit"],
+      preface: ["title", "plain", "text"],
+      kind: KINDS.map(k => k.key),
+      level: LEVELS.map(l => String(l.n)),
+      chapter: CHAPTERS.map(c => String(c.n)),
+      name: NAMES.map(n => String(n.n)),
+      passage: PASSAGES.map((p2, i) => String(i)),
     };
     for (const key of [...mine.keys()].filter(isOverlay)) {
       const [ns, id] = key.split(".");
-      expect(ids[ns], `${locale.id}: ${key}`).toContain(id);
+      // A one-word overlay names a single line rather than a family of them.
+      if (id !== undefined) expect(ids[ns], `${locale.id}: ${key}`).toContain(id);
+      /* An overlay has no holes, because there is nobody to fill them, except
+         the legal documents, which are written around a handful of constants
+         and are handed exactly these. */
+      const allowed = key.startsWith("legalDoc.") || key.startsWith("credit.")
+        ? new Set(["product", "studio", "contact", "repo", "copyright"])
+        : new Set();
       for (const line of lines(mine.get(key))) {
-        expect(holesIn(line).size, `${locale.id}: ${key} has a hole nothing fills`).toBe(0);
+        for (const hole of holesIn(line)) {
+          expect(allowed.has(hole), `${locale.id}: ${key} fills {${hole}}, which nothing hands it`).toBe(true);
+        }
       }
     }
   });

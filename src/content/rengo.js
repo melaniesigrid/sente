@@ -29,6 +29,10 @@ import { rankOf, ratingOfRank } from "./rank.js";
  *  table too and may import from the engine and from nowhere else. Re-exported
  *  here so the offline table reads it under the name the rest of this file uses;
  *  two "7d"s that drift apart is the failure this is avoiding. */
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
+
+const EN = makeT(BASE_LOCALE);
+
 export const PARTNER_RANK = DEFAULT_PARTNER_RANK;
 
 /** The strengths a partner can be asked to play at. A weak partner is a real
@@ -119,35 +123,40 @@ export function seatWeights(roster, seatId) {
 export const seatRating = (seat) => (seat.rank ? ratingOfRank(seat.rank) : null);
 
 /** A team as one line: "You & Kaede". */
-export const teamLine = (roster, color) =>
-  ["1", "2"].map((n) => roster[color + n]).filter(Boolean).map((s) => s.name).join(" & ");
+export const teamLine = (roster, color, t = EN) =>
+  ["1", "2"].map((n) => roster[color + n]).filter(Boolean).map((s) => s.name).join(t("online.table.and"));
 
 /** The fine print under a pair table. Unrated is not a footnote here, it is the
  *  first thing said: a win in which a 7 dan played half your moves is evidence
  *  about the pair and not about you. */
-export function pairCaption({ size, komi, partnerRank, myRank }) {
-  const level = myRank ? `${myRank} each side` : "your level each side";
-  return `${size}×${size} · komi ${komi} · pair go, four seats · ${level} · partners at ${partnerRank} · unrated`;
+export function pairCaption({ size, komi, partnerRank, myRank }, t = EN) {
+  return [
+    t("game.caption.board", { size }),
+    t("online.caption.komi", { komi }),
+    t("online.caption.pair"),
+    myRank ? t("pair.levelEach", { rank: myRank }) : t("pair.yourLevelEach"),
+    t("pair.partnersAt", { rank: partnerRank }),
+    t("game.caption.unrated"),
+  ].join(" · ");
 }
 
 /** Whose move it is, said the way a pair table says it. */
-export function pairStatus({ result, resultLine, thinking, roster, seatId, phase, loading }) {
+export function pairStatus({ result, resultLine, thinking, roster, seatId, phase, loading }, t = EN) {
   if (result) return resultLine;
-  if (phase === "scoring") return "Mark dead stones, then accept";
+  if (phase === "scoring") return t("game.status.scoring");
   const seat = seatId ? roster[seatId] : null;
   if (!seat) return "";
-  if (seat.you) return "Your move";
-  if (thinking && loading) return `${seat.name} is warming up… ${loading}`;
-  if (thinking) return `${seat.name} is thinking…`;
-  return `${seat.name} to move`;
+  if (seat.you) return t("game.status.yourMove");
+  if (thinking && loading) return t("game.status.warming", { name: seat.name, loading });
+  if (thinking) return t("game.status.thinking", { name: seat.name });
+  return t("game.status.toMove", { name: seat.name });
 }
 
 /** One line naming the seat that just played, for the move log and the header.
  *  Colour alone is not enough at a pair table: "White played" leaves two people
  *  it could have been. */
-export const seatLine = (roster, seatId) => {
+export const seatLine = (roster, seatId, t = EN) => {
   const seat = roster[seatId];
   if (!seat) return "";
-  const color = colorOfSeat(seatId) === "b" ? "Black" : "White";
-  return `${seat.name} · ${color}`;
+  return t("pair.seatLine", { name: seat.name, side: t(`game.side.${colorOfSeat(seatId)}`) });
 };

@@ -20,6 +20,9 @@
    because how often a bot speaks is a judgement about the product, not about
    React. It is pure: the view holds the `spoken` map and nothing else. */
 import { SEVERITY_RANK } from "../engine/index.js";
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
+
+const EN = makeT(BASE_LOCALE);
 
 /** How often the coach is allowed to speak. Named, so the numbers are arguable. */
 export const PACING = {
@@ -126,11 +129,12 @@ export const COMMENTARY = {
 
 /** Every line a persona can draw on for a shape: its own first, then the fallback.
  *  Concatenated rather than replaced, so a repeat is always a different sentence. */
-export function linesFor(shapeId, personaId) {
+export function linesFor(shapeId, personaId, t = EN) {
   const entry = COMMENTARY[shapeId];
   if (!entry) return [];
-  const own = (personaId && entry[personaId]) || [];
-  return [...own, ...entry.default];
+  const read = (voice, list) => list.map((line, i) => t(`shape.${shapeId}.${voice}.${i}`, null, line));
+  const own = personaId && entry[personaId] ? read(personaId, entry[personaId]) : [];
+  return [...own, ...read("default", entry.default)];
 }
 
 /**
@@ -146,7 +150,7 @@ export function linesFor(shapeId, personaId) {
  *        at move 10 and again at 45 clears the same gate again at 80.
  * @returns {{ line: string, shapeId: string, severity: string }|null}
  */
-export function chooseRemark(findings, ctx = {}) {
+export function chooseRemark(findings, ctx = {}, t = EN) {
   const { spoken = {}, moveNumber = 0, personaId = null } = ctx;
   if (!findings || !findings.length) return null;
 
@@ -181,7 +185,7 @@ export function chooseRemark(findings, ctx = {}) {
      which is the one thing the severity order exists to prevent. */
   if (ranked.some((f) => !eligible(f) && rank(f) > rank(best))) return null;
 
-  const lines = linesFor(best.id, personaId);
+  const lines = linesFor(best.id, personaId, t);
   if (!lines.length) return null;
   const times = spoken[best.id] ? spoken[best.id].count : 0;
   return { line: lines[times % lines.length], shapeId: best.id, severity: best.severity };

@@ -3,8 +3,8 @@
 
    THE RULE: MEASURED, NEVER AWARDED
    Every badge here is a function of a player's public record and nothing else.
-   There is no grant, no list of who has what, and no way for anybody — an
-   operator included — to give one out or take one away. If the arithmetic says
+   There is no grant, no list of who has what, and no way for anybody (an
+   operator included), to give one out or take one away. If the arithmetic says
    you have it, you have it, and if the record changes the badge changes with
    it. That is the same rule the eval numbers in `docs/designs/masters-and-books.md`
    are written under, and the reason there is no badge for sportsmanship,
@@ -12,8 +12,8 @@
    you, and a claim wearing the costume of a measurement is worse than no badge.
 
    WHY THERE IS NO SERVER CODE FOR THIS
-   The fields these read — wins, losses, draws, rating, deviation, the day the
-   handle was made — are already on every public player the server serves. So a
+   The fields these read (wins, losses, draws, rating, deviation, the day the
+   handle was made) are already on every public player the server serves. So a
    badge is derived where it is drawn, nothing is stored, nothing is migrated,
    and there is no new sentence owed to the privacy notice because nothing new
    is collected. Storing them would be storing a cached answer to a question
@@ -25,6 +25,10 @@
 
 import { isProvisional } from "../engine/index.js";
 import { rankOf } from "./rank.js";
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
+import { localize } from "./translate.js";
+
+const EN = makeT(BASE_LOCALE);
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -123,3 +127,8 @@ export function badgesShown(player, now = Date.now()) {
   }
   return have.filter((b) => !beaten.has(b.id));
 }
+
+/** A badge in the language in force. Its label and the line saying what it
+ *  measures are prose the data file owns, overlaid by id under `badge.`; the
+ *  id and the arithmetic are data and are never touched. */
+export const localizeBadge = (b, t = EN) => localize(b, `badge.${b.id}`, t);

@@ -146,8 +146,10 @@ describe("etiquette", () => {
   });
 
   it("takes no argument at all without throwing", () => {
-    expect(etiquette()).toEqual([{ text: "Have a good game", note: "the usual opening" },
-      { text: "Onegaishimasu", note: "please, let us play" }]);
+    expect(etiquette()).toEqual([
+      { id: "goodGame", text: "Have a good game", note: "the usual opening" },
+      { id: "onegaishimasu", text: "Onegaishimasu", note: "please, let us play" },
+    ]);
   });
 });
 

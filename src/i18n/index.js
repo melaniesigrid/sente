@@ -10,6 +10,7 @@
      localeOf        an id -> the language
      isLocaleId      may a profile hold this id
      makeT           a locale id -> t(key, vars, fallback)
+     lineOr          the line for a key, or a given answer when nobody has one
      flatten/keysOf  the catalogue as dotted keys, for the tests
 
    Nothing here knows about React: the shell reads `navigator.languages` and
@@ -19,5 +20,5 @@
 export {
   LOCALES, BASE_LOCALE, SYSTEM_LOCALE, isLocaleId, localeOf, resolveLocale,
 } from "./locales.js";
-export { makeT, flatten, keysOf, CATALOGUES } from "./catalog.js";
+export { makeT, lineOr, flatten, keysOf, CATALOGUES } from "./catalog.js";
 export { interpolate, pluralCategory, isPlural, pickForm } from "./format.js";

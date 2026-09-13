@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   PLAIN_WORDS, STATEMENTS, LANDING_STATEMENTS, plainFor, statementFor, landingStatement,
 } from "./plain.js";
+import { makeT } from "../i18n/index.js";
 
 describe("plain words", () => {
   it("covers every screen that sets one", () => {
@@ -49,7 +50,17 @@ describe("the statement", () => {
 
   it("returns null for a screen with no statement", () => {
     expect(statementFor("nowhere")).toBeNull();
-    expect(statementFor("home")).toBe(STATEMENTS.home);
+    expect(statementFor("home")).toEqual(STATEMENTS.home);
+  });
+
+  /* The three lines are read from the catalogue one at a time, so a language
+     that has translated two of them shows two translated and one English
+     rather than dropping the statement. */
+  it("reads each line in the language it is handed", () => {
+    const es = makeT("es");
+    expect(statementFor("home", es)).toHaveLength(3);
+    expect(statementFor("home", es)).not.toEqual(STATEMENTS.home);
+    expect(plainFor("home", es)).not.toBe(PLAIN_WORDS.home);
   });
 });
 

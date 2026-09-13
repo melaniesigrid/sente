@@ -19,6 +19,10 @@
    So: this is only ever called with games the reader is in, and the wording
    names the board ("waiting two minutes"), not the person. */
 
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
+
+const EN = makeT(BASE_LOCALE);
+
 /** Games still being played, as opposed to the ones the list also carries that
  *  have already finished. Scoring counts: somebody is waiting on you. */
 export const isLive = (game) => !!game && (game.phase === "playing" || game.phase === "scoring");
@@ -49,49 +53,52 @@ export function isYourMove(game, me) {
 /** How long the board has been waiting, in the widest unit that is still
  *  useful. Minutes matter at a live board in a way they never matter on a
  *  public page, which is the whole difference between this and `seenText`. */
-export function waitingText(since, now = Date.now()) {
+export const waitedMinutes = (since, now = Date.now()) =>
+  (since ? Math.floor(Math.max(0, now - since) / 60000) : null);
+
+export function waitingText(since, t = EN, now = Date.now()) {
   if (!since) return null;
-  const ms = Math.max(0, now - since);
-  const mins = Math.floor(ms / 60000);
-  if (mins < 1) return "just now";
-  if (mins === 1) return "1 minute";
-  if (mins < 60) return `${mins} minutes`;
+  const mins = waitedMinutes(since, now);
+  if (mins < 1) return t("online.wait.justNow");
+  if (mins < 60) return t("online.wait.minutes", { count: mins });
   const hours = Math.floor(mins / 60);
-  if (hours === 1) return "1 hour";
-  if (hours < 24) return `${hours} hours`;
-  const days = Math.floor(hours / 24);
-  return days === 1 ? "1 day" : `${days} days`;
+  if (hours < 24) return t("online.wait.hours", { count: hours });
+  return t("online.wait.days", { count: Math.floor(hours / 24) });
 }
 
 /** Whose move it is, said from this player's seat. */
-export function turnText(game, me) {
-  if (game.phase === "scoring") return "Counting";
+export function turnText(game, me, t = EN) {
+  if (game.phase === "scoring") return t("online.dash.counting");
   const mine = sideOf(game, me);
-  if (!mine) return game.toPlay === "b" ? "Black to move" : "White to move";
-  return isYourMove(game, me) ? "Your move" : "Their move";
+  if (!mine) return t(game.toPlay === "b" ? "game.status.toPlayB" : "game.status.toPlayW");
+  return isYourMove(game, me) ? t("game.status.yourMove") : t("online.dash.theirMove");
 }
 
 /** The one line under the opponent's name: whose move, how long the board has
  *  been waiting, and what board it is. */
-export function dashLine(game, me, now = Date.now()) {
-  const waited = waitingText(game.updatedAt, now);
-  const parts = [turnText(game, me)];
-  if (waited) parts.push(waited === "just now" ? "moved just now" : `waiting ${waited}`);
-  parts.push(`${game.size}×${game.size}`);
-  if (game.pair) parts.push("pair go");
-  if (!game.rated) parts.push("unrated");
+export function dashLine(game, me, t = EN, now = Date.now()) {
+  const mins = waitedMinutes(game.updatedAt, now);
+  const parts = [turnText(game, me, t)];
+  if (mins !== null) {
+    parts.push(mins < 1
+      ? t("online.dash.movedJustNow")
+      : t("online.dash.waiting", { waited: waitingText(game.updatedAt, t, now) }));
+  }
+  parts.push(t("game.caption.board", { size: game.size }));
+  if (game.pair) parts.push(t("online.dash.pair"));
+  if (!game.rated) parts.push(t("game.caption.unrated"));
   return parts.join(" · ");
 }
 
 /** Who is across the board, named. */
-export function opponentName(game, me) {
+export function opponentName(game, me, t = EN) {
   const mine = sideOf(game, me);
   const other = mine === "b" ? "w" : "b";
   const named = game.teams && game.teams[other];
   const seats = named && named.length ? named : [other === "b" ? game.black : game.white];
   const names = (seats || []).filter(Boolean).map((p) => p.name).filter(Boolean);
-  if (names.length) return names.join(" & ");
-  return other === "b" ? "Black" : "White";
+  if (names.length) return names.join(t("online.table.and"));
+  return t(other === "b" ? "game.side.b" : "game.side.w");
 }
 
 /** The board, ordered the way somebody actually reads it: the games waiting on

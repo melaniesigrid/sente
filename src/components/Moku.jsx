@@ -1,6 +1,7 @@
 import { useContext, useMemo, useState, useCallback } from "react";
 import { X } from "lucide-react";
 import { mokuState } from "../content/moku.js";
+import { useT } from "./langStore.js";
 import { MokuCtx } from "./mokuStore.js";
 
 /* ----------------------- MOKU (mascot) -----------------------
@@ -36,9 +37,10 @@ export function MokuProvider({ view, children }) {
   const setOff = useCallback((v) => { writeOff(v); setOffState(v); }, []);
   const report = useCallback((f) => setFacts(f), []);
   const clear = useCallback(() => setFacts(null), []);
+  const t = useT();
   const resolved = useMemo(
-    () => mokuState(facts ?? { view: VIEW_FACT[view] ?? "home", seed: visits }),
-    [facts, view, visits],
+    () => mokuState(facts ?? { view: VIEW_FACT[view] ?? "home", seed: visits }, t),
+    [facts, view, visits, t],
   );
   const value = useMemo(() => ({ ...resolved, off, setOff, report, clear }), [resolved, off, setOff, report, clear]);
   return <MokuCtx.Provider value={value}>{children}</MokuCtx.Provider>;
@@ -125,6 +127,7 @@ export function MokuMark({ size = 56, state = "idle", sash = null, className = "
    sets `open`, because a gutter that holds a spoken line does not exist there
    and the line would otherwise lie across whatever you were reading. */
 export function MokuDock() {
+  const t = useT();
   const m = useContext(MokuCtx);
   const [open, setOpen] = useState(false);
   if (!m || m.off) return null;
@@ -133,10 +136,10 @@ export function MokuDock() {
       <div className={`moku-bubble ${open ? "open" : ""}`} role="status" aria-live="polite" key={m.line}>{m.line}</div>
       <div className="moku-seat">
         <button className="moku-seat-btn" onClick={() => setOpen(!open)}
-          aria-expanded={open} aria-label={open ? "Hide what Moku is saying" : "Ask Moku"}>
+          aria-expanded={open} aria-label={open ? t("mascot.hide") : t("mascot.ask")}>
           <MokuMark state={m.state} size={92} />
         </button>
-        <button className="moku-off" onClick={() => m.setOff(true)} aria-label="Send Moku away" title="Send Moku away">
+        <button className="moku-off" onClick={() => m.setOff(true)} aria-label={t("mascot.dismiss")} title={t("mascot.dismiss")}>
           <X size={13} strokeWidth={2.6} />
         </button>
       </div>

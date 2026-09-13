@@ -17,7 +17,11 @@ import { loadGame, clearGame } from "../store/gameStore.js";
  *  @returns {{ record, mode, opponent } | null}
  *  A coached game resumes coached: `mode.coaching` and the coach's `spoken` memory ride
  *  back on the mode, so the table stays unrated and the coach does not repeat itself. */
-export function loadSession({ storage, today = dayKey(), personas = PERSONAS, profile = null } = {}) {
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
+
+const EN = makeT(BASE_LOCALE);
+
+export function loadSession({ storage, today = dayKey(), personas = PERSONAS, profile = null, t = EN } = {}) {
   const saved = loadGame(storage);
   if (!saved || saved.record.phase === "ended") { if (saved) clearGame(storage); return null; }
   if (saved.mode.kind === "bot") {
@@ -46,11 +50,11 @@ export function loadSession({ storage, today = dayKey(), personas = PERSONAS, pr
     return {
       record: saved.record,
       mode: { kind: "pair", persona, rank, partnerRank: saved.mode.partnerRank },
-      opponent: `${persona.name} · pair go`,
+      opponent: t("pair.opponent", { name: persona.name }),
     };
   }
   if (saved.mode.kind === "local") {
-    return { record: saved.record, mode: { kind: "local" }, opponent: "Pass & play" };
+    return { record: saved.record, mode: { kind: "local" }, opponent: t("play.passPlay") };
   }
   clearGame(storage);
   return null;

@@ -8,12 +8,15 @@
    on the rank badge beside it, in the same row of the same ladder. */
 import { rankOf } from "./rank.js";
 import { isProvisional, GLICKO } from "../engine/index.js";
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
+
+const EN = makeT(BASE_LOCALE);
 
 /** The deviation above which a rank is a guess. The engine owns the number. */
 export const PROVISIONAL_RD = GLICKO.provisionalRd;
 
 /** "12k" for a settled rating, "12k? provisional" while it is still settling. */
-export function provisionalText(player) {
-  const label = rankOf(player.rating);
-  return isProvisional(player.rd) ? `${label}? provisional` : `${label} · ±${player.rd}`;
+export function provisionalText(player, t = EN) {
+  const rank = rankOf(player.rating);
+  return t(isProvisional(player.rd) ? "online.provisional" : "online.settled", { rank, rd: player.rd });
 }

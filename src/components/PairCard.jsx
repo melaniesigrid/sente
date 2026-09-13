@@ -4,6 +4,7 @@ import { Avatar, RankBadge, Btn } from "./ui.jsx";
 import { personasFor } from "../content/personas.js";
 import { ratingOfRank, rankOf } from "../content/rank.js";
 import { pairRoster, PARTNER_RANK, PARTNER_RANKS, teamLine } from "../content/rengo.js";
+import { useT } from "./langStore.js";
 
 /* ----------------------- THE PAIR TABLE (lobby card) -----------------------
    Sitting down at a pair table is one decision, not four: how strong a partner
@@ -22,6 +23,7 @@ export function PairCard({ profile, onPlay }) {
      because at a pair table they are standing in for you: the two teams are the
      same shape and the same strength, and the level picker is about a game you
      play alone. */
+  const t = useT();
   const myRank = rankOf(profile.rating);
   const persona = personasFor(myRank)[0];
   const roster = pairRoster({ profile, persona, partnerRank });
@@ -31,18 +33,11 @@ export function PairCard({ profile, onPlay }) {
       <div className="persona-top">
         <div className="avatar duo"><Users size={22} strokeWidth={2} /></div>
         <div>
-          <h3>Pair go</h3>
-          <p className="persona-tag">Four seats, one board</p>
+          <h3>{t("pair.head")}</h3>
+          <p className="persona-tag">{t("pair.tag")}</p>
         </div>
       </div>
-      <p className="persona-bio">
-        You and a {partnerRank} house player against {persona.name}, who plays at your
-        level, and one of their own.
-        The four of you take turns in one rotation and nobody plays twice running, so
-        every move you make is answered by an opponent and then built on by a player
-        far stronger than you, in your game, on your mistake. Your partner is silent:
-        what it has to teach, it teaches by playing it.
-      </p>
+      <p className="persona-bio">{t("pair.bio", { rank: partnerRank, name: persona.name })}</p>
       <div className="pair-faces">
         {seats.map((id) => {
           const seat = roster[id];
@@ -57,21 +52,22 @@ export function PairCard({ profile, onPlay }) {
           );
         })}
       </div>
-      <div className="rank-picker-controls" role="group" aria-label="How strong a partner">
-        <Btn icon={Minus} small label="A weaker partner" disabled={pi <= 0}
+      <div className="rank-picker-controls" role="group" aria-label={t("pair.howStrong")}>
+        <Btn icon={Minus} small label={t("pair.weaker")} disabled={pi <= 0}
           onClick={() => setPartnerRank(PARTNER_RANKS[pi - 1])} />
-        <span className="handicap-num" aria-live="polite">Partners at {partnerRank}</span>
-        <Btn icon={Plus} small label="A stronger partner" disabled={pi >= PARTNER_RANKS.length - 1}
+        <span className="handicap-num" aria-live="polite">{t("pair.partnersAt", { rank: partnerRank })}</span>
+        <Btn icon={Plus} small label={t("pair.stronger")} disabled={pi >= PARTNER_RANKS.length - 1}
           onClick={() => setPartnerRank(PARTNER_RANKS[pi + 1])} />
         <Btn icon={Play} small primary onClick={() => onPlay({ kind: "pair", persona, partnerRank })}>
-          Sit down
+          {t("play.sitDown")}
         </Btn>
       </div>
       <p className="fine">
-        {teamLine(roster, "b")} against {teamLine(roster, "w")} · unrated, because a win in
-        which a {partnerRank} played half your moves is evidence about the pair and not
-        about you. Both partners are the same strength; no clock yet. Every player above
-        except you is a bot, and says so.
+        {t("pair.cardNote", {
+          ours: teamLine(roster, "b", t),
+          theirs: teamLine(roster, "w", t),
+          rank: partnerRank,
+        })}
       </p>
     </div>
   );

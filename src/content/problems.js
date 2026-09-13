@@ -3,6 +3,15 @@
    hand and engine-verified; the data shape is SGF-import ready for
    classical collections (Guanzi Pu, Xuanxuan Qijing). */
 import { pt } from "./positions.js";
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
+import { localize } from "./translate.js";
+
+const EN = makeT(BASE_LOCALE);
+
+/** A tsumego in the language in force: its theme, its title, the prompt and
+ *  the explanation. The position is data and is never touched. */
+export const localizeProblem = (p, t = EN) => localize(p, `problem.${p.id}`, t);
+
 
 export const PROBLEMS = [
   {

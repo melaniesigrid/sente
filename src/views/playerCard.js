@@ -12,16 +12,20 @@
    The facts are read from `server/profile.js` rather than restated, so a field
    added there appears on this page in the same commit that adds it. */
 import { FACTS } from "../../server/profile.js";
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
 
-const MONTHS = ["January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"];
+const EN = makeT(BASE_LOCALE);
 
 /** "March 2026". The month and the year, because the day somebody made an
- *  account is nobody's business and nobody's interest either. */
-export function monthYear(at) {
+ *  account is nobody's business and nobody's interest either.
+ *
+ *  The month is a catalogue line and so is the way the two are joined, because
+ *  "March 2026" and "marzo de 2026" are not the same sentence with one word
+ *  swapped. */
+export function monthYear(at, t = EN) {
   const d = new Date(at);
   if (Number.isNaN(d.getTime())) return null;
-  return `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+  return t("date.monthYear", { month: t(`date.month.${d.getMonth() + 1}`), year: d.getFullYear() });
 }
 
 /** Whole calendar days from `a` to `b`, so a game at eleven last night is
@@ -32,23 +36,35 @@ function daysApart(a, b) {
 }
 
 /** "Here since March 2026", or null for a player record without a date on it. */
-export function joinedText(createdAt) {
-  const when = createdAt ? monthYear(createdAt) : null;
-  return when ? `Here since ${when}` : null;
+export function joinedText(createdAt, t = EN) {
+  const when = createdAt ? monthYear(createdAt, t) : null;
+  return when ? t("player.since", { when }) : null;
 }
 
-/** How recently they played, in the widest bucket that is still true. Nothing
- *  finer than a day, and nothing at all without a stamp to go on. */
-export function seenText(lastSeen, now = Date.now()) {
-  if (!lastSeen) return null;
+/** How long ago, in the widest bucket that is still true, as a phrase rather
+ *  than a sentence: "yesterday", "this week", "March 2026". Nothing finer than
+ *  a day, and nothing at all without a stamp to go on.
+ *
+ *  It is the phrase and not the sentence because two screens want it in two
+ *  frames: a player card says "Played yesterday" and a letter says only when it
+ *  arrived. Peeling the verb off an English sentence with `replace` is not a
+ *  translation, it is a trick that works in exactly one language. */
+export function whenText(at, t = EN, now = Date.now()) {
+  if (!at) return null;
+  const days = daysApart(at, now);
+  if (days <= 0) return t("player.when.today");    // 0, or a clock behind the server's
+  if (days === 1) return t("player.when.yesterday");
+  if (days < 7) return t("player.when.thisWeek");
+  if (days < 31) return t("player.when.thisMonth");
+  return monthYear(at, t);
+}
+
+/** How recently they played, said as a sentence about a person. */
+export function seenText(lastSeen, t = EN, now = Date.now()) {
+  const when = whenText(lastSeen, t, now);
+  if (!when) return null;
   const days = daysApart(lastSeen, now);
-  if (days < 0) return "Played today";          // a clock slightly behind the server's
-  if (days === 0) return "Played today";
-  if (days === 1) return "Played yesterday";
-  if (days < 7) return "Played this week";
-  if (days < 31) return "Played this month";
-  const when = monthYear(lastSeen);
-  return when ? `Last played ${when}` : null;
+  return t(days < 31 ? "player.played" : "player.lastPlayed", { when });
 }
 
 /** The ids in a presence answer, as a set. The answer names only the people
@@ -63,31 +79,31 @@ export const hereSet = (answer) => new Set((answer && answer.online) || []);
  *  second one is the weaker version of the first. Somebody who is not here, or
  *  who has not said we may know, gets exactly what they got before presence
  *  existed, which is a bucket no finer than a day. */
-export function presenceLine(isHere, lastSeen, now = Date.now()) {
-  return isHere ? "Here now" : seenText(lastSeen, now);
+export function presenceLine(isHere, lastSeen, t = EN, now = Date.now()) {
+  return isHere ? t("online.friends.hereNow") : seenText(lastSeen, t, now);
 }
 
 /** The record, or an honest sentence when there is not one yet. A player with
  *  no finished game has no rank worth reading either, which is why the badge
  *  beside this carries its own question mark. */
-export function recordText(player) {
+export function recordText(player, t = EN) {
   const wins = player.wins ?? 0;
   const losses = player.losses ?? 0;
   const draws = player.draws ?? 0;
-  if (!wins && !losses && !draws) return "No finished games yet";
-  const parts = [`${wins} W`, `${losses} L`];
-  if (draws) parts.push(`${draws} drawn`);
+  if (!wins && !losses && !draws) return t("player.noGames");
+  const parts = [t("player.wins", { count: wins }), t("player.losses", { count: losses })];
+  if (draws) parts.push(t("player.draws", { count: draws }));
   return parts.join(" · ");
 }
 
 /** The facts this player actually filled in, in the order `profile.js` lists
  *  them. An empty field is left out rather than shown as a blank row: three
  *  empty rows look like a form somebody failed, and this is not their form. */
-export function factRows(player) {
+export function factRows(player, t = EN) {
   const facts = player?.facts ?? {};
   return FACTS
     .filter((f) => typeof facts[f.key] === "string" && facts[f.key].trim() !== "")
-    .map((f) => ({ key: f.key, label: f.label, value: facts[f.key] }));
+    .map((f) => ({ key: f.key, label: t(`fact.${f.key}.label`, null, f.label), value: facts[f.key] }));
 }
 
 /** Is there anything on this card besides the numbers the server computed?

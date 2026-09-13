@@ -1,8 +1,15 @@
 import { describe, it, expect } from "vitest";
 import {
-  standingWith, friendAction, outcomeText, OUTCOME_TEXT,
+  standingWith, friendAction, outcomeText, OUTCOMES,
   friendErrorText, FRIEND_ERRORS, moved, STANDING_AFTER, bookIsEmpty, everyoneIn,
 } from "./friendship.js";
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
+
+/* The wording lives in the catalogue now, so these ask it in English. The
+   parity test is what holds the other three languages to the same lines. */
+const EN = makeT(BASE_LOCALE);
+const outcome = (o) => outcomeText(o, EN);
+const refusal = (r) => friendErrorText(r, EN);
 
 const p = (id) => ({ id, name: id.toUpperCase(), tint: "eucalyptus", rating: 900, rd: 80 });
 const book = (over = {}) => ({ friends: [], incoming: [], outgoing: [], ...over });
@@ -31,7 +38,7 @@ describe("friendAction", () => {
      page must offer to accept rather than to ask again across a table where
      the answer is already waiting. */
   it("offers to accept, not to ask, when they asked first", () => {
-    const a = friendAction("asking");
+    const a = friendAction("asking", EN);
     expect(a.act).toBe("accept");
     expect(a.label).toBe("Accept");
     expect(a.undo.act).toBe("forget");
@@ -39,14 +46,14 @@ describe("friendAction", () => {
   });
 
   it("offers to add a stranger", () => {
-    const a = friendAction("none");
+    const a = friendAction("none", EN);
     expect(a.act).toBe("ask");
     expect(a.undo).toBe(null);
   });
 
   it("shows a settled state with a quiet way out, and no main action", () => {
     for (const standing of ["friends", "asked"]) {
-      const a = friendAction(standing);
+      const a = friendAction(standing, EN);
       expect(a.act).toBe(null);
       expect(a.done).toBe(true);
       expect(a.undo.act).toBe("forget");
@@ -54,30 +61,31 @@ describe("friendAction", () => {
   });
 
   it("names the two undos differently, because they are different acts", () => {
-    expect(friendAction("friends").undo.label).not.toBe(friendAction("asked").undo.label);
+    expect(friendAction("friends", EN).undo.label).not.toBe(friendAction("asked", EN).undo.label);
   });
 
   it("treats anything it has never heard of as a stranger", () => {
-    expect(friendAction("nonsense").act).toBe("ask");
+    expect(friendAction("nonsense", EN).act).toBe("ask");
   });
 });
 
 describe("what is said afterwards", () => {
   it("has a line for every outcome the server can answer with", () => {
-    for (const outcome of ["friends", "asked", "unfriended", "declined", "withdrawn", "nothing"]) {
-      expect(OUTCOME_TEXT[outcome], outcome).toBeTruthy();
-      expect(outcomeText(outcome)).toBe(OUTCOME_TEXT[outcome]);
+    for (const o of ["friends", "asked", "unfriended", "declined", "withdrawn", "nothing"]) {
+      expect(OUTCOMES, o).toContain(o);
+      // A reason with no line of its own would fall through to the catch-all.
+      expect(outcome(o), o).not.toBe(outcome("invented"));
     }
   });
 
   /* Withdrawn and declined come back from the same DELETE and mean opposite
      things to whoever pressed it, so they must never read the same. */
   it("says something different for withdrawing and for declining", () => {
-    expect(OUTCOME_TEXT.withdrawn).not.toBe(OUTCOME_TEXT.declined);
+    expect(outcome("withdrawn")).not.toBe(outcome("declined"));
   });
 
   it("says something rather than nothing for an outcome it has not met", () => {
-    expect(outcomeText("invented")).toBe("Done");
+    expect(outcome("invented")).toBe("Done");
   });
 });
 
@@ -86,21 +94,24 @@ describe("what is said when it is refused", () => {
     const fromServer = ["no-player", "yourself", "already-friends", "no-request",
       "your-list-is-full", "their-list-is-full", "too-many-asked",
       "their-requests-are-full", "too-many-requests"];
-    for (const reason of fromServer) expect(FRIEND_ERRORS[reason], reason).toBeTruthy();
+    for (const reason of fromServer) {
+      expect(FRIEND_ERRORS, reason).toContain(reason);
+      expect(refusal(reason), reason).not.toContain(reason);
+    }
   });
 
   it("covers the two the client itself raises before anything is sent", () => {
-    expect(FRIEND_ERRORS.offline).toBeTruthy();
-    expect(FRIEND_ERRORS["no-server"]).toBeTruthy();
+    expect(refusal("offline")).not.toContain("offline");
+    expect(refusal("no-server")).not.toContain("no-server");
   });
 
   it("tells the two full lists apart, since only one of them is yours to fix", () => {
-    expect(FRIEND_ERRORS["your-list-is-full"]).not.toBe(FRIEND_ERRORS["their-list-is-full"]);
-    expect(FRIEND_ERRORS["your-list-is-full"]).toMatch(/remove somebody/i);
+    expect(refusal("your-list-is-full")).not.toBe(refusal("their-list-is-full"));
+    expect(refusal("your-list-is-full")).toMatch(/remove somebody/i);
   });
 
   it("names an unknown reason rather than swallowing it", () => {
-    expect(friendErrorText("brand-new")).toContain("brand-new");
+    expect(refusal("brand-new")).toContain("brand-new");
   });
 });
 

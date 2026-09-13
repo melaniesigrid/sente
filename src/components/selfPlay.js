@@ -7,7 +7,7 @@ import { createBoard, tryPlay, aiChooseMove, idx } from "../engine/index.js";
 
    A frame is the whole of it: the game being played (board, ko, whose turn,
    move number, passes in a row) and the three facts the Board is handed to
-   draw it — `last`, the point just played; `took`, the stones that move lifted;
+   draw it: `last`, the point just played; `took`, the stones that move lifted;
    and `n`, which doubles as the capture key, so a capture on move 13 replays
    rather than sitting on screen from move 12.
 

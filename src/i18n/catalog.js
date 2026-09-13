@@ -16,13 +16,15 @@
       wrong line must not take the screen down with it. */
 import { BASE_LOCALE, localeOf } from "./locales.js";
 import { interpolate, isPlural, pickForm } from "./format.js";
-import { en } from "./en.js";
-import { es } from "./es.js";
+import { en } from "./en/index.js";
+import { es } from "./es/index.js";
+import { fr } from "./fr/index.js";
+import { de } from "./de/index.js";
 
 /** The catalogues we ship, by locale id. A language in LOCALES with no
  *  catalogue here is a language that reads entirely in English, which the
  *  parity test refuses to let happen. */
-export const CATALOGUES = { en, es };
+export const CATALOGUES = { en, es, fr, de };
 
 /** A nested catalogue as a flat map of dotted key -> line (or plural set).
  *  Pure, and the same function the parity test compares two languages with. */
@@ -77,4 +79,21 @@ export function makeT(id) {
       : entry;
     return interpolate(line, vars);
   };
+}
+
+/** A sentinel no catalogue line can equal, so `lineOr` can tell "the
+ *  catalogue answered with this line" from "no catalogue had this key".
+ *  Written as escapes rather than literal control characters, because a raw
+ *  NUL in the source makes git call this file binary and refuse to merge it. */
+const NO_LINE = "\u0000no line\u0000";
+
+/** The line for a key, or `otherwise` when no language has one.
+ *
+ *  For the places where a missing line is an expected answer rather than a
+ *  mistake: a refusal the server invented, a reason this build has never met.
+ *  It asks with a fallback, which is what keeps the development warning for
+ *  keys that really are missing from a screen that expected one. */
+export function lineOr(t, key, otherwise, vars = null) {
+  const line = t(key, vars, NO_LINE);
+  return line === NO_LINE ? otherwise : line;
 }

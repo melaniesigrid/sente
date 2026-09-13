@@ -16,7 +16,13 @@ import { analyseGame, cachedAnalysis, reviewLength } from "../engine/index.js";
 
 const MEASURE_AFTER = 4;
 
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
+import { useT } from "../components/langStore.js";
+
+const EN = makeT(BASE_LOCALE);
+
 export function useAnalysis(record) {
+  const t = useT();
   const [points, setPoints] = useState([]);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState(null);
@@ -40,7 +46,7 @@ export function useAnalysis(record) {
     setPoints(got.current);
     setRunning(false);
     setError(null);
-  }, [record]);
+  }, [record, t]);
 
   // A clock only while the walk is running, so the estimate moves between points.
   useEffect(() => {
@@ -68,13 +74,13 @@ export function useAnalysis(record) {
     }).then((res) => {
       setRunning(false);
       if (!res.complete && res.reason === "unavailable") {
-        setError("The network could not be reached, so the graph stops where it does.");
+        setError(t("review.networkUnreachable"));
       }
     }).catch((e) => {
       setRunning(false);
-      setError(e && e.message ? e.message : "The graph could not be drawn.");
+      setError(e && e.message ? e.message : t("review.graphFailed"));
     });
-  }, [record]);
+  }, [record, t]);
 
   const cancel = useCallback(() => { stop.current = true; }, []);
 
@@ -98,9 +104,8 @@ export function useAnalysis(record) {
 }
 
 /** "about 2 minutes left", or null while there is nothing measured to say it from. */
-export function remainingText(seconds) {
+export function remainingText(seconds, t = EN) {
   if (seconds == null) return null;
-  if (seconds < 45) return "under a minute left";
-  const mins = Math.round(seconds / 60);
-  return `about ${mins} minute${mins === 1 ? "" : "s"} left`;
+  if (seconds < 45) return t("review.underAMinute");
+  return t("review.minutesLeft", { count: Math.round(seconds / 60) });
 }

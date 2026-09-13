@@ -1,5 +1,6 @@
 import { useMemo, useRef } from "react";
-import { graphSummary } from "../engine/index.js";
+import { graphSummaryText } from "../views/reviewLine.js";
+import { useT } from "./langStore.js";
 
 /* ----------------------- THE WIN RATE GRAPH -----------------------
    One picture of a whole game: how the network's opinion of who was winning moved,
@@ -23,6 +24,7 @@ import { graphSummary } from "../engine/index.js";
 const W = 600, H = 150;
 
 export function WinGraph({ points, total, current, onPick, turns = [], className = "" }) {
+  const t = useT();
   const svg = useRef(null);
   const span = Math.max(1, total);
   const x = (move) => (move / span) * W;
@@ -54,7 +56,7 @@ export function WinGraph({ points, total, current, onPick, turns = [], className
     onPick(Math.max(0, Math.min(span, at)));
   };
 
-  const label = graphSummary(points, total);
+  const label = graphSummaryText(points, total, t);
 
   return (
     <div className={`wingraph ${className}`}>

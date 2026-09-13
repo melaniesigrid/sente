@@ -64,7 +64,7 @@ export function LangPill({ profile, setProfile }) {
 
   const deviceId = resolveLocale(SYSTEM_LOCALE, devices);
   const rows = [
-    { id: SYSTEM_LOCALE, endonym: t("look.words.system"), note: localeOf(deviceId).endonym, tag: null },
+    { id: SYSTEM_LOCALE, endonym: t("lang.systemName"), note: localeOf(deviceId).endonym, tag: null },
     ...LOCALES.map(l => ({ id: l.id, endonym: l.endonym, note: null, tag: l.tag })),
   ];
 
@@ -73,14 +73,14 @@ export function LangPill({ profile, setProfile }) {
       <button ref={button} className={`lang-pill ${open ? "on" : ""}`}
         onClick={() => setOpen(o => !o)}
         aria-haspopup="menu" aria-expanded={open}
-        aria-label={t("topbar.language", { language: locale.endonym })}>
+        aria-label={t("lang.pick", { name: locale.endonym })}>
         <Languages size={16} strokeWidth={2.1} />
         {/* The tag, not the endonym: a header has room for two letters and the
             two letters are the same in every language. */}
         <span className="lang-tag">{locale.tag.toUpperCase()}</span>
       </button>
       {open && (
-        <div className="lang-menu" role="menu" aria-label={t("topbar.language", { language: locale.endonym })}>
+        <div className="lang-menu" role="menu" aria-label={t("lang.menu")}>
           {rows.map(r => (
             <button key={r.id} role="menuitemradio" aria-checked={chosen === r.id}
               lang={r.tag || undefined}

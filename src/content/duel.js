@@ -14,6 +14,10 @@
 import { hashString } from "../engine/index.js";
 import { previousDay } from "./kata.js";
 import { RANK_LADDER } from "./rank.js";
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
+
+const EN = makeT(BASE_LOCALE);
+
 
 /** The seed the house player plays with today. */
 export function duelSeed(key) {
@@ -102,10 +106,10 @@ export function duelShareText({ key, personaName, code, moves, url }) {
 }
 
 /** One line for a card: "Won by 12.5", "Lost by resignation", "Jigo". */
-export function duelResultText(code) {
+export function duelResultText(code, t = EN) {
   if (!code) return "";
-  if (code === "Jigo") return "Jigo";
+  if (code === "Jigo") return t("voice.duel.jigo");
   const [side, by] = code.split("+");
-  const verb = side === "B" ? "Won" : "Lost";
-  return by === "R" ? `${verb} by resignation` : `${verb} by ${by}`;
+  const verb = t(side === "B" ? "voice.duel.won" : "voice.duel.lost");
+  return by === "R" ? t("voice.duel.byResignation", { verb }) : t("voice.duel.byMargin", { verb, margin: by });
 }

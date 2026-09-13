@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Swords, GraduationCap, Target, LayoutDashboard, Medal, ArrowRight, Palette } from "lucide-react";
-import { sayingBySeed } from "./content/classic.js";
+import { sayingBySeed, localizeSaying } from "./content/classic.js";
 
 /* ================================================================
    SENTE · play go, beautifully
@@ -234,7 +234,7 @@ export default function JosekiApp() {
           <Wordmark lockup="plain" className="foot-wordmark" />
           <span>&middot; {t("brand.tagline")}</span>
         </span>
-        <span className="foot-line">{footSaying.text}</span>
+        <span className="foot-line">{localizeSaying(footSaying, t).text}</span>
         <span className="foot-legal">
           <button className="foot-link" onClick={() => setView("landing")}>{t("foot.about")}</button>
           <span className="foot-sep" aria-hidden="true">·</span>
@@ -249,7 +249,7 @@ export default function JosekiApp() {
           {DOCUMENTS.map((d, i) => (
             <span key={d.id} className="foot-legal">
               {i > 0 && <span className="foot-sep" aria-hidden="true">·</span>}
-              <button className="foot-link" onClick={() => go("legal", { docId: d.id })}>{d.title}</button>
+              <button className="foot-link" onClick={() => go("legal", { docId: d.id })}>{t(`legalDoc.${d.id}.title`, null, d.title)}</button>
             </span>
           ))}
         </span>

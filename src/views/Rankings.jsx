@@ -11,6 +11,7 @@ import { ratingOfRank, preciseRankOf } from "../content/rank.js";
 import { provisionalText } from "../content/online.js";
 import { api, serverEnabled } from "../net/api.js";
 import { loadAccount } from "../store/account.js";
+import { useT } from "../components/langStore.js";
 
 /* ----------------------- RANKINGS -----------------------
    Two ladders. The global one is the server's Glicko-2 table of people who
@@ -21,6 +22,7 @@ import { loadAccount } from "../store/account.js";
    do not: a house player is software, it has nothing to say about itself, and a
    page about one would be a page about a rank. */
 export function RankingsView({ profile, go }) {
+  const t = useT();
   const account = useMemo(() => loadAccount(), []);
   const [global, setGlobal] = useState(() => (serverEnabled() ? null : false));   // null loading, [] empty, false unavailable
   useEffect(() => {
@@ -41,31 +43,28 @@ export function RankingsView({ profile, go }) {
   return (
     <div className="stack arrives">
       <ScreenHeader
-        label="Where you stand"
-        title={<>The <em>ladder</em>.</>}
-        lede="The global ladder is people: every rated game between two handles is settled
-              on the server with Glicko-2, so a rating carries how sure it is. The house
-              ladder is you against the residents, Elo-style, roughly a hundred points to
-              a rank." />
-      <Statement lines={statementFor("ladder")} figure="ladder">{plainFor("ladder")}</Statement>
+        label={t("ladder.label")}
+        title={<>{t("ladder.titleBefore")}<em>{t("ladder.titleEm")}</em>{t("ladder.titleAfter")}</>}
+        lede={t("ladder.lede")} />
+      <Statement lines={statementFor("ladder", t)} figure="ladder">{plainFor("ladder", t)}</Statement>
       <Passage context="ladder" />
 
       {global !== false && (
         <>
-          <div className="stat-head"><Globe size={16} /><span>Global · people</span></div>
+          <div className="stat-head"><Globe size={16} /><span>{t("ladder.globalHead")}</span></div>
           <Card className="ladder">
-            {global === null && <p className="fine">Fetching the ladder…</p>}
-            {global && global.length === 0 && <p className="fine">Nobody has sat down yet. Claim a handle in Play to be first.</p>}
+            {global === null && <p className="fine">{t("ladder.fetching")}</p>}
+            {global && global.length === 0 && <p className="fine">{t("ladder.empty")}</p>}
             {global && global.map((r, i) => (
               <button key={r.id} type="button"
                 className={`ladder-row ladder-open ${account && r.id === account.player.id ? "me" : ""}`}
                 onClick={() => go("player", { playerId: r.id, from: "ladder" })}
-                aria-label={`${r.name}, ${preciseRankOf(r.rating)}. Open their page`}>
+                aria-label={t("ladder.openPlayer", { name: r.name, rank: preciseRankOf(r.rating) })}>
                 <span className={`ladder-pos ${i === 0 ? "gold" : ""}`}>{i === 0 ? <Crown size={16} /> : i + 1}</span>
                 <Avatar name={r.name} tint={r.tint} size={38} src={avatarUrl(SERVER_URL, r.id, r.avatarAt)} />
                 <div className="ladder-name">
                   <strong>{r.name}</strong>
-                  <span className="fine">{provisionalText(r)} · {r.wins}–{r.losses}{account && r.id === account.player.id ? " · that's you" : ""}</span>
+                  <span className="fine">{t("ladder.rowMeta", { provisional: provisionalText(r), wins: r.wins, losses: r.losses })}{account && r.id === account.player.id ? t("ladder.thatsYou") : ""}</span>
                 </div>
                 <div className="ladder-rating">{preciseRankOf(r.rating)}</div>
                 <RankBadge rating={r.rating} rd={r.rd} precise />
@@ -75,7 +74,7 @@ export function RankingsView({ profile, go }) {
         </>
       )}
 
-      <div className="stat-head"><Bot size={16} /><span>House · you and the bots</span></div>
+      <div className="stat-head"><Bot size={16} /><span>{t("ladder.houseHead")}</span></div>
       <Card className="ladder">
         {rows.map((r, i) => (
           <div key={r.id} className={`ladder-row ${r.id === "you" ? "me" : ""}`}>
@@ -83,7 +82,7 @@ export function RankingsView({ profile, go }) {
             <Avatar name={r.name} tint={r.tint} size={38} bot={r.bot} />
             <div className="ladder-name">
               <strong>{r.name}</strong>
-              {r.bot ? <span className="fine">house player · adapts to your level</span> : <span className="fine">that's you</span>}
+              {r.bot ? <span className="fine">{t("ladder.botNote")}</span> : <span className="fine">{t("ladder.you")}</span>}
             </div>
             <div className="ladder-rating">{r.bot ? `${r.range[0]}–${r.range[1]}` : preciseRankOf(r.rating)}</div>
             <RankBadge rating={r.rating} rd={r.bot ? undefined : r.rd} precise={!r.bot} />
@@ -92,8 +91,8 @@ export function RankingsView({ profile, go }) {
       </Card>
       {profile.bestStreak > 1 && (
         <Card inset className="streak-note">
-          <Flame size={16} /> Best win streak: <strong>{profile.bestStreak}</strong>
-          {profile.streak > 1 && <> · current: <strong>{profile.streak}</strong></>}
+          <Flame size={16} /> {t("ladder.bestStreak")} <strong>{profile.bestStreak}</strong>
+          {profile.streak > 1 && <> {t("ladder.currentStreak")} <strong>{profile.streak}</strong></>}
         </Card>
       )}
     </div>

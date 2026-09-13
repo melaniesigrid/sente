@@ -1495,7 +1495,7 @@ Later, in order: the club and chat, then the game archive (cap, eviction, localS
 versus Durable Objects, all open), then Neo-Human pair go, which is a seat-model change in
 the multiplayer Worker and is unrated for the same reason coached games are.
 
-## Phase 7: The words (in progress, branch `feat/i18n`)
+## Phase 7: The words (done, 2026-09-12, branch `feat/i18n-ship`)
 
 Joseki reads in the player's own language. English stays the language it is authored in
 and the floor every lookup lands on, so an unfinished language is a page with some English
@@ -1511,18 +1511,34 @@ that is honestly still English.
       `navigator.languages`, the way prefersDark.js is for the media query.
 - [x] `profile.locale`, `system` by default: the words follow the device unless the player
       says otherwise, exactly as the room does.
-- [x] The language picker, at the head of the look page, above the room: it is the one
-      choice on that page that decides whether the rest of it can be read.
-- [x] Spanish: the shell (nav, top bar, footer, the crash card) and the whole look page,
-      including the notes the theme and typeface data files hold.
-- [ ] Spanish: home, play, the lobby and the game (`Home`, `Play`, `Game`, `gameStatus`).
-- [ ] Spanish: learn, the library, tsumego, the ladder, the profile.
-- [ ] Spanish: the landing page, onboarding, the small print, the letters.
-- [ ] Spanish, the content prose: Moku's lines, the personas, the welcome copy, the
-      commentary. The Classic's thirteen chapters are a translation problem of their own
-      and are the last thing to touch, not the first.
-- [ ] French, the same slices in the same order. Cheap after Spanish: the keys exist, so
-      each PR is a catalogue file and a test run.
+- [x] The language picker. It began at the head of the look page and moved into the top
+      bar: the look page has to be found, and it is labelled in the language you are
+      trying to leave (`components/LangPill.jsx`).
+- [x] Spanish, then French, then German, in that order and in the same slices: the shell
+      and the look page; home, play, the lobby and the game; learn, the library, tsumego,
+      the ladder, the profile; the landing page, onboarding, the small print, the letters;
+      and the content prose, Moku's lines, the personas, the welcome copy, the commentary.
+      The Classic's thirteen chapters came last, as a translation problem of their own.
+- [x] The social layer, which landed while the stack was stranded: friends, letters, the
+      archive, player pages, badges, the dashboard of your tables, the win rate graph,
+      pair go and the etiquette row.
+- [x] Four catalogues at parity, held there by `i18n.test.js`: every key English has,
+      every overlay complete against the data it stands in front of, and no line that
+      fills a hole the English line has no value for.
+
+The stack shipped as one PR rather than the five it was built as. Every one of #101 to
+#117 merged into the branch below it and the bottom never reached main, so all five were
+marked merged on GitHub with none of their work in the app. `feat/i18n-ship` is that stack
+forward-ported onto a main that had moved 150 commits past it. See "Stacked PRs" under
+Principles: a stack is merged bottom-up or it is not merged at all.
+
+Still English on purpose, and not a hole: the journal's notes. A note is somebody's
+writing rather than a label, and the screen says so in the language you chose.
+
+Next language: add it to `LOCALES` and write `src/i18n/<id>/`. The parity test will list
+every line it wants. Budget a day, and check it in a browser before believing it, because
+a missing reader in a component no test renders is invisible to the suite (see
+`MokuDock`, fixed in this branch).
 
 Decisions made in Phase 7 (change deliberately, not by accident):
 - English lives in `en.js`, except for prose that a data file already owns: a room's note,
@@ -1539,6 +1555,16 @@ Decisions made in Phase 7 (change deliberately, not by accident):
   served in. It is what a screen reader picks a voice from.
 - A missing key returns the key itself and warns once in development. Visible in a
   screenshot, harmless to a player, and never a crash.
+- The engine stays pure. `winRateLine` and `graphSummary` keep their English in
+  `src/engine/`; the sentence is built in `views/reviewLine.js`, which is the pattern
+  `reviewLabelText` set. A helper in `views/` or `content/` takes `t` as its last
+  argument and defaults it to English, so a test can ask in English without a browser.
+- A wording table keyed by the server's refusal word is a catalogue, not a module
+  constant. `friendship.js`, `letters.js` and `ArchiveCard` keep the list of reasons and
+  read the words through `lineOr`, so an unknown reason still says something.
+- Do not peel a phrase off a sentence with `replace`. `whenText` returns "yesterday" and
+  `seenText` puts it in a sentence, because `seenText(...).replace("Played ", "")` is a
+  trick that works in exactly one language.
 
 ## Phase 8: Pair go
 
@@ -1980,6 +2006,9 @@ Decisions made in Phase 9, the page slice (2026-09-12, branch `feat/player-page`
 - House players are labeled as bots everywhere.
 - Every failure has a name and a message; nothing fails silently.
 - Board first, status second, controls third. No chrome that does not earn its pixels.
+- Stacked PRs merge bottom-up or not at all. A branch that targets another branch is not
+  landed when GitHub says merged: it is landed when the bottom of the stack reaches main.
+  Phase 7 lost five merged PRs to this and needed a forward-port to recover them.
 
 ## Brand marks (done, branch `feat/brand-marks`)
 

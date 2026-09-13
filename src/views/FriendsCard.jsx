@@ -5,6 +5,7 @@ import { SERVER_URL } from "../net/api.js";
 import { provisionalText } from "../content/online.js";
 import { useFriends } from "./useFriends.js";
 import { usePresence } from "./usePresence.js";
+import { useT } from "../components/langStore.js";
 import { bookIsEmpty, everyoneIn } from "./friendship.js";
 
 /* ----------------------- THE FRIENDS CARD -----------------------
@@ -18,6 +19,7 @@ import { bookIsEmpty, everyoneIn } from "./friendship.js";
    Every row opens that player's page, and the two buttons are the only things
    on the row that do not. */
 export function FriendsCard({ account, notify, go }) {
+  const t = useT();
   const { book, busy, act } = useFriends(account.token, notify);
   /* Everybody on the card at once, in one call, rather than a call per row.
      Friends are the people most likely to be visible, which is the point. */
@@ -27,27 +29,22 @@ export function FriendsCard({ account, notify, go }) {
     <Card className="friends-card">
       <div className="op-head">
         <div className="op-id">
-          <h3>Your friends</h3>
-          <p className="fine">
-            Friendship here is agreed, never claimed: both of you have to press. Nobody is
-            told when a request is declined.
-          </p>
+          <h3>{t("online.friends.head")}</h3>
+          <p className="fine">{t("online.friends.note")}</p>
         </div>
       </div>
 
       {book === null ? (
-        <p className="fine">Fetching your lists…</p>
+        <p className="fine">{t("online.friends.fetching")}</p>
       ) : bookIsEmpty(book) ? (
-        <p className="fine">
-          Nobody yet. Open a player&rsquo;s page from the ladder and ask them.
-        </p>
+        <p className="fine">{t("online.friends.empty")}</p>
       ) : (
         <>
-          <Group title="Asking to be friends" people={book.incoming} empty={null}
+          <Group title={t("online.friends.incoming")} people={book.incoming} empty={null}
             act={act} busy={busy} go={go} here={here} kind="incoming" />
-          <Group title="Friends" people={book.friends} empty={null}
+          <Group title={t("online.friends.friends")} people={book.friends} empty={null}
             act={act} busy={busy} go={go} here={here} kind="friends" />
-          <Group title="You asked" people={book.outgoing} empty={null}
+          <Group title={t("online.friends.outgoing")} people={book.outgoing} empty={null}
             act={act} busy={busy} go={go} here={here} kind="outgoing" />
         </>
       )}
@@ -73,29 +70,30 @@ function Group({ title, people, act, busy, go, here, kind }) {
 }
 
 function FriendRow({ person, kind, busy, act, go, here }) {
+  const t = useT();
   return (
     <div className="friend-row">
       <button type="button" className="friend-who"
         onClick={() => go("player", { playerId: person.id, from: "profile" })}
-        aria-label={`Open ${person.name}'s page`}>
+        aria-label={t("online.game.openPage", { name: person.name })}>
         <Avatar name={person.name} tint={person.tint} size={38}
           src={avatarUrl(SERVER_URL, person.id, person.avatarAt)} />
         <span className="ladder-name">
-          <strong>{person.name}{here && <span className="here-dot" title="Here now" />}</strong>
+          <strong>{person.name}{here && <span className="here-dot" title={t("online.friends.hereNow")} />}</strong>
           <span className="fine">{provisionalText(person)} · {person.wins}–{person.losses}</span>
         </span>
       </button>
       <RankBadge rating={person.rating} rd={person.rd} precise />
       <span className="friend-acts">
-        {busy ? <Btn icon={Loader} small label="Working" disabled /> : (
+        {busy ? <Btn icon={Loader} small label={t("online.friends.working")} disabled /> : (
           <>
             {kind === "incoming" && (
-              <Btn icon={Check} small primary onClick={() => act("accept", person)} label={`Accept ${person.name}`} />
+              <Btn icon={Check} small primary onClick={() => act("accept", person)} label={t("online.friends.acceptName", { name: person.name })} />
             )}
             <Btn icon={kind === "incoming" ? X : UserX} small onClick={() => act("forget", person)}
-              label={kind === "friends" ? `Remove ${person.name}`
-                : kind === "incoming" ? `Decline ${person.name}`
-                  : `Take back the request to ${person.name}`} />
+              label={t(kind === "friends" ? "online.friends.removeName"
+                : kind === "incoming" ? "online.friends.declineName"
+                  : "online.friends.takeBackName", { name: person.name })} />
           </>
         )}
       </span>
@@ -110,10 +108,11 @@ function FriendRow({ person, kind, busy, act, go, here }) {
    asked you, where a page offering "Add friend" would send a second request
    across a table where the answer was already waiting. */
 export function FriendButton({ action, person, busy, act }) {
+  const t = useT();
   const Icon = action.done ? UserCheck : action.act === "accept" ? Check : UserPlus;
   return (
     <div className="row friend-button">
-      {busy ? <Btn icon={Loader} small disabled>Working…</Btn> : (
+      {busy ? <Btn icon={Loader} small disabled>{t("online.friends.workingEllipsis")}</Btn> : (
         <>
           {action.act
             ? <Btn icon={Icon} small primary onClick={() => act(action.act, person)}>{action.label}</Btn>

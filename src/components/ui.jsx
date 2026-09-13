@@ -1,5 +1,7 @@
 import { Bot, Crown, Shield, Star, Medal } from "lucide-react";
-import { TINTS, rankOf, preciseRankOf, beltOf } from "../content/rank.js";
+import { TINTS, rankOf, preciseRankOf, beltOf, beltLabel } from "../content/rank.js";
+import { localizeBadge } from "../content/badges.js";
+import { useT } from "./langStore.js";
 import { isProvisional } from "../engine/index.js";
 import { Figure } from "./Figure.jsx";
 
@@ -43,13 +45,15 @@ export const Avatar = ({ name, tint, size = 44, bot, src, className = "" }) => (
    rating deviation: while it is wide the rank is still a guess, and the badge
    says so with a question mark rather than pretending otherwise. */
 export const RankBadge = ({ rating, size = "md", precise = false, rd }) => {
+  const t = useT();
   const whole = rankOf(rating);
   const label = precise ? preciseRankOf(rating) : whole;
   const belt = beltOf(rating);
   const dan = whole.endsWith("d");
   const unsure = rd !== undefined && isProvisional(rd);
   const Icon = dan ? Crown : parseInt(whole) <= 10 ? Star : Shield;
-  const title = `Rating ${Math.round(rating)} · ${belt.label}${unsure ? " · still settling" : ""}`;
+  const title = t("rank.badgeTitle", { rating: Math.round(rating), belt: beltLabel(belt, t) })
+    + (unsure ? t("rank.settling") : "");
   return (
     <div className={`rank-badge ${size}`} title={title}>
       <Icon size={size === "lg" ? 18 : 14} strokeWidth={2.2} />
@@ -63,28 +67,36 @@ export const RankBadge = ({ rating, size = "md", precise = false, rd }) => {
    badge nobody can check is decoration; hover or focus one and it says exactly
    what the arithmetic was. Purely derived from the public record, so it needs
    no data of its own. */
-export const Badges = ({ badges, className = "" }) => (
-  badges.length === 0 ? null : (
+export const Badges = ({ badges, className = "" }) => {
+  const t = useT();
+  if (badges.length === 0) return null;
+  return (
     <ul className={`badges ${className}`.trim()}>
-      {badges.map((b) => (
-        <li key={b.id} className="badge" title={b.hint}>
-          <Medal size={13} strokeWidth={2.2} aria-hidden="true" />
-          <span>{b.label}</span>
-        </li>
-      ))}
+      {badges.map((badge) => {
+        const b = localizeBadge(badge, t);
+        return (
+          <li key={b.id} className="badge" title={b.hint}>
+            <Medal size={13} strokeWidth={2.2} aria-hidden="true" />
+            <span>{b.label}</span>
+          </li>
+        );
+      })}
     </ul>
-  )
-);
+  );
+};
 
 /** A tied belt: the band plus a knot. `belt` is an entry from BELTS. */
-export const BeltRibbon = ({ belt, className = "" }) => (
-  <div className={`belt-ribbon ${className}`} style={{ "--belt": belt.color }} role="img" aria-label={belt.label}>
+export const BeltRibbon = ({ belt, className = "" }) => {
+  const t = useT();
+  return (
+  <div className={`belt-ribbon ${className}`} style={{ "--belt": belt.color }} role="img" aria-label={beltLabel(belt, t)}>
     <span className="belt-band" />
     <span className="belt-knot" />
     <span className="belt-tail belt-tail-l" />
     <span className="belt-tail belt-tail-r" />
   </div>
-);
+  );
+};
 
 /** A neumorphic on/off switch. */
 export const Toggle = ({ on, onChange, label }) => (
@@ -101,12 +113,15 @@ export const Toggle = ({ on, onChange, label }) => (
    modern words, labelled as a gloss so it is never taken for a quotation of
    the text beside it. `label` names the register; the default suits the book.
    `size` is "sm" for a card corner, default for a page. */
-export const PullQuote = ({ children, label = "In plain words", size = "" }) => (
-  <aside className={`pull-quote ${size}`.trim()}>
-    <p className="pull-line">{children}</p>
-    <span className="pull-label">{label}</span>
-  </aside>
-);
+export const PullQuote = ({ children, label = null, size = "" }) => {
+  const t = useT();
+  return (
+    <aside className={`pull-quote ${size}`.trim()}>
+      <p className="pull-line">{children}</p>
+      <span className="pull-label">{label ?? t("voice.plainLabel")}</span>
+    </aside>
+  );
+};
 
 /* ----------------------- A STATEMENT -----------------------
    The same idea as the pull quote, in six words instead of sixty, and set as
@@ -132,7 +147,8 @@ export const PullQuote = ({ children, label = "In plain words", size = "" }) => 
    flourish and never the content: the whole statement is the paragraph's
    accessible name from the first frame, the animated spans are hidden from a
    reader, and less motion means the lines are simply already up. */
-export const Statement = ({ lines, children, label = "In plain words", className = "", figure, at = "right" }) => {
+export const Statement = ({ lines, children, label = null, className = "", figure, at = "right" }) => {
+  const t = useT();
   if (!lines || lines.length === 0) return null;
   return (
     <section className={`statement${figure ? " has-fig" : ""}${className ? ` ${className}` : ""}`}>
@@ -146,7 +162,7 @@ export const Statement = ({ lines, children, label = "In plain words", className
       </p>
       {children ? (
         <p className="statement-gloss">
-          <span className="pull-label">{label}</span>
+          <span className="pull-label">{label ?? t("voice.plainLabel")}</span>
           <span>{children}</span>
         </p>
       ) : null}

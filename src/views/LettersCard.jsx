@@ -4,7 +4,8 @@ import { Card, Btn, Avatar } from "../components/ui.jsx";
 import { api, serverEnabled, SERVER_URL } from "../net/api.js";
 import { avatarUrl } from "../net/avatar.js";
 import { LETTER_MAX } from "../../server/post.js";
-import { seenText } from "./playerCard.js";
+import { whenText } from "./playerCard.js";
+import { useT } from "../components/langStore.js";
 import { writeRefusal } from "./letters.js";
 
 /* ----------------------- THE POST -----------------------
@@ -17,6 +18,7 @@ import { writeRefusal } from "./letters.js";
    attention and the thing a person actually wants to know is whether they are
    the one being waited on. */
 export function LettersCard({ account, go }) {
+  const t = useT();
   const [rows, setRows] = useState(null);
   const [open, setOpen] = useState(null);      // the id of the thread being read
   const { token } = account;
@@ -46,30 +48,25 @@ export function LettersCard({ account, go }) {
     <Card className="letters-card">
       <div className="op-head">
         <div className="op-id">
-          <h3>Letters</h3>
-          <p className="fine">
-            One thread a person, kept for good. Only somebody you are friends with, or have
-            finished a game against, can write to you.
-          </p>
+          <h3>{t("letters.head")}</h3>
+          <p className="fine">{t("letters.note")}</p>
         </div>
       </div>
       {rows.length === 0 ? (
-        <p className="fine">
-          Nothing yet. Open somebody&rsquo;s page from your friends or the ladder and write to them.
-        </p>
+        <p className="fine">{t("letters.empty")}</p>
       ) : (
         <div className="friend-rows">
           {rows.map((row) => (
             <button key={row.player.id} type="button" className="friend-who letter-row"
               onClick={() => setOpen(row.player.id)}
-              aria-label={`Read your letters with ${row.player.name}`}>
+              aria-label={t("letters.readWith", { name: row.player.name })}>
               <Avatar name={row.player.name} tint={row.player.tint} size={38}
                 src={avatarUrl(SERVER_URL, row.player.id, row.player.avatarAt)} />
               <span className="ladder-name">
-                <strong>{row.player.name}{!row.theirTurn && <span className="here-dot" title="Waiting on you" />}</strong>
+                <strong>{row.player.name}{!row.theirTurn && <span className="here-dot" title={t("letters.waitingOnYou")} />}</strong>
                 <span className="fine letter-preview">{row.preview}</span>
               </span>
-              <span className="fine archive-when">{seenText(row.at) ? seenText(row.at).replace("Played ", "") : ""}</span>
+              <span className="fine archive-when">{whenText(row.at, t) ?? ""}</span>
             </button>
           ))}
         </div>
@@ -80,6 +77,7 @@ export function LettersCard({ account, go }) {
 
 /** One thread, open. */
 function Thread({ account, otherId, onBack, go }) {
+  const t = useT();
   const [state, setState] = useState(null);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
@@ -113,18 +111,18 @@ function Thread({ account, otherId, onBack, go }) {
   return (
     <Card className="letters-card">
       <div className="row">
-        <Btn icon={ArrowLeft} small onClick={onBack}>Letters</Btn>
-        <Btn small onClick={() => go("player", { playerId: otherId, from: "profile" })}>Their page</Btn>
+        <Btn icon={ArrowLeft} small onClick={onBack}>{t("letters.head")}</Btn>
+        <Btn small onClick={() => go("player", { playerId: otherId, from: "profile" })}>{t("letters.theirPage")}</Btn>
       </div>
 
-      {state === null ? <p className="fine">Opening…</p> : (
+      {state === null ? <p className="fine">{t("letters.opening")}</p> : (
         <>
           <div className="thread">
-            {letters.length === 0 && <p className="fine">Nothing written yet. Yours to begin.</p>}
+            {letters.length === 0 && <p className="fine">{t("letters.threadEmpty")}</p>}
             {letters.map((l, i) => (
               <div key={`${l.at}-${i}`} className={`letter ${l.from === account.player.id ? "mine" : ""}`}>
                 <p className="letter-text">{l.text}</p>
-                <span className="fine">{seenText(l.at) ? seenText(l.at).replace("Played ", "") : ""}</span>
+                <span className="fine">{whenText(l.at, t) ?? ""}</span>
               </div>
             ))}
           </div>
@@ -132,17 +130,17 @@ function Thread({ account, otherId, onBack, go }) {
           {state.can ? (
             <div className="gate-fields">
               <textarea className="chat-input op-textarea" value={draft} maxLength={LETTER_MAX} rows={3}
-                placeholder="About the game, or anything else"
+                placeholder={t("letters.placeholder")}
                 onChange={(e) => setDraft(e.target.value)} />
               <div className="row">
                 <Btn icon={busy ? Loader : Send} primary small disabled={busy || !draft.trim()}
-                  onClick={send}>{busy ? "Sending…" : "Send"}</Btn>
-                <span className="fine">{LETTER_MAX - draft.length} left</span>
-                {refused && <span className="fine">{writeRefusal(refused)}</span>}
+                  onClick={send}>{t(busy ? "letters.sending" : "letters.send")}</Btn>
+                <span className="fine">{t("letters.left", { count: LETTER_MAX - draft.length })}</span>
+                {refused && <span className="fine">{writeRefusal(refused, t)}</span>}
               </div>
             </div>
           ) : (
-            <p className="fine">{writeRefusal(state.why)}</p>
+            <p className="fine">{writeRefusal(state.why, t)}</p>
           )}
         </>
       )}
@@ -153,6 +151,7 @@ function Thread({ account, otherId, onBack, go }) {
 /** Stop somebody writing, or let them again. Silent either way: the other
  *  person is never told, which is the whole point of it. */
 export function BlockButton({ account, setAccount, player, notify }) {
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const blocked = (account.player.blocked || []).includes(player.id);
 
@@ -161,15 +160,15 @@ export function BlockButton({ account, setAccount, player, notify }) {
     try {
       const r = await api.setBlocked(account.token, player.id, !blocked);
       setAccount({ token: account.token, player: { ...account.player, blocked: r.blocked } });
-      notify({ icon: "info", text: blocked ? `${player.name} can write to you again` : `${player.name} can no longer write to you` });
+      notify({ icon: "info", text: t(blocked ? "letters.unblocked" : "letters.blocked", { name: player.name }) });
     } catch (e) {
-      notify({ icon: "info", text: writeRefusal(e.reason) });
+      notify({ icon: "info", text: writeRefusal(e.reason, t) });
     } finally { setBusy(false); }
   };
 
   return (
     <Btn icon={busy ? Loader : blocked ? Undo2 : Ban} small disabled={busy} onClick={flip}>
-      {blocked ? "Let them write" : "Stop them writing"}
+      {t(blocked ? "letters.letThemWrite" : "letters.stopThemWriting")}
     </Btn>
   );
 }

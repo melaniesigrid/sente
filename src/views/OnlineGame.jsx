@@ -20,6 +20,8 @@ import { refusalText, resignLabel, confirmMoveLabel, resultCard, RESIGN_CONFIRM_
 import { tapAction } from "./stagedMove.js";
 import { onlineStatus, settledLine, onlineCaption, teamName } from "./onlineStatus.js";
 import { talkParts, pointsNamed, etiquette } from "./tableTalk.js";
+import { useT } from "../components/langStore.js";
+import { lineOr } from "../i18n/index.js";
 
 /* `seat` in this view is a seat id ("b1", "w1", "b2", "w2"), which is what the
    server now hands out: at a pair table a colour names two people, and the one
@@ -50,6 +52,13 @@ const faceOf = (seat) => avatarUrl(SERVER_URL, seat.id, seat.avatarAt);
    room or a refusal, and the board never moves ahead of it. Without an account
    or a seat this is the spectator view of the same table. */
 export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
+  const t = useT();
+  /* The socket's callbacks live as long as the connection does, and the
+     language can change under them. They read the current reader out of a ref
+     rather than closing over one, so switching language mid-game does not drop
+     the table and reconnect it. */
+  const tRef = useRef(t);
+  useEffect(() => { tRef.current = t; }, [t]);
   const account = useMemo(() => loadAccount(), []);
   const [room, setRoom] = useState(null);
   const [seat, setSeat] = useState(null);
@@ -96,10 +105,10 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
           setChat(f.room.chat);
         } else if (f.t === "seat") { setSeat(f.seat); setRuns(f.runs ?? []); setWatching(f.watching); }
         else if (f.t === "chat") setChat(c => [...c, f.msg].slice(-CHAT_KEEP));
-        else if (f.t === "undo") { if (f.status === "declined") notify({ icon: "info", text: "Undo declined" }); }
+        else if (f.t === "undo") { if (f.status === "declined") notify({ icon: "info", text: tRef.current("online.game.undoDeclined") }); }
         else if (f.t === "error") {
           if (f.reason === "no-room") setGone(true);
-          const text = refusalText(f.reason) ?? ERRORS[f.reason];
+          const text = refusalText(f.reason, tRef.current) ?? refusalWords(f.reason, tRef.current);
           if (text) notify({ icon: "info", text });
         }
       },
@@ -171,8 +180,8 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
     [chat, account, sent],
   );
   const openers = useMemo(
-    () => (rec ? etiquette({ phase: rec.phase, moves: rec.moves.length, seated: !!seat, said }) : []),
-    [rec, seat, said],
+    () => (rec ? etiquette({ phase: rec.phase, moves: rec.moves.length, seated: !!seat, said }, t) : []),
+    [rec, seat, said, t],
   );
   const resultKind = over && color ? (over.winner === null ? "jigo" : over.winner === color ? "win" : "loss") : null;
   useMokuFacts({ view: "game", phase: rec ? rec.phase : "playing", thinking: false, myAtari: myAtari.length, oppAtari: 0, ko: !!(rec && rec.koPoint !== null), moment: null, result: resultKind, promoted: null, seed: rec ? rec.moves.length : 0 });
@@ -183,7 +192,7 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
      from a thing it only tried to say. */
   const send = (frame) => {
     const gone = !!(sock.current && sock.current.send(frame));
-    if (!gone) notify({ icon: "info", text: "Not connected" });
+    if (!gone) notify({ icon: "info", text: t("online.game.notConnected") });
     return gone;
   };
 
@@ -210,7 +219,7 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
       .catch(() => {
         /* The network could not answer. The table says so rather than passing on
            your behalf: a pass is a move, and no partner of yours chose it. */
-        if (alive) notify({ icon: "info", text: `${room.seats[up].name} cannot reach the network` });
+        if (alive) notify({ icon: "info", text: t("online.game.partnerOffline", { name: room.seats[up].name }) });
         answering.current = null;
       })
       .finally(() => { if (alive) setPartnerThinking(false); });
@@ -304,26 +313,26 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
   const shareTable = async () => {
     const url = new URL(window.location.href);
     url.search = `?game=${gameId}`;
-    try { await navigator.clipboard.writeText(url.toString()); notify({ icon: "info", text: "Table link copied" }); }
+    try { await navigator.clipboard.writeText(url.toString()); notify({ icon: "info", text: t("online.game.linkCopied") }); }
     catch { notify({ icon: "info", text: url.toString() }); }
   };
 
   const status = partnerThinking && room
-    ? `${room.seats[up].name} is thinking…`
-    : onlineStatus({ room, seat, conn });
-  const card = over ? resultCard(over) : null;
+    ? t("game.status.thinking", { name: room.seats[up].name })
+    : onlineStatus({ room, seat, conn }, t);
+  const card = over ? resultCard(over, t) : null;
   const tone = over && color ? (over.winner === color ? "win" : over.winner === null ? "" : "loss") : "";
   const boardDisabled = !room || !seat || !!over || conn !== "open" || (!scoring && !myTurn);
   const mine = seat ? room.seats[seat] : null;
   const theirs = color ? (color === "b" ? whiteLead : blackLead) : null;
   const partner = room && seat && room.pair ? seatName(room, partnerSeat(seat)) : "";
-  const settled = settledLine(room, seat);
+  const settled = settledLine(room, seat, t);
 
   if (gone) {
     return (
       <div className="stack">
-        <Btn icon={ChevronLeft} small onClick={onExit}>Lobby</Btn>
-        <Card inset><p className="fine">That table does not exist, or it is gone.</p></Card>
+        <Btn icon={ChevronLeft} small onClick={onExit}>{t("online.game.lobby")}</Btn>
+        <Card inset><p className="fine">{t("online.game.gone")}</p></Card>
       </div>
     );
   }
@@ -331,7 +340,7 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
   return (
     <div className="stack">
       <div className="row spread">
-        <Btn icon={ChevronLeft} small onClick={onExit}>Lobby</Btn>
+        <Btn icon={ChevronLeft} small onClick={onExit}>{t("online.game.lobby")}</Btn>
         {room && (
           <div className={`vs-strip ${room.pair ? "pair-strip" : ""}`}>
             {room.pair ? <OnlineTeam room={room} color="b" up={up} /> : (
@@ -361,25 +370,25 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
           {seat && !over && (scoring ? (
             <div className="row">
               <Btn icon={Check} small primary onClick={() => send({ t: "accept" })} disabled={room.accepted === color}>
-                {room.accepted === color ? "Accepted" : "Accept score"}
+                {t(room.accepted === color ? "online.game.accepted" : "online.game.acceptScore")}
               </Btn>
-              <Btn icon={Handshake} small onClick={onResign} disabled={!canResign}>{resignLabel(confirmResign)}</Btn>
+              <Btn icon={Handshake} small onClick={onResign} disabled={!canResign}>{resignLabel(confirmResign, t)}</Btn>
             </div>
           ) : undoAsk ? (
             <div className="row">
-              <span className="fine">{seatName(room, room.undo.by)} asks to take back a move.</span>
-              <Btn icon={Check} small primary onClick={() => send({ t: "undoAccept" })}>Allow</Btn>
-              <Btn icon={X} small onClick={() => send({ t: "undoDecline" })}>Decline</Btn>
+              <span className="fine">{t("online.game.undoAsk", { name: seatName(room, room.undo.by) })}</span>
+              <Btn icon={Check} small primary onClick={() => send({ t: "undoAccept" })}>{t("online.game.allow")}</Btn>
+              <Btn icon={X} small onClick={() => send({ t: "undoDecline" })}>{t("online.game.decline")}</Btn>
             </div>
           ) : (
             <div className="row">
               <Btn icon={Check} small primary onClick={onConfirmMove} disabled={!pending}>
-                {confirmMoveLabel(!!pending)}
+                {confirmMoveLabel(!!pending, t)}
               </Btn>
-              {pending && <Btn icon={X} small onClick={() => setPending(null)}>Cancel</Btn>}
-              <Btn icon={Flag} small onClick={onPass} disabled={!myTurn}>Pass</Btn>
-              <Btn icon={RotateCcw} small onClick={() => send({ t: "undoRequest" })} disabled={!canAskUndo}>Ask undo</Btn>
-              <Btn icon={Handshake} small onClick={onResign} disabled={!canResign}>{resignLabel(confirmResign)}</Btn>
+              {pending && <Btn icon={X} small onClick={() => setPending(null)}>{t("game.cancel")}</Btn>}
+              <Btn icon={Flag} small onClick={onPass} disabled={!myTurn}>{t("game.pass")}</Btn>
+              <Btn icon={RotateCcw} small onClick={() => send({ t: "undoRequest" })} disabled={!canAskUndo}>{t("online.game.askUndo")}</Btn>
+              <Btn icon={Handshake} small onClick={onResign} disabled={!canResign}>{resignLabel(confirmResign, t)}</Btn>
             </div>
           ))}
         </div>
@@ -398,8 +407,8 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
               {card.rows.length > 0 && (
                 <div className="result-rows">
                   {card.rows.map(r => (
-                    <div key={r.side} className={`result-row ${r.winner ? "winner" : ""}`}>
-                      <span className={`dot ${r.side === "Black" ? "dot-b" : "dot-w"}`} />
+                    <div key={r.color} className={`result-row ${r.winner ? "winner" : ""}`}>
+                      <span className={`dot dot-${r.color}`} />
                       <span className="result-side">{r.side}</span>
                       <span className="result-detail">{r.detail}</span>
                       <span className="result-total">{r.total}</span>
@@ -408,38 +417,43 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
                 </div>
               )}
               <p className="fine">
-                {settled ?? (room.settled ? (room.rated ? "Rated; the ladder has moved." : "Unrated.") : room.rated ? "Rated; settling on the ladder…" : "Unrated.")}
-                {over.method === "score" && rec.dead.length > 0 && ` · ${rec.dead.length} dead ${rec.dead.length === 1 ? "stone" : "stones"} removed`}
+                {settled ?? t(room.settled
+                  ? (room.rated ? "online.game.ratedMoved" : "online.game.unrated")
+                  : room.rated ? "online.game.ratedSettling" : "online.game.unrated")}
+                {over.method === "score" && rec.dead.length > 0 && t("game.deadRemoved", { count: rec.dead.length })}
               </p>
               <div className="row">
-                <Btn icon={Download} small onClick={downloadSgf}>SGF</Btn>
-                <Btn icon={ChevronLeft} small onClick={onExit}>Lobby</Btn>
+                <Btn icon={Download} small onClick={downloadSgf}>{t("game.sgf")}</Btn>
+                <Btn icon={ChevronLeft} small onClick={onExit}>{t("online.game.lobby")}</Btn>
               </div>
             </Card>
           )}
           {scoring && preview && (
             <Card inset className="caps">
-              <div className="stat-head"><Scale size={15} /><span>Counting</span></div>
-              <div><span className="dot dot-b" /> Black {preview.totals.b} <span className="fine-inline">({preview.black.stones} stones + {preview.black.territory} territory)</span></div>
-              <div><span className="dot dot-w" /> White {preview.totals.w} <span className="fine-inline">({preview.white.stones} + {preview.white.territory} + {preview.white.komi} komi{preview.white.handicapBonus ? ` + ${preview.white.handicapBonus}` : ""})</span></div>
-              <p className="fine">Tap a stone to mark its whole group dead; tap again to revive it. The game ends when both of you accept the same marking.</p>
+              <div className="stat-head"><Scale size={15} /><span>{t("game.counting.head")}</span></div>
+              <div><span className="dot dot-b" /> {t("game.counting.line", { side: t("game.side.b"), total: preview.totals.b })} <span className="fine-inline">{t("game.counting.bParts", { stones: preview.black.stones, territory: preview.black.territory })}</span></div>
+              <div><span className="dot dot-w" /> {t("game.counting.line", { side: t("game.side.w"), total: preview.totals.w })} <span className="fine-inline">{t("game.counting.wParts", {
+                stones: preview.white.stones, territory: preview.white.territory, komi: preview.white.komi,
+                handicap: preview.white.handicapBonus ? ` + ${preview.white.handicapBonus}` : "",
+              })}</span></div>
+              <p className="fine">{t("online.game.countingNote")}</p>
             </Card>
           )}
           {room && !over && !scoring && (
             <Card inset className="caps">
-              <div><span className="dot dot-b" /> Black captures: {rec.captures.b}</div>
-              <div><span className="dot dot-w" /> White captures: {rec.captures.w}</div>
-              <div className="fine">{onlineCaption(room, watching)}{hints ? " · atari hints on" : ""}{seat ? "" : " · you are watching"}</div>
+              <div><span className="dot dot-b" /> {t("game.captures.b", { n: rec.captures.b })}</div>
+              <div><span className="dot dot-w" /> {t("game.captures.w", { n: rec.captures.w })}</div>
+              <div className="fine">{onlineCaption(room, watching, t)}{hints ? t("game.hintsOn") : ""}{seat ? "" : t("online.game.watchingNote")}</div>
             </Card>
           )}
           <Card className="chat-card">
-            <div className="chat-head"><MessageCircle size={15} /><span>Table talk</span>
-              <button className="chip-btn" onClick={shareTable} aria-label="Copy a link to this table"><LinkIcon size={11} /> share</button>
+            <div className="chat-head"><MessageCircle size={15} /><span>{t("game.chat.head")}</span>
+              <button className="chip-btn" onClick={shareTable} aria-label={t("online.game.shareLabel")}><LinkIcon size={11} /> {t("online.game.share")}</button>
             </div>
             <div className="chat-log" aria-live="polite">
               {chat.map((m, i) => (
                 <div key={i} className={`bubble ${account && m.from === account.player.id ? "mine" : ""}`}>
-                  {(!account || m.from !== account.player.id) && <span className="bubble-who">{m.name}{m.seat ? "" : " (watching)"} · </span>}
+                  {(!account || m.from !== account.player.id) && <span className="bubble-who">{m.name}{m.seat ? "" : t("online.game.watchingWho")} · </span>}
                   {parsed[i] ? parsed[i].map((part, j) => (
                     part.t === "point" ? (
                       <button key={j} type="button"
@@ -456,7 +470,7 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
             {account && openers.length > 0 && (
               <div className="talk-offer">
                 {openers.map(line => (
-                  <button key={line.text} type="button" className="talk-line" onClick={() => say(line.text)}>
+                  <button key={line.id} type="button" className="talk-line" onClick={() => say(line.text)}>
                     <span>{line.text}</span>
                     {line.note && <span className="talk-note">{line.note}</span>}
                   </button>
@@ -465,19 +479,22 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
             )}
             {account ? (
               <div className="chat-row">
-                <input className="chat-input" value={draft} placeholder="Say something…" maxLength={240}
-                  onChange={e => setDraft(e.target.value)} onKeyDown={e => e.key === "Enter" && sendChat()} aria-label="Chat message" />
-                <button className="chat-send" onClick={sendChat} aria-label="Send"><Send size={15} /></button>
+                <input className="chat-input" value={draft} placeholder={t("game.chat.placeholder")} maxLength={240}
+                  onChange={e => setDraft(e.target.value)} onKeyDown={e => e.key === "Enter" && sendChat()} aria-label={t("game.chat.label")} />
+                <button className="chat-send" onClick={sendChat} aria-label={t("game.chat.send")}><Send size={15} /></button>
               </div>
-            ) : <p className="fine">Claim a handle in the lobby to join the talk.</p>}
+            ) : <p className="fine">{t("online.game.claimToChat")}</p>}
           </Card>
           {mine && theirs && !over && (
             <Card inset>
               <p className="fine">
-                You are {color === "b" ? "Black" : "White"}
-                {partner ? ` with ${partner}` : ""} against {teamName(room, color === "b" ? "w" : "b")}.
-                {room.pair ? " Partners may not consult, so there is no line to your partner and there is not meant to be." : ""}
-                {" "}There is no clock yet; leave the table and come back from the lobby whenever you like.
+                {t("online.game.seatNote", {
+                  side: t(`game.side.${color}`),
+                  withPartner: partner ? t("online.game.withPartner", { name: partner }) : "",
+                  name: teamName(room, color === "b" ? "w" : "b", t),
+                })}
+                {room.pair ? t("online.game.noConsulting") : ""}
+                {" "}{t("online.game.noClock")}
               </p>
             </Card>
           )}
@@ -487,15 +504,9 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
   );
 }
 
-const ERRORS = {
-  "wrong-turn": "Not your turn",
-  "game-over": "The game is over",
-  spectator: "You are watching this one",
-  "sign-in-to-chat": "Claim a handle to chat",
-  "undo-pending": "An undo is already asked",
-  "not-your-move": "You can only ask while they think",
-  "wrong-phase": "Not now",
-};
+/* The server's refusals, by the name it gives them. Unknown reasons fall
+   through to the reason itself rather than to a shrug. */
+const refusalWords = (reason, t) => lineOr(t, `online.error.${reason}`, reason);
 
 /* One team in an online pair header. The same shape the offline table uses: the
    seat to move is raised out of its team, and no name is dimmed to say it is not
@@ -510,6 +521,7 @@ const ERRORS = {
  *
  *  A seat with no id is a house player, which has no page and never gets one. */
 function Seat({ seat, name, gameId, go, align }) {
+  const t = useT();
   const face = seat ? <Avatar name={seat.name} tint={seat.tint} size={34} src={faceOf(seat)} /> : null;
   const meta = (
     <div className={`vs-meta ${align === "right" ? "right" : ""}`}>
@@ -522,7 +534,7 @@ function Seat({ seat, name, gameId, go, align }) {
   return (
     <button type="button" className="vs-side vs-open"
       onClick={() => go("player", { playerId: seat.id, from: "play", fromParams: { gameId } })}
-      aria-label={`Open ${seat.name}'s page`}>
+      aria-label={t("online.game.openPage", { name: seat.name })}>
       {body}
     </button>
   );
