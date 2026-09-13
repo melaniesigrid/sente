@@ -10,10 +10,11 @@ import shapePonnuki from "./shape-ponnuki.js";
 import openingBigPoints from "./opening-big-points.js";
 import lifeBigEye from "./life-big-eye.js";
 import lifeCornerLive from "./life-corner-live.js";
+import lifeSeki from "./life-seki.js";
 
 export const TIER3 = [
   classicTerritory, classicConflict, classicEmptiness, classicMiscellany,
   shapeTigersMouth, shapePonnuki,
   openingBigPoints,
-  lifeBigEye, lifeCornerLive,
+  lifeBigEye, lifeCornerLive, lifeSeki,
 ];

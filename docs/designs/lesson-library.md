@@ -239,6 +239,9 @@ turn the board around and make one live.
 | `life-eye-space` | 2 / 16k | Three in a row: one killing point. Four in a row: none. The square of four: dead as it stands, and all four points kill |
 | `life-big-eye` | 3 / 13k | The bulky five dies to one placement out of five, and the line ends with Black filling his own last liberty to take 17 stones |
 | `life-corner-live` | 3 / 11k | Of White's three moves exactly one lives, and the point that saves the corner is the only point that kills it |
+| `life-seki` | 3 / 12k | Neither group is killable; every move on a shared liberty loses the mover's own group, and `territoryMap` calls both points neutral |
+| `life-dead-shapes` | 4 / 9k | The cross five and the flower six die to one point each; the rectangular six has no killing point in the open |
+| `life-throw-in` | 4 / 6k | One killing move out of four, and its chain has one liberty: White captures three and is still dead |
 
 The new dev tool is `tools/lessons/eyes.mjs`. It enumerates connected eye spaces, walls each
 one in so the surrounded chain has no liberty except the space itself, and solves the life
@@ -258,7 +261,17 @@ six points, solved in the open board, exactly 7 die:
 | 6 | 35 | 1 | the flower six |
 
 Everything else lives. That is a short enough list to learn by sight, which is the argument
-`life-big-eye` makes and the census a Tier 4 lesson should make in full.
+`life-big-eye` makes and `life-dead-shapes` makes in full at Tier 4.
+
+Two of the seven lessons are not about the census. `life-seki` is the first lesson in the
+library to admit that a group can live with no eyes at all, and it is placed right after the
+eye-space lessons on purpose, because that is where a reader has just been told that eyes are
+the whole story. `life-throw-in` is a sacrifice, and it was found rather than composed: an
+exhaustive sweep of corner positions with stones of both colours inside, filtered for exactly
+one killing move whose chain has one liberty. Its region taught the tool something, too. A
+search confined to the currently empty points cannot play back into a space a capture has
+cleared, and that is precisely where a throw-in lives, so `space` in `LESSON_POSITIONS` is the
+whole contested area including occupied points.
 
 ## Problems have a verifier now
 
