@@ -13,6 +13,7 @@ export const shell = {
     home: "Start",
     play: "Spielen",
     learn: "Lernen",
+    joseki: "Joseki",
     tsumego: "Tsumego",
     ladder: "Rangliste",
   },

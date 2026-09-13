@@ -7,7 +7,7 @@ import { makeT } from "../i18n/index.js";
 describe("plain words", () => {
   it("covers every screen that sets one", () => {
     expect(Object.keys(PLAIN_WORDS).sort())
-      .toEqual(["home", "ladder", "learn", "play", "profile", "recall", "tsumego"]);
+      .toEqual(["home", "joseki", "ladder", "learn", "play", "profile", "recall", "tsumego"]);
   });
 
   it("speaks in the house voice, at a pullable length", () => {
