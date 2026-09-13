@@ -88,8 +88,8 @@ export const rooms = {
     startOver: "重来",
     clear: "清空",
     blocked: {
-      one: "有 {count} 条规则没过，所以这个房间还不能穿上。Joseki 里每一个有名字的房间，六条全过。",
-      other: "有 {count} 条规则没过，所以这个房间还不能穿上。Joseki 里每一个有名字的房间，六条全过。",
+      one: "有 {count} 条规则没过，所以这个房间还不能穿上。Joseki 里每一个有名字的房间，条条都过。",
+      other: "有 {count} 条规则没过，所以这个房间还不能穿上。Joseki 里每一个有名字的房间，条条都过。",
     },
     overriddenBefore: "你现在所有房间都用着{stones}，是在",
     overriddenLink: "外观页",
@@ -152,6 +152,14 @@ export const rooms = {
     stones: {
       label: "两种棋子",
       why: "黑白两色隔着一整盘棋、在快棋里也必须一眼分得开。",
+    },
+    "board-b": {
+      label: "盘上的黑子",
+      why: "黑子必须能在它所落的木头上被找到，而不只是在与白子相比时才分得出来。",
+    },
+    "board-w": {
+      label: "盘上的白子",
+      why: "同一条规则的另一半，只在房间自行造出棋盘时才生效：盖过木色的白子，与藏进木色的黑子一样累人。在真正的纸上，分开蛤白子的是它的边缘，不是它的填色。",
     },
     "close-light": { label: "高光贴近底色" },
     "close-dark": { label: "阴影贴近底色" },

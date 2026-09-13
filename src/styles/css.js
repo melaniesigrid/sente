@@ -38,6 +38,7 @@ ${FONT_FACES}
   --wash-a: rgba(251,248,242,.55);
   --wash-b: rgba(196,190,177,.40);
   --scrim: rgba(232,228,219,.72);
+  --board: var(--ground);
   --grid: var(--ink);
   --hairline: rgba(var(--sh-ink),.14);
   --belt-edge: rgba(var(--sh-ink),.42);
@@ -434,12 +435,18 @@ ${FONT_FACES}
    basis floored the well at 520px tall while a phone drew the board 334px wide:
    174px of dead ground under the grid. The basis is only ever written against
    the row. */
-.board-well { border-radius: var(--r); box-shadow: var(--sink); padding: clamp(12px, 1.8vw, 22px); min-width: 0; }
+/* The well is the only surface in the app that is not the page. On paper
+   --board IS the ground and this paints nothing; in a dark room it is the wood,
+   lifted off the page so a stone of either colour can be seen on it. */
+.board-well { border-radius: var(--r); box-shadow: var(--sink); padding: clamp(12px, 1.8vw, 22px); min-width: 0; background: var(--board); }
 .play-wrap > .board-well { flex: 2 1 520px; }
 .side { flex: 1 1 300px; min-width: 260px; max-width: 420px; }
 .goban { width: 100%; height: auto; display: block; }
 .grid-line { stroke: var(--grid); stroke-opacity: .38; stroke-width: 1.1; }
-.star-pt { fill: var(--ink); fill-opacity: .45; }
+/* A star point is a fat full stop on the grid and is drawn in the grid's own
+   colour. It used to take the ink, which is the same thing on paper and the
+   opposite of it in a dark room, where the ink is near white. */
+.star-pt { fill: var(--grid); fill-opacity: .55; }
 .ghost { fill: var(--accent); opacity: .28; }
 .mark-ring { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 4 4; opacity: .85; }
 /* The ring a chat line puts on a point. Wider than a stone rather than inside
@@ -1000,8 +1007,12 @@ ${FONT_FACES}
 .atari-ring { fill: none; stroke: var(--danger); stroke-width: 2; opacity: .55; animation: breathe 1.6s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
 @keyframes breathe { 0%, 100% { opacity: .35; transform: scale(.96); } 50% { opacity: .8; transform: scale(1.04); } }
 .terr { opacity: .55; animation: fade-in .4s ease; }
-.terr-b { fill: var(--ink); }
-.terr-w { fill: var(--cream); stroke: var(--dark); stroke-width: 1; }
+/* Whose territory a point is, said in the colour of the stone that owns it. It
+   was the ink and the shell, which read as black and white on paper and as two
+   nearly identical near-whites in a dark room, where the ink is light. The
+   stones are the only pair guaranteed to be 4.5:1 apart in every room. */
+.terr-b { fill: var(--stone-b-2); }
+.terr-w { fill: var(--stone-w-2); stroke: var(--stone-b-3); stroke-opacity: .35; stroke-width: 1; }
 @keyframes fade-in { from { opacity: 0; } }
 .stone-dead { opacity: .4; }
 .dead-x { fill: none; stroke-width: 2.4; stroke-linecap: round; }
@@ -1603,8 +1614,12 @@ ${FONT_FACES}
 .lang-row.on .lang-row-note { color: inherit; }
 .lang-row-tick { display: grid; place-items: center; color: var(--accent-ink); align-self: center; }
 
-.look-btn { width: 48px; height: 48px; border-radius: 16px; flex: none; transition: transform .15s ease, box-shadow .15s ease, color .15s ease; }
+/* Wide enough for its word, and back to a square when the word is dropped. */
+.look-btn { width: auto; height: 48px; border-radius: 16px; flex: none; gap: 8px; grid-auto-flow: column; padding: 0 16px;
+  font: 700 12px var(--font-body); letter-spacing: .1em; text-transform: uppercase;
+  transition: transform .15s ease, box-shadow .15s ease, color .15s ease; }
 .look-btn:hover { transform: translateY(-1px); }
+@media (max-width: 760px) { .look-btn span { display: none; } .look-btn { width: 48px; padding: 0; } }
 .look-btn[aria-current] { box-shadow: var(--sink-sm); color: var(--accent-ink); transform: none; }
 /* The board and the drawer, side by side: a set is chosen by watching the
    stones on the board change, not by reading the name of a rock. */
