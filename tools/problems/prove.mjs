@@ -259,6 +259,122 @@ export function fightRegion(b, target) {
   return out;
 }
 
+
+/* ----------------------- NET PRISONERS -----------------------
+   `catches` watches one chain and asks whether it comes off the board. That is
+   the right question for a ladder or a net and it is the wrong one for a
+   snapback, and the reason is worth stating because it cost a census to find.
+
+   In a snapback Black plays a stone White can take at once. White takes it, and
+   the shape White is left with is a chain Black now captures whole. The chain
+   that comes off the board at the end is not the chain the search was
+   watching, and it is not even the chain that was in trouble when the problem
+   began, so a solver written around a target never sees the move. The same
+   applies to a throw-in, and to a capture under the stones.
+
+   So this asks the other question: over the whole sequence, how many stones
+   does Black take, less the stones White takes back. A sacrifice costs one and
+   is therefore never worth making to a solver that counts the sacrifice as a
+   loss and stops; counted to the end of the fight, it comes out plus two.
+
+   Black maximises the count and White minimises it, both confined to `region`,
+   both allowed to pass, and two passes end it. The ko rule is the engine's
+   own. The remaining depth is part of the memo key because the value of a
+   position here is the value of what is left to play, not of the position
+   alone. */
+export function prisoners(b, region, toMove, opts = {}) {
+  const { cap = 8 } = opts;
+  const memo = new Map();
+
+  const walk = (bd, mover, passes, ko, left) => {
+    if (passes >= 2 || left <= 0) return 0;
+    const k = `${key(bd, mover, ko)}|${passes}|${left}`;
+    const hit = memo.get(k);
+    if (hit !== undefined) return hit;
+
+    let best = null;
+    const take = (v) => {
+      if (best === null) best = v;
+      else best = mover === "b" ? Math.max(best, v) : Math.min(best, v);
+    };
+    for (const m of region) {
+      if (at(bd, m) !== null) continue;
+      const res = tryPlay(bd, m.c, m.r, mover, { koPoint: ko });
+      if (!res.ok) continue;
+      const got = res.captured.length * (mover === "b" ? 1 : -1);
+      take(got + walk(res.board, opponent(mover), 0, res.ko, left - 1));
+    }
+    take(walk(bd, opponent(mover), passes + 1, null, left - 1));
+    const out = best === null ? 0 : best;
+    memo.set(k, out);
+    return out;
+  };
+
+  return walk(b, toMove, 0, null, cap);
+}
+
+/** What every legal move in `region` is worth in net prisoners, best first for
+ *  the mover, beside what the mover gets by not playing here at all. A move
+ *  has to beat the pass or it is not a move, it is a habit. */
+export function captureValues(b, region, toMove, opts = {}) {
+  const { cap = 8 } = opts;
+  const other = opponent(toMove);
+  const moves = [];
+  for (const m of region) {
+    if (at(b, m) !== null) continue;
+    const res = tryPlay(b, m.c, m.r, toMove, {});
+    if (!res.ok) continue;
+    const got = res.captured.length * (toMove === "b" ? 1 : -1);
+    moves.push({
+      point: m,
+      net: got + prisoners(res.board, region, other, { ...opts, cap: cap - 1 }),
+      /* Whether the stone just played can be taken straight back. A move that
+         gives a stone away and is still the best move in the position is the
+         definition of a sacrifice tesuji, and this is what marks one. */
+      sacrifice: at(res.board, m) === toMove
+        && chainAt(res.board, m.c, m.r).libs.size === 1,
+      takes: res.captured.length,
+    });
+  }
+  moves.sort((a, b) => (toMove === "b" ? b.net - a.net : a.net - b.net));
+  return { moves, pass: prisoners(b, region, other, { ...opts, cap: cap - 1 }) };
+}
+
+/** The region a tesuji problem is fought in: the empty points within two of
+ *  any white stone. A capturing problem has one target and can measure from
+ *  it; a tesuji has no single target, which is the whole reason it needed a
+ *  different solver, so the fight is measured from the stones under siege.
+ *
+ *  Derived from the board alone, so the census, the author and the test that
+ *  re-proves the shipped drill all see the same points. */
+export function tesujiRegion(b) {
+  const white = [];
+  for (let r = 0; r < b.size; r++) for (let c = 0; c < b.size; c++) {
+    if (b.cells[idx(b.size, c, r)] === "w") white.push(P(c, r));
+  }
+  const out = [];
+  for (let r = 0; r < b.size; r++) for (let c = 0; c < b.size; c++) {
+    if (b.cells[idx(b.size, c, r)] !== null) continue;
+    if (white.some(w => Math.abs(w.c - c) + Math.abs(w.r - r) <= 2)) out.push(P(c, r));
+  }
+  return out;
+}
+
+/** How deep you have to read before the answer is the answer: the smallest
+ *  horizon at which `move` is still strictly the best move in `region`. A move
+ *  that pays at two plies is one anybody sees; one that only comes out on top
+ *  at seven has to be read, and that difference is most of what makes a tesuji
+ *  hard. Shared so the census, the author and the test measure it the same way. */
+export function readingHorizon(b, region, toMove, move, cap = 7) {
+  for (let d = 2; d <= cap; d++) {
+    const v = captureValues(b, region, toMove, { cap: d });
+    const top = v.moves[0];
+    if (top && top.point.c === move.c && top.point.r === move.r
+      && v.moves.length > 1 && top.net > v.moves[1].net) return d;
+  }
+  return cap;
+}
+
 /** A board as text, for reading a search result in a terminal. */
 export function show(b) {
   let s = "";
