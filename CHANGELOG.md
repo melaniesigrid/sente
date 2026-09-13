@@ -25,6 +25,7 @@ They are left as they were written rather than rewritten after the fact.
   measurement or drop it, not quietly overrule it.
 - `tools/joseki/policy.py` grew `--cands`, which reports named points at the last
   position of a sequence. That is how the verdicts above were read off.
+
 ## v0.8.1.0 (2026-09-12)
 
 ### Added
