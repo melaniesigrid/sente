@@ -11,6 +11,24 @@ export function cleanKey(v) {
   return s.length ? s : null;
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** A stamp coarsened to the day it fell on, in UTC.
+ *
+ *  `lastSeen` moves on nearly everything a player does, so served to the
+ *  millisecond it is a log of when somebody is at their desk, readable by
+ *  anybody who polls `/api/players/:id` in a loop. That is the exact thing
+ *  `showOnline` exists to let a person refuse (`server/presence.js`), and a
+ *  setting that the field beside it quietly defeats is not a setting.
+ *
+ *  A day is the bucket the cards already choose to speak in: `seenText` in
+ *  `src/views/playerCard.js` says "played this week", never an hour. This makes
+ *  the API say no more than the page does. Kept public rather than dropped
+ *  because "has not played since March" is a fair thing to know about somebody
+ *  before asking them for a game; "was here eleven minutes ago" is not. */
+export const toDay = (at) =>
+  (typeof at === "number" && Number.isFinite(at) ? Math.floor(at / DAY_MS) * DAY_MS : at);
+
 /** Everything about a player except the token hash and the volatility. */
 export function publicPlayer(p) {
   return {
@@ -20,7 +38,9 @@ export function publicPlayer(p) {
     // When their picture last changed, or null. One number, so every place a
     // player is drawn can draw their picture; the bytes are their own request.
     avatarAt: p.avatarAt ?? null,
-    createdAt: p.createdAt, lastSeen: p.lastSeen,
+    // `createdAt` is left exact: it never moves, so it says nothing about when
+    // anybody is at their desk, and the operator's list is sorted on it.
+    createdAt: p.createdAt, lastSeen: toDay(p.lastSeen),
   };
 }
 
