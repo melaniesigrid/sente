@@ -1,4 +1,4 @@
-import { UserPlus, UserCheck, UserX, Check, X, Loader } from "lucide-react";
+import { UserPlus, UserCheck, UserX, Check, X, Loader, Mail } from "lucide-react";
 import { Card, Btn, Avatar, RankBadge } from "../components/ui.jsx";
 import { avatarUrl } from "../net/avatar.js";
 import { SERVER_URL } from "../net/api.js";
@@ -22,7 +22,7 @@ import { bookIsEmpty, everyoneIn } from "./friendship.js";
    sits directly above this one and shows the same standing on the same
    buttons, and two copies of one book would be two fetches that disagree for
    as long as it takes the slower of them to land. */
-export function FriendsCard({ account, go, friends }) {
+export function FriendsCard({ account, go, friends, write }) {
   const t = useT();
   const { book, busy, act } = friends;
   /* Everybody on the card at once, in one call, rather than a call per row.
@@ -45,11 +45,11 @@ export function FriendsCard({ account, go, friends }) {
       ) : (
         <>
           <Group title={t("online.friends.incoming")} people={book.incoming} empty={null}
-            act={act} busy={busy} go={go} here={here} kind="incoming" />
+            act={act} busy={busy} go={go} here={here} kind="incoming" write={write} />
           <Group title={t("online.friends.friends")} people={book.friends} empty={null}
-            act={act} busy={busy} go={go} here={here} kind="friends" />
+            act={act} busy={busy} go={go} here={here} kind="friends" write={write} />
           <Group title={t("online.friends.outgoing")} people={book.outgoing} empty={null}
-            act={act} busy={busy} go={go} here={here} kind="outgoing" />
+            act={act} busy={busy} go={go} here={here} kind="outgoing" write={write} />
         </>
       )}
     </Card>
@@ -58,7 +58,7 @@ export function FriendsCard({ account, go, friends }) {
 
 /** One of the three lists, with its heading, or nothing at all when it is
  *  empty. An empty heading is a promise of content that is not there. */
-function Group({ title, people, act, busy, go, here, kind }) {
+function Group({ title, people, act, busy, go, here, kind, write }) {
   if (!people || people.length === 0) return null;
   return (
     <div className="friend-group">
@@ -66,14 +66,14 @@ function Group({ title, people, act, busy, go, here, kind }) {
       <div className="friend-rows">
         {people.map((person) => (
           <FriendRow key={person.id} person={person} kind={kind} here={here.has(person.id)}
-            busy={busy === person.id} act={act} go={go} />
+            busy={busy === person.id} act={act} go={go} write={write} />
         ))}
       </div>
     </div>
   );
 }
 
-function FriendRow({ person, kind, busy, act, go, here }) {
+function FriendRow({ person, kind, busy, act, go, here, write }) {
   const t = useT();
   return (
     <div className="friend-row">
@@ -93,6 +93,13 @@ function FriendRow({ person, kind, busy, act, go, here }) {
           <>
             {kind === "incoming" && (
               <Btn icon={Check} small primary onClick={() => act("accept", person)} label={t("online.friends.acceptName", { name: person.name })} />
+            )}
+            {/* Writing to a settled friend, which is a thing you can do from
+                this row and could previously only do by opening their page,
+                reading it, and pressing a button that walked you back here. */}
+            {kind === "friends" && write && (
+              <Btn icon={Mail} small onClick={() => write(person.id)}
+                label={t("online.friends.writeName", { name: person.name })} />
             )}
             <Btn icon={kind === "incoming" ? X : UserX} small onClick={() => act("forget", person)}
               label={t(kind === "friends" ? "online.friends.removeName"

@@ -140,7 +140,10 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
               <InvitePanel person={player} busy={invites.busy === player.id} act={invites.act}
                 standing={standingOver(invites.invites, player.id)} />
               <div className="row">
-                <Btn icon={Mail} small onClick={() => go("profile")}>{t("player.writeToThem")}</Btn>
+                {/* It used to land on the profile screen and leave somebody to
+                    find the right row. Now it opens the thread with this person,
+                    which is what the words on it have always said. */}
+                <Btn icon={Mail} small onClick={() => go("profile", { writeTo: player.id })}>{t("player.writeToThem")}</Btn>
                 {/* Silent, and never the same act as unfriending: the two mean
                     different things and doing both at once would take the
                     second choice away from whoever the first one protects. */}

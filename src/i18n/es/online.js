@@ -57,6 +57,13 @@ export const online = {
     pair: "go por parejas",
   },
 
+  here: {
+    head: "Aquí ahora",
+    note: "Los amigos que están en la sala y que te dejan verlo. Nunca se muestra a nadie como ausente: no estar y no querer decirlo se ven igual desde fuera.",
+    record: "{wins}–{losses}",
+    ask: "Pedir {size}×{size}",
+  },
+
   find: {
     head: "Buscar a alguien",
     note: "Escribe un nombre, o parte de uno. Solo quien juega aquí puede buscar a alguien, y una búsqueda responde con unas cuantas personas, nunca con una lista.",
@@ -138,6 +145,7 @@ export const online = {
     removeName: "Quitar a {name}",
     declineName: "Rechazar a {name}",
     takeBackName: "Retirar la petición a {name}",
+    writeName: "Escribir a {name}",
     act: {
       friends: "Amigos",
       remove: "Quitar amigo",
