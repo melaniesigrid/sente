@@ -35,14 +35,14 @@ export const online = {
     theirMove: "该对方了",
     toMove: "轮到{side}",
     detail: "{moves} · {turn}",
-    moves: { other: "{count} 手" },
+    moves: { one: "{count} 手", other: "{count} 手" },
   },
 
   wait: {
     justNow: "刚刚",
-    minutes: { other: "{count} 分钟" },
-    hours: { other: "{count} 小时" },
-    days: { other: "{count} 天" },
+    minutes: { one: "{count} 分钟", other: "{count} 分钟" },
+    hours: { one: "{count} 小时", other: "{count} 小时" },
+    days: { one: "{count} 天", other: "{count} 天" },
   },
   dash: {
     head: "你的棋桌",

@@ -43,7 +43,7 @@ export const shell = {
     sources: "出处",
     read: "读一读",
     back: "全部条目",
-    changes: { other: "{count} 处改动" },
+    changes: { one: "{count} 处改动", other: "{count} 处改动" },
     footLink: "日志",
   },
   foot: {

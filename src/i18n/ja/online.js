@@ -35,14 +35,14 @@ export const online = {
     theirMove: "相手の番",
     toMove: "{side}の番",
     detail: "{moves} · {turn}",
-    moves: { other: "{count} 手" },
+    moves: { one: "{count} 手", other: "{count} 手" },
   },
 
   wait: {
     justNow: "たったいま",
-    minutes: { other: "{count} 分" },
-    hours: { other: "{count} 時間" },
-    days: { other: "{count} 日" },
+    minutes: { one: "{count} 分", other: "{count} 分" },
+    hours: { one: "{count} 時間", other: "{count} 時間" },
+    days: { one: "{count} 日", other: "{count} 日" },
   },
   dash: {
     head: "自分の盤",
