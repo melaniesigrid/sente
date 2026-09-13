@@ -4,6 +4,7 @@
    presets and the seven house players. */
 
 export const plain = {
+  joseki: "Un joseki est la réponse réglée dans un coin : une suite de coups où aucun des deux camps ne peut faire mieux, si bien que les deux la jouent et que la discussion se déplace. Il n'y a pas une seule bonne réponse, et c'est pour cela que c'est un dictionnaire et non un règlement, et chaque séquence ici dit ce qu'elle a coûté et ce qu'elle a acheté.",
   home: "Le go, ce sont deux personnes qui prennent tour à tour du terrain avec des pierres. Une pierre n'est capturée que lorsque son groupe n'a plus un seul point vide à côté de lui, et gagne celui qui tient le plus de goban quand les deux conviennent qu'il n'y a plus rien à prendre.",
   play: "Ici, chaque adversaire est soit une personne par le réseau, soit un joueur de la maison, et un joueur de la maison est un bot. Ils sont étiquetés ainsi partout, ils jouent au niveau que dit l'étiquette, et aucun n'est une personne qui prétendrait le contraire.",
   learn: "Une leçon ici est un goban sur lequel tu joues, pas une page que tu lis. La bibliothèque commence à ce qu'est une liberté et finit avec un fonctionnaire du XIe siècle qui parle de tempérament, dans l'ordre où ces choses se mettent à compter.",
@@ -14,6 +15,11 @@ export const plain = {
 };
 
 export const statement = {
+  joseki: [
+    "Un coin.",
+    "Les deux camps",
+    "satisfaits.",
+  ],
   home: { 0: "Prends", 1: "le terrain.", 2: "Pierre à pierre." },
   play: { 0: "Tous", 1: "les adversaires.", 2: "Aucun ne feint." },
   learn: { 0: "Une leçon", 1: "est un goban", 2: "que tu joues." },
@@ -135,6 +141,8 @@ export const preset = {
 
 export const persona = {
   hoshi: {
+    plays: "Tous les joueurs de la maison sont le même réseau à qui l'on demande d'imiter un type de joueur différent, et Hoshi est celui à qui l'on demande d'imiter de façon lâche. Sa température est de 1.0, la plus haute des sept, si bien que le coup joué est échantillonné largement parmi ce que son modèle aurait pu faire, au lieu d'être fixé sur le plus probable.",
+    tell: "Il jouera un coup que personne à ce niveau ne jouerait, une ou deux fois par partie, puis répondra parfaitement pendant vingt coups. Une partie contre Hoshi n'est pas un niveau, c'est une fourchette.",
     tagline: "Douce et curieuse",
     bio: "Apprend en même temps que toi. Oublie les échelles. Adore les points étoile, forcément. Plus heureuse entre 25k et 12k.",
     chat: {
@@ -147,6 +155,8 @@ export const persona = {
     },
   },
   tetsu: {
+    plays: "On lui demande d'imiter un bagarreur, à une température de 0.9 : encore lâche, encore capable de se surprendre lui-même. Là où le réseau ne peut pas se charger, l'heuristique qui le remplace pèse la capture bien au-dessus de tout le reste, ce qui est le même instinct écrit en plus petits mots.",
+    tell: "Il répond au contact par le contact. Touche une pierre de Tetsu et tu auras une bagarre ; laisse-en une tranquille et il viendra te chercher.",
     tagline: "Se bat pour tout",
     bio: "Croit que le chemin le plus court vers la force passe droit par le milieu de ta position. Chez lui de 20k à 6k.",
     chat: {
@@ -159,6 +169,8 @@ export const persona = {
     },
   },
   yuki: {
+    plays: "Température 0.7 : un joueur posé, qui suit son modèle d'assez près. L'heuristique de secours derrière Yuki est celle qui a réellement été mesurée, à 25 victoires sur 30 contre les poids par défaut.",
+    tell: "Il prend le coin et le côté et te laisse le centre sans discuter. Si le milieu du goban est en train de devenir le tien gratuitement, compte-le avant d'y croire.",
     tagline: "Patiente et territoriale",
     bio: "Prend les coins, dresse les murs et te laisse découvrir que le centre est plus petit qu'il n'en a l'air. Chez elle de 15k à 1k.",
     chat: {
@@ -171,6 +183,8 @@ export const persona = {
     },
   },
   ren: {
+    plays: "Température 0.7, la même que Yuki, visant un autre type de joueur : un habitué de club qui connaît les formes et qui compte les fins serrées.",
+    tell: "Il joue le joseki et s'arrête là. Ren est au plus ordinaire dans l'ouverture et au plus tranchant dans les trente derniers coups, ce qui est l'inverse de la plupart des joueurs de son niveau.",
     tagline: "Joueur de club régulier",
     bio: "Connaît les joseki, compte la fin de partie, et lit encore mal une échelle par mois. Chez lui de 10k à 1d.",
     chat: {
@@ -183,6 +197,8 @@ export const persona = {
     },
   },
   sora: {
+    plays: "Température 0.6 : plus proche de son modèle que les joueurs en dessous de lui, si bien que les coups sortent plus réguliers et les erreurs plus rares.",
+    tell: "Il prend le sente et le garde. Si tu te retrouves à répondre quatre coups d'affilée, l'initiative est déjà partie et Sora est sur le point de la dépenser.",
     tagline: "Presque dan",
     bio: "Lit vite, se bat avec un plan, et déteste perdre le dernier grand coup de la fin. Chez lui de 5k à 3d.",
     chat: {
@@ -195,6 +211,8 @@ export const persona = {
     },
   },
   kaede: {
+    plays: "Température 0.5 : proche de son modèle. Une température basse, c'est ce qui donne à un joueur l'air calme, parce que le coup surprenant est celui que l'échantillonnage emporte.",
+    tell: "Elle ne force jamais, donc il n'y a rien à punir. Une partie contre Kaede se décide sur tes erreurs plutôt que sur les siennes, ce qui est une façon inconfortable d'apprendre combien tu en fais.",
     tagline: "Silencieuse et épaisse",
     bio: "Ne force jamais, ne panique jamais, et transforme tes petites erreurs en une victoire confortable. Chez elle de 1k à 6d.",
     chat: {
@@ -207,6 +225,8 @@ export const persona = {
     },
   },
   tatsuo: {
+    plays: "Température 0.4, la plus basse ici : il joue près du coup le plus probable de son modèle, presque à chaque fois. Voilà à quoi ressemble la force de tournoi vue de l'intérieur.",
+    tell: "Il ne te suivra pas partout sur le goban. Joue un coup qui pose une question à laquelle Tatsuo n'est pas obligé de répondre et il ira ailleurs prendre un point plus grand.",
     tagline: "Force de tournoi",
     bio: "Joue les coups que joue un fort amateur, tranchants et sans pardon. Demande un handicap. Chez lui de 3d à 9d.",
     chat: {

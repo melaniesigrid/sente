@@ -31,10 +31,15 @@
      PATCH /api/me/profile      bearer {bio, facts}
      PUT   /api/me/avatar       bearer, image body  -> the picture, at most 64 KB
      DELETE /api/me/avatar      bearer
+     GET   /api/players?q=      bearer         -> who is here by that name
      GET   /api/players/:id                     -> a public profile
      GET   /api/players/:id/avatar              -> the picture, cached by its stamp
      GET   /api/games           bearer         -> recent games
      GET   /api/me/archive?cursor=&limit= bearer -> finished games, newest first
+     GET   /api/me/invites      bearer         -> games you were asked for, and asked
+     POST  /api/me/invites/:id  bearer {size, handicap, rated} -> ask them
+     POST  /api/me/invites/:id/accept bearer    -> open the board
+     DELETE /api/me/invites/:id bearer          -> decline it, or take it back
      GET   /api/me/letters      bearer         -> your threads, newest first
      GET   /api/me/letters/:id  bearer         -> one thread, and whether you may write
      POST  /api/me/letters/:id  bearer {text}  -> write one
@@ -103,6 +108,11 @@ export default {
         /* The post. "not-met" is a 403 and not a 404: the person exists and
            you may read their page; what you may not do is write to them. */
         "not-met": 403, blocked: 403, "empty-letter": 400,
+        /* Invitations, refused for the state the two shelves are in, the same
+           way friends are: the same call would have worked a moment earlier,
+           or will work a moment later. */
+        "no-invite": 409, "they-asked-first": 409,
+        "too-many-invites": 409, "their-invites-are-full": 409,
       };
       if (known[e.message]) return fail(known[e.message], e.message);
       console.error("unhandled", e);
@@ -323,6 +333,17 @@ async function route(req, env) {
     return json({ online }, 200, { "cache-control": "no-store" });
   }
 
+  /* Finding somebody by their handle. A session is required, and that is the
+     whole of what keeps this from being a membership list: you have to be one
+     of the people here before you may look one of them up. Never cached — the
+     answer leaves out whoever is asking — and the matches are capped without a
+     cursor, so there is no way to page to the end of the club. */
+  if (path === "/api/players" && req.method === "GET") {
+    const player = await requirePlayer(req, reg);
+    const found = await reg.search(url.searchParams.get("q"), player.id);
+    return json(found, 200, { "cache-control": "no-store" });
+  }
+
   const who = /^\/api\/players\/([^/]+?)(\/avatar)?$/.exec(path);
   if (who && req.method === "GET") {
     if (!who[2]) {
@@ -355,6 +376,28 @@ async function route(req, env) {
     const player = await requirePlayer(req, reg);
     return json(await reg.archiveOf(player.id,
       url.searchParams.get("cursor"), url.searchParams.get("limit")));
+  }
+
+  /* Invitations: asking one named person for a game, on the same terms as
+     writing to one. Both lists come back together for the reason the friends
+     lists do: every screen that shows one of them shows the other, and a
+     separate page for the ones you sent is one more place to forget to look. */
+  if (path === "/api/me/invites" && req.method === "GET") {
+    const player = await requirePlayer(req, reg);
+    return json(await reg.invitesOf(player.id), 200, { "cache-control": "no-store" });
+  }
+
+  /* One DELETE for declining and for taking one back, because from the person
+     pressing it those are the same act. `accept` is its own verb because it is
+     the one that opens a board. */
+  const invited = /^\/api\/me\/invites\/([^/]+?)(\/accept)?$/.exec(path);
+  if (invited) {
+    const player = await requirePlayer(req, reg);
+    if (req.method === "DELETE") return json(await reg.forgetInvite(player.id, invited[1]));
+    if (req.method !== "POST") return fail(405, "method");
+    if (invited[2]) return json(await reg.acceptInvite(player.id, invited[1]), 201);
+    const terms = await readJson(req);
+    return limited(() => reg.invite(player.id, invited[1], terms), 201);
   }
 
   /* The post: one thread per pair, for good. Not a chat and not a list —
@@ -457,7 +500,8 @@ async function limited(run, ok = 200) {
     return json(await run(), ok);
   } catch (e) {
     if (!["too-many-handles", "too-many-attempts", "too-many-letters",
-      "too-many-requests", "too-many-letters-sent", "too-many-asks"].includes(e.message)) throw e;
+      "too-many-requests", "too-many-letters-sent", "too-many-asks",
+      "too-many-invites-sent"].includes(e.message)) throw e;
     const secs = Math.ceil((e.retryAfterMs ?? 3600000) / 1000);
     return json({ error: e.message }, 429, { "retry-after": String(secs) });
   }

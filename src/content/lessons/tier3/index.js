@@ -7,6 +7,8 @@ import classicEmptiness from "./classic-emptiness.js";
 import classicMiscellany from "./classic-miscellany.js";
 import shapeTigersMouth from "./shape-tigers-mouth.js";
 import shapePonnuki from "./shape-ponnuki.js";
+import shapeTable from "./shape-table.js";
+import shapeLibertyProblem from "./shape-liberty-problem.js";
 import openingBigPoints from "./opening-big-points.js";
 import lifeBigEye from "./life-big-eye.js";
 import lifeCornerLive from "./life-corner-live.js";
@@ -14,7 +16,7 @@ import lifeSeki from "./life-seki.js";
 
 export const TIER3 = [
   classicTerritory, classicConflict, classicEmptiness, classicMiscellany,
-  shapeTigersMouth, shapePonnuki,
+  shapeTigersMouth, shapePonnuki, shapeTable, shapeLibertyProblem,
   openingBigPoints,
   lifeBigEye, lifeCornerLive, lifeSeki,
 ];

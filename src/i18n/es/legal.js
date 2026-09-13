@@ -105,14 +105,18 @@ export const legalDoc = {
         heading: "La versión corta",
         paras: {
           0: "No hay ningún script de analítica, ninguna red publicitaria, ningún píxel de seguimiento y ninguna cookie de ningún tipo. Joseki nunca ha contado una visita.",
-          1: "Juega en solitario y nada sale de tu dispositivo. Juega contra personas y el servidor guarda el puñado de cosas que se enumeran abajo, porque una partida entre dos personas no puede ocurrir sin ellas.",
+          1: "Desde el 11 de septiembre de 2026 el servidor sí lleva una cuenta propia. Una vez al día anota cuántas identidades existen, cuántas se crearon ese día, cuántas partidas empezaron, cuántas terminaron y cuánta gente llegó a estar a la vez en el vestíbulo. Son seis números y una fecha, en ninguno de ellos se nombra a nadie, y se guardan 365 días. Una partida no es una visita y una cuenta no es una visita, así que la frase de arriba sigue siendo cierta: lee todas las páginas de aquí y no te sientes nunca a un tablero, y no aparecerás en ninguno de esos números.",
+          2: "Juega en solitario y nada sale de tu dispositivo. Juega contra personas y el servidor guarda el puñado de cosas que se enumeran abajo, porque una partida entre dos personas no puede ocurrir sin ellas.",
         },
       },
       1: {
         heading: "Qué se queda en este dispositivo",
         paras: {
           0: "Tu nombre, el color de tu sello, tu rango, tus lecciones y problemas terminados, la sala y la pareja tipográfica que elegiste, la partida en curso y la última mesa que preparaste. Todo ello está en el almacenamiento local de tu navegador, bajo claves propias de Joseki, y nada de ello se envía a ningún sitio.",
-          1: "Borrar los datos del sitio de Joseki elimina todas y cada una de ellas, y no hay ninguna copia en otro lugar desde la que restaurarlas.",
+          1: "En qué días practicaste, como una lista de fechas que llega trece meses atrás, para que el panel pueda enseñarte la racha que llevas. Es una fecha y nada más: ni qué hiciste ese día, ni cuánto rato, ni cómo te salió. No se envía nunca a ningún sitio, y está en el mismo almacenamiento local que todo lo de arriba, así que borrar los datos del sitio la borra también.",
+          2: "Joseki también guarda la forma de tus últimas cincuenta partidas contra los jugadores de la casa (el tamaño del tablero, el hándicap, qué jugador de la casa, cómo terminó la partida y cuántas jugadas duró) para poder afinar a los jugadores de la casa contra lo que de verdad pasa en el tablero. No contiene jugadas ni nada con lo que se pueda reproducir una partida, no se envía nunca a ningún sitio, y tu página de perfil te enseña exactamente lo que hay dentro y lo vacía de una pulsación.",
+          3: "También guarda las posiciones de la apertura y el principio del medio juego de las partidas que has terminado, hasta mil quinientas, para que la mesa pueda avisarte cuando una partida llega a un sitio donde ya has jugado. Una posición se guarda como un número, girado a una orientación estándar, con un recuento y un balance de victorias y derrotas al lado. No hay jugadas dentro ni orden, así que no se puede convertir de vuelta en una partida que jugaste; no se envía nunca a ningún sitio; tu página de perfil dice cuánto hay dentro y lo vacía de una pulsación; y apagar el déjà vu en esa página hace que la mesa deje de leerlo.",
+          4: "Borrar los datos del sitio de Joseki elimina todas y cada una de ellas, y no hay ninguna copia en otro lugar desde la que restaurarlas.",
         },
       },
       2: {
@@ -127,7 +131,12 @@ export const legalDoc = {
           3: "Los tokens de sesión de tus sesiones abiertas, guardados como hashes, para que un almacén robado no sea un juego de llaves que funcionan.",
           4: "Lo que hayas querido añadir a tu perfil: un párrafo de hasta 280 caracteres, tres datos breves y una imagen de hasta 64 KB.",
           5: "Las partidas que jugaste por la red, y hasta 200 líneas de chat en cada sala junto al registro.",
-          6: "La dirección desde la que te registraste, guardada para que marcharte devuelva la cuenta que gastó, no mostrada a nadie y borrada con la cuenta.",
+          6: "Un índice de tus partidas terminadas, una entrada por partida, guardado mientras dure la cuenta. No contiene jugadas: es la fecha, el tablero, el rival y el resultado, y es lo que permite pasar las páginas de tu propio archivo sin leer todas las partidas que has jugado nunca. Marcharte borra el índice; las partidas en sí se quedan en las salas donde se jugaron, por la razón que se da en Marcharse.",
+          7: "Quiénes son tus amigos aquí: las identidades con las que has acordado ser amigo, las solicitudes que has enviado y las que te han enviado. Tres listas de identidades con la fecha en que se escribió cada una, guardadas en tu registro y en el suyo, y que no ve nadie más que vosotros dos. Rechazar una solicitud la borra y no le dice absolutamente nada a quien la envió.",
+          8: "Las cartas que otro jugador y tú os habéis escrito. Un hilo por pareja, que guarda las últimas cien, legible por vosotros dos y por nadie más. Solo alguien con quien hayas acordado ser amigo, o contra quien hayas terminado una partida, puede escribirte siquiera, y puedes impedir que cualquiera de ellos vuelva a escribirte sin que se le diga. No hay ninguna lista a la que se pueda añadir a nadie ni nada de lo que darse de baja, porque no hay nada en lo que estar.",
+          9: "Las partidas que elegiste mostrar en tu página, tres como mucho, cada una con una línea de hasta 140 caracteres que escribiste tú. Las dos cosas son públicas, porque la página lo es. Quitar una partida de tu página se lleva la línea con ella.",
+          10: "Cuál de las tres respuestas diste a quién puede ver que estás aquí: nadie, tus amigos o cualquiera. Una palabra en tu registro, y no en la clasificación, para que leer la clasificación no pueda decirte quién ha elegido ser invisible.",
+          11: "La dirección desde la que te registraste, guardada para que marcharte devuelva la cuenta que gastó, no mostrada a nadie y borrada con la cuenta.",
         },
       },
       3: {
@@ -136,6 +145,14 @@ export const legalDoc = {
           0: "Joseki está abierto a cien jugadores mientras es nuevo, porque eso es lo que aguanta el servidor donde corre sin fallarle a todo el mundo. Cuando esas plazas están ocupadas, lo único que queda es una lista de espera, y es la única dirección de aquí que se guarda sin una cuenta detrás.",
           1: "Guarda la dirección que escribiste y el día que la escribiste, bajo una clave propia, y no la acompaña nada más: ni un nombre, ni un handle, ni la dirección desde la que te conectaste, ni la página en la que estabas. Se usa una vez, para decirte que hay una plaza libre. No es un boletín y no va a convertirse en uno sin avisar.",
           2: "Recibir una invitación quita tu dirección de la lista. Pedirlo, también: escribe a {contact} y se elimina, haya salido plaza o no.",
+        },
+      },
+      4: {
+        heading: "Estar aquí no queda anotado",
+        paras: {
+          0: "Que estés ahora mismo en un tablero es una cuestión de una conexión abierta y de nada más. Llegar no escribe nada, marcharse no escribe nada, y no hay ningún historial de cuándo estuviste aquí que nadie pueda leer después, este Estudio incluido. Cierra la pestaña y lo único que sobrevive es la fecha de tu última partida terminada, que es lo que tu página ha enseñado siempre, al mes o a la semana y nunca a la hora.",
+          1: "A quién se le puede decir lo fijas tú, y el ajuste empieza en tus amigos y no en todo el mundo. Alguien que ha pedido ser amigo tuyo y espera respuesta todavía no es un amigo y no se le dice nada: una solicitud no es una manera de mirar cuándo estás en tu escritorio mientras te lo piensas.",
+          2: "Cuando alguien pregunta cuáles de una lista de personas están aquí, la respuesta nombra solo a las que están y que se lo permiten. Nunca se informa de que alguien esté ausente, así que quien está fuera y quien eligió no decirlo se ven exactamente igual.",
         },
       },
       5: {
@@ -216,7 +233,11 @@ export const credit = {
     title: "Software",
     note: "Joseki está construido sobre el trabajo de otras personas, y todo él es de código abierto.",
     items: {
-      3: { terms: "MIT, solo para la compilación" },
+      0: { what: "React y React DOM", who: "Meta y los colaboradores del proyecto" },
+      1: { who: "los colaboradores de Lucide" },
+      2: { what: "ONNX Runtime Web", who: "Microsoft" },
+      3: { what: "Vite, Vitest y oxlint", who: "sus autores", terms: "MIT, solo para la compilación" },
+      4: { what: "La red de estilo humano de KataGo", who: "David J. Wu y el proyecto KataGo" },
     },
   },
   type: {
@@ -225,20 +246,20 @@ export const credit = {
     items: {
       0: { terms: "Licencia de fuente abierta" },
       1: { terms: "Licencia de fuente abierta" },
-      2: { terms: "Licencia de fuente abierta" },
+      2: { what: "Instrument Sans", who: "Rodrigo Fuenzalida y Jordan Egstad", terms: "Licencia de fuente abierta" },
       3: { terms: "Licencia de fuente abierta" },
-      4: { terms: "Licencia de fuente abierta" },
-      5: { terms: "condiciones del proveedor" },
+      4: { what: "Courier Prime", who: "Alan Dague-Greene, Quote-Unquote Apps", terms: "Licencia de fuente abierta" },
+      5: { what: "Welorac y Qliesya", terms: "condiciones del proveedor" },
     },
   },
   board: {
     title: "Lo que vino del propio tablero",
     note: "El juego no es propiedad de nadie, y lo más antiguo que se escribió sobre él tampoco.",
     items: {
-      0: { terms: "dominio público" },
-      1: { terms: "dominio público" },
-      2: { terms: "dominio público" },
-      3: { terms: "escritura original" },
+      0: { what: "Las Trece Secciones (Qijing Shisan Pian)", who: "atribuido a Zhang Ni, dinastía Song", terms: "dominio público" },
+      1: { what: "Los proverbios del go", who: "populares, sin autor que nombrar", terms: "dominio público" },
+      2: { what: "Registros históricos de partidas", who: "jugadas por los maestros que nombran", terms: "dominio público" },
+      3: { what: "Las traducciones, las lecciones y los comentarios", who: "Northbound Software Studio", terms: "escritura original" },
     },
   },
 };
