@@ -14,8 +14,8 @@ app this morning, because the two drift apart and the phases below are the half 
 flatters. Every number here was counted from the data on `main`, not from memory, and it
 is a snapshot: it will be wrong the week after somebody authors anything.
 
-- **50 lessons** over six tiers (10 / 9 / 10 / 10 / 7 / 4, Foundations to Dan) and seven
-  tracks: life 15, judgement 9, tactics 7, shape 7, opening 5, middle game 5, endgame 2.
+- **52 lessons** over six tiers (10 / 9 / 10 / 10 / 7 / 6, Foundations to Dan) and seven
+  tracks: life 15, judgement 10, tactics 7, shape 7, opening 5, middle game 5, endgame 3.
   Every position in every one of them is replayed by the engine on every build.
 - **19 tsumego** in four sets (capture and escape 4, shape 3, eye shapes 8, the corner 4),
   running 25k to 2k. Every board is proved on every build: the stated answer has to be
@@ -935,12 +935,66 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       themselves, so these should be about which corner and which side, not which move.
 - [ ] SGF authoring pipeline: build-time script turns SGF with comments into steps.
 - [ ] Tier 4 Craftsman and Tier 5 Master authored (20 lessons, 19x19).
-- [ ] Tier 6 Dan authored (8 lessons; the last needs Phase 4 analysis). Four are in as of
-      2026-09-11: `aji-and-timing` (1d), `life-and-death-tesuji` (2d), `thickness-into-points`
-      (2d) and `ko-as-strategy` (3d). Still open: professional openings, endgame counting in
-      miai values, whole-board thinking, and reading an engine honestly. Tier 6's rule is that
-      a lesson may be mostly argument; it verifies what can be verified, states the rest as
-      judgement, and says which is which in its header.
+- [ ] Tier 6 Dan authored (8 lessons). Six are in: `aji-and-timing` (1d),
+      `life-and-death-tesuji` (2d), `thickness-into-points` (2d) and `ko-as-strategy` (3d)
+      from 2026-09-11, and `endgame-last-points` (2d) and `studying-with-analysis` (4d) from
+      2026-09-13. Tier 6's rule is that a lesson may be mostly argument; it verifies what can
+      be verified, states the rest as judgement, and says which is which in its header. The
+      two newest lessons take less advantage of that rule than any other lesson in the tier,
+      because the tooling caught up:
+
+      `endgame-last-points` is solved, not argued. `tools/lessons/endgame.mjs` is a minimax
+      over the final score with both sides allowed to pass and the ruleset a parameter, so a
+      dan endgame lesson can quote a number. The position was searched for rather than drawn
+      (the house AI self-plays 9x9 and every position with few enough empty points is solved
+      exactly), and what it teaches is what the search found: at a level game with four
+      empty points left, the neutral point is worth nothing, either point of your own
+      territory costs one, and your own second eye costs forty-one. Then the same board under
+      Chinese rules, where the point that was worth nothing decides the game and passing
+      loses it. `tools/lessons/endgame.test.js` re-derives all six numbers from the shipped
+      lesson on every build.
+
+      `studying-with-analysis` is measured with `tools/joseki/policy.py`, and its choice step
+      carries the network's own weights, so `library.test.js` holds the best option to being
+      the point the network ranked first.
+- [ ] The last two dan lessons: `professional-openings` (1d) and `endgame-counting` in deiri
+      and miai values (2d).
+
+      The endgame one is no longer blocked on tooling, only on a position. The solver handles
+      it; what it needs is a boundary with a real swing, and every shape drawn by hand for it
+      so far has turned out to be one of two things. Either the seam is dame, because neither
+      side has enclosed anything yet and the empty regions all touch both colours, so the
+      swing measures zero however the boundary is drawn. Or the corner is small enough to be
+      enclosed, and then the group in it is not settled and the position is a life-and-death
+      problem wearing an endgame's clothes: one attempt came back with a swing of seven,
+      which was the whole corner dying. A deiri lesson wants a boundary between two groups
+      that are both unconditionally alive, and finding one is a search, not a sketch.
+
+      `professional-openings` wants the same treatment `studying-with-analysis` got: the
+      network has a `--year` profile, and asking it what a nine-dan of 1950 and of 2020 play
+      into the same corner is the honest version of "openings changed with AI". One caution
+      from trying it: with a single stone on the board every local reply comes back at three
+      decimal places of zero, and the ranking between them at that magnitude is noise. The
+      measurement needs a position where the local moves are actually the big ones.
+- [x] Shape Up (2026-09-13, branch `feat/shapeup`): a seventh book on the shelf, after
+      Charles Matthews and Seong-June Kim's *Shape Up!* (2005) - the one book here that is
+      about shape and nothing else. Two lessons in tier 3, both proved before a word of prose
+      was written and both re-proved by `tools/lessons/shapeup.mjs`: `shape-table` (13k,
+      shape) sets the table shape beside the bamboo joint, one stone apart, and shows why the
+      reach costs something - the bamboo answers either cut in a single move and leaves the
+      cutting stone on one liberty, while after the wedge into the table no two black moves
+      rejoin the four stones even with White never answering, and it takes three;
+      `shape-liberty-problem` (12k, shape) is the drill the empty-triangle article had been
+      waiting for, on a pair pressed to three liberties where extending buys two and either
+      descent buys one and an empty triangle with it.
+      Lessons carry `book: "shapeup"` for the shelf and `series: "shapeup"` with the book's
+      chapter numbers, so they read in book order across tiers. Two of fifteen chapters, and
+      the gaps are a decision rather than a queue: most of the rest argue whole-board
+      judgement, which a bounded search cannot settle - aimed at an invasion under an
+      extension, `killable()` answers a question about the region you drew, not about the
+      extension. Chapter seven is left out because `shape-keima-waist` already drills that
+      proverb. The book is in copyright, so nothing of it is reproduced - no prose, no
+      diagram, no problem position - and `content/shapeup.js` carries the citation.
 - [x] The Book of Shapes (2026-09-11): the shelf's shape book, and the first one written here
       rather than inherited. `content/shapes.js` is a catalogue of nine articles with the same
       three parts each (what the shape buys, what it costs, and the position where the bargain
@@ -2530,7 +2584,7 @@ had no first step. The founding ask was "I wanted to create my own server to pla
 friends"; this phase is the three verbs in that sentence that were still missing —
 **find** them, **ask** them, **invite** them to a board.
 
-- [ ] **The directory** (branch `feat/find-friends`): search for a player by handle.
+- [x] **The directory** (branch `feat/find-friends`): search for a player by handle.
       One key per searchable piece of a handle (`find:<term>:<id>`), written with the
       record at register, rewritten on a rename and deleted on leaving, so finding
       somebody is a bounded walk over the matches and never a second scan over the
@@ -2542,7 +2596,22 @@ friends"; this phase is the three verbs in that sentence that were still missing
       and never a substring, at most twenty answers, no count and no cursor, and a
       session required, so it is a way to find one person and never a way to read out
       who plays here.
-- [ ] **The invitation** (branch `feat/invite`): ask a named person for a game.
+- [x] **The invitation** (branch `feat/invite`): ask a named person for a game, on terms
+      the two of you agree. One row on each of your shelves (`inv:<owner>:<other>`), written
+      in one put or neither, so reading who has asked you is one bounded list. It waits a
+      day and then goes by itself; taking one up opens the board and takes it off both
+      shelves. Who may ask is exactly who may write to you — a friend, or somebody you
+      have finished a game against — asked of `post.js` rather than restated, because a
+      server with two answers to "who can reach me" has not got a rule.
+      **This is also where the handicap arrives online.** The lobby says in a comment that
+      two strangers have no way to agree on one, and it is right; two people who know each
+      other do, and that is the difference an invitation makes. A handicap game is never
+      rated, forced on the server the way a pair table is: a number that read a four-stone
+      win as an even one would be the wrong number on two people's records. The guest
+      takes Black, because whoever asked chose the terms and the engine places the stones
+      for Black. `server/invites.js` is the policy, pure, in 31 cases;
+      `tools/server/invites.mjs` proves it against a deployment in 31 checks, playing a
+      whole game out to reach "somebody you have finished a game against".
 - [ ] **The way in** (branch `feat/reach`): the acts on a person — ask, write, invite —
       reachable from every row and every page that names one of them.
 

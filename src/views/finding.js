@@ -19,7 +19,8 @@ export const searchable = (typed) => query(typed);
 
 /** What the card should be showing.
  *
- *  `answer` is the last result that came back, `{ for, people }`, or null.
+ *  `answer` is the last result that came back, `{ for, people }` on success,
+ *  `{ for, error }` on failure, or null.
  *  `busy` is whether a call is in the air. The two are read together because
  *  an answer for an older search is not an answer to this one: the box has
  *  moved on, and showing the old list under the new word is the one thing a
@@ -31,6 +32,7 @@ export function findState(typed, answer, busy) {
   if (!q) return { kind: "short", people: [] };
   const fresh = answer && answer.for === q;
   if (!fresh) return { kind: "searching", people: [] };
+  if (answer.error) return { kind: "error", people: [] };
   return answer.people.length
     ? { kind: "found", people: answer.people }
     : { kind: busy ? "searching" : "empty", people: [] };
