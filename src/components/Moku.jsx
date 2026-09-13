@@ -127,6 +127,7 @@ export function MokuMark({ size = 56, state = "idle", sash = null, className = "
    sets `open`, because a gutter that holds a spoken line does not exist there
    and the line would otherwise lie across whatever you were reading. */
 export function MokuDock() {
+  const t = useT();
   const m = useContext(MokuCtx);
   const [open, setOpen] = useState(false);
   if (!m || m.off) return null;

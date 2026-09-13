@@ -92,6 +92,7 @@ export const front = {
     nextLabel: "Encore à venir",
     nextH2: "Construit à ciel ouvert.",
     roadmapHead: "Où tout cela va",
+    alreadyShipped: "Lis ce qui est déjà sorti : {releases} versions et {notes} notes",
     roadmap: {
       1: "Mode revue : parcourir la partie, marcher dans les variantes, sauter à chaque capture",
       2: "Des parties en temps réel contre des personnes, sur la même boucle de jeu",

@@ -92,6 +92,7 @@ export const front = {
     nextLabel: "Todavía por llegar",
     nextH2: "Construyéndose a la vista.",
     roadmapHead: "Hacia dónde va esto",
+    alreadyShipped: "Lee lo que ya se ha publicado: {releases} versiones y {notes} notas",
     roadmap: {
       1: "Modo de revisión: recorre la partida, camina las variantes, salta a cada captura",
       2: "Partidas en tiempo real contra personas, sobre el mismo bucle de juego",

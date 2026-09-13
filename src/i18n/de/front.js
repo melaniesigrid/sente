@@ -92,6 +92,7 @@ export const front = {
     nextLabel: "Kommt noch",
     nextH2: "Wird offen gebaut.",
     roadmapHead: "Wohin das geht",
+    alreadyShipped: "Lies, was schon erschienen ist: {releases} Versionen und {notes} Notizen",
     roadmap: {
       1: "Nachbetrachtung: die Partie durchfahren, die Varianten abgehen, zu jedem Gefangenen springen",
       2: "Echtzeitpartien gegen Menschen, über dieselbe Spielschleife",

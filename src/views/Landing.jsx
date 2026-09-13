@@ -285,7 +285,7 @@ export function Landing({ profile, onEnter, go }) {
             itself rather than to a page about it. */}
         <p className="lp-after reveal">
           <button className="lp-inline" onClick={() => go("journal")}>
-            <span>{`Read what has already shipped: ${COUNTS.releases} releases and ${COUNTS.notes} notes`}</span>
+            <span>{t("landing.alreadyShipped", { releases: COUNTS.releases, notes: COUNTS.notes })}</span>
             <ArrowRight size={15} strokeWidth={2.4} />
           </button>
         </p>

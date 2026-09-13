@@ -94,6 +94,7 @@ export const front = {
     nextLabel: "Still to come",
     nextH2: "Being built in the open.",
     roadmapHead: "Where this is going",
+    alreadyShipped: "Read what has already shipped: {releases} releases and {notes} notes",
     roadmap: {
       1: "Review mode: scrub the game, walk the variations, jump to every capture",
       2: "Real-time matches against people, over the same game loop",
