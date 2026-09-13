@@ -14,8 +14,8 @@ app this morning, because the two drift apart and the phases below are the half 
 flatters. Every number here was counted from the data on `main`, not from memory, and it
 is a snapshot: it will be wrong the week after somebody authors anything.
 
-- **50 lessons** over six tiers (10 / 9 / 10 / 10 / 7 / 4, Foundations to Dan) and seven
-  tracks: life 15, judgement 9, tactics 7, shape 7, opening 5, middle game 5, endgame 2.
+- **52 lessons** over six tiers (10 / 9 / 10 / 10 / 7 / 6, Foundations to Dan) and seven
+  tracks: life 15, judgement 10, tactics 7, shape 7, opening 5, middle game 5, endgame 3.
   Every position in every one of them is replayed by the engine on every build.
 - **19 tsumego** in four sets (capture and escape 4, shape 3, eye shapes 8, the corner 4),
   running 25k to 2k. Every board is proved on every build: the stated answer has to be
@@ -934,12 +934,47 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       themselves, so these should be about which corner and which side, not which move.
 - [ ] SGF authoring pipeline: build-time script turns SGF with comments into steps.
 - [ ] Tier 4 Craftsman and Tier 5 Master authored (20 lessons, 19x19).
-- [ ] Tier 6 Dan authored (8 lessons; the last needs Phase 4 analysis). Four are in as of
-      2026-09-11: `aji-and-timing` (1d), `life-and-death-tesuji` (2d), `thickness-into-points`
-      (2d) and `ko-as-strategy` (3d). Still open: professional openings, endgame counting in
-      miai values, whole-board thinking, and reading an engine honestly. Tier 6's rule is that
-      a lesson may be mostly argument; it verifies what can be verified, states the rest as
-      judgement, and says which is which in its header.
+- [ ] Tier 6 Dan authored (8 lessons). Six are in: `aji-and-timing` (1d),
+      `life-and-death-tesuji` (2d), `thickness-into-points` (2d) and `ko-as-strategy` (3d)
+      from 2026-09-11, and `endgame-last-points` (2d) and `studying-with-analysis` (4d) from
+      2026-09-13. Tier 6's rule is that a lesson may be mostly argument; it verifies what can
+      be verified, states the rest as judgement, and says which is which in its header. The
+      two newest lessons take less advantage of that rule than any other lesson in the tier,
+      because the tooling caught up:
+
+      `endgame-last-points` is solved, not argued. `tools/lessons/endgame.mjs` is a minimax
+      over the final score with both sides allowed to pass and the ruleset a parameter, so a
+      dan endgame lesson can quote a number. The position was searched for rather than drawn
+      (the house AI self-plays 9x9 and every position with few enough empty points is solved
+      exactly), and what it teaches is what the search found: at a level game with four
+      empty points left, the neutral point is worth nothing, either point of your own
+      territory costs one, and your own second eye costs forty-one. Then the same board under
+      Chinese rules, where the point that was worth nothing decides the game and passing
+      loses it. `tools/lessons/endgame.test.js` re-derives all six numbers from the shipped
+      lesson on every build.
+
+      `studying-with-analysis` is measured with `tools/joseki/policy.py`, and its choice step
+      carries the network's own weights, so `library.test.js` holds the best option to being
+      the point the network ranked first.
+- [ ] The last two dan lessons: `professional-openings` (1d) and `endgame-counting` in deiri
+      and miai values (2d).
+
+      The endgame one is no longer blocked on tooling, only on a position. The solver handles
+      it; what it needs is a boundary with a real swing, and every shape drawn by hand for it
+      so far has turned out to be one of two things. Either the seam is dame, because neither
+      side has enclosed anything yet and the empty regions all touch both colours, so the
+      swing measures zero however the boundary is drawn. Or the corner is small enough to be
+      enclosed, and then the group in it is not settled and the position is a life-and-death
+      problem wearing an endgame's clothes: one attempt came back with a swing of seven,
+      which was the whole corner dying. A deiri lesson wants a boundary between two groups
+      that are both unconditionally alive, and finding one is a search, not a sketch.
+
+      `professional-openings` wants the same treatment `studying-with-analysis` got: the
+      network has a `--year` profile, and asking it what a nine-dan of 1950 and of 2020 play
+      into the same corner is the honest version of "openings changed with AI". One caution
+      from trying it: with a single stone on the board every local reply comes back at three
+      decimal places of zero, and the ranking between them at that magnitude is noise. The
+      measurement needs a position where the local moves are actually the big ones.
 - [x] The Book of Shapes (2026-09-11): the shelf's shape book, and the first one written here
       rather than inherited. `content/shapes.js` is a catalogue of nine articles with the same
       three parts each (what the shape buys, what it costs, and the position where the bargain

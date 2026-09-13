@@ -124,6 +124,7 @@ lessons across six tiers; content is authored tier by tier so each tier ships co
 - `thickness-into-points` 2d judgement: converting influence, the amashi strategy
 - `life-and-death-tesuji` 2d life: under the stones, the belly attachment, the eye-stealing tesuji
 - `endgame-counting` 2d endgame: counting in deiri and miai values
+- `endgame-last-points` 2d endgame: the end of a close game, solved exactly
 - `whole-board-thinking` 3d judgement: a full game with decisions explained at every turn
 - `ko-as-strategy` 3d life: creating and avoiding ko as a strategic weapon
 - `studying-with-analysis` 4d judgement: reading an engine's evaluation honestly (Phase 4)
@@ -212,9 +213,35 @@ stands on.
 | `life-and-death-tesuji` | 2d | life | Exhaustive search: the 2-2 point is the only kill |
 | `thickness-into-points` | 2d | judgement | Legality only; amashi is a counting opinion |
 | `ko-as-strategy` | 3d | life | The ko is a ko: one liberty, capture, recapture refused |
+| `endgame-last-points` | 2d | endgame | Solved exactly: the last four points are worth 0, -1, -1 and -41 |
+| `studying-with-analysis` | 4d | judgement | The network's own weights, at the profiles named |
 
-Still open: `professional-openings` (1d), `endgame-counting` in miai values (2d),
-`whole-board-thinking` (3d), and `studying-with-analysis` (4d), which waits on Phase 4.
+Added 2026-09-13. The last two were the ones the tier was waiting on tooling for, and both
+now stand on a measurement rather than on an argument.
+
+`endgame-last-points` is solved by `tools/lessons/endgame.mjs`: minimax over the final score
+with both sides allowed to pass, the engine's own `scoreBoard` counting, and the ruleset a
+parameter. It is the first lesson in the library whose subject is a number rather than a
+verdict, and the position came out of the solver rather than out of a book: the house AI
+plays itself out on 9x9, every position with few enough empty points is solved exactly, and
+one was kept because of what the search said about it. `tools/lessons/endgame.test.js` reads
+the position back out of the shipped lesson and re-derives all six numbers on every build,
+including the one the whole lesson turns on, that filling your own eye at the end of a level
+game costs forty-one points.
+
+`studying-with-analysis` is measured with `tools/joseki/policy.py` on the shipped human
+network. Its choice step carries `net` weights, so `library.test.js` holds the best option
+to being the point the network ranked first; the author does not get to pick. The lesson's
+subject is the reading of those numbers rather than the numbers themselves, and its three
+claims are all measurements: that the same position asked at a nine-dan and at a five-kyu
+profile keeps its top move and reorders everything under it, that a policy weight is a
+frequency and not a score, and that a corner move asked as a whole-board question comes back
+at zero because the question was too big.
+
+Still open: `professional-openings` (1d) and `endgame-counting` in deiri and miai values
+(2d). The second of those is not blocked on tooling any more, only on a position: the solver
+handles it, and what it needs is a boundary with a real swing, which every hand-drawn attempt
+so far turned out to be either dame or a life-and-death problem in disguise.
 
 `life-and-death-tesuji` is worth a note because it is the pattern the rest of Tier 6 should
 follow. It teaches that the rectangular six in the corner dies, against the proverb that six
