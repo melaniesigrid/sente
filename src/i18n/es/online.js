@@ -201,6 +201,10 @@ export const online = {
     wordPlaceholder: "o una palabra que sepáis los dos",
     wordLabel: "Palabra de encuentro para jugar con un amigo",
     waitingFor: " · esperando {waited}",
+    waitingOnYou: {
+      one: "Una mesa te espera. Estas partidas no tienen reloj: aquí no se agota nada y nadie pierde por tomarse un día.",
+      other: "{count} mesas te esperan; primero, la que más tiempo lleva. Estas partidas no tienen reloj: aquí no se agota nada y nadie pierde por tomarse un día.",
+    },
     findPair: "Buscar una partida por parejas en {size}×{size}",
     pairNote: "Tú y una pareja de {rank} contra otro jugador y la suya, jugando por turnos. Sin puntuación. Cada pareja corre en el navegador del jugador al que acompaña, así que juega mientras ese jugador siga en la mesa.",
     pairLooking: "Buscando a otro jugador de parejas en {size}×{size}. Cada uno tendrá una pareja de {rank}, y los cuatro jugaréis por turnos.",

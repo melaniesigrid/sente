@@ -8,7 +8,7 @@ import { SHOW_ONLINE } from "../../server/presence.js";
 import { LIBRARY } from "../content/library.js";
 import { WELCOME_LESSON } from "../content/welcome.js";
 import { localize } from "../content/translate.js";
-import { TONES, RULES, STONE_RULE } from "../theme/tokens.js";
+import { TONES, RULES, STONE_RULE, BOARD_RULES } from "../theme/tokens.js";
 import { DOCUMENTS, CREDITS } from "../content/legal.js";
 import { PLAIN_WORDS, STATEMENTS } from "../content/plain.js";
 import { MOKU_STATES } from "../content/moku.js";
@@ -228,7 +228,7 @@ describe.each(others)("$name is complete", (locale) => {
       expect(mine.get(`tone.${tone.key}.label`), `${locale.id}: tone.${tone.key}.label`).toBeTruthy();
       expect(mine.get(`tone.${tone.key}.role`), `${locale.id}: tone.${tone.key}.role`).toBeTruthy();
     }
-    for (const r of [...RULES, STONE_RULE]) {
+    for (const r of [...RULES, STONE_RULE, ...BOARD_RULES]) {
       expect(mine.get(`rule.${r.id}.label`), `${locale.id}: rule.${r.id}.label`).toBeTruthy();
       expect(mine.get(`rule.${r.id}.why`), `${locale.id}: rule.${r.id}.why`).toBeTruthy();
     }
@@ -349,7 +349,8 @@ describe.each(others)("$name is complete", (locale) => {
       tone: TONES.map(t2 => t2.key),
       // The audit prints one row per rule, plus the stones and the two
       // closeness rows, which share one reason between them.
-      rule: [...RULES.map(r => r.id), STONE_RULE.id, "close-light", "close-dark", "closeness"],
+      rule: [...RULES.map(r => r.id), STONE_RULE.id, ...BOARD_RULES.map(r => r.id),
+        "close-light", "close-dark", "closeness"],
       legalDoc: DOCUMENTS.map(d => d.id),
       credit: CREDITS.map(c => c.id),
       plain: Object.keys(PLAIN_WORDS),

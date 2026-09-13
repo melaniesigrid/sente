@@ -14,7 +14,7 @@
 
 import { shell } from "./shell.js";
 import { look } from "./look.js";
-import { screens } from "./screens.js";
+import { screens, chain, master, clock } from "./screens.js";
 import { game } from "./game.js";
 import { front } from "./front.js";
 import { rooms } from "./rooms.js";
@@ -30,6 +30,9 @@ export const en = {
   ...shell,
   ...look,
   ...screens,
+  chain,
+  master,
+  clock,
   ...game,
   ...front,
   ...rooms,

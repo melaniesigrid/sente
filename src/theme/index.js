@@ -24,9 +24,9 @@ export {
   themeOf, themeVars, isDark, isThemeId, resolveTheme, sanitizePalette, paletteFrom, auditPalette,
 } from "./theme.js";
 export { contrast, luminance, grade, isHex, isDarkColor, toTriple } from "./color.js";
-export { RULES, CLOSENESS, TOKEN_NAMES } from "./tokens.js";
+export { RULES, CLOSENESS, TOKEN_NAMES, BOARD_RULES } from "./tokens.js";
 export { stoneSetOf } from "./theme.js";
-export { completeTones, tokensFor, deriveLights, deriveStoneB, stonesFor } from "./derive.js";
+export { completeTones, tokensFor, deriveLights, deriveBoard, boardIsDerived, stonesFor } from "./derive.js";
 export {
   STONE_SETS, AUTO_STONES, HOUSE_STONES, stonesOf, isStoneId, cutBlack, cutWhite,
 } from "./stones.js";

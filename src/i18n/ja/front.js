@@ -4,6 +4,7 @@
    書き、理由をあとに置き、一文は短く。 */
 export const front = {
   landing: {
+    recordMast: "記録",
     label: "いちばん古い遊び、灯りは控えめに",
     displayBefore: "碁を、",
     displayEm: "美しく",

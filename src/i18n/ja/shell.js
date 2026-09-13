@@ -30,6 +30,7 @@ export const shell = {
     enter: "入る",
     yourBoard: "自分の碁盤",
     look: "この場所の見た目",
+    lookShort: "見た目",
     profile: "プロフィール",
   },
   journal: {

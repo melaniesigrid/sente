@@ -41,7 +41,7 @@ export function LettersCard({ account, go, open, setOpen }) {
   }, [token]);
 
   if (rows === null) {
-    return <Card className="letters-card"><p className="fine">Fetching your letters…</p></Card>;
+    return <Card className="letters-card"><p className="fine">{t("letters.fetching", null, "Fetching your letters…")}</p></Card>;
   }
 
   if (open) {

@@ -4,6 +4,7 @@
    звороти з підстановкою розгорнуті: «трактат {author}», а не інакше. */
 export const front = {
   landing: {
+    recordMast: "Запис",
     label: "Найстаріша гра, при м'якому світлі",
     displayBefore: "Грай у го",
     displayEm: "красиво",

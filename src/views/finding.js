@@ -31,7 +31,7 @@ export function findState(typed, answer, busy) {
   const q = searchable(raw);
   if (!q) return { kind: "short", people: [] };
   const fresh = answer && answer.for === q;
-  if (!fresh) return { kind: "searching", people: [] };
+  if (!fresh) return { kind: answer && !busy ? "idle" : "searching", people: [] };
   if (answer.error) return { kind: "error", people: [] };
   return answer.people.length
     ? { kind: "found", people: answer.people }

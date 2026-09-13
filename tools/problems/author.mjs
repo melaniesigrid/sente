@@ -41,8 +41,11 @@
 
      node tools/problems/author.mjs life.json capture.json --out src/content/drills.data.js */
 import { readFileSync, writeFileSync } from "node:fs";
-import { board, killers, savers, catchers, fightRegion, bounded, legal, P, fmt } from "./prove.mjs";
-import { features, rankNumber, rankLabel, captureRank } from "./grade.mjs";
+import {
+  board, killers, savers, catchers, captureValues, fightRegion, tesujiRegion,
+  bounded, legal, P, fmt,
+} from "./prove.mjs";
+import { features, rankNumber, rankLabel, captureRank, tesujiRank } from "./grade.mjs";
 import { nameOf } from "./name.mjs";
 import { boardToRows } from "../../src/engine/index.js";
 import { rankToNumber } from "../../src/content/library.js";
@@ -68,14 +71,38 @@ const OPS = [
   (c, r) => [r, SIZE - 1 - c], (c, r) => [SIZE - 1 - r, SIZE - 1 - c],
 ];
 
-function positionKey(setup, answers, goal) {
+/** A drill's id, derived from the board rather than from its place in the
+ *  list. Sequential ids were a quiet bug waiting to happen: every time a new
+ *  census adds problems the whole file renumbers, and a reader's record of
+ *  which drills they have solved then points at different boards. An id that
+ *  comes out of the position never moves, so a later expansion adds ids
+ *  without disturbing any that exist. */
+export function drillId(setup, answers) {
+  const key = positionKey(setup, answers);
+  let h = 2166136261;
+  for (let i = 0; i < key.length; i++) {
+    h ^= key.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return `d${h.toString(36).padStart(7, "0").slice(-7)}`;
+}
+
+/* The goal is deliberately not part of this. Two censuses can find the same
+   board and ask about it differently - the capture census calling it a chain
+   to take off, the tesuji census calling it a fight worth so many stones - and
+   a reader who meets the identical position twice under two headings has been
+   shown one drill twice. What makes two boards the same question is the stones
+   and the answer, so that is the key, and the family that found it first keeps
+   it. Kill and live are not affected: those are the same census row with the
+   colours swapped, so their boards differ anyway. */
+function positionKey(setup, answers) {
   let best = null;
   for (const op of OPS) {
     const g = Array(SIZE * SIZE).fill(".");
     for (const p of setup.w) { const [c, r] = op(p.c, p.r); g[r * SIZE + c] = "o"; }
     for (const p of setup.b) { const [c, r] = op(p.c, p.r); g[r * SIZE + c] = "x"; }
     const marks = answers.map(p => op(p.c, p.r).join(",")).sort().join(" ");
-    const s = `${g.join("")}@${marks}|${goal}`;
+    const s = `${g.join("")}@${marks}`;
     if (best === null || s < best) best = s;
   }
   return best;
@@ -115,6 +142,15 @@ function lifeQuestions(row) {
   return out;
 }
 
+/* A tesuji row is already one question with one answer: the census only kept
+   arrangements where exactly one move is best, so there is nothing here to
+   choose between the way a life-and-death position offers a kill and a live. */
+const tesujiQuestion = (row) => ({
+  kind: "tesuji", goal: "tesuji", where: row.anchor, setup: row.setup,
+  toPlay: "b", answers: [row.answer], net: row.net, sacrifice: row.sacrifice,
+  depth: row.depth, whites: row.whites, region: row.region,
+});
+
 const captureQuestion = (row) => ({
   kind: "capture", goal: "capture", where: row.anchor, setup: row.setup,
   toPlay: "b", answers: [row.answer], libs: row.libs, whites: row.whites,
@@ -125,6 +161,26 @@ const captureQuestion = (row) => ({
 function settle(q) {
   const bd = board(q.setup, SIZE);
   if (legal(bd) !== null) return null;
+
+  if (q.kind === "tesuji") {
+    const region = tesujiRegion(bd);
+    if (region.length !== q.region) return null;
+    const v = captureValues(bd, region, "b", { cap: 7 });
+    const best = v.moves[0];
+    if (!best || fmt([best.point]) !== fmt(q.answers)) return null;
+    if (v.moves.length < 2 || best.net <= v.moves[1].net) return null;
+    const where = whereOf(region);
+    /* The horizon comes from the census rather than being measured a third
+       time here: it is the most expensive number in the pipeline, and
+       `drills.test.js` re-derives it from the shipped board on every build,
+       which is the check that matters. Everything else is re-proved here. */
+    const f = { depth: q.depth, sacrifice: best.sacrifice ? 1 : 0,
+      decoys: region.length - 1, whites: q.whites,
+      corner: where === "corner" ? 1 : 0 };
+    return { ...q, board: bd, region, f, where, rank: rankLabel(tesujiRank(f)),
+      shape: null, net: best.net, sacrifice: best.sacrifice ? 1 : 0,
+      flavour: `tesuji|${q.sacrifice}|${where}|${q.depth}` };
+  }
 
   if (q.kind === "capture") {
     const target = q.setup.w[0];
@@ -202,14 +258,15 @@ export function build(files, { perRank = PER_RANK } = {}) {
   for (const file of files) {
     const rows = JSON.parse(readFileSync(file, "utf8"));
     for (const row of rows) {
-      if (row.answer) questions.push(captureQuestion(row));
+      if (row.kind === "tesuji") questions.push(tesujiQuestion(row));
+      else if (row.answer) questions.push(captureQuestion(row));
       else questions.push(...lifeQuestions(row));
     }
   }
   const seen = new Set();
   const distinct = [];
   for (const q of questions) {
-    const key = positionKey(q.setup, q.answers, q.goal);
+    const key = positionKey(q.setup, q.answers);
     if (seen.has(key)) continue;
     seen.add(key);
     distinct.push(q);
@@ -232,16 +289,38 @@ export function build(files, { perRank = PER_RANK } = {}) {
     const held = best.get(s.flavour);
     if (!held || stones < held.stones) best.set(s.flavour, { stones, row: s });
   }
-  const unique = [...capture, ...[...best.values()].map(v => v.row)];
-  const byRank = new Map();
+  const oneEach = [...capture, ...[...best.values()].map(v => v.row)];
+
+  /* And one last pass on the boards as they will actually be drawn. The key
+     above works on the position a census handed over; this works on the nine
+     rows that ship, which is what a reader sees and what `drills.test.js`
+     checks. Two censuses finding the same fight and describing it differently
+     is not a hypothetical: the capture census and the tesuji census turned out
+     to share five boards exactly, one calling a 21 kyu capture what the other
+     called an 11 kyu tesuji. The family that found it first keeps it. */
+  const drawn = new Set();
+  const unique = [];
+  for (const s2 of oneEach) {
+    const key = boardToRows(s2.board).join("") + "@" + fmt(s2.answers);
+    if (drawn.has(key)) continue;
+    drawn.add(key);
+    unique.push(s2);
+  }
+  /* Capped per rank AND per kind, which is not tidiness either. Capping by
+     rank alone means the day a new census arrives its problems compete for the
+     same slots as the ones already shipped, and boards a reader may have
+     solved quietly drop out of the collection. A family gets its own shelf at
+     each rank, so an expansion only ever adds. */
+  const byBucket = new Map();
   for (const s of unique) {
-    if (!byRank.has(s.rank)) byRank.set(s.rank, []);
-    byRank.get(s.rank).push(s);
+    const bucket = `${s.rank}|${s.kind}`;
+    if (!byBucket.has(bucket)) byBucket.set(bucket, []);
+    byBucket.get(bucket).push(s);
   }
   const kept = [];
-  for (const group of byRank.values()) kept.push(...spread(group, perRank));
+  for (const group of byBucket.values()) kept.push(...spread(group, perRank));
   kept.sort((a, b) => rankToNumber(a.rank) - rankToNumber(b.rank)
-    || a.flavour.localeCompare(b.flavour));
+    || a.kind.localeCompare(b.kind) || a.flavour.localeCompare(b.flavour));
   return { questions: questions.length, distinct: distinct.length, settled: settled.length, unique: unique.length, kept };
 }
 
@@ -258,10 +337,23 @@ const HEADER = `/* ----------------------- THE DRILLS (GENERATED) --------------
    build, so if a row here is wrong the build says so. */
 `;
 
-function emit(d, n) {
-  const id = `d${String(n + 1).padStart(3, "0")}`;
+function emit(d) {
+  const id = drillId(d.setup, d.answers);
   const rows = boardToRows(d.board).map(r => `"${r}"`).join(", ");
   const answers = d.answers.map(p => `[${p.c}, ${p.r}]`).join(", ");
+  if (d.kind === "tesuji") {
+    const rows2 = boardToRows(d.board).map(r => `"${r}"`).join(", ");
+    const answers2 = d.answers.map(p => `[${p.c}, ${p.r}]`).join(", ");
+    return `  { id: "${id}", rank: "${d.rank}", kind: "tesuji", goal: "tesuji",
+`
+      + `    where: "${d.where}", net: ${d.net}, stones: ${d.f.whites},`
+      + ` decoys: ${d.f.decoys}, depth: ${d.f.depth},`
+      + ` sacrifice: ${d.f.sacrifice},
+`
+      + `    rows: [${rows2}],
+`
+      + `    answers: [${answers2}] },`;
+  }
   const facts = d.kind === "capture"
     ? `libs: ${d.f.libs}, stones: ${d.f.whites}, decoys: ${d.f.decoys},`
       + ` target: [${d.target.c}, ${d.target.r}]`

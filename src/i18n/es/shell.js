@@ -17,6 +17,7 @@ export const shell = {
     enter: "Entrar",
     yourBoard: "Tu tablero",
     look: "El aspecto del lugar",
+    lookShort: "Aspecto",
     profile: "Tu perfil",
   },
   journal: {

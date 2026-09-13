@@ -13,8 +13,8 @@ import {
 } from "./stones.js";
 import { PALETTES, HOUSE_THEME } from "./palettes.js";
 import { auditPalette, themeVars, stoneSetOf, withStones } from "./theme.js";
-import { deriveStoneB, stonesFor, completeTones } from "./derive.js";
-import { isHex, luminance, contrast, isDarkColor } from "./color.js";
+import { deriveBoard, stonesFor, completeTones } from "./derive.js";
+import { isHex, luminance, isDarkColor } from "./color.js";
 import { TOKEN_NAMES } from "./tokens.js";
 
 describe("the sets in the drawer", () => {
@@ -72,19 +72,51 @@ describe("every set in every room", () => {
     }
   });
 
-  it("seats a black stone into a dark board without letting it vanish", () => {
-    for (const p of PALETTES.filter(x => isDarkColor(x.ground))) {
+  // The rule this design system was missing, and the one a player found for it:
+  // the two stones were held 4.5:1 apart from each other and neither was ever
+  // measured against the wood. In every dark room that left the black stone at
+  // about 1.2:1 on the board and the white one at about 14:1 — one hiding, one
+  // shouting, which is exactly how it was reported. Both sides, all eighty
+  // boards, or it does not ship.
+  it("keeps both stones readable on the board itself, all eighty boards of it", () => {
+    for (const p of PALETTES) {
       for (const s of STONE_SETS) {
-        const cut = deriveStoneB(p.ground, s.b);
-        expect(luminance(cut[0]), `${p.id} + ${s.id}: crown above the wood`).toBeGreaterThan(luminance(p.ground));
-        expect(contrast(cut[1], "#ffffff"), `${p.id} + ${s.id}: stays dark`).toBeGreaterThan(7);
+        for (const row of auditPalette(p, s.id).filter(r => r.id.startsWith("board-"))) {
+          expect(row.pass, `${p.id} + ${s.id}: ${row.label} is ${row.ratio.toFixed(2)}:1`).toBe(true);
+        }
       }
     }
   });
 
-  it("leaves the stones as cut on paper", () => {
+  // The lift is not a taste call: it stops at the geometric mean of the two
+  // stones, the one point where each reads against the wood as well as the
+  // other does. So the two sides of the rule come out equal, not merely passing.
+  it("sits a derived board evenly between the two stones", () => {
+    for (const p of PALETTES.filter(x => isDarkColor(x.ground))) {
+      for (const s of STONE_SETS) {
+        const rows = auditPalette(p, s.id);
+        const b = rows.find(r => r.id === "board-b").ratio;
+        const w = rows.find(r => r.id === "board-w").ratio;
+        expect(Math.abs(b - w), `${p.id} + ${s.id}: ${b.toFixed(2)} vs ${w.toFixed(2)}`).toBeLessThan(0.12);
+      }
+    }
+  });
+
+  it("plays a light room on its own paper, stones exactly as cut", () => {
     const slate = stonesOf(HOUSE_STONES);
-    expect(deriveStoneB("#e8e4db", slate.b)).toEqual(cutBlack(slate.b));
+    expect(deriveBoard("#e8e4db", "#f2ede3", cutBlack(slate.b)[1], cutWhite(slate.w)[1])).toBe("#e8e4db");
+  });
+
+  // A stone is a rock. It is the same rock in every room, and the room is what
+  // moves around it.
+  it("cuts the same stone in every room", () => {
+    for (const s of STONE_SETS) {
+      const cut = [cutBlack(s.b), cutWhite(s.w)];
+      for (const p of PALETTES) {
+        const pair = stonesFor(completeTones({ ...p, stones: s.id }));
+        expect([pair.b, pair.w], `${p.id} + ${s.id}`).toEqual(cut);
+      }
+    }
   });
 });
 

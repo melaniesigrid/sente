@@ -67,6 +67,8 @@ export const rooms = {
   },
 
   dojo: {
+    lookNote: "Passer d’une salle nommée, de pierres ou de typographie à une autre se fait sur {link}.",
+    lookLink: "la page d’apparence",
     title: "Construis ton propre dojo",
     sub: "Six couleurs font une salle, et chaque couleur proposée ici en est une avec laquelle Joseki joue déjà quelque part : prends le fond de cette salle-ci, la marque de celle-là et les pierres d'une troisième. Le goban bouge avec elles au fur et à mesure : pierres, quadrillage, ombres et tout le reste. Rien n'est enregistré tant que tu ne le dis pas, et les nombres ci-dessous sont ceux-là mêmes que vérifie la compilation.",
     resetBoard: "Remets le goban",
@@ -88,8 +90,8 @@ export const rooms = {
     startOver: "Recommence à zéro",
     clear: "Efface",
     blocked: {
-      one: "Une règle est enfreinte, cette salle ne peut donc pas encore être portée. Toutes les salles nommées de Joseki passent les six.",
-      other: "{count} règles sont enfreintes, cette salle ne peut donc pas encore être portée. Toutes les salles nommées de Joseki passent les six.",
+      one: "Une règle est enfreinte, cette salle ne peut donc pas encore être portée. Toutes les salles nommées de Joseki les passent toutes.",
+      other: "{count} règles sont enfreintes, cette salle ne peut donc pas encore être portée. Toutes les salles nommées de Joseki les passent toutes.",
     },
     overriddenBefore: "Tu joues toutes les salles avec {stones}, choisies sur ",
     overriddenLink: "la page de l'allure",
@@ -153,6 +155,14 @@ export const rooms = {
     stones: {
       label: "Les deux pierres",
       why: "Le noir et le blanc doivent être impossibles à confondre d'un coup d'œil, d'un bout à l'autre du goban et vite.",
+    },
+    "board-b": {
+      label: "L'ardoise sur le goban",
+      why: "Une pierre noire doit se trouver sur le bois où elle est posée, et pas seulement face à la blanche.",
+    },
+    "board-w": {
+      label: "La coquille sur le goban",
+      why: "L'autre moitié de la même règle, et seulement là où la salle a dû inventer son goban : une pierre blanche qui crie plus fort que le bois fatigue autant qu'une noire qui s'y cache. Sur du vrai papier, c'est son bord qui détache la pierre de coquille, pas son remplissage.",
     },
     "close-light": { label: "Lumière près du fond" },
     "close-dark": { label: "Ombre près du fond" },

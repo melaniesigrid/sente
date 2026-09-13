@@ -176,9 +176,17 @@ export default function JosekiApp() {
             one setting. */}
         <div className="topbar-you">
           <LangPill profile={profile} setProfile={setProfile} />
+          {/* Labelled, not a bare icon. A palette glyph on its own is a
+              preference nobody goes looking for: the first player to say the
+              dark board was hard to read had never found this button, and six
+              light rooms were one press away the whole time. The long phrase
+              stays the label a screen reader hears; the short one is the word
+              on the button, and it drops on a narrow screen the way the nav's
+              own labels do. */}
           <button className="icon-btn look-btn" onClick={() => go("look")}
             aria-label={t("topbar.look")} aria-current={view === "look" ? "page" : undefined}>
             <Palette size={17} />
+            <span>{t("topbar.lookShort")}</span>
           </button>
           <button className="profile-chip" onClick={() => go("profile")} aria-label={t("topbar.profile")}>
             <Avatar name={profile.name} tint={profile.tint} size={34} />

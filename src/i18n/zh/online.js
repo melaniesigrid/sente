@@ -201,6 +201,9 @@ export const online = {
     wordPlaceholder: "或者一个你们俩都知道的词",
     wordLabel: "跟朋友下棋用的碰头暗号",
     waitingFor: " · 等了{waited}",
+    waitingOnYou: {
+      other: "有 {count} 张棋桌在等你，等得最久的排在前面。这些对局没有棋钟：这里不会超时，也不会因为隔了一天才下就判负。",
+    },
     findPair: "在 {size}×{size} 上找一局双人围棋",
     pairNote: "你和一位{rank}的同伴，对上另一位棋手和他的同伴，轮流下。不计分。每位同伴都跑在它所搭档的那位棋手的浏览器里，所以那位棋手在桌上多久，它就下多久。",
     pairLooking: "正在 {size}×{size} 上找另一位打双人围棋的人。你们各会分到一位{rank}的同伴，四个人轮流下。",

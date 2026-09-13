@@ -74,9 +74,12 @@ export const PALETTES = [
     note: "Black lacquer and gold leaf. The formal room: a tournament board under a low lamp.",
     ground: "#17140f", ink: "#e9e0cd", accent: "#c9a45c", cream: "#f2e9d5",
     light: "#241f17", dark: "#0a0806", danger: "#c4705c",
-    // The one room whose grid is not drawn in ink: gold leaf on black lacquer,
-    // which is the object this palette is named for.
-    grid: "#9c7f4c",
+    // This room used to draw its grid in gold leaf, which was the object it is
+    // named for and was right while the board was the black page. Now that a
+    // dark room lifts its board off the page (deriveBoard) the gold sits at
+    // 1.07:1 on the wood and the lines disappear, so the grid derives like
+    // every other room's. The gold is still the mark everywhere else, which is
+    // where the lacquer-and-leaf reading actually lives.
   },
   {
     id: "graphite",

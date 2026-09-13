@@ -134,9 +134,14 @@ export function tokensFor(tones) {
   // from the top left, so it is still raised, but it has nowhere left to go.
   const [dp, blurp] = dark ? [3, 9] : [2, 6];
   const { b, w } = stonesFor(t);
+  const board = deriveBoard(t.ground, t.cream, b[1], w[1]);
 
   return {
     "--ground": t.ground,
+    // The page and the board are two surfaces now. On paper they are the same
+    // colour and this is the ground; in a dark room the board is lifted off the
+    // page so it can hold a stone of either colour.
+    "--board": board,
     "--light": t.light,
     "--dark": t.dark,
     "--ink": t.ink,
@@ -170,7 +175,13 @@ export function tokensFor(tones) {
     "--scrim": `rgba(${toTriple(t.ground)},.76)`,
     "--hairline": `rgba(${shInk},${dark ? ".28" : ".14"})`,
 
-    "--grid": t.grid || t.ink,
+    // The grid is drawn on the board, not on the page, so it is measured
+    // against the board. On paper that is the ink, as it has always been. In a
+    // dark room the board is now the lighter of the two surfaces, so the lines
+    // go back to being dark lines on a light board — and the room's own ground
+    // is exactly the dark it wants, which keeps the grid in the room's hue
+    // rather than introducing a colour nothing else uses.
+    "--grid": t.grid || (dark ? t.ground : t.ink),
     // Every belt, seal and rank colour in rank.js is an absolute value chosen
     // against paper: the white belt vanishes on a pale ground and the black one
     // on a dark ground. A contour in the room's own ink gives each band an edge
@@ -188,26 +199,49 @@ export function tokensFor(tones) {
   };
 }
 
-/** The black stone, seated toward the board it is played on. On paper this
- *  returns the set as cut; on a dark ground it pulls the stone down so it stays
- *  black rather than turning into grey slate, while its crown stays above the
- *  ground so the piece still separates from the wood.
+/** Both stones a completed tone set is played with, ready for the gradient: the
+ *  set's two cores, cut into three stops each. A stone is the same object in
+ *  every room — it is a rock, it does not know what it is lying on — so nothing
+ *  here depends on the ground. What changes from room to room is the board
+ *  (`deriveBoard`), which is the thing that was actually wrong.
  *
- *  Only the black stone is seated. A white stone barely differs from paper and
- *  never has, and on a dark board it needs no help at all: what separates it
- *  there is its rim and its drop shadow, not its fill. */
-export function deriveStoneB(ground, core = stonesOf(HOUSE_STONES).b) {
-  const cut = cutBlack(core);
-  if (!isDarkColor(ground)) return cut;
-  const seat = 0.35 + 0.15 * (1 - Math.min(1, luminance(ground) / 0.32));
-  return cut.map((s, i) => mix(s, ground, seat - i * 0.05));
-}
-
-/** Both stones a completed tone set is played with, ready for the gradient:
- *  the set's two cores, cut into three stops each, the black one seated into
- *  this room's board. One function, so the board, the swatches and the audit
- *  can never be looking at three different sets of stones. */
+ *  One function, so the board, the swatches and the audit can never be looking
+ *  at three different sets of stones. */
 export function stonesFor(tones) {
   const set = stonesOf(tones.stones);
-  return { b: deriveStoneB(tones.ground, set.b), w: cutWhite(set.w), set };
+  return { b: cutBlack(set.b), w: cutWhite(set.w), set };
 }
+
+/** The surface the stones are played on, which is not always the page.
+ *
+ *  On paper the board is the paper: a pale ground already is a goban, a black
+ *  stone reads on it at 7:1 or better, and the shell stone is separated by its
+ *  rim the way it is on real kaya. Nothing to invent, so nothing is: this
+ *  returns the ground untouched and every light room is exactly as drawn.
+ *
+ *  A dark room has no board at all, and that was the bug. The page is near
+ *  black because a dark room should be; a board that is also near black leaves
+ *  the black stone at about 1.2:1 on it while the white one sits at 14:1, so
+ *  one colour hides and the other shouts. Both complaints have the same cause
+ *  and the same cure: give the dark room an actual board, lifted off its page.
+ *
+ *  Where to stop lifting is not a taste call. The board is carried toward the
+ *  room's own shell until it sits at the geometric mean of the two stones,
+ *  which is the one point where both read against it equally — each at the
+ *  square root of the contrast between them, so the stone rule is what pays for
+ *  this one. It comes out near 3:1 a side for every set in the drawer, and the
+ *  page stays as dark as it was: only the board moved. */
+export function deriveBoard(ground, cream, b, w) {
+  if (!isDarkColor(ground)) return ground;
+  const want = Math.sqrt((luminance(w) + 0.05) * (luminance(b) + 0.05)) - 0.05;
+  let lo = 0, hi = 1;
+  for (let i = 0; i < 20; i++) {
+    const mid = (lo + hi) / 2;
+    if (luminance(mix(ground, cream, mid)) < want) lo = mid; else hi = mid;
+  }
+  return mix(ground, cream, lo);
+}
+
+/** True where the room had to invent a board rather than play on its own paper.
+ *  The two-sided board rule only binds here; see BOARD_RULES. */
+export const boardIsDerived = (ground) => isDarkColor(ground);

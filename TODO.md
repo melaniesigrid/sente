@@ -20,11 +20,12 @@ is a snapshot: it will be wrong the week after somebody authors anything.
 - **19 tsumego** in four sets (capture and escape 4, shape 3, eye shapes 8, the corner 4),
   running 25k to 2k. Every board is proved on every build: the stated answer has to be
   exactly the set of moves that work.
-- **136 drills** beside them, running 23k to 5k, searched rather than written: two censuses
-  under `tools/problems/` enumerate capturing positions and sealed eye spaces, solve each
-  one exhaustively, and keep the ones with a single answer. The rank on each is measured by
-  a fitted model rather than assigned, the words are composed from what the search proved,
-  and `drills.test.js` re-proves all 136 from the shipped file on every build.
+- **203 drills** beside them, running 23k to 3k, searched rather than written: three censuses
+  under `tools/problems/` enumerate capturing positions, sealed eye spaces and fights where
+  the winning move pays later, solve each one exhaustively, and keep the ones with a single
+  answer. 99 capture, 37 life and death, 67 tesuji. The rank on each is measured by a model
+  rather than assigned, the words are composed from what the search proved, and
+  `drills.test.js` re-proves all 203 from the shipped file on every build.
 - **4 joseki** on the star point, out of three corner points the dictionary names. The 3-4
   and the 3-3 are declared and unwritten.
 - **7 house players**, each with a page, all of them running the same network at whatever
@@ -1174,17 +1175,42 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       Black moves: no question there at all. A bounded region of eight points or fewer,
       solved exhaustively, tops out around 1 kyu, and the grading model says so instead of
       claiming a range it cannot reach.
-- [ ] The two ends the drills still do not reach. Below 23k there is nothing, because a
-      board with one white stone in atari is the same board however it is drawn. Above 5k
-      there is almost nothing, and the reason is structural rather than lazy: the search
-      wants a bounded region, and everything hard is unbounded. Three families would open
-      it, each needing a solver rather than more enumeration:
-      capturing races, where the verdict is a count and not a search; groups that are not
-      yet sealed, where the answer is a hane or a descent on the second line; and the
-      sacrifice tesuji (snapback, throw-in, under the stones), which `catches` structurally
-      cannot find because the chain that comes off the board is not the chain it was
-      watching. That last one is the same negative result the snapback hunt above reached
-      from the other direction.
+- [x] The third family, and the top of the range (2026-09-13, branch `feat/sacrifice-drills`).
+      67 new drills and the first the collection has had above 5 kyu, which now reaches 3 kyu.
+      The drills stopped at 5 kyu because both searches asked the wrong question: `killers`
+      asks whether a sealed group can make two eyes, `catches` asks whether one named chain
+      comes off the board, and a tesuji is neither. `prisoners` in the prover asks the third
+      question, which is how many stones Black takes over the whole sequence less the stones
+      White takes back, and a stone given away then costs one and comes back as three
+      instead of ending the search. `tools/problems/tesuji.mjs` is the census built on it.
+
+      Two things about the pipeline were quietly wrong and are now fixed, both found by
+      adding a family rather than by reading the code. Drill ids were sequential, so every
+      expansion renumbered the file and a reader's record of what they had solved silently
+      pointed at different boards; ids are derived from the position now and never move.
+      And the per-rank cap was shared across families, so new problems competed for slots
+      with shipped ones; each family has its own shelf at each rank now, and the check that
+      nothing already shipped disappeared is part of the regeneration.
+- [ ] The snapback, which this census did not find, and the reason is worth keeping.
+      The solver can represent one - an early run found two - and they went away when the
+      search region was corrected, because with a stray white stone inside it Black had a
+      bigger capture elsewhere and the sacrifice was only second best. With the region right
+      and one white group on the board, the census turned up none at all across the corner,
+      the edge and the open board, at two liberties and at three.
+
+      The argument says why. A snapback is a two-liberty shape: Black plays one of the two
+      liberties, White captures with the other, and White's chain is then one stone longer
+      with only the point it emptied. But that argument is symmetric, so if it works at one
+      point it works at the other, the position has two right answers, and the census drops
+      it for exactly that reason. A real snapback is asymmetric and the asymmetry comes from
+      the stones around it, which means it wants a group with room to live and one defect in
+      it: a corner position from a real game rather than a chain with stones dropped beside
+      it. That is a different generator, and the honest next attempt is to mine finished
+      games for the shape rather than to enumerate toward it.
+- [ ] The two families still unopened, and the bottom end. Capturing races, where the verdict
+      is a count and not a search; and groups that are not yet sealed, where the answer is a
+      hane or a descent on the second line. Below 23k there is still nothing, because a board
+      with one white stone in atari is the same board however it is drawn.
 - [ ] Translate the drill lines. There are about fifteen of them (`drill.` keys, composed
       rather than per-board, which is what makes a hundred boards translatable at all) and
       they are asked for with an English fallback in hand, so every language shows them in
