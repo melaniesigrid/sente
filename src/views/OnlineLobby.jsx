@@ -4,7 +4,7 @@ import { Card, Btn, Avatar, RankBadge } from "../components/ui.jsx";
 import { api, lobbySocket, serverEnabled, SERVER_URL } from "../net/api.js";
 import { loadAccount, saveAccount, clearAccount } from "../store/account.js";
 import { provisionalText } from "../content/online.js";
-import { DEFAULT_PARTNER_RANK } from "../engine/index.js";
+import { SIZES, DEFAULT_PARTNER_RANK } from "../engine/index.js";
 import { tableLine } from "./onlineStatus.js";
 import { dashboard, waitingText, waitedMinutes } from "./dashboard.js";
 import { AccountGate } from "./AccountGate.jsx";
@@ -17,18 +17,29 @@ import { useT } from "../components/langStore.js";
    and a password, or a handle kept in this browser alone. The server rates
    games with Glicko-2 and keeps the ladder.
    `onPlay(session)` opens a table: `{ mode: { kind: "online", gameId } }`.
-   The board comes from the lobby's table picker, so one control sets the
-   size for every kind of game. Online games are even; handicap is a house
-   arrangement, and two strangers have no way to agree on one yet. */
-export function OnlineCard({ profile, notify, onPlay, size = 9 }) {
+
+   The board is the lobby's table board: `size` and `setSize` read and write the
+   one setting every kind of game here plays on. The picker is drawn twice on
+   purpose. It used to be drawn once, in the table card three cards down the
+   page, and the only thing up here was the board's name baked into the button
+   label - so a player whose table said 9x9 read "Find an opponent on 9x9" with
+   no control anywhere near it and no way to tell that the number was a choice.
+   Asking for another board meant scrolling past fourteen other controls to a
+   card that does not mention the word "online". Two views of one value is the
+   cheaper wrong: a control you cannot find is a board you cannot play on.
+
+   Online games are even; handicap is a house arrangement, and two strangers
+   have no way to agree on one yet. */
+export function OnlineCard({ profile, notify, onPlay, size = 9, setSize = () => {} }) {
   const [account, setAccount] = useState(() => loadAccount());
   if (!serverEnabled()) return null;
   return account
-    ? <Lobby account={account} setAccount={setAccount} notify={notify} onPlay={onPlay} size={size} />
+    ? <Lobby account={account} setAccount={setAccount} notify={notify} onPlay={onPlay}
+        size={size} setSize={setSize} />
     : <AccountGate profile={profile} notify={notify} onSignedIn={setAccount} />;
 }
 
-function Lobby({ account, setAccount, notify, onPlay, size }) {
+function Lobby({ account, setAccount, notify, onPlay, size, setSize }) {
   const t = useT();
   /* The lobby socket outlives a change of language, and reconnecting it to
      translate one toast would drop a player out of the queue they are waiting
@@ -160,6 +171,21 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
         </div>
       ) : (
         <>
+          {/* The board, beside the button that names it. Every find below seeks
+              on this one, which is why it sits above all three of them rather
+              than in any one row: a player picks a board and then picks a kind
+              of game, never the other way round. */}
+          <div className="row">
+            <div className="seg" role="radiogroup" aria-label={t("online.lobby.boardGroup")}>
+              {SIZES.map(n => (
+                <button key={n} type="button" role="radio" aria-checked={size === n}
+                  className={`seg-btn ${size === n ? "active" : ""}`} onClick={() => setSize(n)}>
+                  {n}×{n}
+                </button>
+              ))}
+            </div>
+            <span className="fine">{t("online.lobby.boardNote")}</span>
+          </div>
           <div className="row">
             <Btn icon={Play} primary small onClick={() => findGame()} disabled={conn !== "open"}>
               {key ? t("online.lobby.meetAt", { word: key, size }) : t("online.lobby.findOn", { size })}

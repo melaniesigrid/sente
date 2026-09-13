@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup, act } from "@testing-library/react";
+import { render, screen, cleanup, act, fireEvent } from "@testing-library/react";
 import { dashboard } from "./dashboard.js";
 
 
@@ -66,8 +66,8 @@ const table = (id, over = {}) => ({
   updatedAt: now - HOUR, result: null, ...over,
 });
 
-const show = () => render(
-  <OnlineCard profile={{ name: "Me" }} notify={() => {}} onPlay={() => {}} size={9} />,
+const show = (over = {}) => render(
+  <OnlineCard profile={{ name: "Me" }} notify={() => {}} onPlay={() => {}} size={9} {...over} />,
 );
 /** The rendered rows, in the order they are on screen, named by their opponent
   * line plus the detail beside it - which is enough to tell any two apart. */
@@ -192,5 +192,60 @@ describe("how long a table has sat there", () => {
     expect(rows().length).toBe(1);
     expect(rows()[0]).toMatch(/won by resignation/);
     expect(rows()[0]).not.toMatch(/hour|minute|day/);
+  });
+});
+
+/* ----------------------- THE BOARD THE BUTTON NAMES -----------------------
+   "Find an opponent on 9x9" is a sentence with a number in it, and for a while
+   the only control over that number lived in the table card three cards down
+   the page, past fourteen other controls, under a heading that does not say
+   "online". The wiring was never broken - the picker down there did set the
+   board and the button did follow it - so every test passed while a player who
+   wanted 19x19 had no way to find out that 9 was a choice.
+
+   So what is checked here is placement, not state: the control is in the same
+   card as the button, and the board it reports is the board the seek is sent
+   with. A test that only asserted the state would go green on the bug. */
+describe("the board the find button names", () => {
+  const card = () => document.querySelector(".online-card");
+  const findBtn = () => screen.getByRole("button", { name: /opponent/i });
+  const boards = () => screen.getByRole("radiogroup", { name: /board/i });
+
+  const ready = async (over) => {
+    const r = show(over);
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    return r;
+  };
+
+  it("puts a board picker in the same card as the button, offering every size", async () => {
+    await ready();
+    expect(card().contains(boards()), "the picker is inside the online card").toBe(true);
+    expect(card().contains(findBtn()), "and so is the button it belongs to").toBe(true);
+    expect([...boards().querySelectorAll("button")].map(b => b.textContent))
+      .toEqual(["9×9", "13×13", "19×19"]);
+  });
+
+  it("marks the board the button is naming, and no other", async () => {
+    await ready({ size: 13 });
+    expect(findBtn().textContent).toContain("13×13");
+    const on = [...boards().querySelectorAll("button")].filter(b => b.getAttribute("aria-checked") === "true");
+    expect(on.map(b => b.textContent)).toEqual(["13×13"]);
+  });
+
+  it("reports a new board to the table it shares with the rest of the lobby", async () => {
+    const setSize = vi.fn();
+    await ready({ setSize });
+    const nineteen = [...boards().querySelectorAll("button")].find(b => b.textContent === "19×19");
+    await act(async () => { fireEvent.click(nineteen); });
+    expect(setSize).toHaveBeenCalledWith(19);
+  });
+
+  /* The board is a choice only if the seek carries it. This is the half that
+     would still be worth having if the picker were ever moved again. */
+  it("seeks on the board that is showing, not on nine", async () => {
+    await ready({ size: 19 });
+    await act(async () => { sockets[0].handlers.onStatus("open"); });
+    await act(async () => { fireEvent.click(findBtn()); });
+    expect(sockets[0].send).toHaveBeenCalledWith(expect.objectContaining({ t: "seek", size: 19 }));
   });
 });

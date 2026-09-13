@@ -2519,6 +2519,24 @@ friends"; this phase is the three verbs in that sentence that were still missing
 - [ ] **The invitation** (branch `feat/invite`): ask a named person for a game.
 - [ ] **The way in** (branch `feat/reach`): the acts on a person — ask, write, invite —
       reachable from every row and every page that names one of them.
+- [x] **The board the button names** (2026-09-13, branch `fix/online-board-size`): the
+      online card said "Find an opponent on 9×9" and the only control over that 9 was
+      in the table card three cards down the page, past fourteen other controls, under
+      a heading that never says "online". Nothing was broken — the picker down there
+      did set the board and the button did follow it — which is why every test passed
+      while a player who wanted 19×19 had no way to learn that 9 was a choice. The card
+      now carries its own board picker, writing the same table setting, and the tests
+      check placement rather than state: a test that only asserted the state would have
+      gone green on the bug.
+- [ ] **The phantom seek** (found 2026-09-13, not fixed): the client sets "Looking for
+      an opponent…" when it sends the seek and only clears it on a reply, but the server
+      deletes `seek:<id>` whenever the player's socket count falls to one
+      (`server/registry.js` `webSocketClose`) — which includes the case where a second
+      tab replaces the first. The replaced tab is closed with code 4000, which
+      `openSocket` deliberately does not reconnect, so it is left spinning on a seek the
+      server has already thrown away and nobody can ever match it. Two halves to fix:
+      the server should re-send the waiting state on a new lobby socket, and the client
+      should stop claiming to be waiting once the connection is gone.
 
 ## Principles (do not trade away)
 
