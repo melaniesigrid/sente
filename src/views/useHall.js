@@ -15,7 +15,7 @@ import { withLine, withoutLine } from "./hallLines.js";
 
    The socket reconnects on its own — `openSocket` handles that — so a laptop
    closed and opened again comes back to the room rather than to a dead page. */
-export function useHall(clubId, token) {
+export function useHall(clubId, token, onTable) {
   const [hall, setHall] = useState(null);
   const [here, setHere] = useState([]);
   const [status, setStatus] = useState("connecting");
@@ -23,6 +23,10 @@ export function useHall(clubId, token) {
      so the screen can say why rather than showing a room that stopped. */
   const [closed, setClosed] = useState(false);
   const sock = useRef(null);
+  /* Where to walk when a board opens. Held in a ref so that the socket, which
+     outlives a re-render, never has to be rebuilt to learn a new callback. */
+  const onTableRef = useRef(onTable);
+  useEffect(() => { onTableRef.current = onTable; }, [onTable]);
 
   /* Nothing is reset here when the club changes, because the club never
      changes: the caller keys this component on the club id, so walking into a
@@ -47,6 +51,18 @@ export function useHall(clubId, token) {
             ...h,
             lines: { ...h.lines, [f.channel]: withoutLine(h.lines[f.channel], f.id) },
           } : h));
+        } else if (f.t === "seated") {
+          setHall((h) => (h ? {
+            ...h,
+            lines: {
+              ...h.lines,
+              [f.channel]: (h.lines[f.channel] || []).map((l) => (l.id === f.id ? { ...l, taken: f.taken } : l)),
+            },
+          } : h));
+        } else if (f.t === "sat") {
+          /* Only the person who sat down gets this one, and it is the whole
+             point of having sat: the board is open now, so walk to it. */
+          if (onTableRef.current) onTableRef.current(f);
         }
       },
     });
@@ -57,6 +73,10 @@ export function useHall(clubId, token) {
     !!sock.current && sock.current.send({ t: "say", channel, text }), []);
   const takeDown = useCallback((channel, id) =>
     !!sock.current && sock.current.send({ t: "takeDown", channel, id }), []);
+  const putUp = useCallback((channel, terms) =>
+    !!sock.current && sock.current.send({ t: "open", channel, terms }), []);
+  const sit = useCallback((channel, id) =>
+    !!sock.current && sock.current.send({ t: "sit", channel, id }), []);
 
-  return { hall, here, status, closed, say, takeDown };
+  return { hall, here, status, closed, say, takeDown, putUp, sit };
 }

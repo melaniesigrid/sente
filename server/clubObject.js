@@ -18,7 +18,7 @@
 import { DurableObject } from "cloudflare:workers";
 import {
   readHall, emptyHall, applyHall, forget, addChannel, renameChannel, removeChannel,
-  SAY_LIMIT, SAY_WINDOW_MS,
+  sittable, seated, SAY_LIMIT, SAY_WINDOW_MS,
 } from "./hall.js";
 import { may } from "./clubs.js";
 
@@ -148,12 +148,45 @@ export class Club extends DurableObject {
     if (msg && msg.t === "say" && !this.spend(member.id)) {
       return send(ws, { t: "error", reason: "too-much-at-once" });
     }
+    /* Sitting down at a board opens a real game, which is the Registry's
+       business and not this object's. It is handled here rather than in the
+       reducer for exactly that reason: `applyHall` stays a pure function of
+       what it is given, and the one frame that needs the world outside this
+       room asks for it out here. */
+    if (msg && msg.t === "sit") return this.sitDown(ws, member, hall, msg);
     const { hall: next, events } = applyHall(hall, member, msg, { now: Date.now(), may });
     if (next !== hall) await this.save(next);
     for (const ev of events) {
       if (ev.to === "actor") send(ws, ev.frame);
       else this.tellAll(ev.frame);
     }
+  }
+
+  /** Take a seat at a board somebody put up. The table is marked taken only
+   *  after the game exists: the other order would leave a board that says it
+   *  is taken by a game nobody can open. */
+  async sitDown(ws, member, hall, msg) {
+    const can = sittable(hall, msg.channel, msg.id, member.id);
+    if (can.error) return send(ws, { t: "error", reason: can.error });
+    let table;
+    try {
+      table = await this.registry().seatClubTable(member.club, can.line.from, member.id, can.line.terms);
+    } catch (e) {
+      return send(ws, { t: "error", reason: e.message || "no-table" });
+    }
+    const taken = { by: member.id, name: member.name, gameId: table.gameId, at: Date.now() };
+    const r = seated(hall, can.channel, msg.id, taken);
+    if (r.error) return send(ws, { t: "error", reason: r.error });
+    await this.save(r.hall);
+    for (const ev of r.events) this.tellAll(ev.frame);
+    /* And the person who sat down is told which board to walk to, on the
+       socket they pressed on: their lobby socket may not be open, and the
+       whole point of sitting down is that the game starts now. */
+    return send(ws, { t: "sat", ...table });
+  }
+
+  registry() {
+    return this.env.REGISTRY.get(this.env.REGISTRY.idFromName("main"));
   }
 
   async webSocketClose() { this.tellAll({ t: "here", ids: this.whoIsHere() }); }

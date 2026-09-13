@@ -86,6 +86,10 @@ export const CLUB_ERRORS = [
   "bad-code", "already-a-member", "club-is-full", "too-many-clubs", "not-a-member",
   "not-allowed", "not-yourself", "no-such-role", "founder-cannot-leave",
   "too-many-clubs-made", "no-code",
+  // The hall's own refusals, in the same list, because a club screen shows
+  // them the same way and a second list would be a second voice.
+  "already-taken", "no-such-table", "your-own-table", "too-many-tables",
+  "too-many-channels", "channel-exists", "bad-channel-name", "no-such-channel",
 ];
 
 export const clubErrorText = (reason, t = EN) =>

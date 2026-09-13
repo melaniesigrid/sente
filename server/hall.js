@@ -29,9 +29,19 @@
    A line:
      { id, from, name, tint, text, at }
 
-   Client -> server:  say {channel, text} · takeDown {channel, id} · ping
+   A line may instead be a table: somebody putting a board up in the room for
+   whoever wants it. It is a line and not a second kind of object, because a
+   table in a room IS a thing somebody said, and it belongs in the flow of the
+   conversation it came out of rather than in a list beside it.
+
+     { id, from, name, tint, kind: "table", terms, at, taken: null | {...} }
+
+   Client -> server:  say {channel, text} · takeDown {channel, id}
+                      open {channel, terms} · sit {channel, id} · ping
    Server -> client:  hall {hall} · said {channel, line} · gone {channel, id}
-                      here {ids} · error {reason} · pong */
+                      seated {channel, id, taken} · here {ids} · error · pong */
+
+import { cleanTerms } from "./invites.js";
 
 /** How long one thing said may be. Long enough for a real sentence about a
  *  game, short enough that nobody writes an essay into a room. */
@@ -44,6 +54,11 @@ export const KEEP_LINES = 500;
 
 /** How many channels a club may have. */
 export const MAX_CHANNELS = 8;
+
+/** How many tables one player may have standing in one hall at a time. Three:
+ *  enough to offer a board on each size, few enough that a room cannot be
+ *  filled with one person's boards. */
+export const MAX_TABLES = 3;
 
 /** How many things one player may say in a minute. Generous for a conversation,
  *  useless to something pasting a wall of text into a room. */
@@ -128,7 +143,17 @@ export function readHall(stored, clubId) {
 const isLine = (l) => !!l && typeof l === "object"
   && typeof l.id === "string" && l.id !== ""
   && typeof l.from === "string" && l.from !== ""
-  && typeof l.text === "string";
+  && (typeof l.text === "string" || l.kind === "table");
+
+/** Is this line a board somebody put up, and is it still free? */
+export const isTable = (l) => !!l && l.kind === "table";
+export const isFree = (l) => isTable(l) && !l.taken;
+
+/** How many tables this player has standing in this hall, across every
+ *  channel: a cap on one person's boards is a cap on the whole room, not on
+ *  each corner of it. */
+export const tablesOf = (hall, playerId) =>
+  Object.values(hall.lines).flat().filter((l) => isFree(l) && l.from === playerId).length;
 
 /** Is this a channel this hall actually has? Anything else falls back to the
  *  one every club has, rather than making a channel by naming one: a frame
@@ -195,7 +220,61 @@ export function applyHall(hall, actor, msg, { now, may }) {
     };
   }
 
+  /* Putting a board up. It is written as a line, in the flow of whatever was
+     being said, because that is what it is: somebody in the room asking if
+     anybody wants a game. */
+  if (t === "open") {
+    if (tablesOf(hall, actor.id) >= MAX_TABLES) return refuse(hall, "too-many-tables");
+    const channel = channelIn(hall, msg.channel);
+    const seq = hall.seq + 1;
+    const line = {
+      id: `l_${seq}`,
+      from: actor.id,
+      name: actor.name,
+      tint: actor.tint ?? "eucalyptus",
+      kind: "table",
+      terms: cleanTerms(msg.terms),
+      taken: null,
+      at: now,
+    };
+    return {
+      hall: {
+        ...hall,
+        seq,
+        lines: { ...hall.lines, [channel]: [...hall.lines[channel], line].slice(-KEEP_LINES) },
+      },
+      events: [{ to: "all", frame: { t: "said", channel, line } }],
+    };
+  }
+
   return refuse(hall, "unknown-type");
+}
+
+/** May this player sit down at that table? Answered on its own rather than
+ *  inside `applyHall`, because sitting down opens a real game and a game is
+ *  not this file's business: the object asks this, opens the board, and then
+ *  writes the answer back with `seated`. */
+export function sittable(hall, channel, id, actorId) {
+  const inChannel = hall.lines[channelIn(hall, channel)] || [];
+  const line = inChannel.find((l) => l.id === id);
+  if (!isTable(line)) return { error: "no-such-table" };
+  if (line.taken) return { error: "already-taken" };
+  /* Sitting down at your own board is not a game. The host takes it down
+     instead, which is the same act as unsaying anything else they said. */
+  if (line.from === actorId) return { error: "your-own-table" };
+  return { line, channel: channelIn(hall, channel) };
+}
+
+/** The board marked as taken, once a game has actually been opened. */
+export function seated(hall, channel, id, taken) {
+  const stack = hall.lines[channel] || [];
+  const line = stack.find((l) => l.id === id);
+  if (!line) return { error: "no-such-table" };
+  const next = { ...line, taken };
+  return {
+    hall: { ...hall, lines: { ...hall.lines, [channel]: stack.map((l) => (l.id === id ? next : l)) } },
+    events: [{ to: "all", frame: { t: "seated", channel, id, taken } }],
+  };
 }
 
 /** Every line this player said, gone, across every channel. What leaving
