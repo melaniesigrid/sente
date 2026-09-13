@@ -106,7 +106,10 @@ function useSearch(token, typed) {
 
   const q = searchable(typed);
   useEffect(() => {
-    if (!q || !token || !serverEnabled()) return undefined;
+    if (!q || !token || !serverEnabled()) {
+      latest.current += 1;
+      return undefined;
+    }
     const mine = ++latest.current;
     /* Everything happens after the pause, the spinner included. Nothing is set
        in the body of this effect: a render that sets state on its way out is a
