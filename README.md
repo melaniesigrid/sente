@@ -19,6 +19,10 @@ problems, climb a Glicko-2 ladder, and keep a persistent profile.
 - **Tsumego**: life-and-death and tesuji problems with hints and progress tracking.
 - **Ladder**: Elo-style rating with rank badges (kyu/dan), win streaks, and standings.
 - **Profile**: name, avatar tint, record, and lesson/problem completion, persisted locally.
+- **A controlled beta**: the server is open to a hundred players while it is new, which is
+  as many as its free plan carries without failing for everybody. Once the seats are taken
+  the account gate offers a waiting list instead of a form: an address and the day it was
+  left, kept for one letter and nothing else.
 - **Languages**: English, Spanish, French, German, Simplified Chinese, Japanese, Russian
   and Ukrainian. Every screen, not a sample: the design system, the small print, the
   Classic and the library all read in the language you pick, and the picker in the top
@@ -67,8 +71,10 @@ src/views/          One file per screen (Home, Play, Game, Learn, Problems, Rank
 src/store/          localStorage: profile, in-progress game, online account
 src/net/api.js      The one module that knows the server URL and routes
 server/             Cloudflare Worker: router, Registry and Room Durable Objects,
-                    pure room reducer and Glicko-2 with tests beside them
-tools/server/       smoke.mjs drives a full game against a running server
+                    pure room reducer and Glicko-2 with tests beside them; beta.js is
+                    the seat cap and the waiting list as pure policy
+tools/server/       smoke.mjs drives a full game against a running server; beta.mjs
+                    checks the seat cap and the waiting list
 src/styles/css.js   The stylesheet, injected by the shell
 TODO.md             Roadmap
 ```
@@ -90,7 +96,9 @@ cannot finish provisioning.
 publishes it (needs `npx wrangler login` once). `npx wrangler secret put ADMIN_TOKEN`
 sets the key for the operator routes: `GET /api/admin/players`,
 `DELETE /api/admin/players/:id`, `POST /api/admin/players/:id/reseed` (back to the
-newcomer's seat, keeping the account), `DELETE /api/admin/ratelimit/:ip` and
+newcomer's seat, keeping the account), `DELETE /api/admin/ratelimit/:ip`,
+`GET /api/admin/waitlist` and `DELETE /api/admin/waitlist/:email` (who is waiting for a
+seat, longest wait first, and a way to take one off once they are in), and
 `GET /api/admin/whoami` (what the edge says about a caller).
 
 Claiming a handle is limited to twenty an hour from one address; leaving gives the claim
@@ -100,9 +108,18 @@ a Room can take a moment to take effect after a deploy. `node tools/server/smoke
 plays a whole game through the API and fails loudly if anything is off;
 `node tools/server/qa.mjs [url]` is the wider pass (19x19, an unrated game, a spectator, a
 player who leaves and returns, counting with dead stones, bad ids). Both remove the accounts
-they make.
+they make. `node tools/server/beta.mjs [url]` checks the seat cap and the waiting list; with
+`--fill`, against a small local cap, it proves the refusal itself.
 `.github/workflows/deploy-server.yml` does the same on push to `main` once the repo has
 a `CLOUDFLARE_API_TOKEN` secret.
+
+**The beta is capped.** `server/beta.js` holds the number (`BETA_CAP`, a hundred) and the
+arithmetic behind it: the free plan allows 100,000 requests a day, a WebSocket message counts
+as one, and an engaged player costs about 350, so a hundred accounts all active on their
+heaviest day is 70,000. Past the cap both `POST /api/register` and `POST /api/signup` answer
+`409 beta-full`, and the account gate offers `POST /api/waitlist` instead. `BETA_CAP` in the
+environment overrides the constant for one deployment, which is how a small server is stood
+up and the refusal actually proved rather than assumed.
 
 Running it costs nothing: Durable Objects with the SQLite backend are on Cloudflare's
 free plan, which is a set of daily ceilings rather than a bill. `docs/server-operations.md`

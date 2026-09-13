@@ -353,6 +353,7 @@ export const screens = {
     },
     classic: {
       read: "{total} 章のうち {done} 章を読了",
+      chapterRead: "読了",
       close: "本を閉じる",
       open: "十三の章を読む",
     },
@@ -361,6 +362,7 @@ export const screens = {
       body: "この課は{list}の上に建っています。そちらから始めてもいいし、このまま開いてもかまいません。",
       startWith: "{title}から始める",
       anyway: "このまま開く",
+      dismiss: "今はやめる",
     },
     recall: {
       head: "思い出す",

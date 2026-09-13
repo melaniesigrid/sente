@@ -131,12 +131,20 @@ export const legalDoc = {
         },
       },
       3: {
-        heading: "Para qué se usa tu dirección de correo",
+        heading: "La lista de espera",
         paras: {
-          0: "Dos cartas, y nada más: una que confirma que la dirección es tuya y otra que te deja fijar una contraseña nueva. No hay boletín, no hay anuncios de producto y no hay lista en la que estar. La dirección nunca se vende, ni se alquila, ni se entrega a nadie para su propio uso.",
+          0: "Joseki está abierto a cien jugadores mientras es nuevo, porque eso es lo que aguanta el servidor donde corre sin fallarle a todo el mundo. Cuando esas plazas están ocupadas, lo único que queda es una lista de espera, y es la única dirección de aquí que se guarda sin una cuenta detrás.",
+          1: "Guarda la dirección que escribiste y el día que la escribiste, bajo una clave propia, y no la acompaña nada más: ni un nombre, ni un handle, ni la dirección desde la que te conectaste, ni la página en la que estabas. Se usa una vez, para decirte que hay una plaza libre. No es un boletín y no va a convertirse en uno sin avisar.",
+          2: "Recibir una invitación quita tu dirección de la lista. Pedirlo, también: escribe a {contact} y se elimina, haya salido plaza o no.",
         },
       },
-      4: {
+      5: {
+        heading: "Para qué se usa tu dirección de correo",
+        paras: {
+          0: "Dos cartas a una cuenta, y nada más: una que confirma que la dirección es tuya y otra que te deja fijar una contraseña nueva. No hay boletín ni anuncios de producto. La única lista en la que alguien puede estar es la lista de espera de arriba, en la que te pones tú y que se usa una vez y ya está. La dirección no se vende, ni se alquila, ni se entrega a nadie para sus propios fines.",
+        },
+      },
+      6: {
         heading: "Quién más ve algo de esto",
         paras: {
           0: "Tres empresas, todas ellas de paso en la página y no interesadas en ella.",
@@ -144,11 +152,10 @@ export const legalDoc = {
         list: {
           0: "Cloudflare aloja el servidor de juego y envía las dos cartas. Todo lo que el servidor guarda está en su red, que abarca países fuera de Canadá.",
           1: "GitHub sirve la propia aplicación, a través de GitHub Pages, y sus servidores ven la petición que la descarga.",
-          2: "Google Fonts sirve cinco tipografías. Descargarlas le dice a Google desde qué dirección vino la petición, igual que haría una fuente servida desde cualquier otro sitio.",
-          3: "Nadie más. No hay una cuarta parte, ni acuerdo con ninguna.",
+          2: "Nadie más. Cada tipografía se sirve desde el propio Joseki y no desde un CDN de fuentes, así que abrir una página aquí no le dice a ningún tercero que lo hiciste. No hay terceros, ni acuerdo con ninguno.",
         },
       },
-      5: {
+      7: {
         heading: "Marcharse",
         paras: {
           0: "Hay una salida que no necesita el permiso de nadie. Marcharse elimina tu cuenta, tus sesiones, tu dirección, tu imagen, tu puesto en la clasificación y el registro de la dirección desde la que te registraste.",
@@ -156,19 +163,19 @@ export const legalDoc = {
           2: "Para pedir una copia de lo que se guarda sobre ti, para corregirlo o para que se elimine algo que marcharse no alcanza, escribe a {contact} y una persona lo hará a mano. No hay un botón de exportación, y decir lo contrario sería la frase fácil de escribir y la falsa.",
         },
       },
-      6: {
+      8: {
         heading: "Menores",
         paras: {
           0: "Joseki no está dirigido a menores de 13 años, y no debería crearse ninguna cuenta para uno. Si se ha creado, escribe y se eliminará sin pedir nada más antes.",
         },
       },
-      7: {
+      9: {
         heading: "Cambios",
         paras: {
           0: "Este aviso cambia reescribiéndose aquí, moviendo la fecha de arriba. Si alguna vez cambia porque Joseki ha empezado a recoger algo nuevo, el cambio lo dirá en una frase propia en lugar de doblarlo dentro de un párrafo.",
         },
       },
-      8: {
+      10: {
         heading: "Cómo ponerse en contacto",
         paras: {
           0: "Cualquier duda sobre cualquiera de estas cosas: {contact}.",

@@ -409,12 +409,14 @@ export const screens = {
     },
     classic: {
       read: "{done}/{total} розділів прочитано",
+      chapterRead: "Прочитано",
       close: "Закрити книжку",
       open: "Прочитати тринадцять розділів",
     },
     gate: {
       head: "Перед уроком {title}",
       body: "Цей урок стоїть на {list}. Можна почати звідти, а можна все одно відкрити.",
+      dismiss: "Не зараз",
       startWith: "Почати з {title}",
       anyway: "Усе одно відкрити",
     },

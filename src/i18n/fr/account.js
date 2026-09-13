@@ -17,6 +17,9 @@ export const account = {
     "token-expired": "Ce lien a déjà servi, ou il est trop vieux. Demandes-en un autre.",
     "already-verified": "Cette adresse est déjà confirmée",
     "mail-failed": "La lettre n'a pas pu être envoyée. C'est à nous de le réparer, pas à toi.",
+    "beta-full": "La bêta est complète. Laisse une adresse et tu recevras un mot dès qu'une place se libère.",
+    "too-many-asks": "Cela fait beaucoup d'adresses depuis un même endroit aujourd'hui. Réessaie dans une heure.",
+    "list-full": "La liste d'attente est pleine pour le moment. Écris à hello@northboundsoftwarestudio.com et une personne te répondra.",
     unknown: "Quelque chose a mal tourné ({reason})",
   },
 
@@ -59,6 +62,17 @@ export const account = {
     welcomeBack: "Te revoilà, {name}",
   },
 
+  full: {
+    title: "La bêta est complète",
+    tagline: "Cent places, et toutes prises",
+    bio: "Joseki est ouvert à cent joueurs tant qu'il est neuf, ce qui est tout ce que le serveur porte même le jour où il en fait le plus. Laisse une adresse et tu recevras un mot dès qu'une place se libère.",
+    address: "Ton adresse e-mail",
+    leave: "Mets-moi sur la liste",
+    asked: "Ton adresse est sur la liste. Tu auras des nouvelles de Joseki quand une place se libère, et pas autrement.",
+    fine: "La liste garde ton adresse et le jour où tu l'as laissée, et rien d'autre. Elle sert à te dire une fois qu'une place est libre. Demande-le quand tu veux et elle est oubliée.",
+    haveOne: "Tu as déjà un compte ? Connecte-toi.",
+    back: "Laisse tomber",
+  },
   forgot: {
     asked: "S'il y a un compte sur cette adresse, un moyen d'y revenir est en route. Le lien dure une heure, et l'utiliser ferme la session du compte partout ailleurs.",
     open: "Mot de passe oublié ? Joseki peut t'envoyer un moyen de revenir.",

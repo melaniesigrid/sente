@@ -367,6 +367,7 @@ export const screens = {
     },
     classic: {
       read: "{done}/{total} Kapitel gelesen",
+      chapterRead: "Gelesen",
       close: "Schließ das Buch",
       open: "Lies die dreizehn Kapitel",
     },
@@ -375,6 +376,7 @@ export const screens = {
       body: "Diese Lektion baut auf {list} auf. Du kannst dort anfangen, oder sie trotzdem öffnen.",
       startWith: "Fang mit {title} an",
       anyway: "Trotzdem öffnen",
+      dismiss: "Jetzt nicht",
     },
     recall: {
       head: "Wiederholung",

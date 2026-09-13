@@ -51,6 +51,8 @@ import { threadKey, cleanLetter, readThread, withLetter, mayWrite, threadSummary
 import { hit, refund, REGISTER_LIMIT, REGISTER_WINDOW_MS, SIGNIN_LIMIT, SIGNIN_WINDOW_MS,
   FORGOT_LIMIT, FORGOT_WINDOW_MS, VERIFY_LIMIT, VERIFY_WINDOW_MS } from "./ratelimit.js";
 import { VERIFY_TTL_MS, RESET_TTL_MS } from "./mail.js";
+import { isFull, seatsLeft, capFrom, waitKey, waiting, byWaiting, listFull,
+  WAIT_PREFIX, WAITLIST_LIMIT, WAITLIST_WINDOW_MS } from "./beta.js";
 import { SIZES } from "./room.js";
 import { dayOf, dayBefore, emptyDay, counted, raised, isFinish, sealed, stale,
   clampDays, recent, nextSeal, RETAIN_DAYS } from "./rollup.js";
@@ -78,6 +80,7 @@ export class Registry extends DurableObject {
     super(ctx, env);
     this.ladderCache = null;
     this.historyCache = null;
+    this.playerCount = null;
     // Storage is migrated once, before the first request is answered. Blocking
     // the object's concurrency here is the point: no handler can read a player
     // on the old scale, and a cold start cannot race a second migration.
@@ -90,6 +93,11 @@ export class Registry extends DurableObject {
       await this.#armSeal();
     });
   }
+
+  /** How many seats this deployment has. `BETA_CAP` in the environment wins
+   *  when it is a positive whole number, so a local or staging server can be
+   *  stood up with a cap of 1 and the refusal proved against it. */
+  #cap() { return capFrom(this.env.BETA_CAP); }
 
   /** Bring stored records up to SCHEMA. Runs once per object, at wake-up. */
   async #migrate() {
@@ -125,15 +133,32 @@ export class Registry extends DurableObject {
   async register(rawName, rawTint, ip = null) {
     const name = cleanName(rawName);
     if (!name) throw new Error("bad-name");
-    if (ip) {
-      const key = `rate:reg:${ip}`;
-      const r = hit(await this.ctx.storage.get(key), Date.now(), REGISTER_LIMIT, REGISTER_WINDOW_MS);
-      await this.ctx.storage.put(key, r.bucket);
-      if (!r.allowed) {
-        const e = new Error("too-many-handles");
-        e.retryAfterMs = r.retryAfterMs;
-        throw e;
-      }
+    /* The beta door, checked here rather than in the router because `signUp`
+       comes through this method too and a door with two frames is a door that
+       is eventually left open. Counted the paging way: a single list stops at
+       a thousand keys, and a cap that silently stopped counting there would be
+       no cap at all on the day it mattered.
+
+       A Durable Object serialises requests while they are inside storage
+       operations and lets them interleave across anything else, so the check
+       is repeated below, immediately against the write, with nothing but
+       storage between the two. This first one is the cheap refusal that keeps
+       a full server from spending anybody's claiming budget; the second is the
+       one that actually holds the cap. */
+    if (isFull(await this.#countPlayers(), this.#cap())) throw new Error("beta-full");
+    /* Metered whoever is asking. This is the door that spends a beta seat, and
+       an `if (ip)` around the budget meant a request arriving without an
+       address — a stripped header, a proxy that does not pass one — could take
+       every seat in the beta unmetered. Callers the edge cannot name share one
+       bucket, which is the right answer to "I do not know who this is". */
+    const from = ip ?? "anon";
+    const key = `rate:reg:${from}`;
+    const r = hit(await this.ctx.storage.get(key), Date.now(), REGISTER_LIMIT, REGISTER_WINDOW_MS);
+    await this.ctx.storage.put(key, r.bucket);
+    if (!r.allowed) {
+      const e = new Error("too-many-handles");
+      e.retryAfterMs = r.retryAfterMs;
+      throw e;
     }
     const id = "p_" + randomHex(8);
     const token = randomHex(32);
@@ -141,11 +166,20 @@ export class Registry extends DurableObject {
       id, name, tint: cleanTint(rawTint), tokenHash: await sha256(token),
       ...newRating(), wins: 0, losses: 0, draws: 0,
       createdAt: Date.now(), lastSeen: Date.now(),
-      claimedFrom: ip,      // so leaving can give the claim back; never shown to anyone
+      claimedFrom: from,    // the bucket leaving refunds; never shown to anyone
       email: null, emailVerifiedAt: null, pw: null, sessions: [],
     };
     player.sessions = [player.tokenHash];
+    /* And again, now that the only thing left before the write is the write.
+       `sha256` above is not a storage call, so the object's input gate is open
+       across it: without this, two people arriving together both read the same
+       count, both pass, and the beta ends up one seat over its cap for good. */
+    if (isFull(await this.#countPlayers(), this.#cap())) throw new Error("beta-full");
     await this.ctx.storage.put({ [`player:${id}`]: player, [`tok:${player.tokenHash}`]: id });
+    // One more, rather than "count them all again next time": dropping the memo
+    // here made every arrival pay for a full scan of every player record on the
+    // next request, which is the cost the memo was added to remove.
+    if (this.playerCount !== null) this.playerCount += 1;
     // Counted here and only here. `signUp` claims a handle by calling this, so
     // counting there as well would make every signup arrive twice.
     await this.#note("newAccounts");
@@ -195,6 +229,10 @@ export class Registry extends DurableObject {
     if (await this.ctx.storage.get(`email:${email}`)) throw new Error("email-taken");
     const next = { ...p, email, emailAt: Date.now(), emailVerifiedAt: null, pw: await this.#stash(key), lastSeen: Date.now() };
     await this.ctx.storage.put({ [`player:${id}`]: next, [`email:${email}`]: id });
+    /* An address that has just claimed a seat is not waiting for one. The
+       notice says being invited takes it off the list; this is the line that
+       makes that true for somebody who was invited and came in. */
+    await this.ctx.storage.delete(waitKey(email));
     return this.#self(next);
   }
 
@@ -203,9 +241,35 @@ export class Registry extends DurableObject {
     const email = cleanEmail(rawEmail);
     if (!email) throw new Error("bad-email");
     if (!cleanDerivedKey(rawKey)) throw new Error("bad-key");
+    /* The door before the lookup. `register` checks the cap too, and would
+       refuse this a few lines later anyway, but `email-taken` is an answer
+       about a person: asked of a server with no seat to give, it is a way to
+       ask who plays here, which is the one thing `signIn` and `forgot` are
+       written never to answer. A full server learns nothing about the address. */
+    if (isFull(await this.#countPlayers(), this.#cap())) throw new Error("beta-full");
+    /* And a budget before it, for the same reason `signIn` spends one before
+       it looks anything up. `email-taken` is a true answer about a stranger's
+       address, and an endpoint that gives it away unmetered is a way to walk a
+       list of addresses and learn which of them play here. The limit does not
+       stop that answer being given; it stops it being given ten thousand
+       times. Spent whether or not the address turns out to be taken, so a hit
+       does not buy the asker a fresh budget, and spent from a bucket of its
+       own: borrowing sign-in's would let a signup flood lock the people who
+       already have accounts out of getting back in. */
+    await this.#spend(`rate:up:${ip ?? "anon"}`, SIGNIN_LIMIT, SIGNIN_WINDOW_MS, "too-many-attempts");
     if (await this.ctx.storage.get(`email:${email}`)) throw new Error("email-taken");
     const { token, player } = await this.register(rawName, rawTint, ip);
-    await this.attach(player.id, email, rawKey);
+    /* The handle is written before the address is attached, and `attach` can
+       still refuse: two signups racing the same address both pass the check
+       above and one of them loses here. Without this the loser's handle stays
+       written, holds a beta seat, and belongs to nobody — its token was never
+       returned to anyone. Put the seat back and re-throw what happened. */
+    try {
+      await this.attach(player.id, email, rawKey);
+    } catch (e) {
+      await this.remove(player.id);
+      throw e;
+    }
     return { token, player: await this.self(player.id) };
   }
 
@@ -267,8 +331,15 @@ export class Registry extends DurableObject {
      reset signs out everything and hands back one fresh session for the
      browser that did it. */
 
-  /** Spend one unit of a rate-limit budget, or refuse. */
-  async #spend(key, limit, windowMs, reason) {
+  /** Spend one unit of a rate-limit budget, or refuse.
+   *
+   *  `charge` false spends nothing, for a caller that has already decided this
+   *  request is not chargeable. It is not the same question as "did the edge
+   *  name the caller": a request with no address still gets metered, sharing
+   *  the `anon` bucket with every other unnamed caller, because unlimited
+   *  writes is the wrong answer to not knowing who somebody is. */
+  async #spend(key, limit, windowMs, reason, charge = true) {
+    if (!charge) return;
     const r = hit(await this.ctx.storage.get(key), Date.now(), limit, windowMs);
     await this.ctx.storage.put(key, r.bucket);
     if (r.allowed) return;
@@ -487,7 +558,11 @@ export class Registry extends DurableObject {
     await this.ctx.storage.delete([
       `player:${id}`, `tok:${p.tokenHash}`, ...sessions, `games:${id}`, `seek:${id}`, `avatar:${id}`,
       `friends:${id}`,
-      ...(p.email ? [`email:${p.email}`] : []),
+      /* The waiting list too. The notice says being invited takes your address
+         off it, and until this line nothing did: somebody who waited, got a
+         seat and later left kept a row holding the address they had asked us
+         to forget. */
+      ...(p.email ? [`email:${p.email}`, waitKey(p.email)] : []),
       ...Object.values(p.mail ?? {}).filter(Boolean).map(h => `mail:${h}`),
     ]);
     if (p.claimedFrom) {
@@ -498,6 +573,7 @@ export class Registry extends DurableObject {
     }
     for (const ws of this.ctx.getWebSockets(id)) ws.close(4000, "removed");
     this.ladderCache = null;
+    if (this.playerCount !== null) this.playerCount -= 1;
     return true;
   }
 
@@ -962,6 +1038,84 @@ export class Registry extends DurableObject {
     return had;
   }
 
+  /* ----- the waiting list -----
+     While the beta is full, somebody who wanted a seat can leave an address
+     and be told when there is one. One key an address, under `wait:`, holding
+     the address and the date it was left and nothing else.
+
+     This is the only list of addresses Joseki keeps that is not an account,
+     and the privacy notice names it. The row is a record that SOMEBODY typed
+     that address here, which is not the same as a record that its owner did:
+     nothing proves ownership, and a confirmation letter is what would. Say the
+     smaller true thing rather than the larger convenient one. What follows
+     from that: the one letter this list is for is a reply to a request that
+     was made, and it is still the only thing the address may ever be used for.
+     A second use would need consent this row does not carry. */
+
+  /** Leave an address. Answers `{ok: true}` for an address that is new, one
+   *  already waiting, and one that already has an account: the same bytes for
+   *  all three. A waiting list that answered differently for an address it had
+   *  seen before would be a way to ask who plays here, which is exactly what
+   *  `signIn` and `forgot` are careful not to be.
+   *
+   *  A list with no room left refuses, and refuses everybody the same way
+   *  (`listFull` in beta.js). How full the list is is a fact about the list
+   *  and about nobody; who is on it is not, and letting an existing row
+   *  through a full list would have said which was which. */
+  async joinWaitlist(rawEmail, ip = null) {
+    /* The address parses before anybody's budget is spent. Spending first made
+       three typos from one person cost them the hour, which punishes the one
+       caller the limit is not aimed at: a script does not make typos. */
+    const email = cleanEmail(rawEmail);
+    if (!email) throw new Error("bad-email");
+    /* Metered even when the edge names no caller. `if (ip)` skipped the limit
+       entirely for a request that arrived without an address, which is not a
+       state a real request reaches but is exactly what a stripped header or a
+       misconfigured proxy produces, and "unlimited writes" is the wrong answer
+       to "I do not know who this is". They share one bucket instead. */
+    await this.#spend(`rate:wait:${ip ?? "anon"}`, WAITLIST_LIMIT, WAITLIST_WINDOW_MS, "too-many-asks");
+    /* A list with no ceiling of its own is the same problem the cap exists to
+       solve, wearing a different prefix. The decision is `listFull` in
+       beta.js, where a test can reach it; a full list is refused out loud
+       rather than answered `{ok: true}` over a row that was never written.
+
+       The count is taken before the row is read, and unconditionally. Reading
+       the row first and skipping the count for somebody already on the list
+       was faster and was a side channel: the fast answer meant "yes, that
+       address is here". */
+    if (listFull(await this.#count(WAIT_PREFIX))) throw new Error("list-full");
+    const key = waitKey(email);
+    const already = await this.ctx.storage.get(key);
+    await this.ctx.storage.put(key, waiting(already, email, Date.now()));
+    return { ok: true };
+  }
+
+  /** The list, longest wait first: the order to invite them in. Operator only. */
+  async waitlist() {
+    /* Paged, because `WAITLIST_MAX` is twice `PAGE`: a bare list would stop at
+       a thousand and say nothing, and the operator would invite from a list
+       silently missing half the people on it, cut by address rather than by
+       how long anybody had waited. */
+    const rows = [];
+    let startAfter;
+    for (;;) {
+      const page = await this.ctx.storage.list({ prefix: WAIT_PREFIX, limit: PAGE, ...(startAfter ? { startAfter } : {}) });
+      if (page.size === 0) break;
+      rows.push(...page.values());
+      if (page.size < PAGE) break;
+      startAfter = [...page.keys()].pop();
+    }
+    return byWaiting(rows);
+  }
+
+  /** Take one address off, for somebody invited or somebody who asked to be
+   *  forgotten. Says whether there was anything to remove. */
+  async forgetWaiting(rawEmail) {
+    const email = cleanEmail(rawEmail);
+    if (!email) throw new Error("bad-email");
+    return this.ctx.storage.delete(waitKey(email));
+  }
+
   /** Every account, for the operator. */
   async everyone() {
     const all = await this.ctx.storage.list({ prefix: "player:" });
@@ -970,23 +1124,42 @@ export class Registry extends DurableObject {
 
   async stats() {
     const seeks = await this.ctx.storage.list({ prefix: "seek:" });
-    return { players: await this.#countPlayers(), online: this.ctx.getWebSockets().length, seeking: seeks.size };
+    const players = await this.#countPlayers();
+    /* `cap` and `full` ride along with the numbers that were already public.
+       The lobby asks this before it offers a form, so that a person meets
+       "the beta is full" on the way in rather than after choosing a handle
+       and a password and waiting a second for the key to derive. */
+    const cap = this.#cap();
+    return { players, online: this.ctx.getWebSockets().length, seeking: seeks.size,
+      cap, full: isFull(players, cap), seatsLeft: seatsLeft(players, cap) };
   }
 
-  /** Every player, counted a page at a time. A single `list` stops at a
-   *  thousand keys and says nothing about it, so counting that way would have
-   *  the number quietly stop rising on the day it mattered. */
-  async #countPlayers() {
+  /** Keys under one prefix, counted a page at a time. A single `list` stops at
+   *  a thousand keys and says nothing about it, so counting that way would
+   *  have the number quietly stop rising on the day it mattered. */
+  async #count(prefix) {
     let n = 0;
     let startAfter;
     for (;;) {
-      const page = await this.ctx.storage.list({ prefix: "player:", limit: PAGE, ...(startAfter ? { startAfter } : {}) });
+      const page = await this.ctx.storage.list({ prefix, limit: PAGE, ...(startAfter ? { startAfter } : {}) });
       if (page.size === 0) break;
       n += page.size;
       if (page.size < PAGE) break;
       startAfter = [...page.keys()].pop();
     }
     return n;
+  }
+
+  /** How many players there are, held in memory between the two things that
+   *  change it. The cap put this count on the signup path and the lobby put it
+   *  on `/api/stats`, which the account gate asks on the way in: three scans of
+   *  every player record per newcomer, inside a 10 ms CPU budget, to compare a
+   *  number against a constant. The count only moves in `register` and
+   *  `remove`, both of them here, so both drop the memo and a fresh instance
+   *  counts once. */
+  async #countPlayers() {
+    if (this.playerCount === null) this.playerCount = await this.#count("player:");
+    return this.playerCount;
   }
 
   /* ----- the daily tally -----

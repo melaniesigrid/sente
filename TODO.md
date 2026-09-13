@@ -1890,6 +1890,199 @@ Out of scope, and named here so it does not creep in: reviewing the finished gam
 asking *why* the partner played there. Analysis is its own feature for every kind of
 game, not a wing of this one.
 
+## Phase 10: The controlled beta (branch `feat/beta-cap`)
+
+A hundred seats, and a waiting list for the hundred-and-first. Joseki has been reachable
+at joseki.online for days; this is the part that decides how many people may be in it.
+
+- [x] The cap (`server/beta.js`, `BETA_CAP = 100`), enforced in `Registry.register`,
+      which is the single door `POST /api/register` and `POST /api/signup` both come
+      through. Past it: `409 beta-full`.
+- [x] The waiting list. `POST /api/waitlist` takes an address and answers `{ok: true}`
+      whatever happened, the way `forgot` does, so it cannot be asked who plays here.
+      `wait:<address>` holds the address and the day and nothing else. Three an hour
+      from one address, and a ceiling on the list itself.
+- [x] The card. A full beta takes over the account gate: what it is, how many seats
+      there are, a box for an address, and the door for the hundred already in folded
+      away underneath rather than replaced by a waiting list they do not need.
+- [x] The privacy notice, in all four languages. It used to promise there was "no list
+      to be on"; there is one now, and it has a section of its own.
+- [x] `GET /api/admin/waitlist` and `DELETE /api/admin/waitlist/:email`, plus
+      `node tools/server/beta.mjs` to check the whole door against a deployment.
+
+Decisions made here:
+- The number is a hundred because the free plan's ceiling is 100,000 requests a day, a
+  WebSocket message counts as one, and an engaged player costs about 350. A hundred
+  accounts all active on their heaviest day is 70,000. A hundred and fifty is over the
+  line, and over the line means every further operation fails until 00:00 UTC. The
+  arithmetic is in the header of `server/beta.js` and in `docs/server-operations.md`.
+- The cap counts every handle, guest handles included: a handle with no address polls,
+  sits in the lobby and plays rated games exactly like an account, so it costs the same.
+- It is checked in the Registry rather than in the router, because `signUp` comes through
+  `register` too, and a door with two frames is a door that is eventually left open.
+- The cheapest way to raise it is not a bigger number, it is the two polls:
+  `PRESENCE_EVERY_MS` (30s) and `DASH_EVERY_MS` (20s) are most of what a player costs.
+  60s and 45s roughly double the safe cap. Not done: a friend arriving should not take a
+  minute to appear while there are ninety-six seats free.
+
+What the ship-time review army found, and what came of it. Six specialists over a
+540-line diff; everything below is fixed unless it says otherwise.
+
+Confirmed by three specialists at once (testing, maintainability, performance):
+- `waitlist()` read an unpaged `list({ prefix: "wait:" })`. `PAGE` is 1000 and
+  `WAITLIST_MAX` is 2000, so past a thousand addresses the operator route silently
+  returned half a list, cut by address rather than by how long anybody had waited. The
+  same file states that hazard in its own counter and then walked into it. Paged now,
+  and the two counting loops are one `#count(prefix)`. The loops that WALK a prefix
+  (`waitlist`, `#forgetArchive`) still each carry their own; one shared page iterator
+  would fold those three together and is not done.
+
+Security:
+- `POST /api/waitlist` was a membership oracle once the list was full: 200 for an address
+  already stored, 409 for one that was not, so anybody could ask whether a given person
+  had asked for a seat. It was a timing oracle at any size too, because reading the row
+  first let the count be skipped. The decision is `listFull(count)` now: it takes no
+  address, so it cannot leak one, and a full list refuses everybody alike.
+- `POST /api/signup` answered `email-taken` before spending any budget, which made signup
+  an unmetered way to ask whether an address has an account here: the exact question
+  `signIn` and `forgot` are written never to answer. Pre-existing on main, not introduced
+  here. It spends the sign-in budget before the lookup now.
+- The waiting list skipped its rate limit entirely when the edge named no caller. A
+  stripped header is not a reason for unlimited writes; those callers share one bucket.
+- Leaving did not remove a `wait:` row, and neither did claiming a seat, while the notice
+  said being invited takes your address off the list. Both do it now, so the notice is
+  true.
+- The comment called a waiting-list row a CASL consent record. Nothing proves the person
+  who typed an address owns it. The claim is now the smaller true one.
+
+Testing:
+- The refusal this whole feature exists for had no executing proof: a server with seats
+  cannot exercise it. `BETA_CAP` in the environment now overrides the constant when it is
+  a positive whole number, and `tools/server/beta.mjs --fill` stands up a capped server,
+  fills it, and proves both doors answer `beta-full`. Ran green against `wrangler dev`.
+
+Design:
+- The card was rendered optimistically and swapped for the waiting list when `/api/stats`
+  answered, which took the form out from under the hundred-and-first person mid-keystroke.
+  It holds until the answer is in.
+- `/api/stats` was asked on every mount of the gate, spending a request per visit from the
+  daily budget the cap exists to protect. Asked once a page session (`src/views/seats.js`).
+- Two Enters inside one tick sent two asks against a three-an-hour budget. A ref guards it.
+- "Already have a handle? Sign in." named the one credential that form does not take: a
+  handle alone is the guest door and cannot be signed into. "Already have an account" now,
+  in all four languages.
+
+A second review pass over those fixes (security, maintainability, red team) found more,
+and they are fixed too:
+- `api.stats()` has no timeout, and the card was holding its render until it answered. A
+  half-open Worker would have left the whole online screen as a title and nothing else.
+  `SEATS_TIMEOUT_MS` is 2.5s and a server that does not answer is assumed to have room.
+- The remembered answer was never updated when a form was refused, so somebody turned
+  away, then leaving the screen and coming back, was offered the same form again and
+  refused a second time after waiting for the key to derive. `seatsAreGone()` now.
+- `register` still skipped its rate limit entirely for a caller the edge could not name,
+  and it is the door that spends a seat: a stripped header could have emptied the beta
+  unmetered. Metered now, sharing one `anon` bucket, and leaving refunds that bucket.
+- `signUp` was borrowing the sign-in budget, so a signup flood could have locked people
+  with accounts out of getting back in. Its own bucket now.
+- `capFrom` accepted `1e6` and `0x64` while its own comment promised a typo could not
+  open the door. Plain decimal digits and a ceiling of 1000 now.
+- The prover wrote two addresses to the LIVE waiting list by default and swept only one.
+  It sweeps both, and the list an operator sends letters from stays clean.
+- The ops doc told the operator to take an address off the list when writing the letter,
+  which is redundant (arriving removes it) and destructive (somebody refused after the
+  seat went is then off the list too). It now says not to.
+
+A third pass (adversarial, fresh context) found what the other two missed:
+- **The German, Spanish and French privacy notices still said there is "no list to be
+  on"** while this change starts keeping one. The English sentence was corrected here and
+  the three overlays were not, which is the same failure this branch fixed twice already,
+  committed a third time by the person fixing it. Corrected in all three.
+- `register` checked the cap, then hashed a token, then wrote. `sha256` is not a storage
+  call, so a Durable Object lets requests interleave across it: two people arriving
+  together both passed and the beta went one seat over its cap for good. The check is
+  repeated immediately against the write, with only storage between the two.
+- A `signUp` whose address turned out to be taken left the handle written, holding a seat,
+  belonging to nobody, with a token that was never returned to anyone. It rolls back now.
+- `capFrom` fell back silently for a well-formed number above the ceiling, so an operator
+  who set `BETA_CAP=2000` to open the beta wider got 100 and no word about it. It says so.
+
+Verified how:
+- The suite (2569 tests) and, for the door itself, `tools/server/beta.mjs --fill` against
+  a `wrangler dev` server capped at 2: both `/api/register` and `/api/signup` answered
+  `409 beta-full` at the cap, signup never leaked `email-taken`, `/api/stats` agreed, and
+  every handle the script made was deleted after. Fourteen checks, all green.
+- That run proved the code as it stood BEFORE the second review pass. The later changes
+  to `register`'s rate limiting and the player-count memo are covered by reasoning and by
+  the suite only: local wrangler stopped serving in that session and re-running it was
+  not worth more time. **Run `node tools/server/beta.mjs --fill` against a capped local
+  server once more before the first invitations go out.**
+
+Not done, on purpose:
+- **No reservation for an invited person.** Raising the cap frees seats to whoever asks
+  first, and `/api/stats` publishes `seatsLeft` publicly, so somebody invited by letter
+  can arrive to find the seat gone. The fix is an invite token the door accepts past the
+  cap. Worth doing before the first invitation goes out, not before this lands.
+- **The cap is spelled out in nine sentences of prose** that no test can reach (two per
+  catalogue plus the privacy notice). Threading the number out of `/api/stats` needs the
+  i18n suite's no-holes-in-an-overlay rule to learn about it first. A checklist comment
+  at `BETA_CAP` names all nine in the meantime.
+- **A guest handle holds a seat for ever.** Twenty an hour from one address, no email, no
+  password, and nothing reclaims an abandoned one, so five addresses can fill the beta in
+  an hour and the only remedy is deleting them one at a time. An expiry sweep on the
+  daily seal is the shape of the fix.
+- **The waiting list takes an address without proving who owns it.** Anybody can enrol a
+  stranger. The comment no longer claims the row is a consent record; a confirmation
+  letter is what would make it one.
+- **The whole German, Spanish and French privacy notice has one section in English.**
+  "Being here is not written down" was never translated; before this branch the overlay
+  misalignment filled its slot with the WRONG translation, and fixing the alignment
+  surfaced the honest English fallback. Better than the lie it replaced, and still worth
+  translating: three paragraphs, three languages.
+- **`/api/register` needs nothing but a name.** Guest handles hold seats, twenty an hour
+  per address, nothing reclaims an abandoned one, and no proof of work stands in the way.
+  A proxy pool fills the beta and the only remedy is deleting a hundred accounts by hand.
+  The same shape fills the waiting list at 2000. Turnstile on the door plus an expiry
+  sweep on the daily seal is the fix, and it is a feature, not a ship-time patch.
+- **The waiting-list count scans every row on each POST**, where the player count is
+  memoised. It is 3 requests an hour per caller, so it waits for the same sweep.
+- The simplification lens wanted `waitRow`, `waiting`, `byWaiting` and `seatsLeft` inlined
+  as one-caller indirection. Kept: they are the tested pure surface that exists so the
+  Durable Object beside them needs no harness, which is this server's whole convention.
+
+Three defects the ship-time coverage audit found in this work, fixed here:
+- `signUp` answered `email-taken` before it checked the cap, so a full server still told
+  a stranger whether an address had an account. The cap is checked first now. `signIn`
+  and `forgot` are written never to answer that question; this was the hole beside them.
+- `joinWaitlist` spent the caller's three-an-hour budget before checking the address
+  parsed, so three typos cost a real person the hour. A script does not make typos.
+- A waiting list at `WAITLIST_MAX` answered `{ok: true}` and stored nothing, so the card
+  said "your address is on the list" to somebody who was not on it. The decision is
+  `listFull(count)` in `beta.js` now, where a test reaches it, and a full list refuses
+  with `409 list-full`. Uniform answers here hide whether a PERSON is known; how full
+  the list is is a fact about nobody.
+
+Open:
+- [ ] The invitation is written by hand. When the cap goes up, somebody reads
+      `GET /api/admin/waitlist` and writes to the people on it from the studio address,
+      then takes them off. A third letter out of `server/mail.js` would automate it, and
+      it should wait until there has been an invitation worth sending twice.
+- [ ] Nothing tells the operator the beta has filled. The day `players` reaches `cap` is
+      a day worth knowing about, and right now the way to know is to look.
+
+Found while doing this, and fixed here because the same files had to be touched:
+- The German, Spanish and French privacy notices were **overlaid onto the wrong
+  sections** from "Being here is not written down" down. The overlay is positional
+  (`legalDoc.privacy.sections.4`), the presence section landed after the three
+  translations were written, and every section below it slid onto its neighbour's words.
+  Renumbered, and `src/i18n/i18n.test.js` now checks that a translated section exists
+  and that the translation is not longer than the section it is poured into, which is
+  what catches a shift.
+- The same three notices still named **Google Fonts** as a third party that sees a
+  request. That stopped being true when the typefaces were self-hosted; the English
+  notice was corrected then and the translations were not. A privacy notice claiming a
+  data flow that does not exist is the same failure as one hiding a flow that does.
+
 ## Phase 9: The social layer
 
 Full design: `docs/designs/the-social-layer.md` (office hours, 2026-09-12). Joseki can

@@ -124,6 +124,14 @@ export const api = {
   setBlocked: (token, id, on) =>
     call(`/api/me/blocked/${encodeURIComponent(id)}`, { method: on ? "PUT" : "DELETE", token }),
 
+  /* The beta cap. `stats` says whether there is a seat before anybody fills in
+     a form, and `waitlist` is where an address goes when there is not. The
+     answer is the same for an address that is new, one already waiting and one
+     that already has an account, so nothing a caller does with it can be read
+     as an answer to "is that address known here". A list with no room left
+     refuses everybody alike with `list-full`. */
+  waitlist: (email) => call("/api/waitlist", { method: "POST", body: { email: fold(email) } }),
+
   ladder: () => call("/api/ladder"),
   stats: () => call("/api/stats"),
   game: (id) => call(`/api/game/${encodeURIComponent(id)}`),

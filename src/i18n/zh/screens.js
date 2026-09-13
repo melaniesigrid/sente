@@ -353,6 +353,7 @@ export const screens = {
     },
     classic: {
       read: "{total} 章读了 {done} 章",
+      chapterRead: "已读",
       close: "合上这本书",
       open: "读这十三章",
     },
@@ -361,6 +362,7 @@ export const screens = {
       body: "这一课是搭在{list}上面的。你可以从那儿开始，也可以直接打开这一课。",
       startWith: "先上{title}",
       anyway: "还是打开",
+      dismiss: "先不用",
     },
     recall: {
       head: "回想",

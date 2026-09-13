@@ -48,11 +48,14 @@ export function ProblemsView({ profile, setProfile, initialId }) {
   const streak = liveStreak(profile, today);
   const isKata = kata && prob.id === kata.id;
   const set = localizeSet(setById(authored.set), t);
-  const done = setsComplete(profile.problemsDone);
+  const solvedIds = state.status === "solved" && !profile.problemsDone.includes(prob.id)
+    ? [...profile.problemsDone, prob.id]
+    : profile.problemsDone;
+  const done = setsComplete(solvedIds);
   /* Whether the board just solved was the last one open in its set. Read from
      the profile after the solve, so it is a fact about the collection rather
      than a flag the solve handler had to remember to set. */
-  const justFinished = state.status === "solved" && setProgress(authored.set, profile.problemsDone).complete;
+  const justFinished = state.status === "solved" && setProgress(authored.set, solvedIds).complete;
   useMokuFacts({ view: "tsumego", seed: profile.problemsDone.length });
 
   const load = (id) => {
@@ -105,7 +108,7 @@ export function ProblemsView({ profile, setProfile, initialId }) {
         {SETS.map(raw => {
           const s = localizeSet(raw, t);
           const mine = problemsInSet(s.id);
-          const { solved, total, complete } = setProgress(s.id, profile.problemsDone);
+          const { solved, total, complete } = setProgress(s.id, solvedIds);
           const Icon = SET_ICONS[s.id] || Eye;
           return (
             <section key={s.id} className={`prob-set ${s.id === set.id ? "here" : ""} ${complete ? "complete" : ""}`}>
@@ -123,7 +126,7 @@ export function ProblemsView({ profile, setProfile, initialId }) {
               <p className="fine prob-set-blurb">{s.blurb}</p>
               <div className="prob-tabs" role="tablist" aria-label={s.name}>
                 {mine.map((p, i) => {
-                  const isDone = profile.problemsDone.includes(p.id);
+                  const isDone = solvedIds.includes(p.id);
                   return (
                     <button key={p.id} role="tab" aria-selected={p.id === activeId}
                       className={`prob-tab ${p.id === activeId ? "active" : ""} ${isDone ? "done" : ""} ${kata && p.id === kata.id ? "kata" : ""}`}
@@ -141,7 +144,7 @@ export function ProblemsView({ profile, setProfile, initialId }) {
       </div>
       {done.length > 0 && (
         <p className="fine prob-sets-done">
-          {t("tsumego.setsDone", { done: done.length, total: SETS.length })}
+        {t("tsumego.setsDone", { count: done.length, done: done.length, total: SETS.length })}
         </p>
       )}
 

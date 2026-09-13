@@ -18,6 +18,9 @@ export const account = {
     "already-verified": "那个地址已经确认过了",
     "mail-failed": "信没能发出去。这是我们要修的，不是你的问题。",
     unknown: "出了点问题（{reason}）",
+    "beta-full": "内测已经满了。留一个地址，有位子空出来会写信告诉你。",
+    "too-many-asks": "今天从同一个地方来的地址有点多了。过一小时再试。",
+    "list-full": "等候名单暂时满了。写信到 hello@northboundsoftwarestudio.com，会有人回你。",
   },
 
   form: {
@@ -72,6 +75,18 @@ export const account = {
     claim: "领这个名号",
     fine: "清掉这个浏览器的站点数据，一个没有地址的名号就永远没了。",
     welcome: "欢迎上榜，{name}",
+  },
+
+  full: {
+    title: "内测已经满了",
+    tagline: "一百个位子，全都有人了",
+    bio: "Joseki 还新，先开一百个位子，这也是这台服务器就算在最好的日子里也撑得住的数目。留一个地址，有位子空出来会写信告诉你。",
+    address: "你的邮箱地址",
+    leave: "把我记在名单上",
+    asked: "你的地址在名单上了。有位子空出来 Joseki 会写信给你，除此之外不会。",
+    fine: "这份名单只存你的地址和你留下它的那一天，别的什么都没有。它只用来告诉你一次有位子了。随时开口，它就被忘掉。",
+    haveOne: "已经有账号了？去登录。",
+    back: "算了",
   },
 
   mail: {
