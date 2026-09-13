@@ -465,7 +465,7 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
             </div>
             <div className="chat-log" aria-live="polite">
               {chat.map((m, i) => (
-                <div key={lineKey(m)} className={`bubble ${account && m.from === account.player.id ? "mine" : ""}`}>
+                <div key={`${lineKey(m)}:${i}`} className={`bubble ${account && m.from === account.player.id ? "mine" : ""}`}>
                   {(!account || m.from !== account.player.id) && <span className="bubble-who">{m.name}{m.seat ? "" : t("online.game.watchingWho")} · </span>}
                   {parsed[i] ? parsed[i].map((part, j) => (
                     part.t === "point" ? (
