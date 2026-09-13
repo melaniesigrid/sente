@@ -23,12 +23,56 @@ const open = (url) => new Promise((res, rej) => {
       waiters.push({ pred, res: (m) => { clearTimeout(t); r2(m); } });
     }),
   });
-  s.onerror = (e) => rej(e);
+  /* A bare ErrorEvent carries no message, so Node prints two hundred lines of
+     socket internals and no reason at all. Reject with something that says
+     which URL failed: this runs against production from CI, and the whole
+     value of a red run is being able to read why it is red. */
+  s.onerror = () => rej(new Error(`socket failed to open: ${url}`));
 });
 const assert = (c, msg) => { if (!c) throw new Error("ASSERT " + msg); console.log("ok  " + msg); };
 
-const a = await j("/api/register", { method: "POST", body: JSON.stringify({ name: "Ada", tint: "coral" }) });
-const b = await j("/api/register", { method: "POST", body: JSON.stringify({ name: "Bea", tint: "sky" }) });
+/* ----- the handles this run makes, and getting rid of them -----
+   This runs against a real server, so every `register` below spends a beta
+   seat and puts a name on the public ladder. The script deletes its players on
+   its last lines, which was fine until it threw before reaching them: one
+   crashed run left "Ada L" standing at the top of the production ladder, with
+   a record from a game that lasted four hundred milliseconds.
+
+   So registering goes through `made`, and any way of dying sweeps it. Node
+   does not exit while an `uncaughtException` handler is running, which is what
+   lets the sweep be async; `unhandledRejection` is the one that actually fired,
+   because `open()` rejects and the top-level await carries that out of the
+   script rather than into a catch. */
+const made = [];
+const register = async (name, tint) => {
+  const p = await j("/api/register", { method: "POST", body: JSON.stringify({ name, tint }) });
+  made.push(p);
+  return p;
+};
+const forget = async (p) => {
+  const i = made.indexOf(p);
+  if (i >= 0) made.splice(i, 1);
+  return j("/api/me", { method: "DELETE", headers: { authorization: `Bearer ${p.token}` } });
+};
+const sweep = async () => {
+  for (const p of made.splice(0)) {
+    // Already gone is the good outcome here, not an error worth printing over
+    // the real one that brought us in.
+    try { await j("/api/me", { method: "DELETE", headers: { authorization: `Bearer ${p.token}` } }); }
+    catch { /* nothing left to remove */ }
+  }
+};
+const died = async (how, e) => {
+  console.error(`smoke failed (${how}): ${(e && e.message) || e}`);
+  await sweep();
+  console.error("swept the handles this run made");
+  process.exit(1);
+};
+process.on("uncaughtException", (e) => died("uncaught", e));
+process.on("unhandledRejection", (e) => died("rejected", e));
+
+const a = await register("Ada", "coral");
+const b = await register("Bea", "sky");
 assert(a.token.length === 64 && a.player.rating === DEFAULT_RATING && a.player.rd === DEFAULT_RD,
   `register gives a token and the newcomer seat (${DEFAULT_RATING}, rd ${DEFAULT_RD})`);
 const me = await j("/api/me", { headers: { authorization: `Bearer ${a.token}` } });
@@ -107,8 +151,8 @@ for (const c of [la, lb, ga, gb, spec]) c.s.close();
    says whose browser answers for it. Nothing here runs KataGo: the point is that
    the seat rotation, the ownership of a partner and the team rules hold over the
    wire, so the "partner" below plays whatever point it likes. */
-const c = await j("/api/register", { method: "POST", body: JSON.stringify({ name: "Cy", tint: "mint" }) });
-const d = await j("/api/register", { method: "POST", body: JSON.stringify({ name: "Dee", tint: "sun" }) });
+const c = await register("Cy", "mint");
+const d = await register("Dee", "sun");
 const lc = await open(`${ws}/api/lobby?token=${c.token}`);
 const ld = await open(`${ws}/api/lobby?token=${d.token}`);
 await lc.next(m => m.t === "lobby");
@@ -117,7 +161,7 @@ lc.send({ t: "seek", size: 9, key: PKEY, pair: { rank: "7d" } });
 assert((await lc.next(m => m.t === "seek")).status === "waiting", "pair seeker waits");
 
 // An ordinary seek on the same word must not swallow the pair seeker.
-const e = await j("/api/register", { method: "POST", body: JSON.stringify({ name: "Eve", tint: "grape" }) });
+const e = await register("Eve", "grape");
 const le = await open(`${ws}/api/lobby?token=${e.token}`);
 await le.next(m => m.t === "lobby");
 le.send({ t: "seek", size: 9, key: PKEY });
@@ -187,8 +231,8 @@ console.log("ok  pair go: four seats over the wire");
    The seat model does not change at all. What changes is that no seat carries a
    runner, so nobody may touch anybody else's chair - which is the rule of pair go
    rather than a policy Joseki invented. */
-const f = await j("/api/register", { method: "POST", body: JSON.stringify({ name: "Fen", tint: "sky" }) });
-const g = await j("/api/register", { method: "POST", body: JSON.stringify({ name: "Gus", tint: "coral" }) });
+const f = await register("Fen", "sky");
+const g = await register("Gus", "coral");
 const RKEY = "rengo-" + Math.random().toString(36).slice(2, 8);
 const four = [];
 for (const who of [c, d, e, f]) {
@@ -313,12 +357,12 @@ assert(stillWaiting.status === "waiting" && stillWaiting.blocked === null,
   "the extra chooser was never reassigned, and sees the table empty again");
 for (const ch3 of crowd) ch3.l.s.close();
 lf.s.close(); lg2.s.close(); lg.s.close();
-for (const p2 of [c, d, e, f, g]) await j("/api/me", { method: "DELETE", headers: { authorization: `Bearer ${p2.token}` } });
+for (const p2 of [c, d, e, f, g]) await forget(p2);
 console.log("ok  rengo: an over-subscribed team waits rather than reseats anybody");
 
 // Leave: the test accounts must not linger on a real ladder.
 for (const p of [a, b]) {
-  const gone = await j("/api/me", { method: "DELETE", headers: { authorization: `Bearer ${p.token}` } });
+  const gone = await forget(p);
   assert(gone.removed === true, `${p.player.name} left the ladder`);
 }
 try { await j("/api/me", { headers: { authorization: `Bearer ${a.token}` } }); assert(false, "token dead"); } catch (e) { assert(/401/.test(e.message), "a left account's token is dead"); }

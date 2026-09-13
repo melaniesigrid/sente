@@ -168,7 +168,13 @@ export function census(size, boardSize = 13) {
 /* ---------- the lesson positions ----------
    Each entry is a position a lesson in the library uses, named by its lesson,
    with the question that lesson asks of it. Run with --lessons to re-prove
-   them all; the answers are what the lesson files state in their headers. */
+   them all; the answers are what the lesson files state in their headers.
+
+   `space` is the whole contested area, including points that stones are
+   standing on. That is deliberate and it is easy to get wrong: a region of
+   only the currently empty points cannot be played on after a capture clears
+   it, and the throw-in position is alive or dead depending on whether the
+   search is allowed back into the space White has just captured. */
 export const LESSON_POSITIONS = [
   {
     lesson: "life-eye-space", name: "three in a row",
@@ -184,6 +190,37 @@ export const LESSON_POSITIONS = [
     lesson: "life-eye-space", name: "the square of four",
     rows: [".........", "..XXXX...", ".XOOOOX..", ".XO..OX..", ".XO..OX..", ".XOOOOX..", "..XXXX...", ".........", "........."],
     seed: { c: 2, r: 2 }, space: [[3, 3], [4, 3], [3, 4], [4, 4]],
+  },
+  {
+    lesson: "life-corner-live", name: "five stones, three points, White to play",
+    rows: [".........", ".........", ".........", ".........", ".........", ".........", "XXXXX....", "OOOOX....", ".O..X...."],
+    seed: { c: 0, r: 7 }, space: [[0, 8], [2, 8], [3, 8]],
+  },
+  {
+    lesson: "life-dead-shapes", name: "the cross five",
+    rows: [".........", "..XXXXX..", ".XOOOOOX.", ".XOO.OOX.", ".XO...OX.", ".XOO.OOX.", ".XOOOOOX.", "..XXXXX..", "........."],
+    seed: { c: 2, r: 2 }, space: [[4, 3], [3, 4], [4, 4], [5, 4], [4, 5]],
+  },
+  {
+    lesson: "life-dead-shapes", name: "the flower six",
+    rows: [".........", ".XXXXX...", "XOOOOOX..", "XO..OOX..", "XO...OX..", "XOO.OOX..", "XOOOOOX..", ".XXXXX...", "........."],
+    seed: { c: 1, r: 2 }, space: [[2, 3], [3, 3], [2, 4], [3, 4], [4, 4], [3, 5]],
+  },
+  {
+    lesson: "life-dead-shapes", name: "the rectangular six, which lives in the open",
+    rows: [".........", "..XXXXX..", ".XOOOOOX.", ".XO...OX.", ".XO...OX.", ".XOOOOOX.", "..XXXXX..", ".........", "........."],
+    seed: { c: 2, r: 2 }, space: [[3, 3], [4, 3], [5, 3], [3, 4], [4, 4], [5, 4]],
+  },
+  {
+    lesson: "life-seki", name: "the standoff",
+    rows: [".........", ".........", ".........", ".........", ".........", "XXXXX....", "OOOOX....", "X..OX....", "XXXOX...."],
+    seed: { c: 0, r: 6 }, space: [[1, 7], [2, 7]],
+  },
+  {
+    lesson: "life-throw-in", name: "two stones in atari, and they are the answer",
+    rows: [".........", ".........", ".........", ".........", ".........", "XXXXX....", "OOOOX....", "OXO.X....", "X...X...."],
+    seed: { c: 0, r: 6 },
+    space: [[0, 6], [1, 6], [2, 6], [3, 6], [0, 7], [1, 7], [2, 7], [3, 7], [0, 8], [1, 8], [2, 8], [3, 8]],
   },
 ];
 

@@ -30,3 +30,6 @@ public/ort
 # Wrangler
 .wrangler
 .dev.vars
+
+# Security reports from /cso stay local.
+.gstack
