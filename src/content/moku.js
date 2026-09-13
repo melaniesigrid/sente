@@ -41,12 +41,25 @@ import { BASE_LOCALE, makeT } from "../i18n/index.js";
 
 const EN = makeT(BASE_LOCALE);
 
+/* A seed as a number, whatever a view handed over. Views that have no visit
+   count pass a string that names what they are showing ("hoshi:5"), which
+   `Math.floor` turns into NaN, and an index of NaN used to reach past the end
+   of the list and put the catalogue key itself on the screen. Hashing keeps
+   the deterministic-by-seed promise for both kinds. */
+const seedOf = (seed) => {
+  if (typeof seed === "number" && Number.isFinite(seed)) return Math.abs(Math.floor(seed));
+  if (typeof seed !== "string") return 0;
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) % 1e9;
+  return h;
+};
+
 /* One line out of a state's list, in the language in force. The index is
    chosen from the English list, so a translation is read line for line and a
    line nobody has reached is still the one that was written. */
 const pickLine = (state, seed, t) => {
   const list = LINES[state] ?? LINES.idle;
-  const i = Math.abs(Math.floor(seed)) % list.length;
+  const i = seedOf(seed) % list.length;
   return t(`moku.${state}.${i}`, null, list[i]);
 };
 

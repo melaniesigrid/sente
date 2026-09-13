@@ -26,8 +26,9 @@ export const shell = {
   journal: {
     nav: "Journal",
     label: "What we have been doing",
-    titleA: "The",
+    titleA: "The ",
     titleEm: "journal",
+    titleAfter: ".",
     lede: "Everything that has shipped, straight out of the changelog, {notes} longer notes on how the thing is built, and {posts} on the game itself. {releases} releases so far.",
     english: "The notes are written in English and are not translated. A note is somebody's writing rather than a label, and we would rather hand you the real one than a machine's version of it. Everything else on this screen follows the language you chose.",
     note: "Note",

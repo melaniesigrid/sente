@@ -87,6 +87,31 @@ describe("locales", () => {
     expect(resolveLocale("es", ["en", "en-GB"])).toBe("es");
   });
 
+  /* We ship one Chinese cut and it is Simplified, so a device asking for
+     Traditional lands on Simplified characters rather than on English. That is
+     the better of two wrong answers and not a right one; it is written down
+     here so that the day somebody writes a Traditional catalogue, this test is
+     what tells them where the decision lives. */
+  it("reads the two new scripts off a device, Traditional included", () => {
+    expect(resolveLocale(SYSTEM_LOCALE, ["zh"])).toBe("zh");
+    expect(resolveLocale(SYSTEM_LOCALE, ["zh-Hans"])).toBe("zh");
+    expect(resolveLocale(SYSTEM_LOCALE, ["zh-CN"])).toBe("zh");
+    expect(resolveLocale(SYSTEM_LOCALE, ["zh-TW"])).toBe("zh");
+    expect(resolveLocale(SYSTEM_LOCALE, ["zh-Hant"])).toBe("zh");
+    expect(resolveLocale(SYSTEM_LOCALE, ["ja"])).toBe("ja");
+    expect(resolveLocale(SYSTEM_LOCALE, ["ja-JP"])).toBe("ja");
+    expect(resolveLocale("ja", ["zh"])).toBe("ja");
+  });
+
+  /* The header pill has room for a language, not for a language and a script:
+     `zh-Hans` is two letters on the chip and the script is the menu's business.
+     Which is only readable while no two languages shorten to the same chip. */
+  it("shortens every tag to a chip that still names one language", () => {
+    const chips = LOCALES.map(l => l.tag.split("-")[0].toUpperCase());
+    expect(new Set(chips).size).toBe(chips.length);
+    for (const chip of chips) expect(chip).toMatch(/^[A-Z]{2}$/);
+  });
+
   it("names itself in its own language", () => {
     for (const l of LOCALES) {
       expect(l.endonym.length, l.id).toBeGreaterThan(1);
@@ -250,6 +275,34 @@ describe.each(others)("$name is complete", (locale) => {
         expect(after.get(key), `${locale.id}: ${key} is still English in a lesson that is otherwise translated`)
           .not.toBe(value);
       }
+    }
+  });
+
+  /* A house player introduces itself by its tagline on the duel card, under a
+     name and a rank that are both already translated. A persona with no
+     tagline overlay is one English phrase in the middle of a translated card,
+     which reads as a bug rather than as a thing nobody got to yet. */
+  it("gives every house player a tagline of its own", () => {
+    for (const p of PERSONAS) {
+      expect(mine.get(`persona.${p.id}.tagline`), `${locale.id}: persona.${p.id}.tagline`).toBeTruthy();
+    }
+  });
+
+  /* A screen heading is assembled out of three keys because the emphasised
+     word sits in an <em> in the middle of it, and the JSX puts nothing between
+     them. In a language written with spaces, the space belongs to the first
+     key; in Chinese and Japanese there is no space to lose, which is the whole
+     reason the join moved into the catalogue. */
+  it("carries its own spacing in a split screen heading", () => {
+    const spaced = !["zh", "ja"].includes(locale.id);
+    const heads = [...mine.keys()].filter(k => /\.(titleA|titleBefore)$/.test(k));
+    expect(heads.length).toBeGreaterThan(0);
+    for (const key of heads) {
+      const before = String(mine.get(key));
+      const stem = key.replace(/\.(titleA|titleBefore)$/, "");
+      expect(mine.get(`${stem}.titleEm`), `${locale.id}: ${stem} has no emphasised word`).toBeTruthy();
+      expect(mine.get(`${stem}.titleAfter`), `${locale.id}: ${stem} never closes its heading`).toBeTruthy();
+      expect(/\s$/.test(before), `${locale.id}: ${key} is "${before}" and runs into the emphasised word`).toBe(spaced);
     }
   });
 
