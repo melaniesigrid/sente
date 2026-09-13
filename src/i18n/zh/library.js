@@ -22,6 +22,10 @@ export const track = {
 };
 
 export const book = {
+  shapes: {
+    name: "棋形之书",
+    blurb: "每一种形买到了什么，付出了什么，以及在什么局面下这笔买卖并不划算。",
+  },
   proverbs: {
     name: "棋谚",
     blurb: "把民间的智慧当型来练：一个固定的形，练到能有意打破为止。",

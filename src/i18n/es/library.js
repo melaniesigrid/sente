@@ -22,6 +22,10 @@ export const track = {
 };
 
 export const book = {
+  shapes: {
+    name: "El libro de las formas",
+    blurb: "Lo que compra cada forma, lo que cuesta, y la posición en la que el trato es malo.",
+  },
   proverbs: {
     name: "Los proverbios",
     blurb: "Sabiduría popular como kata: una forma fija que se ensaya hasta poder romperla a propósito.",

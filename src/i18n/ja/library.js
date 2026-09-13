@@ -22,6 +22,10 @@ export const track = {
 };
 
 export const book = {
+  shapes: {
+    name: "形の本",
+    blurb: "それぞれの形が何を買い、何を払うのか。そして、その取引が割に合わない局面。",
+  },
   proverbs: {
     name: "碁の格言",
     blurb: "言い伝えを型として。わざと崩せるようになるまで繰り返す、決まった形のこと。",

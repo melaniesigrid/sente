@@ -22,6 +22,10 @@ export const track = {
 };
 
 export const book = {
+  shapes: {
+    name: "Das Buch der Formen",
+    blurb: "Was jede Form kauft, was sie kostet, und die Stellung, in der der Handel ein schlechter ist.",
+  },
   proverbs: {
     name: "Die Sprichwörter",
     blurb: "Volkswissen als Kata: eine feste Form, geübt, bis man sie mit Absicht brechen kann.",

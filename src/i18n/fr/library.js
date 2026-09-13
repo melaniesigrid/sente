@@ -22,6 +22,10 @@ export const track = {
 };
 
 export const book = {
+  shapes: {
+    name: "Le livre des formes",
+    blurb: "Ce que chaque forme achète, ce qu'elle coûte, et la position où le marché est mauvais.",
+  },
   proverbs: {
     name: "Les proverbes",
     blurb: "La sagesse populaire comme kata : une forme fixe travaillée jusqu'à pouvoir la casser exprès.",
