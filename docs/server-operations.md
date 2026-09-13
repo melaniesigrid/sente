@@ -45,6 +45,79 @@ Two things keep the duration number small, and both are deliberate:
 If the app ever outgrows the free plan, the Workers paid plan starts at $5 a month, and
 that $5 covers far more than this would use.
 
+## How many people are let in
+
+**A hundred, and the hundred-and-first is offered a waiting list.** The number is
+`BETA_CAP` in `server/beta.js`, enforced in `Registry.register`, which is the one door
+both `POST /api/register` and `POST /api/signup` come through. Past it both answer
+`409 beta-full`, and the lobby shows the waiting-list card instead of the forms.
+
+The arithmetic behind the number, so that raising it is a decision and not a guess.
+A WebSocket message counts as a request, and the ceiling is 100,000 a day:
+
+| What a player costs in a day | Requests |
+| --- | --- |
+| Presence poll every 30s and dashboard poll every 20s, 45 minutes on the site | ~225 |
+| Two 9x9 games against another person | ~90 |
+| Signing in, the ladder, a profile, the lobby socket, seeks | ~35 |
+| **One engaged player** | **~350** |
+
+A hundred accounts all active on the same day and all playing twice as much as usual is
+70,000 of the 100,000. A hundred and fifty is over it, and going over means every further
+operation of that kind fails until 00:00 UTC. Rows written are nowhere near: a hundred
+people playing twice is about 16,000 of the 100,000.
+
+**The cheapest way to double the cap** is not a bigger cap, it is the two polls:
+`PRESENCE_EVERY_MS` (30s) and `DASH_EVERY_MS` (20s) are most of what a player costs, and
+60s and 45s would roughly halve it at the price of a friend's arrival taking a minute to
+show. The other way is the Workers paid plan at $5 a month, which turns the daily
+ceilings into monthly allocations far larger than this uses.
+
+Raise the cap from the numbers rather than from hope: `GET /api/stats/history?days=30`
+gives a row a day (accounts, games, peak online), and the Cloudflare dashboard gives the
+request count the ceiling is actually about.
+
+```
+POST   /api/waitlist        {email}     {ok:true}; 409 list-full when full; 3/hour per caller
+GET    /api/admin/waitlist              who is waiting, longest wait first
+DELETE /api/admin/waitlist/:email       take one off, url-encoded
+GET    /api/stats                       {players, online, seeking, cap, full, seatsLeft}
+```
+
+The waiting list holds an address and the day it was left, under `wait:<address>`, and
+nothing else: no name, no handle, not the address it was left from. It answers `{ok:true}`
+for an address that is new, one already waiting, and one that already has an account,
+which is the same rule `POST /api/forgot` follows and for the same reason: it must never
+become a way to ask who plays here. A list that has reached `WAITLIST_MAX` answers `409
+list-full` instead, because how full the list is says nothing about any person, and
+answering `{ok:true}` over a row that was never written would make the card tell somebody
+they are on a list they are not on.
+
+Inviting somebody is a letter you write by hand. **Do not take their address off the list
+when you write it**: arriving removes the row (`attach` does it), and deleting it first
+means that if somebody else takes the seat before they open their mail, they are refused
+AND off the list with nothing left to show they ever asked. There is no reservation yet,
+so a raised cap is first-come until there is one.
+
+`node tools/server/beta.mjs https://api.joseki.online` checks all of it against a
+deployment, and with `SENTE_ADMIN_TOKEN` set it cleans up after itself.
+
+**Proving the refusal.** A server with seats left cannot exercise the one line this
+feature exists for. `BETA_CAP` in the environment overrides the constant when it is a
+positive whole number (anything else is ignored rather than honoured, so a typo cannot
+open the door), which lets a small server be stood up and filled:
+
+```bash
+echo 'BETA_CAP=2' >> .dev.vars && npx wrangler dev         # then, in another shell:
+node tools/server/beta.mjs http://127.0.0.1:8787 --fill
+```
+
+`--fill` claims handles until the cap is met, checks that BOTH `/api/register` and
+`/api/signup` answer `409 beta-full` (signup must never answer `email-taken` on a full
+server: that is a fact about a person), confirms `/api/stats` agrees, and then deletes
+every handle it made. It refuses to run against a cap above 5. Production sets no
+`BETA_CAP`, so the constant in `server/beta.js` is the number that is live.
+
 ## The three things a human has to set up
 
 ### 1. `CLOUDFLARE_API_TOKEN`, so CI can deploy the server
@@ -286,6 +359,7 @@ node tools/server/qa.mjs       https://api.joseki.online   # the wider pass
 node tools/server/churn.mjs    https://api.joseki.online   # the rate limit
 SENTE_ADMIN_TOKEN=... node tools/server/mail.mjs https://api.joseki.online  # letters
 node tools/server/bench.mjs                                                     # room load cost
+node tools/server/beta.mjs     https://api.joseki.online   # the cap and the waiting list
 ```
 
 ## One thing that will confuse you
