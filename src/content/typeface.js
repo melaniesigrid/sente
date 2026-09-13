@@ -237,18 +237,31 @@ export function typefaceVars(id, locale) {
   const t = typefaceOf(id);
   const script = (families) => withScript(families, locale);
   /* A script with no italic gets upright everywhere a pairing asks for a slant,
-     rather than a sheared upright the browser drew itself. */
+     rather than a sheared upright the browser drew itself.
+
+     Both answers are emitted. The plain token is what the page is set in, and
+     it is upright for a script with no italic; the `-own` token carries the
+     pairing's real answer regardless, so a run of another language inside the
+     page can take its slant back. The stylesheet does that swap for anything
+     marked `lang="en"`, because a partial catalogue leaves real English prose
+     on a Hebrew page and English has an italic to be set in. The same argument
+     the bidi rule makes about direction, made about slant. */
   const slant = (style) => (hasItalic(locale) ? style : "normal");
+  const quoteStyle = t.quote ? t.quoteStyle : "normal";
+  const captionStyle = captionOf(t) === t.italic ? t.italicStyle : "normal";
   return {
     "--font-display": script(t.display),
     "--font-display-italic": script(t.italic),
     "--display-italic-style": slant(t.italicStyle),
+    "--display-italic-style-own": t.italicStyle,
     "--font-body": script(t.body),
     "--font-quote": script(quoteOf(t)),
     "--font-typewriter": script(TYPEWRITER),
     "--quote-style": t.quote ? slant(t.quoteStyle) : "normal",
+    "--quote-style-own": quoteStyle,
     "--font-caption": script(captionOf(t)),
     "--caption-style": captionOf(t) === t.italic ? slant(t.italicStyle) : "normal",
+    "--caption-style-own": captionStyle,
     "--w-display": String(t.weight),
     "--w-display-strong": String(t.strong),
     "--display-tracking": t.tracking,

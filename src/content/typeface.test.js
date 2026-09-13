@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { TYPEFACES, DEFAULT_TYPEFACE, TYPEWRITER, typefaceOf, typefaceVars, withScript, captionOf, quoteOf, GOOGLE_FAMILIES } from "./typeface.js";
+import { readFileSync } from "node:fs";
+import { TYPEFACES, DEFAULT_TYPEFACE, TYPEWRITER, typefaceOf, typefaceVars, withScript, hasItalic, captionOf, quoteOf, GOOGLE_FAMILIES } from "./typeface.js";
 import { FONT_FACES } from "../styles/fontfaces.js";
 import { GOOGLE_FACES } from "../styles/googleFaces.js";
 import { FAMILIES as FETCHED } from "../../tools/fonts/fetch.mjs";
@@ -11,6 +12,10 @@ const VARS = [
   "--font-typewriter",
   "--w-display", "--w-display-strong", "--display-tracking",
   "--display-leading",
+  /* The pairing's own answer for each slanted voice, kept beside the answer the
+     page is set in. They differ only for a script with no italic: the page goes
+     upright and a run marked lang="en" takes the pairing's slant back. */
+  "--display-italic-style-own", "--quote-style-own", "--caption-style-own",
 ];
 
 describe("typeface pairings", () => {
@@ -295,5 +300,117 @@ describe("the stylesheet consumes the tokens", () => {
         expect(GOOGLE_FAMILIES, `${t.id} wants ${name}`).toContain(name);
       }
     }
+  });
+});
+
+/* ----------------------- A SCRIPT WITH NO ITALIC -----------------------
+   Hebrew brings the Han and Cyrillic problem again (no pairing has a glyph for
+   it, so the letters come off the device) and one more of its own: the script
+   has no italic and no case. There is no second drawing of the alphabet to
+   lean on, and the slanted voices in this design system are load-bearing.
+
+   A browser asked for italic where no italic exists synthesises one by shearing
+   the upright, which is the faux oblique this whole file opens by refusing. So
+   a script may say it has no italic, and the pairing's slanted voices come back
+   upright rather than sheared. Han arguably wants the same and is deliberately
+   left alone, which is what the second test below pins. */
+describe("Hebrew, and a script with no italic", () => {
+  const FONT_VARS = [
+    "--font-display", "--font-display-italic", "--font-body",
+    "--font-quote", "--font-caption", "--font-typewriter",
+  ];
+  const STYLE_VARS = ["--display-italic-style", "--quote-style", "--caption-style"];
+
+  it("knows which scripts have a second drawing of their alphabet", () => {
+    expect(hasItalic("he")).toBe(false);
+    for (const locale of ["en", "es", "fr", "de", "zh", "ja", "ru", "uk"]) {
+      expect(hasItalic(locale), locale).toBe(true);
+    }
+    // A language nobody has described is a Latin one until somebody says so.
+    for (const locale of [undefined, null, "tlh", "system"]) {
+      expect(hasItalic(locale), String(locale)).toBe(true);
+    }
+  });
+
+  it("stands every slanted voice upright in Hebrew, and only in Hebrew", () => {
+    for (const t of TYPEFACES) {
+      const he = typefaceVars(t.id, "he");
+      for (const v of STYLE_VARS) expect(he[v], `${t.id} ${v}`).toBe("normal");
+      // The decision belongs to the script, not to the app: the eight other
+      // languages keep whatever slant their pairing asked for.
+      const plain = typefaceVars(t.id);
+      for (const locale of ["ru", "zh", "ja"]) {
+        const vars = typefaceVars(t.id, locale);
+        for (const v of STYLE_VARS) expect(vars[v], `${t.id} ${locale} ${v}`).toBe(plain[v]);
+      }
+    }
+  });
+
+  it("puts a Hebrew face behind every voice, in the pairing's own register", () => {
+    for (const t of TYPEFACES) {
+      const vars = typefaceVars(t.id, "he");
+      for (const v of FONT_VARS) {
+        expect(vars[v], `${t.id} ${v}`).toMatch(/Hebrew|Frank Ruehl|FrankRuehl|New Peninim|David|Segoe UI|Arial/);
+      }
+    }
+    expect(withScript("'Fraunces', serif", "he")).toMatch(/Frank Ruehl|Noto Serif Hebrew/);
+    expect(withScript("'Fraunces', serif", "he")).not.toMatch(/Noto Sans Hebrew/);
+    expect(withScript("'Hanken Grotesk', sans-serif", "he")).toMatch(/Arial Hebrew|Noto Sans Hebrew/);
+    expect(withScript("'Hanken Grotesk', sans-serif", "he")).not.toMatch(/Frank Ruehl/);
+    // The typewriter is a slab, so a typed passage keeps a serif behind it.
+    expect(withScript(TYPEWRITER, "he")).toMatch(/Frank Ruehl|Noto Serif Hebrew/);
+    // And the generic still ends the list, where it can do no harm.
+    expect(withScript("'Fraunces', serif", "he").trimEnd()).toMatch(/serif$/);
+  });
+
+  it("keeps the pairing in front, so the latin in a Hebrew sentence is the pairing", () => {
+    const GENERIC = /(^|,\s*)(serif|sans-serif|monospace|system-ui|cursive|fantasy)\s*$/;
+    for (const t of TYPEFACES) {
+      const vars = typefaceVars(t.id, "he");
+      const plain = typefaceVars(t.id);
+      for (const v of FONT_VARS) {
+        const generic = GENERIC.exec(plain[v]);
+        const named = generic ? plain[v].slice(0, generic.index) : plain[v];
+        expect(vars[v].startsWith(`${named}, `), `${t.id} ${v}`).toBe(true);
+        if (generic) expect(GENERIC.test(vars[v]), `${t.id} ${v} generic`).toBe(true);
+      }
+    }
+  });
+
+  it("moves the families and the slant, and nothing else", () => {
+    // Weights, tracking and leading are the pairing's and not the language's.
+    // The style tokens are the one thing Hebrew is allowed to touch, and the
+    // rest of the set has to come through a language change unchanged.
+    for (const t of TYPEFACES) {
+      const plain = typefaceVars(t.id);
+      const vars = typefaceVars(t.id, "he");
+      expect(Object.keys(vars).sort(), t.id).toEqual(Object.keys(plain).sort());
+      for (const [k, v] of Object.entries(plain)) {
+        if (FONT_VARS.includes(k) || STYLE_VARS.includes(k)) continue;
+        expect(vars[k], `${t.id} ${k}`).toBe(v);
+      }
+    }
+  });
+
+  it("still types a passage on one machine in Hebrew", () => {
+    const typed = typefaceVars(TYPEFACES[0].id, "he")["--font-typewriter"];
+    for (const t of TYPEFACES) {
+      expect(typefaceVars(t.id, "he")["--font-typewriter"], t.id).toBe(typed);
+    }
+  });
+});
+
+describe("the shell hands the language to the typefaces", () => {
+  /* typefaceVars only stands the slanted voices upright when it is told which
+     language is being read. Every test above calls it directly, so dropping
+     the second argument at the one call site would leave all of them green
+     while Hebrew quietly went back to a sheared upright. This is the only
+     thing that watches the wiring. */
+  it("passes the resolved locale, not just the pairing", () => {
+    const src = readFileSync(new URL("../App.jsx", import.meta.url), "utf8");
+    const call = /typefaceVars\(([^)]*)\)/.exec(src);
+    expect(call, "App.jsx no longer calls typefaceVars").toBeTruthy();
+    expect(call[1].split(",").length, `typefaceVars(${call[1]})`).toBe(2);
+    expect(call[1]).toMatch(/locale/);
   });
 });
