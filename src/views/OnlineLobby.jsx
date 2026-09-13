@@ -10,6 +10,8 @@ import { dashboard, waitingText, waitedMinutes } from "./dashboard.js";
 import { AccountGate } from "./AccountGate.jsx";
 import { InvitesCard } from "./InvitesCard.jsx";
 import { useInvites } from "./useInvites.js";
+import { HereNow } from "./HereNow.jsx";
+import { useFriends } from "./useFriends.js";
 import { avatarUrl } from "../net/avatar.js";
 import { errorText, formProblem } from "./accountForm.js";
 import { useT } from "../components/langStore.js";
@@ -56,6 +58,11 @@ function Lobby({ account, setAccount, notify, onPlay, size, go }) {
   const shelf = useInvites(token, notify, (table) => onPlayRef.current({ mode: { kind: "online", gameId: table.gameId } }));
   const shelfRef = useRef(shelf.refresh);
   useEffect(() => { shelfRef.current = shelf.refresh; }, [shelf.refresh]);
+  /* The book, for the strip of friends who are here. One small call, and the
+     only reason the lobby needs it: presence has been on this server since it
+     shipped and has only ever been drawn on the profile screen, which is not
+     where anybody is standing when they want a game. */
+  const { book } = useFriends(token, notify);
 
   const refresh = useCallback(async () => {
     try {
@@ -133,6 +140,7 @@ function Lobby({ account, setAccount, notify, onPlay, size, go }) {
      so six games going is a list of what to do rather than a pile. The rule for
      whose move it is lives in `dashboard.js` and is asked, never restated: the
      front page and this list must never disagree about the same board. */
+  const openPage = (person) => (go ? go("player", { playerId: person.id, from: "play" }) : null);
   const board = dashboard(tables, player.id);
   const live = [...board.yours, ...board.theirs];
   const done = tables.filter(t => t.phase === "ended")
@@ -146,7 +154,8 @@ function Lobby({ account, setAccount, notify, onPlay, size, go }) {
         inside a raised thing is the one shape the house does not draw. It is
         above because it is the shorter way into a game than looking for a
         stranger, and it is absent entirely when the shelf is empty. */}
-    <InvitesCard shelf={shelf} onOpen={(person) => (go ? go("player", { playerId: person.id, from: "play" }) : null)} />
+    <InvitesCard shelf={shelf} onOpen={openPage} />
+    <HereNow token={token} book={book} invites={shelf} size={size} onOpen={openPage} />
     <Card className="online-card">
       <div className="persona-top">
         <Avatar name={player.name} tint={player.tint} size={52} src={avatarUrl(SERVER_URL, player.id, player.avatarAt)} />

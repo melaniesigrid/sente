@@ -57,6 +57,13 @@ export const online = {
     pair: "ペア碁",
   },
 
+  here: {
+    head: "いま来ています",
+    note: "広間にいて、それを見せてもよいとしている友だちです。いないことは決して表示しません。いないのと、言わないでおくのとは、外からは同じに見えます。",
+    record: "{wins}勝{losses}敗",
+    ask: "{size}路を誘う",
+  },
+
   find: {
     head: "人を探す",
     note: "名前か、その一部を入れてください。探せるのはここで打つ人だけで、返るのは何人かであって、名簿ではありません。",
@@ -138,6 +145,7 @@ export const online = {
     removeName: "{name}を外す",
     declineName: "{name}を断る",
     takeBackName: "{name}への申し込みを取り下げる",
+    writeName: "{name}さんに手紙を書く",
     act: {
       friends: "友だち",
       remove: "友だちを外す",

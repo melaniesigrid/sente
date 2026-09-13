@@ -727,7 +727,14 @@ ${FONT_FACES}
 .ladder-open:active:not(.me) { box-shadow: var(--sink-sm); }
 .ladder-pos { color: var(--ink-2); width: 26px; text-align: center; font-family: var(--font-display); font-weight: var(--w-display); font-size: 17px; display: grid; place-items: center; }
 .ladder-pos.gold { color: var(--accent-ink); opacity: 1; }
-.ladder-name { flex: 1; display: flex; flex-direction: column; line-height: 1.2; }
+/* A min-width of zero is the whole of why a long name or a long letter preview
+   cannot push the thing beside it off the screen. A flex item will not shrink
+   below the intrinsic width of its content without it, so the rows that carry
+   a name and something after it: the ladder, the friends, the search results,
+   the invitations, the post - all overflow at phone width the moment the name
+   is long. It cost the post a horizontal scrollbar at 400px on every screen
+   holding a letter, which is where this was found. */
+.ladder-name { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }
 .ladder-name strong { font-size: 15.5px; }
 .ladder-rating { color: var(--ink-2); font-family: var(--font-display); font-weight: var(--w-display); font-size: 18px; }
 .streak-note { display: flex; align-items: center; gap: 9px; font-size: 15px; }
@@ -2043,6 +2050,12 @@ ${FONT_FACES}
 .invite-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .invite-rated { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-2); }
 .invite-rated input { accent-color: var(--accent-ink); width: 15px; height: 15px; }
+/* ---- friends who are here ----
+   The friends card's rows once more, on their own card above the lobby. It
+   only ever exists when somebody is on it, so there is no empty state to
+   design and no heading over nothing. */
+.here-card { display: flex; flex-direction: column; gap: 14px; }
+.here-card h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }
 /* ---- here now ----
    One small dot in the accent, and nothing anywhere for somebody who is not
    here: away and "did not say" are the same silence, so there is no second
@@ -2135,7 +2148,10 @@ ${FONT_FACES}
 .letters-card { display: flex; flex-direction: column; gap: 14px; }
 .letters-card h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }
 .letter-row { align-items: center; }
-.letter-preview { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 42ch; }
+/* A ceiling in characters on a wide screen, and never wider than the row it is
+   in on a narrow one: a fixed maximum is a floor as well as a ceiling once the
+   column it sits in is narrower than the number. */
+.letter-preview { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: min(42ch, 100%); }
 .thread { display: flex; flex-direction: column; gap: 10px; max-height: 52vh; overflow-y: auto; padding: 2px; }
 .letter {
   display: flex; flex-direction: column; gap: 5px;

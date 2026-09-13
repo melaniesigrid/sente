@@ -2586,8 +2586,27 @@ friends"; this phase is the three verbs in that sentence that were still missing
       for Black. `server/invites.js` is the policy, pure, in 31 cases;
       `tools/server/invites.mjs` proves it against a deployment in 31 checks, playing a
       whole game out to reach "somebody you have finished a game against".
-- [ ] **The way in** (branch `feat/reach`): the acts on a person — ask, write, invite —
-      reachable from every row and every page that names one of them.
+- [x] **The way in** (branch `feat/reach`): the acts on a person reachable from where
+      somebody is standing when they want one. Three things, and the first is a bug:
+      **"Write to them" on a player page did not write to them.** It landed on the profile
+      screen and left the reader to find the right row in the post. The open thread now
+      belongs to the screen rather than to the card that draws it, so the player page, and
+      a friend row, can open the conversation with one press. **Your friends who are here**
+      are drawn in the lobby, which is where somebody is standing when they want a game;
+      presence has been on this server since it shipped and had only ever been drawn on
+      the profile screen. One press asks a friend who is here for a game on the board the
+      lobby is already set to, and the strip is absent entirely when nobody is around,
+      because that is the state a small club is in most of the time and a heading over
+      nobody is worse than no heading.
+      **And a mobile bug the social rows all shared**: `.ladder-name` had no `min-width: 0`,
+      so a flex item could not shrink below the intrinsic width of a long name or a long
+      letter preview, and the post gave every phone-width screen holding a letter a
+      horizontal scrollbar. Found by driving a real browser at 400px, which is the only
+      way it was ever going to be found.
+
+**Phase 11 is complete.** Three slices, three branches. Browser QA at 1100 and 400 px:
+the invitation card, the search rows, the terms panel and the whole
+invite → accept → board flow, with a clean console and no horizontal overflow.
 
 ## Principles (do not trade away)
 

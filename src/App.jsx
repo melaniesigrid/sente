@@ -224,7 +224,8 @@ export default function JosekiApp() {
               lands at the table rather than always at the ladder. */}
           {view === "player" && <PlayerPage playerId={params ? params.playerId : null} go={go} notify={notify}
             onBack={params && params.from ? () => go(params.from, params.fromParams || null) : null} />}
-          {view === "profile" && <ProfileView profile={profile} setProfile={setProfile} go={go} room={room} notify={notify} />}
+          {view === "profile" && <ProfileView profile={profile} setProfile={setProfile} go={go} room={room} notify={notify}
+            writeTo={params ? params.writeTo : null} />}
           {view === "look" && <LookView profile={profile} setProfile={setProfile} go={go} room={room} />}
           {view === "dojo" && <DojoView profile={profile} setProfile={setProfile} notify={notify} go={go} room={room} />}
           {view === "legal" && <LegalView docId={params ? params.docId : null} onPick={(id) => go("legal", { docId: id })} />}

@@ -67,6 +67,13 @@ export const online = {
   /* Finding somebody by their handle, which is the way into everything below:
      the ladder only ever held a hundred people, and a club whose members have
      not played a rated game yet is not on it at all. */
+  here: {
+    head: "Here now",
+    note: "The friends who are in the lobby, and who let you see it. Nobody is ever shown as away: not here and not telling you look the same from the outside.",
+    record: "{wins}–{losses}",
+    ask: "Ask for {size}×{size}",
+  },
+
   find: {
     head: "Find a player",
     note: "Type a handle, or any part of one. Only players here can look anybody up, and a search answers with a few people rather than with a list.",
@@ -152,6 +159,7 @@ export const online = {
     removeName: "Remove {name}",
     declineName: "Decline {name}",
     takeBackName: "Take back the request to {name}",
+    writeName: "Write to {name}",
     act: {
       friends: "Friends",
       remove: "Remove friend",
