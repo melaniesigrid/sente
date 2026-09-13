@@ -84,7 +84,7 @@ function FriendRow({ person, kind, busy, act, go, here }) {
           src={avatarUrl(SERVER_URL, person.id, person.avatarAt)} />
         <span className="ladder-name">
           <strong>{person.name}{here && <span className="here-dot" title={t("online.friends.hereNow")} />}</strong>
-          <span className="fine">{provisionalText(person)} · {person.wins}–{person.losses}</span>
+          <span className="fine">{provisionalText(person, t)} · {person.wins}–{person.losses}</span>
         </span>
       </button>
       <RankBadge rating={person.rating} rd={person.rd} precise />

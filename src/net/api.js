@@ -119,6 +119,20 @@ export const api = {
   unpinGame: (token, id) =>
     call(`/api/me/featured/${encodeURIComponent(id)}`, { method: "DELETE", token }),
 
+  /* Invitations: asking one named person for a game. Both lists arrive
+     together, and the call that changes one answers with the outcome rather
+     than a bare 200, because declining an invitation and taking one back come
+     from the same DELETE and mean opposite things to whoever pressed it.
+     Accepting answers with the table it opened, so the browser can walk
+     straight to it without waiting to be told over a socket it may not have. */
+  invites: (token) => call("/api/me/invites", { token }),
+  invite: (token, id, terms) =>
+    call(`/api/me/invites/${encodeURIComponent(id)}`, { method: "POST", token, body: terms }),
+  acceptInvite: (token, id) =>
+    call(`/api/me/invites/${encodeURIComponent(id)}/accept`, { method: "POST", token }),
+  forgetInvite: (token, id) =>
+    call(`/api/me/invites/${encodeURIComponent(id)}`, { method: "DELETE", token }),
+
   /* The post. One thread per pair, read and written by the other person's id;
      `letters` is the list of them. A thread comes back with whether you may
      write to them, so a page can offer the box or say plainly why not. */

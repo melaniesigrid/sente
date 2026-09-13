@@ -2032,6 +2032,21 @@ ${FONT_FACES}
   .friend-row { flex-wrap: wrap; }
   .friend-who { flex-basis: 100%; }
 }
+/* ---- invitations ----
+   The friends card's rows again, because they are rows about the same people:
+   one big target that opens the person, and the acts as loose buttons beside
+   it. The terms sit where the rank and record sit on a friend row, which is
+   the line a reader is already using to decide whether to press.
+
+   The terms picker is the lobby's own segmented control, so choosing a board
+   for an invitation reads as the same kind of object as choosing one for a
+   seek. Nothing new is invented for a choice that already has a shape. */
+.invites-card { display: flex; flex-direction: column; gap: 14px; }
+.invites-card h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }
+.invite-terms { display: flex; flex-direction: column; gap: 10px; padding: 10px 0 2px; }
+.invite-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.invite-rated { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-2); }
+.invite-rated input { accent-color: var(--accent-ink); width: 15px; height: 15px; }
 /* ---- here now ----
    One small dot in the accent, and nothing anywhere for somebody who is not
    here: away and "did not say" are the same silence, so there is no second

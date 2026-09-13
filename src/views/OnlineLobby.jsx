@@ -8,6 +8,8 @@ import { SIZES, DEFAULT_PARTNER_RANK } from "../engine/index.js";
 import { tableLine } from "./onlineStatus.js";
 import { dashboard, waitingText, waitedMinutes } from "./dashboard.js";
 import { AccountGate } from "./AccountGate.jsx";
+import { InvitesCard } from "./InvitesCard.jsx";
+import { useInvites } from "./useInvites.js";
 import { avatarUrl } from "../net/avatar.js";
 import { errorText, formProblem } from "./accountForm.js";
 import { useT } from "../components/langStore.js";
@@ -40,16 +42,16 @@ import { useT } from "../components/langStore.js";
 
    Online games are even; handicap is a house arrangement, and two strangers
    have no way to agree on one yet. */
-export function OnlineCard({ profile, notify, onPlay, size, setSize }) {
+export function OnlineCard({ profile, notify, onPlay, size, setSize, go = null }) {
   const [account, setAccount] = useState(() => loadAccount());
   if (!serverEnabled()) return null;
   return account
     ? <Lobby account={account} setAccount={setAccount} notify={notify} onPlay={onPlay}
-        size={size} setSize={setSize} />
+        size={size} setSize={setSize} go={go} />
     : <AccountGate profile={profile} notify={notify} onSignedIn={setAccount} />;
 }
 
-function Lobby({ account, setAccount, notify, onPlay, size, setSize }) {
+function Lobby({ account, setAccount, notify, onPlay, size, setSize, go }) {
   const t = useT();
   /* The lobby socket outlives a change of language, and reconnecting it to
      translate one toast would drop a player out of the queue they are waiting
@@ -70,6 +72,11 @@ function Lobby({ account, setAccount, notify, onPlay, size, setSize }) {
   const sock = useRef(null);
   const onPlayRef = useRef(onPlay);
   useEffect(() => { onPlayRef.current = onPlay; }, [onPlay]);
+  /* Who has asked you for a game. Accepting one opens the board here, which is
+     the screen somebody is already on when they take an invitation up. */
+  const shelf = useInvites(token, notify, (table) => onPlayRef.current({ mode: { kind: "online", gameId: table.gameId } }));
+  const shelfRef = useRef(shelf.refresh);
+  useEffect(() => { shelfRef.current = shelf.refresh; }, [shelf.refresh]);
 
   const refresh = useCallback(async () => {
     try {
@@ -90,6 +97,14 @@ function Lobby({ account, setAccount, notify, onPlay, size, setSize }) {
       onFrame: (f) => {
         if (f.t === "lobby") setLobby({ online: f.online, seeking: f.seeking });
         else if (f.t === "seek") setSeek(f.status === "waiting" ? { size: f.size, key: f.key, pair: f.pair ?? null, rengo: !!f.rengo, seated: f.seated, of: f.of, blocked: f.blocked ?? null } : null);
+        else if (f.t === "invited") {
+          /* Somebody asked for a game while this screen was open. The shelf is
+             read again rather than patched from the frame: the frame is one
+             invitation and the card shows both lists, and a card built out of
+             pushes drifts from the server the first time one is missed. */
+          shelfRef.current();
+          notify({ icon: "medal", text: tRef.current("online.invites.arrived", { name: f.from.name }) });
+        }
         else if (f.t === "matched") {
           setSeek(null);
           notify({ icon: "trophy", text: tRef.current("online.lobby.matched", { name: f.opponent.name, side: tRef.current(`game.side.${f.color}`) }) });
@@ -147,6 +162,12 @@ function Lobby({ account, setAccount, notify, onPlay, size, setSize }) {
   const yours = board.waiting;
 
   return (
+    <>
+    {/* Its own card, above the lobby rather than inside it: a raised thing
+        inside a raised thing is the one shape the house does not draw. It is
+        above because it is the shorter way into a game than looking for a
+        stranger, and it is absent entirely when the shelf is empty. */}
+    <InvitesCard shelf={shelf} onOpen={(person) => (go ? go("player", { playerId: person.id, from: "play" }) : null)} />
     <Card className="online-card">
       <div className="persona-top">
         <Avatar name={player.name} tint={player.tint} size={52} src={avatarUrl(SERVER_URL, player.id, player.avatarAt)} />
@@ -265,6 +286,7 @@ function Lobby({ account, setAccount, notify, onPlay, size, setSize }) {
         </div>
       </div>
     </Card>
+    </>
   );
 }
 

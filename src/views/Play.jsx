@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Play, Users, Handshake, Minus, Plus, Home, TrendingUp, TrendingDown, X } from "lucide-react";
-import { Avatar, RankBadge, Btn, Statement } from "../components/ui.jsx";
+import { Avatar, RankBadge, Btn, Statement } from "../components/ui.jsx";
 import { ScreenHeader } from "../components/ScreenHeader.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
@@ -124,7 +124,7 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
         {/* The online card sets the same board the table card below does: one
             value, two controls, because the one down there is too far from the
             find button to be found from it. */}
-        <OnlineCard profile={profile} notify={notify} onPlay={setSession}
+        <OnlineCard profile={profile} notify={notify} onPlay={setSession} go={go}
           size={table.size} setSize={(n) => setTable({ size: n })} />
         <DuelCard profile={profile} today={today} mode={duelMode(PERSONAS, today)}
           saved={saved && saved.mode.kind === "duel" ? saved : null} onPlay={setSession} />

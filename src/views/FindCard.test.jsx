@@ -136,6 +136,15 @@ describe("a handle worth asking about", () => {
     answer({ people: [] });
     await waitFor(() => expect(screen.getByText(/nobody here answers/i)).toBeTruthy());
   });
+
+  it("says the server is out of reach when the request fails", async () => {
+    find.mockRejectedValueOnce(new Error("offline"));
+    show();
+    type("ana");
+    await settle();
+    await waitFor(() => expect(screen.getByText(/server is out of reach/i)).toBeTruthy());
+    expect(screen.queryByText(/nobody here answers/i)).toBe(null);
+  });
 });
 
 describe("an answer that arrives late", () => {
@@ -152,5 +161,29 @@ describe("an answer that arrives late", () => {
     await vi.advanceTimersByTimeAsync(1500);
     expect(screen.queryByText("Ana")).toBe(null);
     expect(screen.getByText("Anastasia")).toBeTruthy();
+  });
+
+  it("clears stale rows when the query is shortened, before repeating it", async () => {
+    let second;
+    find
+      .mockResolvedValueOnce({ people: [person("p_1", "Ana")] })
+      .mockImplementationOnce(() => new Promise((resolve) => { second = resolve; }));
+
+    show();
+    type("ana");
+    await settle();
+    await waitFor(() => expect(screen.getByText("Ana")).toBeTruthy());
+
+    type("a");
+    await settle();
+    await waitFor(() => expect(screen.queryByText("Ana")).toBe(null));
+
+    type("ana");
+    await settle();
+    expect(screen.queryByText("Ana")).toBe(null);
+    expect(screen.getByText(/looking/i)).toBeTruthy();
+
+    second({ people: [person("p_9", "Anastasia")] });
+    await waitFor(() => expect(screen.getByText("Anastasia")).toBeTruthy());
   });
 });
