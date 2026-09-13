@@ -959,6 +959,29 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       all public domain: Xuanxuan Qijing (Yan Defu and Yan Tianzhang, 1349; its first
       volume is the Classic Joseki already ships), Gokyo Shumyo (Hayashi Genbi, 1812, 520
       tesuji), Igo Hatsuyoron (Inoue Dosetsu Inseki, 1713, 183 hard problems).
+- [x] Tsumego in sets, and a prover (2026-09-12, branch `feat/problem-sets`): the tsumego
+      screen was a flat strip of numbered circles, which told a reader nothing about where
+      they were or what the next board was for. `SETS` in `content/problems.js` groups them
+      into four, each naming a library track: Capture and escape, Shape, Eye shapes and The
+      corner. A set carries what it trains and how far through it you are, its boards are
+      contiguous and rank-ordered in the file (the test holds both), and Next walks into the
+      following set rather than stopping.
+      `tools/problems/prove.mjs` is the reusable half: `killers`, `savers` and `bounded`
+      answer exhaustively, under the engine's own ko rule, which points in an enclosed
+      space kill a group and which save it, and `koOnlyKillers` says which verdicts rest on
+      a ko. `tools/problems/shapes.mjs` enumerates every connected space of four, five and
+      six points, walls it in at a corner, an edge or out in the open, and solves it; that
+      is where the four new boards came from and it is how the next ones should be found.
+      `problems.test.js` now proves every board on every build rather than three of them,
+      and proves the capture and escape boards by a different and cheaper argument, since
+      those are not bounded spaces.
+      Decisions: a move that kills only because the defender may not retake a ko is a right
+      answer with a footnote (`koAnswers` plus `koNote`), not a wrong one, which is how the
+      second killing point of `p9` is now handled; a board whose own verdict rests on a ko
+      carries `koVerdict` and has to say the word in its explanation, which is `p15`.
+- [ ] More of the sets: the tactics set is still the four boards it always was, and the
+      snapback, the ladder and the net all belong in it. The prover cannot help there,
+      because those are not bounded spaces; they want a different search.
 - [ ] Tsumego graded 30k → 5k with categories and a daily set (reuses the verifier).
 - [x] Spaced repetition (2026-09-11, branch `feat/recall`): finished quiz steps enter a
       recall queue, and Home carries the Review card. `src/content/recall.js` is the
