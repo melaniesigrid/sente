@@ -185,6 +185,80 @@ function survivesKoBlind(b, target, owner, region, toPlay, seen = new Set(), dep
   return !kids.some(([nb]) => !survivesKoBlind(nb, target, owner, region, other, next, depth + 1, cap));
 }
 
+
+/* ----------------------- CATCHING A CHAIN -----------------------
+   Life and death asks whether a sealed group can make two eyes. The other half
+   of a problem collection asks something cheaper and, below about ten kyu,
+   more useful: can this chain be taken off the board at all.
+
+   The rules of the search are the ones a capturing problem means by "caught".
+   Both sides are confined to `region`, as everywhere else here. The defender
+   escapes by reaching `escapeLibs` liberties, which is the working definition
+   a tesuji book uses - a chain with four liberties and the run of the board is
+   not caught, whatever happens next - or by growing a liberty outside the
+   region, which is the same thing said geometrically. The attacker wins only
+   by actually removing the stones.
+
+   A defender may pass; an attacker who passes has given up, so passing is the
+   defender's move alone. Repetition counts for the defender, as it does in
+   `survives`: generous to the side being hunted on purpose, so that "caught"
+   means caught. */
+const outsideLiberty = (b, target, region) => {
+  const ch = chainAt(b, target.c, target.r);
+  return [...ch.libs].some(i => !region.some(p => idx(b.size, p.c, p.r) === i));
+};
+
+export function catches(b, target, region, attacker, toMove, opts = {}) {
+  const { escapeLibs = 4, cap = 10 } = opts;
+  const owner = opponent(attacker);
+  const seen = new Set();
+
+  const walk = (bd, mover, ko, depth) => {
+    if (at(bd, target) !== owner) return true;
+    const ch = chainAt(bd, target.c, target.r);
+    if (ch.libs.size >= escapeLibs) return false;
+    if (outsideLiberty(bd, target, region)) return false;
+    if (depth >= cap) return false;
+    const k = key(bd, mover, ko) + depth;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    const kids = replies(bd, region, mover, ko);
+    if (mover === attacker) return kids.some(([nb, nko]) => walk(nb, owner, nko, depth + 1));
+    return kids.every(([nb, nko]) => walk(nb, attacker, nko, depth + 1))
+      && walk(bd, attacker, null, depth + 1);
+  };
+  return walk(b, toMove, null, 0);
+}
+
+/** Every point in `region` that, played by `attacker`, catches the target. */
+export function catchers(b, target, region, attacker, opts = {}) {
+  const owner = opponent(attacker);
+  return region.filter(m => {
+    if (at(b, m) !== null) return false;
+    const res = tryPlay(b, m.c, m.r, attacker);
+    if (!res.ok) return false;
+    if (at(res.board, target) !== owner) return true;
+    return catches(res.board, target, region, attacker, owner, opts);
+  });
+}
+
+/** The region a capturing problem is fought in: the empty points within two
+ *  of the chain at `target`. One step out is where the liberties are, two is
+ *  where a block or an extension goes, and a chain that grows a liberty past
+ *  that ring has got out, which `catches` already counts as an escape.
+ *
+ *  Both the tool that finds these positions and the test that re-proves them
+ *  call this, so they cannot drift into searching two different boards. */
+export function fightRegion(b, target) {
+  const ch = chainAt(b, target.c, target.r);
+  const out = [];
+  for (let r = 0; r < b.size; r++) for (let c = 0; c < b.size; c++) {
+    if (b.cells[idx(b.size, c, r)] !== null) continue;
+    if (ch.stones.some(([x, y]) => Math.abs(x - c) + Math.abs(y - r) <= 2)) out.push(P(c, r));
+  }
+  return out;
+}
+
 /** A board as text, for reading a search result in a terminal. */
 export function show(b) {
   let s = "";

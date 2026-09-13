@@ -846,6 +846,25 @@ ${FONT_FACES}
 /* The index is four sets, not one strip of numbers. Each set is a heading,
    a line saying what it trains, and its own row of circles; the set the open
    board belongs to is the one whose heading is sunk into the ground. */
+/* Two activities, one board. The switch is raised like any other control and
+   the one in force is sunk, which is the only thing the ground ever says about
+   where you are. Each half names itself and then says how many boards it holds,
+   because "the drill ground" means nothing until you know it is a hundred and
+   more of them and where they start. */
+.prob-modes { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(10px, 1.6vw, 16px); }
+@media (max-width: 560px) { .prob-modes { grid-template-columns: 1fr; } }
+.prob-mode {
+  display: flex; flex-direction: column; gap: 5px; text-align: left;
+  padding: 13px 16px; border-radius: 16px; border: 0; cursor: pointer;
+  background: var(--ground); color: var(--ink); box-shadow: var(--raise-sm);
+  transition: box-shadow .18s ease, color .18s ease;
+}
+.prob-mode.active { box-shadow: var(--sink-sm); color: var(--accent-ink); }
+.prob-mode-name {
+  display: inline-flex; align-items: center; gap: 8px;
+  font: 700 14px var(--font-body); letter-spacing: .06em;
+}
+.prob-mode .fine { margin: 0 !important; }
 .prob-sets { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: clamp(16px, 2.2vw, 26px); }
 /* Four sets want four columns or two, never three and a widow. auto-fit picks
    three at the width a laptop actually is, so the count is stated instead. */
