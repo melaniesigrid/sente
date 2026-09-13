@@ -225,12 +225,7 @@ function Lobby({ account, setAccount, notify, onPlay, size, go }) {
           {live.map(g => <TableRow key={g.id} game={g} me={player.id} onOpen={() => onPlay({ mode: { kind: "online", gameId: g.id } })} />)}
           {done.map(g => <TableRow key={g.id} game={g} me={player.id} onOpen={() => onPlay({ mode: { kind: "online", gameId: g.id } })} />)}
           {yours > 0 && (
-            <p className="fine">
-              {yours === 1
-                ? "One table is waiting on you."
-                : `${yours} tables are waiting on you, longest first.`}{" "}
-              These games have no clock: nothing here runs out and nobody loses by taking a day.
-            </p>
+            <p className="fine">{t("online.lobby.waitingOnYou", { count: yours })}</p>
           )}
         </div>
       )}

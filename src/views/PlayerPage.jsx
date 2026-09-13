@@ -138,7 +138,7 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
                   from the lists it happens to hold would be a second opinion
                   about a question that already has one. */}
               <InvitePanel person={player} busy={invites.busy === player.id} act={invites.act}
-                standing={standingOver(invites.invites, player.id)} />
+                standing={standingOver(invites.invites, player.id, player.canReach ?? true)} />
               <div className="row">
                 <Btn icon={Mail} small onClick={() => go("profile")}>{t("player.writeToThem")}</Btn>
                 {/* Silent, and never the same act as unfriending: the two mean

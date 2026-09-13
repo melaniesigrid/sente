@@ -258,6 +258,15 @@ describe("the friend button", () => {
     await waitFor(() => expect(notify).toHaveBeenCalledWith(
       expect.objectContaining({ text: "Their friends list is full" })));
   });
+
+  it("uses the server's reachability answer before offering an invitation", async () => {
+    signedIn();
+    profile.mockResolvedValue({ ...PLAYER, canReach: false });
+    show({ notify: vi.fn() });
+    await screen.findByText("Ixchel");
+    expect(screen.getByText(/play a game together first/i)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /invite to a game/i })).toBe(null);
+  });
 });
 
 describe("a player who is not there", () => {

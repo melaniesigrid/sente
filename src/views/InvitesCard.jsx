@@ -23,6 +23,19 @@ import {
 export function InvitesCard({ shelf, onOpen }) {
   const t = useT();
   const { invites, busy, act } = shelf;
+  if (!invites) {
+    return (
+      <Card className="invites-card">
+        <div className="op-head">
+          <div className="op-id">
+            <h3>{t("online.invites.head")}</h3>
+            <p className="fine">{t("online.invites.note")}</p>
+          </div>
+        </div>
+        <p className="fine"><Loader size={14} /> {t("online.friends.workingEllipsis")}</p>
+      </Card>
+    );
+  }
   // Absent rather than empty. The lobby is a screen for getting into a game,
   // and a heading over nothing is a promise of content that is not there.
   if (shelfIsEmpty(invites)) return null;
