@@ -30,6 +30,8 @@ export const TEXT_FIELDS = new Set([
   "trains", "era", "partial", "heading", "paras", "list", "terms",
   // A persona's table talk: each is a list of lines it might say.
   "greet", "botCapture", "userCapture", "reply", "win", "loss",
+  // How a house player plays, and the one habit you can exploit.
+  "plays", "tell",
   // A chapter of the Classic carries its prose and the lines lifted out of it.
   "sayings", "modern",
   // A book says in its own sentence what it owes and what it does not claim.

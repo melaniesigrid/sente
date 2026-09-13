@@ -860,6 +860,31 @@ ${FONT_FACES}
 .rank-chip { color: var(--accent-ink); }
 .prob-title { font-family: var(--font-display); font-weight: var(--w-display); font-size: 21px; margin: 0 0 8px; }
 
+/* ---- a house player's page ---- */
+.house-top { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: clamp(14px, 2vw, 22px); align-items: start; }
+.house-card { display: flex; flex-direction: column; gap: 14px; }
+.house-face { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.house-line { font-style: italic; color: var(--ink-2); }
+.house-line + .house-line { margin-top: 10px; }
+.house-chips { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 12px; }
+.house-chip {
+  display: flex; align-items: center; gap: 9px; border: 0; cursor: pointer;
+  background: var(--ground); color: var(--ink); padding: 7px 13px 7px 7px;
+  border-radius: 999px; box-shadow: var(--raise-sm);
+  transition: box-shadow .18s ease, color .18s ease, transform .18s ease;
+}
+.house-chip:hover { transform: translateY(-1px); color: var(--accent-ink); }
+.house-chip:active { box-shadow: var(--sink-sm); transform: none; }
+.house-chip-name { font: 700 13.5px var(--font-body); }
+.house-chip .fine { margin: 0 !important; }
+.house-foot { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; max-width: 68ch; }
+.house-others .stat-head { margin-bottom: 0; }
+/* The roster row carries no position number, so the name starts where the
+   avatar ends and a chevron holds the right edge instead of a badge. */
+.ladder-you { display: flex; align-items: center; gap: 14px; }
+.ladder-go { color: var(--ink-2); flex: none; }
+.section-note { max-width: 68ch; margin-top: -4px !important; }
+
 /* ---- toast ---- */
 .toast {
   position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%);
