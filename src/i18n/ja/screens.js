@@ -206,6 +206,9 @@ export const screens = {
     next: "次の問題",
     nextSet: "次の組",
     setProgress: "{total} 題のうち {done} 題",
+    setDone: "完了",
+    setsDone: { other: "{total} 組のうち {done} 組を終えました。" },
+    setFinished: "これで{set}は終わりです。中の盤をすべて。",
     openProblem: "{set}、第 {n} 題、{rank}",
   },
   profile: {

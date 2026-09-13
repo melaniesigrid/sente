@@ -206,6 +206,9 @@ export const screens = {
     next: "下一题",
     nextSet: "下一组",
     setProgress: "{total} 道里的第 {done} 道",
+    setDone: "完成",
+    setsDone: { other: "{total} 组里完成了 {done} 组。" },
+    setFinished: "{set}完成了，里面每一道都做完了。",
     openProblem: "{set}，第 {n} 题，{rank}",
   },
   profile: {
