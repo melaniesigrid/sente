@@ -2614,6 +2614,41 @@ friends"; this phase is the three verbs in that sentence that were still missing
       whole game out to reach "somebody you have finished a game against".
 - [ ] **The way in** (branch `feat/reach`): the acts on a person — ask, write, invite —
       reachable from every row and every page that names one of them.
+- [x] **Watching** (branch `feat/watch`, 2026-09-13): the main room. The Room object had
+      accepted a spectator socket since the first day and the table had a "share" chip,
+      so anybody holding a link could watch; what did not exist was a way to find a game
+      you were not sent to. The Registry now keeps one key a game in progress
+      (`live:<gameId>`, written on every move and deleted at the last), and `GET /api/live`
+      answers with the ones this viewer may be shown. **Presence decides, not the game**:
+      a game is listed only while every player at that board lets the viewer see they are
+      here, under the same three-way setting `presence.js` already keeps, and a game that
+      is absent never says why (over, gone quiet, or somebody chose not to be seen look
+      exactly alike). `server/watch.js` is the policy, pure, in 15 cases;
+      `tools/server/watch.mjs` proves it against a deployment in 22 checks, opening a
+      spectator socket into a listed game and watching it end. The lobby draws the list
+      as its own card under the lobby card (`WatchCard.jsx`), drawn even when empty. The
+      privacy notice says all of this in a paragraph of its own.
+      **Rooms by invitation** are the share link, as before, and the clubs (PRs #190,
+      #191, #193) once that stack reaches main; see the note under Phase 12.
+- [x] **Who was winning, at the table** (branch `feat/watch`): the win rate graph shipped
+      in PR #156 but lived only inside Review, and the online table had no way into
+      Review, so an online game never showed it. `WinCard.jsx` draws the same graph, from
+      the same hook and cache, beside the result on both tables, asked for and never
+      assumed; clicking it, or the Review button that now sits on the online result card,
+      opens Review where it scrubs.
+
+## Phase 12: The club (stranded on 2026-09-13, needs a merge to main)
+
+PRs #190 (the club), #191 (the hall) and #193 (a board in the room) are all marked
+merged, but each was merged into the branch below it and not into `main`: #190 into
+`feat/reach`, #191 into `feat/club`, #193 into `feat/hall`. `git log origin/main..
+origin/feat/table` shows the four commits still outstanding. This is the stacked-PR trap
+`docs/` warns about. The fix is one PR from `feat/table` (which carries the whole stack)
+into `main`, after merging `main` into it, not a cherry-pick of one layer.
+
+- [ ] Land the club stack on `main` (`feat/table` → `main`).
+- [ ] Then: the hall lists the games its boards became, so a club can watch its own
+      members play, under the same presence rule as the main room.
 
 ## Principles (do not trade away)
 
