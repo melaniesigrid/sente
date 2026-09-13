@@ -4,6 +4,7 @@ export const legal = {
   stamp: "Última modificación: {date}",
   tabs: "Letra pequeña",
   translated: "Esta es una traducción, ofrecida para que pueda leerse. La versión en inglés es la que rige.",
+  untranslated: "Este documento aún no está traducido. Se muestra en inglés, que es la versión que rige.",
 
   /* ----- overlays: the three documents, from src/content/legal.js -----
      The constants arrive as holes ({product}, {studio}, {contact}, {repo},

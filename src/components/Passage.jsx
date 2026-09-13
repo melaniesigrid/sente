@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { passageFor, emphasize, markBudget, CLASSIC, localizePassage } from "../content/classic.js";
 import { typedParts } from "./typedParts.js";
-import { useT } from "./langStore.js";
+import { useT, useLocale } from "./langStore.js";
+import { BASE_LOCALE, carries } from "../i18n/index.js";
 
 /* ----------------------- PASSAGE (a page from the Classic) -----------------------
    A passage from Zhang Ni's thirteen chapters, typed out on a machine, with a
@@ -73,10 +74,17 @@ function useTyped(text, on) {
 
 export function Passage({ context = "any", size = "", className = "" }) {
   const t = useT();
+  const locale = useLocale();
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1e6));
   const authored = passageFor(context, seed);
   const p = authored && localizePassage(authored, t);
   const text = p ? p.text : "";
+  /* English authors the passages in content/classic.js rather than in its own
+     catalogue, so ask whether the READER's language carries them, and treat
+     the language they were written in as always carrying them. */
+  const quoteLang = locale.id === BASE_LOCALE || carries(locale.id, "passage.")
+    ? undefined
+    : BASE_LOCALE;
   const typing = size === "lg";
   const shown = useTyped(text, typing);
   if (!p) return null;
@@ -87,7 +95,13 @@ export function Passage({ context = "any", size = "", className = "" }) {
       onClick={() => setSeed(s => s + 1)}
       title={t("quote.another")}
     >
-      <blockquote className="passage-text" aria-label={p.text}>
+      {/* The Classic is translated whole or not at all, so a language that has
+          not reached it shows real English here. Saying so lets a screen reader
+          pick the right voice and lets the stylesheet set the words in a
+          language that has an italic to set them in. The mark goes on the
+          quotation alone: the citation beside it is built from catalogue lines
+          and IS this language. */}
+      <blockquote className="passage-text" aria-label={p.text} lang={quoteLang}>
         {/* The finished passage, hidden, holding the box open. Without it the
             card grows line by line as the text arrives and the whole page below
             slides down for two seconds, which is a worse thing to watch than a

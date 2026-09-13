@@ -9,4 +9,5 @@ export const legal = {
      translated contract is a courtesy, not a second contract: saying which
      version governs is the honest half of offering one at all. */
   translated: "This is a translation, offered so it can be read. The English version is the one that governs.",
+  untranslated: "This document has not been translated yet. It is shown in English, which is the version that governs.",
 };
