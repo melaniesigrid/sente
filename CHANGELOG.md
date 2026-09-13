@@ -6,6 +6,37 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.8.0.0 (2026-09-12)
+
+### Added
+
+- **Joseki reads in Spanish, French and German.** Every screen, not a sample of them: the
+  front door, the board, the lobby, the library, the thirteen chapters of the Classic,
+  the small print, your friends, your letters, your games, and the words the house players
+  say while you play them. Pick a language from the pill in the header, on any screen, and
+  the whole app follows. It is the one control up there that is never translated: every
+  language names itself in its own words, because somebody looking for Spanish is looking
+  for "Español" and will find it whatever language they are currently stuck in.
+- **A language that is still being written falls back to English, line by line.** An
+  unfinished translation is a page with some English on it, never a page with a hole in
+  it, and never a crash. The suite refuses to let a language ship with a key missing, an
+  overlay that names something the data does not have, or a line that fills a blank the
+  English line has no value for.
+
+### Fixed
+
+- **Phase 7 was recovered rather than rebuilt.** The translations were written as five
+  stacked pull requests and each one merged into the branch below it, so GitHub marked
+  #101 to #117 merged while none of their work was in the app. This is that stack
+  forward-ported onto a main that had moved a hundred and fifty commits past it, with
+  everything main added in the meantime kept and translated rather than reverted.
+- **The mascot no longer takes the app down.** Pressing Enter on the front door threw and
+  left a blank page, in every language including English, because the dock asked for a
+  word without a way to read one.
+- **The house tic stays gone.** The em dash removal had landed a day before this work was
+  branched, so the merge brought a hundred and thirty-one of them back. They are rewritten
+  the way the first six hundred were, in all four languages.
+
 ## v0.7.5.0 (2026-09-12)
 
 ### Added
