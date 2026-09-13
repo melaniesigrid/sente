@@ -8,9 +8,12 @@ import classicMiscellany from "./classic-miscellany.js";
 import shapeTigersMouth from "./shape-tigers-mouth.js";
 import shapePonnuki from "./shape-ponnuki.js";
 import openingBigPoints from "./opening-big-points.js";
+import lifeBigEye from "./life-big-eye.js";
+import lifeCornerLive from "./life-corner-live.js";
 
 export const TIER3 = [
   classicTerritory, classicConflict, classicEmptiness, classicMiscellany,
   shapeTigersMouth, shapePonnuki,
   openingBigPoints,
+  lifeBigEye, lifeCornerLive,
 ];

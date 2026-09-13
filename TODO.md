@@ -14,8 +14,8 @@ app this morning, because the two drift apart and the phases below are the half 
 flatters. Every number here was counted from the data on `main`, not from memory, and it
 is a snapshot: it will be wrong the week after somebody authors anything.
 
-- **43 lessons** over six tiers (10 / 7 / 7 / 8 / 7 / 4, Foundations to Dan) and seven
-  tracks: judgement 9, life 8, tactics 7, shape 7, opening 5, middle game 5, endgame 2.
+- **47 lessons** over six tiers (10 / 9 / 9 / 8 / 7 / 4, Foundations to Dan) and seven
+  tracks: life 12, judgement 9, tactics 7, shape 7, opening 5, middle game 5, endgame 2.
   Every position in every one of them is replayed by the engine on every build.
 - **19 tsumego** in four sets (capture and escape 4, shape 3, eye shapes 8, the corner 4),
   running 25k to 2k. Every board is proved on every build: the stated answer has to be
@@ -30,8 +30,10 @@ is a snapshot: it will be wrong the week after somebody authors anything.
   Russian and Ukrainian, with the parity suite refusing a missing line, an invented key,
   or an overlay that names something the data does not have.
 
-What is thinnest, in order: the tactics tsumego set (four boards, none of them a tesuji),
-the endgame track (two lessons), life and death below 15k, and the middle game everywhere.
+What is thinnest, in order: the joseki dictionary (four sequences, all of them on the star
+point), the tactics tsumego set (four boards, none of them a tesuji), the endgame track (two
+lessons), and the middle game everywhere. Life and death below 15k was on this list until
+2026-09-13 and is the one thing on it that moved.
 
 ## Phase 0: Foundation (done)
 
@@ -880,11 +882,11 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       the last lesson in the library ends, and it says so. The recap names the boundary being
       crossed, and the jump goes through the same prerequisite gate as opening a lesson from
       the grid. The welcome demo is not in the library and is told none of this.
-- [ ] Tier 2 Apprentice and Tier 3 Journeyman authored (20 lessons, 9/13/19). Fourteen of
-      the twenty are in as of 2026-09-13, seven a tier, and they are not evenly spread:
-      both tiers are carried by the Classic and the Proverbs, and tier 3 gained its first
-      opening lesson only in `feat/more-lessons`. What is thin is life and death below 15k
-      and the middle game everywhere.
+- [ ] Tier 2 Apprentice and Tier 3 Journeyman authored (20 lessons, 9/13/19). Eighteen of
+      the twenty are in as of 2026-09-13, nine a tier: the Classic and the Proverbs carry
+      the early ranks, the opening track opened in `feat/more-lessons`, and life and death
+      below 15k arrived in `feat/eye-course` (four lessons, 18k to 11k). What is thin now is
+      the middle game everywhere.
 - [x] The opening track opens, and its verdicts are measured (2026-09-12, branch
       `feat/more-lessons`): `opening-big-points` (tier 3, 12k) and
       `opening-third-and-fourth` (tier 4, 8k), the first lessons on nineteen lines outside
@@ -899,6 +901,18 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       two corners open and second once they are gone, and that movement is the lesson. Where
       the network'"'"'s own first choice on the whole board was not one of the three offered
       points, the step says so instead of pretending the offered set was the whole question.
+- [x] Life and death below 15k, the course the track was missing (2026-09-13, branch
+      `feat/eye-course`): `life-false-eye` (2 / 18k) on what counts as an eye and the
+      diagonal test, `life-eye-space` (2 / 16k) on three dying and four living,
+      `life-big-eye` (3 / 13k) on the bulky five and the placement that keeps a big space
+      one eye, and `life-corner-live` (3 / 11k), which is the same question asked of the
+      defender: White to play and live, where the move that saves the corner is the move
+      that would have killed it. Every position was built and solved by
+      `tools/lessons/eyes.mjs`, a new dev tool that enumerates eye spaces, walls each one in
+      so the surrounded chain has no liberty outside it, and solves the life and death
+      exhaustively from both sides with the ko rule threaded through. Its census is the
+      claim the lessons rest on: of the 54 distinct eye spaces of three to six points,
+      exactly 7 die, and `node tools/lessons/eyes.mjs` prints them.
 - [ ] The rest of the opening track: direction of play, the approach and its answers in
       context, and the frameworks. The joseki dictionary covers the corner sequences
       themselves, so these should be about which corner and which side, not which move.
