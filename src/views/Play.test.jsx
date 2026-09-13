@@ -32,6 +32,10 @@ vi.mock("../net/api.js", () => ({
     games: () => Promise.resolve([]),
     signOut: () => Promise.resolve(),
     sendConfirmation: () => Promise.resolve(),
+    /* The invitation shelf landed on main while this branch was open; the
+       lobby reads it on mount, so an empty one keeps these cases about the
+       board and nothing else. */
+    invites: () => Promise.resolve({ incoming: [], outgoing: [] }),
   },
   lobbySocket: () => ({ send: vi.fn(() => true), close: vi.fn() }),
   serverEnabled: () => true,
