@@ -856,6 +856,10 @@ ${FONT_FACES}
 .prob-set-head { gap: 9px; }
 .prob-set-count { margin-left: auto; color: var(--ink-2); letter-spacing: .08em; }
 .prob-set-blurb { margin: 0 !important; }
+/* A finished set says so. The circles inside it are already all ticked, so the
+   set itself only needs to stop asking to be counted. */
+.prob-set.complete .prob-set-count { color: var(--accent-ink); display: inline-flex; align-items: center; gap: 5px; }
+.prob-sets-done { max-width: 68ch; }
 .prob-tabs { display: flex; gap: 10px; flex-wrap: wrap; }
 .prob-tab {
   width: 42px; height: 42px; border-radius: 50%; border: 0; cursor: pointer;

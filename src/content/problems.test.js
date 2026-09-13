@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { tryPlay, chainAt, idx } from "../engine/index.js";
-import { PROBLEMS, SETS, setById, problemsInSet } from "./problems.js";
+import {
+  PROBLEMS, SETS, setById, problemsInSet, setProgress, currentSet, setsComplete, nextProblem,
+} from "./problems.js";
 import { setupToBoard } from "./positions.js";
 import { rankToNumber, TRACKS } from "./library.js";
 import {
@@ -70,6 +72,54 @@ describe("the sets", () => {
       const ranks = problemsInSet(s.id).map(p => rankToNumber(p.rank));
       expect(ranks, s.id).toEqual([...ranks].sort((a, b) => a - b));
     }
+  });
+});
+
+/* Where a reader is, which is what the dashboard tile and the set headings
+   both draw. Pure functions over the list of solved ids, so they are checked
+   at the ends: nothing solved, one set solved, everything solved. */
+describe("progress through the sets", () => {
+  const all = PROBLEMS.map(p => p.id);
+  const firstSet = problemsInSet(SETS[0].id).map(p => p.id);
+
+  it("counts a set, and calls it complete only when every board in it is solved", () => {
+    const empty = setProgress(SETS[0].id, []);
+    expect(empty.solved).toBe(0);
+    expect(empty.total).toBe(firstSet.length);
+    expect(empty.complete).toBe(false);
+    expect(setProgress(SETS[0].id, firstSet.slice(0, -1)).complete).toBe(false);
+    expect(setProgress(SETS[0].id, firstSet).complete).toBe(true);
+    // An id from another set does not count towards this one.
+    expect(setProgress(SETS[1].id, firstSet).solved).toBe(0);
+  });
+
+  it("names the set in front of the reader, and never sends a finisher back", () => {
+    expect(currentSet([]).id).toBe(SETS[0].id);
+    expect(currentSet(firstSet).id).toBe(SETS[1].id);
+    /* Everything solved: the last set, not the first. A dashboard that told a
+       reader who has finished the collection to start again would be lying
+       about what is left. */
+    expect(currentSet(all).id).toBe(SETS[SETS.length - 1].id);
+  });
+
+  it("lists the finished sets in the order they are declared", () => {
+    expect(setsComplete([])).toEqual([]);
+    expect(setsComplete(firstSet).map(s => s.id)).toEqual([SETS[0].id]);
+    expect(setsComplete(all).map(s => s.id)).toEqual(SETS.map(s => s.id));
+  });
+
+  it("opens on the first board still open, and on the last one when none are", () => {
+    expect(nextProblem([]).id).toBe(PROBLEMS[0].id);
+    expect(nextProblem([PROBLEMS[0].id]).id).toBe(PROBLEMS[1].id);
+    /* A set finished sends the reader into the next set rather than to the
+       first gap in the array, which may be behind them. */
+    expect(nextProblem(firstSet).set).toBe(SETS[1].id);
+    expect(nextProblem(all).id).toBe(PROBLEMS[PROBLEMS.length - 1].id);
+  });
+
+  it("survives an id nobody recognises", () => {
+    expect(setProgress("nowhere", all)).toEqual({ total: 0, solved: 0, complete: false });
+    expect(currentSet(["not-a-problem"]).id).toBe(SETS[0].id);
   });
 });
 
