@@ -2504,7 +2504,7 @@ had no first step. The founding ask was "I wanted to create my own server to pla
 friends"; this phase is the three verbs in that sentence that were still missing —
 **find** them, **ask** them, **invite** them to a board.
 
-- [ ] **The directory** (branch `feat/find-friends`): search for a player by handle.
+- [x] **The directory** (branch `feat/find-friends`): search for a player by handle.
       One key per searchable piece of a handle (`find:<term>:<id>`), written with the
       record at register, rewritten on a rename and deleted on leaving, so finding
       somebody is a bounded walk over the matches and never a second scan over the
@@ -2516,7 +2516,22 @@ friends"; this phase is the three verbs in that sentence that were still missing
       and never a substring, at most twenty answers, no count and no cursor, and a
       session required, so it is a way to find one person and never a way to read out
       who plays here.
-- [ ] **The invitation** (branch `feat/invite`): ask a named person for a game.
+- [x] **The invitation** (branch `feat/invite`): ask a named person for a game, on terms
+      the two of you agree. One row on each of your shelves (`inv:<owner>:<other>`), written
+      in one put or neither, so reading who has asked you is one bounded list. It waits a
+      day and then goes by itself; taking one up opens the board and takes it off both
+      shelves. Who may ask is exactly who may write to you — a friend, or somebody you
+      have finished a game against — asked of `post.js` rather than restated, because a
+      server with two answers to "who can reach me" has not got a rule.
+      **This is also where the handicap arrives online.** The lobby says in a comment that
+      two strangers have no way to agree on one, and it is right; two people who know each
+      other do, and that is the difference an invitation makes. A handicap game is never
+      rated, forced on the server the way a pair table is: a number that read a four-stone
+      win as an even one would be the wrong number on two people's records. The guest
+      takes Black, because whoever asked chose the terms and the engine places the stones
+      for Black. `server/invites.js` is the policy, pure, in 31 cases;
+      `tools/server/invites.mjs` proves it against a deployment in 31 checks, playing a
+      whole game out to reach "somebody you have finished a game against".
 - [ ] **The way in** (branch `feat/reach`): the acts on a person — ask, write, invite —
       reachable from every row and every page that names one of them.
 

@@ -13,6 +13,8 @@
      the directory `find:<term>:<playerId>` one key per searchable piece of a
                   handle, so finding somebody is a walk over the matches and
                   never over the players
+     invitations  `inv:<owner>:<other>` one row on each of the two shelves, so
+                  reading who has asked you for a game is one bounded list
      game lists   `games:<playerId>` recent games for the lobby's "your tables"
      matchmaking  `seek:<playerId>` open seeks; lobby sockets are hibernated and
                   tagged with the player id so a match can be pushed to them
@@ -60,6 +62,8 @@ import { VERIFY_TTL_MS, RESET_TTL_MS } from "./mail.js";
 import { isFull, seatsLeft, capFrom, waitKey, waiting, byWaiting, listFull,
   WAIT_PREFIX, WAITLIST_LIMIT, WAITLIST_WINDOW_MS } from "./beta.js";
 import { SIZES } from "./room.js";
+import { inviteKey, invitePrefix, readInvite, shelf, expired, offer, takeUp, drop,
+  seatsFor, INVITE_LIMIT, INVITE_WINDOW_MS } from "./invites.js";
 import { dayOf, dayBefore, emptyDay, counted, raised, isFinish, sealed, stale,
   clampDays, recent, nextSeal, RETAIN_DAYS } from "./rollup.js";
 
@@ -674,6 +678,7 @@ export class Registry extends DurableObject {
     if (!p) return false;
     // Before this player's own book goes, everybody named in it is told.
     await this.#unfriendEverybody(id);
+    await this.#forgetShelf(id);
     await this.#forgetArchive(id);
     await this.#forgetPost(id);
     const sessions = (p.sessions ?? [p.tokenHash]).filter(Boolean).map(h => `tok:${h}`);
@@ -910,6 +915,20 @@ export class Registry extends DurableObject {
       }
       await this.ctx.storage.put(next);
     }
+  }
+
+  /** Every invitation this player is on either end of, gone from both shelves.
+   *  An invitation is two rows, so deleting only this player's would leave the
+   *  other holding a board they could still open against a name that no longer
+   *  answers. */
+  async #forgetShelf(id) {
+    const got = await this.ctx.storage.list({ prefix: invitePrefix(id) });
+    const keys = [...got.keys()];
+    const mirrors = [...got.values()]
+      .map(readInvite)
+      .filter(Boolean)
+      .map((inv) => inviteKey(inv.from === id ? inv.to : inv.from, id));
+    if (keys.length || mirrors.length) await this.ctx.storage.delete([...keys, ...mirrors]);
   }
 
   /** One page of a player's finished games, newest first. Storage does the
@@ -1170,6 +1189,124 @@ export class Registry extends DurableObject {
     const ids = idsFrom([...keys.keys()]).filter((id) => id !== viewerId).slice(0, MAX_RESULTS);
     const people = await this.#peopleByIds(ids);
     return { people: closest(ids.map((id) => people.get(id)).filter(Boolean).map(publicPlayer), q) };
+  }
+
+  /* ----- invitations -----
+     Asking one named person for a game, on the same terms as writing to one:
+     a friend, or somebody you have finished a game against. The policy is in
+     `server/invites.js`, pure; what is here is storage and the push. */
+
+  /** One player's shelf, read and tidied. Anything that has aged out is
+   *  deleted as it is found: a Durable Object that sleeps has no sweeper, and
+   *  the only person who needs an expired invitation gone is the one looking
+   *  at the shelf it is on. */
+  async #shelf(id, now = Date.now()) {
+    const got = await this.ctx.storage.list({ prefix: invitePrefix(id) });
+    const entries = [...got];
+    const gone = expired(entries, now);
+    if (gone.length) await this.ctx.storage.delete(gone);
+    return entries.map(([, value]) => value);
+  }
+
+  /** Write one invitation onto both shelves, or neither. A single put of two
+   *  keys, so there is no moment at which one of them has been asked and the
+   *  other has not asked. */
+  async #writeInvite(invite) {
+    await this.ctx.storage.put({
+      [inviteKey(invite.from, invite.to)]: invite,
+      [inviteKey(invite.to, invite.from)]: invite,
+    });
+  }
+
+  async #dropInvite(a, b) {
+    await this.ctx.storage.delete([inviteKey(a, b), inviteKey(b, a)]);
+  }
+
+  /** Ask somebody for a game.
+   *
+   *  The gate is `#mayWrite`, asked and not restated: a server with two answers
+   *  to "who can reach me" has not got a rule, it has got two exceptions. A
+   *  blocked player is refused with the words a stranger gets, for the reason
+   *  the post gives — blocking is silent, and a refusal that said "blocked"
+   *  would be the one message the person who blocked chose not to send. */
+  async invite(fromId, toId, terms) {
+    const why = await this.#mayWrite(fromId, toId);
+    if (why) throw new Error(why === "blocked" ? "not-met" : why);
+    /* Spent before the shelves are read, so somebody working down their friends
+       list pays for every attempt and not only for the ones that land. */
+    await this.#spend(`rate:inv:${fromId}`, INVITE_LIMIT, INVITE_WINDOW_MS, "too-many-invites-sent");
+    const now = Date.now();
+    const r = offer({
+      mine: await this.#shelf(fromId, now), theirs: await this.#shelf(toId, now),
+      meId: fromId, themId: toId, terms, now,
+    });
+    if (r.error) throw new Error(r.error);
+    await this.#writeInvite(r.invite);
+    const me = await this.ctx.storage.get(`player:${fromId}`);
+    /* Pushed to their lobby socket if they are sitting in it, so an invitation
+       between two people who are both here arrives while they are both here.
+       If they are not, it is on their shelf, which is the whole point. */
+    /* `invite` rides in a field of its own rather than being spread across the
+       frame: the stored invitation carries `from` as an id and the frame wants
+       it as a seat, and a spread would quietly make those the same field. */
+    if (me) this.tell(toId, { t: "invited", from: seatOf(me), invite: r.invite });
+    return { outcome: r.outcome, invite: r.invite };
+  }
+
+  /** Both lists, filled out with the public row for the other person. Somebody
+   *  who has left is dropped rather than shown as a name that answers nothing,
+   *  which also means a shelf heals itself by being read. */
+  async invitesOf(id) {
+    const now = Date.now();
+    const { incoming, outgoing } = shelf(await this.#shelf(id, now), id, now);
+    const people = await this.#peopleByIds([
+      ...incoming.map((i) => i.from), ...outgoing.map((i) => i.to),
+    ]);
+    const fill = (list, whose) => list
+      .map((i) => {
+        const p = people.get(whose(i));
+        return p ? { ...i, player: publicPlayer(p) } : null;
+      })
+      .filter(Boolean);
+    return {
+      incoming: fill(incoming, (i) => i.from),
+      outgoing: fill(outgoing, (i) => i.to),
+    };
+  }
+
+  /** Take one up: the invitation goes, the board opens, and both of them are
+   *  told about it on whatever socket they have. The row is deleted before the
+   *  table is made, so a room that fails to open cannot leave an invitation
+   *  that opens a second one. */
+  async acceptInvite(meId, themId) {
+    const now = Date.now();
+    const r = takeUp({ mine: await this.#shelf(meId, now), meId, themId, now });
+    if (r.error) throw new Error(r.error);
+    const { black, white } = seatsFor(r.invite);
+    const [b, w] = [await this.ctx.storage.get(`player:${black}`), await this.ctx.storage.get(`player:${white}`)];
+    if (!b || !w) throw new Error("no-player");
+    await this.#dropInvite(meId, themId);
+    const gameId = "g_" + randomHex(6);
+    const stub = this.env.ROOM.get(this.env.ROOM.idFromName(gameId));
+    await stub.create({
+      id: gameId, size: r.invite.size, rated: r.invite.rated, handicap: r.invite.handicap,
+      black: seatOf(b), white: seatOf(w),
+    });
+    const shared = { gameId, size: r.invite.size, handicap: r.invite.handicap, rated: r.invite.rated };
+    this.tell(black, { t: "matched", color: "b", opponent: seatOf(w), ...shared });
+    this.tell(white, { t: "matched", color: "w", opponent: seatOf(b), ...shared });
+    await this.broadcastLobby();
+    return { ...shared, color: meId === black ? "b" : "w", opponent: seatOf(meId === black ? w : b) };
+  }
+
+  /** Decline one, or take one back. One call, because from the person pressing
+   *  it those are the same act; the other side is told nothing either way. */
+  async forgetInvite(meId, themId) {
+    const now = Date.now();
+    const r = drop({ mine: await this.#shelf(meId, now), meId, themId, now });
+    if (r.error) throw new Error(r.error);
+    if (r.outcome !== "nothing") await this.#dropInvite(meId, themId);
+    return { outcome: r.outcome };
   }
 
   /* ----- the ladder ----- */
@@ -1482,7 +1619,6 @@ export class Registry extends DurableObject {
     if (!opp) return;
     // The waiting player takes Black by courtesy; the newcomer takes White.
     const gameId = "g_" + randomHex(6);
-    const seatOf = (p) => ({ id: p.id, name: p.name, tint: p.tint, rating: Math.round(p.rating), rd: Math.round(p.rd), avatarAt: p.avatarAt ?? null });
     const stub = this.env.ROOM.get(this.env.ROOM.idFromName(gameId));
     /* A pair table seats two house players as well, one to a team, both at the
        same rank - a stronger partner on one side is a handicap nobody agreed to.
@@ -1580,6 +1716,17 @@ export class Registry extends DurableObject {
     const frame = { t: "lobby", online: this.ctx.getWebSockets().length, seeking: open };
     for (const ws of this.ctx.getWebSockets()) send(ws, frame);
   }
+}
+
+/** A player as a seat at a table: the row a room stores and the row the other
+ *  side is told about. One definition, because a table opened by matchmaking
+ *  and a table opened by an invitation must seat the same person the same way. */
+function seatOf(p) {
+  return {
+    id: p.id, name: p.name, tint: p.tint,
+    rating: Math.round(p.rating), rd: Math.round(p.rd),
+    avatarAt: p.avatarAt ?? null,
+  };
 }
 
 function send(ws, frame) {
