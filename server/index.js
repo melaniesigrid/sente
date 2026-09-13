@@ -43,7 +43,7 @@
      PUT   /api/me/featured/:gameId bearer {note} -> show a game on your page
      DELETE /api/me/featured/:gameId bearer     -> take it off again
      GET   /api/ladder                         -> top players
-     GET   /api/stats                          -> {players, online, seeking, cap, full}
+     GET   /api/stats                          -> {players, online, seeking, cap, full, seatsLeft}
      GET   /api/stats/history?days=            -> a row a day, oldest first
      GET   /api/lobby?token=    websocket      -> matchmaking
      GET   /api/game/:id                       -> the room (public)
