@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { TYPEFACES, DEFAULT_TYPEFACE, TYPEWRITER, typefaceOf, typefaceVars, captionOf, quoteOf, GOOGLE_IMPORT } from "./typeface.js";
+import { TYPEFACES, DEFAULT_TYPEFACE, TYPEWRITER, typefaceOf, typefaceVars, captionOf, quoteOf, GOOGLE_FAMILIES } from "./typeface.js";
 import { FONT_FACES } from "../styles/fontfaces.js";
+import { GOOGLE_FACES } from "../styles/googleFaces.js";
+import { FAMILIES as FETCHED } from "../../tools/fonts/fetch.mjs";
 import { CSS } from "../styles/css.js";
 
 const VARS = [
@@ -98,7 +100,7 @@ describe("typeface pairings", () => {
     expect(TYPEWRITER).toMatch(/monospace$/);
     for (const t of TYPEFACES) expect(typefaceVars(t.id)["--font-typewriter"], t.id).toBe(TYPEWRITER);
     const name = (TYPEWRITER.match(/^'([^']+)'/) || [])[1];
-    expect(GOOGLE_IMPORT).toContain(`family=${name.replace(/ /g, "+")}`);
+    expect(GOOGLE_FAMILIES).toContain(name);
     // and the stylesheet asks for it by token, never by name, below the defaults
     const body = CSS.slice(CSS.indexOf(".sente-root *"));
     expect(body).toContain("var(--font-typewriter)");
@@ -124,12 +126,42 @@ describe("the stylesheet consumes the tokens", () => {
     for (const v of VARS) expect(CSS, v).toContain(`${v}:`);
   });
 
+  /* Self-hosted since 2026-09-11. These three hold the chain together: a
+     pairing may only name a family that is declared, a declared family must
+     actually have files behind it, and the list of names here must match the
+     list the fetch tool downloads. Break any link and the face silently falls
+     back to a system serif, which is the kind of bug nobody files. */
+  it("declares an @font-face for every family it claims to host", () => {
+    for (const name of GOOGLE_FAMILIES) {
+      expect(GOOGLE_FACES, `no face for ${name}`).toContain(`font-family: '${name}'`);
+    }
+  });
+
+  it("hosts exactly the families the fetch tool downloads", () => {
+    const fetched = FETCHED.map(f => f.split(":")[0].replace(/\+/g, " ")).sort();
+    expect(fetched).toEqual([...GOOGLE_FAMILIES].sort());
+  });
+
+  it("asks the network for nothing: no @import, no remote url", () => {
+    expect(CSS).not.toContain("@import");
+    expect(CSS).not.toContain("fonts.googleapis.com");
+    expect(CSS).not.toContain("fonts.gstatic.com");
+    expect(CSS).not.toMatch(/url\(\s*['"]?https?:/);
+  });
+
+  it("keeps the unicode-range on every face, so a latin page skips latin-ext", () => {
+    const faces = GOOGLE_FACES.match(/@font-face/g) || [];
+    const ranges = GOOGLE_FACES.match(/unicode-range:/g) || [];
+    expect(faces.length).toBeGreaterThan(0);
+    expect(ranges.length).toBe(faces.length);
+  });
+
   it("loads every Google family a pairing asks for", () => {
     for (const t of TYPEFACES) {
       for (const family of [t.display, t.italic, t.body, quoteOf(t), captionOf(t)]) {
         const name = (family.match(/^'([^']+)'/) || [])[1];
         if (!name || name.startsWith("sente-")) continue;
-        expect(GOOGLE_IMPORT, `${t.id} wants ${name}`).toContain(`family=${name.replace(/ /g, "+")}`);
+        expect(GOOGLE_FAMILIES, `${t.id} wants ${name}`).toContain(name);
       }
     }
   });

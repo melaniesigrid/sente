@@ -1,5 +1,8 @@
-import { useState } from "react";
-import { Swords, GraduationCap, Target, Trophy, Play, Trash2, CalendarCheck, Flame, BrainCircuit } from "lucide-react";
+import { useState, useMemo } from "react";
+import { serverEnabled } from "../net/api.js";
+import { loadAccount } from "../store/account.js";
+import { DashboardCard } from "./DashboardCard.jsx";
+import { Swords, GraduationCap, Target, Trophy, Play, Trash2, CalendarCheck, BrainCircuit, Check, Circle } from "lucide-react";
 import { MiniSelfPlay } from "../components/MiniSelfPlay.jsx";
 import { Card, Btn, RankBadge, Statement } from "../components/ui.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
@@ -13,7 +16,8 @@ import { duelMode } from "../content/duel.js";
 import { clearGame } from "../store/gameStore.js";
 import { useMokuFacts } from "../components/mokuStore.js";
 import { DuelCard } from "../components/DuelCard.jsx";
-import { dayKey, dailyProblem, liveStreak } from "../content/kata.js";
+import { ChainLine } from "../components/Chain.jsx";
+import { dayKey, dailyProblem } from "../content/kata.js";
 import { recallSummary } from "../content/recall.js";
 import { LIBRARY } from "../content/library.js";
 import { OpenSgf } from "../components/OpenSgf.jsx";
@@ -24,6 +28,7 @@ import { useT } from "../components/langStore.js";
 /* ----------------------- HOME ----------------------- */
 export function Home({ profile, go, onResume }) {
   const t = useT();
+  const account = useMemo(() => (serverEnabled() ? loadAccount() : null), []);
   // A game opened from a file. Review takes the whole view while it is open, the
   // same way it does from a finished game.
   const [opened, setOpened] = useState(null);
@@ -39,7 +44,6 @@ export function Home({ profile, go, onResume }) {
   const authoredKata = dailyProblem(PROBLEMS, today);
   const kata = authoredKata && localizeProblem(authoredKata, t);
   const kataDone = profile.kataDate === today;
-  const streak = liveStreak(profile, today);
   const recall = recallSummary(LIBRARY, profile.recall, today);
   useMokuFacts({ view: "home", seed: games });
   const greeting = t(games ? "home.greetingBack" : "home.greetingNew");
@@ -64,6 +68,7 @@ export function Home({ profile, go, onResume }) {
             <RankBadge rating={profile.rating} rd={profile.rd} size="lg" precise />
             <span className="fine">{games ? t("home.wonOf", { wins: profile.wins, games }) : t("home.noGames")}</span>
           </div>
+          <ChainLine profile={profile} today={today} />
           <p className="lede">{nudge}</p>
           <div className="row">
             <Btn icon={Swords} primary onClick={() => go("play")}>{t("home.findGame")}</Btn>
@@ -75,7 +80,9 @@ export function Home({ profile, go, onResume }) {
         </div>
       </Card>
 
-      <Statement lines={statementFor("home", t)}>{plainFor("home", t)}</Statement>
+      <Statement lines={statementFor("home", t)} figure="home">{plainFor("home", t)}</Statement>
+      {account && <DashboardCard account={account} go={go} />}
+
       <Card className="passage-card"><Passage context="home" size="lg" /></Card>
 
       {saved && (
@@ -101,14 +108,14 @@ export function Home({ profile, go, onResume }) {
           <div className="kata-copy">
             <div className="stat-head"><CalendarCheck size={16} /><span>{t("home.kata.head")}</span></div>
             <strong className="kata-title">{kata.title}</strong>
-            <span className="fine">{t("home.kata.meta", {
-              rank: kata.rank, theme: kata.theme,
-              state: t(kataDone ? "home.kata.attended" : "home.kata.daily"),
-            })}</span>
+            <span className="fine">{t("home.kata.meta", { rank: kata.rank, theme: kata.theme })}</span>
           </div>
-          <div className="kata-streak">
-            <Flame size={16} />
-            <span className="stat-num">{streak}<em>{t("home.kata.days", { count: streak })}</em></span>
+          {/* The card's own state, where the streak used to be. The flame moved
+              to the hero when it stopped being about this one button, and the
+              card still needs to say whether today's problem is behind you. */}
+          <div className="kata-state">
+            {kataDone ? <Check size={15} /> : <Circle size={15} />}
+            <span>{kataDone ? t("home.kata.solved") : t("home.kata.open")}</span>
           </div>
         </button>
       )}

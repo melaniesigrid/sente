@@ -4,7 +4,7 @@
    game. Cleans up every account it makes. */
 import { DEFAULT_RATING } from "../../server/rating.js";
 
-const base = process.argv[2] || "https://sente-server.melaniesigrid.workers.dev";
+const base = process.argv[2] || "https://api.joseki.online";
 const ws = base.replace(/^http/, "ws");
 let failures = 0;
 const ok = (c, msg) => { if (c) console.log("ok   " + msg); else { failures++; console.log("FAIL " + msg); } };

@@ -48,7 +48,7 @@ function useTyped(text, go) {
 }
 
 /* One observer for every line on the page, not one each.
-   A long jump — the End key, a scrollbar drag, an anchor — can carry the page
+   A long jump (the End key, a scrollbar drag, an anchor) can carry the page
    past an element without its own observer ever seeing it cross the fold, and a
    line that is never seen never types. So each callback sweeps every line still
    waiting and starts the ones the scroll has already gone by. With one observer

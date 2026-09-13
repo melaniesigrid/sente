@@ -4,7 +4,7 @@
 
 export {
   NBRS, SIZES, idx, inB, colRow, createBoard, withStone, starPoints, chainAt,
-  COLUMN_LETTERS, colLabel, rowLabel, pointLabel,
+  COLUMN_LETTERS, colLabel, rowLabel, pointLabel, parsePoint,
   boardFromRows, boardToRows,
 } from "./board.js";
 export { zobristTable, xorStone, hashBoard } from "./zobrist.js";
@@ -29,11 +29,20 @@ export {
   atMove, moveNumbers, captureMoves, nextCapture, prevCapture,
   reviewLength, clampMove, markerAt, reviewLabel, playedMoves,
 } from "./review.js";
+export {
+  winRate, winRateForBlack, swings, turningPoints, nextTurn, prevTurn,
+  steadiness, pct, pointAt, winRateLine, graphSummary,
+} from "./analysis.js";
+export {
+  SEAT_IDS, DEFAULT_PARTNER_RANK, RosterError, colorOfSeat, partnerSeat, createRoster, isPair, rosterSeats,
+  teamSeats, rotationOf, seatAt, seatToPlay, canSeatPlay, humanSeats, rosterPlayers,
+} from "./rengo.js";
 export { aiChooseMove, aiChooseMoveForRecord } from "./ai.js";
 export { RANKS, inverseRank, encodeInputs } from "./kata/features.js";
 export { choosePolicyMove, keepSet } from "./kata/policy.js";
 export { loadModel, onModelProgress, modelReady, loadMaster, loadEval, MODEL_BYTES, MODEL_FILE } from "./kata/net.js";
 export { kataChooseMoveForRecord, clampRank, profileForRank, masterYear } from "./kata/bot.js";
+export { ANALYSIS_RANK, analyseGame, cachedAnalysis, positions } from "./kata/analyse.js";
 export { createRng, hashString, positionSeed } from "./rng.js";
 export {
   TRANSFORMS, transformPoint, inverseTransform, transformBoard, canonical, canonicalMove, bookKey, fromCanonical,

@@ -47,6 +47,27 @@ export const rowLabel = (size, r) => size - r;
 /** A point in the usual notation, e.g. "Q16" on 19x19. */
 export const pointLabel = (size, c, r) => `${colLabel(c)}${rowLabel(size, r)}`;
 
+/** The inverse of `pointLabel`: "Q16" on 19x19 is `{ c: 15, r: 3 }`.
+  *
+  * Returns null for anything that is not a point on a board this size, which
+  * includes the column letter I. A player who types "I4" has not named a point:
+  * on a real board that column is called J, so reading it as one would put a
+  * mark somewhere the player did not point at. Silence is the honest answer.
+  *
+  * Lowercase is accepted because people type lowercase. */
+export function parsePoint(size, label) {
+  if (typeof label !== "string") return null;
+  /* No leading zero: "D04" is not how anybody writes a point, and letting it
+     through would light a ring under a word the board cannot spell. */
+  const m = /^([A-Za-z])([1-9]\d?)$/.exec(label.trim());
+  if (!m) return null;
+  const c = COLUMN_LETTERS.indexOf(m[1].toUpperCase());
+  const n = Number(m[2]);
+  if (c < 0 || c >= size) return null;
+  if (!(n >= 1 && n <= size)) return null;
+  return { c, r: size - n };
+}
+
 export function createBoard(size) {
   if (!Number.isInteger(size) || size < 2 || size > 25) throw new RangeError(`bad board size ${size}`);
   return { size, cells: Array(size * size).fill(null) };

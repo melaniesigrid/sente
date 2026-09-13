@@ -1,6 +1,6 @@
 /* ----------------------- THE NAMED ROOMS -----------------------
    A palette is data, like a pairing or a persona. Four colours are always
-   written by hand — ground, ink, mark, shell — and the rest is derived
+   written by hand (ground, ink, mark, shell) and the rest is derived
    (derive.js) unless a hand-mixed tone beat the computed one, which is what the
    `light`/`dark`/`grid` overrides below are.
 
@@ -10,7 +10,7 @@
    default, not a lock: a player who prefers one pair everywhere says so on the
    look page and it follows them from room to room.
 
-   Adding a room is one entry here — four colours, ground/ink/mark/shell. `npm test` will then hold it to the same
+   Adding a room is one entry here: four colours, ground/ink/mark/shell. `npm test` will then hold it to the same
    rules the dojo shows a designer live: ink at 4.5:1, the mark no dimmer than
    the house eucalyptus, and the two lights within 2.4:1 of the ground, which is
    the whole illusion.
@@ -132,7 +132,7 @@ export const DOJO_THEME = "dojo";
  *  opening Joseki at night on a dark machine should not be handed full-brightness
  *  cream and left to go find the setting.
  *
- *  It is not a palette and never appears in PALETTES — it is a pointer at two of
+ *  It is not a palette and never appears in PALETTES: it is a pointer at two of
  *  them, resolved at render time by resolveTheme(). Sumi rather than Lacquer for
  *  the dark half: Lacquer is a formal room you choose, Sumi is house after dark,
  *  and the automatic answer should be the quiet one. */

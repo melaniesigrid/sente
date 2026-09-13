@@ -52,7 +52,7 @@ let counter = 0;
    The face is Laska's dot-mascot (playlaska.com/mascots.tsx) kept exactly: big
    round eyes with a glint high and outward, a soft top shine, a smile that opens
    when there is something to cheer. Every offset below is Laska's own number
-   times BODY.r / 34 — 34 being its body radius — so the proportions are hers and
+   times BODY.r / 34 (34 being its body radius) so the proportions are hers and
    only the scale is ours. The stone still fills the 64-unit box: `size` is the
    stone, not a box with a quarter of it empty, and the ko ring at r+3 is the one
    thing allowed to use the remaining margin.
@@ -67,7 +67,7 @@ const EYE = { white: 6.95, dark: 5.35, glint: 1.65, gx: 1.81, gy: -1.81 };
 /* Laska's two mouths, both `q` curves, scaled the same way. */
 const MOUTH_IDLE = "M25.41 36.12 q6.59 4.94 13.18 0";
 const MOUTH_CHEER = "M23.76 35.29 q8.24 9.88 16.47 0";
-/* Brows are ours, not Laska's — she has no angry face. They were drawn against
+/* Brows are ours, not Laska's: she has no angry face. They were drawn against
    the old, smaller, lower eyes, so the numbers are those same offsets expressed
    as multiples of the eye they sit over; against Laska's wider eye they would
    otherwise crowd it to within a pixel at dock size. */
@@ -121,14 +121,23 @@ export function MokuMark({ size = 56, state = "idle", sash = null, className = "
   );
 }
 
+/* The seat is a button so the line can be asked for rather than delivered. On a
+   wide screen the bubble is always up and the button only gives a keyboard the
+   same reach a mouse has; on a phone the stylesheet hides the bubble until this
+   sets `open`, because a gutter that holds a spoken line does not exist there
+   and the line would otherwise lie across whatever you were reading. */
 export function MokuDock() {
   const m = useContext(MokuCtx);
+  const [open, setOpen] = useState(false);
   if (!m || m.off) return null;
   return (
     <div className="moku-dock">
-      <div className="moku-bubble" role="status" aria-live="polite" key={m.line}>{m.line}</div>
+      <div className={`moku-bubble ${open ? "open" : ""}`} role="status" aria-live="polite" key={m.line}>{m.line}</div>
       <div className="moku-seat">
-        <MokuMark state={m.state} size={92} />
+        <button className="moku-seat-btn" onClick={() => setOpen(!open)}
+          aria-expanded={open} aria-label={open ? t("mascot.hide") : t("mascot.ask")}>
+          <MokuMark state={m.state} size={92} />
+        </button>
         <button className="moku-off" onClick={() => m.setOff(true)} aria-label={t("mascot.dismiss")} title={t("mascot.dismiss")}>
           <X size={13} strokeWidth={2.6} />
         </button>

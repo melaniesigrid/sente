@@ -1,0 +1,206 @@
+import { useState, useEffect, useRef, useId } from "react";
+import {
+  FIELD_N, SETTLED, freshField, advanceField, fieldSpent, fieldStones, departed,
+} from "./fieldGame.js";
+import { StoneArt, Shine } from "./stoneArt.jsx";
+
+/* ----------------------- THE GROUND -----------------------
+   The texture behind the front door's first and last bands: a go position,
+   softened to where it is read as ground first and a game second.
+
+   It used to be blurred to thirteen pixels, which is a radius that turns a
+   stone into weather. The whole argument for spending a real engine on a
+   decoration is that a visitor can see it is a real game, and at that radius
+   nobody could -- it was a field of soft dots that happened to be computed
+   honestly. The blur is three now: enough that the field stays behind the
+   words and never competes with them, little enough that the stones are
+   stones, and little enough that a move landing is a thing you can watch.
+
+   Which is the second change. The stones are drawn the way the figures beside
+   the statements are drawn, off the same shared gradients, and a stone arriving
+   settles in rather than appearing between two frames. One move every couple of
+   seconds, in a position that really is being played: it is the slowest thing
+   on the page and the only one that is a game.
+
+   And stones come off it. A capture is the one moment in a game of go that
+   somebody who has never played recognises on sight, and for as long as the
+   field simply stopped drawing a captured stone it was throwing that moment
+   away between two frames. The stones that left are kept for one beat and
+   drawn on their way off the board, lifted and gone. They are worked out by
+   comparing the two positions (`departed`, in fieldGame.js) rather than by
+   reading the engine's capture list, so what leaves the screen can never
+   disagree with what is on it.
+
+   A fresh game is dealt with no departures. Sixty stones lifting off at once
+   is not a capture, it is a bug that looks like one.
+
+   It is the real engine playing itself, for the same reason the hero board is:
+   this page is not allowed to show anything it cannot show for real, and a
+   drawing of a board would have been the one decorative lie on it. Blurred at
+   this radius it is also, straightforwardly, the field of soft dots the brief
+   asked for. Both descriptions are of the same picture.
+
+   Four things it has to get right:
+
+   - It must not be on the critical path. The hero's words are the page's job.
+     The seed is taken eight moves at a time across animation frames after the
+     first paint, and the field fades in when it has a position worth showing,
+     so nothing here is ever in the same frame as the text a visitor came for.
+   - It must not cost anything while nobody is looking. The interval stops when
+     the tab is hidden and when the band is scrolled away, and it is started
+     rather than stopped by the observer, so a browser without one keeps
+     playing instead of showing an empty band forever.
+   - A reader who asked for less motion gets the position and not the game: one
+     settled board, held.
+   - It is decoration and is addressed as such: aria-hidden, no pointer events,
+     and nothing in it is announced. */
+
+const CELL = 44, MARGIN = 26, R = 19;
+const SPAN = (FIELD_N - 1) * CELL + MARGIN * 2;
+/* The board is drawn into a frame half again its own size, so a band shows a
+   position rather than six boulders. The stones were the size of a fist when
+   the blur came off: at that scale five of them reach the words and the other
+   sixty are off the edge, which is a texture pretending to be a game. Pulled
+   back, most of the position is on the page, each stone is about the size it
+   would be on a real board across a table, and a move landing anywhere in it
+   has somewhere to land where it will be seen. */
+const VIEW = Math.round(SPAN * 1.5);
+const OFF = Math.round((VIEW - SPAN) / 2);
+const CHUNK = 8;          /* moves per frame while seeding */
+const TICK_MS = 2600;     /* a mood, not a demo, but a visible one */
+
+export function StoneField({ live = true }) {
+  /* One object, not two pieces of state: the stones that left belong to the
+     position that replaced them, and setting them apart would let a render
+     land between the two and draw a capture against the wrong board. */
+  const [frame, setFrame] = useState(null);
+  const host = useRef(null);
+  const uid = useId().replace(/[:]/g, "");
+  const ids = { b: `fsb-${uid}`, w: `fsw-${uid}`, shine: `fss-${uid}` };
+
+  useEffect(() => {
+    const query = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)");
+    let moving = live && !(query && query.matches);
+
+    let state = freshField();
+    let timer = null, raf = 0, dead = false;
+    /* Asked, not assumed. `visibilitychange` only fires on a transition, so a
+       field mounted in a background tab -- a restored session, a middle-click,
+       a prerender -- would otherwise believe the tab was in front and open its
+       interval behind it, which is the one thing this arrangement exists to
+       prevent. `seeded` is the same idea one step earlier: the beat may not
+       start while the seed is still walking chunks, or two drivers are walking
+       one position between them. */
+    let onScreen = true, awake = !document.hidden, seeded = false;
+
+    const stop = () => { if (timer) { clearInterval(timer); timer = null; } };
+    const start = () => {
+      if (moving && seeded && !timer && onScreen && awake && !dead) timer = setInterval(beat, TICK_MS);
+    };
+
+    /* A position, a chunk to a frame. Both the first deal and every one after
+       it come through here: sixty-four moves of a real engine is forty
+       milliseconds on this desktop and several hundred on a phone, and running
+       that inside the beat would drop the frame a reader is scrolling on. The
+       seed was always chunked; the re-deal used to be the same work in one
+       synchronous go, which is exactly what the chunking is for. */
+    const seed = () => {
+      state = advanceField(state, CHUNK);
+      if (state.n < SETTLED && !fieldSpent(state)) { raf = requestAnimationFrame(seed); return; }
+      if (dead) return;
+      seeded = true;
+      setFrame({ board: state.board, gone: [] });
+      start();
+    };
+
+    function beat() {
+      const before = state.board;
+      if (fieldSpent(state)) {
+        /* Spent. Stop the clock and deal again the slow way; the interval
+           starts itself back up when the new position is ready. */
+        stop();
+        seeded = false;
+        state = freshField();
+        raf = requestAnimationFrame(seed);
+        return;
+      }
+      state = advanceField(state, 1);
+      setFrame({ board: state.board, gone: departed(before, state.board) });
+    }
+
+    raf = requestAnimationFrame(seed);
+
+    const onVisibility = () => { awake = !document.hidden; if (awake) start(); else stop(); };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    /* A reader who turns the switch on mid-session is asking for the motion to
+       stop now, not on their next visit. Stopping the clock is the whole of it:
+       the stylesheet has already taken the landing and the lift off, and a
+       position changing under that with no motion at all is a jump cut, which
+       is worse than the animation they asked to be rid of. */
+    const onMotion = () => {
+      moving = live && !(query && query.matches);
+      if (moving) start(); else stop();
+    };
+    if (query && query.addEventListener) query.addEventListener("change", onMotion);
+
+    /* Pause when the band is off screen. This only ever stops the interval;
+       a browser with no IntersectionObserver simply keeps playing, which costs
+       a couple of milliseconds a move and is the right way to fail. */
+    let io = null;
+    if (typeof IntersectionObserver === "function" && host.current) {
+      io = new IntersectionObserver(([entry]) => {
+        onScreen = entry.isIntersecting;
+        if (onScreen) start(); else stop();
+      }, { rootMargin: "120px" });
+      io.observe(host.current);
+    }
+
+    return () => {
+      dead = true;
+      cancelAnimationFrame(raf);
+      stop();
+      document.removeEventListener("visibilitychange", onVisibility);
+      if (query && query.removeEventListener) query.removeEventListener("change", onMotion);
+      if (io) io.disconnect();
+    };
+  }, [live]);
+
+  const at = (n) => OFF + MARGIN + n * CELL;
+
+  const board = frame && frame.board;
+  const gone = (frame && frame.gone) || [];
+
+  /** One stone, at the size the field draws them. */
+  const stone = (s, className, key) => (
+    <g key={key} className={className}>
+      <circle cx={at(s.c)} cy={at(s.r)} r={R}
+        fill={`url(#${s.colour === "b" ? ids.b : ids.w})`} />
+      {/* A white stone on a pale ground is the same value as the ground:
+          without an edge it is a hole in the field rather than a stone in it,
+          and half the position simply does not arrive. The board does not need
+          this because a board has lines under its stones to cut them out. This
+          has none. */}
+      <circle cx={at(s.c)} cy={at(s.r)} r={R} className="fs-rim" />
+      <Shine x={at(s.c)} y={at(s.r)} r={R} id={ids.shine} className="fs-shine" />
+    </g>
+  );
+
+  return (
+    <div className={`stone-field${board ? " ready" : ""}`} ref={host} aria-hidden="true">
+      {board && (
+        <svg viewBox={`0 0 ${VIEW} ${VIEW}`} preserveAspectRatio="xMidYMid slice" focusable="false">
+          <defs><StoneArt ids={ids} /></defs>
+          {/* Keyed by the point it sits on, which is what makes the arriving
+              visible: a stone that was not there last tick is a new element and
+              settles in, and one that was there is the same element and does
+              not move. A departing stone is keyed apart from the point it left,
+              so a capture and the move that follows it into the same point are
+              two elements and not one flickering between two states. */}
+          {gone.map(s => stone(s, "fs-stone leaving", `l${s.i}`))}
+          {fieldStones(board).map(s => stone(s, "fs-stone", s.i))}
+        </svg>
+      )}
+    </div>
+  );
+}

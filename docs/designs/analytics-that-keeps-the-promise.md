@@ -26,8 +26,8 @@ The consumer of this feature is a hiring manager, not a Joseki player. That is r
 
 The second opinion caught something in that sentence that the lead advisor missed: it names **two** interview questions, not one.
 
-1. "Do you have users, how many" — answer not in her control at n=1.
-2. "Have you set up analytics" — answer fully in her control this week.
+1. "Do you have users, how many": answer not in her control at n=1.
+2. "Have you set up analytics": answer fully in her control this week.
 
 The deliverable is a sentence she can defend under follow-up, not a dashboard.
 

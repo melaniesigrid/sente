@@ -9,6 +9,7 @@ import { useMokuFacts } from "../components/mokuStore.js";
 import { LIBRARY, trackByKey } from "../content/library.js";
 import { dayKey } from "../content/kata.js";
 import { BOXES, SESSION_SIZE, dueCards, grade, recallSummary } from "../content/recall.js";
+import { attendDay } from "../content/chain.js";
 import { saveProfile } from "../store/profile.js";
 import { initStep, stepReducer, marksFor, boardLocked, canReveal, withHouseWords } from "./lessonStep.js";
 import { Response } from "./Learn.jsx";
@@ -23,7 +24,7 @@ import { localizeTrack } from "../content/library.js";
    in the lesson: the same refutations, the same hint, the same Show me.
 
    What is different is the grading, and what is left out. A card is recalled
-   only when it is answered first try, unaided — a second guess is a card read
+   only when it is answered first try, unaided: a second guess is a card read
    off the board rather than remembered. And the lesson's teaching text stays
    behind: a question you are being asked to remember is not a question you
    are being told the answer to. The step's own prompt is all there is until
@@ -159,7 +160,7 @@ export function RecallView({ profile, setProfile, go }) {
   const onGraded = (card, recalled) => {
     setResults(rs => (rs.some(r => r.key === card.key) ? rs : [...rs, { key: card.key, recalled, card }]));
     setProfile(p => {
-      const np = { ...p, recall: grade(p.recall, card.key, recalled, today) };
+      const np = { ...p, recall: grade(p.recall, card.key, recalled, today), ...attendDay(p, today) };
       saveProfile(np);
       return np;
     });
@@ -176,7 +177,7 @@ export function RecallView({ profile, setProfile, go }) {
     return (
       <div className="stack arrives">
         {header}
-        <Statement lines={statementFor("recall", t)}>{plainFor("recall", t)}</Statement>
+        <Statement lines={statementFor("recall", t)} figure="recall" at="left">{plainFor("recall", t)}</Statement>
         <Card inset className="resume-card">
           <div className="resume-copy">
             <div className="stat-head"><CalendarClock size={15} /><span>{t("recall.nothingDue")}</span></div>

@@ -32,6 +32,9 @@ export function saveGame(session, storage = defaultStorage()) {
         kind: session.mode.kind, personaId: session.mode.personaId ?? null,
         rank: session.mode.rank ?? null, key: session.mode.key ?? null,
         coaching: !!session.mode.coaching,
+        // A pair game's other half: without it a resumed table would seat a
+        // partner of a different strength than the one you left playing with.
+        partnerRank: session.mode.partnerRank ?? null,
       },
       spoken: session.spoken ?? {},
       record: session.record,
@@ -66,6 +69,7 @@ export function loadGame(storage = defaultStorage()) {
   try { record = replay(blob.record); } catch (e) { return discard(`record does not replay: ${e.message}`); }
   const rank = typeof blob.mode.rank === "string" ? blob.mode.rank : null;
   const key = typeof blob.mode.key === "string" ? blob.mode.key : null;
+  const partnerRank = typeof blob.mode.partnerRank === "string" ? blob.mode.partnerRank : null;
   // Read tolerantly, defaulting to false: a blob written before coaching existed is not
   // a coached game, and false is the safe direction - it can only ever restore a rating,
   // never quietly grant one to a game that had help.
@@ -73,7 +77,7 @@ export function loadGame(storage = defaultStorage()) {
   const spoken = blob.spoken && typeof blob.spoken === "object" && !Array.isArray(blob.spoken) ? blob.spoken : {};
   return {
     record,
-    mode: { kind: blob.mode.kind, personaId: blob.mode.personaId ?? null, rank, key, coaching },
+    mode: { kind: blob.mode.kind, personaId: blob.mode.personaId ?? null, rank, key, coaching, partnerRank },
     spoken,
     savedAt: blob.savedAt ?? null,
   };

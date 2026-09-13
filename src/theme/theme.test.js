@@ -38,7 +38,7 @@ describe("the named rooms", () => {
   it("holds every room to every rule in the contract", () => {
     for (const p of PALETTES) {
       for (const row of auditPalette(p)) {
-        expect(row.pass, `${p.id}: ${row.label} is ${row.ratio.toFixed(2)}:1 (${row.closeness ? "max" : "min"} ${row.min}) — ${row.why}`).toBe(true);
+        expect(row.pass, `${p.id}: ${row.label} is ${row.ratio.toFixed(2)}:1 (${row.closeness ? "max" : "min"} ${row.min}): ${row.why}`).toBe(true);
       }
     }
   });
@@ -197,7 +197,7 @@ describe("derivation", () => {
   });
 
   // What a stone is cut from, and what happens to it in a dark room, is the
-  // subject of stones.test.js — there is a drawer of sets to hold to it now
+  // subject of stones.test.js: there is a drawer of sets to hold to it now
   // rather than one pair. What belongs here is that every room hands the board
   // a set to be played with.
   it("draws every room with the set that room names", () => {

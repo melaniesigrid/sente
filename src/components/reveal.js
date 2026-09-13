@@ -6,8 +6,8 @@ import { useEffect, useRef } from "react";
    kept here so every screen can have it without a second copy of the logic.
 
    Two things it has to get right. A reader who has asked for less motion gets
-   everything already arrived, immediately. And a long jump — the End key, a
-   scrollbar drag, an anchor — can carry the page past an element without the
+   everything already arrived, immediately. And a long jump (the End key, a
+   scrollbar drag, an anchor) can carry the page past an element without the
    observer ever seeing it cross the fold, so every callback also sweeps up
    whatever the scroll has already gone by. A card that is never seen is a card
    that stays invisible, which is a far worse bug than no animation at all. */

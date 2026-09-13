@@ -1,7 +1,7 @@
 /* ----------------------- PASSWORD DERIVATION -----------------------
    The password never leaves this file. What goes to the server is a key
    derived from it: PBKDF2-SHA256 over the password, salted with the address,
-   at the iteration count in `KDF`. The reasoning is in `server/accounts.js` —
+   at the iteration count in `KDF`. The reasoning is in `server/accounts.js`;
    the short version is that a Worker gets 10 ms of CPU and a password hash
    worth the name costs more, so the stretch happens here, where there is time.
 

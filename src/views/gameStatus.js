@@ -34,12 +34,15 @@ export function resultLine(result, t = EN) {
 }
 
 /** The status pill. `personaName` is null for pass-and-play. `loading` is the
- *  human network's download progress `{loaded, total}` while it is still arriving. */
-export function statusText({ result, thinking, personaName, turn, phase, loading }, t = EN) {
+ *  human network's download progress `{loaded, total}` while it is still arriving.
+ *  `pending` is true when a stone is staged and waiting to be confirmed; it can
+ *  only be staged on your own turn, so it outranks whose move it is. */
+export function statusText({ result, thinking, personaName, turn, phase, loading, pending }, t = EN) {
   if (result) return resultLine(result, t);
   if (phase === "scoring") return t("game.status.scoring");
   if (thinking && loading) return t("game.status.warming", { name: personaName, loading: loadingText(loading, t) });
   if (thinking) return t("game.status.thinking", { name: personaName });
+  if (pending) return t("game.status.pending");
   if (personaName) return turn === "b" ? t("game.status.yourMove") : t("game.status.toMove", { name: personaName });
   return t(turn === "b" ? "game.status.toPlayB" : "game.status.toPlayW");
 }
@@ -48,6 +51,12 @@ export function statusText({ result, thinking, personaName, turn, phase, loading
 export function loadingText({ loaded, total }, t = EN) {
   const mb = (n) => Math.round(n / 1e6);
   return t("game.loading", { loaded: mb(loaded), total: mb(total) });
+}
+
+/** Two-step move, for players who keep misfiring: the first tap stages a stone
+ *  and the second plays it. Nothing reaches the engine until the second tap. */
+export function confirmMoveLabel(pending, t = EN) {
+  return t(pending ? "game.playIt" : "game.play");
 }
 
 /** Two-step resign button: first click arms it, second click resigns. */

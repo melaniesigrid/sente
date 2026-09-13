@@ -1,7 +1,8 @@
-import { Bot, Crown, Shield, Star } from "lucide-react";
+import { Bot, Crown, Shield, Star, Medal } from "lucide-react";
 import { TINTS, rankOf, preciseRankOf, beltOf, beltLabel } from "../content/rank.js";
 import { useT } from "./langStore.js";
 import { isProvisional } from "../engine/index.js";
+import { Figure } from "./Figure.jsx";
 
 /* ----------------------- SHARED UI ----------------------- */
 export const Card = ({ children, className = "", inset, ...rest }) => (
@@ -61,6 +62,23 @@ export const RankBadge = ({ rating, size = "md", precise = false, rd }) => {
   );
 };
 
+/* A row of badges. Each one carries what it measures as its title, because a
+   badge nobody can check is decoration; hover or focus one and it says exactly
+   what the arithmetic was. Purely derived from the public record, so it needs
+   no data of its own. */
+export const Badges = ({ badges, className = "" }) => (
+  badges.length === 0 ? null : (
+    <ul className={`badges ${className}`.trim()}>
+      {badges.map((b) => (
+        <li key={b.id} className="badge" title={b.hint}>
+          <Medal size={13} strokeWidth={2.2} aria-hidden="true" />
+          <span>{b.label}</span>
+        </li>
+      ))}
+    </ul>
+  )
+);
+
 /** A tied belt: the band plus a knot. `belt` is an entry from BELTS. */
 export const BeltRibbon = ({ belt, className = "" }) => {
   const t = useT();
@@ -103,7 +121,7 @@ export const PullQuote = ({ children, label = null, size = "" }) => {
    The same idea as the pull quote, in six words instead of sixty, and set as
    large as the screen will bear. A screen carries one quotation and one
    statement: the quotation is Zhang Ni's voice (`Passage`), set in the italic,
-   and the statement is the house's, set in the display face — because two
+   and the statement is the house's, set in the display face, because two
    blocks of the same italic stacked together read as one long quote nobody
    finishes, which is the bug this replaced.
 
@@ -113,15 +131,22 @@ export const PullQuote = ({ children, label = null, size = "" }) => {
    goes under them as `children`, small and in the body face, still carrying
    the label that says whose words they are.
 
+   A statement may stand on a figure (components/Figure.jsx): a real shape from
+   the game, played out by the engine, set at the size of the words and bleeding
+   off the side of the block. It is named by screen, so a screen keeps its shape
+   and coming back to it is coming back to the same room. Without one the block
+   is exactly what it was.
+
    The lines rise out of a mask on arrival, one after another. It is a
    flourish and never the content: the whole statement is the paragraph's
    accessible name from the first frame, the animated spans are hidden from a
    reader, and less motion means the lines are simply already up. */
-export const Statement = ({ lines, children, label = null }) => {
+export const Statement = ({ lines, children, label = null, className = "", figure, at = "right" }) => {
   const t = useT();
   if (!lines || lines.length === 0) return null;
   return (
-    <section className="statement">
+    <section className={`statement${figure ? " has-fig" : ""}${className ? ` ${className}` : ""}`}>
+      {figure ? <Figure screen={figure} at={at} /> : null}
       <p className="statement-lines" aria-label={lines.join(" ")}>
         {lines.map((line, i) => (
           <span className="statement-mask" key={i} aria-hidden="true">

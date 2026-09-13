@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { refusalText, resultLine, statusText, captionText, resignLabel, resultCard, ratingLine, RESIGN_CONFIRM_MS } from "./gameStatus.js";
+import { refusalText, resultLine, statusText, captionText, resignLabel, confirmMoveLabel, resultCard, ratingLine, RESIGN_CONFIRM_MS } from "./gameStatus.js";
 import { ratingOfRank, ratingOfValue, rankValue } from "../content/rank.js";
 import { createGame, pass, acceptScore, resign, timeout } from "../engine/index.js";
 import { makeT } from "../i18n/index.js";
@@ -21,13 +21,13 @@ describe("refusalText", () => {
 describe("resultLine", () => {
   it("reads a scored result with the winner's total first", () => {
     const g = acceptScore(pass(pass(createGame({ size: 9, komi: 7.5 }))));
-    expect(resultLine(g.result)).toBe("White wins — 7.5 : 0");
+    expect(resultLine(g.result)).toBe("White wins · 7.5 : 0");
     const b = acceptScore(pass(pass(createGame({ size: 9, komi: 0.5, setup: { b: [[4, 4]] } }))));
-    expect(resultLine(b.result)).toBe("Black wins — 81 : 0.5");
+    expect(resultLine(b.result)).toBe("Black wins · 81 : 0.5");
   });
   it("reads jigo and resignation", () => {
     const j = acceptScore(pass(pass(createGame({ size: 9, komi: 0 }))));
-    expect(resultLine(j.result)).toBe("Jigo — 0 : 0");
+    expect(resultLine(j.result)).toBe("Jigo · 0 : 0");
     expect(resultLine(resign(createGame({ size: 9 })).result)).toBe("White wins by resignation");
     expect(resultLine(timeout(createGame({ size: 9 })).result)).toBe("White wins on time");
     expect(resultLine(timeout(createGame({ size: 9 }), "w").result)).toBe("Black wins on time");
@@ -45,6 +45,16 @@ describe("statusText", () => {
     expect(statusText({ result: null, thinking: false, personaName: null, turn: "b" })).toBe("Black to move");
     expect(statusText({ result: null, thinking: false, personaName: null, turn: "w" })).toBe("White to move");
   });
+  it("asks for the second tap while a move is staged", () => {
+    expect(statusText({ result: null, thinking: false, personaName: "Yuki", turn: "b", pending: true }))
+      .toBe("Tap the point again to play it");
+    // A finished or thinking board outranks it; a staged move cannot survive either.
+    const done = acceptScore(pass(pass(createGame({ size: 9 })))).result;
+    expect(statusText({ result: done, thinking: false, personaName: "Yuki", turn: "b", pending: true })).toMatch(/wins/);
+    expect(statusText({ result: null, thinking: true, personaName: "Yuki", turn: "b", pending: true })).toBe("Yuki is thinking…");
+    expect(statusText({ result: null, thinking: false, personaName: "Yuki", turn: "b", phase: "scoring", pending: true }))
+      .toBe("Mark dead stones, then accept");
+  });
   it("reads a resignation from either side", () => {
     const g = createGame({ size: 9 });
     expect(statusText({ result: resign(g, "b").result, thinking: false, personaName: "Yuki", turn: "w" })).toBe("White wins by resignation");
@@ -61,6 +71,13 @@ describe("a flag has no rows to show", () => {
     const g = timeout(createGame({ size: 9 }), "b");
     expect(statusText({ result: g.result, thinking: false, personaName: "Yuki", turn: "w" }))
       .toBe("White wins on time");
+  });
+});
+
+describe("confirmMoveLabel", () => {
+  it("names the waiting stone only once there is one", () => {
+    expect(confirmMoveLabel(false)).toBe("Play");
+    expect(confirmMoveLabel(true)).toBe("Play it");
   });
 });
 

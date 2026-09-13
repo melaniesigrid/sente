@@ -59,7 +59,7 @@ The differences are real, not cosmetic:
 - **Area** counts your living stones plus the points only you surround. Filling
   your own territory costs nothing.
 - **Territory** counts only the points you surround, plus every enemy stone you
-  have captured — the prisoners taken during play and the dead stones lifted at
+  have captured: the prisoners taken during play and the dead stones lifted at
   the end. Your own stones are worth nothing, so filling your own territory costs
   a point, and the endgame is a move sharper.
 
@@ -76,7 +76,7 @@ where Joseki's choice of superko is visible in play, and it is stated in the tes
 rather than hidden.
 
 Joseki also departs from Japanese and Chinese rules on long cycles. Both answer a
-repetition with a referee's judgement — "no result", or a draw. A server has no
+repetition with a referee's judgement: "no result", or a draw. A server has no
 referee, so the repetition is refused at the point it would be played and the
 game goes on.
 
@@ -139,7 +139,7 @@ now not two: `server/rating.js` imports the same `src/engine/glicko.js` the
 browser runs, and reads the same scale from `src/content/rank.js`. A rating that
 means one thing offline and another online is not a rating.
 
-Stored player ratings were migrated by rank rather than by points — what a player
+Stored player ratings were migrated by rank rather than by points: what a player
 earned is a rank, and that is what crosses. The registry carries a schema version
 and migrates once, at wake-up, before it answers anything.
 

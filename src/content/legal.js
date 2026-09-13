@@ -12,17 +12,22 @@
 
    THE RULE THIS FILE IS WRITTEN UNDER
    Nothing here describes behaviour the code does not have. Where a promise
-   would be pleasant but untrue — a backup, an uptime, an export button — the
+   would be pleasant but untrue (a backup, an uptime, an export button), the
    document says the true thing instead. A privacy notice that overstates is a
    worse document than one that admits a gap, because the gap is at least
    something a reader can act on. The privacy sections carry a `src` note in
    the comment above them naming the modules they were read from, so the next
    person to change that code can find the sentence it makes false. */
 
+import { hashString } from "../engine/index.js";
+
 /** Who runs this, what it is called, and how to reach a person. */
 export const STUDIO = "Northbound Software Studio";
 export const PRODUCT = "Joseki";
 export const CONTACT = "hello@northboundsoftwarestudio.com";
+/** The studio's own front door. A credit that names who runs this and then
+ *  makes the reader search for them is half a credit. */
+export const STUDIO_URL = "https://northboundsoftwarestudio.com";
 export const REPO = "https://github.com/melaniesigrid/sente";
 
 /** The year the notice asserts, and the line that carries it. One constant, so
@@ -30,14 +35,31 @@ export const REPO = "https://github.com/melaniesigrid/sente";
 export const COPYRIGHT_YEAR = 2026;
 export const COPYRIGHT = `© ${COPYRIGHT_YEAR} ${STUDIO}`;
 
-/** The day these documents last said something different. Shown on each one: a
- *  legal document with no date is a document nobody can tell they have read
- *  before. Move it in the same commit that changes a word of the text. */
-export const UPDATED = "10 September 2026";
+/* ----------------------- THE REVISION -----------------------
+   The day these documents last said something different, and a fingerprint of
+   what they said on that day. Shown on each one: a legal document with no date
+   is a document nobody can tell they have read before.
+
+   The two live in one object on purpose. A date moved by hand is a date that
+   gets forgotten, and a notice dated three weeks before the sentence it
+   contains is worse than an undated one: it is a document actively claiming
+   it has not changed. `legal.test.js` recomputes the stamp from the prose and
+   fails when it disagrees with the one checked in here, printing the stamp it
+   wanted, so the fix is: move the date, paste the stamp, done. The suite
+   cannot know what a commit touched, so it cannot force the date to move on
+   its own; what it can do is make it impossible to change a word without
+   being stopped and handed the line where the date lives. */
+export const REVISION = {
+  updated: "12 September 2026",
+  stamp: "be912437",
+};
+
+/** The day the documents last changed. */
+export const UPDATED = REVISION.updated;
 /** The same day, machine-readable, so each language can set it its own way:
- *  "10 September 2026" in English, "10 de septiembre de 2026" in Spanish. The
+ *  "12 September 2026" in English, "12 de septiembre de 2026" in Spanish. The
  *  two are held in step by `legal.test.js`. */
-export const UPDATED_ISO = "2026-09-10";
+export const UPDATED_ISO = "2026-09-12";
 
 /* ---------------------------------------------------------------- credits */
 /* Everything in the build that somebody else made, with the terms it comes
@@ -127,7 +149,7 @@ const TERMS = {
       heading: "What you write stays yours",
       paras: [
         "Your bio, your chat lines and your picture are yours. Putting them into Joseki allows the Studio to store them and to show them where the product shows them: your profile, the room you are playing in, and the record afterwards.",
-        "A game record is a record of a game two people played. Joseki keeps finished games and may show them to the players and to anyone holding the link to that room.",
+        "A game record is a record of a game two people played. Joseki keeps finished games and may show them to the players, to anyone holding the link to that room, and — if either player chooses to show that game on their own page — to anyone who opens that page. A game is two people's, so showing one shows both names, exactly as the room and the ladder already do. What nobody may do is publish a line about somebody else under their own name: the sentence a player writes beside a game they show is attributed to them and is theirs alone.",
       ],
     },
     {
@@ -178,8 +200,12 @@ const TERMS = {
    the three facts, the avatar at 64 KB) · server/accounts.js (the stretched
    key, never the password) · server/mail.js (the two letters) ·
    server/ratelimit.js and `claimedFrom` (the address bucket) ·
-   src/store/*.js (the four local keys) · src/content/typeface.js (the Google
-   Fonts import, the one third party the browser talks to on its own). */
+   server/rollup.js (the daily tally and how long it is kept) ·
+   src/store/*.js (the local keys, now five) · src/content/chain.js (the days
+   practised, CHAIN_KEEP = 400) · src/store/deja.js (the positions, CAP = 1500) ·
+   src/styles/googleFaces.js (the text
+   faces, self-hosted since 11 September 2026, so there is no longer a third
+   party the browser talks to on its own). */
 const PRIVACY = {
   id: "privacy",
   title: "Privacy",
@@ -189,6 +215,7 @@ const PRIVACY = {
       heading: "The short version",
       paras: [
         "There is no analytics script, no advertising network, no tracking pixel and no cookie of any kind. Joseki has never counted a visit.",
+        "Since 11 September 2026 the server does keep a tally of its own. Once a day it writes down how many handles exist, how many were made that day, how many games were started, how many finished, and the most people who were in the lobby at once. That is six numbers and a date, nobody is named in any of them, and they are kept for 365 days. A game is not a visit and an account is not a visit, so the sentence above still holds: read every page here and never sit down at a board, and you will not appear in any of those numbers.",
         "Play by yourself and nothing leaves your device. Play against people and the server keeps the handful of things listed below, because a game between two people cannot happen without them.",
       ],
     },
@@ -196,6 +223,9 @@ const PRIVACY = {
       heading: "What stays on this device",
       paras: [
         "Your name, your avatar tint, your rank, your finished lessons and problems, the room and the pairing you chose, the game in progress and the last table you set up. All of it sits in your browser's local storage, under keys of Joseki's own, and none of it is sent anywhere.",
+        "Which days you practised on, as a list of dates going back thirteen months, so the dashboard can show you the run you are keeping. It is a date and nothing else: not what you did that day, not how long for, and not how well it went. It is never sent anywhere, and it is the same local storage as everything above, so clearing site data clears it too.",
+        "Joseki also keeps the shape of your last fifty games against the house players (the board size, the handicap, which house player, how the game ended and how many moves it took) so the house players can be tuned against what really happens at the board. It holds no moves and nothing that could replay a game, it is never sent anywhere, and your profile page shows you exactly what is in it and empties it in one press.",
+        "It also keeps the positions from the opening and early middle game of games you have finished, up to fifteen hundred of them, so that the table can tell you when a game reaches somewhere you have played before. A position is stored as a number, turned to a standard orientation, with a count and a win-loss tally beside it. There are no moves in it and no order, so it cannot be turned back into a game you played; it is never sent anywhere; your profile page says how much is in it and empties it in one press; and switching déjà vu off on that page stops the table reading it.",
         "Clearing site data for Joseki erases every one of them, and there is no copy elsewhere to restore from.",
       ],
     },
@@ -209,7 +239,20 @@ const PRIVACY = {
         "The sign-in tokens for your open sessions, kept as hashes, so a stolen store is not a set of working keys.",
         "Anything you chose to add to your profile: a paragraph of up to 280 characters, three short facts, and a picture of up to 64 KB.",
         "The games you played online, and up to 200 chat lines in each room alongside the record.",
+        "An index of your finished games, one entry each, kept for as long as the account is. It holds no moves: it is the date, the board, the opponent and the result, and it is what lets your own archive be paged through without reading every game you have ever played. Leaving deletes the index; the games themselves stay in the rooms they were played in, for the reason given under Leaving.",
+        "Who your friends here are: the handles you have agreed to be friends with, the requests you have sent, and the requests you have been sent. Three lists of handles with the date each was written, kept on your record and on theirs, and seen by nobody but the two of you. Declining a request deletes it and tells the person who sent it nothing at all.",
+        "The letters you and another player have written to each other. One thread a pair, keeping the last hundred, readable by the two of you and by nobody else. Only somebody you have agreed to be friends with, or finished a game against, can write to you at all, and you can stop any of them writing again without their being told. There is no list anybody can be added to and nothing to unsubscribe from, because there is nothing to be on.",
+        "The games you chose to show on your page, at most three, each with a line of up to 140 characters that you wrote. Both are public, because the page is. Taking a game off your page removes the line with it.",
+        "Which of the three answers you gave to who may see that you are here: nobody, your friends, or anybody. One word on your record, and not on the ladder, so reading the ladder cannot tell you who has chosen to be invisible.",
         "The address you registered from, kept so that leaving gives back the account it spent, shown to nobody, and deleted with the account.",
+      ],
+    },
+    {
+      heading: "Being here is not written down",
+      paras: [
+        "Whether you are at a board right now is a question about an open connection and nothing else. Arriving writes nothing, leaving writes nothing, and there is no history of when you were here for anybody to read later, this Studio included. Close the tab and the only thing that survives is the date of your last finished game, which is what your page has always shown, to the month or the week and never to the hour.",
+        "Who may be told is yours to set, and the setting starts at your friends rather than at everybody. Somebody who has asked to be your friend and is waiting for an answer is not yet a friend and is told nothing: a request is not a way to watch when you are at your desk while you decide.",
+        "When somebody asks which of a list of people are here, the answer names only the ones who are here and who let them know. Nobody is ever reported as being away, so somebody who is out and somebody who chose not to say look exactly alike.",
       ],
     },
     {
@@ -220,18 +263,17 @@ const PRIVACY = {
     },
     {
       heading: "Who else sees any of it",
-      paras: ["Three companies, all of them in the way of the page rather than interested in it."],
+      paras: ["Two companies, both of them in the way of the page rather than interested in it."],
       list: [
         "Cloudflare runs the game server and posts the two letters. Everything the server keeps sits on their network, which spans countries outside Canada.",
         "GitHub serves the app itself, through GitHub Pages, and their servers see the request that fetches it.",
-        "Google Fonts serves five typefaces. Fetching them tells Google the address the request came from, the same way a font served from anywhere else would.",
-        "Nobody else. There is no fourth party, and no arrangement with one.",
+        "Nobody else. Every typeface is served from Joseki itself rather than from a font CDN, so opening a page here tells no third party that you did. There is no third party, and no arrangement with one.",
       ],
     },
     {
       heading: "Leaving",
       paras: [
-        "There is a way out that needs nobody's permission. Leaving removes your account, your sessions, your address, your picture, your ladder seat, and the record of the address you registered from.",
+        "There is a way out that needs nobody's permission. Leaving removes your account, your sessions, your address, your picture, your ladder seat, your friends list, your letters on both sides, and the record of the address you registered from. Your handle is taken off the lists of everybody who had you on theirs, in the same breath, because a friendship is two records and deleting one of them would leave the other holding a name that answers nothing.",
         "One thing survives, and it should be said plainly: a finished game stays in the room it was played in, under the handle you played it under. It is your opponent's game as much as yours, and taking it away would take away theirs.",
         `To ask for a copy of what is held about you, to correct it, or to have something removed that leaving does not reach, write to ${CONTACT} and a person will do it by hand. There is no export button, and saying otherwise would be the easy sentence to write and the false one.`,
       ],
@@ -292,4 +334,39 @@ export const DOCUMENTS = [TERMS, PRIVACY, NOTICES];
  *  a blank page. */
 export function documentById(id) {
   return DOCUMENTS.find(d => d.id === id) ?? DOCUMENTS[0];
+}
+
+/* ----------------------- THE FINGERPRINT -----------------------
+   Every word a reader reads, in the order they read it, as one string. Titles,
+   blurbs, headings, paragraphs and the credit rows: a credit that changed is
+   a document that changed, so the rows are in. What is deliberately out is the
+   revision itself: the date is what the stamp exists to protect, and a stamp
+   that covered its own date would change every time the date moved and so
+   could never disagree with it. */
+export function documentText() {
+  const parts = [];
+  for (const doc of DOCUMENTS) {
+    parts.push(doc.id, doc.title, doc.blurb ?? "");
+    for (const group of doc.credits ?? []) {
+      parts.push(group.title, group.note);
+      for (const item of group.items) parts.push(item.what, item.who, item.terms);
+    }
+    for (const section of doc.sections) {
+      /* The bullets are in, and for a while they were not. Every sentence
+         naming something the server keeps about a person lives in a `list`
+         rather than in `paras` -- the whole of "What the server keeps" is
+         bullets -- so a stamp over the paragraphs alone protected the prose
+         around the disclosure and not the disclosure itself. Two collections
+         were added under that gap without the stamp moving once. */
+      parts.push(section.heading, ...section.paras, ...(section.list ?? []));
+    }
+  }
+  return parts.join("\n");
+}
+
+/** The fingerprint of the prose as it stands, as eight hex digits. Not a
+ *  security hash and not asked to be one: it is here to catch a person, not an
+ *  attacker, and a person cannot edit a paragraph without moving it. */
+export function documentStamp() {
+  return hashString(documentText()).toString(16).padStart(8, "0");
 }

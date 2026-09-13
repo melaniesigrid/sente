@@ -36,6 +36,19 @@ export function loadSession({ storage, today = dayKey(), personas = PERSONAS, pr
     // A duel is never coached: it is one shared, comparable result for everyone.
     return { record: saved.record, mode, opponent: `${mode.persona.name} · daily duel` };
   }
+  /* A pair table resumes as four seats. Only the opponent persona and the two
+     ranks are stored; the roster itself is rebuilt from them, so a partner is
+     never resurrected from a blob that might disagree with today's personas. */
+  if (saved.mode.kind === "pair") {
+    const persona = personaById(saved.mode.personaId);
+    if (!persona || !saved.mode.partnerRank) { clearGame(storage); return null; }
+    const rank = saved.mode.rank ?? (profile ? rankOf(profile.rating) : undefined);
+    return {
+      record: saved.record,
+      mode: { kind: "pair", persona, rank, partnerRank: saved.mode.partnerRank },
+      opponent: `${persona.name} · pair go`,
+    };
+  }
   if (saved.mode.kind === "local") {
     return { record: saved.record, mode: { kind: "local" }, opponent: "Pass & play" };
   }

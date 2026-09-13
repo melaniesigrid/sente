@@ -7,9 +7,16 @@
    `komi` is null until the player touches it, meaning "whatever this table is
    owed" - the engine's default for the ruleset, board and handicap. Setting it
    is a deliberate act and survives a change of board or ruleset, because a
-   player who has chosen 4.5 has chosen it for a reason. */
+   player who has chosen 4.5 has chosen it for a reason.
+
+   `rank` is null on the same terms, and means "my level, whatever it is now".
+   A remembered rank would otherwise freeze a player at the strength they were
+   the first time they touched the stepper, and a rating that moves is the
+   whole point of having one. Step it and the choice is kept, because a player
+   who has asked for 5k has asked for it on purpose. */
 import { SIZES, isRulesId, DEFAULT_RULES } from "../engine/index.js";
 import { CLOCK_PRESETS } from "../content/clockFace.js";
+import { RANK_LADDER } from "../content/rank.js";
 
 export const LOBBY_KEY = "sente-lobby";
 export const HANDICAPS = [0, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -17,7 +24,7 @@ export const HANDICAPS = [0, 2, 3, 4, 5, 6, 7, 8, 9];
  *  New Zealand rules use, where a drawn game is allowed. */
 export const KOMI_STEPS = Array.from({ length: 20 }, (_, i) => i / 2);
 export const defaultLobby = {
-  rules: DEFAULT_RULES, size: 19, handicap: 0, komi: null, clock: "none",
+  rules: DEFAULT_RULES, size: 19, handicap: 0, komi: null, clock: "none", rank: null,
 };
 
 const defaultStorage = () => {
@@ -33,6 +40,7 @@ export function sanitizeLobby(raw) {
   if (CLOCK_PRESETS.some((p) => p.id === raw.clock)) out.clock = raw.clock;
   if (isRulesId(raw.rules)) out.rules = raw.rules;
   if (KOMI_STEPS.includes(raw.komi)) out.komi = raw.komi;
+  if (RANK_LADDER.includes(raw.rank)) out.rank = raw.rank;
   return out;
 }
 

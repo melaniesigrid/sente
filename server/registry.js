@@ -6,12 +6,19 @@
      profiles     what a player says about themselves, on the player record;
                   the picture is `avatar:<id>`, apart so that listing players
                   for the ladder does not drag every picture into memory
+     friends      `friends:<playerId>` three lists of ids: settled friendships,
+                  requests sent and requests received. Every edge is written on
+                  both players' books, so reading your own friends is one key
+                  and never a walk over everybody
      game lists   `games:<playerId>` recent games for the lobby's "your tables"
      matchmaking  `seek:<playerId>` open seeks; lobby sockets are hibernated and
                   tagged with the player id so a match can be pushed to them
      the ladder   a sort over the players, cached for a minute
+     the tally    `day:<date>` the day being counted, `stats:day:<date>` the
+                  days already sealed; six integers each and no identifier,
+                  so publishing the whole series gives nothing away
 
-   A handle can be claimed with nothing but a name — sitting down to play has
+   A handle can be claimed with nothing but a name: sitting down to play has
    never needed an account, and still does not. Such a handle lives in one
    browser: the bearer token is all there is, stored hashed, and losing it means
    claiming a new one.
@@ -27,15 +34,31 @@
 import { DurableObject } from "cloudflare:workers";
 import { newRating, rateGame, migrateRating } from "./rating.js";
 import { randomHex, sha256, cleanName, cleanTint, sameDigest } from "./http.js";
+import { DEFAULT_PARTNER_RANK } from "../src/engine/rengo.js";
+import { fillRengoTable, rengoProgress, teamOf } from "./seating.js";
 import { cleanKey, publicPlayer, hasPlayed, reseeded } from "./players.js";
 import { cleanEmail, cleanKey as cleanDerivedKey, privateFields, KDF } from "./accounts.js";
 import { cleanBio, cleanFacts, avatarProblem, profileOf } from "./profile.js";
+import { readBook, standing, ask, accept, forget, forgetting, everyoneWhoKnows,
+  ASK_LIMIT, ASK_WINDOW_MS } from "./friends.js";
+import { cleanShowOnline, whoIsHere } from "./presence.js";
+import { archivePrefix, archiveKey, pageSize, cursorFor, page as archivePage,
+  archived, playersOf } from "./archive.js";
+import { readFeatured, pin as pinPure, unpin as unpinPure, featuredWith } from "./featured.js";
+import { threadKey, cleanLetter, readThread, withLetter, mayWrite, threadSummary,
+  byRecent, readBlocked, block as blockPure, unblock as unblockPure,
+  POST_LIMIT, POST_WINDOW_MS } from "./post.js";
 import { hit, refund, REGISTER_LIMIT, REGISTER_WINDOW_MS, SIGNIN_LIMIT, SIGNIN_WINDOW_MS,
   FORGOT_LIMIT, FORGOT_WINDOW_MS, VERIFY_LIMIT, VERIFY_WINDOW_MS } from "./ratelimit.js";
 import { VERIFY_TTL_MS, RESET_TTL_MS } from "./mail.js";
 import { SIZES } from "./room.js";
+import { dayOf, dayBefore, emptyDay, counted, raised, isFinish, sealed, stale,
+  clampDays, recent, nextSeal, RETAIN_DAYS } from "./rollup.js";
 
 const KEEP_GAMES = 24;
+/* Storage lists cap at a thousand keys a page, so anything counting every
+   player has to ask for the next page rather than trust the first. */
+const PAGE = 1000;
 /* How many devices one account may stay signed in on. Past this the oldest
    session is forgotten, which is what a person who never signs out wants. */
 const SESSION_KEEP = 12;
@@ -54,10 +77,18 @@ export class Registry extends DurableObject {
   constructor(ctx, env) {
     super(ctx, env);
     this.ladderCache = null;
+    this.historyCache = null;
     // Storage is migrated once, before the first request is answered. Blocking
     // the object's concurrency here is the point: no handler can read a player
     // on the old scale, and a cold start cannot race a second migration.
-    ctx.blockConcurrencyWhile(async () => { await this.#migrate(); });
+    // The seal is armed in the same breath, and deliberately not from inside
+    // `#migrate`: that returns at its first line for an object already at
+    // SCHEMA, which every live object is, so an arm placed there would be code
+    // that never runs again.
+    ctx.blockConcurrencyWhile(async () => {
+      await this.#migrate();
+      await this.#armSeal();
+    });
   }
 
   /** Bring stored records up to SCHEMA. Runs once per object, at wake-up. */
@@ -115,6 +146,9 @@ export class Registry extends DurableObject {
     };
     player.sessions = [player.tokenHash];
     await this.ctx.storage.put({ [`player:${id}`]: player, [`tok:${player.tokenHash}`]: id });
+    // Counted here and only here. `signUp` claims a handle by calling this, so
+    // counting there as well would make every signup arrive twice.
+    await this.#note("newAccounts");
     return { token, player: this.#self(player) };
   }
 
@@ -217,7 +251,7 @@ export class Registry extends DurableObject {
      Verifying an address and getting back in after forgetting a password are
      the same mechanism seen from two sides: mint a single-use token, mail the
      person a link carrying it, and act when the link comes back. The token is
-     stored the way a session token is — hashed, never in the clear — so the
+     stored the way a session token is (hashed, never in the clear) so the
      store cannot be read for a way into somebody's account.
 
      One token of each kind per player at a time. Minting a second forgets the
@@ -228,7 +262,7 @@ export class Registry extends DurableObject {
      WHY A RESET ENDS EVERY OTHER SESSION AND A PASSWORD CHANGE DOES NOT
      Changing a password requires the old one, so the account was never out of
      its owner's hands and the devices already signed in are theirs. A reset
-     requires no such proof — only the mailbox — and the usual reason to want
+     requires no such proof (only the mailbox) and the usual reason to want
      one is that a device or a password is somewhere it should not be. So a
      reset signs out everything and hands back one fresh session for the
      browser that did it. */
@@ -244,7 +278,7 @@ export class Registry extends DurableObject {
   }
 
   /** Mint a link token for a player, forgetting any earlier one of its kind.
-   *  Returns what the router needs to write the letter — never stored. */
+   *  Returns what the router needs to write the letter; never stored. */
   async #mintMail(p, kind, ttlMs) {
     const token = randomHex(32);
     const hash = await sha256(token);
@@ -261,8 +295,8 @@ export class Registry extends DurableObject {
   }
 
   /** Look a link token up without spending it. Throws the same `bad-token` for
-   *  every way of being wrong — unknown, wrong kind, or for an address the
-   *  account no longer has — so the endpoint cannot be used to sort guesses. */
+   *  every way of being wrong (unknown, wrong kind, or for an address the
+   *  account no longer has) so the endpoint cannot be used to sort guesses. */
   async #findMail(token, kind) {
     if (typeof token !== "string" || token.length !== 64) throw new Error("bad-token");
     const hash = await sha256(token);
@@ -315,7 +349,7 @@ export class Registry extends DurableObject {
   }
 
   /** Ask for a way back in. Returns what to mail, or null when there is
-   *  nothing at that address — and the router answers the same either way, so
+   *  nothing at that address, and the router answers the same either way, so
    *  this endpoint cannot be asked whether somebody has an account here. The
    *  budget is spent on the address as well as on the caller, so it also
    *  cannot be used to fill one person's inbox. */
@@ -333,8 +367,8 @@ export class Registry extends DurableObject {
   /** What the reset page needs before it can ask for a new password: the
    *  address, because the browser salts its key derivation with it and cannot
    *  derive without it. Telling the holder of the token the address it was
-   *  mailed to gives away nothing — that token is already a way into the
-   *  account — and the alternative is putting the address in the link, where
+   *  mailed to gives away nothing (that token is already a way into the
+   *  account) and the alternative is putting the address in the link, where
    *  browser history and referrers would carry it further. */
   async resetTarget(token) {
     const { p } = await this.#findMail(token, "reset");
@@ -382,7 +416,17 @@ export class Registry extends DurableObject {
   /** The owner's own view of themselves: everything public, plus the few
    *  things only they may see. */
   #self(p) {
-    return { ...profileOf(p, publicPlayer(p)), ...privateFields(p) };
+    /* The owner sees their pins as they are stored: ids and the lines they
+       wrote. The joined rows are for a stranger's view of the page, and this
+       caller already has the archive those rows came from. */
+    return {
+      ...profileOf(p, publicPlayer(p)), ...privateFields(p),
+      featured: readFeatured(p.featured),
+      /* On the owner's view and nowhere else. A public page that carried this
+         would tell somebody they had been blocked, which is the one thing
+         blocking chose not to say. */
+      blocked: readBlocked(p.blocked),
+    };
   }
 
   async self(id) {
@@ -435,9 +479,14 @@ export class Registry extends DurableObject {
   async remove(id) {
     const p = await this.ctx.storage.get(`player:${id}`);
     if (!p) return false;
+    // Before this player's own book goes, everybody named in it is told.
+    await this.#unfriendEverybody(id);
+    await this.#forgetArchive(id);
+    await this.#forgetPost(id);
     const sessions = (p.sessions ?? [p.tokenHash]).filter(Boolean).map(h => `tok:${h}`);
     await this.ctx.storage.delete([
       `player:${id}`, `tok:${p.tokenHash}`, ...sessions, `games:${id}`, `seek:${id}`, `avatar:${id}`,
+      `friends:${id}`,
       ...(p.email ? [`email:${p.email}`] : []),
       ...Object.values(p.mail ?? {}).filter(Boolean).map(h => `mail:${h}`),
     ]);
@@ -467,6 +516,12 @@ export class Registry extends DurableObject {
       ...p,
       bio: patch.bio !== undefined ? cleanBio(patch.bio) : (p.bio ?? ""),
       facts: patch.facts !== undefined ? cleanFacts(patch.facts) : (p.facts ?? {}),
+      /* Who may see you are here. It lives on the profile because it is the
+         same kind of thing as the paragraph: a choice about what other people
+         are shown. It is never on `publicPlayer`, so nobody learns from the
+         ladder which of the three anybody picked. */
+      showOnline: patch.showOnline !== undefined
+        ? cleanShowOnline(patch.showOnline) : cleanShowOnline(p.showOnline),
       lastSeen: Date.now(),
     };
     await this.ctx.storage.put(`player:${id}`, next);
@@ -501,22 +556,353 @@ export class Registry extends DurableObject {
     return (await this.ctx.storage.get(`avatar:${id}`)) ?? null;
   }
 
-  /** A stranger's view of a player: the ladder's row plus what they chose to
-   *  say. This is the only route that serves one player to another. */
+  /** A stranger's view of a player: the ladder's row, what they chose to say,
+   *  and the few games they chose to show. This is the only route that serves
+   *  one player to another.
+   *
+   *  The pinned games are read here rather than stored on the record, so a page
+   *  can never show a game that has gone and the list heals itself by being
+   *  read. The rows come from this player's own archive, which is where the
+   *  right to show them comes from: you may pin a game you played. */
   async profile(id) {
     const p = await this.ctx.storage.get(`player:${id}`);
-    return p ? profileOf(p, publicPlayer(p)) : null;
+    if (!p) return null;
+    const pins = readFeatured(p.featured);
+    const rows = new Map();
+    if (pins.length) {
+      const got = await this.ctx.storage.get(pins.map((e) => `pin:${id}:${e.id}`));
+      for (const [key, value] of got) rows.set(key.slice(`pin:${id}:`.length), value);
+    }
+    return { ...profileOf(p, publicPlayer(p)), featured: featuredWith(pins, rows) };
+  }
+
+  /* ----- the games a player shows -----
+     A pin is an id and a line; the game itself stays in its room and in the
+     archive. Pinning copies nothing, so a pinned game can never drift out of
+     step with the real one, and the pin costs the same whatever the game was. */
+
+  /** The archive row for one of this player's own games, or null. This is the
+   *  check that a pin is a game they actually played: the row only exists
+   *  under their own prefix if they sat at that board. */
+  async #ownGame(id, gameId) {
+    const got = await this.ctx.storage.list({ prefix: archivePrefix(id) });
+    for (const [key, value] of got) if (value && value.id === gameId) return { key, value };
+    return null;
+  }
+
+  async pinGame(id, gameId, note) {
+    const p = await this.ctx.storage.get(`player:${id}`);
+    if (!p) throw new Error("no-player");
+    const own = await this.#ownGame(id, gameId);
+    if (!own) throw new Error("not-your-game");
+    const r = pinPure(readFeatured(p.featured), gameId, note, Date.now());
+    if (r.error) throw new Error(r.error);
+    /* The row is copied to a key the public profile can read in one batched
+       get. Without it, serving somebody's page would mean scanning their whole
+       archive to find three games, which is the one thing the archive's key
+       scheme exists to avoid. */
+    await this.ctx.storage.put({
+      [`player:${id}`]: { ...p, featured: r.list, lastSeen: Date.now() },
+      [`pin:${id}:${gameId}`]: own.value,
+    });
+    return this.#self({ ...p, featured: r.list });
+  }
+
+  async unpinGame(id, gameId) {
+    const p = await this.ctx.storage.get(`player:${id}`);
+    if (!p) throw new Error("no-player");
+    const r = unpinPure(readFeatured(p.featured), gameId);
+    await this.ctx.storage.put(`player:${id}`, { ...p, featured: r.list, lastSeen: Date.now() });
+    await this.ctx.storage.delete(`pin:${id}:${gameId}`);
+    return this.#self({ ...p, featured: r.list });
+  }
+
+  /* ----- friends ----- */
+
+  /** One player's book. Storage may hold nothing, or hold what an older version
+   *  of `friends.js` put there; `readBook` answers with an empty book either way. */
+  async #book(id) {
+    return readBook(await this.ctx.storage.get(`friends:${id}`));
+  }
+
+  /** Player records for a list of ids, read in chunks because storage takes a
+   *  bounded number of keys at a time. This is the reason an edge is written on
+   *  both books: the ids are already in hand, so showing a friends list is this
+   *  one batched read and never a walk over every player the way the ladder is. */
+  async #peopleByIds(ids) {
+    const found = new Map();
+    for (let i = 0; i < ids.length; i += 100) {
+      const got = await this.ctx.storage.get(ids.slice(i, i + 100).map((x) => `player:${x}`));
+      for (const [key, value] of got) found.set(key.slice("player:".length), value);
+    }
+    return found;
+  }
+
+  /** Run one of `friends.js`'s transitions and store both sides of it together.
+   *  Both books or neither: a single `put` of two keys, so there is no moment
+   *  at which one player holds an edge the other does not.
+   *
+   *  A transition that changed nothing hands back the books it was given, and
+   *  is recognised by identity rather than by comparing them, so asking twice
+   *  costs a read and no write at all. */
+  async #edge(meId, themId, run) {
+    if (!(await this.ctx.storage.get(`player:${themId}`))) throw new Error("no-player");
+    const mine = await this.#book(meId);
+    const theirs = await this.#book(themId);
+    const r = run(mine, theirs);
+    if (r.error) throw new Error(r.error);
+    if (r.mine !== mine || r.theirs !== theirs) {
+      await this.ctx.storage.put({ [`friends:${meId}`]: r.mine, [`friends:${themId}`]: r.theirs });
+    }
+    return { outcome: r.outcome, standing: standing(r.mine, themId) };
+  }
+
+  async askFriend(id, themId) {
+    /* Spent before the ask is looked at, so a script working down the ladder
+       pays for every attempt and not only for the ones that land. */
+    await this.#spend(`rate:ask:${id}`, ASK_LIMIT, ASK_WINDOW_MS, "too-many-requests");
+    return this.#edge(id, themId, (mine, theirs) => ask(mine, theirs, id, themId, Date.now()));
+  }
+
+  async acceptFriend(id, themId) {
+    return this.#edge(id, themId, (mine, theirs) => accept(mine, theirs, id, themId, Date.now()));
+  }
+
+  async forgetFriend(id, themId) {
+    return this.#edge(id, themId, (mine, theirs) => forget(mine, theirs, id, themId));
+  }
+
+  /** The three lists, each filled out with the public row for the person on it.
+   *  Somebody who has left the ladder since is dropped rather than shown as a
+   *  name that answers nothing, which also means a book heals itself by being read. */
+  async friendsOf(id) {
+    const book = await this.#book(id);
+    const people = await this.#peopleByIds(everyoneWhoKnows(book));
+    const fill = (list) => list
+      .map((e) => {
+        const p = people.get(e.id);
+        return p ? { ...publicPlayer(p), at: e.at } : null;
+      })
+      .filter(Boolean);
+    return { friends: fill(book.friends), incoming: fill(book.incoming), outgoing: fill(book.outgoing) };
+  }
+
+  /** Everybody who knew this player, told that they are gone. `DELETE /api/me`
+   *  says nothing is left behind, and a friendship is two records: deleting only
+   *  this player's would leave everybody else holding a name that answers nothing. */
+  async #unfriendEverybody(id) {
+    const mine = await this.#book(id);
+    const others = everyoneWhoKnows(mine);
+    for (let i = 0; i < others.length; i += 100) {
+      const chunk = others.slice(i, i + 100);
+      const got = await this.ctx.storage.get(chunk.map((x) => `friends:${x}`));
+      const next = {};
+      for (const otherId of chunk) {
+        next[`friends:${otherId}`] = forgetting(readBook(got.get(`friends:${otherId}`)), id);
+      }
+      await this.ctx.storage.put(next);
+    }
+  }
+
+  /** One page of a player's finished games, newest first. Storage does the
+   *  ordering (the stamp is in the key) and the paging, so this reads exactly
+   *  the page asked for and never the rest of the archive.
+   *
+   *  A cursor is the key of the last row of the previous page, checked against
+   *  this player's own prefix on the way in so an invented one cannot page
+   *  somebody else's games. */
+  async archiveOf(id, rawCursor, rawLimit) {
+    const limit = pageSize(rawLimit);
+    const after = cursorFor(id, rawCursor);
+    /* `end`, not `startAfter`. Storage bounds a list lexicographically and
+       `reverse` only flips the order it hands the range back in, so paging
+       downwards through a descending list is an exclusive upper bound. With
+       `startAfter` the second page comes back holding everything NEWER than
+       the cursor, which is the page just read. */
+    const got = await this.ctx.storage.list({
+      prefix: archivePrefix(id),
+      reverse: true,
+      limit,
+      ...(after ? { end: after } : {}),
+    });
+    return archivePage([...got].map(([key, value]) => ({ key, value })), limit);
+  }
+
+  /** Every archive key this player has, in pages, so leaving can delete them
+   *  without holding the whole archive of a prolific player in memory. */
+  async #forgetArchive(id) {
+    // The pinned copies go with it: they are rows of the same games, kept
+    // under their own prefix only so a public page can read three of them
+    // without scanning a whole archive.
+    for (const prefix of [archivePrefix(id), `pin:${id}:`]) {
+      for (;;) {
+        const got = await this.ctx.storage.list({ prefix, limit: PAGE });
+        if (got.size === 0) break;
+        await this.ctx.storage.delete([...got.keys()]);
+        if (got.size < PAGE) break;
+      }
+    }
+  }
+
+  /* ----- the post -----
+     One thread per pair, under `post:<sorted pair>`, so either of them reads
+     and writes the same key. `mail:<player>:<other>` is that player's index of
+     who they have a thread with, which is what makes "my letters" one list
+     read rather than a walk over every thread on the server. */
+
+  /** Have these two finished a game together? Answered out of the smaller of
+   *  the two archives rather than by keeping a third record of who has met
+   *  whom: a list of everybody you have ever played is exactly the data this
+   *  feature exists to avoid needing. */
+  async #havePlayed(a, b) {
+    const rows = await this.ctx.storage.list({ prefix: archivePrefix(a) });
+    for (const [, game] of rows) {
+      for (const side of ["b", "w"]) {
+        const seats = (game.teams && game.teams[side]) || [side === "b" ? game.black : game.white];
+        if ((seats || []).some((p) => p && p.id === b)) return true;
+      }
+    }
+    return false;
+  }
+
+  async #mayWrite(fromId, toId) {
+    const to = await this.ctx.storage.get(`player:${toId}`);
+    if (!to) return "no-player";
+    const blocked = readBlocked(to.blocked).includes(fromId);
+    const book = await this.#book(fromId);
+    const friends = book.friends.some((e) => e.id === toId);
+    const played = friends ? false : await this.#havePlayed(fromId, toId);
+    return mayWrite({ from: fromId, to: toId, friends, played, blocked });
+  }
+
+  /** Whether this player could write to that one, so a page can offer the box
+   *  or say plainly why it is not offering it. */
+  async canWrite(fromId, toId) {
+    const why = await this.#mayWrite(fromId, toId);
+    /* A blocked writer is told "not met", not "blocked". Blocking is silent:
+       saying so would turn it into a message, which is the one thing the
+       person who blocked chose not to send. */
+    return { can: why === null, why: why === "blocked" ? "not-met" : why };
+  }
+
+  async writeLetter(fromId, toId, rawText) {
+    const why = await this.#mayWrite(fromId, toId);
+    /* A blocked writer is refused with the words a stranger gets. Blocking is
+       silent, and an error that said "blocked" would be a message — the one
+       message the person who blocked chose not to send. `canWrite` folds it
+       the same way; doing it in one place and not the other is exactly the
+       hole `tools/server/post.mjs` was written to find, and did. */
+    if (why) throw new Error(why === "blocked" ? "not-met" : why);
+    const text = cleanLetter(rawText);
+    if (!text) throw new Error("empty-letter");
+    await this.#spend(`rate:post:${fromId}`, POST_LIMIT, POST_WINDOW_MS, "too-many-letters-sent");
+    const key = `post:${threadKey(fromId, toId)}`;
+    const thread = withLetter(readThread(await this.ctx.storage.get(key)), fromId, text, Date.now());
+    const at = thread[thread.length - 1].at;
+    await this.ctx.storage.put({
+      [key]: thread,
+      [`mail:${fromId}:${toId}`]: at,
+      [`mail:${toId}:${fromId}`]: at,
+    });
+    return { thread, with: toId };
+  }
+
+  /** One thread, and nothing at all for a pair with no thread. Reading is not
+   *  gated on `mayWrite`: somebody who blocks a person keeps the letters that
+   *  person already sent, and somebody who has stopped being a friend does not
+   *  lose the conversation they had. */
+  async threadWith(meId, otherId) {
+    const thread = readThread(await this.ctx.storage.get(`post:${threadKey(meId, otherId)}`));
+    return { thread, with: otherId, ...(await this.canWrite(meId, otherId)) };
+  }
+
+  /** Every thread this player has, newest conversation first, each with the
+   *  person it is with. One list read plus one batched get of the people. */
+  async lettersOf(meId) {
+    const index = await this.ctx.storage.list({ prefix: `mail:${meId}:` });
+    const ids = [...index.keys()].map((k) => k.slice(`mail:${meId}:`.length));
+    if (!ids.length) return [];
+    const people = await this.#peopleByIds(ids);
+    const rows = [];
+    for (const otherId of ids) {
+      const person = people.get(otherId);
+      if (!person) continue;            // they left; the index heals by being read
+      const thread = readThread(await this.ctx.storage.get(`post:${threadKey(meId, otherId)}`));
+      const summary = threadSummary(thread, meId);
+      if (summary) rows.push({ ...summary, player: publicPlayer(person) });
+    }
+    return byRecent(rows);
+  }
+
+  async setBlocked(meId, otherId, on) {
+    const p = await this.ctx.storage.get(`player:${meId}`);
+    if (!p) throw new Error("no-player");
+    const list = readBlocked(p.blocked);
+    const next = on ? blockPure(list, otherId) : unblockPure(list, otherId);
+    await this.ctx.storage.put(`player:${meId}`, { ...p, blocked: next, lastSeen: Date.now() });
+    return { blocked: next };
+  }
+
+  /** Every letter this player was part of, gone, from both sides. A thread is
+   *  two people's, but unlike a game it is not a record of something that
+   *  happened at a board: it is correspondence, and the notice says leaving
+   *  takes it. */
+  async #forgetPost(id) {
+    const index = await this.ctx.storage.list({ prefix: `mail:${id}:` });
+    const others = [...index.keys()].map((k) => k.slice(`mail:${id}:`.length));
+    const gone = [...index.keys()];
+    for (const other of others) {
+      gone.push(`post:${threadKey(id, other)}`, `mail:${other}:${id}`);
+    }
+    for (let i = 0; i < gone.length; i += 100) {
+      await this.ctx.storage.delete(gone.slice(i, i + 100));
+    }
+  }
+
+  /* ----- presence ----- */
+
+  /** Of these people, the ones this viewer may be told are here, and who are.
+   *
+   *  Nothing is read or written about presence: being here is a live lobby
+   *  socket, and `getWebSockets(id)` is a question about memory. That is what
+   *  lets the privacy notice go on saying Joseki has never counted a visit —
+   *  arriving writes nothing, and leaving writes nothing.
+   *
+   *  Who counts as a friend is read from the viewer's own book, which is one
+   *  key, so the whole answer costs that plus the player records asked about. */
+  async presenceOf(viewerId, ids) {
+    if (!ids.length) return [];
+    const people = [...(await this.#peopleByIds(ids)).values()];
+    const friends = viewerId
+      ? new Set((await this.#book(viewerId)).friends.map((e) => e.id))
+      : new Set();
+    return whoIsHere(people, viewerId, friends, (id) => this.ctx.getWebSockets(id).length > 0);
   }
 
   /* ----- games ----- */
 
   /** Rooms call this when a game is made and when it ends, so the lobby list is current. */
   async noteGame(summary) {
+    // One call, two events, told apart by the `endedAt` the room sets at the
+    // move that finishes the game. Counting both as the same thing would
+    // double every game.
+    const finished = isFinish(summary);
+    await this.#note(finished ? "gamesFinished" : "gamesStarted");
     for (const id of [summary.black.id, summary.white.id]) {
       const key = `games:${id}`;
       const list = (await this.ctx.storage.get(key)) || [];
       const rest = list.filter(g => g.id !== summary.id);
       await this.ctx.storage.put(key, [summary, ...rest].slice(0, KEEP_GAMES));
+    }
+    /* The list above is the lobby's, and stays capped: it answers "what am I
+       in the middle of". The archive is the other question, and it is kept for
+       good, one key a game, for everybody who sat at the board — which is four
+       people at a pair table and not the two lead seats. */
+    if (finished) {
+      const row = archived(summary);
+      const keys = {};
+      for (const id of playersOf(summary)) keys[archiveKey(id, summary.endedAt, summary.id)] = row;
+      await this.ctx.storage.put(keys);
     }
   }
 
@@ -583,9 +969,104 @@ export class Registry extends DurableObject {
   }
 
   async stats() {
-    const players = await this.ctx.storage.list({ prefix: "player:" });
     const seeks = await this.ctx.storage.list({ prefix: "seek:" });
-    return { players: players.size, online: this.ctx.getWebSockets().length, seeking: seeks.size };
+    return { players: await this.#countPlayers(), online: this.ctx.getWebSockets().length, seeking: seeks.size };
+  }
+
+  /** Every player, counted a page at a time. A single `list` stops at a
+   *  thousand keys and says nothing about it, so counting that way would have
+   *  the number quietly stop rising on the day it mattered. */
+  async #countPlayers() {
+    let n = 0;
+    let startAfter;
+    for (;;) {
+      const page = await this.ctx.storage.list({ prefix: "player:", limit: PAGE, ...(startAfter ? { startAfter } : {}) });
+      if (page.size === 0) break;
+      n += page.size;
+      if (page.size < PAGE) break;
+      startAfter = [...page.keys()].pop();
+    }
+    return n;
+  }
+
+  /* ----- the daily tally -----
+     How many people are here and how much go gets played, one row a day.
+     Nothing in here is a page view and nothing in here names a person, which
+     is what lets the privacy notice keep saying Joseki has never counted a
+     visit. What is counted, and why each of these is not a visit, is argued
+     in `server/rollup.js`. */
+
+  /** Add to today's row. Written straight to storage rather than held in
+   *  memory: a Durable Object is evicted after a short idle spell, and at this
+   *  traffic that is the ordinary case rather than the edge. An in-memory
+   *  counter would be gone by the time the seal woke a fresh instance, and
+   *  every row would read zero no matter what happened that day. */
+  async #note(field, n = 1) {
+    const key = `day:${dayOf(Date.now())}`;
+    const day = (await this.ctx.storage.get(key)) ?? emptyDay();
+    await this.ctx.storage.put(key, counted(day, field, n));
+  }
+
+  /** Sample how many are in the lobby at once. Taken when a socket opens and
+   *  not when one closes, because a close can only lower a number that only
+   *  ever rises. */
+  async #notePeak() {
+    const online = this.ctx.getWebSockets().length;
+    const key = `day:${dayOf(Date.now())}`;
+    const day = (await this.ctx.storage.get(key)) ?? emptyDay();
+    if (online > (day.peakOnline ?? 0)) await this.ctx.storage.put(key, raised(day, online));
+  }
+
+  /** A Durable Object has exactly one alarm and `setAlarm` overwrites it, so
+   *  anything else that ever wants to wake this object has to come through
+   *  here or it will cancel the seal without a word. Not worth a scheduler
+   *  until something actually competes for it; worth this comment now. */
+  async #armSeal() {
+    if ((await this.ctx.storage.getAlarm()) === null) {
+      await this.ctx.storage.setAlarm(nextSeal(Date.now()));
+    }
+  }
+
+  async alarm() {
+    // Re-arm whatever happened. An alarm that throws is retried by the
+    // platform, but one that fails quietly and never re-arms stops the clock
+    // for good, and losing a day's row is a far smaller thing than losing
+    // every day after it.
+    try {
+      await this.#seal(Date.now());
+    } catch (e) {
+      console.error("seal failed", e);
+    }
+    await this.ctx.storage.setAlarm(nextSeal(Date.now()));
+  }
+
+  /** Close yesterday and drop whatever has aged out. Yesterday and not today:
+   *  the seal wakes a few minutes after midnight, and anything counted in
+   *  those minutes belongs to the day that just started. */
+  async #seal(nowMs) {
+    const today = dayOf(nowMs);
+    const date = dayBefore(today);
+    const key = `day:${date}`;
+    const working = await this.ctx.storage.get(key);
+    // A day the object slept through has no working row and seals as zeros,
+    // so a quiet day is a flat line rather than a hole in the series.
+    await this.ctx.storage.put(`stats:day:${date}`, sealed(working ?? emptyDay(), date, await this.#countPlayers()));
+    if (working) await this.ctx.storage.delete(key);
+    const kept = await this.ctx.storage.list({ prefix: "stats:day:" });
+    const gone = stale([...kept.keys()].map(k => k.slice("stats:day:".length)), today, RETAIN_DAYS);
+    if (gone.length) await this.ctx.storage.delete(gone.map(d => `stats:day:${d}`));
+    this.historyCache = null;
+  }
+
+  /** The sealed days, oldest first. Read once per waking and kept in memory:
+   *  the rows never change after they are written, and the only thing that
+   *  adds or removes one is the seal, which drops the cache itself. */
+  async history(days) {
+    if (!this.historyCache) {
+      const rows = await this.ctx.storage.list({ prefix: "stats:day:" });
+      this.historyCache = [...rows.values()];
+    }
+    return recent(this.historyCache, clampDays(days), dayOf(Date.now()));
   }
 
   /* ----- lobby sockets and matchmaking -----
@@ -600,6 +1081,7 @@ export class Registry extends DurableObject {
     server.serializeAttachment({ id: player.id });
     // A player has one lobby seat: newer tabs replace older ones quietly.
     for (const ws of this.ctx.getWebSockets(player.id)) if (ws !== server) ws.close(4000, "replaced");
+    await this.#notePeak();
     await this.broadcastLobby();
     return new Response(null, { status: 101, webSocket: client });
   }
@@ -611,7 +1093,14 @@ export class Registry extends DurableObject {
     if (msg.t === "seek") {
       const size = SIZES.includes(msg.size) ? msg.size : 9;
       const rated = msg.rated !== false;
-      await this.seek(id, size, rated, cleanKey(msg.key));
+      /* A pair seek names the partner rank it wants. A pair table is never rated,
+         so the flag is forced here rather than trusted from the frame. */
+      const pair = msg.pair && typeof msg.pair.rank === "string" ? { rank: msg.pair.rank.slice(0, 3) } : null;
+      const rengo = msg.rengo === true;
+      // A team is a number from the client, so it is read through the same helper
+      // the matching uses rather than trusted to be 1 or 2.
+      const team = rengo ? teamOf(msg) : null;
+      await this.seek(id, size, pair || rengo ? false : rated, cleanKey(msg.key), pair, rengo, team);
     } else if (msg.t === "cancel") {
       await this.ctx.storage.delete(`seek:${id}`);
       send(ws, { t: "seek", status: "idle" });
@@ -634,19 +1123,26 @@ export class Registry extends DurableObject {
   /** Look for an opponent, or wait to be found. `key` is an optional rendezvous
    *  word: seeks carrying one match only each other, so two people who agree on a
    *  word meet however busy the lobby is, and an open seek never swallows them. */
-  async seek(id, size, rated, key = null) {
+  async seek(id, size, rated, key = null, pair = null, rengo = false, rengoTeam = null) {
     const me = await this.ctx.storage.get(`player:${id}`);
     if (!me) return;
+    /* A pair seek only ever meets another pair seek. Sitting down expecting a
+       partner and getting an ordinary game (or the reverse) is not a near miss,
+       it is a different game, so the queues never see each other. A rengo seek
+       is a third queue for the same reason: it is waiting for three people. */
+    const want = rengo ? null : pair ? { rank: pair.rank } : null;
     const seeks = await this.ctx.storage.list({ prefix: "seek:" });
+    if (rengo) return this.#seekRengo(id, me, size, key, seeks, rengoTeam);
     let match = null;
     for (const [k, s] of seeks) {
       if (k === `seek:${id}`) continue;
       if ((s.key ?? null) !== key) continue;
+      if (!!s.pair !== !!want || s.rengo) continue;
       if (s.size === size && s.rated === rated && this.ctx.getWebSockets(s.id).length) { match = s; break; }
     }
     if (!match) {
-      await this.ctx.storage.put(`seek:${id}`, { id, size, rated, key, at: Date.now() });
-      this.tell(id, { t: "seek", status: "waiting", size, rated, key });
+      await this.ctx.storage.put(`seek:${id}`, { id, size, rated, key, pair: want, at: Date.now() });
+      this.tell(id, { t: "seek", status: "waiting", size, rated, key, pair: want });
       await this.broadcastLobby();
       return;
     }
@@ -657,9 +1153,88 @@ export class Registry extends DurableObject {
     const gameId = "g_" + randomHex(6);
     const seatOf = (p) => ({ id: p.id, name: p.name, tint: p.tint, rating: Math.round(p.rating), rd: Math.round(p.rd), avatarAt: p.avatarAt ?? null });
     const stub = this.env.ROOM.get(this.env.ROOM.idFromName(gameId));
-    await stub.create({ id: gameId, size, rated, black: seatOf(opp), white: seatOf(me) });
-    this.tell(match.id, { t: "matched", gameId, color: "b", opponent: seatOf(me), size });
-    this.tell(id, { t: "matched", gameId, color: "w", opponent: seatOf(opp), size });
+    /* A pair table seats two house players as well, one to a team, both at the
+       same rank - a stronger partner on one side is a handicap nobody agreed to.
+       Each is run by the browser of the person it is partnering, so the server
+       never has to think about a network it does not host. The waiting player's
+       seek settles the rank: they asked first. */
+    const partners = want || match.pair
+      ? partnerSeats(match.pair ?? want, { black: opp, white: me })
+      : null;
+    await stub.create({
+      id: gameId, size, rated, black: seatOf(opp), white: seatOf(me),
+      ...(partners ?? {}),
+    });
+    const extra = partners ? { pair: true, partnerRank: (match.pair ?? want).rank } : {};
+    this.tell(match.id, { t: "matched", gameId, color: "b", opponent: seatOf(me), size, ...extra });
+    this.tell(id, { t: "matched", gameId, color: "w", opponent: seatOf(opp), size, ...extra });
+    await this.broadcastLobby();
+  }
+
+  /* Four people, no house players: rengo as it is actually played.
+     Seats go in arrival order - b1, w1, b2, w2 - so the first two to arrive lead
+     the two teams and the next two partner them in order. It is arbitrary, but it
+     is arbitrary in the open: everybody can see the rule, and nobody is quietly
+     put on the stronger side.
+
+     Still unrated. Four humans could carry a team rating one day, but a team
+     rating is a different number with a different meaning and it is not being
+     smuggled in under the single-player one. */
+  async #seekRengo(id, me, size, key, seeks, team = null) {
+    const mine = { id, size, rated: false, key, rengo: true, at: Date.now(), ...(team ? { team } : {}) };
+    const waiting = [];
+    for (const [k, s] of seeks) {
+      if (k === `seek:${id}`) continue;
+      if ((s.key ?? null) !== key || !s.rengo || s.size !== size) continue;
+      if (this.ctx.getWebSockets(s.id).length) waiting.push(s);
+    }
+    const all = [...waiting, mine];
+    /* Who sits where is a matching problem - people may name a team - so it is
+       done by a pure function that a test can drive without a network. */
+    const table = fillRengoTable(all);
+    if (!table) {
+      await this.ctx.storage.put(`seek:${id}`, mine);
+      // Everybody still waiting is told how full the table is, including the newcomer,
+      // and told when four are present but the teams cannot be made up.
+      const progress = rengoProgress(all);
+      for (const s of all) {
+        this.tell(s.id, { t: "seek", status: "waiting", size, rated: false, key, rengo: true, ...progress });
+      }
+      await this.broadcastLobby();
+      return;
+    }
+    await this.ctx.storage.delete(table.order.map((s) => `seek:${s.id}`));
+    const people = [];
+    for (const s of table.order) {
+      const p = s.id === id ? me : await this.ctx.storage.get(`player:${s.id}`);
+      if (!p) return;                 // somebody left between the check and here
+      people.push(p);
+    }
+    const gameId = "g_" + randomHex(6);
+    const asSeat = (p) => ({ id: p.id, name: p.name, tint: p.tint, rating: Math.round(p.rating), rd: Math.round(p.rd), avatarAt: p.avatarAt ?? null });
+    const stub = this.env.ROOM.get(this.env.ROOM.idFromName(gameId));
+    const [b1, w1, b2, w2] = people;
+    await stub.create({
+      id: gameId, size, rated: false,
+      black: asSeat(b1), white: asSeat(w1),
+      blackPartner: asSeat(b2), whitePartner: asSeat(w2),
+    });
+    const seats = ["b1", "w1", "b2", "w2"];
+    people.forEach((p, i) => this.tell(p.id, {
+      t: "matched", gameId, size, seat: seats[i], color: seats[i][0], rengo: true,
+      partner: asSeat(people[i < 2 ? i + 2 : i - 2]),
+    }));
+    /* Somebody can be left over - three people wanted the same team and only two
+       of them could have it - and they are still waiting at a table that just
+       emptied. Tell them the new count rather than leaving a stale one on screen. */
+    const seatedIds = new Set(table.order.map((s) => s.id));
+    const left = all.filter((s) => !seatedIds.has(s.id));
+    if (left.length) {
+      const progress = rengoProgress(left);
+      for (const s of left) {
+        this.tell(s.id, { t: "seek", status: "waiting", size, rated: false, key, rengo: true, ...progress });
+      }
+    }
     await this.broadcastLobby();
   }
 
@@ -680,3 +1255,14 @@ function send(ws, frame) {
   try { ws.send(JSON.stringify(frame)); } catch { /* closed */ }
 }
 
+
+/** The two bot seats of a pair table: same rank on both sides, each run by the
+ *  browser of the person it partners. */
+function partnerSeats(want, { black, white }) {
+  const rank = want && typeof want.rank === "string" ? want.rank : DEFAULT_PARTNER_RANK;
+  const bot = (name, runBy) => ({ kind: "bot", id: `bot_${name.toLowerCase()}_${runBy}`, name, rank, tint: "grape", rating: null, rd: null, runBy });
+  return {
+    blackPartner: bot("Tatsuo", black.id),
+    whitePartner: bot("Kaede", white.id),
+  };
+}

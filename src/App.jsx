@@ -3,10 +3,10 @@ import { Swords, GraduationCap, Target, LayoutDashboard, Medal, ArrowRight, Pale
 import { sayingBySeed, localizeSaying } from "./content/classic.js";
 
 /* ================================================================
-   SENTE — play go, beautifully
+   SENTE · play go, beautifully
    Design system: Laska "stone" palette (DESIGN.md)
    The palette is themed from src/content/theme.js; the house room is the
-   reference — ground #e8e4db · highlight #fbf8f2 · shade #c4beb1 ·
+   reference: ground #e8e4db · highlight #fbf8f2 · shade #c4beb1 ·
    armies #f2ede3 / #4b463c · eucalyptus accent #5f8c7e
    Fraunces display · Hanken Grotesk body (the house pairing; the type is
    themed from src/content/typeface.js) · Lucide icons only
@@ -27,9 +27,9 @@ import { typefaceVars } from "./content/typeface.js";
 import { themeVars, resolveTheme } from "./theme/index.js";
 import { usePrefersDark } from "./components/prefersDark.js";
 import { LangProvider } from "./components/lang.jsx";
-import { LangMenu } from "./components/LangMenu.jsx";
+import { LangPill } from "./components/LangPill.jsx";
 import { useLang } from "./components/langStore.js";
-import { defaultProfile, loadProfile, needsOnboarding, saveProfile } from "./store/profile.js";
+import { defaultProfile, loadProfile, needsOnboarding } from "./store/profile.js";
 import { Home } from "./views/Home.jsx";
 import { Welcome } from "./views/Welcome.jsx";
 import { Landing } from "./views/Landing.jsx";
@@ -38,12 +38,14 @@ import { LearnView } from "./views/Learn.jsx";
 import { ProblemsView } from "./views/Problems.jsx";
 import { RecallView } from "./views/Recall.jsx";
 import { RankingsView } from "./views/Rankings.jsx";
+import { PlayerPage } from "./views/PlayerPage.jsx";
 import { ProfileView } from "./views/Profile.jsx";
 import { DojoView } from "./views/Dojo.jsx";
 import { LookView } from "./views/Look.jsx";
 import { MailLinkView } from "./views/MailLink.jsx";
 import { LegalView } from "./views/Legal.jsx";
-import { DOCUMENTS, COPYRIGHT } from "./content/legal.js";
+import { DOCUMENTS, COPYRIGHT_YEAR, STUDIO, STUDIO_URL } from "./content/legal.js";
+import { JournalView } from "./views/Journal.jsx";
 import { linkFromQuery, forgetLink } from "./views/letterLink.js";
 
 /* ----------------------- APP SHELL ----------------------- */
@@ -97,10 +99,11 @@ export default function JosekiApp() {
   }, []);
   // Derived, not stored: finishing the flow sets `onboarded` on the profile, which
   // flips this on its own. One source of truth, and no effect to keep in step. The
-  // front door and the small print are the two screens it does not cover: a visitor
-  // who wants to read the terms before giving a name is the visitor they are for.
+  // front door, the small print and the journal are the screens it does not
+  // cover: a visitor who wants to read the terms, or what we have been building,
+  // before giving a name is exactly the visitor they are for.
   const welcoming = profileRead && view !== "landing" && view !== "legal" && view !== "look"
-    && needsOnboarding(profile);
+    && view !== "journal" && needsOnboarding(profile);
 
   const notify = useCallback((t) => {
     setToast(t);
@@ -109,11 +112,6 @@ export default function JosekiApp() {
   }, []);
 
   const go = useCallback((v, p = null) => { setResume(null); setParams(p); setView(v); }, []);
-  /* The one preference the shell owns, because the control that sets it lives
-     in the shell. Everything else on the profile is set from a screen. */
-  const setLocale = useCallback((locale) => {
-    setProfile(p => { const np = { ...p, locale }; saveProfile(np); return np; });
-  }, []);
   const resumeGame = useCallback((session) => { setResume(session); setView("play"); }, []);
   const home = useCallback(() => go("home"), [go]);
   // Spent or abandoned, the token leaves the address bar either way.
@@ -127,21 +125,31 @@ export default function JosekiApp() {
       {view === null ? null : <>
       <header className={`topbar ${view === "landing" ? "slim" : ""}`}>
         {/* The primary lockup: the answer mark and the wordmark on one
-            baseline. The mark is the whole idea of the place — a move and
-            the reply it forces — so it leads the chrome on every screen. */}
+            baseline. The mark is the whole idea of the place (a move and
+            the reply it forces) so it leads the chrome on every screen. */}
         <Wordmark as="button" className="topbar-brand" onClick={() => setView("landing")}
           aria-label={t("brand.frontDoor")} />
         {view === "landing" ? (
-          <button className="lp-enter" onClick={() => go("home")}>
-            <span>{t(needsOnboarding(profile) ? "topbar.enter" : "topbar.yourBoard")}</span>
-            <ArrowRight size={16} strokeWidth={2.4} />
-          </button>
+          // The front door is the one screen a reader reaches before they have
+          // chosen anything, so it is the screen the language matters most on.
+          <div className="topbar-you">
+            <LangPill profile={profile} setProfile={setProfile} />
+            <button className="lp-enter" onClick={() => go("home")}>
+              <span>{t(needsOnboarding(profile) ? "topbar.enter" : "topbar.yourBoard")}</span>
+              <ArrowRight size={16} strokeWidth={2.4} />
+            </button>
+          </div>
         ) : (<>
         <nav className="nav" aria-label="Primary">
           {NAV.map(n => (
+            /* The label is the button's name as well as its text: below 760px the
+               stylesheet hides the span, and a hidden span is out of the
+               accessibility tree too, which left five icons announcing nothing
+               on the one device that shows only icons. */
             <button key={n.id}
               className={`nav-btn ${view === n.id ? "active" : ""}`}
               onClick={() => go(n.id)}
+              aria-label={t(`nav.${n.id}`)}
               aria-current={view === n.id ? "page" : undefined}>
               <n.icon size={16} strokeWidth={2.2} />
               <span>{t(`nav.${n.id}`)}</span>
@@ -151,12 +159,16 @@ export default function JosekiApp() {
         {/* You, and how the place looks to you: one cluster on the right, since
             neither is a section of the game. The look is a preference rather
             than a screen you visit, but it is one press from anywhere, which is
-            what a thing you try on wants. */}
+            what a thing you try on wants.
+
+            The language leads the cluster. It is the only control in the
+            chrome that decides whether the rest of the chrome can be read, and
+            it is the only one not written in English, so it goes where a
+            reader who cannot read the rest will still find it. It writes the
+            same profile field the Look screen writes; the two are two views of
+            one setting. */}
         <div className="topbar-you">
-          {/* The words, then the look, then you. The language is one press from
-              anywhere because a reader who landed in the wrong one cannot go
-              looking for a settings screen they cannot read. */}
-          <LangMenu locale={profile.locale} onPick={setLocale} />
+          <LangPill profile={profile} setProfile={setProfile} />
           <button className="icon-btn look-btn" onClick={() => go("look")}
             aria-label={t("topbar.look")} aria-current={view === "look" ? "page" : undefined}>
             <Palette size={17} />
@@ -186,15 +198,25 @@ export default function JosekiApp() {
               onFinish={(where) => go(where)} />
           ) : (<>
           {view === "home" && <Home profile={profile} go={go} onResume={resumeGame} />}
-          {view === "play" && <PlayView profile={profile} setProfile={setProfile} notify={notify} resume={resume} />}
+          {/* Keyed by the game asked for, so opening a second game from the archive or
+              the dashboard remounts the table rather than leaving the first one up. */}
+          {view === "play" && <PlayView key={(params && params.gameId) || "lobby"}
+            profile={profile} setProfile={setProfile} notify={notify} resume={resume}
+            openGame={params ? params.gameId : null} go={go} />}
           {view === "learn" && <LearnView profile={profile} setProfile={setProfile} go={go} />}
           {view === "tsumego" && <ProblemsView profile={profile} setProfile={setProfile} initialId={params ? params.problemId : null} />}
           {view === "recall" && <RecallView profile={profile} setProfile={setProfile} go={go} />}
-          {view === "ladder" && <RankingsView profile={profile} />}
+          {view === "ladder" && <RankingsView profile={profile} go={go} />}
+          {/* A player's page remembers where it was opened from, so coming back
+              from a ladder row lands on the ladder and coming back from a table
+              lands at the table rather than always at the ladder. */}
+          {view === "player" && <PlayerPage playerId={params ? params.playerId : null} go={go} notify={notify}
+            onBack={params && params.from ? () => go(params.from, params.fromParams || null) : null} />}
           {view === "profile" && <ProfileView profile={profile} setProfile={setProfile} go={go} room={room} notify={notify} />}
           {view === "look" && <LookView profile={profile} setProfile={setProfile} go={go} room={room} />}
           {view === "dojo" && <DojoView profile={profile} setProfile={setProfile} notify={notify} go={go} room={room} />}
           {view === "legal" && <LegalView docId={params ? params.docId : null} onPick={(id) => go("legal", { docId: id })} />}
+          {view === "journal" && <JournalView entryId={params ? params.entryId : null} go={go} />}
           </>)}
         </ErrorBoundary>
       </main>
@@ -203,7 +225,7 @@ export default function JosekiApp() {
           being kept company on yet, and a bubble there only fights the headline. The
           small print is the other one: reference material is read, not sat with, and
           the dock lands on the left edge of a 68ch measure. */}
-      {view !== "landing" && view !== "legal" && <MokuDock />}
+      {view !== "landing" && view !== "legal" && view !== "journal" && <MokuDock />}
       <footer className="foot">
         {/* The footer takes the letters alone. The mark would have to be
             smaller here than it can survive, and a mark nobody can read is
@@ -213,7 +235,13 @@ export default function JosekiApp() {
           <span>&middot; {t("brand.tagline")}</span>
         </span>
         <span className="foot-line">{localizeSaying(footSaying, t).text}</span>
-        <button className="foot-link" onClick={() => setView("landing")}>{t("foot.about")}</button>
+        <span className="foot-legal">
+          <button className="foot-link" onClick={() => setView("landing")}>{t("foot.about")}</button>
+          <span className="foot-sep" aria-hidden="true">·</span>
+          {/* What shipped and what we think, beside the about link rather than
+              in the nav: the nav is for playing. */}
+          <button className="foot-link" onClick={() => go("journal")}>{t("journal.footLink")}</button>
+        </span>
         {/* The small print, reachable from every screen and never from anywhere
             else. A reader looking for the terms looks at the bottom of the page,
             so that is the only place they are asked to look. */}
@@ -225,7 +253,15 @@ export default function JosekiApp() {
             </span>
           ))}
         </span>
-        <span className="foot-line studio">{COPYRIGHT} · {t("foot.built")}</span>
+        {/* The studio's name is the one credit on the page, so it is the one
+            thing in the footer that leads somewhere off this site. An anchor
+            rather than a button: it leaves Joseki, and a reader is owed the
+            href under their cursor before they commit to the click. */}
+        <span className="foot-line studio">
+          © {COPYRIGHT_YEAR}{" "}
+          <a className="foot-link" href={STUDIO_URL} rel="noopener">{STUDIO}</a>
+          {" · "}{t("foot.built")}
+        </span>
       </footer>
       </>}
     </div>

@@ -1,6 +1,6 @@
 /* ----------------------- THE NETWORK'S OWN THREAD -----------------------
    Holds the ONNX session and answers one question: given the three encoded
-   tensors, what does the network say. Nothing else lives here — the features
+   tensors, what does the network say. Nothing else lives here: the features
    are built on the calling side, where they are cheap, and only the run itself
    is worth a message.
 
@@ -11,7 +11,7 @@
 
    Why our own worker rather than the runtime's `proxy` flag: the flag builds its
    worker out of whatever chunk the bundler put the runtime in, which fails here,
-   and the failure is silent — the session falls back and the bots quietly become
+   and the failure is silent: the session falls back and the bots quietly become
    the heuristic player. A file the bundler is told about by name does not have
    that problem.
 

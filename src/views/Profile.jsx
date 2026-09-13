@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Check, Pencil, Trophy, Flame, Sparkles, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Mountain, Palette, Grid3x3, Dot, Hammer } from "lucide-react";
-import { Card, Pill, Avatar, RankBadge, BeltRibbon, Toggle, PullQuote, Statement } from "../components/ui.jsx";
+import { Check, Pencil, Trophy, Flame, Sparkles, Sparkle, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Mountain, Palette, Grid3x3, Dot, Hammer, History, Trash2 } from "lucide-react";
+import { Card, Btn, Pill, Avatar, RankBadge, BeltRibbon, Toggle, PullQuote, Statement } from "../components/ui.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { MokuMark } from "../components/Moku.jsx";
@@ -16,12 +16,107 @@ import {
 } from "../content/classic.js";
 import { LESSONS } from "../content/lessons.js";
 import { PROBLEMS } from "../content/problems.js";
-import { dayKey, liveStreak } from "../content/kata.js";
+import { dayKey } from "../content/kata.js";
+import { chainRun, chainNote } from "../content/chain.js";
+import { ChainYear } from "../components/Chain.jsx";
 import { saveProfile } from "../store/profile.js";
 import { loadAccount } from "../store/account.js";
+import { loadTelemetry, clearTelemetry, byBot, summarize, CAP } from "../store/telemetry.js";
+import { loadMemory, clearMemory, summarize as summarizeDeja, CAP as DEJA_CAP } from "../store/deja.js";
+import { PERSONAS } from "../content/personas.js";
 import { serverEnabled } from "../net/api.js";
 import { OnlineProfileCard } from "./OnlineProfile.jsx";
 import { useT } from "../components/langStore.js";
+import { FriendsCard } from "./FriendsCard.jsx";
+import { ArchiveCard } from "./ArchiveCard.jsx";
+import { LettersCard } from "./LettersCard.jsx";
+
+/* ----------------------- THE LAST FIFTY GAMES -----------------------
+   The device's own ring buffer, shown to the person it is about. A record kept
+   quietly is a record kept badly: if the app is going to remember how the last
+   fifty games went, the player should be able to read it, see exactly what it
+   holds, and empty it in one press. Nothing here is sent anywhere - see
+   store/telemetry.js, which has no network call in it at all. */
+/* The memory behind deja vu, shown for the same reason the game log is shown:
+   a device that remembers something about you should say what, and let you
+   empty it. What it holds is positions without the order that would make them a
+   game, so there is nothing here to read back - see store/deja.js. */
+function DejaCard({ on }) {
+  const t = useT();
+  const [memory, setMemory] = useState(loadMemory);
+  const [confirming, setConfirming] = useState(false);
+  const sum = summarizeDeja(memory);
+
+  return (
+    <Card>
+      <div className="stat-head"><Sparkle size={16} /><span>{t("profile.deja.head")}</span></div>
+      <p className="fine" style={{ marginTop: 6 }}>{t("profile.deja.note")}</p>
+      {sum.positions === 0 ? (
+        <p className="fine" style={{ marginTop: 10 }}>
+          {t(on ? "profile.deja.emptyOn" : "profile.deja.emptyOff")}
+        </p>
+      ) : (<>
+        <div className="row" style={{ marginTop: 10 }}>
+          <Pill icon={Grid3x3}>{t("profile.deja.held", { held: sum.positions, cap: DEJA_CAP })}{sum.full ? t("profile.full") : ""}</Pill>
+          <Pill icon={Sparkle}>{t("profile.deja.metAgain", { count: sum.revisited })}</Pill>
+        </div>
+        <div className="row" style={{ marginTop: 12 }}>
+          <Btn icon={Trash2} small
+            onClick={() => { if (confirming) { clearMemory(); setMemory({}); setConfirming(false); } else setConfirming(true); }}>
+            {confirming ? t("profile.deja.forgetSure") : t("profile.deja.forget")}
+          </Btn>
+          {confirming && <Btn small onClick={() => setConfirming(false)}>{t("profile.keepThem")}</Btn>}
+        </div>
+      </>)}
+    </Card>
+  );
+}
+
+function GameLogCard() {
+  const t = useT();
+  const [log, setLog] = useState(loadTelemetry);
+  const [confirming, setConfirming] = useState(false);
+  const sum = summarize(log);
+  const bots = byBot(log);
+  const nameOf = (id) => PERSONAS.find(p => p.id === id)?.name || id;
+
+  return (
+    <Card>
+      <div className="stat-head"><History size={16} /><span>{t("profile.log.head", { cap: CAP })}</span></div>
+      <p className="fine" style={{ marginTop: 6 }}>{t("profile.log.note")}</p>
+      {sum.games === 0 ? (
+        <p className="fine" style={{ marginTop: 10 }}>{t("profile.log.empty")}</p>
+      ) : (<>
+        <div className="row" style={{ marginTop: 10 }}>
+          <Pill icon={Swords}>{t("profile.log.held", { held: sum.games, cap: CAP })}{sum.full ? t("profile.full") : ""}</Pill>
+          <Pill icon={Trophy}>{t("profile.log.record", { wins: sum.wins, losses: sum.losses })}</Pill>
+        </div>
+        {bots.length > 0 && (
+          <ul className="level-list" style={{ marginTop: 10 }}>
+            {bots.map(r => (
+              <li key={r.bot} className="level-row">
+                <span className="level-rank">{nameOf(r.bot)}</span>
+                <span className="fine">
+                  {t("profile.log.againstBot", { games: r.games, wins: r.wins })}
+                  {r.games >= 5
+                    ? t("profile.log.winRate", { pct: Math.round((r.wins / r.games) * 100) })
+                    : t("profile.log.tooFew")}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="row" style={{ marginTop: 12 }}>
+          <Btn icon={Trash2} small
+            onClick={() => { if (confirming) { clearTelemetry(); setLog([]); setConfirming(false); } else setConfirming(true); }}>
+            {confirming ? t("profile.log.forgetSure") : t("profile.log.forget")}
+          </Btn>
+          {confirming && <Btn small onClick={() => setConfirming(false)}>{t("profile.keepThem")}</Btn>}
+        </div>
+      </>)}
+    </Card>
+  );
+}
 
 /* ----------------------- THE NINE LEVELS (Classic, ch. 12) -----------------------
    Zhang Ni's nine levels are a scale for dan players: nine steps for the nine
@@ -80,7 +175,7 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
   const next = nextBelt(profile.rating);
   const floor = beltFloor(belt);
   const pct = next ? Math.max(0, Math.min(100, ((profile.rating - floor) / (next.at - floor)) * 100)) : 100;
-  const streak = liveStreak(profile, dayKey());
+  const run = chainRun(profile, dayKey());
 
   return (
     <div className="stack arrives">
@@ -111,8 +206,11 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
       </Card>
 
       {account && <OnlineProfileCard account={account} setAccount={setAccount} notify={notify} />}
+      {account && <ArchiveCard account={account} setAccount={setAccount} notify={notify} go={go} />}
+      {account && <LettersCard account={account} go={go} />}
+      {account && <FriendsCard account={account} notify={notify} go={go} />}
 
-      <Statement lines={statementFor("profile", t)}>{plainFor("profile", t)}</Statement>
+      <Statement lines={statementFor("profile", t)} figure="profile" at="left">{plainFor("profile", t)}</Statement>
       <Card className="passage-card"><Passage context="profile" /></Card>
 
       <div className="grid2">
@@ -154,7 +252,7 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
       <LevelsCard rank={rankOf(profile.rating)} />
 
       {/* Everything that decides how the place looks lives on its own screen
-          now — the rooms, the stones, the pairings and the dojo behind them.
+          now: the rooms, the stones, the pairings and the dojo behind them.
           What stays here is the sentence that says what you are wearing. */}
       <Card>
         <div className="stat-head"><Palette size={16} /><span>{t("profile.look.head")}</span></div>
@@ -222,6 +320,16 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
             </div>
           </div>
           <div className="setting-row">
+            <Sparkle size={20} />
+            <div className="setting-copy">
+              <strong>Déjà vu</strong>
+              <span className="fine">When a game reaches a position you have played before, the table
+                says so, and how those games went. It reads only this device's own memory of your
+                finished games, and it never suggests a move.</span>
+            </div>
+            <Toggle on={!!profile.dejaVu} onChange={v => commit({ dejaVu: v })} label="Déjà vu" />
+          </div>
+          <div className="setting-row">
             <MokuMark size={34} state={moku && moku.off ? "idle" : "watching"} />
             <div className="setting-copy">
               <strong>{t("profile.table.moku")}</strong>
@@ -232,6 +340,28 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
         </div>
       </Card>
 
+      {/* The record. It is on the profile rather than the dashboard because it
+          is a thing to look back at, not a thing to act on: the dashboard has
+          the one sentence about today, and this has the half year behind it. */}
+      {run.total > 0 && (
+        <Card className="chain-card">
+          <div className="stat-head"><CalendarCheck size={16} /><span>The chain</span></div>
+          <div className="chain-head">
+            <div className="stat-num">{run.days}<em>{run.days === 1 ? "day" : "days"} running</em></div>
+            <div className="chain-facts">
+              <span><strong>{run.best}</strong> longest run</span>
+              <span><strong>{run.total}</strong> days on the record</span>
+              {run.alive && <span><strong>{run.rest}</strong> {run.rest === 1 ? "rest day" : "rest days"} in hand</span>}
+            </div>
+          </div>
+          <ChainYear profile={profile} today={dayKey()} />
+          <p className="fine">{chainNote(run)} A day counts when you solve a problem, finish a
+            lesson, sit a recall or play a rated game. Seven days of practice earn a rest day,
+            you can hold two, and a missed day spends one. The record goes back thirteen months
+            and lives on this device only.</p>
+        </Card>
+      )}
+
       <div className="grid3">
         <Card>
           <div className="stat-head"><Swords size={16} /><span>{t("profile.stats.rated")}</span></div>
@@ -239,7 +369,7 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
         </Card>
         <Card>
           <div className="stat-head"><CalendarCheck size={16} /><span>{t("profile.stats.kata")}</span></div>
-          <div className="stat-num">{streak}<em>{t("profile.stats.kataDays", { count: streak })}{profile.kataBest > streak ? t("profile.stats.kataBest", { count: profile.kataBest }) : ""}</em></div>
+          <div className="stat-num">{run.days}<em>{t("profile.stats.kataDays", { count: run.days })}{run.best > run.days ? t("profile.stats.kataBest", { count: run.best }) : ""}</em></div>
         </Card>
         <Card>
           <div className="stat-head"><Swords size={16} /><span>{t("profile.stats.duels")}</span></div>
@@ -254,6 +384,9 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
           <div className="stat-num">{profile.problemsDone.length}<em>/{PROBLEMS.length}</em></div>
         </Card>
       </div>
+      <DejaCard on={!!profile.dejaVu} />
+      <GameLogCard />
+
       <Card inset>
         <p className="fine">{t("profile.device")}</p>
       </Card>

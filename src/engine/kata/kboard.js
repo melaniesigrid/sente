@@ -1,7 +1,7 @@
 /* ----------------------- KATAGO BOARD (pure) -----------------------
    A faithful port of KataGo's reference Python board (python/katago/game/board.py,
    MIT licence, David J Wu). It exists for one reason: KataGo's neural-net input
-   features need two analyses that Joseki's immutable board does not provide —
+   features need two analyses that Joseki's immutable board does not provide:
    ladder search (which stones are in an inescapable atari, and which moves capture
    them) and Benson pass-alive area. Both are implemented on this mutable, padded
    board with chain tracking so play/undo is cheap inside the ladder search.

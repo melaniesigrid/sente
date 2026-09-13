@@ -1,0 +1,117 @@
+/* ----------------------- FRIENDSHIP (pure) -----------------------
+   What the button says, and what the page says when the server refuses. Pure,
+   so the wording can be read in one place and tested without a browser.
+
+   The standing between two people is worked out from the caller's own three
+   lists rather than asked about per player. The lists are already in hand for
+   the friends screen, `GET /api/players/:id` is cached for everybody alike and
+   must not learn who is asking, and a page that had to ask a second question
+   to know what its own button says would be slower and no more correct. */
+
+/** Where these two stand, from the three lists the server sent me. */
+export function standingWith(book, id) {
+  if (!book || !id) return "none";
+  const on = (list) => Array.isArray(list) && list.some((p) => p && p.id === id);
+  if (on(book.friends)) return "friends";
+  if (on(book.outgoing)) return "asked";
+  if (on(book.incoming)) return "asking";
+  return "none";
+}
+
+/** What the button on somebody's page should say and do, given where the two
+ *  of you stand. `undo` is the quieter second action beside it, or null.
+ *
+ *  Four standings, four buttons, and the one that matters is "asking": a page
+ *  that showed "Add friend" to somebody who has already asked you would send a
+ *  second request across a table where the answer was already waiting. */
+export function friendAction(standing) {
+  switch (standing) {
+    case "friends":
+      return { act: null, label: "Friends", done: true, undo: { act: "forget", label: "Remove friend" } };
+    case "asked":
+      return { act: null, label: "Asked", done: true, undo: { act: "forget", label: "Take the request back" } };
+    case "asking":
+      return { act: "accept", label: "Accept", done: false, undo: { act: "forget", label: "Decline" } };
+    default:
+      return { act: "ask", label: "Add friend", done: false, undo: null };
+  }
+}
+
+/** What just happened, said back to the person who did it. The server answers
+ *  every one of these with an outcome rather than a bare 200, because
+ *  "withdrawn" and "declined" come back from the same call and mean opposite
+ *  things to the person who pressed. */
+export const OUTCOME_TEXT = {
+  friends: "You are friends",
+  asked: "Request sent",
+  unfriended: "No longer friends",
+  declined: "Request declined",
+  withdrawn: "Request taken back",
+  nothing: "Nothing to undo",
+};
+
+export const outcomeText = (outcome) => OUTCOME_TEXT[outcome] ?? "Done";
+
+/** Every reason a friend call can be refused, in the house voice. The two
+ *  full-list messages are deliberately different: one is something the person
+ *  reading it can do something about, and the other is not theirs to fix. */
+export const FRIEND_ERRORS = {
+  offline: "The server is out of reach right now",
+  "no-server": "This copy of Joseki is running without a server",
+  unauthorized: "Claim a handle before making friends",
+  "no-player": "That player is not here any more",
+  yourself: "You are already your own",
+  "already-friends": "You are already friends",
+  "no-request": "There is no request from them to accept",
+  "your-list-is-full": "Your friends list is full. Remove somebody first.",
+  "their-list-is-full": "Their friends list is full",
+  "too-many-asked": "You have a lot of requests waiting already. Tidy those up first.",
+  "their-requests-are-full": "They have a lot of requests waiting already",
+  "too-many-requests": "That is a lot of requests in an hour. Try again later.",
+};
+
+export const friendErrorText = (reason) => FRIEND_ERRORS[reason] ?? `Something went wrong (${reason})`;
+
+/** The book with one person moved by hand, so a press shows its result at once
+ *  instead of after a second round trip. The server is still the authority:
+ *  this is what the screen believes until the next fetch, and every call that
+ *  uses it replaces the whole book when the answer arrives.
+ *
+ *  `person` is the public row to move; `to` is the standing to move them to. */
+export function moved(book, person, to) {
+  const base = book || { friends: [], incoming: [], outgoing: [] };
+  const drop = (list) => (list || []).filter((p) => p.id !== person.id);
+  const next = { friends: drop(base.friends), incoming: drop(base.incoming), outgoing: drop(base.outgoing) };
+  const entry = { ...person, at: Date.now() };
+  if (to === "friends") next.friends = [entry, ...next.friends];
+  else if (to === "asked") next.outgoing = [entry, ...next.outgoing];
+  else if (to === "asking") next.incoming = [entry, ...next.incoming];
+  return next;
+}
+
+/** Where a given outcome leaves the two of you, so one table maps the server's
+ *  word onto the screen's belief and no caller has to remember which is which. */
+export const STANDING_AFTER = {
+  friends: "friends",
+  asked: "asked",
+  unfriended: "none",
+  declined: "none",
+  withdrawn: "none",
+  nothing: "none",
+};
+
+/** Is there anything at all in this book? An empty friends screen says so in
+ *  one line rather than showing three empty headings. */
+export const bookIsEmpty = (book) =>
+  !book || [book.friends, book.incoming, book.outgoing].every((l) => !l || l.length === 0);
+
+/** Every id on the card, each of them once, so who-is-here can be asked in one
+ *  call instead of one per row. The order is the order the card reads in. */
+export function everyoneIn(book) {
+  if (!book) return [];
+  const seen = new Set();
+  for (const list of [book.incoming, book.friends, book.outgoing]) {
+    for (const p of list || []) if (p && p.id) seen.add(p.id);
+  }
+  return [...seen];
+}

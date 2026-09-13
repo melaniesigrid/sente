@@ -18,7 +18,7 @@ bundled.
 | Qliesya-Regular.otf | Qliesya | Ermedia Studio | Demo. Personal use only. | `vitrine`, headings |
 
 Both display cuts are headings only. No pairing puts a borrowed face into running
-text any more, and no pairing uses a script anywhere — the set that did was cut
+text any more, and no pairing uses a script anywhere: the set that did was cut
 back to `house`, `kaya` and `vitrine`.
 
 ## Still in the folder, worn by nothing
@@ -43,4 +43,4 @@ Before Joseki ships publicly, the two faces in the first table need either a
 purchased desktop-plus-web licence from the vendor above, or a substitute under
 the OFL. `house` (Fraunces, Hanken Grotesk) and every Google body family the set
 uses (Instrument Sans, Newsreader, Courier Prime) are OFL already, so the default
-build — and every pairing's body text — is clear as it stands.
+build, and every pairing's body text, is clear as it stands.

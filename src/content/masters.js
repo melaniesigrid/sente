@@ -1,8 +1,8 @@
 import INDEX from "./masters.json";
 
 /* ----------------------- MASTERS -----------------------
-   The lobby's masters row. A master is a house player like any other — a bot, said
-   so plainly — with one difference: what it plays is measured against real games,
+   The lobby's masters row. A master is a house player like any other (a bot, said
+   so plainly) with one difference: what it plays is measured against real games,
    and the card says the measured number rather than a claim about style.
 
    The one rule from the plan: the number on the card is measured, never claimed.
@@ -11,7 +11,7 @@ import INDEX from "./masters.json";
    actually plays), and the control is always shown beside them, because the eval's
    own note says a held-out split inside GoGoD has likely been seen in training.
 
-   `anonymous` masters carry no name anywhere — not in this file, not in the data,
+   `anonymous` masters carry no name anywhere: not in this file, not in the data,
    not on screen. Star Player is "a strong professional of 2017" and nothing else;
    his identity is a lawyer's question, not a product one.
 
@@ -56,7 +56,7 @@ const pct = (x) => `${(x * 100).toFixed(1)}%`;
  *
  *  `agreement` is arm a on the held-out test split: how often the profile the bot
  *  plays picked the master's own move. `withBook` is arm b, and `control` is the
- *  same measurement with a *different* master's book — the number that says how
+ *  same measurement with a *different* master's book: the number that says how
  *  much of the book's gain is a book at all rather than an opening being an
  *  opening. Both are returned so the card can print them together; this file
  *  never decides that one of them is "really" better, because the eval's split

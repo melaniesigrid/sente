@@ -5,7 +5,7 @@
 
    The shape is deliberately small. A profile here is not a social network
    page: it is the few things one player wants to know about another before
-   sitting down — how long they have been at this, where they play, what they
+   sitting down: how long they have been at this, where they play, what they
    like to play. Four fields, all optional, none of them a status update. */
 
 /** The one paragraph. Long enough for a real sentence or three, short enough
@@ -24,8 +24,8 @@ export const FACTS = [
 
 /** Strip the characters that would let one player's line break another's
  *  layout or smuggle a control code into a log. A newline, a return or a tab
- *  becomes a space — somebody pasting two lines into a one-line field means a
- *  gap, not two words run together — and every other control character is
+ *  becomes a space (somebody pasting two lines into a one-line field means a
+ *  gap, not two words run together) and every other control character is
  *  dropped. The paragraph is the bio; these are single lines. */
 function oneLine(v, max) {
   if (typeof v !== "string") return "";
@@ -38,7 +38,7 @@ function oneLine(v, max) {
     .join("").replace(/\s+/g, " ").trim().slice(0, max);
 }
 
-/** The bio keeps its paragraph breaks — at most one blank line between them,
+/** The bio keeps its paragraph breaks: at most one blank line between them,
  *  so nobody can push the rest of a page off the screen with returns. */
 export function cleanBio(v) {
   if (typeof v !== "string") return "";

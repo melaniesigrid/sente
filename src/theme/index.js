@@ -3,9 +3,9 @@
    same way they import the engine from src/engine/index.js.
 
      PALETTES        the named rooms, as data
-     HOUSE_THEME     "house" — the design system as drawn, and the fallback
-     SYSTEM_THEME    "system" — follow the device; a pointer, not a palette
-     DOJO_THEME      "dojo" — the one a player built themselves
+     HOUSE_THEME     "house": the design system as drawn, and the fallback
+     SYSTEM_THEME    "system": follow the device; a pointer, not a palette
+     DOJO_THEME      "dojo": the one a player built themselves
      resolveTheme    a stored id + prefers-dark -> the id to actually draw
      themeOf         id (+ the player's dojo palette) -> a palette
      themeVars       the custom properties .sente-root needs

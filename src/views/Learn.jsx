@@ -22,6 +22,7 @@ import { saveProfile } from "../store/profile.js";
 import { enrol, recallSummary } from "../content/recall.js";
 import { dayKey } from "../content/kata.js";
 import { rankOf } from "../content/rank.js";
+import { attendDay } from "../content/chain.js";
 import { modelReady, kataChooseMoveForRecord, profileForRank } from "../engine/index.js";
 import { initStep, stepReducer, marksFor, boardLocked, canReveal, recordAtStop, coordLabel, verdictLabel, withHouseWords } from "./lessonStep.js";
 import { useT } from "../components/langStore.js";
@@ -38,7 +39,7 @@ import { localizeTrack, localizeTier, localizeBook, localizeSeries } from "../co
    `states`, so going back to a solved step finds it solved, transcript and all. */
 
 /* Where each lesson was left, so a trip to the library does not throw the work
-   away. Session memory only — a reload starts the lesson over. */
+   away. Session memory only: a reload starts the lesson over. */
 const SESSIONS = new Map();
 
 const reducedMotion = () =>
@@ -75,7 +76,7 @@ function crossingNote(lesson, next, t) {
 
 /* Exported so the welcome flow can run its demo through the same player the library
    uses: same step behaviour, same timings, same board. `exitLabel` is the only thing
-   it needs to say differently — a first-time visitor has never seen a library. */
+   it needs to say differently: a first-time visitor has never seen a library. */
 
 export function LessonPlayer({ lesson: authored, nextLesson, onDone, onExit, onOpenNext, rank, onProgress, exitLabel = null }) {
   const t = useT();
@@ -462,7 +463,7 @@ function ClassicCard({ done, onOpen }) {
   return (
     <Card inset className="stack-sm">
       <div className="stat-head"><Quote size={15} /><span>{localizeClassic(t).title}</span></div>
-      <Statement lines={statementFor("learn", t)}>{plainFor("learn", t)}</Statement>
+      <Statement lines={statementFor("learn", t)} figure="learn">{plainFor("learn", t)}</Statement>
       <Passage context="learn" />
       <div className="row spread">
         <span className="fine">{t("learn.classic.read", { done: finished, total: lessons.length })}</span>
@@ -519,6 +520,7 @@ export function LearnView({ profile, setProfile, go }) {
         // Its questions join the recall queue, due tomorrow. A lesson is read
         // once; what it asked you comes back until you know it.
         recall: enrol(p.recall, lesson, dayKey()),
+        ...attendDay(p, dayKey()),
       };
       saveProfile(np);
       return np;

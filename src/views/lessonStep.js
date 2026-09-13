@@ -18,7 +18,7 @@
    Everything the lesson says goes into `log`, an ordered list of
    { tone, text, verdict? } that only grows within a step. Timers move stones;
    they never take words away. The log is cleared by leaving the step, not by
-   a clock and not by Reset position — a learner retrying a refuted move keeps
+   a clock and not by Reset position: a learner retrying a refuted move keeps
    the refutation in front of them while they try again.
 
    A `replay` step is a game study: the board plays through `moves` on its
@@ -41,7 +41,7 @@ import { BASE_LOCALE, makeT } from "../i18n/index.js";
 const EN = makeT(BASE_LOCALE);
 
 /* reply: long enough to read the line that prompted it. wrongHold: how long the
-   red cross stays on the board — the correction itself stays in the log. */
+   red cross stays on the board; the correction itself stays in the log. */
 export const TIMINGS = { reply: 600, wrongHold: 900, advance: 250, afterScore: 1100 };
 export const SCORE = { master: 2, strong: 1 };
 export const DEFAULT_PARTIAL = "A strong player's move, not his.";

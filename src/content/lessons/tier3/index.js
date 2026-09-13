@@ -5,5 +5,10 @@ import classicTerritory from "./classic-territory.js";
 import classicConflict from "./classic-conflict.js";
 import classicEmptiness from "./classic-emptiness.js";
 import classicMiscellany from "./classic-miscellany.js";
+import shapeTigersMouth from "./shape-tigers-mouth.js";
+import shapePonnuki from "./shape-ponnuki.js";
 
-export const TIER3 = [classicTerritory, classicConflict, classicEmptiness, classicMiscellany];
+export const TIER3 = [
+  classicTerritory, classicConflict, classicEmptiness, classicMiscellany,
+  shapeTigersMouth, shapePonnuki,
+];

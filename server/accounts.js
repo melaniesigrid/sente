@@ -6,7 +6,7 @@
    A Worker on the free plan gets 10 ms of CPU per invocation. A password hash
    worth the name costs far more than that: PBKDF2 at the iteration count OWASP
    asks for is tens of milliseconds, and a memory-hard hash is worse. So the
-   stretching happens where there is time for it — in the browser, before the
+   stretching happens where there is time for it: in the browser, before the
    password is ever sent (`src/net/password.js`). What arrives here is a
    *derived key*: 32 bytes of PBKDF2-SHA256 over the password, salted with the
    address, at a cost the attacker also has to pay for every guess.
@@ -20,12 +20,14 @@
    keep their old count until their owner next sets a password. `KDF` carries
    the parameters used, so a record always says how it was made. */
 
+import { cleanShowOnline } from "./presence.js";
+
 /** The stretch the browser is asked to perform. Stored on every account so a
  *  record made under one set of parameters can still be verified later. */
 export const KDF = { v: 1, name: "PBKDF2-SHA256", iterations: 600_000, bytes: 32 };
 
 /** Fold an address to the one form it is stored and looked up under: trimmed,
- *  lowercased. Nothing else is normalised — an address is the mail server's to
+ *  lowercased. Nothing else is normalised: an address is the mail server's to
  *  interpret, and stripping dots or plus tags would silently merge two people
  *  whose provider treats them as two. */
 const FORBIDDEN = [" ", "<", ">", '"', ",", ";", ":", "\\", "'", "(", ")", "[", "]"];
@@ -74,5 +76,10 @@ export function privateFields(p) {
     // about their play, and it belongs on no page but their own.
     emailVerified: Boolean(p.emailVerifiedAt),
     sessions: (p.sessions ?? []).length,
+    /* Who this player lets see that they are here. On their own view of
+       themselves and nowhere else: `publicPlayer` does not carry it, so
+       reading the ladder cannot tell you who has chosen to be invisible,
+       which is most of what choosing to be invisible was for. */
+    showOnline: cleanShowOnline(p.showOnline),
   };
 }

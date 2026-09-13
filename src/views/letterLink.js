@@ -13,7 +13,7 @@
  *  rather than sent: a paste that lost its tail can say so here, without a
  *  round trip, and a `?reset=` that means something else to somebody else is
  *  not mistaken for one of ours. Verifying is checked first, but the two never
- *  arrive together — each letter carries one. */
+ *  arrive together: each letter carries one. */
 export function linkFromQuery(search) {
   const q = new URLSearchParams(search || "");
   for (const kind of ["verify", "reset"]) {
@@ -26,7 +26,7 @@ export function linkFromQuery(search) {
 /** Take the token back out of the address bar, without reloading the page.
  *  Spent or abandoned, it should not be left in browser history, and a reload
  *  should not try to spend it a second time. Everything else in the query is
- *  left exactly as it was — `?game=` opens a table, and following a link from
+ *  left exactly as it was: `?game=` opens a table, and following a link from
  *  a letter is no reason to lose it. */
 export function forgetLink() {
   if (typeof window === "undefined" || !window.history || !window.history.replaceState) return;

@@ -1,8 +1,8 @@
 /* ----------------------- THE BRAND MARKS -----------------------
    The mark has to mean sente, not "a stone". A single ink circle says "go"
    and stops there, and two other servers already say it. Sente is the move
-   the opponent has to answer — a relationship between two stones, not one
-   stone — so the mark draws the relationship.
+   the opponent has to answer (a relationship between two stones, not one
+   stone) so the mark draws the relationship.
 
    Three marks, one colour family, all legible at 16px:
 
@@ -23,7 +23,7 @@
    with the rest of it. `--accent` is allowed here because a mark is a shape,
    not a word.
 
-   Lockups (Wordmark): `full` is the primary — mark and wordmark on a shared
+   Lockups (Wordmark): `full` is the primary: mark and wordmark on a shared
    baseline, the played stone standing where the cap-height starts. `plain`
    drops the mark and lets the letters carry it alone, for the footer and
    anywhere the mark would land smaller than it can survive. */
@@ -55,7 +55,7 @@ export const Mark = ({ variant = "answer", size, className = "" }) => {
           {[13.5, 21, 28.5].map(y => <line key={`h${y}`} x1="6" y1={y} x2="32" y2={y} />)}
         </g>
         <path className="mark-edge" d="M6 32V6H32" />
-        {/* the 4-4 point, still empty — the invitation */}
+        {/* the 4-4 point, still empty: the invitation */}
         <circle className="mark-star" cx="28.5" cy="28.5" r="1.5" />
         {/* one stone on the 3-3, the move that claims the corner and leaves
             the star point to the other side */}

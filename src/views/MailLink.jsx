@@ -10,7 +10,7 @@ import { useT } from "../components/langStore.js";
    Joseki sends two letters and each carries one link back here: `?verify=` to
    confirm an address, `?reset=` to choose a new password. Both arrive in a
    mail client, which means both can open in a browser that has never signed
-   in — so neither of these needs a session, and neither assumes one.
+   in, so neither of these needs a session, and neither assumes one.
 
    `App` reads the query once at startup and hands the result here. Whatever
    happens, the token comes out of the address bar afterwards: a link that has

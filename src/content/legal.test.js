@@ -4,15 +4,20 @@
    the code they describe, so a change to the code that makes a sentence false
    fails here rather than being discovered by a reader.
 
-   What it can check, it checks against the source of the fact — the server's
-   own constants, package.json, the LICENSE file — never against a number
+   What it can check, it checks against the source of the fact (the server's
+   own constants, package.json, the LICENSE file) never against a number
    copied into the test. What it cannot check (whether a promise is kept, what
    a vendor's licence says) it leaves alone rather than pretending. */
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { DOCUMENTS, CREDITS, COPYRIGHT, CONTACT, UPDATED, UPDATED_ISO, documentById } from "./legal.js";
+import {
+  DOCUMENTS, CREDITS, COPYRIGHT, CONTACT, UPDATED, UPDATED_ISO, REVISION,
+  documentById, documentText, documentStamp,
+} from "./legal.js";
 import { CHAT_KEEP } from "../../server/room.js";
 import { AVATAR_MAX_BYTES, BIO_MAX } from "../../server/profile.js";
+import { RETAIN_DAYS, sealed, emptyDay } from "../../server/rollup.js";
+import { hashString } from "../engine/index.js";
 
 /** Every word of every document, as one string. The claims live in prose, so
  *  the checks are made against prose. */
@@ -61,12 +66,74 @@ describe("the documents", () => {
 
   it("say when they last changed", () => {
     expect(UPDATED).toMatch(/^\d{1,2} \w+ \d{4}$/);
+    expect(UPDATED).toBe(REVISION.updated);
     // The written date and the machine-readable one are the same day. Every
     // language sets the stamp from the ISO form, so a drift here would date
     // the English document one way and every other one another.
     expect(UPDATED_ISO).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })
       .format(new Date(`${UPDATED_ISO}T00:00:00Z`))).toBe(UPDATED);
+  });
+
+  it("carry a date that is a real day, and not one in the future", () => {
+    const day = new Date(`${UPDATED} UTC`);
+    expect(Number.isNaN(day.getTime()), `${UPDATED} is not a date`).toBe(false);
+    expect(day.getTime(), "the notice is dated in the future").toBeLessThanOrEqual(Date.now());
+  });
+
+  /* THE GUARD. The date used to be moved by hand, which means it used to be
+     forgotten. The stamp is a fingerprint of every word in the three
+     documents; when a word changes and the revision does not, this fails and
+     prints the stamp to paste in. Moving the date is then the obvious thing to
+     do, because it is the line above.
+
+     It is deliberately unavoidable, and that has a cost worth naming: a stamp
+     is a fact about the whole tree, so a prose change that lands on main
+     without one fails every open branch at once, none of which did anything
+     wrong. The failure says so, so that the second reader of it does not spend
+     the afternoon the first one did. */
+  it("carry a stamp that matches the words they actually contain", () => {
+    const now = documentStamp();
+    expect(now, [
+      "",
+      "The documents changed and the revision did not.",
+      "",
+      "If this branch does not touch src/content/legal.js, the change is not",
+      "yours. A prose change landed on main without its stamp, and the stamp is",
+      "a whole-tree invariant: every branch cut during that window fails here,",
+      "whatever it touches. Merge current main and run again before reading on.",
+      "",
+      "Otherwise, in src/content/legal.js, set REVISION to:",
+      `  { updated: "<today, as '11 September 2026'>", stamp: "${now}" }`,
+      "",
+      "Move the date in the same commit. A notice dated before the sentence it",
+      "contains is worse than an undated one: it claims it has not changed.",
+      "",
+    ].join("\n")).toBe(REVISION.stamp);
+  });
+
+  /* The stamp is only worth having if it moves. One word is enough, which is
+     the whole claim the guard above rests on. (The revision date is not
+     excluded by being absent from the prose: the notice quite legitimately
+     states dates of its own. It is excluded by `documentText` reading
+     DOCUMENTS and nothing else.) */
+  it("carry a stamp that moves when a single word does", () => {
+    const text = documentText();
+    const stamp = (t) => hashString(t).toString(16).padStart(8, "0");
+    expect(stamp(text)).toBe(documentStamp());
+    expect(stamp(`${text} and one more thing`)).not.toBe(documentStamp());
+    expect(stamp(text.replace("Joseki", "Sente"))).not.toBe(documentStamp());
+  });
+
+  it("stamp every document, not only the first", () => {
+    const text = documentText();
+    for (const doc of DOCUMENTS) {
+      expect(text, doc.id).toContain(doc.sections[doc.sections.length - 1].paras[0]);
+    }
+  });
+
+  it("stamp the credit rows too, because a credit that changed is a document that changed", () => {
+    expect(documentText()).toContain(CREDITS[0].items[0].what);
   });
 });
 
@@ -95,6 +162,40 @@ describe("the privacy notice, against the server", () => {
     expect(privacy).toMatch(/no cookie/i);
     expect(privacy).toMatch(/no analytics script/i);
     expect(privacy).toMatch(/[Nn]ever your password/);
+  });
+
+  /* The daily tally, added 11 September 2026. `legal.js` promises that
+     anything newly collected is disclosed in a sentence of its own rather than
+     folded into a paragraph, so what follows checks that the sentence is
+     there, that the retention it quotes is the one the server enforces, and
+     that the older claim beside it was not quietly softened to make room. */
+  it("keeps the number of days the server actually keeps", () => {
+    expect(privacy).toContain(`${RETAIN_DAYS} days`);
+  });
+
+  it("still says Joseki has never counted a visit", () => {
+    // The tally counts games and accounts, neither of which is a visit. If it
+    // ever starts counting page views this sentence has to go, and removing it
+    // should cost a failing test rather than a moment's inattention.
+    expect(privacy).toMatch(/never counted a visit/i);
+  });
+
+  it("names every field the tally stores, so the row cannot quietly grow", () => {
+    // `sealed` is what decides a row's shape. A field added there and not
+    // described here would be a collection the notice does not admit to.
+    const row = sealed(emptyDay(), "2026-09-11", 0);
+    const said = {
+      date: /once a day/i,
+      accounts: /how many handles exist/i,
+      newAccounts: /how many were made that day/i,
+      gamesStarted: /how many games were started/i,
+      gamesFinished: /how many finished/i,
+      peakOnline: /most people who were in the lobby at once/i,
+    };
+    for (const field of Object.keys(row)) {
+      expect(said[field], `the tally stores ${field} and the notice never says so`).toBeTruthy();
+      expect(privacy, field).toMatch(said[field]);
+    }
   });
 });
 
@@ -131,5 +232,36 @@ describe("the credits", () => {
     const license = readFileSync(new URL("../../LICENSE", import.meta.url), "utf8");
     expect(license).toContain(COPYRIGHT);
     expect(proseOf(documentById("credits"))).toContain(COPYRIGHT);
+  });
+});
+
+describe("the stamp covers the bullets, not only the paragraphs", () => {
+  /* Every sentence naming something the server keeps about a person is a
+     bullet in a `list`, not a paragraph. A stamp over `paras` alone guarded
+     the prose around the disclosure and left the disclosure itself unguarded,
+     and two collections were in fact added under that gap without it moving.
+     This is the test that would have caught it. */
+  it("moves when a single bullet changes", () => {
+    const withList = DOCUMENTS.find(d => d.sections.some(s => (s.list ?? []).length));
+    expect(withList, "no document has a list any more; this guard needs rewriting").toBeTruthy();
+    const section = withList.sections.find(s => (s.list ?? []).length);
+    const before = documentStamp();
+    const original = section.list[0];
+    try {
+      section.list[0] = `${original} and one more thing`;
+      expect(documentStamp()).not.toBe(before);
+    } finally {
+      section.list[0] = original;
+    }
+    expect(documentStamp()).toBe(before);
+  });
+
+  it("has every bullet of every document inside the text it hashes", () => {
+    const text = documentText();
+    for (const doc of DOCUMENTS) {
+      for (const section of doc.sections) {
+        for (const item of section.list ?? []) expect(text, `${doc.id}/${section.heading}`).toContain(item);
+      }
+    }
   });
 });

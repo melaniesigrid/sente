@@ -6,7 +6,7 @@ import { createRng, positionSeed } from "./rng.js";
 /* ------------- HOUSE-PLAYER AI (parameterized heuristic) -------------
    Capture-aware move picker whose weights are tuned per persona.
    Honest label everywhere in-app: these are house players (bots),
-   not humans — the seam for a real matchmaking backend is the same
+   not humans: the seam for a real matchmaking backend is the same
    game loop with moves arriving over a socket instead.
 
    Works on any board size. Edge scoring is by distance from the edge,

@@ -9,7 +9,7 @@
    One confirms an address somebody just typed. One offers a way back in to
    somebody who asked for it. Joseki sends no others: no digest, no "we miss
    you", no announcement. An account here has no marketing list attached to it
-   because there is no list, so neither letter carries an unsubscribe link —
+   because there is no list, so neither letter carries an unsubscribe link;
    there is nothing to unsubscribe from.
 
    WHY THE LETTERS SAY WHAT WAS *NOT* PROVED
@@ -81,7 +81,7 @@ export function verifyMessage({ name, link, ttlMs = VERIFY_TTL_MS }) {
     "mistake or otherwise; they cannot read your mail, and this link is the only",
     "thing that would have told us the address was theirs.",
     "",
-    "— Joseki",
+    "Joseki",
   ].join("\n");
   return { subject, text, html: letter(text, link, "Confirm the address") };
 }
@@ -104,13 +104,13 @@ export function resetMessage({ name, link, ttlMs = RESET_TTL_MS }) {
     "If you did not ask, ignore this message. Nothing has changed and the",
     "password you have still works.",
     "",
-    "— Joseki",
+    "Joseki",
   ].join("\n");
   return { subject, text, html: letter(text, link, "Choose a new password") };
 }
 
 /* The same words, in a shape a mail client will lay out. Deliberately plain:
-   system fonts, no images, no tracking pixel, no remote stylesheet — nothing
+   system fonts, no images, no tracking pixel, no remote stylesheet: nothing
    that has to be fetched to read the letter, and nothing that reports back
    that it was read. Joseki's own type and palette are not here on purpose;
    a letter is not a page of the app. */

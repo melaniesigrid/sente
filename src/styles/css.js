@@ -5,11 +5,11 @@
    Type is the one themed part: the display and body families are tokens set by
    the shell from the chosen pairing (src/content/typeface.js), and the block
    below carries the house pairing as the default. */
-import { GOOGLE_IMPORT } from "../content/typeface.js";
+import { GOOGLE_FACES } from "./googleFaces.js";
 import { FONT_FACES } from "./fontfaces.js";
 
 export const CSS = `
-${GOOGLE_IMPORT}
+${GOOGLE_FACES}
 ${FONT_FACES}
 
 .sente-root {
@@ -59,6 +59,7 @@ ${FONT_FACES}
   --r: 22px;
   --raise: 8px 8px 18px var(--dark), -8px -8px 18px var(--light);
   --raise-sm: 5px 5px 12px var(--dark), -5px -5px 12px var(--light);
+  --press: 2px 2px 6px var(--dark), -2px -2px 6px var(--light);
   --sink: inset 5px 5px 12px var(--dark), inset -5px -5px 12px var(--light);
   --sink-sm: inset 3px 3px 8px var(--dark), inset -3px -3px 8px var(--light);
   min-height: 100vh;
@@ -93,7 +94,7 @@ ${FONT_FACES}
 .brand-mark { height: .72em; width: auto; }
 .brand-name { font-family: var(--font-display); font-weight: var(--w-display-strong); font-size: 1em; line-height: 1; letter-spacing: calc(.005em + var(--display-tracking)); }
 /* The compact lockup: the same two pieces, tightened, for a bar that has run
-   out of room. Nothing is dropped — a mark that only appears on wide screens
+   out of room. Nothing is dropped: a mark that only appears on wide screens
    is not a mark, it is an ornament. */
 @media (max-width: 760px) { .topbar .brand { font-size: 30px; gap: .18em; } }
 
@@ -164,7 +165,7 @@ ${FONT_FACES}
    at the same pixel size: the numbers go up against the apparent size and the
    measure comes down, from 64 characters to 58, because in a monospace one ch
    is exactly one character and 64 of them is a long way for an eye to travel.
-   Leading goes up too — an even column needs the air.
+   Leading goes up too: an even column needs the air.
 
    The measure belongs on the text and not on the figure around it: ch resolves
    against the element's own font, and the figure is still set in the body face,
@@ -184,18 +185,18 @@ ${FONT_FACES}
 /* The caret is the one the front door already types with, declared once with the
    landing's typed lines further down. One caret in the app, not two. */
 .passage.sm .passage-cite { font-size: 12.5px; margin-top: 6px; }
-/* the words that carry. Bold and the room's mark at reading contrast — never the
+/* the words that carry. Bold and the room's mark at reading contrast, never the
    raw accent, which is a 3:1 colour and would put the most important word in the
    passage below the floor the rest of it clears. The weight is a flat 700 now
    that the passage is typed: Courier Prime ships one bold and no axis, and on a
    machine a word is emphasised by striking it again, which is what its bold is.
    A monospace bold cannot widen the letter either, so the mark never shifts the
-   column — the words around a mark sit exactly where they sat. */
+   column: the words around a mark sit exactly where they sat. */
 .passage-key { font-weight: 700; color: var(--accent-ink); font-style: inherit; }
 /* On hover the passage takes the mark and the marked words take the ink: the
    relationship inverts, so the words never stop being the ones that stand out.
    The whole block goes to --accent-ink and not to the raw accent for the same
-   reason a marked word does — five lines of 2.99:1 italic is the worst place in
+   reason a marked word does: five lines of 2.99:1 italic is the worst place in
    the app to spend that colour, and it is a paragraph, not a dot. */
 .passage:hover .passage-text { color: var(--accent-ink); }
 .passage:hover .passage-key { color: var(--ink); }
@@ -220,12 +221,63 @@ ${FONT_FACES}
 .neu-inset { box-shadow: var(--sink); }
 .stack { display: flex; flex-direction: column; gap: clamp(20px, 3vw, 34px); }
 
+/* ---- the press ----
+   The two shadows are a material, and a material you can watch stand off the
+   ground is one you expect to move when you push it. Nine controls already sank
+   under a finger; the cards never did, so the tile, the persona and the lesson
+   lifted as the pointer arrived and then went dead at the one moment the reader
+   had committed to them.
+
+   One ladder does the whole job: a press moves a thing one rung toward the
+   ground. --raise contracts to --press, --raise-sm turns inward to --sink-sm,
+   and a thing already sunken deepens to --sink. The invariant holds at every
+   rung, light from the top left and dark from the bottom right, or both of them
+   turned in. A control lands flat, since it has spent its offset entirely; a
+   card keeps two pixels of it and travels the rest.
+
+   In fast, out slow. The shadow under a finger changes in 60ms, which reads as
+   the surface answering; the release rides each element's own transition back
+   up, which reads as the surface returning. */
+
+/* A card goes to --press and no further. Turn a 300px surface inside out and
+   it is not pressed, it is a hole with a heading floating over it, and every
+   raised thing inside it (the kata's streak pill, the card's own icon plate) is
+   left standing proud of a tray. A card keeps its two shadows and spends them:
+   two pixels of offset is a card with a thumb on it. It travels the one pixel
+   that offset gives up, so the card goes down rather than only going quiet. */
+.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active { box-shadow: var(--press); transform: translateY(1px); }
+
+/* A control is small enough to invert, which is what the nine already do. */
+.nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn.active:active { box-shadow: var(--sink-sm); transform: none; }
+.swatch:active { box-shadow: var(--sink-sm), inset 0 0 0 1px var(--belt-edge); transform: none; }
+
+/* The chosen one rests sunken already, so it deepens instead. Without this the
+   control most likely to be pressed twice is the only one that cannot answer.
+   Each keeps the ring it wears, because the ring is what says chosen. */
+.type-btn:active { box-shadow: var(--sink); }
+.legal-tab.active:active, .look-btn[aria-current]:active, .lang-pill.on:active { box-shadow: var(--sink); }
+.tint-dot.active:active, .theme-btn.active:active, .stone-btn.active:active { box-shadow: var(--sink), 0 0 0 2px var(--accent-ring); }
+.swatch.on:active { box-shadow: var(--sink), inset 0 0 0 1px var(--belt-edge), 0 0 0 2px var(--accent-ring); }
+
+/* The nine that already sank now land flat with everything else: a control that
+   sinks while still held two pixels up is being pressed and lifted at once. */
+.profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active { transform: none; }
+
+.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn:active, .swatch:active, .look-btn:active, .lang-pill:active, .btn:active:not(:disabled), .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active, .lp-btn:active, .lp-card-btn:active, .lp-enter:active { transition-duration: .06s; }
+
 /* A screen arrives a beat at a time rather than all at once. It is the front
    door's entrance, applied where a whole screen is swapped in by the nav: the
    eye gets to follow the order the page is meant to be read in. Anything past
-   the eighth child simply arrives with the eighth — a stagger you can still
+   the eighth child simply arrives with the eighth, a stagger you can still
    count is a stagger that has gone on too long. */
-.arrives > * { animation: arrive .7s cubic-bezier(.2,.8,.2,1) both; }
+/* backwards, not both. An animation that fills forwards goes on owning every
+   property it touched for as long as the element lives, and this one touches
+   transform: filling both, the arrive kept every card pinned at transform: none
+   afterwards, so the tile, the persona and the lesson card never lifted under
+   the pointer and could never be pressed by travel either. The last keyframe
+   is the resting state exactly, so there is nothing to hold: backwards covers
+   the stagger's delay, which is the only part that needed holding. */
+.arrives > * { animation: arrive .7s cubic-bezier(.2,.8,.2,1) backwards; }
 .arrives > *:nth-child(1) { animation-delay: .04s; }
 .arrives > *:nth-child(2) { animation-delay: .10s; }
 .arrives > *:nth-child(3) { animation-delay: .16s; }
@@ -329,7 +381,7 @@ ${FONT_FACES}
 /* ---- a screen header ---- */
 /* Label, heading, lede: the front door's way of opening a section, and now
    every screen's. See components/ScreenHeader.jsx for why the label earns its
-   place — one word at heading size says nothing the nav had not already said. */
+   place: one word at heading size says nothing the nav had not already said. */
 .screen-head { display: flex; flex-direction: column; gap: 14px; padding: clamp(4px, 1vw, 12px) 0 clamp(2px, .6vw, 8px); }
 .screen-head .lede { margin: 0; }
 .screen-label, .lp-label {
@@ -361,7 +413,7 @@ ${FONT_FACES}
 .hero-board { flex: 0 1 300px; margin-inline: auto; }
 .hero .row { margin-top: 18px; }
 
-.tile { text-align: left; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease; }
+.tile { text-align: left; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease, box-shadow .15s ease; }
 .tile:hover { transform: translateY(-2px); }
 .stat-head { color: var(--accent-ink); display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
 .stat-head svg { color: var(--accent-ink); }
@@ -375,27 +427,54 @@ ${FONT_FACES}
 /* ---- board ---- */
 .play-wrap { display: flex; gap: clamp(18px, 3vw, 30px); align-items: flex-start; flex-wrap: wrap; }
 .board-col { flex: 2 1 520px; min-width: 0; }
-.board-well { border-radius: var(--r); box-shadow: var(--sink); padding: clamp(12px, 1.8vw, 22px); flex: 2 1 520px; min-width: 0; }
+/* A go board is square, and the well has to be square with it. The well sits in
+   two kinds of parent: the play-wrap row, where a flex basis is a width and is
+   what gives the board the larger share, and the column stacks (board-col,
+   look-preview), where the same basis is a HEIGHT. Written unscoped, the 520px
+   basis floored the well at 520px tall while a phone drew the board 334px wide:
+   174px of dead ground under the grid. The basis is only ever written against
+   the row. */
+.board-well { border-radius: var(--r); box-shadow: var(--sink); padding: clamp(12px, 1.8vw, 22px); min-width: 0; }
+.play-wrap > .board-well { flex: 2 1 520px; }
 .side { flex: 1 1 300px; min-width: 260px; max-width: 420px; }
 .goban { width: 100%; height: auto; display: block; }
 .grid-line { stroke: var(--grid); stroke-opacity: .38; stroke-width: 1.1; }
 .star-pt { fill: var(--ink); fill-opacity: .45; }
 .ghost { fill: var(--accent); opacity: .28; }
 .mark-ring { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 4 4; opacity: .85; }
+/* The ring a chat line puts on a point. Wider than a stone rather than inside
+   it, so it reads the same whether the point is empty or has been played on;
+   the atari ring above it is drawn the same way for the same reason. */
+.point-ring { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 5 4; opacity: .9; }
 .wrong-x line { stroke: var(--danger); stroke-width: 3; stroke-linecap: round; opacity: .9; animation: pop .18s ease; }
 .last-dot { fill: var(--accent); opacity: .9; }
+/* A staged move: the stone you are about to play, faint, under a breathing ring.
+   Clearly not on the board yet, and clearly not a hover ghost either. */
+.stone-staged { opacity: .55; }
+.staged-ring { fill: none; stroke: var(--accent); stroke-width: 2.6; stroke-dasharray: 5 5; opacity: .95;
+  animation: staged-breathe 1.8s ease-in-out infinite; }
+@keyframes staged-breathe { 50% { opacity: .4; } }
 .stone-b { filter: drop-shadow(2.5px 2.5px 3px rgba(var(--sh-ink),.45)) drop-shadow(-1.5px -1.5px 2px rgba(var(--sh-lite),.5)); }
 .stone-w { filter: drop-shadow(2.5px 2.5px 3px rgba(var(--sh-ink),.35)) drop-shadow(-1.5px -1.5px 2px rgba(var(--sh-lite),.9)); }
 .stone-in { animation: pop .22s ease; transform-origin: center; transform-box: fill-box; }
 @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
 .caps { display: flex; flex-direction: column; gap: 10px; font-size: 16px; }
+/* Déjà vu: the one line the table says about your own history. It is set as an
+   aside rather than as a status, because it is not a fact about this game and
+   must never be read as one: a rule above it, the mark on the glyph, and the
+   quiet ink. It arrives rather than appearing, on the same curve everything
+   else in the place arrives on. */
+.deja { display: flex; align-items: flex-start; gap: 9px; margin-top: 4px; padding-top: 11px; border-top: 1px solid var(--hairline); color: var(--ink-2); font-size: 14.5px; line-height: 1.5; animation: arrive .5s cubic-bezier(.2,.8,.2,1) backwards; }
+.deja svg { flex: none; color: var(--accent-ink); transform: translateY(2px); }
+@media (prefers-reduced-motion: reduce) { .deja { animation: none; } }
+
 .dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 8px; vertical-align: -1px; }
 .dot-b { background: var(--ink); }
 .dot-w { background: var(--cream); box-shadow: 0 0 0 1px var(--dark); }
 
 /* ---- lobby / personas ---- */
-.persona-card { text-align: left; border: 0; cursor: pointer; color: var(--ink); display: flex; flex-direction: column; gap: 12px; transition: transform .15s ease; }
+.persona-card { text-align: left; border: 0; cursor: pointer; color: var(--ink); display: flex; flex-direction: column; gap: 12px; transition: transform .15s ease, box-shadow .15s ease; }
 .persona-card:hover { transform: translateY(-2px); }
 .persona-top { display: flex; align-items: center; gap: 13px; }
 .persona-top > div:nth-child(2) { flex: 1; }
@@ -405,12 +484,28 @@ ${FONT_FACES}
 .persona-cta { display: inline-flex; align-items: center; gap: 6px; font: 700 12px var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--accent-ink); }
 .local-card { max-width: 560px; }
 
+/* The pair table's lobby card. Four faces before you commit to any of it: a format
+   whose whole point is who is sitting with you has to show you who is sitting with
+   you. Our team reads first and is raised; theirs is sunken, across the table. */
+.pair-card { display: flex; flex-direction: column; gap: 13px; max-width: 640px; }
+.pair-faces { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+.pair-face { display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: 14px; box-shadow: var(--sink-sm); }
+.pair-face.ours { box-shadow: var(--raise-sm); }
+@media (max-width: 560px) { .pair-faces { grid-template-columns: minmax(0, 1fr); } }
+
 .rank-picker { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 18px; flex-wrap: wrap; }
 .rank-picker-label { display: flex; flex-direction: column; gap: 2px; }
 .rank-picker-label strong { font-family: var(--font-display); font-weight: var(--w-display); font-size: 18px; }
 .rank-picker-controls { display: flex; align-items: center; gap: 10px; }
 .btn-icon { padding-left: 10px; padding-right: 10px; }
 .table-picker .rank-picker-controls { gap: 18px; flex-wrap: wrap; }
+/* The level nudge: a full-width row under the stepper, not a third column beside
+   it. It is a remark about the games just played, so it sits below the control it
+   is remarking on and takes the whole width rather than squeezing the badge. */
+.level-nudge { flex-basis: 100%; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding-top: 12px; margin-top: 2px; border-top: 1px solid var(--hairline); }
+.level-nudge > svg { color: var(--accent-ink); flex: none; }
+.level-nudge .fine { flex: 1 1 200px; }
 /* The masters row: the same persona card, with the measured line under the bio. The
    claim is set smaller than the bio and the control smaller still, so the eye reads
    name, then character, then number, then the caveat that keeps the number honest. */
@@ -452,6 +547,32 @@ ${FONT_FACES}
 .review-scrub::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; margin-top: -5px; border-radius: 50%; background: var(--ink); box-shadow: var(--raise-sm); }
 .review-scrub::-moz-range-thumb { width: 16px; height: 16px; border: 0; border-radius: 50%; background: var(--ink); box-shadow: var(--raise-sm); }
 .review-scrub:focus-visible { outline-offset: 4px; }
+
+/* The win rate graph. The curve is the border between Black's share of the box and
+   White's, so the two stone colours carry the whole reading and nothing needs a
+   legend. The hairline along it is the room's own ground, which is the one colour
+   that stands out against both stones in every palette. */
+.review-analysis { width: 100%; }
+.wingraph { width: 100%; border-radius: var(--r); box-shadow: var(--sink-sm); padding: 8px; }
+.wingraph svg { display: block; width: 100%; height: 132px; border-radius: calc(var(--r) - 10px); touch-action: none; cursor: pointer; }
+.wingraph-white { fill: var(--stone-w-2); }
+.wingraph-black { fill: var(--stone-b-2); }
+.wingraph-unknown { fill: var(--ground); }
+.wingraph-even { stroke: var(--grid); stroke-opacity: .5; stroke-width: 1; stroke-dasharray: 4 6; }
+.wingraph-line { fill: none; stroke: var(--ground); stroke-width: 2; stroke-linejoin: round; }
+.wingraph-turn { stroke: var(--danger); stroke-width: 1.5; stroke-dasharray: 3 4; }
+.wingraph-cursor { stroke: var(--accent); stroke-width: 2; }
+.wingraph-ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-2); padding: 4px 2px 0; }
+.review-winline { margin: 0; text-align: center; font-size: 14px; color: var(--ink-2); }
+.review-advice { margin: 0; text-align: center; font-size: 14px; color: var(--ink-2); }
+
+/* One turning point: a move the network says decided something. */
+.turn-chip { display: inline-flex; align-items: center; gap: 6px; border: 0; cursor: pointer;
+  background: var(--ground); color: var(--ink); border-radius: 999px; padding: 6px 12px;
+  font-family: inherit; font-size: 13px; box-shadow: var(--raise-sm); }
+.turn-chip svg { color: var(--danger-ink); }
+.turn-chip.on { box-shadow: var(--sink-sm); }
+.turn-cost { color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .stone-num { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; pointer-events: none; }
 .stone-num.on-b { fill: var(--light); }
 .stone-num.on-w { fill: var(--ink); }
@@ -476,6 +597,19 @@ ${FONT_FACES}
 .vs-meta.right { align-items: flex-end; }
 .vs-meta strong { font-size: 15px; }
 .vs-x { color: var(--ink-2); font-family: var(--font-display-italic); font-style: var(--display-italic-style); }
+
+/* A pair table has four names in the strip instead of two. The teams stack, so the
+   partnership reads as one block on each side of the "vs" rather than as four
+   players in a row. The seat to move is raised out of its team and the other three
+   are left flat, which is the whole marking: no name is dimmed to say it is not
+   this player's turn, because a name nobody can read is not a quieter name. */
+.pair-strip { align-items: stretch; }
+.pair-side { flex-direction: column; align-items: flex-start; gap: 4px; }
+.pair-side.right { align-items: flex-end; }
+.pair-seat { display: flex; align-items: center; gap: 9px; padding: 3px 7px; border-radius: 12px; transition: box-shadow .2s ease; }
+.pair-side.right .pair-seat { flex-direction: row-reverse; }
+.pair-side.right .pair-seat .vs-meta { align-items: flex-end; }
+.pair-seat.to-move { box-shadow: var(--raise-sm); opacity: 1; }
 
 /* The clock lives inside the vs-strip, not in a bar of its own. Pressure is a colour
    shift and a pulse in the last ten seconds; byo-yomi periods are pips, one each. */
@@ -523,6 +657,41 @@ ${FONT_FACES}
 }
 .bubble.mine { align-self: flex-end; border-radius: 14px 14px 5px 14px; box-shadow: var(--raise-sm); color: var(--accent-ink); }
 .chat-row { display: flex; gap: 8px; }
+/* A coordinate somebody typed, made tappable. It is a word in a sentence first,
+   so it keeps the sentence's size and only borrows the accent; lit, it sinks,
+   which is the same thing every pressed control in here does.
+
+   Named talk-coord, not coord: the board's own coordinate margin is .coord
+   (above), and a rule that reached it would set every label on every goban in
+   bold. The focus ring is deliberately not redefined here, so this control
+   keeps the one ring .sente-root :focus-visible draws for everything else. The
+   vertical padding is cancelled by an equal negative margin: the finger gets a
+   target, the line of text keeps its rhythm. */
+.talk-coord {
+  border: 0; background: transparent; padding: 3px 4px; margin: -3px -1px;
+  font: inherit; font-weight: 700; color: var(--accent-ink);
+  border-radius: 6px; cursor: pointer;
+}
+/* Hover is not allowed to borrow the sunken shadow: that shadow means this one
+   is lit, and a pointer crossing a sentence full of coordinates would make each
+   of them look lit in turn while the board showed the rings of another line. */
+.talk-coord:hover { text-decoration: underline; text-underline-offset: 3px; }
+.talk-coord.on { box-shadow: var(--sink-sm); background: var(--accent-soft); text-decoration: none; }
+/* The etiquette row. Sentence case at reading size, because these are things a
+   person says, not controls: a greeting set in small caps is a label. The gloss
+   under each line is shown, not hovered: a title attribute never fires on a
+   phone, and the phrase it explains is the one a stranger most needs explained. */
+.talk-offer { display: flex; flex-wrap: wrap; gap: 8px; }
+.talk-line {
+  display: inline-flex; flex-direction: column; align-items: flex-start; gap: 1px;
+  min-height: 36px; justify-content: center;
+  border: 0; background: transparent; color: var(--ink-2);
+  font: 500 13px var(--font-body); padding: 6px 12px; border-radius: 14px;
+  box-shadow: var(--raise-sm); cursor: pointer; text-align: left;
+}
+.talk-line:hover { color: var(--accent-ink); }
+.talk-line:active { box-shadow: var(--sink-sm); }
+.talk-note { font-size: 12px; color: var(--ink-3); }
 .chat-input {
   flex: 1; border: 0; background: var(--ground); color: var(--ink);
   font: 500 14.5px var(--font-body);
@@ -545,6 +714,17 @@ ${FONT_FACES}
   transition: box-shadow .15s ease;
 }
 .ladder-row.me { box-shadow: var(--sink-sm); }
+/* A ladder row that opens a player's page is a button, so it has to give back
+   the chrome a button brings with it and keep the row it was. The raise on
+   hover is the same two shadows every other raised thing uses; a row that is
+   already sunk because it is yours stays sunk, so "that's you" never flickers
+   into looking like somebody else's row under the pointer. */
+.ladder-open {
+  appearance: none; background: none; border: 0; font: inherit; color: inherit;
+  width: 100%; text-align: left; cursor: pointer;
+}
+.ladder-open:hover:not(.me), .ladder-open:focus-visible:not(.me) { box-shadow: var(--raise-sm); }
+.ladder-open:active:not(.me) { box-shadow: var(--sink-sm); }
 .ladder-pos { color: var(--ink-2); width: 26px; text-align: center; font-family: var(--font-display); font-weight: var(--w-display); font-size: 17px; display: grid; place-items: center; }
 .ladder-pos.gold { color: var(--accent-ink); opacity: 1; }
 .ladder-name { flex: 1; display: flex; flex-direction: column; line-height: 1.2; }
@@ -576,7 +756,7 @@ ${FONT_FACES}
 .tint-dot.active { box-shadow: var(--sink-sm), 0 0 0 2px var(--accent-ring); transform: none; }
 
 /* ---- lessons ---- */
-.lesson-card { display: flex; align-items: center; gap: 16px; text-align: left; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease; }
+.lesson-card { display: flex; align-items: center; gap: 16px; text-align: left; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease, box-shadow .15s ease; }
 .lesson-card:hover { transform: translateY(-2px); }
 .lesson-num { color: var(--ink-3); font-family: var(--font-display-italic); font-style: var(--display-italic-style); font-size: 26px; flex: none; }
 .lesson-meta { flex: 1; }
@@ -704,7 +884,11 @@ ${FONT_FACES}
 .track-trains { color: var(--ink-2); text-transform: none; letter-spacing: 0; font-weight: 500; }
 .lesson-chips { display: flex; align-items: center; gap: 5px; margin-top: 5px !important; font-size: 14px !important; }
 .lesson-card .lesson-num { font-style: normal; font-size: 16px; min-width: 34px; color: var(--accent-ink); }
-.search-row { align-items: center; gap: 8px; flex: 0 1 300px; }
+/* 300px is how wide the search box may be, so it is written as a width. As a
+   flex basis it was a width only above 900px, where screen-head is a grid;
+   below that screen-head is a column and the same 300px made the box 300px
+   TALL. Same trap as the board well, two hundred lines up. */
+.search-row { align-items: center; gap: 8px; width: 100%; max-width: 300px; }
 .search-icon { color: var(--ink-2); flex: none; }
 .count-row { margin-top: 12px; }
 .maxim-line { font-family: var(--font-quote); font-size: 19px; line-height: 1.5; font-style: var(--quote-style); margin: 0 0 8px; display: flex; gap: 8px; align-items: baseline; }
@@ -779,17 +963,166 @@ ${FONT_FACES}
 .pull-quote.sm .pull-label { font-size: 12.5px; }
 .pull-label { color: var(--ink-2); font-family: var(--font-body); font-style: normal; font-size: 14px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
 
+/* A line under a card that sends a reader somewhere else. It is a button
+   because it goes to a screen rather than to a URL, and it is set as a
+   sentence rather than as a control because that is what it is: the last line
+   of the section, with an arrow on it. */
+.lp-after { margin: 18px 0 0; }
+.lp-inline {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  border: 0; background: none; padding: 0 0 2px;
+  color: var(--accent-ink); font-family: var(--font-body);
+  font-size: 14.5px; font-weight: 700; letter-spacing: .02em;
+  border-bottom: 1px solid transparent;
+}
+.lp-inline:hover { border-bottom-color: var(--accent-ink); gap: 12px; }
+.lp-inline span, .lp-inline svg { transition: all .18s ease; }
+
+/* ---- the journal: what shipped, and what we think ----
+   Two kinds of entry on one shelf and a page for each, set as reading rather
+   than as an interface. The measure is held at 66 characters for the same
+   reason the small print holds 68: a line a person can follow to its end.
+
+   A release and a note are told apart by a chip and by nothing else. They are
+   the same size on the shelf on purpose -- a release is not a lesser thing
+   than an essay about a release, and the day we start setting the changelog
+   smaller is the day it stops being read. */
+.jr { display: flex; flex-direction: column; gap: 22px; }
+.jr-note-en { position: relative; }
+.jr-note-en p {
+  margin: 0; max-width: 62ch; color: var(--ink-2);
+  font-size: 14.5px; line-height: 1.62;
+}
+.jr-shelf { display: flex; flex-direction: column; gap: 16px; }
+
+/* One entry on the shelf. It is a button because it goes somewhere, and it
+   carries the raise every other card on the site carries. */
+.jr-card {
+  display: flex; flex-direction: column; gap: 9px; align-items: flex-start;
+  text-align: left; width: 100%; cursor: pointer; padding: 22px 24px;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.jr-card:hover { transform: translateY(-2px); }
+/* The date ranges right, which is what makes a shelf scannable by when
+   rather than by what. */
+.jr-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; width: 100%; }
+.jr-chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px;
+  border-radius: 999px; box-shadow: var(--sink-sm);
+  font-family: var(--font-body); font-size: 12px; font-weight: 700;
+  letter-spacing: .09em; text-transform: uppercase; color: var(--ink-2);
+}
+.jr-chip.note { color: var(--accent-ink); }
+/* The blog reads as writing, like a note, because it is writing. What sets it
+   apart on the shelf is the mark, not another colour: a third colour in a row
+   of chips is a legend, and a shelf does not need a legend. */
+.jr-chip.blog { color: var(--accent-ink); }
+.jr-kicker {
+  font-family: var(--font-body); font-size: 12.5px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3);
+}
+.jr-date {
+  font-family: var(--font-caption); font-size: 13px; color: var(--ink-3);
+  margin-left: auto;
+}
+.jr-title {
+  margin: 0; font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: clamp(21px, 2.6vw, 27px); line-height: 1.2; letter-spacing: -.01em;
+  color: var(--ink);
+}
+.jr-dek { margin: 0; max-width: 66ch; font-size: 15.5px; line-height: 1.62; color: var(--ink-2); }
+.jr-more {
+  display: inline-flex; align-items: center; gap: 7px; margin-top: 4px;
+  color: var(--accent-ink); font-family: var(--font-body);
+  font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+}
+.jr-card:hover .jr-more { gap: 11px; }
+.jr-more span, .jr-more svg { transition: all .18s ease; }
+
+/* ---- one entry, set as a page ---- */
+.jr-back {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: 999px; box-shadow: var(--raise-sm);
+  font-family: var(--font-body); font-size: 13px; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2);
+  cursor: pointer;
+}
+.jr-back:hover { color: var(--accent-ink); }
+.jr-back:active { box-shadow: var(--sink-sm); }
+.jr-head { display: flex; flex-direction: column; gap: 12px; max-width: 66ch; }
+.jr-mast {
+  margin: 0; font-family: var(--font-display); font-weight: var(--w-display);
+  font-size: clamp(30px, 5.4vw, 56px); line-height: 1.04;
+  letter-spacing: calc(-0.02em + var(--display-tracking)); color: var(--ink);
+}
+/* The standfirst is the one line in the italic: it is the piece introducing
+   itself, which is the same job the sayings do everywhere else. */
+.jr-standfirst {
+  margin: 0; max-width: 60ch; color: var(--ink-2);
+  font-family: var(--font-quote); font-style: var(--quote-style);
+  font-size: clamp(17px, 2vw, 21px); line-height: 1.45;
+}
+.jr-piece { display: flex; flex-direction: column; max-width: 66ch; }
+.jr-section { margin-top: 18px; }
+.jr-h {
+  margin: 26px 0 10px; font-family: var(--font-display);
+  font-weight: var(--w-display-strong); font-size: clamp(19px, 2.2vw, 23px);
+  line-height: 1.25; color: var(--ink);
+}
+.jr-piece > .jr-h:first-child, .jr-section:first-child .jr-h { margin-top: 8px; }
+.jr-p { margin: 0 0 14px; font-size: 16px; line-height: 1.7; color: var(--ink); }
+.jr-list { margin: 0; padding-left: 20px; }
+.jr-item { margin-bottom: 11px; font-size: 15.5px; line-height: 1.66; }
+.jr-item strong { font-weight: 700; }
+/* A path in a release note is set in the typewriter, the same machine a
+   passage from the Classic is typed on. It is the one face here that is not
+   the pairing's, and it is not the pairing's because a filename is not prose. */
+.jr-item code, .jr-about code {
+  font-family: var(--font-typewriter); font-size: .92em; color: var(--ink-2);
+}
+.jr-about {
+  margin: 22px 0 0; padding-top: 14px; border-top: 1px solid var(--grid);
+  font-size: 13px; line-height: 1.7; color: var(--ink-3);
+}
+/* A blog post ends the way a column on the front door ends, on a numbered rail
+   of what it rests on. Same rule, same treatment, so a reader who has read the
+   Record already knows what these numbers are for. */
+.jr-sources { margin: 24px 0 0; padding-top: 16px; border-top: 1px solid var(--grid); }
+.jr-sources-label {
+  margin: 0 0 10px; font-family: var(--font-body); font-size: 12px;
+  font-weight: 700; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--ink-3);
+}
+.jr-sources ol { margin: 0; padding: 0; list-style: none; counter-reset: jrsrc; }
+.jr-sources li {
+  position: relative; padding-left: 26px; margin-bottom: 9px;
+  font-family: var(--font-caption); font-style: var(--caption-style);
+  font-size: 13px; line-height: 1.6; color: var(--ink-3);
+}
+.jr-sources li::before {
+  counter-increment: jrsrc; content: counter(jrsrc);
+  position: absolute; left: 0; top: 0; font-family: var(--font-body);
+  font-style: normal; font-size: 12px; font-weight: 700; color: var(--accent-ink);
+}
+.jr-sources a { color: inherit; text-decoration-color: var(--hairline); text-underline-offset: 3px; }
+.jr-sources a:hover { text-decoration-color: var(--accent-ink); }
+@media (max-width: 620px) {
+  .jr-card { padding: 18px 18px; }
+  .jr-date { margin-left: 0; }
+  .jr-p { font-size: 15.5px; }
+}
+
 /* ---- a statement: the house voice, set as large as the screen will bear ----
    The screen's one idea in three lines, ruled off top and bottom like a page
    turning. A passage is the classical voice in the italic; this is ours in the
-   display face, and the two look nothing alike on purpose — they used to sit
+   display face, and the two look nothing alike on purpose: they used to sit
    one under the other in the same italic at nearly the same size, and read as
    one long quotation.
 
    The three lines are worn in order: capitals in the display face, the italic
    voice, then the same capitals drawn as an outline in the incidental ink,
    which is stroke and not a dimmed word. The plain sentence sits under them at
-   caption size — the jump from 8vw to 15px is the point of the block. */
+   caption size: the jump from 8vw to 15px is the point of the block. */
 .statement { margin: 6px 0; padding: clamp(26px, 4vw, 46px) 0; border-top: 1px solid var(--grid); border-bottom: 1px solid var(--grid); }
 .statement-lines { margin: 0; display: flex; flex-direction: column; }
 .statement-mask { display: block; overflow: hidden; padding: .04em 0 .2em; }
@@ -821,6 +1154,249 @@ ${FONT_FACES}
   .statement-gloss { font-size: 14px; }
 }
 @media (prefers-reduced-motion: reduce) { .statement-line { animation: none; } }
+/* ---- the statement at front-door size ----
+   The same three lines with the room the landing has and a screen does not.
+   Two things change and nothing else does. The hairlines come off, because a
+   full-bleed band already separates the block from what is above it and a rule
+   inside a band draws a box. And the rise is gated on the scroll rather than
+   on mount: four statements down one long page would otherwise all have played
+   before the reader reached the second one.
+
+   The gate is animation-play-state, not a second animation. The lines sit
+   parked at translateY(105%) inside a mask that clips them, so a paused
+   statement is an empty band and not a flash of text in the wrong place. The
+   block opts out of the reveal fade for the same reason: the mask is the
+   reveal, and fading a mask as its contents rise reads as two ideas. */
+.lp-band {
+  width: 100%; display: flex; justify-content: center;
+  padding: clamp(44px, 6vw, 92px) clamp(20px, 5vw, 48px) clamp(28px, 3.5vw, 52px);
+}
+.lp-band-inner { width: 100%; max-width: 1080px; }
+.statement.lp { margin: 0; padding: 0; border: 0; }
+.statement.lp .statement-line { font-size: clamp(42px, 10.4vw, 148px); }
+.statement.lp .statement-mask:nth-child(2) .statement-line { font-size: clamp(38px, 9.2vw, 132px); }
+.statement.lp.center { text-align: center; }
+.statement.lp.reveal { opacity: 1; transform: none; }
+.statement.lp.reveal .statement-line { animation-play-state: paused; }
+.statement.lp.reveal.shown .statement-line { animation-play-state: running; }
+/* A stroke that is right at 104px is thin at 148px: the outline line is drawn
+   a shade heavier here so the third line reads as drawn rather than as faint. */
+@supports (-webkit-text-stroke: 1px currentColor) {
+  .statement.lp .statement-mask:nth-child(3) .statement-line { -webkit-text-stroke-width: 2px; }
+}
+@media (max-width: 620px) {
+  .statement.lp .statement-line { font-size: clamp(34px, 11.6vw, 54px); }
+  .statement.lp .statement-mask:nth-child(2) .statement-line { font-size: clamp(31px, 10.4vw, 48px); }
+  .statement.lp .statement-mask:nth-child(3) .statement-line { -webkit-text-stroke-width: 1.2px; }
+}
+
+/* ---- the figure: a shape from the game, at the size of the statement ----
+   Decor put a brand mark behind a section and StoneField put a blurred game
+   behind a band. This is the third and the only one that is go: a real shape,
+   played out by the engine, set beside the largest words on the screen.
+
+   It is drawn richer than a decor is, on purpose. A mark at this size is a
+   logo and has to stay at a watermark's strength or it takes the page over; a
+   figure is stones on lines, which is the picture this whole site is of, so it
+   is allowed to be seen. What keeps it out of the way instead is the mask: the
+   figure is at full strength where it leaves the page and gone to nothing by
+   the time it reaches the words, so the reader never has type over texture.
+
+   The stones are the room's stones, off --stone-*, and the light on them is
+   --sh-lite, the same light every raised card is lit by. Nothing is named here
+   that is not a token, and a change of set in the look page changes this too.
+
+   The house drop-shadows come off for Decor's reason: a 3px blur under a 300px
+   stone is a smear. What replaces the relief is the shine, which is what a
+   polished stone that size actually has on it -- a highlight where the surface
+   faces the light and a lit rim where it turns away. */
+/* --fig-lead is the beat the lines get to themselves before the first stone
+   lands. Every delay on this block is measured from it, so the whole sequence
+   -- rules, stones, rings, captures -- moves together if it is ever retimed. */
+.fig { position: absolute; z-index: 0; pointer-events: none; --fig-lead: 420ms; }
+.fig svg { height: var(--fig-h, clamp(200px, 30vw, 420px)); width: auto; display: block; overflow: visible; }
+/* The board is set before it is played on. The lines draw themselves in over a
+   beat, and only then does the first stone land -- which is the order the thing
+   actually happens in, and it turns a decoration that starts into a decoration
+   that begins. A browser that will not animate a dash offset gets the lines
+   already drawn, which is the picture either way. */
+.fig-grid line { stroke: var(--grid); stroke-width: 1.25px; vector-effect: non-scaling-stroke; opacity: .5; }
+/* The rules take exactly the lead and not a millisecond more: the duration is
+   the same custom property every stone's delay is measured from, so the two
+   cannot drift apart on a retime. They did drift -- the lead was 260ms and this
+   ran for 500, so the first stone landed while the board was half drawn and the
+   sentence above was describing something that did not happen. */
+.fig.playing .fig-grid line {
+  stroke-dasharray: 100%;
+  animation: fig-rule var(--fig-lead) cubic-bezier(.4, 0, .2, 1) both;
+}
+@keyframes fig-rule {
+  from { stroke-dashoffset: 100%; opacity: 0; }
+  to { stroke-dashoffset: 0; opacity: .5; }
+}
+.fig-rim { stroke: rgba(var(--sh-lite),.5); vector-effect: non-scaling-stroke; }
+
+/* A figure dissolves into the ground on every side and is cut only by the page
+   on the one it leaves by. The mask is centred on the shape -- --fig-cx and
+   --fig-cy are set by the component, off the stones themselves -- and not on
+   the frame, because the stones sit wherever the shape put them and a mask
+   centred on the frame catches half of them. Two earlier tries got this wrong:
+   a linear fade softened one edge and left the other three as the sides of a
+   box, and a fade anchored on the bleeding edge left the far stones at a third
+   of their strength, which on a pale ground turns a black stone white. A stone
+   here is either the colour it was played or it is not there. */
+.fig-right, .fig-left {
+  top: 50%;
+  -webkit-mask-image: radial-gradient(var(--fig-r, 86%) var(--fig-r, 86%) at var(--fig-cx, 50%) var(--fig-cy, 50%),
+    var(--ink) var(--fig-s, 46%), rgba(0,0,0,.42) var(--fig-m, 74%), transparent 100%);
+  mask-image: radial-gradient(var(--fig-r, 86%) var(--fig-r, 86%) at var(--fig-cx, 50%) var(--fig-cy, 50%),
+    var(--ink) var(--fig-s, 46%), rgba(0,0,0,.42) var(--fig-m, 74%), transparent 100%);
+}
+.fig-right { right: -6%; transform: translate(26%, -50%); }
+.fig-left { left: -6%; transform: translate(-26%, -50%); }
+
+/* The playing of it. A stone lands on the move it was played on and a captured
+   stone leaves on the move it was captured on, both off the one beat in
+   Figure.jsx, so what is watched is the sequence the engine actually produced.
+
+   The take is set to run forwards and not both. A stone that is going to be
+   captured must contribute nothing at all until its moment -- filled backwards
+   it would hold its end state through the delay and cancel the landing. */
+.fig .fig-stone { opacity: 0; transform-box: fill-box; transform-origin: center; }
+.fig.playing .fig-stone {
+  animation: fig-lay .54s cubic-bezier(.2, .9, .3, 1) both;
+  animation-delay: calc(var(--laid, 0ms) + var(--fig-lead));
+}
+.fig.playing .fig-stone.taken {
+  animation:
+    fig-lay .54s cubic-bezier(.2, .9, .3, 1) calc(var(--laid, 0ms) + var(--fig-lead)) both,
+    fig-take .6s cubic-bezier(.3, 0, .2, 1) calc(var(--gone, 0ms) + var(--fig-lead)) forwards;
+}
+/* A stone lands a shade large and settles back, because that is what a stone
+   does when a hand puts it down: it comes toward you before it comes to rest. */
+@keyframes fig-lay {
+  0% { opacity: 0; transform: scale(.34); }
+  62% { opacity: 1; transform: scale(1.06); }
+  100% { opacity: 1; transform: none; }
+}
+/* And a captured stone is plucked. Up first, the way a hand lifts a stone
+   before it takes it away, then off. It used to balloon and fade, which reads
+   as a bubble bursting -- the one thing that never happens on a go board. */
+@keyframes fig-take {
+  0% { opacity: 1; transform: none; }
+  24% { opacity: 1; transform: translateY(-8%) scale(1.07); }
+  100% { opacity: 0; transform: translateY(-52%) scale(.55); }
+}
+
+/* The rings: one where a stone lands, one where a stone was taken off.
+   Neither is a flourish invented for the page -- the first is the ring a stone
+   actually makes in the eye as it is set down, and the second is the hole the
+   ponnuki is named for. They are drawn in the ink the grid is drawn in, so
+   they read as the board reacting rather than as a colour arriving. */
+/* The weight is stated here rather than derived from the stone's radius. Off
+   the radius it came out at four pixels against a grid drawn at one and a
+   quarter, which is not a board reacting, it is a halo: the ring has to be the
+   lighter of the two marks on the page, not the heavier. */
+.fig .fig-ring {
+  opacity: 0; stroke: var(--ink-3); stroke-width: 1.75px;
+  vector-effect: non-scaling-stroke;
+  transform-box: fill-box; transform-origin: center;
+}
+.fig .fig-ring.out { stroke-width: 2.25px; }
+.fig.playing .fig-ring {
+  animation: fig-ring .72s cubic-bezier(.15, .7, .3, 1) calc(var(--laid, 0ms) + var(--fig-lead)) both;
+}
+.fig.playing .fig-ring.out {
+  animation: fig-hole .9s cubic-bezier(.15, .7, .3, 1) calc(var(--gone, 0ms) + var(--fig-lead)) both;
+}
+/* Eight of these are alive at once while the ladder walks its twenty-eight
+   moves, so the landing ring is kept faint on purpose: the wave should be felt
+   at the edge of the eye and never read as a second thing happening behind the
+   words. The capture ring is the one that is allowed to be seen. */
+@keyframes fig-ring {
+  0% { opacity: 0; transform: scale(.5); }
+  18% { opacity: .3; }
+  100% { opacity: 0; transform: scale(1.7); }
+}
+/* The hole rings wider and holds a breath longer than a landing does: a
+   capture is the larger event of the two, and the point it leaves is the one
+   thing on the board worth looking at for a moment afterwards. */
+@keyframes fig-hole {
+  0% { opacity: 0; transform: scale(.9); }
+  16% { opacity: .62; }
+  100% { opacity: 0; transform: scale(2.3); }
+}
+
+/* The light drifts across the figure rather than sitting still on it. Every
+   stone runs the same slow loop, started earlier the further down the diagonal
+   it sits (--sheen, set per stone), which is one wave of light crossing the
+   shape and not a row of pulsing dots. */
+/* Gated on playing with everything else. An ungated infinite loop is a hundred
+   elements animating on a page nobody has scrolled to yet. */
+.fig.playing .fig-shine { animation: fig-gleam 9s ease-in-out infinite; animation-delay: var(--sheen, 0ms); }
+@keyframes fig-gleam { 0%, 100% { opacity: .5; } 45% { opacity: 1; } }
+
+/* A statement with a figure holds it: the block is the positioned thing, its
+   own contents are lifted a layer clear of it, and the bleed is clipped at the
+   statement rather than at the window. The front door is the exception -- there
+   the band is the full width of the page and does the clipping, so the figure
+   is allowed out to the window edge. */
+.statement { position: relative; }
+.statement.has-fig { overflow: hidden; }
+.statement > *:not(.fig) { position: relative; z-index: 1; }
+/* A screen keeps its figure inside the measure rather than throwing it off the
+   window: the statement clips at the content column, and a shape pushed as far
+   out as a front-door band would lose the stone that makes it the shape it is.
+   A ponnuki missing one of its four is a tiger's mouth. */
+.statement .fig { --fig-h: clamp(190px, 27vw, 400px); }
+.statement .fig-right { right: -1%; transform: translate(9%, -50%); }
+.statement .fig-left { left: -1%; transform: translate(-9%, -50%); }
+.lp-band { overflow: hidden; }
+.statement.lp.has-fig { overflow: visible; }
+.statement.lp .fig { --fig-h: clamp(280px, 42vw, 640px); }
+.statement.lp .fig-right { right: calc(50% - 50vw); transform: translate(30%, -50%); }
+.statement.lp .fig-left { left: calc(50% - 50vw); transform: translate(-30%, -50%); }
+/* A centred statement has no margin to put a figure in, so its figure goes
+   behind the words and drops to the strength of a watermark -- a seal under the
+   type rather than a shape beside it. This is the one place the figure gives up
+   its stones to the words, and it is right that it does: a centred band is the
+   last thing on the front door and the words are the whole of it. */
+.statement.lp.center .fig {
+  --fig-h: clamp(320px, 46vw, 720px);
+  top: 50%; left: 50%; right: auto; transform: translate(-50%, -50%); opacity: .26;
+}
+/* On a narrow screen the words take the whole measure, so the figure goes
+   behind them and drops to a shadow of itself rather than fighting for room.
+
+   It also goes up. A statement is display type over a paragraph of plain words,
+   and the two do not take a shape behind them equally well: a line set at 11vw
+   carries one and reading size does not. So the figure is pinned to the top of
+   the block, where the big type is, and keeps off the sentence underneath. */
+@media (max-width: 820px) {
+  .statement .fig, .statement.lp .fig {
+    --fig-h: clamp(210px, 56vw, 360px); opacity: .26; top: 0;
+  }
+  .statement .fig-right, .statement.lp .fig-right { right: -14%; transform: translate(14%, -12%); }
+  .statement .fig-left, .statement.lp .fig-left { left: -14%; transform: translate(-14%, -12%); }
+  .statement.lp.center .fig { top: 50%; transform: translate(-50%, -50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fig.playing .fig-stone { animation: none; opacity: 1; }
+  .fig.playing .fig-stone.taken { animation: none; opacity: 0; }
+  /* Named in full, because gating the gleam on .playing made the rule that
+     draws it heavier than a bare .fig-shine could ever be. The same trap, one
+     rule further down the sheet, caught this time by the test. */
+  .fig.playing .fig-shine, .fig-shine { animation: none; }
+  /* A ring is a thing that happened. With the motion off nothing happens, so
+     there is nothing for it to be, and the board is simply already ruled.
+     The capture ring is named in full: .fig.playing .fig-ring is a class
+     lighter than the rule that draws it, and a lighter rule further down the
+     sheet is not an override, it is a comment. */
+  .fig .fig-ring, .fig.playing .fig-ring,
+  .fig.playing .fig-ring.out { animation: none; opacity: 0; }
+  .fig.playing .fig-grid line { animation: none; stroke-dasharray: none; }
+}
+
 @media (max-width: 620px) { .chapter-body { padding-left: 12px; } }
 
 /* ---- the thirty-two names (Classic, ch. 11) ---- */
@@ -854,8 +1430,8 @@ ${FONT_FACES}
 
 /* ---- typeface picker ---- */
 /* The theme picker. Each swatch carries its own theme's custom properties, so
-   the little plate is drawn in that material — same two shadows, different
-   room — and you choose by looking rather than by reading a name. */
+   the little plate is drawn in that material (same two shadows, different
+   room) and you choose by looking rather than by reading a name. */
 .theme-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(136px, 1fr)); gap: 12px; margin-top: 16px; }
 .theme-btn {
   border: 0; cursor: pointer; background: var(--ground); color: var(--ink);
@@ -882,6 +1458,54 @@ ${FONT_FACES}
    of the profile chip, cut to the same corner, so the bar reads as two objects
    of one family rather than a button beside a card. */
 .topbar-you { display: flex; align-items: center; gap: 10px; }
+
+/* ---- the language, in the chrome ----
+   Cut to the look button's corner and raised by the same pair of shadows, so
+   the right-hand cluster stays one family. It is wider than the icon buttons
+   beside it because it carries a word (the two-letter tag of the language
+   actually in force) and that tag is the only thing in the header that is not
+   in English. A reader who cannot read the nav can still read EN and press it.
+
+   It is a menu and not a screen. The language is one of four things the Look
+   screen offers and the only one that decides whether the other three can be
+   read, so it is the only one lifted out of there and into the bar. */
+.lang-pill-host { position: relative; flex: none; }
+.lang-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 48px; padding: 0 15px; border: 0; border-radius: 16px;
+  background: var(--ground); color: var(--ink-2); cursor: pointer;
+  box-shadow: var(--raise-sm);
+  transition: transform .15s ease, box-shadow .15s ease, color .15s ease;
+}
+.lang-pill:hover { transform: translateY(-1px); color: var(--ink); }
+.lang-pill.on, .lang-pill:active { box-shadow: var(--sink-sm); color: var(--accent-ink); transform: none; }
+.lang-tag { font: 700 13px var(--font-body); letter-spacing: .11em; }
+
+/* The menu hangs from the pill's own right edge, so it opens inward on every
+   screen rather than off the side of the bar. */
+.lang-menu {
+  position: absolute; top: calc(100% + 9px); right: 0; z-index: 50;
+  min-width: 214px; padding: 7px; border-radius: 18px;
+  background: var(--ground); box-shadow: var(--raise);
+  display: flex; flex-direction: column; gap: 2px;
+  animation: arrive .2s cubic-bezier(.2,.8,.2,1) both;
+}
+.lang-row {
+  display: grid; grid-template-columns: 1fr auto 18px; align-items: baseline; gap: 10px;
+  width: 100%; border: 0; background: none; cursor: pointer; text-align: left;
+  padding: 11px 12px; border-radius: 13px; color: var(--ink);
+  transition: box-shadow .14s ease, color .14s ease;
+}
+.lang-row:hover { box-shadow: var(--raise-sm); }
+.lang-row.on { box-shadow: var(--sink-sm); color: var(--accent-ink); }
+/* Every language names itself in its own words, and the name is set in the
+   body face at reading size: this is the one list a reader may not be able to
+   read, so nothing in it is allowed to be small or clever. */
+.lang-row-name { font: 600 15px var(--font-body); }
+.lang-row-note { font-size: 12px; letter-spacing: .08em; color: var(--ink-2); }
+.lang-row.on .lang-row-note { color: inherit; }
+.lang-row-tick { display: grid; place-items: center; color: var(--accent-ink); align-self: center; }
+
 .look-btn { width: 48px; height: 48px; border-radius: 16px; flex: none; transition: transform .15s ease, box-shadow .15s ease, color .15s ease; }
 .look-btn:hover { transform: translateY(-1px); }
 .look-btn[aria-current] { box-shadow: var(--sink-sm); color: var(--accent-ink); transform: none; }
@@ -966,7 +1590,7 @@ ${FONT_FACES}
 .swatch {
   width: 34px; height: 34px; border: 0; padding: 0; border-radius: 11px; cursor: pointer;
   box-shadow: var(--raise-sm), inset 0 0 0 1px var(--belt-edge);
-  transition: transform .12s ease;
+  transition: transform .12s ease, box-shadow .12s ease;
 }
 .swatch:hover { transform: translateY(-1px); }
 .swatch:focus-visible { outline: 0; box-shadow: var(--raise-sm), 0 0 0 2px var(--accent-ring); }
@@ -1048,6 +1672,48 @@ ${FONT_FACES}
 .kata-streak { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 16px; box-shadow: var(--sink-sm); color: var(--danger-ink); }
 .kata-streak .stat-num { margin-top: 0; font-size: 26px; color: var(--ink); }
 .kata-card.done .kata-streak { color: var(--accent-ink); }
+/* The kata's own state, sunken like the streak pill it replaced, so the card
+   keeps its two-part shape now that the flame has moved to the hero. */
+.kata-state { display: flex; align-items: center; gap: 8px; margin-left: auto; padding: 10px 16px; border-radius: 16px; box-shadow: var(--sink-sm); color: var(--ink-2); font: 700 13px var(--font-body); letter-spacing: .11em; text-transform: uppercase; }
+.kata-card.done .kata-state { color: var(--accent-ink); }
+
+/* ---- the chain ----
+   A day is a mark. A day practised is filled and stands off the ground; a day
+   that was not is the same socket left empty, sunken, which is the two-shadow
+   system saying nothing happened here rather than saying it went badly. There
+   is no red in this, and no mark is ever larger than any other: a record that
+   sized its days by how much was done would be a record of something the app
+   cannot measure.
+
+   Both strips are grids of equal fractions rather than fixed pixels, so the
+   dashboard's four weeks and the profile's half year both hold their shape from
+   a phone to a desk without a breakpoint between them. */
+.chain-line { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin: 4px 0 16px; }
+.chain-run { display: flex; align-items: center; gap: 9px; padding: 8px 14px; border-radius: 14px; box-shadow: var(--sink-sm); color: var(--danger-ink); flex: none; }
+.chain-run .stat-num { margin-top: 0; font-size: 24px; color: var(--ink); }
+.chain-run .stat-num em { font-size: 13px; }
+.chain-side { flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
+
+/* A mark is about eleven pixels, which is the size at which four weeks read as
+   a rhythm rather than as a row of buttons. Both grids are capped at the width
+   that gives them that and shrink below it, so neither needs a breakpoint. */
+.chain-strip { display: grid; grid-template-columns: repeat(28, minmax(0, 1fr)); gap: 3px; max-width: 392px; }
+.chain-year { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 1fr); grid-auto-columns: minmax(0, 1fr); gap: 3px; margin: 16px 0 6px; max-width: 390px; }
+/* Filled or empty, and nothing in between: at this size a shadow is mush, so a
+   practised day is the mark itself and an unpractised one is the ground with a
+   hairline round it. The mark may be spent here because a day is a graphic, not
+   a word - the rule it would break is the one about colouring text. */
+.chain-mark { aspect-ratio: 1; border-radius: 2px; background: var(--ground); box-shadow: inset 0 0 0 1px var(--hairline); }
+.chain-mark.on { background: var(--accent); box-shadow: none; }
+/* Today is ringed, filled or not, so the reader can always find where they are. */
+.chain-mark.today { box-shadow: 0 0 0 2px var(--accent-ring); }
+/* The rest of this week: days that have not happened yet, left blank so the
+   grid keeps its rectangle instead of ending in a ragged column. */
+.chain-mark.ahead { background: none; box-shadow: none; }
+
+.chain-card .chain-head { display: flex; align-items: baseline; gap: 20px; flex-wrap: wrap; }
+.chain-facts { display: flex; gap: 18px; flex-wrap: wrap; color: var(--ink-2); font-size: 14px; }
+.chain-facts strong { color: var(--ink); font-family: var(--font-display); font-weight: var(--w-display); font-size: 17px; margin-right: 4px; }
 .duel-card { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
 .duel-card .avatar { flex: 0 0 auto; }
 .duel-copy { flex: 1 1 240px; display: flex; flex-direction: column; gap: 4px; }
@@ -1091,8 +1757,20 @@ ${FONT_FACES}
 /* ---- Moku ---- */
 .moku-dock { position: fixed; left: clamp(12px, 2vw, 24px); bottom: clamp(12px, 2vw, 24px); z-index: 40; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; pointer-events: none; }
 .moku-dock > * { pointer-events: auto; }
+/* The bubble is sized to the margin it stands in, not to itself.
+   It was a flat 250px in a dock pinned to the bottom left, and the content
+   column is 1100px centred, so on a 1440px screen the gutter is 170px and
+   Moku spoke straight across the page: over the statement on the dashboard,
+   over "NONE PRETENDING" in the lobby, and over the first room swatch on the
+   Look screen, which is a control and not just type. A mascot with an off
+   switch is chrome, and chrome does not get to cover the thing it is next to.
+
+   The expression 50vw minus 550px is the gutter beside that column; the rest is the dock's own
+   inset and a hair of air. The floor keeps a line readable when the gutter
+   runs out, which is the narrow case the rule below already handles. */
 .moku-bubble {
-  max-width: 250px; padding: 10px 14px; border-radius: 14px 14px 14px 4px;
+  max-width: min(250px, max(158px, calc(50vw - 566px)));
+  padding: 10px 14px; border-radius: 14px 14px 14px 4px;
   background: var(--ground); box-shadow: var(--raise-sm);
   font-family: var(--font-quote); font-style: var(--quote-style); font-size: 16px; line-height: 1.4; color: var(--ink);
   animation: rise-l .35s ease;
@@ -1110,7 +1788,7 @@ ${FONT_FACES}
 .moku .moku-brow { fill: none; stroke: var(--cream); stroke-width: 2.2; stroke-linecap: round; opacity: 0; transition: opacity .2s ease, transform .2s ease; }
 .moku .moku-ko { fill: none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 4 5; opacity: 0; transition: opacity .2s ease; }
 /* Laska's two mouths: the smile is on by default, the open one waits for a reason,
-   and the same smile turned over is the frown — no third curve was drawn. */
+   and the same smile turned over is the frown; no third curve was drawn. */
 .moku .moku-mouth { fill: none; stroke: var(--cream); stroke-linecap: round; transition: opacity .2s ease, transform .2s ease; }
 .moku .moku-mouth-idle { stroke-width: 1.98; }
 .moku .moku-mouth-cheer { stroke-width: 2.14; opacity: 0; }
@@ -1194,6 +1872,151 @@ ${FONT_FACES}
 .op-fact dd { margin: 0; font-size: 14.5px; font-weight: 600; }
 .op-label { color: var(--ink-2); font-size: 12.5px; letter-spacing: .09em; text-transform: uppercase; }
 .op-textarea { width: 100%; resize: vertical; min-height: 76px; line-height: 1.6; font: 400 15px var(--font-body); }
+/* ---- the same card, seen from outside ----
+   One page, one card, and the name at display size rather than a heading size:
+   on this screen the person IS the subject, where on the profile screen their
+   card is one object among several. The picture is bigger for the same reason.
+   The facts well and the paragraph are the card's, unchanged, so a player sees
+   the thing they edited and not a second design of it. */
+.player-page { max-width: 620px; }
+.player-page .op-head { align-items: center; }
+.player-page h3 { font-size: clamp(24px, 3.4vw, 31px); line-height: 1.15; }
+.player-when { margin: 0; padding-top: 12px; border-top: 1px solid var(--hairline); }
+@media (max-width: 520px) {
+  .player-page .op-head { flex-direction: column; align-items: flex-start; gap: 12px; }
+}
+/* ---- friends ----
+   Three lists on one card, each headed and each absent when it is empty. A row
+   is one button holding the whole person, with the two acts as loose buttons
+   beside it: the name is a big target, and pressing it never declines anybody. */
+.friends-card { display: flex; flex-direction: column; gap: 16px; }
+.friends-card h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }
+.friend-group { display: flex; flex-direction: column; gap: 7px; }
+.friend-group-head {
+  margin: 0; font-size: 12.5px; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--ink-2); display: flex; align-items: baseline; gap: 7px;
+}
+.friend-rows { display: flex; flex-direction: column; gap: 6px; }
+.friend-row { display: flex; align-items: center; gap: 11px; padding: 8px 12px; border-radius: 16px; }
+.friend-who {
+  appearance: none; background: none; border: 0; font: inherit; color: inherit;
+  display: flex; align-items: center; gap: 11px; flex: 1; min-width: 0;
+  text-align: left; cursor: pointer; padding: 4px; border-radius: 14px;
+  transition: box-shadow .15s ease;
+}
+.friend-who:hover, .friend-who:focus-visible { box-shadow: var(--raise-sm); }
+.friend-who:active { box-shadow: var(--sink-sm); }
+.friend-acts { display: flex; align-items: center; gap: 5px; flex: none; }
+.friend-button { padding-top: 4px; }
+.friend-standing {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 14px; color: var(--ink-2); padding: 7px 2px;
+}
+@media (max-width: 520px) {
+  .friend-row { flex-wrap: wrap; }
+  .friend-who { flex-basis: 100%; }
+}
+/* ---- here now ----
+   One small dot in the accent, and nothing anywhere for somebody who is not
+   here: away and "did not say" are the same silence, so there is no second
+   colour for offline to give the difference away. It carries a title on a row
+   where no words accompany it, and none on the page, where the words beside it
+   already say "Here now" and a tooltip would repeat them. */
+.here-dot {
+  display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--accent-ink); margin-left: 7px; vertical-align: middle;
+  flex: none;
+}
+.player-when .here-dot { margin: 0 7px 0 0; }
+/* ---- who may see you are here ----
+   Three choices on the same segmented control the lobby sets a board size
+   with, so a preference that changes what other people see reads as the same
+   kind of object as every other preference on the screen. */
+.who-may-see {
+  display: flex; flex-direction: column; gap: 8px;
+  padding-top: 14px; border-top: 1px solid var(--hairline);
+}
+.who-may-see .fine { margin: 0; }
+/* ---- the archive ----
+   One row a game, the whole person-and-result a button and the SGF a plain
+   link beside it. The mark takes the accent for a win and stays quiet for a
+   loss: a red loss on every other row turns a season of go into a report card. */
+.archive-card { display: flex; flex-direction: column; gap: 14px; }
+.archive-card h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }
+.archive-row { display: flex; align-items: center; gap: 11px; padding: 8px 12px; border-radius: 16px; }
+.archive-mark {
+  display: grid; place-items: center; width: 34px; height: 34px; flex: none;
+  border-radius: 11px; box-shadow: var(--sink-sm); color: var(--ink-2);
+}
+.archive-mark.won { color: var(--accent-ink); }
+.archive-when { flex: none; white-space: nowrap; }
+.archive-row a.btn { flex: none; text-decoration: none; }
+@media (max-width: 560px) {
+  .archive-row { flex-wrap: wrap; }
+  .archive-row .friend-who { flex-basis: 100%; }
+}
+/* ---- the games a player shows ----
+   A short list on somebody's page, and the line they wrote under each one. The
+   attribution is set in italic beside the words rather than under them: it is
+   part of the sentence, not a caption on it. */
+.featured { display: flex; flex-direction: column; gap: 7px; }
+.featured-note { padding-top: 3px; font-style: normal; }
+.featured-note em { opacity: .75; }
+.pin-note {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 12px 14px; margin: -2px 0 6px; border-radius: 16px; box-shadow: var(--sink-sm);
+}
+.pin-note .chat-input { width: 100%; }
+/* ---- every game you are in ----
+   The front page's answer to "whose move is it". A row waiting on you takes
+   the accent on its mark and nothing else: a whole card of coloured rows is a
+   card with no emphasis in it. */
+.dash-card { display: flex; flex-direction: column; gap: 13px; }
+.dash-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.dash-head h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }
+.dash-card .fine { margin: 0; }
+.dash-row { padding: 8px 12px; }
+.dash-mark {
+  display: grid; place-items: center; width: 26px; height: 26px; flex: none;
+  color: var(--ink-2);
+}
+.dash-row.waiting .dash-mark { color: var(--accent-ink); }
+.dash-row.waiting strong { color: var(--accent-ink); }
+/* A seat at the table, when it leads to a page. */
+.vs-open {
+  appearance: none; background: none; border: 0; font: inherit; color: inherit;
+  cursor: pointer; border-radius: 14px; padding: 4px 6px;
+  transition: box-shadow .15s ease;
+}
+.vs-open:hover, .vs-open:focus-visible { box-shadow: var(--raise-sm); }
+.vs-open:active { box-shadow: var(--sink-sm); }
+/* ---- badges ----
+   Small, sunken, and quiet. They are facts about a record, not trophies, so
+   they sit under the record they were worked out from and take no colour of
+   their own. */
+.badges { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 2px 0 0; padding: 0; }
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border-radius: 11px; box-shadow: var(--sink-sm);
+  font-size: 12px; color: var(--ink-2); cursor: default;
+}
+.badge svg { color: var(--accent-ink); opacity: .8; }
+/* ---- the post ----
+   Letters, not chat. They are set as blocks of prose with room to breathe
+   rather than as bubbles in a stream: the shape says "read this" instead of
+   "reply now", which is the difference the feature rests on. */
+.letters-card { display: flex; flex-direction: column; gap: 14px; }
+.letters-card h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }
+.letter-row { align-items: center; }
+.letter-preview { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 42ch; }
+.thread { display: flex; flex-direction: column; gap: 10px; max-height: 52vh; overflow-y: auto; padding: 2px; }
+.letter {
+  display: flex; flex-direction: column; gap: 5px;
+  padding: 12px 15px; border-radius: 16px; box-shadow: var(--sink-sm);
+}
+.letter.mine { box-shadow: var(--raise-sm); }
+.letter-text { margin: 0; font-size: 15px; line-height: 1.65; white-space: pre-line; }
+.letter .fine { margin: 0; align-self: flex-end; }
 .seek-state { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-radius: 14px; box-shadow: var(--sink-sm); font-size: 14.5px; }
 .seek-state .pulse { color: var(--accent-ink); animation: seek-pulse 1.6s ease-in-out infinite; }
 @keyframes seek-pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
@@ -1256,15 +2079,26 @@ ${FONT_FACES}
 .lp-body { color: var(--ink-2); font-size: clamp(15px, 1.6vw, 16.5px); line-height: 1.7; margin: 0; }
 
 /* ---- hero ---- */
+/* Two columns or one, and which it is, is stated rather than discovered.
+   This was a wrapping flex row with a stacking rule at 900px, and between those
+   two numbers was a band nobody had designed: the columns wrapped on their own
+   at about 1000px, so the board fell *under* the headline instead of rising
+   above it, and the well stretched to the full width of the page on the way
+   down. A 1920x1080 laptop at 200% scaling is 960 CSS pixels, the middle of
+   that band, and an ordinary PC.
+
+   So the hero does not wrap. Above the breakpoint it is two columns and
+   nowrap forbids the accident; below it, it is one column with the board
+   first, which is the order the small layout always meant to have. */
 .lp-hero {
   display: flex; align-items: center; justify-content: center;
-  gap: clamp(32px, 5vw, 76px); flex-wrap: wrap;
+  gap: clamp(32px, 5vw, 76px); flex-wrap: nowrap;
   max-width: 1200px; margin: 0 auto;
   padding: clamp(40px, 7vw, 96px) clamp(20px, 5vw, 48px) clamp(64px, 9vw, 116px);
 }
-.lp-hero-copy { flex: 1 1 420px; max-width: 620px; }
-.lp-hero-board { flex: 0 1 420px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
-.lp-board-well { border-radius: var(--r); box-shadow: var(--sink); padding: clamp(14px, 2vw, 24px); width: 100%; }
+.lp-hero-copy { flex: 1 1 420px; max-width: 620px; min-width: 0; }
+.lp-hero-board { flex: 0 1 420px; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.lp-board-well { border-radius: var(--r); box-shadow: var(--sink); padding: clamp(14px, 2vw, 24px); width: 100%; background: var(--ground); }
 .lp-board-note { color: var(--ink-2); margin: 0; font-family: var(--font-caption); font-style: var(--caption-style); font-size: 13px; text-align: center; }
 
 /* The stat chips are sunken, so they read as facts stamped into the ground
@@ -1295,6 +2129,7 @@ ${FONT_FACES}
 .lp-btn.ghost:hover { opacity: 1; }
 
 /* ---- sections ---- */
+.lp-section.wide { max-width: 1340px; }
 .lp-section { max-width: 1080px; margin: 0 auto; width: 100%; padding: clamp(64px, 9vw, 124px) clamp(20px, 5vw, 48px); }
 .lp-grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(268px, 1fr)); gap: clamp(18px, 2.4vw, 28px); margin-top: clamp(38px, 5vw, 56px); }
 .lp-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: clamp(18px, 2.4vw, 28px); margin-top: clamp(38px, 5vw, 56px); }
@@ -1329,16 +2164,166 @@ ${FONT_FACES}
 .lp-quote-section { text-align: center; display: flex; flex-direction: column; align-items: center; }
 .lp-quote { display: flex; flex-direction: column; align-items: center; gap: 18px; margin: 8px 0 clamp(34px, 5vw, 52px); }
 .lp-quote-line {
-  margin: 0; max-width: 26ch;
-  font-size: clamp(23px, 3.4vw, 40px); line-height: 1.44; letter-spacing: -.018em;
+  margin: 0; max-width: 24ch;
+  font-size: clamp(26px, 4.4vw, 54px); line-height: 1.3; letter-spacing: -.02em;
 }
 .lp-quote-src { color: var(--ink-2); margin: 0; font-family: var(--font-caption); font-style: var(--caption-style); font-size: 14px; }
+
+/* ---- a pull: one line, set to be read slowly ----
+   Not a statement and not a quotation. A statement is the house shouting in
+   capitals and a quotation is Zhang Ni; this is the house talking, in the
+   quote italic, at about half a statement's size. One word is drawn as an
+   outline rather than filled, which is the statement's third line again at a
+   scale where it can sit inside a sentence. A browser with no stroke property
+   gets the word in the incidental ink instead of a line of nothing. */
+.lp-pull {
+  margin: clamp(44px, 5.5vw, 74px) auto 0; max-width: 24ch; text-align: center;
+  font-family: var(--font-quote); font-style: var(--quote-style); font-weight: 420;
+  font-size: clamp(26px, 4.2vw, 52px); line-height: 1.28;
+  letter-spacing: -.016em; color: var(--ink); text-wrap: balance;
+}
+.lp-pull em { font-style: inherit; color: var(--ink-3); }
+@supports (-webkit-text-stroke: 1px currentColor) {
+  .lp-pull em { color: transparent; -webkit-text-stroke: 1.4px var(--ink); }
+}
+@media (max-width: 620px) {
+  .lp-pull em { -webkit-text-stroke-width: 1px; }
+}
 
 /* ---- roadmap ---- */
 .lp-roadmap { margin-top: clamp(32px, 4vw, 44px); padding: clamp(24px, 3vw, 34px); }
 .lp-roadmap ul { list-style: none; padding: 0; margin: 20px 0 0; display: flex; flex-direction: column; gap: 15px; }
 .lp-roadmap li { color: var(--ink-2); display: flex; gap: 13px; align-items: baseline; font-size: clamp(15px, 1.6vw, 16.5px); line-height: 1.6; }
 .lp-roadmap li svg { flex: none; color: var(--accent-ink); transform: translateY(3px); }
+
+/* ---- The Record: the one section set as a page rather than as cards ----
+   A broadsheet. Hairline masthead, a kicker, columns with rules between them,
+   an opener that drops, and the sources ruled off underneath at caption size.
+   It is the only block on the site that is not neumorphic, and that is the
+   argument for it: the page stops being an interface for a moment and becomes
+   something printed, which is how a reader knows the register has changed from
+   "here is what this app does" to "here is what this game is".
+
+   Nothing is invented to make it work. The rules are the hairline that is
+   already on the screen, the type is the same three tokens, and the drop cap
+   is the display face at four lines. No colour and no family is named.
+
+   The 12px floor holds. A real broadsheet would set the footnotes at eight
+   point; these sit at 12 and stop, because nothing below that carries meaning
+   at arm's length and the footnote rail is the part that has to be read most
+   carefully: it is where the page proves what it just said. */
+.lp-record { border-top: 2px solid var(--grid); border-bottom: 1px solid var(--hairline); }
+.lp-record-head {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+  gap: 12px; padding: 14px 0 0; border-bottom: 1px solid var(--hairline);
+}
+.lp-record-mast {
+  font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: clamp(30px, 5vw, 58px); line-height: 1; margin: 0;
+  letter-spacing: calc(-0.01em + var(--display-tracking)); text-transform: uppercase;
+}
+.lp-record-rule {
+  color: var(--ink-2); font-family: var(--font-caption); font-style: var(--caption-style);
+  font-size: 13px; margin: 0 0 10px;
+}
+/* The headline the section opens on, and the one line here set larger than the
+   masthead. A broadsheet does not start on a paragraph. It starts on the line
+   somebody would read over a shoulder, and everything under it is the answer
+   to that line. */
+.lp-record-headline {
+  margin: clamp(20px, 2.8vw, 34px) 0 0; max-width: 22ch;
+  font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: clamp(34px, 6.4vw, 76px); line-height: .98;
+  letter-spacing: calc(-0.025em + var(--display-tracking));
+  color: var(--ink); text-wrap: balance;
+}
+.lp-record-dek {
+  margin: clamp(13px, 1.8vw, 20px) 0 0; max-width: 62ch;
+  font-family: var(--font-quote); font-style: var(--quote-style);
+  font-size: clamp(19px, 2.3vw, 26px); line-height: 1.42; color: var(--ink);
+}
+.lp-columns {
+  margin-top: clamp(26px, 3.4vw, 40px);
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 0;
+}
+.lp-col { padding: clamp(20px, 2.4vw, 30px) clamp(18px, 2.2vw, 28px); border-top: 1px solid var(--hairline); }
+/* The rule between columns, and only between them: a rule on the outside edge
+   of a broadsheet is a box, and a box is a card, which is the thing this
+   section exists to not be. */
+.lp-col + .lp-col { border-left: 1px solid var(--hairline); }
+.lp-col-kicker {
+  font-family: var(--font-body); font-size: 12px; font-weight: 700;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--accent-ink);
+  margin: 0 0 9px;
+}
+.lp-col h3 {
+  font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: clamp(21px, 2.3vw, 27px); line-height: 1.12; margin: 0 0 12px;
+  letter-spacing: var(--display-tracking); text-wrap: balance;
+}
+.lp-col p { color: var(--ink-2); font-size: 15.5px; line-height: 1.66; margin: 0 0 11px; }
+.lp-col p:last-of-type { margin-bottom: 0; }
+/* The opener drops: the first paragraph of the lead column and nothing else.
+   A drop cap in every column reads as a pattern rather than as the start of
+   something, and one asked of "the first paragraph" lands on the kicker. */
+.lp-col p.lp-drop::first-letter {
+  float: left; font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: 3.4em; line-height: .82; padding: .06em .09em 0 0; color: var(--ink);
+}
+/* A signed column ends on its signature, set in the caption italic and ruled
+   off short. It is the one column with no numbered line under it, so the
+   signature is doing the rail's job: it says who is answerable for this. */
+.lp-col-signed {
+  margin: 14px 0 0; padding-top: 10px;
+  border-top: 1px solid var(--hairline); max-width: 22ch;
+  font-family: var(--font-caption); font-style: var(--caption-style);
+  font-size: 13px; color: var(--ink-3);
+}
+/* "Signed," rather than a dash: the house has been taking em dashes out of
+   its prose all week and a decorative one in the stylesheet would be the same
+   mark coming back in through the door marked design. */
+.lp-col-signed::before { content: "Signed,\\00a0"; }
+.lp-figure {
+  display: block; margin: 0 0 12px;
+  font-family: var(--font-display); font-weight: var(--w-display);
+  font-size: clamp(27px, 3.2vw, 38px); line-height: 1.04; color: var(--accent-ink);
+  letter-spacing: calc(-0.018em + var(--display-tracking));
+}
+.lp-figure small {
+  display: block; margin-top: 5px; color: var(--ink-2);
+  font-family: var(--font-caption); font-style: var(--caption-style);
+  font-size: 13px; letter-spacing: 0; font-weight: 400;
+}
+/* The rail. Every column above is answerable to a line down here, which is the
+   only reason the section is allowed to exist on a page that is selling
+   something. */
+.lp-sources { border-top: 1px solid var(--hairline); padding: clamp(18px, 2.2vw, 26px) clamp(18px, 2.2vw, 28px) 4px; }
+.lp-sources-label {
+  font-family: var(--font-body); font-size: 12px; font-weight: 700;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 12px;
+}
+.lp-sources ol {
+  margin: 0; padding: 0; list-style: none;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 9px clamp(18px, 2.2vw, 30px); counter-reset: src;
+}
+.lp-sources li {
+  counter-increment: src; color: var(--ink-2);
+  font-family: var(--font-caption); font-style: var(--caption-style);
+  font-size: 12.5px; line-height: 1.5; padding-left: 24px; position: relative;
+}
+.lp-sources li::before {
+  content: counter(src); position: absolute; left: 0; top: 0;
+  font-family: var(--font-body); font-style: normal; font-size: 12px; font-weight: 700;
+  color: var(--accent-ink);
+}
+.lp-sources a { color: inherit; text-decoration-color: var(--hairline); text-underline-offset: 3px; }
+.lp-sources a:hover { text-decoration-color: var(--accent-ink); }
+@media (max-width: 620px) {
+  .lp-col + .lp-col { border-left: 0; }
+  .lp-record-head { padding-bottom: 10px; }
+}
 
 /* ---- the last word ---- */
 .lp-final {
@@ -1347,6 +2332,225 @@ ${FONT_FACES}
   padding: clamp(76px, 11vw, 148px) clamp(20px, 5vw, 48px) clamp(56px, 8vw, 96px);
 }
 .lp-final .lp-lede { margin-bottom: 34px; }
+
+/* ---- the ground: a go position, blurred ----
+   A real game drawn at wall size and thrown out of focus. The circles are
+   stones, in the two stone tokens, so it turns over with the room and with the
+   stone set exactly as the boards do.
+
+   The rule it has to respect is the one the whole design rests on: the two
+   shadows read as light falling on a flat ground, and they stop reading the
+   moment there is texture directly under a raised or a sunken thing. So the
+   field is a layer under a band and every card, button and well on top of it
+   carries its own ground. The band's own contents are lifted a layer clear.
+
+   The mask is not a scrim over the picture: it is the ground itself coming
+   back in at the edges, so the field has no border and never ends on a line. */
+.lp-ground { position: relative; isolation: isolate; }
+.lp-ground > *:not(.stone-field):not(.lp-decor) { position: relative; z-index: 1; }
+/* One exception, and it is stated here because this is the rule it answers.
+   The headline is sized off the window while its column is free to shrink past
+   it, so a wide display face sets "beautifully" wider than the column has and
+   the word runs over the board beside it. On one layer the board wins, by
+   coming second in the markup, and it carries an opaque ground: the word does
+   not overlap the board, it stops at it. The words are what the front door is
+   for, so the copy takes the layer above. Specificity is matched to the rule
+   above deliberately, and the lower z-index then loses on source order. */
+.lp-hero.lp-ground > .lp-hero-copy { z-index: 2; }
+.stone-field {
+  position: absolute; inset: 0; z-index: 0; overflow: hidden;
+  pointer-events: none; opacity: 0; transition: opacity 1.4s ease;
+}
+.stone-field.ready { opacity: .38; }
+/* Three, not thirteen. A radius that hides the stones takes the point of the
+   field with it: the argument for spending a real engine on a decoration is
+   that it can be seen to be a real game. Three softens the field enough to keep
+   it behind the words and leaves a stone looking like a stone. */
+.stone-field svg { width: 100%; height: 100%; display: block; filter: blur(2px); }
+/* A stone that was not on the board last tick settles in; one that was is the
+   same element and is not touched. That is the whole of the motion, and it is
+   the position being played rather than an effect over it.
+
+   It arrives a shade large and settles back, which is what a stone does when a
+   hand puts it down: it comes toward you before it comes to rest. A straight
+   fade up from small is a thing appearing, and a thing appearing is not a move
+   being played. The overshoot is seven per cent and lasts a fifth of a second,
+   which nobody will consciously see and everybody would miss. */
+.stone-field .fs-rim { fill: none; stroke: rgba(var(--sh-ink),.16); stroke-width: 2px; }
+.stone-field .fs-stone {
+  transform-box: fill-box; transform-origin: center;
+  animation: fs-land .62s cubic-bezier(.2, .9, .3, 1) both;
+}
+@keyframes fs-land {
+  0% { opacity: 0; transform: scale(.5); }
+  58% { opacity: 1; transform: scale(1.07); }
+  100% { opacity: 1; transform: none; }
+}
+/* And a stone that has been captured comes off the board. It is plucked -- up
+   a little first, the way a hand lifts a stone before it takes it away -- and
+   then it is gone. This is the one moment in a game of go that somebody who
+   has never played recognises on sight, and the field used to spend it between
+   two frames. It holds for a beat because the beat is two and a half seconds
+   and the stone is off the board inside the first second of it. */
+.stone-field .fs-stone.leaving {
+  animation: fs-lift .72s cubic-bezier(.3, 0, .2, 1) both;
+}
+@keyframes fs-lift {
+  0% { opacity: 1; transform: none; }
+  26% { opacity: 1; transform: translateY(-7%) scale(1.06); }
+  100% { opacity: 0; transform: translateY(-46%) scale(.6); }
+}
+/* The ground, closing back over the field at the edges so it has no border and
+   never ends on a line. It used to close at a third of the way out, which was
+   the right number for a thirteen-pixel blur and the wrong one for a three: it
+   left the position showing only in the middle of the band, where the words
+   are, and hid it everywhere there was room for it. It closes at three quarters
+   now: the field reaches most of the way out and only softens into the ground
+   at the very edge, which is what puts enough of the position on the page for a
+   stone landing in it to be something a visitor can actually catch. */
+.stone-field::after {
+  content: ""; position: absolute; inset: -2px;
+  background: radial-gradient(farthest-side at 50% 50%, transparent 76%, var(--ground) 100%);
+}
+/* A phone gets a smaller blur again, because the field is scaled down with it
+   and a radius drawn for a wide band is fog on a narrow one. */
+@media (max-width: 620px) {
+  .stone-field svg { filter: blur(1.5px); }
+  .stone-field.ready { opacity: .38; }
+}
+/* Reduced motion still gets the picture (StoneField holds one settled
+   position rather than playing) but not the fade onto the page, and no stone
+   settles in: the position is simply there. */
+@media (prefers-reduced-motion: reduce) {
+  .stone-field { transition: none; }
+  .stone-field .fs-stone { animation: none; }
+  /* A stone on its way off the board has nowhere to go without the animation,
+     so it is simply not drawn: the position is the position. */
+  .stone-field .fs-stone.leaving { display: none; }
+}
+
+/* ---- the floors ----
+   One flat ground from the top of the page to the bottom made every section
+   the same room, and a reader scrolling it had nothing to count. So the page
+   is floored in four materials, alternating, and no two touching sections
+   share one:
+
+     the game    a real position, blurred (StoneField, above), hero and the
+                 last word, the two places the page is being looked at rather
+                 than read.
+     the ruling  a board's lines, at the spacing StoneField draws stones on.
+                 Behind the primer and behind the roadmap: the two sections
+                 that are explaining, where a grid is a diagram and not a mood.
+     the points  the 4-4s. A fine lattice with a heavier dot every fourth
+                 crossing, which is how a board is actually marked, so the
+                 "field of dots" is the star points and not wallpaper.
+     the sunken  a band pressed into the page. This is the alternating light
+                 and dark the sections needed, done the house way: not a
+                 painted stripe but the same two shadows turned inward, so a
+                 statement sits in a trough rather than on a swatch.
+
+   Two things every floor obeys. It is a layer *under* the band, never a
+   texture behind a raised thing: the two shadows stop reading the moment
+   there is pattern under them, and every card carries its own --ground so it
+   occludes whatever it stands on. And it ends by fading out, never on a line:
+   each one is masked back to the bare ground at its edges, so a floor has no
+   border and the page has no seams.
+
+   The Record keeps the plain ground on purpose. It is a broadsheet, and
+   newsprint is the one surface on this page that earns being blank. */
+
+/* The ruling. --grid is the token a board's lines are already drawn in, at the
+   same 44px cell StoneField uses, so the two grounds are the same board. */
+.lp-ruled::before,
+.lp-dotted::before {
+  content: ""; position: absolute; inset: 0; z-index: 0;
+  pointer-events: none;
+  /* Masks read the alpha channel, so the colour here is only a carrier: it is
+     a token all the same, because the stylesheet names no colour anywhere. */
+  -webkit-mask-image: radial-gradient(115% 76% at 50% 50%, var(--ink) 24%, transparent 80%);
+  mask-image: radial-gradient(115% 76% at 50% 50%, var(--ink) 24%, transparent 80%);
+}
+.lp-ruled::before {
+  background-image:
+    linear-gradient(to right, var(--grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+  background-size: 44px 44px;
+  background-position: center;
+  /* Prose sits on this. A ruling heavy enough to be admired is a ruling the
+     lede has to be read through, so it stops where it is still a surface. */
+  opacity: .3;
+}
+/* The points: the fine lattice, and the star point on every fourth crossing.
+   176px is 44 x 4: the 4-4, drawn where a 4-4 goes. */
+.lp-dotted::before {
+  background-image:
+    radial-gradient(circle, var(--ink-3) 2.2px, transparent 2.7px),
+    radial-gradient(circle, var(--grid) 1.3px, transparent 1.8px);
+  background-size: 176px 176px, 44px 44px;
+  background-position: center, center;
+  opacity: .5;
+}
+
+/* The sunken band. A statement is pressed into the page rather than printed on
+   a panel: the hairlines are the lip and the two inset shadows are the same
+   light this whole design is lit by, coming over the near edge. */
+.lp-band.sunk {
+  background: var(--wash-b);
+  box-shadow:
+    inset 0 1px 0 var(--hairline), inset 0 -1px 0 var(--hairline),
+    inset 0 16px 24px -20px rgba(var(--sh-ink), .55),
+    inset 0 -16px 24px -20px rgba(var(--sh-ink), .55);
+}
+
+/* ---- the marks, at the size of a section ----
+   The brand marks run large and bleed off the band they sit in. They are flat
+   here: the house drop-shadows on a stone are a 3px blur, which at 400px is a
+   smudge, so the raise comes off and what is left is the shape. Kept faint
+   enough that body text never has to compete with it, and the section clips
+   them, so a mark ends at the margin like a stamp rather than trailing off. */
+.lp-decor { position: absolute; z-index: 0; pointer-events: none; opacity: .115; }
+.lp-decor svg { height: var(--decor-h, clamp(200px, 27vw, 440px)); width: auto; }
+.lp-decor .mark-ink,
+.lp-decor .mark-played,
+.lp-decor .mark-waiting { filter: none; }
+/* A stroke width is in viewBox units, so a line drawn to read at 32px becomes
+   fifty pixels thick at 440. Every stroke in a decor is taken out of the
+   scaling and given a real width instead, which is how the waiting stone stays
+   a drawn circle and the corner's grid stays a grid.
+
+   The width goes on the drawn element and not on the group around it: a
+   group is not a shape, and a browser takes the effect off the line it is
+   actually stroking. */
+.lp-decor .mark-waiting,
+.lp-decor .mark-grid line,
+.lp-decor .mark-edge { vector-effect: non-scaling-stroke; }
+.lp-decor .mark-waiting { stroke-width: 3px; }
+.lp-decor .mark-grid { stroke-opacity: 1; }
+.lp-decor .mark-grid line { stroke-width: 1.5px; }
+.lp-decor .mark-edge { stroke-width: 3px; }
+/* A mark leaves by the side of the page, not by the side of the text column.
+   A section holds its content in a 1080px measure, so a right edge of zero would stop a
+   mark short with a strip of bare ground beyond it, and the clip would read as
+   a mistake rather than as a bleed. calc(50% - 50vw) is the section's own
+   edge pushed back out to the window, whatever measure the section keeps.
+
+   Vertically they stay inside their section on purpose: a mark that spilled
+   into the band above it would cross the seam the floors were put in to make. */
+.lp-decor-left { top: 50%; left: calc(50% - 50vw); transform: translate(-34%, -50%); }
+.lp-decor-right { top: 50%; right: calc(50% - 50vw); transform: translate(34%, -50%); }
+.lp-decor-tr { top: 4%; right: calc(50% - 50vw); transform: translate(18%, 0); }
+.lp-decor-bl { bottom: 4%; left: calc(50% - 50vw); transform: translate(-18%, 0); }
+.lp-decor-center { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+/* The page is clipped at its own edge instead, so a mark hanging off the side
+   never turns into a sideways scrollbar. clip rather than hidden: hidden
+   would make the landing a scroll container and take anchor links with it. */
+.landing { overflow-x: clip; }
+/* On a narrow screen there is no margin for a mark to stand in, and a shape
+   behind a single column of prose is only noise. */
+@media (max-width: 760px) {
+  .lp-decor:not(.lp-decor-center) { display: none; }
+  .lp-decor-center { opacity: .07; }
+}
 
 /* The slim chrome the landing wears: the wordmark, and one way in. Everything
    else in the topbar belongs to a player who has already sat down. */
@@ -1373,9 +2577,31 @@ ${FONT_FACES}
 /* ---- the dashboard behind the door ---- */
 .dash-rank { margin-bottom: 14px; }
 
-@media (max-width: 900px) {
-  .lp-hero { padding-top: clamp(24px, 5vw, 48px); }
-  .lp-hero-board { order: -1; flex-basis: 320px; }
+/* The middle window: still two columns, both taken in.
+   What actually broke the row was the headline. The display face is sized off
+   the window, so at 960px "beautifully" is set at 80px and wants some 470px of
+   column to itself (more than the column had) and that is what pushed the
+   board out of the row and under the copy. Here the display is sized off the
+   column instead, and the board is given a narrower well: it is fluid and only
+   caps at its sizePx, so it simply draws smaller rather than overflowing.
+
+   Two columns now hold down to 880, which covers the ordinary PC window this
+   was failing in: a 1920x1080 laptop at 200% scaling is 960 CSS pixels. */
+@media (max-width: 1100px) and (min-width: 880px) {
+  .lp-hero { gap: clamp(22px, 2.8vw, 36px); }
+  .lp-hero-copy { flex: 1 1 380px; }
+  .lp-hero-board { flex: 0 1 330px; }
+  .lp-hero .lp-display { font-size: clamp(44px, 6.2vw, 68px); }
+  .lp-hero .lp-lede { font-size: 16.5px; }
+  .lp-hero .lp-stats { margin: 22px 0 26px; }
+}
+
+/* One column, and the board first, now because the small layout asks for it,
+   not because the row ran out of room. */
+@media (max-width: 879px) {
+  .lp-hero { flex-direction: column; padding-top: clamp(24px, 5vw, 48px); }
+  .lp-hero-copy { flex: none; width: 100%; max-width: 620px; }
+  .lp-hero-board { order: -1; flex: none; width: 100%; max-width: 420px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .reveal { opacity: 1; transform: none; }
@@ -1474,5 +2700,132 @@ ${FONT_FACES}
   .sente-root *, .sente-root *::before, .sente-root *::after {
     animation: none !important; transition: none !important;
   }
+}
+
+/* ---- the phone ----
+   A finger is not a cursor. It is about 9mm across, it cannot hover, and it
+   covers what it is about to press. Three things follow, and they are the only
+   reason this block exists.
+
+   1. Nothing you are meant to press is smaller than 44px. That is the floor
+      every platform agrees on, and the nav, the footer and Moku's off switch
+      were all under it. Where the floor would change how a control looks, the
+      hit area grows and the drawing stays where it is: an invisible ::after is
+      the target, the circle or the underline is still the picture.
+   2. A dark room has no gutter. The dock is chrome pinned to the corner, and
+      on a 390px screen the corner is the content. It keeps its seat, the page
+      is given room to scroll clear of it, and the bubble stops talking over
+      what you are reading unless you ask for it.
+   3. Nothing may rely on hover, because there is none to rely on. */
+@media (max-width: 760px) {
+  /* The nav lost its labels here already; without them the buttons were 40x36,
+     which is a miss waiting to happen on the one control every screen needs. */
+  .nav-btn { padding: 12px; min-width: 44px; min-height: 44px; justify-content: center; }
+  .nav-btn.active::after { left: 10px; right: 10px; bottom: 7px; }
+
+  /* The footer links are 13px type and were 16px tall. The underline stays put;
+     the padding underneath it is what the finger actually lands on. */
+  .foot-link { padding-block: 14px; }
+  .foot-legal { gap: 8px 12px; }
+
+  /* The small controls. Every one of these was between 24px and 38px tall,
+     which is fine under a cursor and a coin toss under a thumb. The type and
+     the shadow do not change; the box grows to the floor and the label centres
+     itself in it, so a row of buttons reads the same and lands better. */
+  .btn-sm, .seg-btn { min-height: 44px; }
+  .btn-sm { padding-inline: 17px; }
+  .seg-btn { padding-inline: 17px; }
+  .btn-icon { min-width: 44px; justify-content: center; }
+  .icon-btn { width: 44px; height: 44px; }
+  .coach-toggle { min-height: 44px; padding-inline: 12px; }
+
+  /* The sources under the landing page are 12.5px links inside a citation, and
+     they are left alone on purpose. Making each its own box to pad it to 44px
+     turns the link atomic, so the rest of the citation can no longer sit on the
+     same line and every entry breaks with an orphaned full stop. Padding them
+     while inline grows the hit area into the neighbouring line instead, which
+     is worse than a small target: it is a target that takes the wrong tap. The
+     rows are far enough apart to aim at, and a miss costs nothing. */
+
+  /* A settings row is an icon, a sentence and a control on one line. A 48px
+     switch leaves room for the sentence; the three-button Dot/Ring/None group
+     does not, and because the copy is flex:1 with an automatic minimum it gave
+     up everything down to its longest word: "How the / stone just / played is"
+     set one or two words to the line. Here the row may wrap, and the copy asks
+     for 12rem before it yields, so a wide control drops to its own line and
+     the sentence gets the width back. */
+  .setting-row { flex-wrap: wrap; }
+  .setting-copy { flex: 1 1 12rem; }
+  .seg { flex-wrap: wrap; }
+
+  /* Two controls are drawn small on purpose: the switch is a switch, and the
+     step rail is a progress bar you may also press. Neither may grow without
+     becoming something else, so the drawing stays and the button around it is
+     padded out to the floor instead. The rail's own padding comes off so the
+     row does not get taller for it. */
+  .toggle { height: 44px; background: none; box-shadow: none; }
+  .toggle::before {
+    content: ""; position: absolute; top: 50%; left: 0; width: 48px; height: 28px;
+    transform: translateY(-50%); border-radius: 14px;
+    background: var(--ground); box-shadow: var(--sink-sm);
+  }
+  .toggle-knob { top: 50%; margin-top: -10px; }
+  /* The segments stay 22px apart because the rail shares its row with the real
+     buttons and any width taken here comes off those. They are contiguous and
+     44px tall, so the rail is one band a thumb can find; a near miss lands on
+     the neighbouring step rather than on nothing, which is the behaviour a
+     progress rail wants anyway. */
+  .step-rail { padding-block: 0; }
+  /* .done sets its own background one class deeper, so it has to be named here
+     too or the finished step paints the whole 44px box instead of the bar. */
+  .step-seg, .step-seg.done {
+    height: 44px; background: none; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-seg::before { content: ""; width: 22px; height: 5px; border-radius: 3px; background: var(--ink); }
+  .step-seg.done::before { background: var(--accent); }
+  .step-seg.current::before { transform: scaleY(1.8); }
+  .step-seg.current { transform: none; }
+
+  /* Room at the very end of the page for the dock to sit in. It belongs on the
+     footer rather than the content: the footer is what the last scroll lands
+     on, and that is where Moku was covering the legal links. */
+  .foot { padding-bottom: 124px; }
+
+  /* The wordmark is a wide target but a short one. */
+  .topbar-brand { padding-block: 7px; }
+
+  .moku-dock { gap: 8px; }
+  .moku-dock .moku { width: 56px; height: 56px; }
+  /* Moku speaks when asked. On a wide screen the line sits in the gutter beside
+     the column and costs nothing; here it would lie across the paragraph you
+     are reading, so the seat becomes the button that opens it. */
+  .moku-bubble { display: none; max-width: min(62vw, 240px); }
+  .moku-bubble.open { display: block; }
+}
+
+/* The seat is a button on every screen: on the phone it opens the line, and a
+   keyboard can always reach the stone the same way it reaches everything else. */
+.moku-seat-btn { display: block; border: 0; padding: 0; background: none; cursor: pointer; border-radius: 50%; }
+
+/* The off switch is drawn at 23px and pressed at 44: the button is the whole
+   44px square and the little circle is a ::before painted in the middle of it,
+   so the target is real rather than an expander stacked over the page. The
+   drawing does not move, only the box around it grows.
+
+   Without the hover rule below it appeared on hover only, which on a touch
+   screen means it never appeared at all: a mascot you cannot send away is an
+   advert, and that is the house rule this file opens with. */
+@media (hover: none) {
+  .moku-off {
+    width: 44px; height: 44px; top: -13px; right: -19px;
+    background: none; box-shadow: none; opacity: .75;
+  }
+  .moku-off::before {
+    content: ""; position: absolute; top: 50%; left: 50%; width: 23px; height: 23px;
+    transform: translate(-50%, -50%); border-radius: 50%;
+    background: var(--ground); box-shadow: var(--raise-sm);
+  }
+  .moku-off > * { position: relative; }
 }
 `;

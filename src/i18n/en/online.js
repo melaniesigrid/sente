@@ -19,8 +19,12 @@ export const online = {
   caption: {
     komi: "komi {komi}",
     watching: "{count} watching",
+    pair: "pair go, four seats",
   },
   table: {
+    /* What joins two names into a team. A word in the languages that want one,
+       and never a bare ampersand in the middle of a sentence. */
+    and: " & ",
     vs: "vs {name}",
     between: "{black} vs {white}",
     finished: "finished",
@@ -36,6 +40,28 @@ export const online = {
     toMove: "{side} to move",
     detail: "{moves} · {turn}",
     moves: { one: "{count} move", other: "{count} moves" },
+  },
+
+  /* How long a board has been waiting. A board, never a person: see the note
+     at the top of views/dashboard.js for why this one is allowed minutes. */
+  wait: {
+    justNow: "just now",
+    minutes: { one: "{count} minute", other: "{count} minutes" },
+    hours: { one: "{count} hour", other: "{count} hours" },
+    days: { one: "{count} day", other: "{count} days" },
+  },
+  /* Every game you are in the middle of, ordered by who is waiting on whom. */
+  dash: {
+    head: "Your tables",
+    someWaiting: "{waiting} waiting on you, {total} in all",
+    noneWaiting: "{total} going, none waiting on you",
+    notAClock: "How long the board has been waiting, not a clock. Games online are not timed yet.",
+    backTo: "Back to the game against {name}",
+    counting: "Counting",
+    theirMove: "Their move",
+    movedJustNow: "moved just now",
+    waiting: "waiting {waited}",
+    pair: "pair go",
   },
 
   lobby: {
@@ -57,6 +83,24 @@ export const online = {
     findOn: "Find an opponent on {size}×{size}",
     wordPlaceholder: "or a word you both know",
     wordLabel: "Rendezvous word for playing a friend",
+    waitingFor: " · waiting {waited}",
+    /* Pair go over the network: you and a house partner against another pair.
+       The partner runs in its own player's browser, which is the one thing
+       about it a player has to be told. */
+    findPair: "Find a pair game on {size}×{size}",
+    pairNote: "You and a {rank} partner against another player and theirs, taking turns. Unrated. Each partner runs in the browser of the player it partners, so it plays for as long as that player is at the table.",
+    pairLooking: "Looking for another pair player on {size}×{size}. You will each get a {rank} partner, and the four of you take turns.",
+    /* Rengo as it is actually played: four people and no house players. */
+    findRengo: "Find four for rengo on {size}×{size}",
+    whichTeam: "Which team to join",
+    eitherSide: "Either side",
+    team: "Team {n}",
+    rengoSeated: "{seated} of 4 seated on {size}×{size}. Four people, no house players.",
+    rengoSeatedTeam: "{seated} of 4 seated on {size}×{size}. Four people, no house players, and you are holding a place on team {team}.",
+    rengoBlocked: "{seated} of 4 seated on {size}×{size}, but too many of you asked for {team}. Somebody has to take the other side before this table can start.",
+    rengoNoteA: "Four people, two to a team, taking turns in one rotation. To play ",
+    rengoNoteEm: "with",
+    rengoNoteB: " somebody rather than against them, agree on a word and both pick the same team; pick either side and you are partnered with whoever is there. Unrated: a team result is a different number from a player's rank, and Joseki will not put one on the screen it cannot stand behind. Partners may not consult, so there is no line to your partner and there is not meant to be.",
     note: "The table below sets the board. Online games are even and untimed, whatever handicap and clock you set for the house. Agree on a word with a friend and you will find each other, however busy it is.",
     rated: "Rated with Glicko-2 on the server. Every move is checked there with the same rules.",
     signOut: "Sign out",
@@ -95,7 +139,12 @@ export const online = {
     shareLabel: "Copy a link to this table",
     watchingWho: " (watching)",
     claimToChat: "Claim a handle in the lobby to join the talk.",
-    seatNote: "You are {side} against {name}. There is no clock yet; leave the table and come back from the lobby whenever you like.",
+    seatNote: "You are {side}{withPartner} against {name}.",
+    withPartner: " with {name}",
+    noConsulting: " Partners may not consult, so there is no line to your partner and there is not meant to be.",
+    noClock: "There is no clock yet; leave the table and come back from the lobby whenever you like.",
+    partnerOffline: "{name} cannot reach the network",
+    openPage: "Open {name}'s page",
   },
 
   /* What the server says no with. Short, because they are shown as a toast

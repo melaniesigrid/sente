@@ -94,3 +94,50 @@ describe("loadSession", () => {
     expect(loadSession({ storage: s, today: TODAY })).toBeNull();
   });
 });
+
+describe("resuming a pair table", () => {
+  /* Only the opponent and the two ranks are stored. The roster is rebuilt from
+     them on the way back in, so a resumed table can never seat a partner that
+     today's personas disagree with. */
+  const pairMode = { kind: "pair", personaId: "tetsu", rank: "12k", partnerRank: "7d" };
+
+  it("comes back with the same opponent and the same partner strength", () => {
+    const s2 = memStorage();
+    saveGame({ record: started(), mode: pairMode }, s2);
+    const back = loadSession({ storage: s2, today: TODAY });
+    expect(back.mode.kind).toBe("pair");
+    expect(back.mode.persona.id).toBe("tetsu");
+    expect(back.mode.rank).toBe("12k");
+    expect(back.mode.partnerRank).toBe("7d");
+    expect(back.opponent).toBe("Tetsu · pair go");
+    expect(back.record.moves).toHaveLength(1);
+  });
+
+  it("drops a pair table whose opponent has gone", () => {
+    const s2 = memStorage();
+    saveGame({ record: started(), mode: { ...pairMode, personaId: "nobody" } }, s2);
+    expect(loadSession({ storage: s2, today: TODAY })).toBeNull();
+    expect(loadGame(s2)).toBeNull();
+  });
+
+  it("drops a pair table that forgot how strong the partners were", () => {
+    // Guessing would seat a partner of a different strength than the one you
+    // left playing with, which is the whole character of the game.
+    const s2 = memStorage();
+    saveGame({ record: started(), mode: { ...pairMode, partnerRank: null } }, s2);
+    expect(loadSession({ storage: s2, today: TODAY })).toBeNull();
+  });
+
+  it("drops a finished pair table rather than offering it back", () => {
+    const s2 = memStorage();
+    saveGame({ record: resign(started(), "b"), mode: pairMode }, s2);
+    expect(loadSession({ storage: s2, today: TODAY })).toBeNull();
+  });
+
+  it("falls back to the player's own level when the saved rank is gone", () => {
+    const s2 = memStorage();
+    saveGame({ record: started(), mode: { ...pairMode, rank: null } }, s2);
+    const back = loadSession({ storage: s2, today: TODAY, profile: { rating: ratingOfRank("8k") } });
+    expect(back.mode.rank).toBe("8k");
+  });
+});

@@ -1,7 +1,7 @@
 /* ----------------------- FORMAT (a line, filled in) -----------------------
    Two things happen to a catalogue entry between the file and the screen: the
-   holes get filled, and — if the entry is a set of plural forms rather than one
-   string — the right form gets picked. Both are pure, and neither ever throws:
+   holes get filled, and, if the entry is a set of plural forms rather than one
+   string, the right form gets picked. Both are pure, and neither ever throws:
    a line with a hole nobody filled comes out with the hole still in it, which is
    a visible bug in a screenshot rather than a crash in front of a player. */
 
@@ -19,7 +19,7 @@ export function interpolate(line, vars) {
 
 /** The plural category `count` falls into for this language, per CLDR.
  *  English has two, Spanish has two, French has three (`one` covers 0 and 1,
- *  and `many` catches the millions) — which is exactly why the catalogue names
+ *  and `many` catches the millions), which is exactly why the catalogue names
  *  the categories instead of holding a singular and a plural. */
 export function pluralCategory(tag, count) {
   try {

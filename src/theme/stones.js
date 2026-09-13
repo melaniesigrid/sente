@@ -2,20 +2,20 @@
    A go set is two objects, and until now Sente had exactly one of them: Nachi
    slate and Hyuga clam, hard-coded, the same two colours in every room. The
    board was themed and the pieces on it were not, which is the one place the
-   illusion broke — a violet room with grey-brown stones is somebody else's
+   illusion broke: a violet room with grey-brown stones is somebody else's
    stones borrowed for the evening.
 
    So the stones are data now, like a palette or a pairing. A set is two
    colours: the core of the black stone and the core of the white one.
-   Everything else — the lit crown, the rim that turns as the surface curves
-   away, and the seating a dark board asks for — is arithmetic, in the same
+   Everything else (the lit crown, the rim that turns as the surface curves
+   away, and the seating a dark board asks for) is arithmetic, in the same
    spirit as derive.js: author two colours, get a stone.
 
    Every named room names the set it is played with, and a player may override
    that from the look page. `auto` is not a set: it means the room decides. */
 import { mix, lighten, darken } from "./color.js";
 
-/** Not a set — the answer "whatever this room is played with". Resolved before
+/** Not a set: the answer "whatever this room is played with". Resolved before
  *  anything is drawn, the way `system` is resolved for a palette. */
 export const AUTO_STONES = "auto";
 
@@ -68,7 +68,7 @@ export const STONE_SETS = [
 
 export const STONE_IDS = STONE_SETS.map(s => s.id);
 
-/** The set with this id, or the house set. Never throws — it is called with
+/** The set with this id, or the house set. Never throws: it is called with
  *  stored data and with palette data alike. */
 export function stonesOf(id) {
   return STONE_SETS.find(s => s.id === id) || STONE_SETS[0];

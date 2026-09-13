@@ -10,6 +10,7 @@ import { useMokuFacts } from "../components/mokuStore.js";
 import { PROBLEMS, localizeProblem } from "../content/problems.js";
 import { setupToBoard } from "../content/positions.js";
 import { dayKey, dailyProblem, attend, liveStreak } from "../content/kata.js";
+import { attendDay } from "../content/chain.js";
 import { saveProfile } from "../store/profile.js";
 import { useT } from "../components/langStore.js";
 
@@ -46,6 +47,7 @@ export function ProblemsView({ profile, setProfile, initialId }) {
           ...pr,
           problemsDone: [...new Set([...pr.problemsDone, prob.id])],
           ...(isKata ? attend(pr, today) : {}),
+          ...attendDay(pr, today),
         };
         saveProfile(np);
         return np;
@@ -64,7 +66,7 @@ export function ProblemsView({ profile, setProfile, initialId }) {
         label={t("tsumego.label")}
         title={<>{t("tsumego.titleBefore")}<em>{t("tsumego.titleEm")}</em>{t("tsumego.titleAfter")}</>}
         lede={t("tsumego.lede")} />
-      <Statement lines={statementFor("tsumego", t)}>{plainFor("tsumego", t)}</Statement>
+      <Statement lines={statementFor("tsumego", t)} figure="tsumego">{plainFor("tsumego", t)}</Statement>
       <Passage context="tsumego" />
       <div className="prob-tabs" role="tablist">
         {PROBLEMS.map((p, i) => {

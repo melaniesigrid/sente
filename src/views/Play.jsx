@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Play, Users, Handshake, Minus, Plus, Home } from "lucide-react";
+import { Play, Users, Handshake, Minus, Plus, Home, TrendingUp, TrendingDown, X } from "lucide-react";
 import { Avatar, RankBadge, Btn, Statement } from "../components/ui.jsx";
 import { ScreenHeader } from "../components/ScreenHeader.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
@@ -11,12 +11,16 @@ import { SIZES, defaultKomi, RULESET_IDS, rulesetOf } from "../engine/index.js";
 import { loadLobby, saveLobby, HANDICAPS, KOMI_STEPS } from "../store/lobby.js";
 import { duelMode } from "../content/duel.js";
 import { dayKey } from "../content/kata.js";
+import { suggestLevel, suggestionText } from "../content/level.js";
+import { loadTelemetry } from "../store/telemetry.js";
 import { CLOCK_PRESETS, presetById, presetText, presetShort } from "../content/clockFace.js";
 import { MastersRow } from "../components/MastersRow.jsx";
+import { PairCard } from "../components/PairCard.jsx";
 import { loadSession } from "./session.js";
 import { Game } from "./Game.jsx";
 import { OnlineCard } from "./OnlineLobby.jsx";
 import { OnlineGame } from "./OnlineGame.jsx";
+import { PairGame } from "./PairGame.jsx";
 import { useT } from "../components/langStore.js";
 
 /* ----------------------- PLAY (lobby) -----------------------
@@ -41,17 +45,32 @@ function linkedGame() {
   return null;
 }
 
-export function PlayView({ profile, setProfile, notify, resume }) {
+export function PlayView({ profile, setProfile, notify, resume, openGame = null, go = null }) {
   const t = useT();
   // session: null | { mode: {kind:'bot', persona, rank, size, handicap} | {kind:'local', size, handicap}
   //                  | {kind:'online', gameId} | duel, record? }
-  const [session, setSession] = useState(() => resume || linkedGame());
+  /* `openGame` is a table asked for by id from somewhere else in the app (the
+     archive, and later the dashboard). It outranks the address bar only in
+     that it is checked first; both end at the same online session. */
+  const [session, setSession] = useState(() =>
+    resume || (openGame ? { mode: { kind: "online", gameId: openGame } } : null) || linkedGame());
   // The level the next game is played at. Starts at the player's own rank; every house
   // player adapts to it, so nobody has to "graduate" to an opponent.
   const myRank = rankOf(profile.rating);
-  const [rank, setRank] = useState(myRank);
   const [table, setTableState] = useState(loadLobby);
   const setTable = (patch) => setTableState(t => { const n = { ...t, ...patch }; saveLobby(n); return n; });
+  /* The level rides on the table, so it survives a reload the way the board
+     does. `null` there means "my level, whatever it is now": a remembered rank
+     would otherwise freeze a player at the strength they were the first time
+     they touched the stepper. Stepping it is a deliberate act and is kept. */
+  const rank = table.rank ?? myRank;
+  const setRank = (r) => setTable({ rank: r === myRank ? null : r });
+  /* What the device's own ring buffer says about this level. Read once per
+     visit to the lobby rather than per render: it is a file on disk, and it
+     cannot change while the lobby is on screen. */
+  const log = useMemo(() => (session ? [] : loadTelemetry()), [session]);
+  const suggestion = suggestLevel(log, rank);
+  const [dismissed, setDismissed] = useState(null);
   const today = dayKey();
   // The saved table is re-read whenever the lobby shows, so leaving a duel mid-game is reflected.
   const saved = useMemo(() => (session ? null : loadSession({ today, profile })), [session, today, profile]);
@@ -76,7 +95,7 @@ export function PlayView({ profile, setProfile, notify, resume }) {
           label={t("play.label")}
           title={<>{t("play.titleBefore")}<em>{t("play.titleEm")}</em>{t("play.titleAfter")}</>}
           lede={t("play.lede")} />
-        <Statement lines={statementFor("play", t)}>{plainFor("play", t)}</Statement>
+        <Statement lines={statementFor("play", t)} figure="play">{plainFor("play", t)}</Statement>
         <Passage context="play" />
         <OnlineCard profile={profile} notify={notify} onPlay={setSession} size={table.size} />
         <DuelCard profile={profile} today={today} mode={duelMode(PERSONAS, today)}
@@ -92,6 +111,20 @@ export function PlayView({ profile, setProfile, notify, resume }) {
             <Btn icon={Plus} small label={t("play.stronger")} disabled={rank === last} onClick={() => setRank(stepRank(rank, 1))} />
             {rank !== myRank && <Btn icon={Home} small onClick={() => setRank(myRank)}>{t("play.myLevel")}</Btn>}
           </div>
+          {/* What the last few even games at this level actually went like. It is
+              a suggestion and it reads like one: it says what it counted, so a
+              player who disagrees has the number to disagree with, and it can be
+              waved off without taking it. Nothing here changes the level on its
+              own: the house players adapt to whatever they are asked to play,
+              and being moved without asking is the opposite of that. */}
+          {suggestion && dismissed !== suggestion.to && (
+            <div className="level-nudge">
+              {suggestion.won ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+              <span className="fine">{suggestionText(suggestion)}</span>
+              <Btn small onClick={() => setRank(suggestion.to)}>Play {suggestion.to}</Btn>
+              <Btn icon={X} small label="Keep this level" onClick={() => setDismissed(suggestion.to)} />
+            </div>
+          )}
         </div>
         <div className="rank-picker neu-card table-picker" role="group" aria-label={t("play.tableGroup")}>
           <div className="rank-picker-label">
@@ -175,12 +208,16 @@ export function PlayView({ profile, setProfile, notify, resume }) {
           <p className="persona-bio">{t("play.passBio")}</p>
           <span className="persona-cta"><Handshake size={13} /> {t("play.sitDown")}</span>
         </button>
+        <PairCard profile={profile} onPlay={sit} />
         <MastersRow onSit={(mode) => setSession({ mode: { ...mode, clock } })} />
       </div>
     );
   }
+  if (session.mode.kind === "pair") {
+    return <PairGame mode={session.mode} initial={session.record} onExit={() => setSession(null)} profile={profile} notify={notify} />;
+  }
   if (session.mode.kind === "online") {
-    return <OnlineGame gameId={session.mode.gameId} onExit={() => setSession(null)} profile={profile} notify={notify} />;
+    return <OnlineGame gameId={session.mode.gameId} onExit={() => setSession(null)} profile={profile} notify={notify} go={go} />;
   }
   return (
     <Game mode={session.mode} initial={session.record} onExit={() => setSession(null)}

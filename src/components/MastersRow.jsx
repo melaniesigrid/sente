@@ -5,8 +5,8 @@ import { loadEval, loadMaster } from "../engine/index.js";
 import { mastersFor, agreementLine, controlLine, MASTER_SIZE } from "../content/masters.js";
 
 /* ----------------------- MASTERS ROW -----------------------
-   The lobby's masters. Each is a house player — said so, in the same words as the
-   rest — whose moves come from the strong-player-of-his-year profile with his own
+   The lobby's masters. Each is a house player (said so, in the same words as the
+   rest) whose moves come from the strong-player-of-his-year profile with his own
    opening book over it.
 
    The row is hidden entirely when the eval cannot be read. That is deliberate: a
@@ -73,7 +73,7 @@ export function MastersRow({ onSit }) {
             )}
             <span className="persona-cta">
               {failed === m.id
-                ? <><Bot size={13} /> His games could not be loaded — try again</>
+                ? <><Bot size={13} /> His games could not be loaded. Try again</>
                 : busy === m.id
                   ? <><Bot size={13} /> Opening his games…</>
                   : <><Play size={13} /> Sit down · {MASTER_SIZE}×{MASTER_SIZE}, unrated</>}

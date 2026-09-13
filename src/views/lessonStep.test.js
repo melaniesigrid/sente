@@ -109,7 +109,7 @@ describe("quiz", () => {
 });
 
 describe("wrongTextFor", () => {
-  it("uses the step's own line, else the neutral default — never the hint", () => {
+  it("uses the step's own line, else the neutral default, never the hint", () => {
     expect(wrongTextFor({ wrongText: "Nope.", hint: "Hint." })).toBe("Nope.");
     expect(wrongTextFor({ hint: "Hint." })).toBe(DEFAULT_WRONG);
     expect(wrongTextFor({})).toBe(DEFAULT_WRONG);
@@ -120,7 +120,7 @@ describe("wrongTextFor", () => {
 
 describe("sequence", () => {
   const lesson = lessonById("connect-cut");
-  const step = lesson.steps[3]; // b(3,3) w(4,4) b(3,1) — short, so the reply is on a timer
+  const step = lesson.steps[3]; // b(3,3) w(4,4) b(3,1): short, so the reply is on a timer
   it("keeps every commentary line instead of overwriting it", () => {
     const s0 = initStep(lesson, step);
     expect(sideToMove(step, s0)).toBe("b");

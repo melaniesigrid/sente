@@ -1,7 +1,7 @@
 /* ----------------------- TYPEFACES (the pairings) -----------------------
    A pairing is data, like a persona or a seal colour: a display face, the face
    that carries the italic voice, and a body face. Nothing else about the design
-   system moves — the stone palette and the two-shadow neumorphism are fixed, and
+   system moves: the stone palette and the two-shadow neumorphism are fixed, and
    every face is normalised onto Fraunces' optical size in fontfaces.js, so
    picking a pairing changes the voice and not the layout.
 
@@ -22,34 +22,37 @@
 
    No script stands anywhere in the set. A script is a display face and nothing
    else: it cannot carry a quotation and it cannot carry a caption, because at
-   13px it is decoration standing where a word should be — and the ornament voice
-   is read mid-sentence, at reading size. So the quote voice is always a serif —
+   13px it is decoration standing where a word should be, and the ornament voice
+   is read mid-sentence, at reading size. So the quote voice is always a serif (
    its own where the pairing has one, Fraunces' or Newsreader's italic where it
-   does not — and the captions follow the italic when that italic is real and the
+   does not) and the captions follow the italic when that italic is real and the
    body face when it is not.
 
    Nothing here is ever slanted by the browser. The Typecase cuts are single-style,
    and a faux oblique on a hairline didone or on a script is the tell of a page
    nobody set: only the Google faces, which ship a real italic, are asked for one.
 
-   Display faces come from the Typecase library; body faces are Google-hosted
-   text families, because a UI body face needs four real weights and accents and
-   the Typecase text cuts are demo cuts without them. Every display face here was
+   Display faces come from the Typecase library; body faces are Google's open
+   text families, self-hosted like everything else, because a UI body face needs
+   four real weights and accents and the Typecase text cuts are demo cuts
+   without them. Every display face here was
    checked for digits: Joseki sets ranks, ratings and lesson numbers in the display
    face, so a face missing 0-9 could not be used however handsome it was.
 
    `house` is the design system as drawn and stays the default. */
 
-/** Google families the body side needs, in one lazy stylesheet: a browser only
- *  fetches the files for a family something on the page actually renders. */
-export const GOOGLE_IMPORT =
-  "@import url('https://fonts.googleapis.com/css2?" +
-  "family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,560;0,9..144,640;1,9..144,420" +
-  "&family=Hanken+Grotesk:wght@400;500;600;700" +
-  "&family=Instrument+Sans:wght@400;500;600;700" +
-  "&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400" +
-  "&family=Courier+Prime:ital,wght@0,400;0,700;1,400" +
-  "&display=swap');";
+/** The text families the body side needs. They used to arrive as an @import to
+ *  fonts.googleapis.com, which made Google's CDN the one third party a reader's
+ *  browser talked to on its own, on every visit, before a stone was placed.
+ *  They are served from here now: the files are in src/fonts/google and the
+ *  @font-face blocks in src/styles/googleFaces.js, both written by
+ *  tools/fonts/fetch.mjs. The weights and axes each one is cut at live in that
+ *  tool; this is the list of names, which is what a pairing refers to.
+ *  All five are under the Open Font Licence, which is what makes hosting them
+ *  here allowed as well as polite. */
+export const GOOGLE_FAMILIES = [
+  "Fraunces", "Hanken Grotesk", "Instrument Sans", "Newsreader", "Courier Prime",
+];
 
 /* ----------------------- THE TYPED VOICE -----------------------
    A passage is typed, not set. Sente's renderings are one person at a machine
@@ -61,7 +64,7 @@ export const GOOGLE_IMPORT =
    typefaceVars returns the same value for every time.
 
    Courier Prime is the typewriter face drawn to be read rather than to be
-   counted in: Courier's skeleton, stems with weight in them, and a real bold —
+   counted in: Courier's skeleton, stems with weight in them, and a real bold,
    which the marked words need, since a mark that is only a colour is not a mark
    on a monochrome screen. */
 export const TYPEWRITER = "'Courier Prime', 'Courier New', monospace";
@@ -88,7 +91,7 @@ export const TYPEFACES = [
     display: "'sente-welorac', 'Fraunces', serif",
     // The ornament voice carries the emphasised word in the landing hero and the
     // lesson numerals: mid-sentence, at reading size. A logo script stood here and
-    // could not do that job — at 13px it was decoration where a word should be.
+    // could not do that job: at 13px it was decoration where a word should be.
     // Fraunces' real italic is legible, and it gives Welorac's roman something to
     // contrast with, which the display face set against itself could not.
     italic: "'Fraunces', serif",

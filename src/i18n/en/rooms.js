@@ -22,8 +22,47 @@ export const rooms = {
     hideNumbers: "Hide numbers",
     sgf: "SGF",
     playAgain: "Play again",
-    tryLine: "Play on the board to try a line — it is never saved into the game. ",
+    tryLine: "Play on the board to try a line; it is never saved into the game. ",
     keys: "Arrows walk a move, up and down jump ten, Home and End go to the ends, N toggles numbers.",
+    turnKeys: " Square brackets walk the turning points.",
+    /* What the network would play from here, in the five cases the board can
+       actually be in. One sentence each: they are read at a glance, under a
+       board, by somebody who is reading the board and not the sentence. */
+    advice: {
+      pass: "The network would pass here.",
+      same: "The network would have played this move too.",
+      open: "The network would open on the ringed point.",
+      instead: "The network would have played the ringed point instead.",
+      from: "The network would play the ringed point from here.",
+    },
+    /* The win rate graph: asked for by name, drawn from one position at a
+       time, and never described as the truth about a game. */
+    graphNote: "The win rate graph asks the network about every position in turn: quick on a small board, minutes on 19x19. You can stop it part way and keep what it drew. ",
+    winGraph: "Win rate graph",
+    keepAnalysing: "Keep analysing",
+    positions: "{done} / {total} positions",
+    stop: "Stop",
+    notYet: "The network has not reached this move yet.",
+    showBest: "What the network liked",
+    hideBest: "Hide the suggestion",
+    black: "Black",
+    white: "White",
+    blackShort: "B",
+    whiteShort: "W",
+    turnMove: "Move {move}",
+    turnAria: "Move {move}, where {side} lost {cost}",
+    /* The line under the graph, assembled from a lead and then what the last
+       move did to it, because "gained" and "cost" are not the same sentence
+       in every language and neither is the side that did it. */
+    leadB: "Black {pct}",
+    leadW: "White {pct}",
+    gives: "The network gives {lead}.",
+    changedLittle: "This move changed little.",
+    moveCost: "This move cost {who} {moved}.",
+    moveGained: "This move gained {who} {moved}.",
+    graphEmpty: "Win rate graph, nothing analysed yet.",
+    graphSummary: "Estimated win rate for Black: {changed}, and by move {move} of {total} the network gives {who} {pct}.",
+    leadChanged: { one: "the lead changed hands once", other: "the lead changed hands {count} times" },
     noCaptures: "Nothing was captured in this game.",
     captures: { one: "{count} capture in this game.", other: "{count} captures in this game." },
     /* A line tried off the record. `from` is a phrase, not a number, because

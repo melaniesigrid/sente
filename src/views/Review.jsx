@@ -1,16 +1,19 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import {
   ChevronLeft, ChevronsLeft, ChevronsRight, ChevronRight, SkipBack, SkipForward, Hash, Download, Swords,
-  GitBranch, Undo2, CornerUpLeft,
+  GitBranch, Undo2, CornerUpLeft, LineChart, Square, Lightbulb, TriangleAlert,
 } from "lucide-react";
 import { Btn, Pill } from "../components/ui.jsx";
-import { startLine, playInLine, backInLine, lineLabel, canBranch, reviewLabelText } from "./reviewLine.js";
+import { startLine, playInLine, backInLine, lineLabel, canBranch, reviewLabelText, winRateLineText } from "./reviewLine.js";
 import { refusalText, resultSentence } from "./gameStatus.js";
 import { useT } from "../components/langStore.js";
 import { Board } from "../components/Board.jsx";
+import { WinGraph } from "../components/WinGraph.jsx";
+import { useAnalysis, remainingText } from "./useAnalysis.js";
 import {
   atMove, moveNumbers, captureMoves, nextCapture, prevCapture,
   reviewLength, clampMove, markerAt, toSgf, lastMoveIndex,
+  turningPoints, pointAt, pct, steadiness, nextTurn, prevTurn, ANALYSIS_RANK,
 } from "../engine/index.js";
 
 /* ----------------------- REVIEW -----------------------
@@ -20,7 +23,13 @@ import {
 
    The board is dead here: review reads, it does not play. Branching off into a
    variation needs the record to hold more than one line, which it does not yet, so
-   the variation tree is deliberately not faked — see TODO.md.
+   the variation tree is deliberately not faked; see TODO.md.
+
+   The win rate graph is asked for, never assumed. It is a network run per position,
+   which is seconds on 9x9 and minutes on 19x19, and a screen that spent four minutes
+   of somebody's battery without being asked would be taking a liberty. Once it is
+   drawn it is the fastest way through the game there is: the shape says where the
+   game turned, and the turning points below it are buttons straight to those moves.
 
    Keyboard, because scrubbing with a mouse is miserable: left and right walk a move,
    up and down jump ten, Home and End go to the ends, and N toggles the numbers. The
@@ -37,6 +46,9 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
   // record, never exported. Null means you are looking at the game itself.
   const [line, setLine] = useState(null);
   const [refused, setRefused] = useState(null);
+  // The graph, and whether the board is showing what the network would have done.
+  const analysis = useAnalysis(record);
+  const [showBest, setShowBest] = useState(false);
 
   const at = useMemo(() => atMove(record, n), [record, n]);
   const numbers = useMemo(() => (showNumbers ? moveNumbers(record, n) : null), [showNumbers, record, n]);
@@ -52,6 +64,9 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
     setN((cur) => clampMove(record, typeof to === "function" ? to(cur) : to));
   }, [record]);
 
+  const turns = useMemo(() => turningPoints(analysis.points), [analysis.points]);
+  const steady = useMemo(() => steadiness(analysis.points), [analysis.points]);
+
   useEffect(() => {
     const onKey = (e) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -64,6 +79,8 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
         ArrowUp: () => go((c) => c + 10),
         Home: () => go(0),
         End: () => go(total),
+        "[": () => { const t = prevTurn(turns, n); if (t) go(t.move); },
+        "]": () => { const t = nextTurn(turns, n); if (t) go(t.move); },
       };
       const act = keys[e.key] || (e.key.toLowerCase() === "n" ? () => setShowNumbers((s) => !s) : null);
       if (!act) return;
@@ -72,7 +89,24 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [go, total]);
+  }, [go, total, n, turns]);
+
+  /* The move the network would have made. Standing after move n, the question a
+     reader is asking is about the position move n was played into, which is the
+     one before it; at the start there is no "instead", only an opening. */
+  const advisedFrom = pointAt(analysis.points, n === 0 ? 0 : n - 1);
+  const here = pointAt(analysis.points, n);
+  // Only compare against the played move once this position has actually been walked;
+  // during a partial walk `here` is missing, and calling it "instead" would be a
+  // sentence about a move the network has not seen yet.
+  const knowsThisMove = n === 0 || !!here;
+  const advice = showBest && advisedFrom && !line ? advisedFrom.best : null;
+  const played = here ? here.played : null;
+  const sameAsPlayed = !!(advice && played && advice[0] === played.c && advice[1] === played.r);
+  const marks = advice ? [{ c: advice[0], r: advice[1] }] : [];
+  // The network's pick is a pass often enough at the end of a game, and a pass has no
+  // point to ring. Saying so beats a toggle that looks broken.
+  const advisePass = showBest && !line && advisedFrom && advisedFrom.best === null;
 
   const branchable = useMemo(() => canBranch(record, n), [record, n]);
   const onTry = (c, r) => {
@@ -114,7 +148,7 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
             onPlay={branchable ? onTry : undefined}
             disabled={!branchable}
             sizePx={BOARD_PX[record.size] ?? 680}
-            numbers={line ? null : numbers} captured={[]}
+            numbers={line ? null : numbers} captured={[]} marks={marks}
             coordinates={profile.coordinates} mark={profile.lastMoveMark ?? "dot"} />
           {refused && <p className="review-refused" role="alert">{refused}</p>}
           {line ? (
@@ -127,6 +161,65 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
           ) : null}
           <input className="review-scrub" type="range" min={0} max={total} value={n}
             aria-label={t("review.move")} onChange={(e) => go(Number(e.target.value))} />
+          {(advice || advisePass) && (
+            <p className="review-advice">
+              {advisePass
+                ? t("review.advice.pass")
+                : sameAsPlayed
+                  ? t("review.advice.same")
+                  : n === 0
+                    ? t("review.advice.open")
+                    : knowsThisMove
+                      ? t("review.advice.instead")
+                      : t("review.advice.from")}
+            </p>
+          )}
+          {analysis.points.length > 0 && (
+            <div className="review-analysis stack-sm">
+              <WinGraph points={analysis.points} total={total} current={n} turns={turns} onPick={go} />
+              <p className="review-winline" aria-live="polite">
+                {winRateLineText(analysis.points, n, t) ?? t("review.notYet")}
+              </p>
+              {turns.length > 0 && (
+                <div className="row review-controls">
+                  {turns.map((turn) => (
+                    <button key={turn.move} type="button" className={`turn-chip${n === turn.move ? " on" : ""}`}
+                      onClick={() => go(turn.move)}
+                      aria-label={t("review.turnAria", {
+                        move: turn.move,
+                        side: turn.color === "b" ? t("review.black") : t("review.white"),
+                        cost: pct(turn.cost),
+                      })}>
+                      <TriangleAlert size={13} aria-hidden="true" />
+                      <span>{t("review.turnMove", { move: turn.move })}</span>
+                      <span className="turn-cost">{turn.color === "b" ? t("review.blackShort") : t("review.whiteShort")} &minus;{pct(turn.cost)}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          <div className="row review-controls">
+            {analysis.running ? (
+              <>
+                <Pill icon={LineChart}>
+                  {t("review.positions", { done: analysis.done, total: total + 1 })}
+                  {remainingText(analysis.remaining, t) ? ` · ${remainingText(analysis.remaining, t)}` : ""}
+                </Pill>
+                <Btn icon={Square} small onClick={analysis.cancel}>{t("review.stop")}</Btn>
+              </>
+            ) : !analysis.complete && total > 0 ? (
+              <Btn icon={LineChart} small primary onClick={analysis.start}>
+                {analysis.points.length ? t("review.keepAnalysing") : t("review.winGraph")}
+              </Btn>
+            ) : null}
+            {analysis.points.length > 0 && (
+              <Btn icon={Lightbulb} small onClick={() => setShowBest((v) => !v)}>
+                {showBest ? t("review.hideBest") : t("review.showBest")}
+              </Btn>
+            )}
+          </div>
+          {analysis.error && <p className="review-refused" role="alert">{analysis.error}</p>}
           <div className="row review-controls">
             <Btn icon={ChevronsLeft} small label={t("review.start")} onClick={() => go(0)} disabled={n === 0} />
             <Btn icon={SkipBack} small label={t("review.prevCapture")} onClick={() => go(back.move)} disabled={!back} />
@@ -143,9 +236,25 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
             <Btn icon={Download} small onClick={downloadSgf}>{t("review.sgf")}</Btn>
             {onRematch && <Btn icon={Swords} small onClick={onRematch}>{t("review.playAgain")}</Btn>}
           </div>
+          {analysis.complete && steady.b && steady.w && (
+            <p className="fine">
+              Over the whole game Black gave away {pct(steady.b.mean)} of the win rate on an
+              average move and White {pct(steady.w.mean)}. That is a count of one network's
+              second thoughts about one game, not a measure of how strong either player is.
+            </p>
+          )}
+          {analysis.points.length > 0 && (
+            <p className="fine">
+              The graph is KataGo's human-style network asked at {ANALYSIS_RANK}, one look per
+              position and no reading past it. It is an opinion about who stood better, not a
+              count of the board, and it runs on your own machine: nothing about this game is
+              sent anywhere.
+            </p>
+          )}
           <p className="fine">
+            {total > 0 && analysis.points.length === 0 ? t("review.graphNote") : ""}
             {branchable ? t("review.tryLine") : ""}
-            {t("review.keys")}{" "}
+            {t("review.keys")}{turns.length > 0 ? t("review.turnKeys") : ""}{" "}
             {caps.length === 0 ? t("review.noCaptures") : t("review.captures", { count: caps.length })}
           </p>
         </div>

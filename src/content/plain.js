@@ -37,7 +37,7 @@ export function plainFor(key, t = EN) {
    Three lines, and the order is the design: the first is the display face in
    capitals, the second turns into the italic voice, the third is drawn as an
    outline. A view passes the three to `Statement` and the stylesheet decides
-   how each is worn — so a line can be re-worded here without touching CSS. */
+   how each is worn, so a line can be re-worded here without touching CSS. */
 
 export const STATEMENTS = {
   home: ["Take", "the ground.", "Stone by stone."],
@@ -48,6 +48,29 @@ export const STATEMENTS = {
   profile: ["Measured.", "Not awarded.", "That is the rank."],
   recall: ["Answered", "once", "is not known."],
 };
+
+/* ----------------------- THE FRONT DOOR'S STATEMENTS -----------------------
+   The same block again, on the one screen a stranger sees. They are kept apart
+   from STATEMENTS because those are keyed to a screen and glossed by the plain
+   words beside them; these punctuate one long page and stand on their own.
+
+   The house rule holds here hardest, because this is the page that is trying
+   to persuade somebody: a line goes up only if it is true. Two rules is the
+   liberty rule and the ko rule, which is how the primer already puts it, and
+   `fell` is set beside The Record, which prints both dates and their sources. A
+   statement that cannot point at something does not go on the front door. */
+
+export const LANDING_STATEMENTS = {
+  rules:  ["Two rules.", "One board.", "A lifetime."],
+  fell:   ["Nineteen years", "after chess.", "March 2016."],
+  honest: ["Nothing counted.", "Nothing sold.", "Nothing to sign."],
+  begin:  ["Your move.", "Whenever", "you are ready."],
+};
+
+/** The three lines for one of the front door's statements, or null. */
+export function landingStatement(key) {
+  return LANDING_STATEMENTS[key] || null;
+}
 
 /** The three statement lines for a screen, or null where there are none. */
 export function statementFor(key, t = EN) {

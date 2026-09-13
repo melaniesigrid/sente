@@ -1,0 +1,13 @@
+# Line endings are declared here so they never depend on a machine's global
+# core.autocrlf setting. The repository stores LF; the working tree is CRLF.
+# This matches what is already on disk, so declaring it rewrites nothing.
+#
+# See CLAUDE.md "Footguns": because the working tree is CRLF, multi-line
+# scripted replacements must normalise first or they silently miss.
+* text=auto eol=crlf
+
+# Binary assets: never converted, never diffed as text.
+*.png   binary
+*.onnx  binary
+*.otf   binary
+*.ttf   binary

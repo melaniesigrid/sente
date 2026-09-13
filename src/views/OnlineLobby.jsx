@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Radio, X, Play, Eye, LogOut, DoorOpen, Mail } from "lucide-react";
+import { Radio, X, Play, Eye, LogOut, DoorOpen, Mail, Users, UsersRound } from "lucide-react";
 import { Card, Btn, Avatar, RankBadge } from "../components/ui.jsx";
 import { api, lobbySocket, serverEnabled, SERVER_URL } from "../net/api.js";
 import { loadAccount, saveAccount, clearAccount } from "../store/account.js";
 import { provisionalText } from "../content/online.js";
+import { DEFAULT_PARTNER_RANK } from "../engine/index.js";
 import { tableLine } from "./onlineStatus.js";
+import { dashboard, waitingText, waitedMinutes } from "./dashboard.js";
 import { AccountGate } from "./AccountGate.jsx";
 import { avatarUrl } from "../net/avatar.js";
 import { errorText, formProblem } from "./accountForm.js";
@@ -36,7 +38,11 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
   const { token } = account;
   const [player, setPlayer] = useState(account.player);
   const [word, setWord] = useState("");             // a rendezvous word, or "" for anyone
-  const [seek, setSeek] = useState(null);           // null | { size, key }
+  const [seek, setSeek] = useState(null);           // null | { size, key, pair, rengo }
+  /* Which team to join at a rengo table: null means "either". Two people who agree
+     on a rendezvous word and pick the same team are partners, and that is the whole
+     invite mechanism - no friend list, no accounts, no second protocol. */
+  const [team, setTeam] = useState(null);
   const [lobby, setLobby] = useState(null);         // { online, seeking }
   const [conn, setConn] = useState("connecting");
   const [tables, setTables] = useState([]);
@@ -62,7 +68,7 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
       onStatus: setConn,
       onFrame: (f) => {
         if (f.t === "lobby") setLobby({ online: f.online, seeking: f.seeking });
-        else if (f.t === "seek") setSeek(f.status === "waiting" ? { size: f.size, key: f.key } : null);
+        else if (f.t === "seek") setSeek(f.status === "waiting" ? { size: f.size, key: f.key, pair: f.pair ?? null, rengo: !!f.rengo, seated: f.seated, of: f.of, blocked: f.blocked ?? null } : null);
         else if (f.t === "matched") {
           setSeek(null);
           notify({ icon: "trophy", text: tRef.current("online.lobby.matched", { name: f.opponent.name, side: tRef.current(`game.side.${f.color}`) }) });
@@ -74,7 +80,13 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
   }, [token, notify]);
 
   const key = word.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 32) || null;
-  const findGame = () => { if (sock.current && sock.current.send({ t: "seek", size, key })) setSeek({ size, key }); };
+  /* A pair seek names the partner rank it wants and only ever meets another pair
+     seek: sitting down expecting a partner and getting an ordinary game is not a
+     near miss, it is a different game. */
+  const findGame = (opts = null) => {
+    const frame = { t: "seek", size, key, ...(opts ?? {}) };
+    if (sock.current && sock.current.send(frame)) setSeek({ size, key, ...(opts ?? {}) });
+  };
   const cancel = () => { if (sock.current) sock.current.send({ t: "cancel" }); setSeek(null); };
   const signOut = async () => {
     try { await api.signOut(token); } catch (e) { if (e.status !== 401) { notify({ icon: "info", text: errorText(e.reason, t) }); return; } }
@@ -102,8 +114,16 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
     notify({ icon: "info", text: t("online.lobby.removed") });
   };
 
-  const live = tables.filter(t => t.phase !== "ended");
-  const done = tables.filter(t => t.phase === "ended").slice(0, 3);
+  /* Ordered rather than filtered: the tables you are the hold-up on come first,
+     so six games going is a list of what to do rather than a pile. The rule for
+     whose move it is lives in `dashboard.js` and is asked, never restated: the
+     front page and this list must never disagree about the same board. */
+  const board = dashboard(tables, player.id);
+  const live = [...board.yours, ...board.theirs];
+  const done = tables.filter(t => t.phase === "ended")
+    .sort((a, b) => (b.endedAt || b.updatedAt || 0) - (a.endedAt || a.updatedAt || 0))
+    .slice(0, 3);
+  const yours = board.waiting;
 
   return (
     <Card className="online-card">
@@ -123,24 +143,58 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
         <div className="seek-state" role="status">
           <Radio size={16} className="pulse" />
           <span>
-            {seek.key
-              ? t("online.lobby.waitingWord", { word: seek.key, size: seek.size })
-              : lobby && lobby.seeking > 1
-                ? t("online.lobby.lookingOthers", { size: seek.size, count: lobby.seeking - 1 })
-                : t("online.lobby.looking", { size: seek.size })}
+            {seek.rengo
+              ? seek.blocked
+                ? t("online.lobby.rengoBlocked", { seated: seek.seated, size: seek.size, team: seek.blocked })
+                : t(team ? "online.lobby.rengoSeatedTeam" : "online.lobby.rengoSeated",
+                    { seated: seek.seated ?? 1, size: seek.size, team })
+              : seek.pair
+              ? t("online.lobby.pairLooking", { size: seek.size, rank: seek.pair.rank })
+              : seek.key
+                ? t("online.lobby.waitingWord", { word: seek.key, size: seek.size })
+                : lobby && lobby.seeking > 1
+                  ? t("online.lobby.lookingOthers", { size: seek.size, count: lobby.seeking - 1 })
+                  : t("online.lobby.looking", { size: seek.size })}
           </span>
           <Btn icon={X} small onClick={cancel}>{t("online.lobby.cancel")}</Btn>
         </div>
       ) : (
         <>
           <div className="row">
-            <Btn icon={Play} primary small onClick={findGame} disabled={conn !== "open"}>
+            <Btn icon={Play} primary small onClick={() => findGame()} disabled={conn !== "open"}>
               {key ? t("online.lobby.meetAt", { word: key, size }) : t("online.lobby.findOn", { size })}
             </Btn>
             <input className="chat-input word-input" value={word} maxLength={32}
               placeholder={t("online.lobby.wordPlaceholder")}
               onChange={e => setWord(e.target.value)} onKeyDown={e => e.key === "Enter" && findGame()}
               aria-label={t("online.lobby.wordLabel")} />
+          </div>
+          {/* Pair go over the network. The partner runs in each player's own
+              browser, which is the one thing about it a player has to be told:
+              their half of your team stops when your device does. */}
+          <div className="row">
+            <Btn icon={Users} small onClick={() => findGame({ pair: { rank: DEFAULT_PARTNER_RANK } })} disabled={conn !== "open"}>
+              {t("online.lobby.findPair", { size })}
+            </Btn>
+            <span className="fine">{t("online.lobby.pairNote", { rank: DEFAULT_PARTNER_RANK })}</span>
+          </div>
+          {/* Rengo as it is actually played: four people and no house players.
+              It waits for three others, so it says how full the table is. */}
+          <div className="row">
+            <Btn icon={UsersRound} small onClick={() => findGame({ rengo: true, ...(team ? { team } : {}) })} disabled={conn !== "open"}>
+              {t("online.lobby.findRengo", { size })}
+            </Btn>
+            <div className="seg" role="radiogroup" aria-label={t("online.lobby.whichTeam")}>
+              {[[null, t("online.lobby.eitherSide")], [1, t("online.lobby.team", { n: 1 })], [2, t("online.lobby.team", { n: 2 })]].map(([v, label]) => (
+                <button key={label} type="button" role="radio" aria-checked={team === v}
+                  className={`seg-btn ${team === v ? "active" : ""}`} onClick={() => setTeam(v)}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            <span className="fine">
+              {t("online.lobby.rengoNoteA")}<em>{t("online.lobby.rengoNoteEm")}</em>{t("online.lobby.rengoNoteB")}
+            </span>
           </div>
           <p className="fine">{t("online.lobby.note")}</p>
         </>
@@ -149,6 +203,14 @@ function Lobby({ account, setAccount, notify, onPlay, size }) {
         <div className="table-list">
           {live.map(g => <TableRow key={g.id} game={g} me={player.id} onOpen={() => onPlay({ mode: { kind: "online", gameId: g.id } })} />)}
           {done.map(g => <TableRow key={g.id} game={g} me={player.id} onOpen={() => onPlay({ mode: { kind: "online", gameId: g.id } })} />)}
+          {yours > 0 && (
+            <p className="fine">
+              {yours === 1
+                ? "One table is waiting on you."
+                : `${yours} tables are waiting on you, longest first.`}{" "}
+              These games have no clock: nothing here runs out and nobody loses by taking a day.
+            </p>
+          )}
         </div>
       )}
       {!player.email && <AttachRow onAttach={attach} />}
@@ -214,7 +276,7 @@ function AttachRow({ onAttach }) {
 /** The nudge an account whose address has never answered should keep seeing.
  *
  *  What confirming buys is worth being straight about: it does not unlock
- *  anything and it is not a gate — a forgotten password can be posted to an
+ *  anything and it is not a gate: a forgotten password can be posted to an
  *  unconfirmed address exactly as it can to a confirmed one. What it proves is
  *  that the address was typed correctly and can be reached, which is the thing
  *  you want to have found out before it is the only way back to your handle. */
@@ -252,11 +314,16 @@ function ConfirmRow({ email, token, notify }) {
 function TableRow({ game, me, onOpen }) {
   const t = useT();
   const line = tableLine(game, me, t);
+  /* How long it has sat there, on a live table only: a finished game has not
+     been waiting for anything. "just now" is the one answer worth no words. */
+  /* How long it has sat there, on a live table only: a finished game has not
+     been waiting for anything. Under a minute is worth no words. */
+  const waited = line.live && waitedMinutes(game.updatedAt) ? waitingText(game.updatedAt, t) : "";
   return (
     <button className={`table-row ${line.live ? "live" : ""}`} onClick={onOpen}>
       <span className={`dot ${line.live ? "dot-live" : "dot-done"}`} aria-hidden="true" />
       <span className="table-who">{line.who}</span>
-      <span className="fine">{t("game.caption.board", { size: game.size })} · {line.detail}</span>
+      <span className="fine">{t("game.caption.board", { size: game.size })} · {line.detail}{waited ? t("online.lobby.waitingFor", { waited }) : ""}</span>
       {line.live ? <Play size={13} /> : <Eye size={13} />}
     </button>
   );

@@ -31,14 +31,26 @@
      GET   /api/players/:id                     -> a public profile
      GET   /api/players/:id/avatar              -> the picture, cached by its stamp
      GET   /api/games           bearer         -> recent games
+     GET   /api/me/archive?cursor=&limit= bearer -> finished games, newest first
+     GET   /api/me/letters      bearer         -> your threads, newest first
+     GET   /api/me/letters/:id  bearer         -> one thread, and whether you may write
+     POST  /api/me/letters/:id  bearer {text}  -> write one
+     PUT   /api/me/blocked/:id  bearer         -> stop them writing; silent
+     DELETE /api/me/blocked/:id bearer
+     PUT   /api/me/featured/:gameId bearer {note} -> show a game on your page
+     DELETE /api/me/featured/:gameId bearer     -> take it off again
      GET   /api/ladder                         -> top players
      GET   /api/stats                          -> {players, online, seeking}
+     GET   /api/stats/history?days=            -> a row a day, oldest first
      GET   /api/lobby?token=    websocket      -> matchmaking
      GET   /api/game/:id                       -> the room (public)
+     GET   /api/game/:id/sgf                   -> the record as a file (public)
      GET   /api/game/:id/ws?token=  websocket  -> play or watch */
 
 import { json, fail, readJson, bearer, HttpError, CORS, base64, bytes } from "./http.js";
 import { AVATAR_MAX_BYTES } from "./profile.js";
+import { askedIds } from "./presence.js";
+import { toSgf } from "../src/engine/sgf.js";
 import { callerIp } from "./ratelimit.js";
 import { mailConfig, mailLink, verifyMessage, resetMessage } from "./mail.js";
 export { Registry } from "./registry.js";
@@ -65,6 +77,20 @@ export default {
         "bad-token": 400, "token-expired": 410,
         exists: 409, "email-taken": 409, "already-attached": 409, "already-verified": 409,
         "mail-failed": 502,
+        /* Friends. Everything that is refused here is refused for the state
+           the two books are in, which is a conflict and not a bad request:
+           the same call would have worked a moment earlier or will work a
+           moment later. `yourself` is the exception and is simply wrong. */
+        yourself: 400,
+        "already-friends": 409, "no-request": 409,
+        "your-list-is-full": 409, "their-list-is-full": 409,
+        "too-many-asked": 409, "their-requests-are-full": 409,
+        /* Showing a game you did not play is not a bad request so much as a
+           claim about somebody else's game, so it is a refusal of its own. */
+        "not-your-game": 403, "too-many-featured": 409,
+        /* The post. "not-met" is a 403 and not a 404: the person exists and
+           you may read their page; what you may not do is write to them. */
+        "not-met": 403, blocked: 403, "empty-letter": 400,
       };
       if (known[e.message]) return fail(known[e.message], e.message);
       console.error("unhandled", e);
@@ -187,7 +213,7 @@ async function route(req, env) {
     // Mint a link and hand it back rather than posting it, for the two times
     // an operator needs one: proving the flow against a deployment with no
     // mailbox to read (tools/server/mail.mjs), and helping somebody whose
-    // address has stopped accepting mail. Note what this grants — a reset link
+    // address has stopped accepting mail. Note what this grants: a reset link
     // is a way into that account, so ADMIN_TOKEN can sign in as anybody. It
     // could already delete them; this is the same trust, said out loud.
     if (path.startsWith("/api/admin/mail/") && req.method === "POST") {
@@ -222,6 +248,42 @@ async function route(req, env) {
     return json(await reg.setAvatar(player.id, type, base64(buf)));
   }
 
+  /* Friends. The three lists come back together because every screen that
+     shows one of them shows all three: a list with the requests waiting at the
+     top of it is one thing to read, where a separate "requests" page is one
+     more place to forget to look. */
+  if (path === "/api/me/friends" && req.method === "GET") {
+    const player = await requirePlayer(req, reg);
+    return json(await reg.friendsOf(player.id));
+  }
+
+  /* One DELETE for declining, withdrawing and unfriending. From the person
+     pressing it those are the same act, and which of the three lists the id
+     was on is the server's business to look up rather than the caller's to
+     know before it may ask. */
+  const friend = /^\/api\/me\/friends\/([^/]+?)(\/accept)?$/.exec(path);
+  if (friend) {
+    const player = await requirePlayer(req, reg);
+    if (req.method === "DELETE") return json(await reg.forgetFriend(player.id, friend[1]));
+    if (req.method !== "POST") return fail(405, "method");
+    return friend[2]
+      ? json(await reg.acceptFriend(player.id, friend[1]))
+      : limited(() => reg.askFriend(player.id, friend[1]));
+  }
+
+  /* Who of these people is here. Never cached and never stored: the answer
+     depends on who is asking and it changes the moment somebody closes a tab.
+     The answer is a list of the ones who are here and may be seen; nobody is
+     ever reported as offline, so "away" and "not telling you" are the same
+     silence. A handle is not required — an "anybody" player is visible to a
+     visitor who has not claimed one — so this reads the bearer token if there
+     is one and carries on without it if there is not. */
+  if (path === "/api/presence" && req.method === "GET") {
+    const viewer = await reg.auth(bearer(req));
+    const online = await reg.presenceOf(viewer ? viewer.id : null, askedIds(url.searchParams.get("ids")));
+    return json({ online }, 200, { "cache-control": "no-store" });
+  }
+
   const who = /^\/api\/players\/([^/]+?)(\/avatar)?$/.exec(path);
   if (who && req.method === "GET") {
     if (!who[2]) {
@@ -246,8 +308,68 @@ async function route(req, env) {
     return json(await reg.gamesOf(player.id));
   }
 
+  /* The archive: every finished game, newest first, a page at a time. The
+     route above is the lobby's short list of what you are in the middle of;
+     this one is kept for good and read with a cursor, so a player with ten
+     thousand games costs the same to page as one with ten. */
+  if (path === "/api/me/archive" && req.method === "GET") {
+    const player = await requirePlayer(req, reg);
+    return json(await reg.archiveOf(player.id,
+      url.searchParams.get("cursor"), url.searchParams.get("limit")));
+  }
+
+  /* The post: one thread per pair, for good. Not a chat and not a list —
+     nobody can be added to anything, and the only people who may write to you
+     are ones you agreed to (a friend) or sat down with (a finished game). */
+  if (path === "/api/me/letters" && req.method === "GET") {
+    const player = await requirePlayer(req, reg);
+    return json(await reg.lettersOf(player.id));
+  }
+
+  /* Not named `post`: that is the module-level helper that hands a letter to
+     Cloudflare Email Sending, and a local of the same name inside this
+     function would shadow it and break both of the account letters. */
+  const thread = /^\/api\/me\/letters\/([^/]+)$/.exec(path);
+  if (thread) {
+    const player = await requirePlayer(req, reg);
+    if (req.method === "GET") return json(await reg.threadWith(player.id, thread[1]));
+    if (req.method === "POST") {
+      const b = await readJson(req);
+      return limited(() => reg.writeLetter(player.id, thread[1], b.text), 201);
+    }
+    return fail(405, "method");
+  }
+
+  const blocked = /^\/api\/me\/blocked\/([^/]+)$/.exec(path);
+  if (blocked) {
+    const player = await requirePlayer(req, reg);
+    if (req.method === "PUT") return json(await reg.setBlocked(player.id, blocked[1], true));
+    if (req.method === "DELETE") return json(await reg.setBlocked(player.id, blocked[1], false));
+    return fail(405, "method");
+  }
+
+  /* The few games a player shows on their page. PUT rather than POST because
+     pinning a game already pinned is an edit of the line, not a second pin:
+     the same call twice leaves the same thing behind. */
+  const pinned = /^\/api\/me\/featured\/([^/]+)$/.exec(path);
+  if (pinned) {
+    const player = await requirePlayer(req, reg);
+    if (req.method === "PUT") {
+      const b = await readJson(req);
+      return json(await reg.pinGame(player.id, pinned[1], b.note));
+    }
+    if (req.method === "DELETE") return json(await reg.unpinGame(player.id, pinned[1]));
+    return fail(405, "method");
+  }
+
   if (path === "/api/ladder" && req.method === "GET") return json(await reg.ladder(), 200, { "cache-control": "public, max-age=30" });
   if (path === "/api/stats" && req.method === "GET") return json(await reg.stats());
+  // Open in a browser and read it. The series is six integers and a date per
+  // row, with nobody named in it, so it is public for the same reason the
+  // ladder is: there is nothing in it to keep back.
+  if (path === "/api/stats/history" && req.method === "GET") {
+    return json(await reg.history(url.searchParams.get("days")), 200, { "cache-control": "public, max-age=300" });
+  }
 
   if (path === "/api/lobby") {
     if (req.headers.get("upgrade") !== "websocket") return fail(426, "websocket-only");
@@ -256,11 +378,26 @@ async function route(req, env) {
     return reg.fetch(withPlayer(req, player));
   }
 
-  const m = /^\/api\/game\/([^/]+)(\/ws)?$/.exec(path);
+  const m = /^\/api\/game\/([^/]+)(\/ws|\/sgf)?$/.exec(path);
   if (m) {
     const id = m[1];
     if (!GAME_ID.test(id)) return fail(404, "no-such-game");
     const stub = room(env, id);
+    if (m[2] === "/sgf") {
+      /* The record is already in its Room and is never deleted, so the file is
+         written from it on the way out rather than kept a second time. Public
+         for the same reason the room is: whoever holds the link may read it. */
+      const r = await stub.get();
+      if (!r) return fail(404, "no-such-game");
+      return new Response(toSgf(r.record), {
+        headers: {
+          ...CORS,
+          "content-type": "application/x-go-sgf; charset=utf-8",
+          "content-disposition": `attachment; filename="${id}.sgf"`,
+          "cache-control": "public, max-age=60",
+        },
+      });
+    }
     if (!m[2]) {
       const r = await stub.get();
       return r ? json(r) : fail(404, "no-such-game");
@@ -280,7 +417,8 @@ async function limited(run, ok = 200) {
   try {
     return json(await run(), ok);
   } catch (e) {
-    if (!["too-many-handles", "too-many-attempts", "too-many-letters"].includes(e.message)) throw e;
+    if (!["too-many-handles", "too-many-attempts", "too-many-letters",
+      "too-many-requests", "too-many-letters-sent"].includes(e.message)) throw e;
     const secs = Math.ceil((e.retryAfterMs ?? 3600000) / 1000);
     return json({ error: e.message }, 429, { "retry-after": String(secs) });
   }
@@ -292,7 +430,7 @@ async function limited(run, ok = 200) {
  *  instead and the call succeeds. That is deliberate: a local wrangler dev,
  *  and a deployment whose domain is not onboarded yet, can both be walked
  *  through the whole flow with wrangler tail. The link is never put in an HTTP
- *  response — a link in a response would be a way for anyone who can ask for a
+ *  response: a link in a response would be a way for anyone who can ask for a
  *  reset to read one. */
 async function post(env, minted) {
   const cfg = mailConfig(env);
@@ -300,7 +438,7 @@ async function post(env, minted) {
   const write = minted.kind === "verify" ? verifyMessage : resetMessage;
   const letter = write({ name: minted.name, link, ttlMs: minted.ttlMs });
   if (cfg.mode !== "sending") {
-    console.log("mail(" + minted.kind + ") not sent to " + minted.email + " — " + link);
+    console.log("mail(" + minted.kind + ") not sent to " + minted.email + ": " + link);
     return;
   }
   try {

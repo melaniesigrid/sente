@@ -16,7 +16,7 @@ import { useT } from "../components/langStore.js";
    (`content/welcome.js`), so a beginner's first board behaves exactly like every other
    board in the app and its positions are engine-verified like every other lesson.
 
-   Two rules for this screen in particular. It can always be left — every stage has a
+   Two rules for this screen in particular. It can always be left: every stage has a
    way out, and leaving counts as onboarded, because asking twice is worse than not
    asking. And it never oversells: it shows a capture and lets the game make its own
    case, because a person who was promised depth and handed a grid will simply leave. */

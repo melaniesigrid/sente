@@ -8,7 +8,7 @@ import { pt } from "../../positions.js";
    capture.
 
    From this position the ladder captures in eleven moves. Put a white stone
-   anywhere on the diagonal it travels — (7,7), (6,7), (7,6) — and the solver
+   anywhere on the diagonal it travels, at (7,7), (6,7) or (7,6), and the solver
    says the chase fails; put one off the path at (8,8) and it still works.
    That is the proverb, stated as something the engine can check. */
 const start = {

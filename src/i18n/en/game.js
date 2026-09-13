@@ -17,8 +17,8 @@ export const game = {
     howResign: "by resignation",
     howTime: "on time",
     howMargin: "by {margin}",
-    score: "{winner} \u2014 {a} : {b}",
-    jigo: "Jigo \u2014 {b} : {w}",
+    score: "{winner} · {a} : {b}",
+    jigo: "Jigo · {b} : {w}",
     jigoHead: "Jigo",
     jigoSub: "a drawn game",
     status: {
@@ -29,6 +29,7 @@ export const game = {
       toMove: "{name} to move",
       toPlayB: "Black to move",
       toPlayW: "White to move",
+      pending: "Tap the point again to play it",
     },
     loading: "{loaded} / {total} MB",
     resign: "Resign",
@@ -58,6 +59,11 @@ export const game = {
     pass: "Pass",
     undo: "Undo",
     newGame: "New game",
+    /* The two-step move, for players who keep misfiring. The first tap stages
+       the stone and the button plays it; nothing reaches the engine until it. */
+    play: "Play",
+    playIt: "Play it",
+    cancel: "Cancel",
     rematch: "Rematch",
     review: "Review",
     sgf: "SGF",

@@ -13,11 +13,21 @@ import { idx, starPoints, colLabel, rowLabel, pointLabel } from "../engine/index
                 `captureKey` must change per move so the animation replays.
      territory  owner map from the engine ("b" | "w" | "neutral") while scoring
      dead       indices of stones marked dead while scoring
-     wrong      one {c, r} to cross out briefly after a wrong lesson move */
+     wrong      one {c, r} to cross out briefly after a wrong lesson move
+     pointed    [{c, r}] the points a chat line named, ringed outside the stone
+                and drawn after it. `marks` cannot do this job: it is painted
+                before the stones and an SVG has no z-index, so a mark on an
+                occupied point is hidden under the stone that is sitting on it.
+                Lessons ring empty points and never noticed; a sentence at a
+                table is usually about a stone that is already there.
+     pending    one {c, r, color}: a stone the player has staged but not yet
+                played, drawn faint under a dashed ring. The board only shows
+                it; whether a move needs confirming, and what confirms it, is
+                the caller's business. */
 export function Board({
   board, onPlay, lastMove, marks = [], disabled, sizePx = 460, flash = [],
   atari = [], captured = [], captureKey = 0, territory = null, dead = [], wrong = null,
-  numbers = null, coordinates = false, mark = "dot",
+  numbers = null, coordinates = false, mark = "dot", pending = null, pointed = [],
 }) {
   const N = board.size;
   const cell = 44, m = 34;
@@ -81,7 +91,8 @@ export function Board({
             <line x1={x(wrong.c) + 9} y1={y(wrong.r) - 9} x2={x(wrong.c) - 9} y2={y(wrong.r) + 9} />
           </g>
         )}
-        {hover && !disabled && !scoring && board.cells[idx(N, hover.c, hover.r)] === null && (
+        {hover && !disabled && !scoring && board.cells[idx(N, hover.c, hover.r)] === null
+          && !(pending && pending.c === hover.c && pending.r === hover.r) && (
           <circle cx={x(hover.c)} cy={y(hover.r)} r={17} className="ghost" />
         )}
         <g key={"cap" + captureKey}>
@@ -119,10 +130,22 @@ export function Board({
             </g>
           );
         })}
+        {pending && (
+          <g className="stone-staged">
+            <circle cx={x(pending.c)} cy={y(pending.r)} r={18.5}
+              fill={pending.color === "b" ? "url(#stB)" : "url(#stW)"}
+              className={pending.color === "b" ? "stone-b" : "stone-w"} />
+            <circle cx={x(pending.c)} cy={y(pending.r)} r={21.5} className="staged-ring" />
+          </g>
+        )}
+        {pointed.map((p, i) => (
+          <circle key={"pt" + i} cx={x(p.c)} cy={y(p.r)} r={21} className="point-ring" />
+        ))}
         {Array.from({ length: N * N }).map((_, i) => {
           const c = i % N, r = Math.floor(i / N);
           const stone = board.cells[i];
-          const label = `${pointLabel(N, c, r)}${stone ? (stone === "b" ? ", black stone" : ", white stone") : ""}${deadSet.has(i) ? ", marked dead" : ""}`;
+          const staged = pending && pending.c === c && pending.r === r;
+          const label = `${pointLabel(N, c, r)}${stone ? (stone === "b" ? ", black stone" : ", white stone") : ""}${deadSet.has(i) ? ", marked dead" : ""}${staged ? ", move waiting to be confirmed" : ""}`;
           return (
             <rect key={"h" + i}
               x={x(c) - cell / 2} y={y(r) - cell / 2}

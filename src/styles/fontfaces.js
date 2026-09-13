@@ -32,8 +32,8 @@ const face = (family, url, format, adjust) => `
    than its measurement says.
 
    Two faces, because two local display cuts are left. The pairings that wore the
-   rest — the Galliard trio, Kuigaf, Raventhorn, Ronalltie, Further, the Cocogoose
-   pair and the Bellique script — were cut from the set, so nothing imports those
+   rest (the Galliard trio, Kuigaf, Raventhorn, Ronalltie, Further, the Cocogoose
+   pair and the Bellique script) were cut from the set, so nothing imports those
    files and nothing bundles them. The files are still in src/fonts; LICENSES.md
    says which of them ship. */
 export const FONT_FACES = [

@@ -35,7 +35,7 @@ export const RULESETS = {
     komi: { 9: 5.5, 13: 6.5, 19: 7.5 }, handicapKomi: 0.5,
     handicapComp: "n-1", suicide: false,
     tagline: "Area scoring, counted so it agrees with the Japanese answer",
-    blurb: "Stones plus the points you surround, and White receives one point per handicap stone after the first — the American convention that makes an area count and a territory count land on the same winner.",
+    blurb: "Stones plus the points you surround, and White receives one point per handicap stone after the first: the American convention that makes an area count and a territory count land on the same winner.",
   },
   japanese: {
     id: "japanese", name: "Japanese", scoring: "territory",
@@ -56,7 +56,7 @@ export const RULESETS = {
     komi: { 9: 5, 13: 6, 19: 7 }, handicapKomi: 0,
     handicapComp: "none", suicide: true,
     tagline: "Area scoring, whole-number komi, and suicide is a legal move",
-    blurb: "The shortest rulebook in the game. Komi is a whole number, so a drawn game is possible, and a player may fill their own last liberty — rarely useful, occasionally the only move that works.",
+    blurb: "The shortest rulebook in the game. Komi is a whole number, so a drawn game is possible, and a player may fill their own last liberty: rarely useful, occasionally the only move that works.",
   },
 };
 

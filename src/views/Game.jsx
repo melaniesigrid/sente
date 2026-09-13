@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
   ChevronLeft, Flag, RotateCcw, RefreshCw, Trophy, Timer, CircleDot, Scale, History,
-  MessageCircle, Bot, Send, User, Handshake, Check, Download, Undo2, Award, GraduationCap,
+  MessageCircle, Bot, Send, User, Handshake, Check, Download, Undo2, Award, GraduationCap, X,
+  Sparkle,
 } from "lucide-react";
 import {
   createGame, play, pass, resign, timeout, undo, markDead, acceptScore, scoreBoard, chainsInAtari, idx,
@@ -24,10 +25,16 @@ import { startDuel, duelOutcome, recordDuel, duelResultText, duelShareText, duel
 import { ShareDuelButton } from "../components/DuelCard.jsx";
 import { saveProfile } from "../store/profile.js";
 import { saveGame, clearGame } from "../store/gameStore.js";
+import { recordGame } from "../store/telemetry.js";
+import { loadMemory, rememberGame, recall, dejaNote } from "../store/deja.js";
+import { dayKey } from "../content/kata.js";
 import { chooseRemark, noteSpoken, PACING } from "../content/commentary.js";
+import { attendDay } from "../content/chain.js";
 import {
-  statusText, refusalText, captionText, resignLabel, resultCard, ratingLine, RESIGN_CONFIRM_MS,
+  statusText, refusalText, captionText, resignLabel, confirmMoveLabel, resultCard, ratingLine,
+  RESIGN_CONFIRM_MS,
 } from "./gameStatus.js";
+import { tapAction } from "./stagedMove.js";
 import { useT } from "../components/langStore.js";
 import { localizePersona } from "../content/personas.js";
 import { useClock } from "./useClock.js";
@@ -50,6 +57,17 @@ const BOARD_PX = { 9: 460, 13: 560, 19: 680 };
    A daily duel (`mode.kind === "duel"`) is a bot game whose replies are seeded
    by the day: no undo, no rematch, unrated, and starting it spends the day's
    one attempt.
+
+   Playing a stone is always two taps: the first stages the move and the second
+   plays it, with the rule about what a tap means in `stagedMove.js` so that this
+   table, an online table and a pair table all agree.
+   Staging runs the move through the engine straight away and keeps the record
+   it produced, so an illegal point is refused while it is still a hover rather
+   than after a confirmation, and the confirmed move is the very position the
+   staging proved legal. Nothing else happens until it is confirmed - the duel
+   attempt is not spent, the coach says nothing, the record does not move - and
+   because the clock is read off the record, your clock keeps running while you
+   decide, which is what a clock is for.
 
    Rating is Glicko-2 (`src/engine/glicko.js`, the same module the server runs).
    A house player has a deviation at the floor because it is exactly as strong as
@@ -94,6 +112,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     persona ? [{ who: "bot", text: pick(persona.chat.greet) }] : []);
   const [draft, setDraft] = useState("");
   const [confirmResign, setConfirmResign] = useState(false);
+  const [pending, setPending] = useState(null);    // {c, r, next}: a staged move, not yet played
   const [moment, setMoment] = useState(null);      // "capture" | "captured", expires
   const [delta, setDelta] = useState(null);        // rating change of the finished game
   const [ceremony, setCeremony] = useState(null);  // belt just earned, until dismissed
@@ -108,6 +127,10 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
      so it neither repeats itself nor chatters. */
   const [coaching, setCoaching] = useState(() => !!mode.coaching);
   const [confirmCoach, setConfirmCoach] = useState(false);   // two clicks, like resigning
+  /* The positions this device has stood on before. Read once when the table is
+     set up, so a lookup between moves never touches storage, and written back
+     at the end of the game. */
+  const [memory, setMemory] = useState(loadMemory);
   const [spoken, setSpoken] = useState(() => mode.spoken ?? {});
   const lastChatterMove = useRef(-99);              // the coach yields to table talk
   const resumed = useRef(false);                   // the resume effect runs once, StrictMode or not
@@ -122,6 +145,23 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const turn = rec.toPlay;
   const mySide = persona ? "b" : turn;
   const sound = !!profile.sound;
+  /* Déjà vu: the board saying you have been here before. Off during scoring and
+     once the game is over, where the reader is looking at a result rather than at
+     a position, and off for anybody who has switched it off. Memoised on the
+     position rather than computed per render: canonical() turns the board over
+     eight times and hashes each one, and a running clock renders this view
+     several times a second between moves. */
+  const deja = useMemo(
+    () => (profile.dejaVu && !over && !scoring
+      ? dejaNote(recall(memory, rec.board, rec.toPlay, rec.moves.length))
+      : null),
+    [profile.dejaVu, over, scoring, memory, rec.board, rec.toPlay, rec.moves.length],
+  );
+
+  /* A staged move is only ever valid for the position it was staged in, so any
+     change to the record drops it - a pass, an undo, the house player's reply,
+     a flag. */
+  useEffect(() => { setPending(null); }, [rec]);
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, [chat]);
   useEffect(() => {
@@ -213,24 +253,52 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const conclude = useCallback((next, prev) => {
     if (next.phase === "ended" && prev.phase !== "ended") {
       if (sound) playBell();
+      /* `duelOutcome` is general despite its name: it reads a finished record
+         from Black's chair and knows nothing about a duel. Every kind of game
+         is remembered the same way, so they all go through it. */
+      const outcome = duelOutcome(next);
+      /* The device's own ring buffer, so the house players can be tuned against
+         what happens at the board rather than against their bios. Nothing about
+         it leaves this machine - see store/telemetry.js for what it keeps and
+         what it refuses to keep. The kind matters: only a rated game is
+         evidence about a rank. */
+      const remember = (kind) => {
+        if (!outcome) return;
+        recordGame({
+          at: dayKey(), size: next.size, handicap: next.handicap,
+          bot: persona ? persona.id : null, botRank: botRank ?? null,
+          kind, result: outcome.code, won: outcome.won, moves: outcome.moves,
+        });
+        /* And the positions themselves, so the board can say you have been here
+           before. Its own store, its own rules: see store/deja.js. Every kind of
+           game that reaches this helper is remembered, and a pass-and-play game
+           is not one of them: it never calls remember at all, because a shared
+           board has no "you" whose win or loss the position could be filed
+           under, and a memory that cannot say how it went for you is only half
+           the sentence. */
+        setMemory(rememberGame(next, outcome.won));
+      };
       if (duel) {
-        const outcome = duelOutcome(next);
+        remember("duel");
         say(pick(outcome.won === null ? persona.chat.reply : outcome.won ? persona.chat.loss : persona.chat.win));
         const np = { ...profile, ...recordDuel(profile, duel.key, outcome) };
         setProfile(np);
         saveProfile(np);
         notify({ icon: outcome.won ? "trophy" : "flag", text: t("game.toast.duel", { result: duelResultText(outcome.code) }) });
       } else if (master) {
+        remember("master");
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
         notify({ icon: won ? "trophy" : "flag", text: t("game.toast.unrated", { outcome: t(won ? "game.toast.victory" : "game.toast.defeat") }) });
       } else if (persona && coaching) {
+        remember("coached");
         // The coach spoke in this game, so the game moves no rating. Said plainly,
         // the way a duel and a master game say it.
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
         notify({ icon: won ? "trophy" : "flag", text: t("game.toast.coached", { outcome: t(won ? "game.toast.victory" : "game.toast.defeat") }) });
       } else if (persona) {
+        remember("rated");
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
         const oldRank = rankOf(profile.rating), oldBelt = beltOf(profile.rating);
@@ -247,6 +315,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
           ...profile, rating, rd: rated.rd, vol: rated.vol,
           wins: profile.wins + (won ? 1 : 0), losses: profile.losses + (won ? 0 : 1),
           streak, bestStreak: Math.max(profile.bestStreak, streak),
+          ...attendDay(profile),
         };
         setProfile(np);
         saveProfile(np);
@@ -263,7 +332,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   /* The clock. Running out of time is a rule, so the flag goes through the engine's
      `timeout` and settles through the same `conclude` a resignation does: a loss on
      time is rated exactly like a loss by resignation. Against a house player only
-     the human is timed — see `useClock` for why. */
+     the human is timed; see `useClock` for why. */
   const onFlag = useCallback((color) => {
     if (rec.phase === "ended") return;
     setRec(conclude(timeout(rec, color), rec));
@@ -355,6 +424,21 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     setSpoken(sp => noteSpoken(sp, remark.shapeId, moveNumber));
   }, [coaching, persona, spoken, say, t]);
 
+  /* Everything that happens once a stone has actually landed. `next` is the record
+     the engine already produced for the move, so a confirmed move and an immediate
+     one take exactly the same path from here. */
+  const commitMove = (next, c, r) => {
+    setPending(null);
+    if (rec.moves.length === 0) spendAttempt();
+    setRec(next);
+    afterMove(next, turn);
+    if (persona) {
+      if (next.lastCaptured.length >= 2) say(pick(persona.chat.userCapture));
+      else coach(next, c, r);
+      botTurn(next);
+    }
+  };
+
   const onPlay = (c, r) => {
     if (over || thinking) return;
     if (scoring) {
@@ -369,18 +453,21 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       if (e instanceof IllegalMoveError) {
         const text = refusalText(e.reason, t);
         if (text) notify({ icon: "info", text });
-        return;
+        return;   // a refused point changes nothing, including anything already staged
       }
       throw e;
     }
-    if (rec.moves.length === 0) spendAttempt();
-    setRec(next);
-    afterMove(next, turn);
-    if (persona) {
-      if (next.lastCaptured.length >= 2) say(pick(persona.chat.userCapture));
-      else coach(next, c, r);
-      botTurn(next);
+    // The second tap on the staged point plays it; a tap anywhere else moves the
+    // staged stone there. Scoring is exempt and has already returned above.
+    if (tapAction(pending, c, r) === "stage") {
+      setPending({ c, r, next });
+      return;
     }
+    commitMove(next, c, r);
+  };
+
+  const onConfirmMove = () => {
+    if (pending && !over && !thinking) commitMove(pending.next, pending.c, pending.r);
   };
 
   const onPass = () => {
@@ -437,7 +524,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   };
 
   /* P passes, U takes back. Both go through the same handlers the buttons use, so
-     every guard on them holds for the keyboard too — a duel still refuses an undo,
+     every guard on them holds for the keyboard too: a duel still refuses an undo,
      and neither fires while a house player is thinking. Typing in the chat box is
      typing, not a shortcut. */
   useEffect(() => {
@@ -509,7 +596,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     setTimeout(() => say(pick(persona.chat.reply)), 700 + Math.random() * 900);
   };
 
-  const status = statusText({ result: over, thinking, personaName: persona ? persona.name : null, turn, phase: rec.phase, loading }, t);
+  const status = statusText({ result: over, thinking, personaName: persona ? persona.name : null, turn, phase: rec.phase, loading, pending: !!pending }, t);
   const card = over ? resultCard(over, t) : null;
   const boardDisabled = !!over || thinking || (!scoring && persona && turn !== "b");
 
@@ -552,7 +639,8 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
             atari={atariIdx}
             captured={rec.lastCaptured || []} captureKey={rec.moves.length}
             territory={preview ? preview.territory : null} dead={rec.dead}
-            coordinates={profile.coordinates} mark={profile.lastMoveMark} />
+            coordinates={profile.coordinates} mark={profile.lastMoveMark}
+            pending={pending ? { c: pending.c, r: pending.r, color: turn } : null} />
           {scoring ? (
             <div className="row">
               <Btn icon={Check} small primary onClick={onAccept}>{t("game.accept")}</Btn>
@@ -561,6 +649,10 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
             </div>
           ) : (
             <div className="row">
+              <Btn icon={Check} small primary onClick={onConfirmMove} disabled={!pending}>
+                {confirmMoveLabel(!!pending, t)}
+              </Btn>
+              {pending && <Btn icon={X} small onClick={() => setPending(null)}>{t("game.cancel")}</Btn>}
               <Btn icon={Flag} small onClick={onPass} disabled={!!over}>{t("game.pass")}</Btn>
               <Btn icon={RotateCcw} small onClick={onUndo} disabled={!canUndo}>{t("game.undo")}</Btn>
               <Btn icon={Handshake} small onClick={onResign} disabled={!canResign}>{resignLabel(confirmResign, t)}</Btn>
@@ -635,6 +727,10 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
               <div><span className="dot dot-b" /> {t("game.captures.b", { n: rec.captures.b })}</div>
               <div><span className="dot dot-w" /> {t("game.captures.w", { n: rec.captures.w })}</div>
               <div className="fine">{captionText({ size: rec.size, komi: rec.komi, handicap: rec.handicap, rules: rec.rules, rated: !!persona && !duel && !master && !coaching, duel: !!duel }, t)}{hints ? t("game.hintsOn") : ""}{!over ? t("game.keys") : ""}</div>
+              {/* One line, and only when the memory has something to say. It is
+                  keyed on the note so that arriving somewhere familiar reads as
+                  something the board just noticed rather than as text appearing. */}
+              {deja && <div key={deja} className="deja"><Sparkle size={14} /><span>{deja}</span></div>}
             </Card>
           )}
           {persona ? (

@@ -55,7 +55,7 @@ export function callerIp(req) {
   return first.length && first.length <= 64 ? first : null;
 }
 
-/** How many ways back in one address — the caller's, and the account's — may
+/** How many ways back in one address (the caller's, and the account's) may
  *  ask for in an hour. Low on purpose in both directions: a person who has
  *  forgotten a password asks once and waits for the letter, and the limit on
  *  the account's own address is what keeps this from being a way to fill

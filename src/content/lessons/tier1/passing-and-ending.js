@@ -19,7 +19,7 @@ export default {
       type: "info",
       setup: board,
       marks: [pt(1, 1)],
-      text: "When neither player can gain anything by moving, they pass. Two passes in a row end the game. Before counting, stones that could never escape capture are removed as dead — the marked white stone is one.",
+      text: "When neither player can gain anything by moving, they pass. Two passes in a row end the game. Before counting, stones that could never escape capture are removed as dead. The marked white stone is one.",
     },
     {
       type: "quiz",

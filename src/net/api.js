@@ -10,12 +10,12 @@
 
 import { deriveKey } from "./password.js";
 
-const DEFAULT_URL = import.meta.env.DEV ? "http://localhost:8787" : "https://sente-server.melaniesigrid.workers.dev";
+const DEFAULT_URL = import.meta.env.DEV ? "http://localhost:8787" : "https://api.joseki.online";
 const configured = import.meta.env.VITE_SENTE_SERVER;
 export const SERVER_URL = (configured === undefined ? DEFAULT_URL : configured).replace(/\/+$/, "");
 export const serverEnabled = () => SERVER_URL !== "";
 
-/** The address, folded the way the server folds it — and the way the key is
+/** The address, folded the way the server folds it, and the way the key is
  *  salted, so signing in with `Ada@…` finds the account made with `ada@…`. */
 const fold = (email) => (typeof email === "string" ? email.trim().toLowerCase() : "");
 const key = (email, password) => deriveKey(fold(email), password);
@@ -46,7 +46,7 @@ export const api = {
 
   /* Accounts. Every one of these takes the password itself and derives the key
      here, so no caller of `api` ever holds a password long enough to send one
-     by accident. Deriving costs about a second — show something while it runs. */
+     by accident. Deriving costs about a second, so show something while it runs. */
   signUp: async (name, tint, email, password) =>
     call("/api/signup", { method: "POST", body: { name, tint, email: fold(email), key: await key(email, password) } }),
   signIn: async (email, password) =>
@@ -83,7 +83,47 @@ export const api = {
   clearAvatar: (token) => call("/api/me/avatar", { method: "DELETE", token }),
   profile: (id) => call(`/api/players/${encodeURIComponent(id)}`),
 
+  /* Friends. The three lists arrive together, and every call that changes one
+     of them answers with the outcome and the new standing rather than a bare
+     200: declining a request and taking one back come from the same DELETE and
+     mean opposite things to whoever pressed it. */
+  friends: (token) => call("/api/me/friends", { token }),
+  askFriend: (token, id) => call(`/api/me/friends/${encodeURIComponent(id)}`, { method: "POST", token }),
+  acceptFriend: (token, id) => call(`/api/me/friends/${encodeURIComponent(id)}/accept`, { method: "POST", token }),
+  forgetFriend: (token, id) => call(`/api/me/friends/${encodeURIComponent(id)}`, { method: "DELETE", token }),
+
+  /* Who of these people is here. The token is optional: a player who lets
+     anybody see them is visible to a visitor with no handle. The answer names
+     only the ones who are here and may be seen, so an empty answer means
+     nothing at all about anybody in the question. */
+  presence: (token, ids) =>
+    call(`/api/presence?ids=${encodeURIComponent(ids.join(","))}`, token ? { token } : {}),
+
   games: (token) => call("/api/games", { token }),
+  /* The archive: every finished game, newest first, a page at a time. The
+     cursor is the server's and opaque; hand back what it gave you. */
+  archive: (token, cursor) =>
+    call(`/api/me/archive${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ""}`, { token }),
+  /* The record as a file. Not a fetch: the browser is sent to it so the
+     download lands with the name the server gives it. */
+  sgfUrl: (id) => `${SERVER_URL}/api/game/${encodeURIComponent(id)}/sgf`,
+  /* The games shown on your page. PUT twice is an edit of the line, not a
+     second pin, which is why it is not a POST. */
+  pinGame: (token, id, note) =>
+    call(`/api/me/featured/${encodeURIComponent(id)}`, { method: "PUT", token, body: { note } }),
+  unpinGame: (token, id) =>
+    call(`/api/me/featured/${encodeURIComponent(id)}`, { method: "DELETE", token }),
+
+  /* The post. One thread per pair, read and written by the other person's id;
+     `letters` is the list of them. A thread comes back with whether you may
+     write to them, so a page can offer the box or say plainly why not. */
+  letters: (token) => call("/api/me/letters", { token }),
+  thread: (token, id) => call(`/api/me/letters/${encodeURIComponent(id)}`, { token }),
+  write: (token, id, text) =>
+    call(`/api/me/letters/${encodeURIComponent(id)}`, { method: "POST", token, body: { text } }),
+  setBlocked: (token, id, on) =>
+    call(`/api/me/blocked/${encodeURIComponent(id)}`, { method: on ? "PUT" : "DELETE", token }),
+
   ladder: () => call("/api/ladder"),
   stats: () => call("/api/stats"),
   game: (id) => call(`/api/game/${encodeURIComponent(id)}`),

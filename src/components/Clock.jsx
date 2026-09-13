@@ -4,8 +4,8 @@ import { faceOf } from "../content/clockFace.js";
    One side's clock, drawn to sit inside the vs-strip rather than in a bar of its own:
    a clock is not chrome, it is part of who is sitting at the table.
 
-   Pressure is a colour shift and nothing else — no flashing, no sound, no growing
-   digits — because the point is to be readable at a glance while reading a board.
+   Pressure is a colour shift and nothing else (no flashing, no sound, no growing
+   digits) because the point is to be readable at a glance while reading a board.
    Byo-yomi periods are pips, one per period still in hand, so the count is legible
    without arithmetic.
 

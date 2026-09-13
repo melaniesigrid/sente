@@ -5,7 +5,7 @@
    empty points only it borders. Filling your own territory costs nothing.
 
    Territory (Japanese): the empty points only it borders, plus every enemy stone it
-   has captured — the prisoners taken during play and the dead stones lifted at the
+   has captured: the prisoners taken during play and the dead stones lifted at the
    end. Stones on the board are worth nothing, so filling your own territory costs a
    point. The same board can land on a different winner by half a point, which is why
    the ruleset is named on the result card and not assumed.

@@ -34,7 +34,7 @@ export function useDeviceLanguages() {
   return langs;
 }
 
-/** The profile's stored choice — which may be `system` — resolved against this
+/** The profile's stored choice, which may be `system`, resolved against this
  *  device into `{ locale, t }`. The shell calls this once, reads its own chrome
  *  from it and hands the same value to LangProvider, so the stored id is
  *  resolved in exactly one place.
@@ -53,13 +53,13 @@ export function useLang(id) {
   return value;
 }
 
-/** `t(key, vars, fallback)` — the reader for the language in force. */
+/** `t(key, vars, fallback)`: the reader for the language in force. */
 export function useT() {
   return useContext(LangCtx).t;
 }
 
 /** The language in force, resolved: `{ id, tag, name, endonym }`. For the
- *  places that name it rather than read in it — the picker, and any Intl
+ *  places that name it rather than read in it: the picker, and any Intl
  *  formatter that has to agree with the words around it. */
 export function useLocale() {
   return useContext(LangCtx).locale;

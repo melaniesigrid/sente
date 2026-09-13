@@ -6,7 +6,11 @@ import xuanxuanFivePoints from "./xuanxuan-five-points.js";
 import xuanxuanOneWayIn from "./xuanxuan-one-way-in.js";
 import classicDetails from "./classic-details.js";
 import classicCornerShapes from "./classic-corner-shapes.js";
+import shapeThreeConnections from "./shape-three-connections.js";
 import earReddening from "./ear-reddening.js";
 import jowaIntetsu from "./jowa-intetsu.js";
 
-export const TIER5 = [xuanxuanFivePoints, xuanxuanOneWayIn, classicDetails, classicCornerShapes, earReddening, jowaIntetsu];
+export const TIER5 = [
+  xuanxuanFivePoints, xuanxuanOneWayIn, classicDetails, classicCornerShapes,
+  shapeThreeConnections, earReddening, jowaIntetsu,
+];

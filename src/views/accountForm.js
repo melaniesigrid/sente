@@ -24,7 +24,7 @@ export const errorText = (reason, t = EN) =>
  *  to bottom.
  *
  *  "forgot" asks for an address and nothing else. "reset" asks for a password
- *  and nothing else — its address comes back from the server with the link,
+ *  and nothing else: its address comes back from the server with the link,
  *  because the browser needs it to derive the key and the person following a
  *  link from their own inbox should not have to type it again. */
 export function formProblem(mode, fields, t = EN) {
@@ -45,7 +45,7 @@ export function formProblem(mode, fields, t = EN) {
 }
 
 /** Rough, honest feedback on a password: how long it is against how long it
- *  wants to be. Not a strength meter with a colour and a lie about entropy —
+ *  wants to be. Not a strength meter with a colour and a lie about entropy,
  *  just the one thing that actually matters, said once. */
 export function passwordNote(password, t = EN) {
   if (!password) return null;

@@ -29,9 +29,9 @@ export const screens = {
     },
     kata: {
       head: "Kata of the day",
-      meta: "{rank} · {theme} · {state}",
-      attended: "attended today",
-      daily: "one problem, every day",
+      meta: "{rank} · {theme} · one problem, every day",
+      solved: "Solved",
+      open: "Open",
       days: { one: "day", other: "days" },
     },
     recall: {
@@ -132,6 +132,9 @@ export const screens = {
     houseHead: "House \u00b7 you and the bots",
     botNote: "house player \u00b7 adapts to your level",
     you: "that\u2019s you",
+    /* A row on the global ladder opens that player's page; a house row does
+       not, so only one of the two needs a name a screen reader can use. */
+    openPlayer: "{name}, {rank}. Open their page",
     bestStreak: "Best win streak:",
     currentStreak: "\u00b7 current:",
   },
@@ -182,7 +185,7 @@ export const screens = {
     },
     seal: {
       head: "Seal color",
-      note: "Your mark on the ladder, the lobby, and \u2014 one day \u2014 across the network.",
+      note: "Your mark on the ladder, the lobby, and, one day, across the network.",
       pick: "Seal color {name}",
     },
     look: {
@@ -219,7 +222,34 @@ export const screens = {
       lessons: "Lessons",
       tsumego: "Tsumego",
     },
-    device: "Your profile lives on this device. Accounts, friends, and match history sync when online play arrives \u2014 the profile shape is already server-ready.",
+    device: "Your profile lives on this device. Accounts, friends, and match history sync when online play arrives; the profile shape is already server-ready.",
+    /* Two things the device remembers about you, each shown to the person it
+       is about and each emptied in one press. A record kept quietly is a
+       record kept badly. */
+    full: " \u00b7 full",
+    keepThem: "Keep them",
+    deja: {
+      head: "Positions you have stood on",
+      note: "The opening and early middle game of your finished games, kept on this device so the table can tell you when a game arrives somewhere you have been before. A position is stored turned to a standard orientation, so the same opening into another corner is the same position. It holds no moves and no order, which is what makes it a set of positions rather than a record of your games, it is never sent anywhere, and it drops the positions you have visited least once it is full.",
+      emptyOn: "Nothing in it yet. It fills as you finish games.",
+      emptyOff: "Nothing in it yet. It fills as you finish games, and the memory is switched off above.",
+      held: "{held} of {cap}",
+      metAgain: "{count} met again",
+      forget: "Forget these positions",
+      forgetSure: "Forget them, sure?",
+    },
+    log: {
+      head: "The last {cap} games",
+      note: "Kept on this device so the house players can be tuned against what happens at the board rather than against their own bios. It holds the shape of a game (board size, handicap, which house player, how it ended, how many moves) and no moves, no names and nothing that could replay it. It is never sent anywhere, and it forgets the oldest game once it is full.",
+      empty: "Nothing in it yet. It fills as you play.",
+      held: "{held} of {cap}",
+      record: "{wins} W \u00b7 {losses} L rated",
+      againstBot: "{games} rated \u00b7 you won {wins}",
+      winRate: " \u00b7 {pct}%",
+      tooFew: " \u00b7 too few to read a rate into",
+      forget: "Forget these games",
+      forgetSure: "Forget it, sure?",
+    },
   },
   /* A rank, wherever it is named rather than shown. */
   rank: {
