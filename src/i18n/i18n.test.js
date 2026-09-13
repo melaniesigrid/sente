@@ -39,7 +39,6 @@ const OVERLAYS = [
   "badge.", "fact.", "seen.",                                    // what a record has earned, what a card says, who may see
   "lesson.", "legalDoc.", "credit.",                             // the documents and the library
   "plain.", "statement.", "moku.", "ruleset.", "preset.", "persona.",  // the house's voices
-  "tier.", "track.", "book.", "series.", "problem.", "shape.",
   "tier.", "track.", "book.", "series.", "problem.", "problemSet.", "shape.",   // the library and the coach
   "josekiEntry.", "josekiCorner.", "josekiSource.",              // the corner dictionary
   "classicBook.", "preface.", "kind.", "level.", "chapter.", "name.", "passage.", // the Classic
