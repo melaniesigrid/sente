@@ -847,6 +847,10 @@ ${FONT_FACES}
    a line saying what it trains, and its own row of circles; the set the open
    board belongs to is the one whose heading is sunk into the ground. */
 .prob-sets { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: clamp(16px, 2.2vw, 26px); }
+/* Four sets want four columns or two, never three and a widow. auto-fit picks
+   three at the width a laptop actually is, so the count is stated instead. */
+@media (min-width: 1080px) { .prob-sets { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 620px) and (max-width: 1079px) { .prob-sets { grid-template-columns: repeat(2, 1fr); } }
 .prob-set { display: flex; flex-direction: column; gap: 9px; padding: 14px 16px; border-radius: 18px; transition: box-shadow .18s ease; }
 .prob-set.here { box-shadow: var(--sink-sm); }
 .prob-set-head { gap: 9px; }
@@ -872,6 +876,56 @@ ${FONT_FACES}
 }
 .rank-chip { color: var(--accent-ink); }
 .prob-title { font-family: var(--font-display); font-weight: var(--w-display); font-size: 21px; margin: 0 0 8px; }
+
+/* ---- a house player's page ---- */
+.house-top { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: clamp(14px, 2vw, 22px); align-items: start; }
+.house-card { display: flex; flex-direction: column; gap: 14px; }
+.house-face { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.house-line { font-style: italic; color: var(--ink-2); }
+.house-line + .house-line { margin-top: 10px; }
+.house-chips { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 12px; }
+.house-chip {
+  display: flex; align-items: center; gap: 9px; border: 0; cursor: pointer;
+  background: var(--ground); color: var(--ink); padding: 7px 13px 7px 7px;
+  border-radius: 999px; box-shadow: var(--raise-sm);
+  transition: box-shadow .18s ease, color .18s ease, transform .18s ease;
+}
+.house-chip:hover { transform: translateY(-1px); color: var(--accent-ink); }
+.house-chip:active { box-shadow: var(--sink-sm); transform: none; }
+.house-chip-name { font: 700 13.5px var(--font-body); }
+.house-chip .fine { margin: 0 !important; }
+.house-foot { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; max-width: 68ch; }
+.house-others .stat-head { margin-bottom: 0; }
+/* The roster row carries no position number, so the name starts where the
+   avatar ends and a chevron holds the right edge instead of a badge. */
+.ladder-you { display: flex; align-items: center; gap: 14px; }
+.ladder-go { color: var(--ink-2); flex: none; }
+.section-note { max-width: 68ch; margin-top: -4px !important; }
+
+/* ---- the corner dictionary ---- */
+/* A sequence read one move at a time: the same rail and body the library uses,
+   a row of named sequences instead of numbered circles, and the reason for the
+   move you are standing on beside the board. */
+.tier-btn.locked { opacity: .55; cursor: default; }
+.tier-btn.locked:hover { transform: none; }
+.jos-tabs { display: flex; gap: 9px; flex-wrap: wrap; margin: 4px 0 2px; }
+.jos-tab {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
+  border: 0; background: var(--ground); color: var(--ink); cursor: pointer;
+  padding: 9px 14px; border-radius: 13px; box-shadow: var(--raise-sm); text-align: left;
+  transition: box-shadow .18s ease, color .18s ease;
+}
+.jos-tab-name { font: 700 13.5px var(--font-body); letter-spacing: .04em; }
+.jos-tab .fine { margin: 0 !important; }
+.jos-tab.active { box-shadow: var(--sink-sm); color: var(--accent-ink); }
+.jos-corner { min-width: 148px; }
+.jos-tab.locked { opacity: .5; cursor: default; box-shadow: var(--sink-sm); }
+.jos-corner-blurb { margin: 0 !important; max-width: 68ch; }
+.jos-index { margin-bottom: clamp(10px, 1.6vw, 18px); }
+.jos-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.jos-move .lesson-text { margin-top: 10px; }
+.jos-source { margin-top: clamp(14px, 2vw, 22px); }
+.jos-source .fine { margin-top: 10px !important; }
 
 /* ---- toast ---- */
 .toast {

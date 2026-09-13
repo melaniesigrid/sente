@@ -28,6 +28,7 @@ export function Board({
   board, onPlay, lastMove, marks = [], disabled, sizePx = 460, flash = [],
   atari = [], captured = [], captureKey = 0, territory = null, dead = [], wrong = null,
   numbers = null, coordinates = false, mark = "dot", pending = null, pointed = [],
+  crop = null,
 }) {
   const N = board.size;
   const cell = 44, m = 34;
@@ -38,10 +39,18 @@ export function Board({
   const deadSet = useMemo(() => new Set(dead), [dead]);
   const scoring = !!territory;
   const x = (c) => m + c * cell, y = (r) => m + r * cell;
+  /* `crop` shows part of a board without changing the board. Only the viewBox
+     moves: the lines are the real lines, the edge is the real edge, and a
+     stone on the third line is still on the third line. It is for a corner
+     sequence on nineteen lines, where the whole board drawn at page width
+     leaves six stones the size of full stops. */
+  const view = crop
+    ? `${x(crop.c0) - m} ${y(crop.r0) - m} ${(crop.c1 - crop.c0) * cell + m * 2} ${(crop.r1 - crop.r0) * cell + m * 2}`
+    : `0 0 ${S} ${S}`;
   return (
     <div className="board-well" style={{ maxWidth: sizePx }}>
       <svg
-        viewBox={`0 0 ${S} ${S}`}
+        viewBox={view}
         className={`goban ${scoring ? "scoring" : ""}`}
         onMouseLeave={() => setHover(null)}
         role="grid"

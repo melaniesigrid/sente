@@ -22,6 +22,8 @@ export const PERSONAS = [
   {
     id: "hoshi", name: "Hoshi", tint: "mint", range: ["25k", "12k"], profile: { temperature: 1.0 },
     tagline: "Gentle & curious", bio: "Learns alongside you. Forgets about ladders. Loves the star points, obviously. Happiest between 25k and 12k.",
+    plays: "Every house player is the same network asked to imitate a different kind of player, and Hoshi is the one asked to imitate loosely. Its temperature is 1.0, the highest of the seven, so the move it plays is sampled widely from what its model might have done rather than pinned to the likeliest one.",
+    tell: "It will play a move nobody at the level would play, once or twice a game, and then answer perfectly for twenty moves. A game against Hoshi is not a level, it is a range.",
     weights: { noise: 6, capture: 7, selfAtari: -6, rescue: 4 },
     chat: {
       greet: ["Hello! I'm still learning too. Let's have a good one.", "A fresh board. My favorite thing."],
@@ -35,6 +37,8 @@ export const PERSONAS = [
   {
     id: "tetsu", name: "Tetsu", tint: "coral", range: ["20k", "6k"], profile: { temperature: 0.9 },
     tagline: "Fights everything", bio: "Believes the shortest path to strength runs straight through the middle of your position. At home from 20k to 6k.",
+    plays: "Asked to imitate a fighter, at a temperature of 0.9: still loose, still capable of surprising itself. Where the network cannot load, the heuristic behind it weights capturing far above everything else, which is the same instinct written in smaller words.",
+    tell: "It answers contact with contact. Touch a Tetsu stone and you will have a fight; leave one alone and it will come and find you.",
     weights: { capture: 16, atari: 6, noise: 3, edge: 0.7, selfAtari: -10 },
     chat: {
       greet: ["No prisoners. Well, many prisoners, actually.", "Let's skip the quiet part."],
@@ -48,6 +52,8 @@ export const PERSONAS = [
   {
     id: "yuki", name: "Yuki", tint: "sky", range: ["15k", "1k"], profile: { temperature: 0.7 },
     tagline: "Patient & territorial", bio: "Takes the corners, builds the walls, and lets you discover the center is smaller than it looks. At home from 15k to 1k.",
+    plays: "Temperature 0.7: a settled player, following its model reasonably closely. The heuristic fallback behind Yuki is the one that has actually been benchmarked, at 25 wins in 30 against the default weights.",
+    tell: "It takes the corner and the side and gives you the centre without arguing. If the middle of the board is becoming yours for free, count it before you believe it.",
     weights: { capture: 13, rescue: 11, atari: 5, selfAtari: -16, noise: 0.6, edge: 1.1, libs: 0.8, near: 0.8 }, // benchmarked: 25/30 vs default
     chat: {
       greet: ["I'll take the corners. You can have the middle.", "Quiet moves first. Loud ones later."],
@@ -61,6 +67,8 @@ export const PERSONAS = [
   {
     id: "ren", name: "Ren", tint: "eucalyptus", range: ["10k", "1d"], profile: { temperature: 0.7 },
     tagline: "Steady club player", bio: "Knows the joseki, counts the endgame, and still misreads one ladder a month. At home from 10k to 1d.",
+    plays: "Temperature 0.7, the same as Yuki, aimed at a different kind of player: a club regular who knows the shapes and counts the close ones.",
+    tell: "It plays the joseki and then stops. Ren is at its most ordinary in the opening and at its sharpest in the last thirty moves, which is the opposite of most players at its level.",
     weights: { capture: 14, rescue: 12, atari: 5, selfAtari: -18, noise: 0.4, edge: 1.2, libs: 0.9, near: 0.9 },
     chat: {
       greet: ["Even game? Let's see how it goes.", "I brought tea. Take your time."],
@@ -74,6 +82,8 @@ export const PERSONAS = [
   {
     id: "sora", name: "Sora", tint: "sun", range: ["5k", "3d"], profile: { temperature: 0.6 },
     tagline: "Almost dan", bio: "Reads fast, fights with a plan, and hates losing the last big endgame move. At home from 5k to 3d.",
+    plays: "Temperature 0.6: closer to its model than the players below it, so the moves come out more consistent and the mistakes come out rarer.",
+    tell: "It takes sente and keeps it. If you find yourself answering four moves in a row, the initiative is already gone and Sora is about to spend it.",
     weights: { capture: 14, rescue: 12, atari: 6, selfAtari: -18, noise: 0.3, edge: 1.2, libs: 1.0, near: 1.0 },
     chat: {
       greet: ["Let's play a real game.", "No handicap needed? Bold."],
@@ -87,6 +97,8 @@ export const PERSONAS = [
   {
     id: "kaede", name: "Kaede", tint: "grape", range: ["1k", "6d"], profile: { temperature: 0.5 },
     tagline: "Quiet & thick", bio: "Never overplays, never panics, and turns your small mistakes into a comfortable win. At home from 1k to 6d.",
+    plays: "Temperature 0.5: close to its model. A low temperature is what makes a player look calm, because the surprising move is the one that gets sampled away.",
+    tell: "It never overplays, so there is nothing to punish. A game against Kaede is decided by your mistakes rather than its own, which is an uncomfortable way to find out how many you make.",
     weights: { capture: 15, rescue: 13, atari: 6, selfAtari: -20, noise: 0.2, edge: 1.3, libs: 1.0, near: 1.0 },
     chat: {
       greet: ["Onegaishimasu.", "Let's have a good game."],
@@ -100,6 +112,8 @@ export const PERSONAS = [
   {
     id: "tatsuo", name: "Tatsuo", tint: "coral", range: ["3d", "9d"], profile: { temperature: 0.4 },
     tagline: "Tournament strength", bio: "Plays the moves a strong amateur plays, sharp and unforgiving. Ask for a handicap. At home from 3d to 9d.",
+    plays: "Temperature 0.4, the lowest here: it plays close to the likeliest move its model would play, nearly every time. That is what tournament strength looks like from the inside.",
+    tell: "It will not follow you around the board. Play a move that asks a question Tatsuo does not have to answer and it will go somewhere else and take a bigger point.",
     weights: { capture: 16, rescue: 14, atari: 7, selfAtari: -22, noise: 0.1, edge: 1.3, libs: 1.0, near: 1.0 },
     chat: {
       greet: ["Let's see what you've got.", "Take the corners. I'll take the rest."],
@@ -113,6 +127,28 @@ export const PERSONAS = [
 ];
 
 export const personaById = (id) => PERSONAS.find(p => p.id === id) || null;
+
+/* ----------------------- HOW CLOSELY IT FOLLOWS -----------------------
+   `profile.temperature` is the one number on a persona a player can feel at
+   the board, and the one nobody could have guessed from the bio. A high
+   temperature samples widely from what the imitated player might have done, so
+   the same persona at the same rank plays a wider spread of moves; a low one
+   pins it to the likeliest. That is the difference between a beginner who
+   surprises you and a dan who does not.
+
+   Four bands, named rather than numbered, because the number means nothing
+   without the other six to compare it against. The number is printed beside
+   the band anyway: anybody who wants it should not have to read the source. */
+export const FAITHFULNESS = [
+  { key: "loose", from: 0.9 },
+  { key: "free", from: 0.7 },
+  { key: "close", from: 0.5 },
+  { key: "exact", from: 0 },
+];
+
+/** Which band a persona's temperature falls in. */
+export const faithfulnessOf = (persona) =>
+  FAITHFULNESS.find(b => persona.profile.temperature >= b.from) || FAITHFULNESS[FAITHFULNESS.length - 1];
 
 /** All personas, the ones at home at `rank` first, then by distance from their range. */
 export function personasFor(rank) {
