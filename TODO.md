@@ -982,6 +982,17 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
 - [ ] More of the sets: the tactics set is still the four boards it always was, and the
       snapback, the ladder and the net all belong in it. The prover cannot help there,
       because those are not bounded spaces; they want a different search.
+- [x] The sets remember you (2026-09-12, branch `feat/set-progress`): `setProgress`,
+      `currentSet`, `setsComplete` and `nextProblem` in `content/problems.js`, pure over
+      the list of solved ids, nothing stored. A finished set says done instead of counting,
+      the last board solved in a set says it was the last, a line under the index says how
+      many of the four are closed, the dashboard tile names the set in front of the reader
+      instead of totalling nineteen boards, and the screen opens on the first board still
+      open in that set rather than on board one.
+      Decisions: a reader who has solved everything is sent to the last set and the last
+      board, not back to the beginning, because a dashboard that tells a finisher to start
+      again is lying about what is left. The kata card still outranks all of it: a card
+      that asks for a specific board gets that board.
 - [ ] Tsumego graded 30k → 5k with categories and a daily set (reuses the verifier).
 - [x] Spaced repetition (2026-09-11, branch `feat/recall`): finished quiz steps enter a
       recall queue, and Home carries the Review card. `src/content/recall.js` is the

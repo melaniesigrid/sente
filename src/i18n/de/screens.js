@@ -154,6 +154,12 @@ export const screens = {
     next: "Nächstes Problem",
     nextSet: "Nächste Reihe",
     setProgress: "{done} von {total}",
+    setDone: "fertig",
+    setsDone: {
+      one: "{done} von {total} Reihen abgeschlossen.",
+      other: "{done} von {total} Reihen abgeschlossen.",
+    },
+    setFinished: "Damit ist {set} fertig, jedes Brett darin.",
     openProblem: "{set}, Nummer {n}, {rank}",
   },
 

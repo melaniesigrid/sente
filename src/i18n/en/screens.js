@@ -160,6 +160,12 @@ export const screens = {
     next: "Next problem",
     nextSet: "Next set",
     setProgress: "{done} of {total}",
+    setDone: "done",
+    setsDone: {
+      one: "{done} set of {total} finished.",
+      other: "{done} sets of {total} finished.",
+    },
+    setFinished: "That is {set} finished, every board in it.",
     openProblem: "{set}, number {n}, {rank}",
   },
   /* The profile: who you are on this device, and what it has watched you do. */
