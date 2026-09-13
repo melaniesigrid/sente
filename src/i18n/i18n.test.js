@@ -287,7 +287,6 @@ describe.each(others)("$name is complete", (locale) => {
       josekiCorner: CORNERS.map(x => x.id),
       josekiSource: ["credit"],
       problemSet: SETS.map(x => x.id),
-      problemSet: SETS.map(x => x.id),
       shape: Object.keys(COMMENTARY),
       classicBook: ["title", "short", "era", "blurb", "credit"],
       preface: ["title", "plain", "text"],
