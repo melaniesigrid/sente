@@ -19,18 +19,28 @@ import { useT } from "../components/langStore.js";
    `onPlay(session)` opens a table: `{ mode: { kind: "online", gameId } }`.
 
    The board is the lobby's table board: `size` and `setSize` read and write the
-   one setting every kind of game here plays on. The picker is drawn twice on
-   purpose. It used to be drawn once, in the table card three cards down the
-   page, and the only thing up here was the board's name baked into the button
-   label - so a player whose table said 9x9 read "Find an opponent on 9x9" with
-   no control anywhere near it and no way to tell that the number was a choice.
-   Asking for another board meant scrolling past fourteen other controls to a
-   card that does not mention the word "online". Two views of one value is the
-   cheaper wrong: a control you cannot find is a board you cannot play on.
+   one setting every kind of game here plays on, and the picker at the top of
+   this card is the second view of it. It used to be the only one, drawn in the
+   table card three cards down the page, and the only thing up here was the
+   board's name baked into the button label - so a player whose table said 9x9
+   read "Find an opponent on 9x9" with no control anywhere near it and no way to
+   tell that the number was a choice. Asking for another board meant scrolling
+   past fourteen other controls to a card that does not mention the word
+   "online". Two views of one value is the cheaper wrong: a control you cannot
+   find is a board you cannot play on.
+
+   Neither prop has a default, on purpose. A default board would be a second
+   answer to a question the table already answers, and it would disagree with
+   it: the table's own default is 19, and the 9 that used to sit here would have
+   put "Find an opponent on 9x9" above a table card reading 19x19 - the exact
+   disagreement this card exists to end. A default `setSize` would be worse
+   still: drop the wiring in `Play.jsx` and you get a picker that highlights and
+   does nothing, which is this bug again, wearing a control. Let it fail where
+   it is wrong.
 
    Online games are even; handicap is a house arrangement, and two strangers
    have no way to agree on one yet. */
-export function OnlineCard({ profile, notify, onPlay, size = 9, setSize = () => {} }) {
+export function OnlineCard({ profile, notify, onPlay, size, setSize }) {
   const [account, setAccount] = useState(() => loadAccount());
   if (!serverEnabled()) return null;
   return account
@@ -150,6 +160,25 @@ function Lobby({ account, setAccount, notify, onPlay, size, setSize }) {
         </div>
         <RankBadge rating={player.rating} />
       </div>
+      {/* The board, above the seek state rather than inside the branch below it,
+          so that looking for an opponent does not take the board off the screen.
+          A search is the moment a player is most likely to reconsider it, and a
+          setting that vanishes exactly then reads as no setting at all. It is
+          disabled rather than live while a seek is out: the seek on the server
+          carries the board it was sent with, and quietly re-seeking somebody
+          onto a different board is not a thing a picker should do. Cancel is
+          right there, and now it is obvious what cancelling is for. */}
+      <div className="row">
+        <div className="seg" role="radiogroup" aria-label={t("online.lobby.boardGroup")}>
+          {SIZES.map(n => (
+            <button key={n} type="button" role="radio" aria-checked={size === n} disabled={!!seek}
+              className={`seg-btn ${size === n ? "active" : ""}`} onClick={() => setSize(n)}>
+              {n}×{n}
+            </button>
+          ))}
+        </div>
+        <span className="fine">{t(seek ? "online.lobby.boardWhileSeeking" : "online.lobby.boardNote")}</span>
+      </div>
       {seek ? (
         <div className="seek-state" role="status">
           <Radio size={16} className="pulse" />
@@ -171,21 +200,6 @@ function Lobby({ account, setAccount, notify, onPlay, size, setSize }) {
         </div>
       ) : (
         <>
-          {/* The board, beside the button that names it. Every find below seeks
-              on this one, which is why it sits above all three of them rather
-              than in any one row: a player picks a board and then picks a kind
-              of game, never the other way round. */}
-          <div className="row">
-            <div className="seg" role="radiogroup" aria-label={t("online.lobby.boardGroup")}>
-              {SIZES.map(n => (
-                <button key={n} type="button" role="radio" aria-checked={size === n}
-                  className={`seg-btn ${size === n ? "active" : ""}`} onClick={() => setSize(n)}>
-                  {n}×{n}
-                </button>
-              ))}
-            </div>
-            <span className="fine">{t("online.lobby.boardNote")}</span>
-          </div>
           <div className="row">
             <Btn icon={Play} primary small onClick={() => findGame()} disabled={conn !== "open"}>
               {key ? t("online.lobby.meetAt", { word: key, size }) : t("online.lobby.findOn", { size })}

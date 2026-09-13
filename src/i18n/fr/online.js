@@ -136,7 +136,8 @@ export const online = {
     /* The board every find on this card seeks on: the table's board,
        offered here because the button names it and a name is not a control. */
     boardGroup: "Taille du goban",
-    boardNote: "Tout ce qui suit se joue sur ce goban.",
+    boardNote: "Chaque partie que tu lances ici se joue sur ce goban.",
+    boardWhileSeeking: "Le goban sur lequel porte cette recherche. Annule pour en chercher un autre.",
     meetAt: "Rendez-vous à « {word} » en {size}×{size}",
     findOn: "Trouve un adversaire en {size}×{size}",
     wordPlaceholder: "ou un mot que vous connaissez tous les deux",

@@ -155,7 +155,8 @@ export const online = {
        same one the table card below sets; it is offered here as well because
        the button says which board it will use and a name is not a control. */
     boardGroup: "Board size",
-    boardNote: "Every game below is played on this board.",
+    boardNote: "Every game you start here is played on this board.",
+    boardWhileSeeking: "The board this search is on. Cancel to look on another.",
     meetAt: "Meet at “{word}” on {size}×{size}",
     findOn: "Find an opponent on {size}×{size}",
     wordPlaceholder: "or a word you both know",

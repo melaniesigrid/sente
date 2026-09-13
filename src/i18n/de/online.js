@@ -136,7 +136,8 @@ export const online = {
     /* The board every find on this card seeks on: the table's board,
        offered here because the button names it and a name is not a control. */
     boardGroup: "Brettgröße",
-    boardNote: "Alles hier unten wird auf diesem Brett gespielt.",
+    boardNote: "Jede Partie, die du hier startest, wird auf diesem Brett gespielt.",
+    boardWhileSeeking: "Das Brett, auf dem gerade gesucht wird. Brich ab, um auf einem anderen zu suchen.",
     meetAt: "Treffen bei „{word}“ auf {size}×{size}",
     findOn: "Finde einen Gegner auf {size}×{size}",
     wordPlaceholder: "oder ein Wort, das ihr beide kennt",

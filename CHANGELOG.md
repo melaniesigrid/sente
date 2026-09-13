@@ -22,6 +22,12 @@ They are left as they were written rather than rewritten after the fact.
   no new styling and nothing new to learn.
 - The card no longer tells you to go and look at the table below for the board, in any of
   the eight languages, because the board is here.
+- **Looking for an opponent no longer takes the board off the screen.** Pressing find used
+  to replace the whole card with the search and its cancel button, so the one moment a
+  player is most likely to reconsider the board was the one moment they could not see it.
+  The board stays put now, greyed out while the search is running and saying which board
+  the search is on. Cancel to look on another; the search on the server carries the board
+  it was sent with, and Joseki will not quietly move you onto a different one.
 
 ## v0.12.0.0 (2026-09-13)
 

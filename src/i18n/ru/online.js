@@ -159,7 +159,8 @@ export const online = {
     /* The board every find on this card seeks on: the table's board,
        offered here because the button names it and a name is not a control. */
     boardGroup: "Размер доски",
-    boardNote: "Всё, что ниже, играется на этой доске.",
+    boardNote: "Каждую партию, начатую отсюда, играют на этой доске.",
+    boardWhileSeeking: "Доска, на которой идёт поиск. Отмените, чтобы искать на другой.",
     meetAt: "Встретиться на слове «{word}», доска {size}×{size}",
     findOn: "Найти соперника на {size}×{size}",
     wordPlaceholder: "или слово, которое знаете вы оба",

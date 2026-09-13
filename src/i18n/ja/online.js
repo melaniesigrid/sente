@@ -136,7 +136,8 @@ export const online = {
     /* The board every find on this card seeks on: the table's board,
        offered here because the button names it and a name is not a control. */
     boardGroup: "盤の大きさ",
-    boardNote: "下の対局はすべてこの盤で打ちます。",
+    boardNote: "ここから始める対局は、この盤で打ちます。",
+    boardWhileSeeking: "いま探しているのはこの盤です。別の盤にするには、取り消してください。",
     meetAt: "{size}×{size} で「{word}」を合言葉に会う",
     findOn: "{size}×{size} で相手を探す",
     wordPlaceholder: "または、二人とも知っている言葉",

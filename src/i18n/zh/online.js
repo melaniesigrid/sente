@@ -136,7 +136,8 @@ export const online = {
     /* The board every find on this card seeks on: the table's board,
        offered here because the button names it and a name is not a control. */
     boardGroup: "棋盘大小",
-    boardNote: "下面的对局都在这张棋盘上下。",
+    boardNote: "从这里开始的对局都在这张棋盘上下。",
+    boardWhileSeeking: "这次搜索用的棋盘。要换一张，请先取消。",
     meetAt: "在 {size}×{size} 上用暗号「{word}」碰头",
     findOn: "在 {size}×{size} 上找对手",
     wordPlaceholder: "或者一个你们俩都知道的词",

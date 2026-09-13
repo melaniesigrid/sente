@@ -67,7 +67,8 @@ const table = (id, over = {}) => ({
 });
 
 const show = (over = {}) => render(
-  <OnlineCard profile={{ name: "Me" }} notify={() => {}} onPlay={() => {}} size={9} {...over} />,
+  <OnlineCard profile={{ name: "Me" }} notify={() => {}} onPlay={() => {}}
+    size={9} setSize={() => {}} {...over} />,
 );
 /** The rendered rows, in the order they are on screen, named by their opponent
   * line plus the detail beside it - which is enough to tell any two apart. */
@@ -203,9 +204,14 @@ describe("how long a table has sat there", () => {
    board and the button did follow it - so every test passed while a player who
    wanted 19x19 had no way to find out that 9 was a choice.
 
-   So what is checked here is placement, not state: the control is in the same
-   card as the button, and the board it reports is the board the seek is sent
-   with. A test that only asserted the state would go green on the bug. */
+   So what is checked here is placement, not state. These cases hold the card's
+   own end of it: the control is in the card, it marks the board the button is
+   naming, and the seek carries the board that is showing. The half that cannot
+   be checked from here - that the card is where a player on the Play screen
+   meets the control - is `Play.test.jsx`, which renders the whole screen. Both
+   halves are needed: this file would pass with the card rendered on a page
+   nobody visits, and a test that only asserted the state would go green on the
+   bug itself. */
 describe("the board the find button names", () => {
   const card = () => document.querySelector(".online-card");
   const findBtn = () => screen.getByRole("button", { name: /opponent/i });
@@ -238,6 +244,24 @@ describe("the board the find button names", () => {
     const nineteen = [...boards().querySelectorAll("button")].find(b => b.textContent === "19×19");
     await act(async () => { fireEvent.click(nineteen); });
     expect(setSize).toHaveBeenCalledWith(19);
+  });
+
+  /* Looking for an opponent must not take the board off the screen: a search is
+     the moment a player is most likely to reconsider it, and a setting that
+     vanishes exactly then reads as no setting at all. Visible, and disabled,
+     because the seek on the server carries the board it was sent with. */
+  it("keeps the board on screen while searching, and will not let it be changed", async () => {
+    await ready({ size: 13 });
+    await act(async () => { sockets[0].handlers.onStatus("open"); });
+    await act(async () => { fireEvent.click(findBtn()); });
+    await act(async () => {
+      sockets[0].handlers.onFrame({ t: "seek", status: "waiting", size: 13, key: null });
+    });
+    expect(screen.queryByRole("button", { name: /opponent/i }), "the find rows are gone").toBeNull();
+    expect(card().contains(boards()), "but the board is still there").toBe(true);
+    const on = [...boards().querySelectorAll("button")].filter(b => b.getAttribute("aria-checked") === "true");
+    expect(on.map(b => b.textContent), "still saying which board").toEqual(["13×13"]);
+    for (const b of boards().querySelectorAll("button")) expect(b.disabled).toBe(true);
   });
 
   /* The board is a choice only if the seek carries it. This is the half that
