@@ -14,8 +14,8 @@ app this morning, because the two drift apart and the phases below are the half 
 flatters. Every number here was counted from the data on `main`, not from memory, and it
 is a snapshot: it will be wrong the week after somebody authors anything.
 
-- **47 lessons** over six tiers (10 / 9 / 9 / 8 / 7 / 4, Foundations to Dan) and seven
-  tracks: life 12, judgement 9, tactics 7, shape 7, opening 5, middle game 5, endgame 2.
+- **50 lessons** over six tiers (10 / 9 / 10 / 10 / 7 / 4, Foundations to Dan) and seven
+  tracks: life 15, judgement 9, tactics 7, shape 7, opening 5, middle game 5, endgame 2.
   Every position in every one of them is replayed by the engine on every build.
 - **19 tsumego** in four sets (capture and escape 4, shape 3, eye shapes 8, the corner 4),
   running 25k to 2k. Every board is proved on every build: the stated answer has to be
@@ -884,8 +884,8 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
 - [ ] Tier 2 Apprentice and Tier 3 Journeyman authored (20 lessons, 9/13/19). Eighteen of
       the twenty are in as of 2026-09-13, nine a tier: the Classic and the Proverbs carry
       the early ranks, the opening track opened in `feat/more-lessons`, and life and death
-      below 15k arrived in `feat/eye-course` (four lessons, 18k to 11k). What is thin now is
-      the middle game everywhere.
+      below 15k arrived in `feat/eye-course` and `feat/life-and-death-2` (five lessons, 18k
+      to 11k, seki among them). What is thin now is the middle game everywhere.
 - [x] The opening track opens, and its verdicts are measured (2026-09-12, branch
       `feat/more-lessons`): `opening-big-points` (tier 3, 12k) and
       `opening-third-and-fourth` (tier 4, 8k), the first lessons on nineteen lines outside
@@ -912,6 +912,17 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       exhaustively from both sides with the ko rule threaded through. Its census is the
       claim the lessons rest on: of the 54 distinct eye spaces of three to six points,
       exactly 7 die, and `node tools/lessons/eyes.mjs` prints them.
+- [x] Life and death carries on up the tiers (2026-09-13, branch `feat/life-and-death-2`):
+      `life-seki` (3 / 12k), which is the first lesson in the library to say that a group can
+      live without eyes and shows what filling a shared liberty costs; `life-dead-shapes`
+      (4 / 9k), the census itself, where the cross five and the flower six are killed and the
+      rectangular six is shown living in the open so the 2 dan corner lesson has something to
+      contradict; and `life-throw-in` (4 / 6k), a sacrifice found by search rather than
+      recalled: two black stones in atari are the answer, White captures three and dies to the
+      same point played again. `tools/lessons/eyes.mjs --lessons` re-proves all nine lesson
+      positions, and its header now says why the searched region has to include the points
+      stones are standing on: a region of empty points only cannot re-enter a space that a
+      capture has just cleared, which is exactly where the throw-in lives.
 - [ ] The rest of the opening track: direction of play, the approach and its answers in
       context, and the frameworks. The joseki dictionary covers the corner sequences
       themselves, so these should be about which corner and which side, not which move.
