@@ -2495,6 +2495,31 @@ Decisions made in Phase 9, the page slice (2026-09-12, branch `feat/player-page`
   wrong person rather than as loading.
 - The house ladder does not link. Only people have pages.
 
+## Phase 11: Finding each other
+
+Phase 9 built friendship, presence and the post, and left one hole under all three: the
+only players anybody could reach were the hundred on the global ladder. A club whose
+members have not played a rated game yet is not on it at all, so "add this person I know"
+had no first step. The founding ask was "I wanted to create my own server to play my
+friends"; this phase is the three verbs in that sentence that were still missing —
+**find** them, **ask** them, **invite** them to a board.
+
+- [ ] **The directory** (branch `feat/find-friends`): search for a player by handle.
+      One key per searchable piece of a handle (`find:<term>:<id>`), written with the
+      record at register, rewritten on a rename and deleted on leaving, so finding
+      somebody is a bounded walk over the matches and never a second scan over the
+      players. A handle answers to the whole of itself and to each of its words, folded
+      to lower case without accents or punctuation, so `José Melendez` is found by
+      typing `jose` or `mel`. `server/directory.js` is the whole policy, pure;
+      `tools/server/directory.mjs` proves it against a deployment in 16 checks.
+      The refusals are as deliberate as the feature: two characters minimum, a prefix
+      and never a substring, at most twenty answers, no count and no cursor, and a
+      session required, so it is a way to find one person and never a way to read out
+      who plays here.
+- [ ] **The invitation** (branch `feat/invite`): ask a named person for a game.
+- [ ] **The way in** (branch `feat/reach`): the acts on a person — ask, write, invite —
+      reachable from every row and every page that names one of them.
+
 ## Principles (do not trade away)
 
 - Rules live in the engine, never in a view.

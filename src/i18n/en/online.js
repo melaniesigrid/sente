@@ -64,6 +64,20 @@ export const online = {
     pair: "pair go",
   },
 
+  /* Finding somebody by their handle, which is the way into everything below:
+     the ladder only ever held a hundred people, and a club whose members have
+     not played a rated game yet is not on it at all. */
+  find: {
+    head: "Find a player",
+    note: "Type a handle, or any part of one. Only players here can look anybody up, and a search answers with a few people rather than with a list.",
+    placeholder: "A handle",
+    label: "Find a player by handle",
+    idle: "Two letters of a handle is enough to start.",
+    short: "Two letters, at least.",
+    searching: "Looking…",
+    empty: "Nobody here answers to “{typed}”.",
+  },
+
   /* Friends, agreed on both sides or not at all. The four standings are four
      buttons, and the one that matters is somebody who has already asked you:
      offering "Add friend" there would send a second request across a table
@@ -72,7 +86,7 @@ export const online = {
     head: "Your friends",
     note: "Friendship here is agreed, never claimed: both of you have to press. Nobody is told when a request is declined.",
     fetching: "Fetching your lists\u2026",
-    empty: "Nobody yet. Open a player\u2019s page from the ladder and ask them.",
+    empty: "Nobody yet. Find somebody by their handle in the box above, and ask them.",
     incoming: "Asking to be friends",
     friends: "Friends",
     outgoing: "You asked",

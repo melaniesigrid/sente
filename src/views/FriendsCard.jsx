@@ -3,7 +3,6 @@ import { Card, Btn, Avatar, RankBadge } from "../components/ui.jsx";
 import { avatarUrl } from "../net/avatar.js";
 import { SERVER_URL } from "../net/api.js";
 import { provisionalText } from "../content/online.js";
-import { useFriends } from "./useFriends.js";
 import { usePresence } from "./usePresence.js";
 import { useT } from "../components/langStore.js";
 import { bookIsEmpty, everyoneIn } from "./friendship.js";
@@ -17,10 +16,15 @@ import { bookIsEmpty, everyoneIn } from "./friendship.js";
    the air come last and quietly: they are the list you act on least.
 
    Every row opens that player's page, and the two buttons are the only things
-   on the row that do not. */
-export function FriendsCard({ account, notify, go }) {
+   on the row that do not.
+
+   The book is handed in rather than fetched here. The card that finds people
+   sits directly above this one and shows the same standing on the same
+   buttons, and two copies of one book would be two fetches that disagree for
+   as long as it takes the slower of them to land. */
+export function FriendsCard({ account, go, friends }) {
   const t = useT();
-  const { book, busy, act } = useFriends(account.token, notify);
+  const { book, busy, act } = friends;
   /* Everybody on the card at once, in one call, rather than a call per row.
      Friends are the people most likely to be visible, which is the point. */
   const here = usePresence(account.token, everyoneIn(book));

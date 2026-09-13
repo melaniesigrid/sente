@@ -57,11 +57,22 @@ export const online = {
     pair: "go en paires",
   },
 
+  find: {
+    head: "Trouver un joueur",
+    note: "Écris un pseudo, ou un bout de pseudo. Seuls les joueurs d’ici peuvent chercher quelqu’un, et une recherche répond par quelques personnes, jamais par une liste.",
+    placeholder: "Un pseudo",
+    label: "Trouver un joueur par son pseudo",
+    idle: "Deux lettres d’un pseudo suffisent pour commencer.",
+    short: "Deux lettres, au moins.",
+    searching: "Recherche…",
+    empty: "Personne ici ne répond à « {typed} ».",
+  },
+
   friends: {
     head: "Tes amis",
     note: "Ici l’amitié se convient, elle ne se déclare pas : vous devez appuyer tous les deux. Personne n’est prévenu quand une demande est refusée.",
     fetching: "Chargement de tes listes\u2026",
-    empty: "Personne pour l’instant. Ouvre la page de quelqu’un depuis le classement et demande-lui.",
+    empty: "Personne pour l’instant. Cherche quelqu’un par son pseudo ci-dessus et demande-lui.",
     incoming: "Demandent ton amitié",
     friends: "Amis",
     outgoing: "Tu as demandé",

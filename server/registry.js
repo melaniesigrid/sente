@@ -10,6 +10,9 @@
                   requests sent and requests received. Every edge is written on
                   both players' books, so reading your own friends is one key
                   and never a walk over everybody
+     the directory `find:<term>:<playerId>` one key per searchable piece of a
+                  handle, so finding somebody is a walk over the matches and
+                  never over the players
      game lists   `games:<playerId>` recent games for the lobby's "your tables"
      matchmaking  `seek:<playerId>` open seeks; lobby sockets are hibernated and
                   tagged with the player id so a match can be pushed to them
@@ -42,6 +45,7 @@ import { cleanBio, cleanFacts, avatarProblem, profileOf } from "./profile.js";
 import { readBook, standing, ask, accept, forget, forgetting, everyoneWhoKnows,
   ASK_LIMIT, ASK_WINDOW_MS } from "./friends.js";
 import { cleanShowOnline, whoIsHere } from "./presence.js";
+import { findKeys, idsFrom, closest, query as searchQuery, FIND_PREFIX, MAX_RESULTS } from "./directory.js";
 import { archivePrefix, archiveKey, pageSize, cursorFor, page as archivePage,
   archived, playersOf } from "./archive.js";
 import { readFeatured, pin as pinPure, unpin as unpinPure, featuredWith } from "./featured.js";
@@ -71,8 +75,10 @@ const SESSION_KEEP = 12;
    hundred-points-a-rank scale to OGS's, so every stored rating had to be
    re-expressed at the rank its owner had actually earned.
    3: one token became a list of sessions, so an account can be signed in on
-      more than one device at a time. */
-const SCHEMA = 3;
+      more than one device at a time.
+   4: handles became searchable, so every handle already claimed needed its
+      rows in the directory; nobody can be found by a name nobody indexed. */
+const SCHEMA = 4;
 const SCHEMA_KEY = "schema:version";
 const LADDER_TTL = 60_000;
 const LADDER_SIZE = 100;
@@ -123,8 +129,38 @@ export class Registry extends DurableObject {
       }
       if (Object.keys(patch).length) await this.ctx.storage.put(patch);
     }
+    if (at < 4) {
+      /* The directory, written for everybody who was already here. Paged and
+         written back a page at a time: this runs inside `blockConcurrencyWhile`
+         at wake-up, so it holds the whole object while it goes, and a server
+         with ten thousand handles must not hold it for ten thousand writes. */
+      for await (const chunk of this.#pages("player:")) {
+        /* A hundred keys a write, not a page of them: storage takes a bounded
+           number at a time, and a page of players is up to six keys each. */
+        let patch = {};
+        for (const p of chunk.values()) {
+          for (const key of findKeys(p.name, p.id)) patch[key] = 1;
+          if (Object.keys(patch).length >= 100) { await this.ctx.storage.put(patch); patch = {}; }
+        }
+        if (Object.keys(patch).length) await this.ctx.storage.put(patch);
+      }
+    }
     await this.ctx.storage.put(SCHEMA_KEY, SCHEMA);
     this.ladderCache = null;
+  }
+
+  /** Every entry under a prefix, a page at a time. A single `list` stops at a
+   *  thousand keys and says nothing about it, so anything that must see all of
+   *  them asks for the next page rather than trusting the first. */
+  async *#pages(prefix) {
+    let start;
+    for (;;) {
+      const got = await this.ctx.storage.list({ prefix, limit: PAGE, ...(start ? { startAfter: start } : {}) });
+      if (got.size === 0) return;
+      yield got;
+      if (got.size < PAGE) return;
+      start = [...got.keys()].pop();
+    }
   }
 
   /* ----- accounts ----- */
@@ -177,7 +213,12 @@ export class Registry extends DurableObject {
        across it: without this, two people arriving together both read the same
        count, both pass, and the beta ends up one seat over its cap for good. */
     if (isFull(await this.#countPlayers(), this.#cap())) throw new Error("beta-full");
-    await this.ctx.storage.put({ [`player:${id}`]: player, [`tok:${player.tokenHash}`]: id });
+    await this.ctx.storage.put({
+      [`player:${id}`]: player, [`tok:${player.tokenHash}`]: id,
+      // The directory, in the same write as the record it describes: a handle
+      // that exists and cannot be found is a handle nobody can be asked about.
+      ...Object.fromEntries(findKeys(name, id).map((key) => [key, 1])),
+    });
     // One more, rather than "count them all again next time": dropping the memo
     // here made every arrival pay for a full scan of every player record on the
     // next request, which is the cost the memo was added to remove.
@@ -592,7 +633,21 @@ export class Registry extends DurableObject {
     const name = patch.name !== undefined ? cleanName(patch.name) : p.name;
     if (!name) throw new Error("bad-name");
     const next = { ...p, name, tint: patch.tint !== undefined ? cleanTint(patch.tint) : p.tint, lastSeen: Date.now() };
-    await this.ctx.storage.put(`player:${id}`, next);
+    /* A renamed player is findable under the new handle and not the old one.
+       The old keys go first: a rename that added rows without taking the old
+       ones away would leave somebody reachable by a name they had just chosen
+       to stop using, which is most of what a rename is for. */
+    if (name !== p.name) {
+      const was = findKeys(p.name, id), now = findKeys(name, id);
+      const gone = was.filter((k) => !now.includes(k));
+      if (gone.length) await this.ctx.storage.delete(gone);
+      await this.ctx.storage.put({
+        [`player:${id}`]: next,
+        ...Object.fromEntries(now.map((key) => [key, 1])),
+      });
+    } else {
+      await this.ctx.storage.put(`player:${id}`, next);
+    }
     this.ladderCache = null;
     return this.#self(next);
   }
@@ -625,6 +680,9 @@ export class Registry extends DurableObject {
     await this.ctx.storage.delete([
       `player:${id}`, `tok:${p.tokenHash}`, ...sessions, `games:${id}`, `seek:${id}`, `avatar:${id}`,
       `friends:${id}`,
+      // Out of the directory in the same breath. Leaving says nothing is left
+      // behind, and a row here is a handle that still answers a search.
+      ...findKeys(p.name, id),
       /* The waiting list too. The notice says being invited takes your address
          off it, and until this line nothing did: somebody who waited, got a
          seat and later left kept a row holding the address they had asked us
@@ -1086,6 +1144,32 @@ export class Registry extends DurableObject {
     }
     await this.ctx.storage.put(doneKey, result);
     return result;
+  }
+
+  /* ----- the directory ----- */
+
+  /** Who is here by that name.
+   *
+   *  A prefix over `find:`, so the cost is the matches and not the membership.
+   *  Three things bound it: the search has to be two characters (`query`), the
+   *  keys asked for are capped, and the answer is capped again after the
+   *  duplicates are dropped — one person can match on two of their terms, and
+   *  the same person twice is not two answers.
+   *
+   *  The person searching is left out of their own results. You are not
+   *  somebody you can befriend, write to or invite, so a row for yourself is a
+   *  row with nothing on it that works.
+   *
+   *  Rows that name nobody are dropped rather than repaired. A handle removed
+   *  between the index and the read is the only way to get one, and an answer
+   *  is a worse place to fix it than the next write. */
+  async search(raw, viewerId = null) {
+    const q = searchQuery(raw);
+    if (!q) return { people: [] };
+    const keys = await this.ctx.storage.list({ prefix: FIND_PREFIX + q, limit: MAX_RESULTS * 3 });
+    const ids = idsFrom([...keys.keys()]).filter((id) => id !== viewerId).slice(0, MAX_RESULTS);
+    const people = await this.#peopleByIds(ids);
+    return { people: closest(ids.map((id) => people.get(id)).filter(Boolean).map(publicPlayer), q) };
   }
 
   /* ----- the ladder ----- */
