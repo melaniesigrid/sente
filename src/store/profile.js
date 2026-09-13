@@ -20,7 +20,7 @@ export const defaultProfile = {
   rd: GLICKO.rd,                             // rating deviation: 350 until games say otherwise
   vol: GLICKO.vol,                           // Glicko-2 volatility
   wins: 0, losses: 0, streak: 0, bestStreak: 0,
-  lessonsDone: [], problemsDone: [],
+  lessonsDone: [], problemsDone: [], drillsDone: [],
   tierPassed: [],                            // library tier ids whose exit test was passed
   sound: false,                              // stone click + haptic, opt-in
   onboarded: false,                          // the welcome flow has been seen or skipped
@@ -75,7 +75,10 @@ export const MARKS = ["dot", "ring", "none"];
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
 // Element type for each array field; anything else in an array is a corrupt profile.
-const ARRAY_OF = { lessonsDone: "string", problemsDone: "string", tierPassed: "number", chain: "string" };
+const ARRAY_OF = {
+  lessonsDone: "string", problemsDone: "string", drillsDone: "string",
+  tierPassed: "number", chain: "string",
+};
 
 const validField = (key, value, raw) => {
   // `dojo` defaults to null, so its type cannot be read off the default; it is

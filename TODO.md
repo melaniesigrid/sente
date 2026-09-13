@@ -20,6 +20,11 @@ is a snapshot: it will be wrong the week after somebody authors anything.
 - **19 tsumego** in four sets (capture and escape 4, shape 3, eye shapes 8, the corner 4),
   running 25k to 2k. Every board is proved on every build: the stated answer has to be
   exactly the set of moves that work.
+- **136 drills** beside them, running 23k to 5k, searched rather than written: two censuses
+  under `tools/problems/` enumerate capturing positions and sealed eye spaces, solve each
+  one exhaustively, and keep the ones with a single answer. The rank on each is measured by
+  a fitted model rather than assigned, the words are composed from what the search proved,
+  and `drills.test.js` re-proves all 136 from the shipped file on every build.
 - **4 joseki** on the star point, out of three corner points the dictionary names. The 3-4
   and the 3-3 are declared and unwritten.
 - **7 house players**, each with a page, all of them running the same network at whatever
@@ -1080,11 +1085,45 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       bounded region, and a search will not find them. They want a different argument:
       positions taken from a real game, or a lesson that teaches the shape from the
       victim's side rather than a board with one right move.
-- [ ] Tsumego graded 30k → 5k. The categories and the daily set are done (four sets in
-      `feat/problem-sets`, the kata of the day older than that); the grade band is not.
-      Nineteen boards run 25k to 2k as of 2026-09-13, which leaves the two ends open: there
-      is nothing at all between 30k and 25k, where a beginner actually starts, and the
-      handful below 5k are life and death only.
+- [x] Tsumego graded, in volume (2026-09-13, branch `feat/tsumego`): 136 drills from 23k to
+      5k, beside the nineteen written boards, served a rank above whatever the reader's
+      rating says they are. `tools/problems/census.mjs` and `capture.mjs` enumerate,
+      `grade.mjs` measures the rank, `name.mjs` folds mirror images together and names the
+      shapes, `author.mjs` chooses the spread and writes `src/content/drills.data.js`.
+
+      Three results worth keeping, because each one closed a road:
+
+      The sealed eye space is a small subject, not a large one. Every space of three to six
+      points was walled in at the corner, the edge and the open board and solved from both
+      sides: nine thousand boards that fold down to **fifty-eight distinct questions**. A
+      collection can print those fifty-eight once each, or print them five times each with
+      different walls around them and call itself long.
+
+      Seeding a space with stones adds nothing. A stone inside an eye space either touches
+      the wall, and the space is simply smaller, or it does not, and it splits the space in
+      two. Either way the question is one the bare census already asked, which is why the
+      `stones` feature came out identically zero across all 743 candidates and was taken
+      out of the model rather than quietly fitted to nothing.
+
+      Seven points is past the ceiling. Every seven-point space came back alive however
+      Black moves: no question there at all. A bounded region of eight points or fewer,
+      solved exhaustively, tops out around 1 kyu, and the grading model says so instead of
+      claiming a range it cannot reach.
+- [ ] The two ends the drills still do not reach. Below 23k there is nothing, because a
+      board with one white stone in atari is the same board however it is drawn. Above 5k
+      there is almost nothing, and the reason is structural rather than lazy: the search
+      wants a bounded region, and everything hard is unbounded. Three families would open
+      it, each needing a solver rather than more enumeration:
+      capturing races, where the verdict is a count and not a search; groups that are not
+      yet sealed, where the answer is a hane or a descent on the second line; and the
+      sacrifice tesuji (snapback, throw-in, under the stones), which `catches` structurally
+      cannot find because the chain that comes off the board is not the chain it was
+      watching. That last one is the same negative result the snapback hunt above reached
+      from the other direction.
+- [ ] Translate the drill lines. There are about fifteen of them (`drill.` keys, composed
+      rather than per-board, which is what makes a hundred boards translatable at all) and
+      they are asked for with an English fallback in hand, so every language shows them in
+      English until somebody writes them, the way an untranslated lesson does.
 - [x] Spaced repetition (2026-09-11, branch `feat/recall`): finished quiz steps enter a
       recall queue, and Home carries the Review card. `src/content/recall.js` is the
       scheduler (pure, dates as day keys, the library passed in) and `src/views/Recall.jsx`
