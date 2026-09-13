@@ -31,6 +31,7 @@
      PATCH /api/me/profile      bearer {bio, facts}
      PUT   /api/me/avatar       bearer, image body  -> the picture, at most 64 KB
      DELETE /api/me/avatar      bearer
+     GET   /api/players?q=      bearer         -> who is here by that name
      GET   /api/players/:id                     -> a public profile
      GET   /api/players/:id/avatar              -> the picture, cached by its stamp
      GET   /api/games           bearer         -> recent games
@@ -321,6 +322,17 @@ async function route(req, env) {
     const viewer = await reg.auth(bearer(req));
     const online = await reg.presenceOf(viewer ? viewer.id : null, askedIds(url.searchParams.get("ids")));
     return json({ online }, 200, { "cache-control": "no-store" });
+  }
+
+  /* Finding somebody by their handle. A session is required, and that is the
+     whole of what keeps this from being a membership list: you have to be one
+     of the people here before you may look one of them up. Never cached — the
+     answer leaves out whoever is asking — and the matches are capped without a
+     cursor, so there is no way to page to the end of the club. */
+  if (path === "/api/players" && req.method === "GET") {
+    const player = await requirePlayer(req, reg);
+    const found = await reg.search(url.searchParams.get("q"), player.id);
+    return json(found, 200, { "cache-control": "no-store" });
   }
 
   const who = /^\/api\/players\/([^/]+?)(\/avatar)?$/.exec(path);

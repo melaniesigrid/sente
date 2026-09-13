@@ -57,11 +57,22 @@ export const online = {
     pair: "Paar-Go",
   },
 
+  find: {
+    head: "Jemanden finden",
+    note: "Tipp einen Namen oder einen Teil davon. Nur wer hier spielt, kann jemanden suchen, und eine Suche antwortet mit ein paar Leuten, nie mit einer Liste.",
+    placeholder: "Ein Name",
+    label: "Jemanden über den Namen finden",
+    idle: "Zwei Buchstaben eines Namens genügen zum Anfangen.",
+    short: "Zwei Buchstaben, mindestens.",
+    searching: "Wird gesucht…",
+    empty: "Hier hört niemand auf „{typed}“.",
+  },
+
   friends: {
     head: "Deine Freunde",
     note: "Freundschaft wird hier vereinbart, nie behauptet: ihr müsst beide drücken. Niemand erfährt, wenn eine Anfrage abgelehnt wird.",
     fetching: "Deine Listen werden geladen\u2026",
-    empty: "Noch niemand. Öffne die Seite von jemandem aus der Rangliste und frag ihn.",
+    empty: "Noch niemand. Such jemanden oben über den Namen und frag ihn.",
     incoming: "Möchten befreundet sein",
     friends: "Freunde",
     outgoing: "Du hast gefragt",

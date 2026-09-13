@@ -1982,6 +1982,21 @@ ${FONT_FACES}
 @media (max-width: 520px) {
   .player-page .op-head { flex-direction: column; align-items: flex-start; gap: 12px; }
 }
+/* ---- finding a player ----
+   One well holding the glass and the field, so the sunken thing on the screen
+   is the box and not a field sitting inside a box: two nested sinkings read as
+   a mistake. The rows below it are the friends card's rows, unchanged, because
+   they are rows about the same people and two that disagreed would read as two
+   kinds of player. */
+.find-card { display: flex; flex-direction: column; gap: 14px; }
+.find-card h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }
+.find-box {
+  display: flex; align-items: center; gap: 9px; padding: 0 13px;
+  border-radius: 13px; box-shadow: var(--sink-sm); color: var(--ink-2);
+}
+.find-box:focus-within { box-shadow: var(--sink-sm), 0 0 0 2px var(--accent-ring); }
+.find-input { padding-left: 0; padding-right: 0; box-shadow: none; }
+.find-input:focus { box-shadow: none; }
 /* ---- friends ----
    Three lists on one card, each headed and each absent when it is empty. A row
    is one button holding the whole person, with the two acts as loose buttons

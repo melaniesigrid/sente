@@ -51,7 +51,7 @@ export const COPYRIGHT = `© ${COPYRIGHT_YEAR} ${STUDIO}`;
    being stopped and handed the line where the date lives. */
 export const REVISION = {
   updated: "13 September 2026",
-  stamp: "67a90e94",
+  stamp: "92c83b25",
 };
 
 /** The day the documents last changed. */
@@ -241,6 +241,7 @@ const PRIVACY = {
         "The games you played online, and up to 200 chat lines in each room alongside the record.",
         "An index of your finished games, one entry each, kept for as long as the account is. It holds no moves: it is the date, the board, the opponent and the result, and it is what lets your own archive be paged through without reading every game you have ever played. Leaving deletes the index; the games themselves stay in the rooms they were played in, for the reason given under Leaving.",
         "Who your friends here are: the handles you have agreed to be friends with, the requests you have sent, and the requests you have been sent. Three lists of handles with the date each was written, kept on your record and on theirs, and seen by nobody but the two of you. Declining a request deletes it and tells the person who sent it nothing at all.",
+        "A way to look up your handle: each word of it, folded to lower case with the accents and punctuation taken out, kept beside your record so that another player typing part of it can find you. It is made from the handle you chose and from nothing else, it is rewritten when you change your handle and deleted when you leave, and only somebody who has a handle here can search it. A search answers with at most twenty people and never with a count, so it cannot be paged through to read out who plays here.",
         "The letters you and another player have written to each other. One thread a pair, keeping the last hundred, readable by the two of you and by nobody else. Only somebody you have agreed to be friends with, or finished a game against, can write to you at all, and you can stop any of them writing again without their being told. There is no list anybody can be added to and nothing to unsubscribe from, because there is nothing to be on.",
         "The games you chose to show on your page, at most three, each with a line of up to 140 characters that you wrote. Both are public, because the page is. Taking a game off your page removes the line with it.",
         "Which of the three answers you gave to who may see that you are here: nobody, your friends, or anybody. One word on your record, and not on the ladder, so reading the ladder cannot tell you who has chosen to be invisible.",
