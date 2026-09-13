@@ -626,6 +626,15 @@ two Durable Object classes, deployed at https://api.joseki.online.
       account, and `sente-server` runs on `workers.dev`, which is Cloudflare's and not
       ours. Until `MAIL_FROM` is set, `/api/health` reports `"mail": "off"` and every link
       goes to the log instead of the post. The four steps are in `docs/server-operations.md`.
+      **Still not arriving (2026-09-13, branch `feat/no-letter-pointers`).** With the domain
+      live, `/api/health` says `"mail": "sending"`, but the Email Sending API answers
+      `Unauthorized [code: 2036]` even to a wrangler token that carries the scope, so the
+      zone is not onboarded and no letter lands. Rather than keep promising one, the app
+      stopped pointing at it: the lobby's "confirm it" nudge is gone and the sign-up,
+      welcome, and handle-kept copy no longer say a letter follows, in every language. The
+      server routes, the `?verify=` landing, and `emailVerified` are all still there, so
+      turning the letters back on is onboarding the zone and restoring the nudge, nothing
+      else. The forgotten-password door still offers a letter and is broken in the same way.
 - [x] Joseki's own address: `joseki.online` for the app, `api.joseki.online` for the
       server (branch `feat/online`). The zone is on Cloudflare and Namecheap's nameservers
       point at it (`nadia`/`randy.ns.cloudflare.com`, verified 2026-09-12), so the repository

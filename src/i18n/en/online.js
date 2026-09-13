@@ -202,7 +202,7 @@ export const online = {
   lobby: {
     matched: "Matched with {name} · you play {side}",
     signedOut: "Signed out. Your rating is waiting for you.",
-    kept: "That handle is yours on any device now. Look for a letter confirming the address.",
+    kept: "That handle is yours on any device now.",
     leaveAsk: "Leave the ladder? This handle, its key and its rating are removed for good. Finished games stay.",
     noServer: "Could not reach the server; try again",
     removed: "Handle removed",
@@ -252,9 +252,6 @@ export const online = {
     keepHandle: "Keep this handle",
     notNow: "Not now",
     attachNote: "Your rating, your games and your handle stay exactly as they are.",
-    sending: "Sending…",
-    confirmNudge: "Joseki has never heard back from {email}. Confirm it and you will know a letter can reach you.",
-    confirmSent: "A letter is on its way to {email}. The link in it lasts a week and works once. If it does not arrive, look in the spam folder before asking for another.",
   },
 
   game: {

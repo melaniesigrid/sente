@@ -239,9 +239,6 @@ function Lobby({ account, setAccount, notify, onPlay, size, go }) {
         </div>
       )}
       {!player.email && <AttachRow onAttach={attach} />}
-      {player.email && !player.emailVerified && (
-        <ConfirmRow email={player.email} token={token} notify={notify} />
-      )}
       <div className="row spread">
         <p className="fine">{t("online.lobby.rated")}</p>
         <div className="row">
@@ -296,44 +293,6 @@ function AttachRow({ onAttach }) {
       </div>
       <p className="fine">{t("online.lobby.attachNote")}</p>
     </div>
-  );
-}
-
-/** The nudge an account whose address has never answered should keep seeing.
- *
- *  What confirming buys is worth being straight about: it does not unlock
- *  anything and it is not a gate: a forgotten password can be posted to an
- *  unconfirmed address exactly as it can to a confirmed one. What it proves is
- *  that the address was typed correctly and can be reached, which is the thing
- *  you want to have found out before it is the only way back to your handle. */
-function ConfirmRow({ email, token, notify }) {
-  const t = useT();
-  const [busy, setBusy] = useState(false);
-  const [sent, setSent] = useState(false);
-
-  const send = async () => {
-    if (busy) return;
-    setBusy(true);
-    try {
-      await api.sendConfirmation(token);
-      setSent(true);
-    } catch (e) {
-      notify({ icon: "info", text: errorText(e.reason) });
-    } finally { setBusy(false); }
-  };
-
-  if (sent) {
-    return (
-      <p className="fine" role="status">{t("online.lobby.confirmSent", { email })}</p>
-    );
-  }
-  return (
-    <button className="attach-row" onClick={send} disabled={busy}>
-      <Mail size={14} />
-      <span>
-        {busy ? t("online.lobby.sending") : t("online.lobby.confirmNudge", { email })}
-      </span>
-    </button>
   );
 }
 

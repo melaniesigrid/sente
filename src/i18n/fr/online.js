@@ -184,7 +184,7 @@ export const online = {
   lobby: {
     matched: "Appariée avec {name} · tu joues {side}",
     signedOut: "Session fermée. Ton score t'attend.",
-    kept: "Cette identité est à toi sur n'importe quel appareil. Guette une lettre qui confirme l'adresse.",
+    kept: "Cette identité est à toi sur n'importe quel appareil.",
     leaveAsk: "Quitter le classement ? Cette identité, sa clé et son score sont supprimés pour de bon. Les parties terminées restent.",
     noServer: "Impossible de joindre le serveur ; réessaie",
     removed: "Identité supprimée",
@@ -230,9 +230,6 @@ export const online = {
     keepHandle: "Garde cette identité",
     notNow: "Pas maintenant",
     attachNote: "Ton score, tes parties et ton identité restent exactement comme ils sont.",
-    sending: "Envoi…",
-    confirmNudge: "Joseki n'a jamais eu de réponse de {email}. Confirme-la et tu sauras qu'une lettre peut t'atteindre.",
-    confirmSent: "Une lettre est en route vers {email}. Le lien dure une semaine et ne marche qu'une fois. S'il n'arrive pas, regarde dans les indésirables avant d'en demander un autre.",
   },
 
   game: {

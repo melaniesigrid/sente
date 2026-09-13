@@ -184,7 +184,7 @@ export const online = {
   lobby: {
     matched: "配到了{name} · 你执{side}",
     signedOut: "已退出。你的分数在这儿等着你。",
-    kept: "这个名号现在在任何设备上都是你的了。留意一封确认地址的信。",
+    kept: "这个名号现在在任何设备上都是你的了。",
     leaveAsk: "离开排行榜？这个名号、它的密钥和它的分数都会永久删除。下完的棋会留着。",
     noServer: "连不上服务器，再试一次",
     removed: "名号已删除",
@@ -229,9 +229,6 @@ export const online = {
     keepHandle: "留住这个名号",
     notNow: "以后再说",
     attachNote: "你的分数、你的棋和你的名号，原样不动。",
-    sending: "正在发…",
-    confirmNudge: "Joseki 从来没有收到过 {email} 的回音。确认一下，你就知道信真的能到你手上。",
-    confirmSent: "一封信正在发往 {email}。里面的链接一周内有效，只能用一次。要是没收到，先去垃圾邮件里找找，再来要下一封。",
   },
 
   game: {
