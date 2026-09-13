@@ -104,7 +104,7 @@ export function RankingsView({ profile, go }) {
       <Card className="ladder">
         {house.map(p => (
           <button key={p.id} type="button" className="ladder-row ladder-open"
-            onClick={() => go("house", { botId: p.id })}
+            onClick={() => go("house", { id: p.id })}
             aria-label={t("ladder.openHouse", { name: p.name, lo: p.range[0], hi: p.range[1] })}>
             <Avatar name={p.name} tint={p.tint} size={38} bot />
             <div className="ladder-name">

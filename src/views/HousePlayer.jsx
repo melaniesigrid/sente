@@ -69,7 +69,7 @@ export function HousePlayerPage({ id, go, onBack }) {
           </div>
           <p className="lesson-text">{p.bio}</p>
           <div className="row">
-            <Btn icon={Play} small primary onClick={() => go("play", { botId: authored.id })}>
+            <Btn icon={Play} small primary onClick={() => go("play", { withBot: authored.id })}>
               {t("house.sitDown", { name: p.name })}
             </Btn>
           </div>
@@ -119,7 +119,7 @@ export function HousePlayerPage({ id, go, onBack }) {
           {PERSONAS.filter(o => o.id !== authored.id).map(raw => {
             const other = localizePersona(raw, t);
             return (
-              <button key={other.id} className="house-chip" onClick={() => go("house", { botId: other.id })}>
+              <button key={other.id} className="house-chip" onClick={() => go("house", { id: other.id })}>
                 <Avatar name={other.name} tint={other.tint} size={26} bot />
                 <span className="house-chip-name">{other.name}</span>
                 <span className="fine">{other.range[0]}&ndash;{other.range[1]}</span>
