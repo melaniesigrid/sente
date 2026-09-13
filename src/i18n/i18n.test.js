@@ -22,7 +22,7 @@ import { COMMENTARY } from "../content/commentary.js";
 import { CHAPTERS, LEVELS, NAMES, KINDS, PASSAGES } from "../content/classic.js";
 import {
   BASE_LOCALE, SYSTEM_LOCALE, LOCALES, CATALOGUES, isLocaleId, localeOf, resolveLocale,
-  makeT, flatten, interpolate, pluralCategory,
+  makeT, carries, flatten, interpolate, pluralCategory, dirOf,
 } from "./index.js";
 
 /* The three namespaces whose English lives in the data file that owns the
@@ -393,5 +393,114 @@ describe.each(others)("$name is complete", (locale) => {
         }
       }
     }
+  });
+});
+
+/* ----------------------- WHICH WAY THE SCRIPT RUNS -----------------------
+   Hebrew is the first language here that is not read left to right, and the
+   direction it runs in is a fact about the language rather than a decision a
+   view is allowed to make. So it lives on the locale, `dirOf` is the only
+   reader of it, and these are the tests that keep both true.
+
+   Absent means left-to-right on purpose: the eight languages that shipped
+   before Hebrew say nothing about direction because there was nothing to say,
+   and a language that forgets the field reads the way eight of nine do rather
+   than crashing or mirroring the app by accident. */
+describe("which way the script runs", () => {
+  it("runs Hebrew right to left and everything else left to right", () => {
+    expect(dirOf("he")).toBe("rtl");
+    for (const l of LOCALES.filter(l => l.id !== "he")) {
+      expect(dirOf(l.id), l.id).toBe("ltr");
+    }
+  });
+
+  it("answers left to right for an id that is not a language at all", () => {
+    // `localeOf` lands an unknown id on English, and English runs one way.
+    for (const id of ["tlh", "", undefined, null, SYSTEM_LOCALE]) {
+      expect(dirOf(id), String(id)).toBe("ltr");
+    }
+  });
+
+  it("declares the field only where it is not the default", () => {
+    // A default written out on eight entries is decoration, not data; what a
+    // reader of LOCALES should see is the one language that differs.
+    for (const l of LOCALES) {
+      if (l.id === "he") expect(l.dir).toBe("rtl");
+      else expect(l.dir, l.id).toBeUndefined();
+    }
+  });
+});
+
+/* ----------------------- A TAG THE WORLD STILL SAYS -----------------------
+   Hebrew's ISO code was `iw` until 1989 and Android shipped `iw` for years
+   afterwards. A reader whose phone still says it is asking for Hebrew, and
+   giving them English instead would be a bug nobody on that phone could work
+   around, because the device tag is not something a reader can edit.
+
+   The alias is for the device and not for the profile: a stored id is a thing
+   this app wrote, and it only ever writes ids from LOCALES. */
+describe("a device that still says the old tag", () => {
+  it("reads `iw` as Hebrew, region and casing included", () => {
+    expect(resolveLocale(SYSTEM_LOCALE, ["iw"])).toBe("he");
+    expect(resolveLocale(SYSTEM_LOCALE, ["iw-IL"])).toBe("he");
+    expect(resolveLocale(SYSTEM_LOCALE, ["IW"])).toBe("he");
+    expect(resolveLocale(SYSTEM_LOCALE, ["tlh", "iw", "en"])).toBe("he");
+  });
+
+  it("reads the current tag too, and lets a stated choice outrank both", () => {
+    expect(resolveLocale(SYSTEM_LOCALE, ["he"])).toBe("he");
+    expect(resolveLocale(SYSTEM_LOCALE, ["he-IL"])).toBe("he");
+    expect(resolveLocale("he", ["en"])).toBe("he");
+    expect(resolveLocale("en", ["iw"])).toBe("en");
+  });
+
+  it("does not let the alias into a profile", () => {
+    // The stored id is written by this app and is always one of LOCALES.
+    // `iw` arriving as a stored choice is corruption, not a preference.
+    expect(isLocaleId("iw")).toBe(false);
+    expect(resolveLocale("iw")).toBe(BASE_LOCALE);
+    expect(localeOf("iw").id).toBe(BASE_LOCALE);
+  });
+
+  it("leaves every device tag that is not an alias exactly where it was", () => {
+    // The guard on the alias map: a legacy key that collided with a language
+    // we ship would silently hand that language's readers another one.
+    for (const l of LOCALES) {
+      expect(resolveLocale(SYSTEM_LOCALE, [l.tag]), l.tag).toBe(l.id);
+    }
+    expect(resolveLocale(SYSTEM_LOCALE, ["tlh"])).toBe(BASE_LOCALE);
+  });
+});
+
+describe("asking whether a language carries a namespace", () => {
+  /* The screens that render prose the catalogue may not have reached ask this
+     before they claim to be showing a translation, and mark the run as English
+     when they are not. It has to answer about the language it was ASKED about:
+     every other reader in this file falls through to English on an unknown id,
+     which is right for reading a line and exactly wrong here. */
+  it("answers for the language asked about, not for English", () => {
+    expect(carries("ru", "legalDoc.")).toBe(true);
+    expect(carries("he", "legalDoc.")).toBe(false);
+    expect(carries("he", "legal.")).toBe(true);
+  });
+
+  it("says no for a language it does not ship, rather than borrowing an answer", () => {
+    // A tag is not an id, and neither is a typo or nothing at all.
+    expect(carries("he-IL", "legal.")).toBe(false);
+    expect(carries("tlh", "legal.")).toBe(false);
+    expect(carries(undefined, "legal.")).toBe(false);
+    expect(carries("", "legal.")).toBe(false);
+  });
+
+  it("says no for a namespace whose English lives in a data file", () => {
+    // The Classic authors its passages in content/classic.js, so English's own
+    // catalogue carries none of them. A caller that wants "is this the language
+    // it was written in" has to ask that separately; this only reports overlays.
+    expect(carries(BASE_LOCALE, "passage.")).toBe(false);
+  });
+
+  it("never throws, whatever it is handed", () => {
+    expect(() => carries(null, "")).not.toThrow();
+    expect(() => carries("he", "")).not.toThrow();
   });
 });

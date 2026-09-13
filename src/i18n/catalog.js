@@ -86,6 +86,25 @@ export function makeT(id) {
   };
 }
 
+/** Does this language carry any line under this prefix.
+ *
+ *  For the screens that render a namespace the catalogue may not have reached:
+ *  the Classic, the small print, a lesson nobody has translated yet. English
+ *  falls through and is still real English prose, so a screen can mark the run
+ *  it is about to draw and let the stylesheet set it in a language that has an
+ *  italic. Prefix, not key, because a namespace arrives whole or not at all. */
+export function carries(id, prefix) {
+  /* Asked of the id exactly as given, and false for one we do not ship.
+     Every other reader here falls through to English on an unknown id,
+     which is right for reading a line and wrong for this: the question is
+     whether THIS language carries the words, and English's inventory would
+     tell a caller that a language nobody has written translates everything. */
+  const own = flat.get(id);
+  if (!own) return false;
+  for (const key of own.keys()) if (key.startsWith(prefix)) return true;
+  return false;
+}
+
 /** A sentinel no catalogue line can equal, so `lineOr` can tell "the
  *  catalogue answered with this line" from "no catalogue had this key".
  *  Written as escapes rather than literal control characters, because a raw

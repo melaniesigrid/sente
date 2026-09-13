@@ -80,8 +80,8 @@ export function resolveLocale(id, deviceTags = []) {
   for (const tag of deviceTags) {
     if (typeof tag !== "string") continue;
     const primary = tag.toLowerCase().split("-")[0];
-    const id = LEGACY_TAGS.get(primary) || primary;
-    if (byId.has(id)) return id;
+    const match = LEGACY_TAGS.get(primary) || primary;
+    if (byId.has(match)) return match;
   }
   return BASE_LOCALE;
 }
