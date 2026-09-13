@@ -6,6 +6,25 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.9.3.0 (2026-09-12)
+
+### Added
+
+- **Three more boards, and the sets read as sets.** *The bend in the three* (14k) is the
+  straight three with a corner in it, and the answer does not move, which is the point.
+  *One chance, three answers* (9k) is a five-point space with one killing point and three
+  living ones, because the asymmetry between attacking and defending is worth a board of
+  its own. *The shape the corner leaves alone* (7k) is the four-point shape from the eye
+  set wrapped into the corner, where the answer is the same square, against the bend at
+  the end of the same set, where it is not.
+- All three came out of `tools/problems/shapes.mjs` and all three are proved on every
+  build by the search: the stated answer is the only point in the space that kills.
+
+### Changed
+
+- The four sets sit in four columns on a wide screen and two on a narrow one, instead of
+  three and a widow at the width a laptop actually is.
+
 ## v0.9.2.0 (2026-09-12)
 
 ### Added

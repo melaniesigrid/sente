@@ -46,7 +46,7 @@ function replay(moves, n) {
 
 export function JosekiView() {
   const t = useT();
-  const written = CORNERS.filter(c => c.written);
+  const written = useMemo(() => CORNERS.filter(c => c.written), []);
   const [cornerId, setCornerId] = useState(written[0]?.id ?? null);
   const list = useMemo(() => (cornerId ? josekiForCorner(cornerId) : []), [cornerId]);
   const firstOpenId = list[0]?.id ?? null;
@@ -56,7 +56,7 @@ export function JosekiView() {
   const j = authored ? localizeJoseki(authored, t) : null;
   const [at, setAt] = useState(authored?.moves.length ?? 0);
   const [running, setRunning] = useState(false);
-  useMokuFacts({ view: "joseki", seed: authored?.moves.length ?? 0 });
+  useMokuFacts({ view: "joseki", seed: `${selectedOpenId || "none"}:${authored?.moves.length ?? 0}` });
   const defaultAt = authored?.moves.length ?? 0;
   const shownAt = selectedOpenId === openId ? Math.min(at, defaultAt) : defaultAt;
 

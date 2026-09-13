@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { ArrowLeft, Bot, Play, Thermometer, Target, MessageSquare, Eye, BarChart3 } from "lucide-react";
 import { Card, Btn, Avatar, Pill } from "../components/ui.jsx";
 import { ScreenHeader } from "../components/ScreenHeader.jsx";
@@ -33,10 +32,9 @@ export function HousePlayerPage({ id, go, onBack }) {
   const authored = personaById(id) || PERSONAS[0];
   const p = localizePersona(authored, t);
   const band = faithfulnessOf(authored);
-  /* Read once, on mount. The ring buffer is a file on disk and it cannot
-     change while this page is on screen; re-reading it every render would be
-     storage work for no new answer. */
-  const [record] = useState(() => recordAgainst(loadTelemetry(), authored.id));
+  /* Read for the house player being shown. The ring buffer is local, and the
+     page should change its line when the player does. */
+  const record = recordAgainst(loadTelemetry(), authored.id);
   const rate = record.games ? Math.round((record.wins / record.games) * 100) : null;
   /* Two lines it might say, drawn from the two events a player will always
      meet: sitting down, and the game ending badly for it. Not a sample of
@@ -69,7 +67,7 @@ export function HousePlayerPage({ id, go, onBack }) {
           </div>
           <p className="lesson-text">{p.bio}</p>
           <div className="row">
-            <Btn icon={Play} small primary onClick={() => go("play", { botId: authored.id })}>
+            <Btn icon={Play} small primary onClick={() => go("play", { withBot: authored.id })}>
               {t("house.sitDown", { name: p.name })}
             </Btn>
           </div>
@@ -119,7 +117,7 @@ export function HousePlayerPage({ id, go, onBack }) {
           {PERSONAS.filter(o => o.id !== authored.id).map(raw => {
             const other = localizePersona(raw, t);
             return (
-              <button key={other.id} className="house-chip" onClick={() => go("house", { botId: other.id })}>
+              <button key={other.id} type="button" className="house-chip" onClick={() => go("house", { id: other.id })}>
                 <Avatar name={other.name} tint={other.tint} size={26} bot />
                 <span className="house-chip-name">{other.name}</span>
                 <span className="fine">{other.range[0]}&ndash;{other.range[1]}</span>

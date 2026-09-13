@@ -104,6 +104,8 @@ def main():
     gs = GameState(SIZE, dict(RULES))
     records = []
     seq = parse_seq(args.seq)
+    if args.walk and not seq:
+        ap.error("--walk needs at least one move in --seq")
     total = len(seq) + args.walk
     for _ in range(args.walk):
         seq.append(("w" if seq[-1][0] == "b" else "b", None, None))

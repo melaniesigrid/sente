@@ -996,9 +996,23 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       answer with a footnote (`koAnswers` plus `koNote`), not a wrong one, which is how the
       second killing point of `p9` is now handled; a board whose own verdict rests on a ko
       carries `koVerdict` and has to say the word in its explanation, which is `p15`.
-- [ ] More of the sets: the tactics set is still the four boards it always was, and the
-      snapback, the ladder and the net all belong in it. The prover cannot help there,
-      because those are not bounded spaces; they want a different search.
+- [x] Three more eye shapes (2026-09-12, branch `feat/tesuji-set`): `p17` the bent three,
+      `p18` a five-point space with one killing point and three living ones, and `p19` the
+      four-point shape from the eye set wrapped into the corner, where the answer does not
+      move, which is the honest other half of `p15`, where it does. All three came out of
+      `tools/problems/shapes.mjs` and all three are proved by the search on every build.
+- [ ] The tactics set is still the four boards it always was, and the snapback, the ladder
+      and the net all belong in it. A bounded chase search was written and thrown away, and
+      the numbers are why: the attacker is confined to a box and the defender escapes on
+      touching its edge, which makes a verdict of "caught" a proof, but a four-by-four box
+      finishes in about 90 ms and is too small to hold a net, while five-by-four takes
+      thirty-five seconds. Ladders need a box the length of the diagonal and are out of
+      reach entirely. A separate hunt over every walled space of three to six points found
+      no shape killed only by a sacrifice, which is the same negative result the snapback
+      hunt reached from the other direction: these tesuji are not unique answers inside a
+      bounded region, and a search will not find them. They want a different argument:
+      positions taken from a real game, or a lesson that teaches the shape from the
+      victim's side rather than a board with one right move.
 - [ ] Tsumego graded 30k → 5k with categories and a daily set (reuses the verifier).
 - [x] Spaced repetition (2026-09-11, branch `feat/recall`): finished quiz steps enter a
       recall queue, and Home carries the Review card. `src/content/recall.js` is the
