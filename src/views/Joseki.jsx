@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ChevronLeft, ChevronRight, CornerDownRight, Play, Pause, BookOpen, Bot } from "lucide-react";
 import { createBoard, tryPlay, idx } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
@@ -48,7 +48,7 @@ export function JosekiView() {
   const t = useT();
   const written = CORNERS.filter(c => c.written);
   const [cornerId, setCornerId] = useState(written[0]?.id ?? null);
-  const list = cornerId ? josekiForCorner(cornerId) : [];
+  const list = useMemo(() => (cornerId ? josekiForCorner(cornerId) : []), [cornerId]);
   const firstOpenId = list[0]?.id ?? null;
   const [openId, setOpenId] = useState(list[0]?.id ?? null);
   const selectedOpenId = list.some(item => item.id === openId) ? openId : firstOpenId;
@@ -57,7 +57,15 @@ export function JosekiView() {
   const [at, setAt] = useState(authored?.moves.length ?? 0);
   const [running, setRunning] = useState(false);
   useMokuFacts({ view: "joseki", seed: authored?.moves.length ?? 0 });
-  const shownAt = Math.min(at, j?.moves.length ?? 0);
+  const defaultAt = authored?.moves.length ?? 0;
+  const shownAt = selectedOpenId === openId ? Math.min(at, defaultAt) : defaultAt;
+
+  useEffect(() => {
+    if (selectedOpenId === openId) return;
+    setOpenId(selectedOpenId);
+    setAt(defaultAt);
+    setRunning(false);
+  }, [selectedOpenId, openId, defaultAt]);
 
   const pick = (id) => {
     const next = cornerId ? josekiForCorner(cornerId).find(x => x.id === id) || list[0] : null;
