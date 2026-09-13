@@ -61,7 +61,7 @@ export function JosekiView() {
 
   const pick = (id) => {
     const next = cornerId ? josekiForCorner(cornerId).find(x => x.id === id) || list[0] : null;
-    setOpenId(id);
+    setOpenId(next?.id ?? null);
     setAt(next?.moves.length ?? 0);
     setRunning(false);
   };
