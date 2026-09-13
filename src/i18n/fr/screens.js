@@ -214,6 +214,12 @@ export const screens = {
     next: "Problème suivant",
     nextSet: "Série suivante",
     setProgress: "{done} sur {total}",
+    setDone: "termin\u00e9e",
+    setsDone: {
+      one: "{done} s\u00e9rie sur {total} termin\u00e9e.",
+      other: "{done} s\u00e9ries sur {total} termin\u00e9es.",
+    },
+    setFinished: "Voil\u00e0 {set} termin\u00e9e, chaque plateau.",
     openProblem: "{set}, numéro {n}, {rank}",
   },
 
