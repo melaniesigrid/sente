@@ -17,6 +17,9 @@ export const account = {
     "token-expired": "这个链接用过了，或者太旧了。再要一个。",
     "already-verified": "那个地址已经确认过了",
     "mail-failed": "信没能发出去。这是我们要修的，不是你的问题。",
+    "beta-full": "测试名额满了。留一个地址，有空位时会写信给你。",
+    "too-many-asks": "今天从一个地方留的地址有点多。过一个钟头再来。",
+    "list-full": "候补名单暂时也满了。写信到 hello@northboundsoftwarestudio.com，会有人回复你。",
     unknown: "出了点问题（{reason}）",
   },
 
@@ -57,6 +60,18 @@ export const account = {
     signinFine: "登录要花一点时间：证明密码这件苦力活由浏览器来干，好让服务器永远不必拿着它。",
     welcomeNew: "欢迎上榜，{name}。留意一封确认地址的信。",
     welcomeBack: "欢迎回来，{name}",
+  },
+
+  full: {
+    title: "测试名额满了",
+    tagline: "一百个座位，现在全都有人",
+    bio: "Joseki 现在先开放给一百位棋手，这已经是服务器在最好的一天里还能稳住的人数。留一个地址，有空位时会写信给你。",
+    address: "你的电子邮件地址",
+    leave: "把我放进名单",
+    asked: "你的地址已经在名单里了。Joseki 只会在有空位时写信给你，不会拿它做别的事。",
+    fine: "名单只存你的地址和你留它的那一天，别的什么都不存。它只用来告诉你一次有空位了。你随时开口，它就会被忘掉。",
+    haveOne: "已经有账号了？去登录。",
+    back: "算了",
   },
 
   forgot: {

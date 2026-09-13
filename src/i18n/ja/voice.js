@@ -18,6 +18,7 @@ export const voice = {
   moku: {
     promotedBelt: "{belt}。きつく結んで。",
     atariMany: {
+      one: "自分の石が {count} 団、アタリになっています。",
       other: "自分の石が {count} 団、アタリになっています。",
     },
   },

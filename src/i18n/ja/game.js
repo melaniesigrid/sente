@@ -43,9 +43,9 @@ export const game = {
       unrated: "レートなし",
     },
     count: {
-      stones: { other: "{count} 子" },
-      territory: { other: "{count} 目" },
-      prisoners: { other: "アゲハマ {count}" },
+      stones: { one: "{count} 子", other: "{count} 子" },
+      territory: { one: "{count} 目", other: "{count} 目" },
+      prisoners: { one: "アゲハマ {count}", other: "アゲハマ {count}" },
       komi: "コミ {count}",
       handicap: "置き石 {count}",
     },
@@ -70,6 +70,7 @@ export const game = {
     noteRated: "家の棋士が相手、レートあり。",
     noteLocal: "レートなし。おたがい、ありがとうございました。",
     deadRemoved: {
+      one: " · 死に石 {count} 子を取り上げました",
       other: " · 死に石 {count} 子を取り上げました",
     },
     hostLost: {

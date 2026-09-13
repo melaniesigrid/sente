@@ -50,8 +50,8 @@ export const COPYRIGHT = `© ${COPYRIGHT_YEAR} ${STUDIO}`;
    its own; what it can do is make it impossible to change a word without
    being stopped and handed the line where the date lives. */
 export const REVISION = {
-  updated: "12 September 2026",
-  stamp: "80fb718f",
+  updated: "13 September 2026",
+  stamp: "67a90e94",
 };
 
 /** The day the documents last changed. */
@@ -59,7 +59,7 @@ export const UPDATED = REVISION.updated;
 /** The same day, machine-readable, so each language can set it its own way:
  *  "12 September 2026" in English, "12 de septiembre de 2026" in Spanish. The
  *  two are held in step by `legal.test.js`. */
-export const UPDATED_ISO = "2026-09-12";
+export const UPDATED_ISO = "2026-09-13";
 
 /* ---------------------------------------------------------------- credits */
 /* Everything in the build that somebody else made, with the terms it comes
@@ -248,6 +248,14 @@ const PRIVACY = {
       ],
     },
     {
+      heading: "The waiting list",
+      paras: [
+        "Joseki is open to a hundred players while it is new, because that is as many as the server it runs on carries without failing for everybody. When those seats are taken, the only thing on offer is a waiting list, and it is the one address here that is kept with no account behind it.",
+        "It holds the address you typed and the day you typed it, under a key of its own, and nothing else goes with it: not a name, not a handle, not the address you connected from, not the page you were on. It is used once, to tell you a seat is free. It is not a newsletter and it will not quietly become one.",
+        `Being invited takes your address off the list. So does asking: write to ${CONTACT} and it is removed, whether or not a seat has come up yet.`,
+      ],
+    },
+    {
       heading: "Being here is not written down",
       paras: [
         "Whether you are at a board right now is a question about an open connection and nothing else. Arriving writes nothing, leaving writes nothing, and there is no history of when you were here for anybody to read later, this Studio included. Close the tab and the only thing that survives is the date of your last finished game, which is what your page has always shown, to the month or the week and never to the hour.",
@@ -258,7 +266,7 @@ const PRIVACY = {
     {
       heading: "What your email address is used for",
       paras: [
-        "Two letters, and nothing else: one confirming the address is yours, one letting you set a new password. There is no newsletter, no product announcement, and no list to be on. The address is never sold, rented, or handed to anyone for their own use.",
+        "Two letters to an account, and nothing else: one confirming the address is yours, one letting you set a new password. There is no newsletter and no product announcement. The only list anybody can be on is the waiting list above, which you put yourself on and which is used once and then done with. The address is never sold, rented, or handed to anyone for their own use.",
       ],
     },
     {

@@ -42,9 +42,9 @@ export const game = {
       unrated: "不计分",
     },
     count: {
-      stones: { other: "{count} 子" },
-      territory: { other: "{count} 目" },
-      prisoners: { other: "提子 {count}" },
+      stones: { one: "{count} 子", other: "{count} 子" },
+      territory: { one: "{count} 目", other: "{count} 目" },
+      prisoners: { one: "提子 {count}", other: "提子 {count}" },
       komi: "贴 {count}",
       handicap: "让 {count}",
     },
@@ -69,6 +69,7 @@ export const game = {
     noteRated: "对手是馆里的棋手，这一局计分。",
     noteLocal: "不计分。承让了，谢谢这一局。",
     deadRemoved: {
+      one: " · 提走 {count} 颗死子",
       other: " · 提走 {count} 颗死子",
     },
     hostLost: {

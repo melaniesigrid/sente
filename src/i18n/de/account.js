@@ -17,6 +17,9 @@ export const account = {
     "token-expired": "Dieser Link wurde schon benutzt oder ist zu alt. Fordere einen neuen an.",
     "already-verified": "Diese Adresse ist schon bestätigt",
     "mail-failed": "Der Brief konnte nicht gesendet werden. Das ist unsere Sache, nicht deine.",
+    "beta-full": "Die Beta ist voll. Hinterlass eine Adresse, und du bekommst Post, sobald ein Platz frei wird.",
+    "too-many-asks": "Das sind viele Adressen von einem Ort an einem Tag. Versuch es in einer Stunde noch einmal.",
+    "list-full": "Die Warteliste ist im Moment voll. Schreib an hello@northboundsoftwarestudio.com, und ein Mensch antwortet dir.",
     unknown: "Etwas ist schiefgegangen ({reason})",
   },
 
@@ -59,6 +62,17 @@ export const account = {
     welcomeBack: "Willkommen zurück, {name}",
   },
 
+  full: {
+    title: "Die Beta ist voll",
+    tagline: "Hundert Plätze, und alle besetzt",
+    bio: "Joseki steht hundert Spielenden offen, solange es neu ist, und das ist so viel, wie der Server auch an seinem besten Tag trägt. Hinterlass eine Adresse, und du bekommst Post, sobald ein Platz frei wird.",
+    address: "Deine E-Mail-Adresse",
+    leave: "Setz mich auf die Liste",
+    asked: "Deine Adresse steht auf der Liste. Du hörst von Joseki, wenn ein Platz frei wird, und sonst nicht.",
+    fine: "Die Liste hält deine Adresse und den Tag, an dem du sie hinterlassen hast, und sonst nichts. Sie dient dazu, dir einmal zu sagen, dass ein Platz frei ist. Sag Bescheid, und sie wird vergessen.",
+    haveOne: "Du hast schon ein Konto? Melde dich an.",
+    back: "Lass gut sein",
+  },
   forgot: {
     asked: "Wenn es auf dieser Adresse ein Konto gibt, ist ein Weg zurück unterwegs dorthin. Der Link gilt eine Stunde, und ihn zu benutzen meldet das Konto überall sonst ab.",
     open: "Passwort vergessen? Joseki kann dir einen Weg zurück schicken.",

@@ -131,12 +131,20 @@ export const legalDoc = {
         },
       },
       3: {
-        heading: "À quoi sert ton adresse de courriel",
+        heading: "La liste d'attente",
         paras: {
-          0: "Deux lettres, et rien d'autre : l'une confirmant que l'adresse est bien la tienne, l'autre te laissant fixer un nouveau mot de passe. Il n'y a pas d'infolettre, pas d'annonce de produit et pas de liste sur laquelle figurer. L'adresse n'est jamais vendue, ni louée, ni remise à quiconque pour son propre usage.",
+          0: "Joseki est ouvert à cent joueurs tant qu'il est neuf, parce que c'est tout ce que porte le serveur sur lequel il tourne sans tomber pour tout le monde. Une fois ces places prises, il ne reste qu'une liste d'attente, et c'est la seule adresse ici qui soit gardée sans compte derrière elle.",
+          1: "Elle garde l'adresse que tu as tapée et le jour où tu l'as tapée, sous une clé à elle, et rien d'autre ne l'accompagne : ni un nom, ni un pseudo, ni l'adresse depuis laquelle tu t'es connecté, ni la page où tu étais. Elle sert une fois, pour te dire qu'une place est libre. Ce n'est pas une infolettre et cela ne le deviendra pas en douce.",
+          2: "Être invité retire ton adresse de la liste. Le demander aussi : écris à {contact} et elle est supprimée, qu'une place se soit libérée ou non.",
         },
       },
-      4: {
+      5: {
+        heading: "À quoi sert ton adresse de courriel",
+        paras: {
+          0: "Deux lettres à un compte, et rien d'autre : l'une confirmant que l'adresse est bien la tienne, l'autre te laissant fixer un nouveau mot de passe. Il n'y a pas d'infolettre ni d'annonce de produit. La seule liste sur laquelle quelqu'un puisse figurer est la liste d'attente ci-dessus, sur laquelle tu t'inscris toi-même et qui sert une fois puis c'est tout. L'adresse n'est jamais vendue, louée ni remise à qui que ce soit pour son propre usage.",
+        },
+      },
+      6: {
         heading: "Qui d'autre en voit quoi que ce soit",
         paras: {
           0: "Trois entreprises, toutes sur le chemin de la page plutôt qu'intéressées par elle.",
@@ -144,11 +152,10 @@ export const legalDoc = {
         list: {
           0: "Cloudflare fait tourner le serveur de jeu et poste les deux lettres. Tout ce que le serveur garde se trouve sur leur réseau, qui s'étend à des pays hors du Canada.",
           1: "GitHub sert l'application elle-même, par GitHub Pages, et leurs serveurs voient la requête qui va la chercher.",
-          2: "Google Fonts sert cinq polices. Les télécharger dit à Google de quelle adresse venait la requête, exactement comme le ferait une police servie de n'importe où ailleurs.",
-          3: "Personne d'autre. Il n'y a pas de quatrième partie, ni d'accord avec une.",
+          2: "Personne d'autre. Chaque police est servie par Joseki lui-même plutôt que par un CDN de polices, donc ouvrir une page ici ne dit à aucun tiers que tu l'as fait. Il n'y a pas de tiers, ni d'accord avec un.",
         },
       },
-      5: {
+      7: {
         heading: "Partir",
         paras: {
           0: "Il existe une sortie qui n'a besoin de la permission de personne. Partir supprime ton compte, tes sessions, ton adresse, ton image, ta place au classement et la trace de l'adresse depuis laquelle tu t'es inscrit.",
@@ -156,19 +163,19 @@ export const legalDoc = {
           2: "Pour demander une copie de ce qui est conservé sur toi, pour le corriger, ou pour faire retirer quelque chose que partir n'atteint pas, écris à {contact} et une personne le fera à la main. Il n'y a pas de bouton d'export, et dire le contraire serait la phrase facile à écrire et la phrase fausse.",
         },
       },
-      6: {
+      8: {
         heading: "Les enfants",
         paras: {
           0: "Joseki ne vise pas les enfants de moins de 13 ans, et aucun compte ne devrait être créé pour l'un d'eux. Si cela a été fait, écris, et il sera supprimé sans qu'on demande quoi que ce soit d'autre au préalable.",
         },
       },
-      7: {
+      9: {
         heading: "Modifications",
         paras: {
           0: "Cet avis change en étant réécrit ici, la date en haut étant déplacée. S'il change un jour parce que Joseki s'est mis à collecter quelque chose de nouveau, le changement le dira dans une phrase à lui plutôt que d'être plié dans un paragraphe.",
         },
       },
-      8: {
+      10: {
         heading: "Comment prendre contact",
         paras: {
           0: "Toute question sur tout cela : {contact}.",

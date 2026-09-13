@@ -1007,7 +1007,7 @@ ${FONT_FACES}
 /* ---- the Classic: the thirteen chapters, read straight through ---- */
 .chapter-list { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
 .chapter-row { border-radius: 12px; }
-.chapter-head { width: 100%; display: grid; grid-template-columns: 30px minmax(0, 1fr) 18px; align-items: center; gap: 12px; padding: 11px 12px; border: 0; border-radius: 12px; background: transparent; cursor: pointer; text-align: left; color: inherit; }
+.chapter-head { width: 100%; display: grid; grid-template-columns: 30px minmax(0, 1fr) auto 18px; align-items: center; gap: 12px; padding: 11px 12px; border: 0; border-radius: 12px; background: transparent; cursor: pointer; text-align: left; color: inherit; }
 .chapter-head:hover { background: var(--ground); box-shadow: inset 2px 2px 5px var(--dark), inset -2px -2px 5px var(--light); }
 .chapter-n { color: var(--ink-2); font-family: var(--font-display); font-weight: var(--w-display); font-size: 16px; }
 .chapter-title { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
@@ -1017,6 +1017,17 @@ ${FONT_FACES}
 .chapter-body { display: flex; flex-direction: column; gap: 12px; padding: 4px 12px 16px 42px; }
 .chapter-body.preface { padding-top: 12px; }
 .chapter-body .lesson-text { color: var(--ink-2); }
+/* A chapter whose lessons are finished says so in the head, so the book can be
+   read down at a glance without opening thirteen rows to find the place. */
+.chapter-state { display: flex; align-items: center; color: var(--ink-2); }
+.chapter-row.read .chapter-n { color: var(--accent-ink); }
+
+/* A lesson card and whatever the view has to say about that lesson right now.
+   The gate lands here, under the press, never at the head of the view. */
+.lesson-slot { display: flex; flex-direction: column; gap: 8px; }
+.lesson-card.gated { box-shadow: inset 2px 2px 5px var(--dark), inset -2px -2px 5px var(--light); }
+.gate-card { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.gate-card .gate-copy { flex: 1 1 240px; display: flex; flex-direction: column; gap: 4px; }
 
 /* a pull quote: one idea in plain words, set large between the paragraphs.
    A passage is the classical voice, ruled off at the left; this is ours,

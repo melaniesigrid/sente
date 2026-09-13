@@ -46,7 +46,7 @@ export const shell = {
     sources: "出典",
     read: "読む",
     back: "すべての記事",
-    changes: { other: "{count} 件の変更" },
+    changes: { one: "{count} 件の変更", other: "{count} 件の変更" },
     footLink: "日誌",
   },
   foot: {

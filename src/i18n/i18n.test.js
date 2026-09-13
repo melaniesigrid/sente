@@ -306,6 +306,36 @@ describe.each(others)("$name is complete", (locale) => {
     }
   });
 
+  /* A legal document is overlaid by position: `legalDoc.privacy.sections.4`
+     translates whatever the fourth section of the English document happens to
+     be. So a section added to `src/content/legal.js` in front of the ones a
+     translator has already done silently slides every one of them onto the
+     wrong words, which is a privacy notice saying the wrong thing in three
+     languages with every test still green. It had happened: the presence
+     section landed after the German, Spanish and French notices were written,
+     and every section from it down was showing the heading of its neighbour.
+
+     Position cannot be checked for meaning, but it can be checked for shape:
+     a section that is translated must exist, and it must be at least as long
+     as the translation being poured into it. A shift moves an overlay onto a
+     section of a different length nearly every time, which is what makes this
+     cheap check worth having. */
+  it("translates legal sections that exist, and no further than they go", () => {
+    const doc = (id) => DOCUMENTS.find(d => d.id === id);
+    for (const key of [...mine.keys()].filter(k => k.startsWith("legalDoc."))) {
+      const [, docId, kind, index, field, line] = key.split(".");
+      if (kind !== "sections") continue;
+      const sections = doc(docId)?.sections ?? [];
+      const section = sections[Number(index)];
+      expect(section, `${locale.id}: ${key} translates a section the document does not have`).toBeTruthy();
+      if (!field || line === undefined) continue;
+      const body = section[field];
+      expect(Array.isArray(body), `${locale.id}: ${key} translates a ${field} the section does not have`).toBe(true);
+      expect(body.length, `${locale.id}: ${key} is past the end of a ${field} of ${body.length}`)
+        .toBeGreaterThan(Number(line));
+    }
+  });
+
   it("overlays only things that exist, and leaves their holes alone", () => {
     const ids = {
       room: PALETTES.map(p => p.id),

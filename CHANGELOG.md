@@ -41,6 +41,75 @@ They are left as they were written rather than rewritten after the fact.
   primary subtag now; there is room in that chip for a language, not for a language and
   a script.
 
+## v0.10.0.1 (2026-09-13)
+
+### Fixed
+
+- **Pressing play on a chapter's lesson did nothing.** Every one of the thirteen chapters
+  builds on something, so opening one from the book always raised the prerequisite gate,
+  and the gate drew at the head of the Learn screen. A reader who had scrolled down to
+  chapter eight was two thousand pixels from the only thing that answered the press. The
+  gate now opens under the card that was pressed, wherever that card is: a chapter, the
+  shelf, the tier grid or Continue. It can also be waved off now, which it could not be.
+- The book said `0/14 chapters read` for a book of thirteen chapters, because it counted
+  lessons and chapter thirteen carries two. It counts chapters, and a chapter is read
+  when its lessons are.
+
+### Changed
+
+- A chapter whose lessons are finished is marked in the head of the row, so the book can
+  be read down at a glance instead of opened row by row to find the place.
+- The book keeps its place across a lesson. Which chapters are open moved out of the row
+  and into the view, and leaving a lesson returns to the chapter it was opened from,
+  rather than shutting the book and landing back at the top of the library.
+
+## v0.10.0.0 (2026-09-13)
+
+### Added
+
+- **A hundred seats, and a waiting list for the hundred-and-first.** Joseki is open to a
+  hundred players while it is new. That is not a marketing number: the server runs on
+  Cloudflare's free plan, which is a set of daily ceilings rather than a bill, and past one
+  of them every further operation of that kind fails until midnight UTC. An engaged player
+  costs about 350 requests a day, mostly the two polls that run while a screen is open, so
+  a hundred accounts all active on their heaviest day is seventy thousand of the hundred
+  thousand. A hundred and fifty is over the line. The arithmetic is written down in
+  `server/beta.js` and in `docs/server-operations.md` so that raising the number is a
+  decision somebody makes rather than a guess.
+- Past the cap, the account card says so and offers a box for an address instead of a
+  form. The door for the hundred already in stays on the card, folded away underneath: a
+  person who has cleared their browser is not a newcomer and must not be handed a waiting
+  list as though they were.
+- The waiting list holds an address and the day it was left, and nothing else. It answers
+  the same way for an address that is new, one already waiting, and one that already has
+  an account here, because a list that answered differently would be a way to ask who
+  plays on Joseki. A list with no room left says so out loud instead, which is a fact
+  about the list and about nobody.
+
+### Changed
+
+- The privacy notice gains a section on the waiting list, in all four languages. It used
+  to promise there was "no list to be on", and now there is one, so the sentence that said
+  otherwise had to go.
+- Signing up spends a rate-limit budget before it looks an address up, so "that address is
+  taken" is no longer an answer anybody can ask for ten thousand times. Claiming a handle
+  is metered even for a caller the network cannot name, because that is the door that
+  spends a seat.
+
+### Fixed
+
+- **The German, Spanish and French privacy notices were showing the wrong sections.** The
+  translations are overlaid by position, and a section added to the English notice after
+  they were written slid every one of them onto its neighbour's words, from "Being here is
+  not written down" downwards. Nothing caught it: the suite checked that translations
+  existed, not that they landed where they belonged. It does now.
+- The same three notices still named Google Fonts as a third party that sees your request.
+  That stopped being true when the typefaces were self-hosted; the English notice was
+  corrected then and the translations were not. A notice claiming a data flow that does
+  not exist is the same kind of wrong as one hiding a flow that does.
+- Leaving now takes your address off the waiting list, and so does arriving. The notice
+  said being invited would, and until now nothing did it.
+
 ## v0.9.4.0 (2026-09-12)
 
 ### Added
