@@ -23,7 +23,7 @@ import { legal, legalDoc, credit } from "./legal.js";
 import { online } from "./online.js";
 import { account } from "./account.js";
 import { voice, plain, statement, moku, ruleset, preset, persona } from "./voice.js";
-import { tier, track, book, series, problem, shape } from "./library.js";
+import { tier, track, book, series, problemSet, problem, shape } from "./library.js";
 import { lessons1 } from "./lessons1.js";
 import { lessons2 } from "./lessons2.js";
 import { lessons3 } from "./lessons3.js";
@@ -57,6 +57,7 @@ export const es = {
   track,
   book,
   series,
+  problemSet,
   problem,
   shape,
   classicBook,
