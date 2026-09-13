@@ -135,7 +135,7 @@ export function typefaceOf(id) {
   return TYPEFACES.find(t => t.id === id) || TYPEFACES[0];
 }
 
-/* ----------------------- THE HAN FALLBACK -----------------------
+/* ----------------------- THE SCRIPT FALLBACK -----------------------
    None of the pairings has a Han glyph in it, and none of them ever will: a
    full CJK family is five to fifteen megabytes and this whole app is smaller
    than one of them. So Chinese and Japanese are set in the faces the reader
@@ -153,8 +153,27 @@ export function typefaceOf(id) {
    them is nearer to the intent than a gothic would be; `serif` and `sans-serif`
    at the end of the pairing's own list is what says which, and the typewriter
    counts as one: a passage from the Classic set in a gothic would be a notice
-   board, and the machine that types it is a slab face to begin with. */
-const HAN = {
+   board, and the machine that types it is a slab face to begin with.
+
+   Cyrillic is the same problem one size smaller. None of the pairings has a
+   Cyrillic glyph either: the display faces are Typecase demo cuts, and the five
+   Google text families are self-hosted as the latin and latin-ext subsets
+   alone, because that is all Google cuts for them. A Russian or Ukrainian
+   sentence would otherwise land on whatever the generic keyword resolves to,
+   which is a real face with real Cyrillic on every platform and is simply not
+   as good a drawing as the ones named here.
+
+   Russian and Ukrainian share one list, and that is not laziness: the two are
+   set in the same letters. Ukrainian uses four that Russian does not (i, i with
+   a diaeresis, ye, and ghe with upturn), but a face that has Cyrillic has them,
+   and nothing in either language asks for a different shape of a shared letter
+   the way Chinese and Japanese do. */
+const CYRILLIC = {
+  sans: "'PT Sans', 'Segoe UI', 'Helvetica Neue', 'Noto Sans', 'Arial', sans-serif",
+  serif: "'PT Serif', 'Georgia', 'Times New Roman', 'Noto Serif', serif",
+};
+
+const SCRIPTS = {
   zh: {
     sans: "'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Source Han Sans SC', sans-serif",
     serif: "'Songti SC', 'SimSun', 'Noto Serif CJK SC', 'Source Han Serif SC', serif",
@@ -163,18 +182,21 @@ const HAN = {
     sans: "'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', 'Noto Sans CJK JP', sans-serif",
     serif: "'Hiragino Mincho ProN', 'Yu Mincho', 'YuMincho', 'Noto Serif CJK JP', 'Source Han Serif JP', serif",
   },
+  ru: CYRILLIC,
+  uk: CYRILLIC,
 };
 
-/** A family list with the reader's Han faces behind it, or the list unchanged
- *  for a language written in Latin letters. The pairing's own generic keyword
- *  picks the register, so a didone keeps a Mincho and a grotesk keeps a gothic. */
-export function withHan(families, locale) {
-  const han = HAN[locale];
-  if (!han || typeof families !== "string") return families;
+/** A family list with the reader's own faces behind it for a script none of
+ *  the pairings can set, or the list unchanged for a language written in Latin
+ *  letters. The pairing's own generic keyword picks the register, so a didone
+ *  keeps a Mincho and a grotesk keeps a gothic. */
+export function withScript(families, locale) {
+  const fallback = SCRIPTS[locale];
+  if (!fallback || typeof families !== "string") return families;
   const generic = /(^|,\s*)(serif|sans-serif|monospace|system-ui|cursive|fantasy)\s*$/.exec(families);
-  const stack = /(^|,\s*)(serif|monospace)\s*$/.test(families) ? han.serif : han.sans;
+  const stack = /(^|,\s*)(serif|monospace)\s*$/.test(families) ? fallback.serif : fallback.sans;
   /* Ahead of the generic, not behind it. A generic family always matches, so a
-     generic sitting in front of the Han names ends per-character fallback before
+     generic sitting in front of the fallback names ends per-character fallback before
      the browser ever reads them. Blink and Gecko resolve the generic and carry on
      in practice, but the spec does not promise that and the fix is free. */
   return generic
@@ -186,16 +208,16 @@ export function withHan(families, locale) {
  *  these onto the root element's style, so no stylesheet is rewritten. */
 export function typefaceVars(id, locale) {
   const t = typefaceOf(id);
-  const han = (families) => withHan(families, locale);
+  const script = (families) => withScript(families, locale);
   return {
-    "--font-display": han(t.display),
-    "--font-display-italic": han(t.italic),
+    "--font-display": script(t.display),
+    "--font-display-italic": script(t.italic),
     "--display-italic-style": t.italicStyle,
-    "--font-body": han(t.body),
-    "--font-quote": han(quoteOf(t)),
-    "--font-typewriter": han(TYPEWRITER),
+    "--font-body": script(t.body),
+    "--font-quote": script(quoteOf(t)),
+    "--font-typewriter": script(TYPEWRITER),
     "--quote-style": t.quote ? t.quoteStyle : "normal",
-    "--font-caption": han(captionOf(t)),
+    "--font-caption": script(captionOf(t)),
     "--caption-style": captionOf(t) === t.italic ? t.italicStyle : "normal",
     "--w-display": String(t.weight),
     "--w-display-strong": String(t.strong),
