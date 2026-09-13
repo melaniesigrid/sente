@@ -940,6 +940,25 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       miai values, whole-board thinking, and reading an engine honestly. Tier 6's rule is that
       a lesson may be mostly argument; it verifies what can be verified, states the rest as
       judgement, and says which is which in its header.
+- [x] Shape Up (2026-09-13, branch `feat/shapeup`): a seventh book on the shelf, after
+      Charles Matthews and Seong-June Kim's *Shape Up!* (2005) - the one book here that is
+      about shape and nothing else. Two lessons in tier 3, both proved before a word of prose
+      was written and both re-proved by `tools/lessons/shapeup.mjs`: `shape-table` (13k,
+      shape) sets the table shape beside the bamboo joint, one stone apart, and shows why the
+      reach costs something - the bamboo answers either cut in a single move and leaves the
+      cutting stone on one liberty, while after the wedge into the table no two black moves
+      rejoin the four stones even with White never answering, and it takes three;
+      `shape-liberty-problem` (12k, shape) is the drill the empty-triangle article had been
+      waiting for, on a pair pressed to three liberties where extending buys two and either
+      descent buys one and an empty triangle with it.
+      Lessons carry `book: "shapeup"` for the shelf and `series: "shapeup"` with the book's
+      chapter numbers, so they read in book order across tiers. Two of fifteen chapters, and
+      the gaps are a decision rather than a queue: most of the rest argue whole-board
+      judgement, which a bounded search cannot settle - aimed at an invasion under an
+      extension, `killable()` answers a question about the region you drew, not about the
+      extension. Chapter seven is left out because `shape-keima-waist` already drills that
+      proverb. The book is in copyright, so nothing of it is reproduced - no prose, no
+      diagram, no problem position - and `content/shapeup.js` carries the citation.
 - [x] The Book of Shapes (2026-09-11): the shelf's shape book, and the first one written here
       rather than inherited. `content/shapes.js` is a catalogue of nine articles with the same
       three parts each (what the shape buys, what it costs, and the position where the bargain
