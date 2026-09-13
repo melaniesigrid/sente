@@ -25,6 +25,33 @@ They are left as they were written rather than rewritten after the fact.
   measurement or drop it, not quietly overrule it.
 - `tools/joseki/policy.py` grew `--cands`, which reports named points at the last
   position of a sequence. That is how the verdicts above were read off.
+## v0.9.1.0 (2026-09-12)
+
+### Added
+
+- **Every house player has a page now.** Who it is, what it runs on, how closely it is
+  asked to follow the player it imitates, how it plays, the one habit you can exploit,
+  what it says at the table, and your own record against it. A row on the ladder opens
+  it, and the page has a button that sits you straight down opposite.
+- **The temperature is said out loud.** It is the one number on a house player you can
+  feel at the board and the one nobody could have guessed from the bio: how widely the
+  move is drawn from what the imitated player might have done. Hoshi is at 1.0 and will
+  surprise you; Tatsuo is at 0.4 and will not. Four named bands, with the number beside
+  them.
+- **Your record against a house player**, counted from the device's own ring buffer, rated
+  games only, and it says so: where the count is under five games it says that what you
+  are looking at is a number rather than a rate. The buffer has never left the machine
+  and nothing reads it.
+
+### Changed
+
+- **The ladder is three sections and each one says what it is.** Your rank first, on its
+  own, instead of sorted in among the bots. Then the people. Then the house players.
+- **The house players are no longer drawn as a ladder.** The old table ranked them by
+  rating and put a crown on the strongest, which is meaningless: every one of them plays
+  at whatever level the table is set to. Ranking them invited exactly the belief the
+  lobby spends a paragraph denying, that you have to graduate from one bot to the next.
+  It is a roster, in range order, and it says so above the list.
 ## v0.9.0.0 (2026-09-12)
 
 ### Added

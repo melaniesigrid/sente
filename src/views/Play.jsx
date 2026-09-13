@@ -5,7 +5,7 @@ import { ScreenHeader } from "../components/ScreenHeader.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { DuelCard } from "../components/DuelCard.jsx";
-import { personasFor, PERSONAS, localizePersona } from "../content/personas.js";
+import { personasFor, PERSONAS, personaById, localizePersona } from "../content/personas.js";
 import { rankOf, ratingOfRank, stepRank, rankInRange, rankWithHandicap, RANK_LADDER } from "../content/rank.js";
 import { SIZES, defaultKomi, RULESET_IDS, rulesetOf } from "../engine/index.js";
 import { loadLobby, saveLobby, HANDICAPS, KOMI_STEPS } from "../store/lobby.js";
@@ -45,15 +45,28 @@ function linkedGame() {
   return null;
 }
 
-export function PlayView({ profile, setProfile, notify, resume, openGame = null, go = null }) {
+export function PlayView({ profile, setProfile, notify, resume, openGame = null, withBot = null, go = null }) {
   const t = useT();
   // session: null | { mode: {kind:'bot', persona, rank, size, handicap} | {kind:'local', size, handicap}
   //                  | {kind:'online', gameId} | duel, record? }
   /* `openGame` is a table asked for by id from somewhere else in the app (the
      archive, and later the dashboard). It outranks the address bar only in
      that it is checked first; both end at the same online session. */
-  const [session, setSession] = useState(() =>
-    resume || (openGame ? { mode: { kind: "online", gameId: openGame } } : null) || linkedGame());
+  /* `withBot` is a house player asked for by name from its own page. It sits
+     you straight down rather than dropping you in the lobby beside the card
+     you just clicked: somebody who pressed "Sit down with Tetsu" has already
+     chosen. The level is the table's, exactly as if the card had been
+     clicked, so nothing about the game is different from the lobby route. */
+  const [session, setSession] = useState(() => {
+    if (resume) return resume;
+    if (openGame) return { mode: { kind: "online", gameId: openGame } };
+    const persona = withBot ? personaById(withBot) : null;
+    if (persona) {
+      const lobby = loadLobby();
+      return { mode: { kind: "bot", persona: localizePersona(persona, t), rank: lobby.rank ?? rankOf(profile.rating) } };
+    }
+    return linkedGame();
+  });
   // The level the next game is played at. Starts at the player's own rank; every house
   // player adapts to it, so nobody has to "graduate" to an opponent.
   const myRank = rankOf(profile.rating);
