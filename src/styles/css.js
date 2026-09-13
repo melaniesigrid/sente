@@ -843,6 +843,15 @@ ${FONT_FACES}
 .success-row { color: var(--accent-ink); }
 
 /* ---- tsumego ---- */
+/* The index is four sets, not one strip of numbers. Each set is a heading,
+   a line saying what it trains, and its own row of circles; the set the open
+   board belongs to is the one whose heading is sunk into the ground. */
+.prob-sets { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: clamp(16px, 2.2vw, 26px); }
+.prob-set { display: flex; flex-direction: column; gap: 9px; padding: 14px 16px; border-radius: 18px; transition: box-shadow .18s ease; }
+.prob-set.here { box-shadow: var(--sink-sm); }
+.prob-set-head { gap: 9px; }
+.prob-set-count { margin-left: auto; color: var(--ink-2); letter-spacing: .08em; }
+.prob-set-blurb { margin: 0 !important; }
 .prob-tabs { display: flex; gap: 10px; flex-wrap: wrap; }
 .prob-tab {
   width: 42px; height: 42px; border-radius: 50%; border: 0; cursor: pointer;
