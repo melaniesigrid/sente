@@ -4,6 +4,7 @@
    理由，短句优先。 */
 export const front = {
   landing: {
+    recordMast: "记录",
     label: "最老的那个游戏，灯光调得很轻",
     displayBefore: "把围棋下得",
     displayEm: "好看",

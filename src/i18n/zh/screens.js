@@ -430,6 +430,7 @@ export const screens = {
   },
 
   player: {
+    thisIsYou: "这就是你，别人看到的就是这个样子。",
     since: "{when}来的",
     played: "{when}下过棋",
     lastPlayed: "最近一次下棋是{when}",
@@ -489,6 +490,7 @@ export const screens = {
   },
 
   letters: {
+    fetching: "正在取你的信……",
     head: "信",
     note: "一人一条线，永远留着。只有你的好友，或者跟你下完过一局棋的人，才能给你写信。",
     empty: "还什么都没有。从好友或者排行榜里打开某个人的页面，给他写一封。",
@@ -558,4 +560,41 @@ export const screens = {
     whoMaySee: "谁可以看到你在这儿",
     note: "{hint}。在这儿只是一条开着的连接，别的什么都不是：来了不记一笔，走了也不记一笔，所以没有任何关于你什么时候在过的记录留给谁以后去读。",
   },
+};
+
+export const chain = {
+  title: "链",
+  days: "天",
+  running: "天连续",
+  best: "最长连续",
+  total: "记录里的天数",
+  rest: "个休息日在手",
+  rules: "解出一道题、学完一课、做一次回顾，或者下一盘计分的棋，这一天就算数。练满七天得一个休息日，最多存两个，断一天用掉一个。记录往回保留十三个月，而且只存在这台设备上。",
+  strip: "最近 {days} 天里练了 {count} 天",
+  year: "最近 {weeks} 周里练了 {count} 天",
+  note: {
+    broken: "现在没有连续。你最长的一次是 {count} 天，今天就是下一次的开始。",
+    none: "今天练一练，链就开始了。",
+    done: "今天练过了。",
+      doneHeld: "今天练过了，手里还有 {count} 个休息日。",
+    last: "今天还没过完，而这一天正是这条连续需要的。",
+    open: "今天还没过完。要是就这样下去，手里还有 {count} 个休息日。",
+  },
+};
+
+export const master = {
+  title: "名家",
+  blurb: "和这里所有房间棋手一样，都是机器。每一位下的，是 KataGo 的人类棋风网络为他那一年的一位强职业所存的档位，再加上这位名家自己的定式谱盖在开局几手上。{size}×{size}，不计分：和一个档位吻合不等于棋力，Joseki 不会为它标级位。",
+  agreement: "与 {year} 年强手档位的吻合度为 {pct}，在 {positions} 个留出的局面上",
+  control: "用他自己的定式谱为 {own} · 用另一位名家的为 {other}，作为对照",
+  lean: "一点可测量的、偏向他的倾向，就在网络自己给出的候选里。",
+  failed: "他的棋谱没能载入。再试一次",
+  opening: "正在打开他的棋谱……",
+  sit: "坐下 · {size}×{size}，不计分",
+};
+
+export const clock = {
+  untimed: "无计时",
+  flagged: "超时",
+  byoyomi: "{time}，读秒，还剩 {count} 次",
 };

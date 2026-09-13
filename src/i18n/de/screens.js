@@ -441,6 +441,7 @@ export const screens = {
   },
 
   player: {
+    thisIsYou: "Das bist du, so wie alle anderen dich sehen.",
     since: "Hier seit {when}",
     played: "Hat {when} gespielt",
     lastPlayed: "Zuletzt gespielt im {when}",
@@ -500,6 +501,7 @@ export const screens = {
   },
 
   letters: {
+    fetching: "Deine Briefe werden geholt…",
     head: "Briefe",
     note: "Ein Faden je Mensch, für immer aufgehoben. Schreiben kann dir nur, mit wem du befreundet bist oder gegen wen du eine Partie beendet hast.",
     empty: "Noch nichts. Öffne die Seite von jemandem aus deinen Freunden oder der Rangliste und schreib ihm.",
@@ -569,4 +571,41 @@ export const screens = {
     whoMaySee: "Wer sehen darf, dass du hier bist",
     note: "{hint}. Hier zu sein ist eine offene Verbindung und nichts weiter: das Kommen schreibt nichts auf und das Gehen schreibt nichts auf, es gibt also keinen Vermerk darüber, wann du hier warst, den jemand später lesen könnte.",
   },
+};
+
+export const chain = {
+  title: "Die Kette",
+  days: { one: "Tag", other: "Tage" },
+  running: { one: "Tag in Folge", other: "Tage in Folge" },
+  best: "längste Serie",
+  total: "Tage im Verzeichnis",
+  rest: { one: "Ruhetag auf der Hand", other: "Ruhetage auf der Hand" },
+  rules: "Ein Tag zählt, wenn du eine Aufgabe löst, eine Lektion beendest, eine Wiederholung sitzt oder eine gewertete Partie spielst. Sieben Tage Übung bringen einen Ruhetag ein, du kannst zwei halten, und ein versäumter Tag gibt einen aus. Das Verzeichnis reicht dreizehn Monate zurück und liegt nur auf diesem Gerät.",
+  strip: { one: "{count} Tag geübt in den letzten {days}", other: "{count} Tage geübt in den letzten {days}" },
+  year: { one: "{count} Tag geübt in den letzten {weeks} Wochen", other: "{count} Tage geübt in den letzten {weeks} Wochen" },
+  note: {
+    broken: { one: "Keine Serie im Gang. Deine längste war {count} Tag, und heute beginnt die nächste.", other: "Keine Serie im Gang. Deine längste war {count} Tage, und heute beginnt die nächste." },
+    none: "Üb heute, und die Kette beginnt.",
+    done: "Heute geübt.",
+      doneHeld: { one: "Heute geübt. {count} Ruhetag auf der Hand.", other: "Heute geübt. {count} Ruhetage auf der Hand." },
+    last: "Heute ist noch offen, und es ist der Tag, den diese Serie braucht.",
+    open: { one: "Heute ist noch offen. {count} Ruhetag auf der Hand, wenn es so bleibt.", other: "Heute ist noch offen. {count} Ruhetage auf der Hand, wenn es so bleibt." },
+  },
+};
+
+export const master = {
+  title: "Die Meister",
+  blurb: "Bots, wie jeder Hausspieler hier. Jeder spielt das Profil, das KataGos menschlich spielendes Netz für einen starken Profi seines Jahres hält, mit dem eigenen Eröffnungsbuch dieses Meisters über den ersten Zügen. {size}×{size}, ungewertet: mit einem Profil übereinzustimmen ist keine Stärke, und Joseki wird keinen Rang darauf setzen.",
+  agreement: "{pct} Übereinstimmung mit dem Profil des starken Spielers von {year}, auf {positions} zurückgehaltenen Stellungen",
+  control: "{own} mit seinem eigenen Eröffnungsbuch · {other} mit dem eines anderen Meisters, der Kontrolle",
+  lean: "Eine gemessene Neigung zu ihm steht auf der eigenen engeren Auswahl des Netzes.",
+  failed: "Seine Partien konnten nicht geladen werden. Versuch es noch einmal",
+  opening: "Seine Partien werden geöffnet…",
+  sit: "Setz dich · {size}×{size}, ungewertet",
+};
+
+export const clock = {
+  untimed: "keine Uhr",
+  flagged: "Zeit abgelaufen",
+  byoyomi: { one: "{time}, Byo-Yomi, noch {count} Periode", other: "{time}, Byo-Yomi, noch {count} Perioden" },
 };

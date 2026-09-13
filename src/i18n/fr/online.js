@@ -194,6 +194,10 @@ export const online = {
     wordLabel: "Mot de rendez-vous pour jouer avec un ami",
     note: "La table ci-dessous règle le goban. Les parties en ligne sont à égalité et sans pendule, quels que soient le handicap et la cadence que tu règles pour la maison. Convenez d'un mot avec un ami et vous vous trouverez, si chargé que ce soit.",
     waitingFor: " · attend depuis {waited}",
+    waitingOnYou: {
+      one: "Une table t'attend. Ces parties n'ont pas d'horloge : rien ici ne s'épuise et personne ne perd pour avoir pris une journée.",
+      other: "{count} tables t'attendent, la plus ancienne d'abord. Ces parties n'ont pas d'horloge : rien ici ne s'épuise et personne ne perd pour avoir pris une journée.",
+    },
     findPair: "Chercher une partie en paires en {size}×{size}",
     pairNote: "Toi et un partenaire {rank} contre un autre joueur et le sien, chacun son tour. Non classée. Chaque partenaire tourne dans le navigateur du joueur qu'il accompagne, il joue donc tant que ce joueur est à la table.",
     pairLooking: "Recherche d'un autre joueur en paires en {size}×{size}. Vous aurez chacun un partenaire {rank}, et vous jouerez à quatre, chacun son tour.",

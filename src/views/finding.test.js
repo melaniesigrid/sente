@@ -43,6 +43,10 @@ describe("what the search box says", () => {
     expect(findState("anastasia", stale, true).people).toEqual([]);
   });
 
+  it("does not stay on looking once an older request has already failed", () => {
+    expect(findState("anastasia", failed("an"), false).kind).toBe("idle");
+  });
+
   it("reads a typed search the way the server folds a handle", () => {
     expect(searchable("José")).toBe("jose");
     expect(searchable(" An a ")).toBe("ana");

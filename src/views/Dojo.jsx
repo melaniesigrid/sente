@@ -298,9 +298,18 @@ export function DojoView({ profile, setProfile, notify, go, room }) {
             </button>
           ))}
         </div>
+        {/* One sentence with a button inside it, so it is one catalogue line
+            with a {link} hole rather than two lines glued together: the link
+            does not sit at the end of the sentence in every language. */}
         <p className="fine type-note">
-          Switching between the named rooms, the stones and the type lives on{" "}
-          <button className="link-btn" onClick={() => go("look")}>the look page</button>.
+          {t("dojo.lookNote", null,
+            "Switching between the named rooms, the stones and the type lives on {link}.")
+            .split("{link}")
+            .flatMap((part, i) => (i === 0 ? [part] : [
+              <button key="l" className="link-btn" onClick={() => go("look")}>
+                {t("dojo.lookLink", null, "the look page")}
+              </button>, part,
+            ]))}
         </p>
       </Card>
     </div>

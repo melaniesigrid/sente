@@ -258,6 +258,31 @@ describe("the friend button", () => {
     await waitFor(() => expect(notify).toHaveBeenCalledWith(
       expect.objectContaining({ text: "Their friends list is full" })));
   });
+
+  it("uses the server's reachability answer before offering an invitation", async () => {
+    signedIn();
+    profile.mockResolvedValue({ ...PLAYER, canReach: false });
+    show({ notify: vi.fn() });
+    await screen.findByText("Ixchel");
+    expect(screen.getByText(/play a game together first/i)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /invite to a game/i })).toBe(null);
+  });
+
+  it("still offers an invitation when the server sent no reachability field", async () => {
+    signedIn();
+    show({ notify: vi.fn() });
+    await screen.findByText("Ixchel");
+    expect(screen.getByRole("button", { name: /invite to a game/i })).toBeTruthy();
+  });
+
+  it("keeps the invitation panel loading until the shelf arrives", async () => {
+    signedIn();
+    invites.mockReturnValue(new Promise(() => {}));
+    show({ notify: vi.fn() });
+    await screen.findByText("Ixchel");
+    expect(screen.getByText(/working/i)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /invite to a game/i })).toBe(null);
+  });
 });
 
 describe("a player who is not there", () => {

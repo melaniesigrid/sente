@@ -67,6 +67,8 @@ export const rooms = {
   },
 
   dojo: {
+    lookNote: "Cambiar entre las salas con nombre, las piedras y la tipografía está en {link}.",
+    lookLink: "la página del aspecto",
     title: "Construye tu propio dojo",
     sub: "Seis colores hacen una sala, y todos los que se ofrecen aquí son colores con los que Joseki ya juega en algún sitio: toma el fondo de esta sala, la marca de aquella y las piedras de una tercera. El tablero se mueve con ellos sobre la marcha: piedras, cuadrícula, sombras y todo. Nada se guarda hasta que tú lo digas, y los números de abajo son los mismos que comprueba la compilación.",
     resetBoard: "Reinicia el tablero",

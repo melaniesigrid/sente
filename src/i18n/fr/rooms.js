@@ -67,6 +67,8 @@ export const rooms = {
   },
 
   dojo: {
+    lookNote: "Passer d’une salle nommée, de pierres ou de typographie à une autre se fait sur {link}.",
+    lookLink: "la page d’apparence",
     title: "Construis ton propre dojo",
     sub: "Six couleurs font une salle, et chaque couleur proposée ici en est une avec laquelle Joseki joue déjà quelque part : prends le fond de cette salle-ci, la marque de celle-là et les pierres d'une troisième. Le goban bouge avec elles au fur et à mesure : pierres, quadrillage, ombres et tout le reste. Rien n'est enregistré tant que tu ne le dis pas, et les nombres ci-dessous sont ceux-là mêmes que vérifie la compilation.",
     resetBoard: "Remets le goban",

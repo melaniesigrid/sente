@@ -25,6 +25,9 @@
    misses a day starts again the next day, and the record still holds every day
    they did practise. */
 import { dayKey, addDays, previousDay } from "./kata.js";
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
+
+const EN = makeT(BASE_LOCALE);
 
 /** Days of the record kept. Thirteen months, so the profile's year grid is
  *  always full and a chain that ran all last year is still worth looking at.
@@ -134,18 +137,26 @@ export function chainRun(profile, key = dayKey()) {
  *  sentence never asks twice, never counts down and never says what is lost. It
  *  lives here rather than in the component because it is the record talking,
  *  and both surfaces have to say the same thing. */
-export function chainNote(run) {
+export function chainNote(run, t = EN) {
   if (!run.alive) {
     return run.best > 0
-      ? `No run going. Your longest was ${plural(run.best, "day", "days")}, and today starts the next one.`
-      : "Practise today and the chain starts.";
+      ? t("chain.note.broken", { count: run.best },
+          `No run going. Your longest was ${plural(run.best, "day", "days")}, and today starts the next one.`)
+      : t("chain.note.none", null, "Practise today and the chain starts.");
   }
+  /* One sentence per case rather than two glued together: a language that
+     does not put a space between sentences cannot be served by a join. */
   if (run.today) {
-    const held = run.rest > 0 ? ` ${plural(run.rest, "rest day", "rest days")} in hand.` : "";
-    return `Practised today.${held}`;
+    return run.rest > 0
+      ? t("chain.note.doneHeld", { count: run.rest },
+          `Practised today. ${plural(run.rest, "rest day", "rest days")} in hand.`)
+      : t("chain.note.done", null, "Practised today.");
   }
-  if (run.endsToday) return "Today is still open, and it is the day this run needs.";
-  return `Today is still open. ${plural(run.rest, "rest day", "rest days")} in hand if it stays that way.`;
+  if (run.endsToday) {
+    return t("chain.note.last", null, "Today is still open, and it is the day this run needs.");
+  }
+  return t("chain.note.open", { count: run.rest },
+    `Today is still open. ${plural(run.rest, "rest day", "rest days")} in hand if it stays that way.`);
 }
 
 /** The last `n` days ending today, oldest first, each `{ key, practised }`.
