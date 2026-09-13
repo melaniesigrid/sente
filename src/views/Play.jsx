@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Play, Users, Handshake, Minus, Plus, Home, TrendingUp, TrendingDown, X } from "lucide-react";
-import { Avatar, RankBadge, Btn, Statement } from "../components/ui.jsx";
+import { Avatar, RankBadge, Btn, Statement } from "../components/ui.jsx";
 import { ScreenHeader } from "../components/ScreenHeader.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
@@ -121,7 +121,7 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
           lede={t("play.lede")} />
         <Statement lines={statementFor("play", t)} figure="play">{plainFor("play", t)}</Statement>
         <Passage context="play" />
-        <OnlineCard profile={profile} notify={notify} onPlay={setSession} size={table.size} />
+        <OnlineCard profile={profile} notify={notify} onPlay={setSession} size={table.size} go={go} />
         <DuelCard profile={profile} today={today} mode={duelMode(PERSONAS, today)}
           saved={saved && saved.mode.kind === "duel" ? saved : null} onPlay={setSession} />
         <div className="rank-picker neu-card" role="group" aria-label={t("play.levelGroup")}>

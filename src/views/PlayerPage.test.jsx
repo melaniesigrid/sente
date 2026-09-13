@@ -35,6 +35,10 @@ const acceptFriend = vi.fn();
 const forgetFriend = vi.fn();
 const presence = vi.fn();
 const archive = vi.fn();
+const invites = vi.fn();
+const invite = vi.fn();
+const acceptInvite = vi.fn();
+const forgetInvite = vi.fn();
 
 vi.mock("../net/api.js", () => ({
   api: {
@@ -45,6 +49,11 @@ vi.mock("../net/api.js", () => ({
     forgetFriend: (...a) => forgetFriend(...a),
     presence: (...a) => presence(...a),
     archive: (...a) => archive(...a),
+    // The shelf, read whenever there is an account, the same way the book is.
+    invites: (...a) => invites(...a),
+    invite: (...a) => invite(...a),
+    acceptInvite: (...a) => acceptInvite(...a),
+    forgetInvite: (...a) => forgetInvite(...a),
     sgfUrl: (id) => `https://server.test/api/game/${id}/sgf`,
   },
   serverEnabled: () => true,
@@ -75,7 +84,9 @@ beforeEach(() => {
   profile.mockReset();
   loadAccount.mockReset();
   loadAccount.mockReturnValue(null);
-  for (const fn of [friends, askFriend, acceptFriend, forgetFriend, presence, archive]) fn.mockReset();
+  for (const fn of [friends, askFriend, acceptFriend, forgetFriend, presence, archive,
+    invites, invite, acceptInvite, forgetInvite]) fn.mockReset();
+  invites.mockResolvedValue({ incoming: [], outgoing: [] });
   archive.mockResolvedValue({ games: [], cursor: null });
   presence.mockResolvedValue({ online: [] });
   friends.mockResolvedValue(EMPTY_BOOK);

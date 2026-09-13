@@ -35,6 +35,9 @@ vi.mock("../net/api.js", () => ({
     games: (...a) => games(...a),
     signOut: (...a) => signOut(...a),
     sendConfirmation: () => Promise.resolve(),
+    // The shelf of invitations. Empty here: what it draws is its own suite's
+    // business, and a lobby with nothing on its shelf draws no card at all.
+    invites: () => Promise.resolve({ incoming: [], outgoing: [] }),
   },
   lobbySocket: (...a) => lobbySocket(...a),
   serverEnabled: () => true,

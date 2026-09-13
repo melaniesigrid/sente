@@ -14,6 +14,9 @@ import { BlockButton } from "./LettersCard.jsx";
 import { useFriends } from "./useFriends.js";
 import { usePresence } from "./usePresence.js";
 import { FriendButton } from "./FriendsCard.jsx";
+import { InvitePanel } from "./InvitesCard.jsx";
+import { useInvites } from "./useInvites.js";
+import { standingOver } from "./invitation.js";
 
 /* ----------------------- A PLAYER, SEEN FROM OUTSIDE -----------------------
    The page one player opens about another. `GET /api/players/:id` has been live
@@ -67,6 +70,12 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
      answer names them if they are here and have let this viewer know, and is
      silent for both of the two reasons it might be. */
   const here = usePresence(account ? account.token : null, player ? [player.id] : []);
+  /* The shelf, for the same reason as the book: it is one small call, it is
+     what the panel below is derived from, and accepting an invitation from
+     here has to open the board rather than leave somebody on a page about the
+     person they have just agreed to play. */
+  const invites = useInvites(account ? account.token : null, notify,
+    (table) => go("play", { gameId: table.gameId }));
   const t = useT();
 
   return (
@@ -123,6 +132,13 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
             <>
               <FriendButton person={player} busy={busy === player.id} act={act}
                 action={friendAction(standingWith(book, player.id), t)} />
+              {/* Asking them for a game. Whether they may be asked at all is
+                  the server's answer and not this page's guess: it is the same
+                  rule as writing to them, and a page that tried to work it out
+                  from the lists it happens to hold would be a second opinion
+                  about a question that already has one. */}
+              <InvitePanel person={player} busy={invites.busy === player.id} act={invites.act}
+                standing={standingOver(invites.invites, player.id)} />
               <div className="row">
                 <Btn icon={Mail} small onClick={() => go("profile")}>{t("player.writeToThem")}</Btn>
                 {/* Silent, and never the same act as unfriending: the two mean
