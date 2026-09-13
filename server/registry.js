@@ -73,7 +73,7 @@ import { isFull, seatsLeft, capFrom, waitKey, waiting, byWaiting, listFull,
   WAIT_PREFIX, WAITLIST_LIMIT, WAITLIST_WINDOW_MS } from "./beta.js";
 import { SIZES } from "./room.js";
 import { inviteKey, invitePrefix, readInvite, shelf, expired, offer, takeUp, drop,
-  seatsFor, INVITE_LIMIT, INVITE_WINDOW_MS } from "./invites.js";
+  seatsFor, cleanTerms, INVITE_LIMIT, INVITE_WINDOW_MS } from "./invites.js";
 import { dayOf, dayBefore, emptyDay, counted, raised, isFinish, sealed, stale,
   clampDays, recent, nextSeal, RETAIN_DAYS } from "./rollup.js";
 
@@ -1294,20 +1294,55 @@ export class Registry extends DurableObject {
     const r = takeUp({ mine: await this.#shelf(meId, now), meId, themId, now });
     if (r.error) throw new Error(r.error);
     const { black, white } = seatsFor(r.invite);
-    const [b, w] = [await this.ctx.storage.get(`player:${black}`), await this.ctx.storage.get(`player:${white}`)];
-    if (!b || !w) throw new Error("no-player");
     await this.#dropInvite(meId, themId);
+    return this.#openTable(black, white, r.invite, meId);
+  }
+
+  /** Open a board between two named people and tell them both.
+   *
+   *  One function, because there are now three ways to arrive at the same
+   *  board — an invitation taken up, a table in a hall sat down at, and one
+   *  day whatever comes next — and three copies of the seating would be three
+   *  chances to seat somebody the wrong way round. Matchmaking keeps its own
+   *  path because it has a queue to clear in the same breath.
+   *
+   *  `forId`, when given, is the player the answer is composed for: whoever
+   *  pressed gets told which colour they are without working it out. */
+  async #openTable(blackId, whiteId, terms, forId = null) {
+    const [b, w] = [
+      await this.ctx.storage.get(`player:${blackId}`),
+      await this.ctx.storage.get(`player:${whiteId}`),
+    ];
+    if (!b || !w) throw new Error("no-player");
     const gameId = "g_" + randomHex(6);
     const stub = this.env.ROOM.get(this.env.ROOM.idFromName(gameId));
     await stub.create({
-      id: gameId, size: r.invite.size, rated: r.invite.rated, handicap: r.invite.handicap,
+      id: gameId, size: terms.size, rated: terms.rated, handicap: terms.handicap,
       black: seatOf(b), white: seatOf(w),
     });
-    const shared = { gameId, size: r.invite.size, handicap: r.invite.handicap, rated: r.invite.rated };
-    this.tell(black, { t: "matched", color: "b", opponent: seatOf(w), ...shared });
-    this.tell(white, { t: "matched", color: "w", opponent: seatOf(b), ...shared });
+    const shared = { gameId, size: terms.size, handicap: terms.handicap, rated: terms.rated };
+    this.tell(blackId, { t: "matched", color: "b", opponent: seatOf(w), ...shared });
+    this.tell(whiteId, { t: "matched", color: "w", opponent: seatOf(b), ...shared });
     await this.broadcastLobby();
-    return { ...shared, color: meId === black ? "b" : "w", opponent: seatOf(meId === black ? w : b) };
+    const mine = forId === blackId;
+    return { ...shared, color: mine ? "b" : "w", opponent: seatOf(mine ? w : b) };
+  }
+
+  /** A board somebody put up in a hall, sat down at by somebody else.
+   *
+   *  Both are checked to be in the club here rather than trusted from the
+   *  object that asked: the Club object knows who is standing in its room, and
+   *  the Registry knows who is on the roll, and a game between two people is
+   *  the Registry's business to agree to.
+   *
+   *  The guest takes Black, for the reason `invites.js` gives: whoever put the
+   *  board up chose the terms, and the engine places a handicap for Black. */
+  async seatClubTable(clubId, hostId, guestId, terms) {
+    if (hostId === guestId) throw new Error("your-own-table");
+    for (const id of [hostId, guestId]) {
+      if (!(await this.#membership(clubId, id))) throw new Error("not-a-member");
+    }
+    return this.#openTable(guestId, hostId, cleanTerms(terms), guestId);
   }
 
   /** Decline one, or take one back. One call, because from the person pressing

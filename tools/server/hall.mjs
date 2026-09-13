@@ -176,6 +176,37 @@ const run = async () => {
   const noFirst = await call(`/api/clubs/${club.id}/channels/hall`, { method: "DELETE", token: founder.token });
   assert(noFirst.status === 403, "and the one every club has cannot be removed at all");
 
+  /* ----- a board put up in the room ----- */
+  const f2 = await standIn(founder, club.id);
+  f2.send(JSON.stringify({ t: "open", terms: { size: 9, handicap: 0, rated: true } }));
+  await settle(700);
+  const board = last(m, "said");
+  assert(board && board.line.kind === "table",
+    "a board put up is a line, in the flow of what was being said");
+  assert(board.line.terms.size === 9 && board.line.terms.rated === true,
+    "carrying the terms it was put up on");
+
+  f2.send(JSON.stringify({ t: "sit", id: board.line.id }));
+  await settle(500);
+  assert(last(f2, "error")?.reason === "your-own-table",
+    "the person who put it up cannot sit at their own board");
+
+  m.send(JSON.stringify({ t: "sit", id: board.line.id }));
+  await settle(1200);
+  const sat = last(m, "sat");
+  assert(!!sat && typeof sat.gameId === "string", "somebody else sitting down opens a real board");
+  assert(sat.color === "b", "and the guest takes Black, as an invitation does");
+  const room = await ok(`/api/game/${sat.gameId}`);
+  assert(room.seats.b1.id === member.player.id && room.seats.w1.id === founder.player.id,
+    "the room seats them that way round");
+  assert(room.size === 9 && room.rated === true, "on the terms the board was put up on");
+  assert(last(f2, "seated")?.taken.gameId === sat.gameId,
+    "and everybody in the room is told which game it became");
+
+  m.send(JSON.stringify({ t: "sit", id: board.line.id }));
+  await settle(500);
+  assert(last(m, "error")?.reason === "already-taken", "nobody else can take a seat that is taken");
+
   /* ----- the door ----- */
   m.send(JSON.stringify({ t: "say", text: "something I said before I left" }));
   await settle(500);

@@ -146,7 +146,8 @@ export function ClubPage({ clubId, go, onBack, notify }) {
           {club.role && account && (
             /* Keyed on the club, so opening a second one from a roll row
                mounts its room rather than re-pointing this one at it. */
-            <Hall key={club.id} club={club} token={token} me={account.player.id} notify={notify} />
+            <Hall key={club.id} club={club} token={token} me={account.player.id} notify={notify}
+              onTable={(table) => go("play", { gameId: table.gameId })} />
           )}
 
           {club.role && (

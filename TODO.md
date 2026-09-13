@@ -2602,9 +2602,28 @@ on the foundation it was deferred onto.
       **Presence in a hall is the one place `showOnline` does not decide.** A room you
       walked into is a room the people in it can see you in. Said on the screen, because
       it is the only exception to a setting people were told governs this.
-- [ ] **Channels and keeping** (branch `feat/keeping`): several named channels, the four
-      powers in use, and a game invitation posted into a channel that any member may take
-      up.
+- [x] **The board in the room** (branch `feat/table`): the thing that makes a club a go
+      club rather than a chat room with a go server attached to it. Somebody puts a board
+      up in a channel — a size, a handicap, whether it counts — and any other member sits
+      down at it. The game opens there and then, rated like any other, with the guest on
+      Black for the reason an invitation gives: whoever put the board up chose the terms,
+      and the engine places a handicap for Black.
+      A board is a **line**, not a second kind of object beside the conversation: somebody
+      asking whether anybody wants a game IS a thing they said, and it belongs in the flow
+      it came out of. Three standing boards a person, counted across the whole hall rather
+      than per channel, because a cap on one person's boards is a cap on the room.
+      Sitting down is the one frame the reducer does not handle: it opens a real game,
+      which is the Registry's business, so the object asks a pure `sittable`, opens the
+      board, and writes the answer back with a pure `seated`. Matchmaking, an invitation
+      taken up and a board sat down at now all seat players through one `#openTable`,
+      because three copies of the seating would be three chances to seat somebody the
+      wrong way round.
+      Channel keeping finished here too: a keeper may add, rename and remove one, and the
+      first channel can be renamed like any other but never removed.
+
+**Phase 12 is complete.** Three slices, three branches, one design doc. What is deliberately
+not in it, each for a reason written down in `docs/designs/the-club.md`: voice, reactions,
+threads, bots and uploads.
 
 ## Principles (do not trade away)
 
