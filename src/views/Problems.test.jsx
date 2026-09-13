@@ -31,4 +31,20 @@ describe("the problems set summary", () => {
 
     expect(document.body.textContent).toContain("1 set of 4 finished.");
   });
+
+  it("uses the plural form once more than one set is finished", () => {
+    render(
+      <ProblemsView
+        profile={profile({
+          problemsDone: [
+            ...problemsInSet("tactics").map(p => p.id),
+            ...problemsInSet("shape").map(p => p.id),
+          ],
+        })}
+        setProfile={() => {}}
+      />,
+    );
+
+    expect(document.body.textContent).toContain("2 sets of 4 finished.");
+  });
 });
