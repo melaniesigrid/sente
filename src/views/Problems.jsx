@@ -144,7 +144,7 @@ export function ProblemsView({ profile, setProfile, initialId }) {
       </div>
       {done.length > 0 && (
         <p className="fine prob-sets-done">
-          {t("tsumego.setsDone", { done: done.length, total: SETS.length })}
+        {t("tsumego.setsDone", { count: done.length, done: done.length, total: SETS.length })}
         </p>
       )}
 
