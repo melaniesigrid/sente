@@ -24,11 +24,12 @@ import { zh } from "./zh/index.js";
 import { ja } from "./ja/index.js";
 import { ru } from "./ru/index.js";
 import { uk } from "./uk/index.js";
+import { he } from "./he/index.js";
 
 /** The catalogues we ship, by locale id. A language in LOCALES with no
  *  catalogue here is a language that reads entirely in English, which the
  *  parity test refuses to let happen. */
-export const CATALOGUES = { en, es, fr, de, zh, ja, ru, uk };
+export const CATALOGUES = { en, es, fr, de, zh, ja, ru, uk, he };
 
 /** A nested catalogue as a flat map of dotted key -> line (or plural set).
  *  Pure, and the same function the parity test compares two languages with. */

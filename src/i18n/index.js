@@ -8,6 +8,7 @@
      SYSTEM_LOCALE   "system": follow the device; a pointer, not a language
      resolveLocale   a stored id + the device's languages -> the id to read in
      localeOf        an id -> the language
+     dirOf           an id -> "ltr" or "rtl": which way the script runs
      isLocaleId      may a profile hold this id
      makeT           a locale id -> t(key, vars, fallback)
      lineOr          the line for a key, or a given answer when nobody has one
@@ -18,7 +19,7 @@
    that does the reading is `src/components/lang.jsx`.
 */
 export {
-  LOCALES, BASE_LOCALE, SYSTEM_LOCALE, isLocaleId, localeOf, resolveLocale,
+  LOCALES, BASE_LOCALE, SYSTEM_LOCALE, isLocaleId, localeOf, dirOf, resolveLocale,
 } from "./locales.js";
 export { makeT, lineOr, flatten, keysOf, CATALOGUES } from "./catalog.js";
 export { interpolate, pluralCategory, isPlural, pickForm } from "./format.js";

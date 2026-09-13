@@ -26,9 +26,10 @@ is a snapshot: it will be wrong the week after somebody authors anything.
   rank the table asks for.
 - **1 book series** threaded through the library (the Classic in thirteen chapters, 20
   passages), on a shelf of six books.
-- **8 languages**: English, Spanish, French, German, Simplified Chinese, Japanese,
-  Russian and Ukrainian, with the parity suite refusing a missing line, an invented key,
-  or an overlay that names something the data does not have.
+- **9 languages**: English, Spanish, French, German, Simplified Chinese, Japanese,
+  Russian, Ukrainian and Hebrew, with the parity suite refusing a missing line, an
+  invented key, or an overlay that names something the data does not have. Hebrew is
+  the first that reads right to left, so the app mirrors and the board does not.
 
 What is thinnest, in order: the tactics tsumego set (four boards, none of them a tesuji),
 the endgame track (two lessons), life and death below 15k, and the middle game everywhere.
@@ -1803,6 +1804,58 @@ Still English in every language, found by the sweep and left for their own chang
 - [ ] The ten library lessons no language has translated, and the front door's four
       statement bands (`LANDING_STATEMENTS` in `content/plain.js`) and The Record
       (`content/press.js`), both imported into `views/Landing.jsx` raw.
+
+### Hebrew, and the direction the app runs (done, 2026-09-13, branch `feat/hebrew`)
+
+The ninth language, and the first written right to left. The words were the smaller
+half: the interface mirrors, and one attribute does it. `dir` is a field on the locale
+in `locales.js`, the shell puts it on the document beside `lang`, and the stylesheet
+asks for start and end instead of left and right, so no view branches on the language
+it is being read in.
+
+- [x] `he` in `LOCALES`, with `dir: "rtl"`, and a catalogue in `src/i18n/he/`. Hebrew
+      plurals are `one` and `other` here: Intl separates a `two`, but modern Hebrew
+      counts two the way it counts five, so `two` is left to fall through rather than
+      authored into a dual nobody says.
+- [x] `iw` resolves to `he`. The tag was renamed in 1989 and Android shipped the old
+      one for years; a device still asking for `iw` is asking for Hebrew.
+- [x] The stylesheet turned around: physical box properties became logical ones
+      (`margin-inline-start`, `inset-inline-end`, `text-align: start`), and the handful
+      of transforms that mean "onward" rather than "rightward" multiply by `--flip`,
+      which is `1` normally and `-1` under `[dir="rtl"]`.
+- [x] The board does not mirror. Its geometry is SVG and was already immune, but its
+      coordinate margin is text, so `.goban` says `direction: ltr` once: A1 is in the
+      same corner in Tel Aviv as in Tokyo. The drawn belt keeps physical left and right
+      for the same reason, being a picture of a knot rather than a sentence.
+- [x] The Hebrew fallback, through the same `SCRIPTS` hook Cyrillic and Han use, plus
+      one thing neither needed: Hebrew has no italic. A browser asked for one shears
+      the upright, which is the faux oblique `typeface.js` opens by refusing, so a
+      script may now declare it has no italic and the slanted voices come back upright.
+      Han arguably wants the same and is deliberately left alone: that is a design
+      decision to make on purpose, not a side effect of adding a language.
+- [x] Direction per paragraph, not per page. A passage from the Classic is still
+      English, a journal note is English on purpose, and a bio or a line of table talk
+      is whatever the person typed; `unicode-bidi: plaintext` resolves each from its
+      own first strong letter. Set on the elements holding the words, not their
+      wrappers, because the property does not inherit.
+
+Decisions:
+- No gendered second person. Hebrew has no neutral one, and the masculine default
+  writes half the readers out of the room, so the screens use the infinitive and the
+  verbal noun: `ללמוד את המשחק`, `חיפוש משחק`. Where direct address is the only
+  natural thing left it is masculine singular, and that is a compromise, not a fix.
+- The ladder is `דירוג` and never `סולם`, which is the ladder *tactic*: the same trap
+  German's `Leiter` and Russian's `Лестница` set.
+- Go terms in Hebrew letters as the Hebrew-speaking go community writes them
+  (גו, ג׳וסקי, צומגו, אטארי, סקי, קו), and digits stay digits.
+
+Still English in Hebrew, and deliberately rather than half-done. Every one of these is
+translated whole or not at all, which is the rule `i18n.test.js` enforces:
+- [ ] The library: the thirty-three lessons the other eight languages carry.
+- [ ] The Classic in thirteen chapters, the nine levels and the thirty-two names.
+- [ ] The corner dictionary (`josekiEntry.`, `josekiCorner.`, `josekiSource.`).
+- [ ] The graded library's own words (`tier.`, `track.`, `book.`, `series.`,
+      `problem.`, `problemSet.`, `shape.`) and the small print (`legalDoc.`, `credit.`).
 
 ## Phase 8: Pair go
 
