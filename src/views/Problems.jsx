@@ -108,7 +108,7 @@ export function ProblemsView({ profile, setProfile, initialId }) {
         {SETS.map(raw => {
           const s = localizeSet(raw, t);
           const mine = problemsInSet(s.id);
-          const { solved, total, complete } = setProgress(s.id, profile.problemsDone);
+          const { solved, total, complete } = setProgress(s.id, solvedIds);
           const Icon = SET_ICONS[s.id] || Eye;
           return (
             <section key={s.id} className={`prob-set ${s.id === set.id ? "here" : ""} ${complete ? "complete" : ""}`}>
@@ -126,7 +126,7 @@ export function ProblemsView({ profile, setProfile, initialId }) {
               <p className="fine prob-set-blurb">{s.blurb}</p>
               <div className="prob-tabs" role="tablist" aria-label={s.name}>
                 {mine.map((p, i) => {
-                  const isDone = profile.problemsDone.includes(p.id);
+                  const isDone = solvedIds.includes(p.id);
                   return (
                     <button key={p.id} role="tab" aria-selected={p.id === activeId}
                       className={`prob-tab ${p.id === activeId ? "active" : ""} ${isDone ? "done" : ""} ${kata && p.id === kata.id ? "kata" : ""}`}
