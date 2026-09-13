@@ -194,6 +194,10 @@ export const online = {
     wordLabel: "Treffwort, um mit einem Freund zu spielen",
     note: "Der Tisch unten stellt das Brett ein. Partien über das Netz sind ohne Vorgabe und ohne Uhr, gleich welche Vorgabe und Bedenkzeit du für das Haus einstellst. Verabredet mit einem Freund ein Wort und ihr findet einander, wie voll es auch ist.",
     waitingFor: " · wartet seit {waited}",
+    waitingOnYou: {
+      one: "Ein Tisch wartet auf dich. Diese Partien haben keine Uhr: Hier läuft nichts ab und niemand verliert, weil ein Tag vergeht.",
+      other: "{count} Tische warten auf dich, der längste zuerst. Diese Partien haben keine Uhr: Hier läuft nichts ab und niemand verliert, weil ein Tag vergeht.",
+    },
     findPair: "Eine Paar-Partie auf {size}×{size} suchen",
     pairNote: "Du und ein {rank}-Partner gegen einen anderen Spieler und dessen Partner, abwechselnd. Ohne Wertung. Jeder Partner läuft im Browser des Spielers, den er begleitet, und spielt darum so lange, wie dieser Spieler am Tisch ist.",
     pairLooking: "Suche nach einem weiteren Paar-Spieler auf {size}×{size}. Ihr bekommt jeder einen {rank}-Partner, und die vier von euch ziehen abwechselnd.",

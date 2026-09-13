@@ -53,6 +53,49 @@ They are left as they were written rather than rewritten after the fact.
   of them pinned to a physical side while the thing they were drawn against had already
   moved. The suite now fails on the next one, shorthands and corner lists included.
 
+## v0.12.1.0 (2026-09-13)
+
+### Fixed
+
+- **A dark room now has a board, and it is not the page.** The first player to review Joseki
+  from outside said he could not keep the black stones distinct from the board, that the
+  contrast made the white stones too apparent, and that he could never regularly play on a
+  display like that. All three sentences were one measurement: every dark room drew the board
+  as the page, so a black stone sat at 1.16-1.30:1 on it while the white one shouted at
+  12.99-15.94:1. `--board` is now its own token. A light room plays on its own paper and is
+  untouched, pixel for pixel. A dark room carries its board toward its own shell until the
+  board sits at the geometric mean of the two stones - the one point where both read against
+  it equally, each at the square root of the contrast between them, which lands near 3:1 a
+  side for every set in the drawer. The page stays exactly as dark as it was; only the board
+  moved.
+- The rule that would have caught it. `STONE_RULE` holds the two stones 4.5:1 apart from each
+  other, and every dark room passed it at 10:1 or better while playing badly, because nothing
+  ever measured a stone against the wood it lies on. `BOARD_RULES` asks that question in both
+  directions - a white stone that outshouts the board is as tiring as a black one that hides
+  in it - and `npm test` holds all eighty palette-and-set boards to it. It shows up live in
+  the dojo panel beside the rules that were already there.
+- Stones are no longer bent to suit a room. `deriveStoneB` used to mix a black stone 35-50%
+  *toward* a dark ground so it would read as black rather than grey slate, which was true
+  about the object and bought with the contrast a player needs to find it. A stone is the
+  same rock in every room now; the board is what changes.
+- Three things drawn *on* the board were coloured against the *page*, which is the same
+  colour on paper and the opposite of it in a dark room. The grid derives to the room's own
+  ground, so lines are dark on a lighter board; star points take the grid rather than the
+  ink; and territory marks take the two stones rather than the ink and the shell, which were
+  two near-identical near-whites in every dark room.
+- Lacquer loses its gold-leaf grid. It was right while the board was the black page and
+  measures 1.07:1 on the lifted wood. The leaf reading lives in the mark everywhere else.
+
+### Changed
+
+- **The look button says what it is.** It was a bare palette glyph with only a screen-reader
+  label, which is a preference nobody goes looking for: the player who reported the dark
+  board had never found it, and the light rooms were one press away the whole time. It now
+  carries the word in all eight languages, and drops back to an icon under 760px the way the
+  navigation's own labels do.
+- The dojo no longer promises that a named room clears "all six" rules. A dark room measures
+  both stones against its board and a light one only the black, so there is no longer one
+  number to name.
 
 ## v0.12.0.0 (2026-09-13)
 

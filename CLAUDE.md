@@ -45,6 +45,15 @@ in `server/` (Durable Objects), deployed separately.
 - `house` is the reference room and the fallback; `system` is what a profile ships set to,
   and `resolveTheme(id, prefersDark)` turns it into a real room. The theme package is pure:
   `usePrefersDark` in `src/components/` is the only thing that reads the media query.
+- **The board is not the page.** `--board` is its own token: on paper it is the ground, and
+  in a dark room `deriveBoard` lifts it toward the room's shell until it sits at the
+  geometric mean of the two stones, where both read against it equally. Stones are cut once
+  and never bent to suit a room — a stone is the same rock everywhere. Anything drawn *on*
+  the board takes its colour from the board, not the page (the grid, the star points, the
+  territory marks), because in a dark room the ink is light and the ground is dark.
+- Two stones being far apart from *each other* is not the same question as either stone
+  being readable on the wood. `STONE_RULE` asks the first and `BOARD_RULES` the second;
+  a year of dark rooms passed the first at 10:1 while failing the second at 1.2:1.
 - The type scale floor is 12px. Nothing below that carries meaning at arm's length, and the
   wordmark is display-sized: it is the brand, not a card heading.
 - Type is the one themed part. A pairing (display face, italic voice, body face) is data in

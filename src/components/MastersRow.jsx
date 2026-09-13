@@ -3,6 +3,7 @@ import { Play, BookOpen, Bot } from "lucide-react";
 import { Avatar } from "./ui.jsx";
 import { loadEval, loadMaster } from "../engine/index.js";
 import { mastersFor, agreementLine, controlLine, MASTER_SIZE } from "../content/masters.js";
+import { useT } from "./langStore.js";
 
 /* ----------------------- MASTERS ROW -----------------------
    The lobby's masters. Each is a house player (said so, in the same words as the
@@ -18,6 +19,7 @@ import { mastersFor, agreementLine, controlLine, MASTER_SIZE } from "../content/
    whatever the table picker was left on. */
 
 export function MastersRow({ onSit }) {
+  const t = useT();
   const [masters, setMasters] = useState(null);   // null while loading, [] when unavailable
   const [busy, setBusy] = useState(null);         // id of the master being loaded
   const [failed, setFailed] = useState(null);
@@ -46,12 +48,13 @@ export function MastersRow({ onSit }) {
   return (
     <div className="stack-sm">
       <div className="masters-head">
-        <h3 className="masters-title"><BookOpen size={15} /> The masters</h3>
+        <h3 className="masters-title"><BookOpen size={15} /> {t("master.title", null, "The masters")}</h3>
         <p className="fine">
-          Bots, like every house player here. Each one plays the profile KataGo's
-          human-style network holds for a strong professional of its year, with that
-          master's own opening book over the first moves. {MASTER_SIZE}×{MASTER_SIZE}, unrated:
-          agreement with a profile is not a strength, and Joseki will not put a rank on it.
+          {t("master.blurb", { size: MASTER_SIZE },
+            "Bots, like every house player here. Each one plays the profile KataGo's human-style "
+            + "network holds for a strong professional of its year, with that master's own opening "
+            + "book over the first moves. {size}×{size}, unrated: agreement with a profile is not a "
+            + "strength, and Joseki will not put a rank on it.")}
         </p>
       </div>
       <div className="grid3">
@@ -66,17 +69,19 @@ export function MastersRow({ onSit }) {
               </div>
             </div>
             <p className="persona-bio">{m.bio}</p>
-            <p className="master-claim">{agreementLine(m)}</p>
-            {controlLine(m) && <p className="master-control">{controlLine(m)}</p>}
+            <p className="master-claim">{agreementLine(m, t)}</p>
+            {controlLine(m, t) && <p className="master-control">{controlLine(m, t)}</p>}
             {m.claim.leanShips && (
-              <p className="master-control">A measured lean his way ships on the network's own shortlist.</p>
+              <p className="master-control">{t("master.lean", null,
+                "A measured lean his way ships on the network's own shortlist.")}</p>
             )}
             <span className="persona-cta">
               {failed === m.id
-                ? <><Bot size={13} /> His games could not be loaded. Try again</>
+                ? <><Bot size={13} /> {t("master.failed", null, "His games could not be loaded. Try again")}</>
                 : busy === m.id
-                  ? <><Bot size={13} /> Opening his games…</>
-                  : <><Play size={13} /> Sit down · {MASTER_SIZE}×{MASTER_SIZE}, unrated</>}
+                  ? <><Bot size={13} /> {t("master.opening", null, "Opening his games…")}</>
+                  : <><Play size={13} /> {t("master.sit", { size: MASTER_SIZE },
+                      "Sit down · {size}×{size}, unrated")}</>}
             </span>
           </button>
         ))}

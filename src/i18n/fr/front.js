@@ -1,6 +1,7 @@
 // fr · front
 export const front = {
   landing: {
+    recordMast: "Le Relevé",
     label: "Le plus vieux des jeux, sous une lumière douce",
     displayBefore: "Jouer au go,",
     displayEm: "avec beauté",

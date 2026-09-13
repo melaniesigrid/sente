@@ -34,6 +34,7 @@ export const shell = {
     enter: "כניסה",
     yourBoard: "הלוח שלך",
     look: "איך המקום נראה",
+    lookShort: "מראה",
     profile: "הפרופיל שלך",
   },
   journal: {

@@ -79,6 +79,8 @@ export const rooms = {
   },
 
   dojo: {
+    lookNote: "Switching between the named rooms, the stones and the type lives on {link}.",
+    lookLink: "the look page",
     title: "Build your own dojo",
     sub: "Six colours make a room, and every colour offered here is one Joseki already plays in somewhere: take this room’s ground, that room’s mark, and the stones from a third. The board moves with them as you go: stones, grid, shadows and all. Nothing is saved until you say so, and the numbers below are the same ones the build checks.",
     resetBoard: "Reset board",
@@ -100,8 +102,8 @@ export const rooms = {
     startOver: "Start over",
     clear: "Clear",
     blocked: {
-      one: "One rule is broken, so this room cannot be worn yet. Every named room in Joseki clears all six.",
-      other: "{count} rules are broken, so this room cannot be worn yet. Every named room in Joseki clears all six.",
+      one: "One rule is broken, so this room cannot be worn yet. Every named room in Joseki clears them all.",
+      other: "{count} rules are broken, so this room cannot be worn yet. Every named room in Joseki clears them all.",
     },
     overriddenBefore: "You are playing every room with {stones}, chosen on ",
     overriddenLink: "the look page",

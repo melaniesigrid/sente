@@ -211,6 +211,10 @@ export const online = {
     wordPlaceholder: "or a word you both know",
     wordLabel: "Rendezvous word for playing a friend",
     waitingFor: " · waiting {waited}",
+    waitingOnYou: {
+      one: "One table is waiting on you. These games have no clock: nothing here runs out and nobody loses by taking a day.",
+      other: "{count} tables are waiting on you, longest first. These games have no clock: nothing here runs out and nobody loses by taking a day.",
+    },
     /* Pair go over the network: you and a house partner against another pair.
        The partner runs in its own player's browser, which is the one thing
        about it a player has to be told. */

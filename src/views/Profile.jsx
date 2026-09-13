@@ -351,15 +351,22 @@ export function ProfileView({ profile, setProfile, go, room, notify }) {
           the one sentence about today, and this has the half year behind it. */}
       {run.total > 0 && (
         <Card className="chain-card">
-          <div className="stat-head"><CalendarCheck size={16} /><span>{t("profile.stats.kata")}</span></div>
+          <div className="stat-head"><CalendarCheck size={16} /><span>{t("chain.title", null, "The chain")}</span></div>
           <div className="chain-head">
-            <div className="stat-num">{run.days}<em>{t("profile.stats.kataDays", { count: run.days })}</em></div>
+            <div className="stat-num">{run.days}<em>{t("chain.running", { count: run.days },
+              run.days === 1 ? "day running" : "days running")}</em></div>
             <div className="chain-facts">
-              {run.best > run.days && <span>{t("profile.stats.kataBest", { count: run.best }).trim()}</span>}
+              <span><strong>{run.best}</strong> {t("chain.best", null, "longest run")}</span>
+              <span><strong>{run.total}</strong> {t("chain.total", null, "days on the record")}</span>
+              {run.alive && <span><strong>{run.rest}</strong> {t("chain.rest", { count: run.rest },
+                run.rest === 1 ? "rest day in hand" : "rest days in hand")}</span>}
             </div>
           </div>
           <ChainYear profile={profile} today={dayKey()} />
-          <p className="fine">{chainNote(run)}</p>
+          <p className="fine">{chainNote(run, t)} {t("chain.rules", null,
+            "A day counts when you solve a problem, finish a lesson, sit a recall or play a rated "
+            + "game. Seven days of practice earn a rest day, you can hold two, and a missed day "
+            + "spends one. The record goes back thirteen months and lives on this device only.")}</p>
         </Card>
       )}
 

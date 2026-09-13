@@ -3,9 +3,9 @@
    stored data to a palette that cannot break the app. Nothing here knows about
    React; the shell spreads what `themeVars` returns onto one element. */
 import { PALETTES, HOUSE_THEME, DOJO_THEME, SYSTEM_THEME, SYSTEM_PAIR } from "./palettes.js";
-import { tokensFor, completeTones, stonesFor } from "./derive.js";
+import { tokensFor, completeTones, stonesFor, deriveBoard, boardIsDerived } from "./derive.js";
 import { AUTO_STONES, isStoneId, stonesOf } from "./stones.js";
-import { TONES, TONE_KEYS, REQUIRED_TONES, RULES, CLOSENESS, STONE_RULE } from "./tokens.js";
+import { TONES, TONE_KEYS, REQUIRED_TONES, RULES, CLOSENESS, STONE_RULE, BOARD_RULES } from "./tokens.js";
 import { isHex, contrast, grade, isDarkColor } from "./color.js";
 
 /** What the profile's stored id means on this device right now. `system` is a
@@ -107,6 +107,15 @@ export function auditPalette(palette, stones = AUTO_STONES) {
   const pair = stonesFor(t);
   const cut = contrast(pair.w[1], pair.b[1]);
   rows.push({ ...STONE_RULE, ratio: cut, pass: cut >= STONE_RULE.min, grade: grade(cut) });
+  // And each of them against the wood, which is the question the rule above
+  // cannot answer: two stones can be 12:1 apart and still both be wrong on the
+  // board they are played on. Measured on the board this room actually draws.
+  const board = deriveBoard(t.ground, t.cream, pair.b[1], pair.w[1]);
+  for (const r of BOARD_RULES) {
+    if (r.derivedOnly && !boardIsDerived(t.ground)) continue;
+    const ratio = contrast(pair[r.stone][1], board);
+    rows.push({ ...r, ratio, pass: ratio >= r.min, grade: grade(ratio) });
+  }
   for (const [key, label] of [["light", "Highlight near ground"], ["dark", "Shadow near ground"]]) {
     const ratio = contrast(t[key], t.ground);
     rows.push({

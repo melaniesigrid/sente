@@ -5,6 +5,7 @@
    а не «{author}-ов трактат». */
 export const front = {
   landing: {
+    recordMast: "Запись",
     label: "Самая старая игра, при мягком свете",
     displayBefore: "Играй в го",
     displayEm: "красиво",

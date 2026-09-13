@@ -30,14 +30,9 @@ export function useInvites(token, notify, onTable) {
     } catch { /* a list that will not load is left as it was */ }
   }, [token]);
 
-  /* The first read is written out rather than calling `refresh`, so the state
-     it sets is plainly inside a promise and not in the body of an effect. */
-  useEffect(() => {
-    if (!token || !serverEnabled()) return undefined;
-    let live = true;
-    api.invites(token).then((r) => { if (live) setInvites(r); }).catch(() => { /* left as it was */ });
-    return () => { live = false; };
-  }, [token]);
+  /* The first read goes through the same path every refresh uses, so the shelf
+     has one fetch routine and one place state is updated from its answer. */
+  useEffect(() => { Promise.resolve().then(refresh); }, [refresh]);
 
   const act = useCallback(async (kind, person, terms = null) => {
     if (!token || busy) return null;

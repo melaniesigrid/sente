@@ -67,6 +67,8 @@ export const rooms = {
   },
 
   dojo: {
+    lookNote: "Zwischen den benannten Räumen, den Steinen und der Schrift wechselt man auf {link}.",
+    lookLink: "der Aussehen-Seite",
     title: "Bau dein eigenes Dojo",
     sub: "Sechs Farben machen einen Raum, und jede Farbe, die hier angeboten wird, ist eine, mit der Joseki irgendwo schon spielt: nimm den Grund dieses Raums, die Marke jenes Raums und die Steine eines dritten. Das Brett bewegt sich unterwegs mit ihnen: Steine, Gitter, Schatten und alles. Nichts wird gespeichert, bis du es sagst, und die Zahlen unten sind dieselben, die der Build prüft.",
     resetBoard: "Brett zurücksetzen",
@@ -88,8 +90,8 @@ export const rooms = {
     startOver: "Von vorn anfangen",
     clear: "Löschen",
     blocked: {
-      one: "Eine Regel ist verletzt, dieser Raum kann also noch nicht getragen werden. Jeder benannte Raum in Joseki besteht alle sechs.",
-      other: "{count} Regeln sind verletzt, dieser Raum kann also noch nicht getragen werden. Jeder benannte Raum in Joseki besteht alle sechs.",
+      one: "Eine Regel ist verletzt, dieser Raum kann also noch nicht getragen werden. Jeder benannte Raum in Joseki besteht sie alle.",
+      other: "{count} Regeln sind verletzt, dieser Raum kann also noch nicht getragen werden. Jeder benannte Raum in Joseki besteht sie alle.",
     },
     overriddenBefore: "Du spielst alle Räume mit {stones}, gewählt auf ",
     overriddenLink: "der Aussehen-Seite",
@@ -153,6 +155,14 @@ export const rooms = {
     stones: {
       label: "Die beiden Steine",
       why: "Schwarz und Weiß müssen auf einen Blick unverwechselbar sein, über ein ganzes Brett hinweg und in vollem Tempo.",
+    },
+    "board-b": {
+      label: "Schiefer auf dem Brett",
+      why: "Ein schwarzer Stein muss auf dem Holz zu finden sein, auf dem er liegt, nicht nur gegen den weißen.",
+    },
+    "board-w": {
+      label: "Muschel auf dem Brett",
+      why: "Die andere Hälfte derselben Regel, und nur dort, wo der Raum sein Brett erfunden hat: ein weißer Stein, der das Holz überschreit, ermüdet ebenso wie ein schwarzer, der sich darin versteckt. Auf echtem Papier trennt den Muschelstein sein Rand, nicht seine Füllung.",
     },
     "close-light": { label: "Licht nah am Grund" },
     "close-dark": { label: "Schatten nah am Grund" },

@@ -3,6 +3,7 @@
    והיחידים שחייבים לטעון טענה. */
 export const front = {
   landing: {
+    recordMast: "The Record",
     label: "המשחק העתיק ביותר, באור רך",
     displayBefore: "לשחק גו, ",
     displayEm: "ביופי",

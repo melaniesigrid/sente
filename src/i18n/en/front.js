@@ -3,6 +3,7 @@
    they have played a stone, and the only ones that have to make a case. */
 export const front = {
   landing: {
+    recordMast: "The Record",
     label: "The oldest game, softly lit",
     displayBefore: "Play go,",
     displayEm: "beautifully",

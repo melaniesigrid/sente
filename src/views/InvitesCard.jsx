@@ -23,6 +23,19 @@ import {
 export function InvitesCard({ shelf, onOpen }) {
   const t = useT();
   const { invites, busy, act } = shelf;
+  if (!invites) {
+    return (
+      <Card className="invites-card">
+        <div className="op-head">
+          <div className="op-id">
+            <h3>{t("online.invites.head")}</h3>
+            <p className="fine">{t("online.invites.note")}</p>
+          </div>
+        </div>
+        <p className="fine"><Loader size={14} /> {t("online.friends.workingEllipsis")}</p>
+      </Card>
+    );
+  }
   // Absent rather than empty. The lobby is a screen for getting into a game,
   // and a heading over nothing is a promise of content that is not there.
   if (shelfIsEmpty(invites)) return null;
@@ -100,13 +113,17 @@ function InviteRow({ invite, kind, busy, act, onOpen }) {
    underneath it. The terms only unfold when there is a question to ask: a
    board picker on a row where the answer is already waiting would be asking
    somebody to choose a size for a game somebody else has already proposed. */
-export function InvitePanel({ person, standing, busy, act }) {
+export function InvitePanel({ person, standing, busy, act, loading = false }) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const [size, setSize] = useState(19);
   const [handicap, setHandicap] = useState(0);
   const [rated, setRated] = useState(true);
   const action = inviteAction(standing, t);
+
+  if (loading) {
+    return <div className="row"><Btn icon={Loader} small disabled>{t("online.friends.workingEllipsis")}</Btn></div>;
+  }
 
   if (busy) {
     return <div className="row"><Btn icon={Loader} small disabled>{t("online.friends.workingEllipsis")}</Btn></div>;

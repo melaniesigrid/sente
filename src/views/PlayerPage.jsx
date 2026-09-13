@@ -138,7 +138,8 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
                   from the lists it happens to hold would be a second opinion
                   about a question that already has one. */}
               <InvitePanel person={player} busy={invites.busy === player.id} act={invites.act}
-                standing={standingOver(invites.invites, player.id)} />
+                loading={invites.invites === null}
+                standing={standingOver(invites.invites, player.id, player.canReach ?? true)} />
               <div className="row">
                 <Btn icon={Mail} small onClick={() => go("profile")}>{t("player.writeToThem")}</Btn>
                 {/* Silent, and never the same act as unfriending: the two mean
@@ -152,7 +153,7 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
           {mine && (
             <div className="row">
               <Btn icon={Pencil} small onClick={() => go("profile")}>{t("player.editCard")}</Btn>
-              <span className="fine">This is you, as everybody else sees you.</span>
+              <span className="fine">{t("player.thisIsYou", null, "This is you, as everybody else sees you.")}</span>
             </div>
           )}
         </Card>
