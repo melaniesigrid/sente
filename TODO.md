@@ -848,6 +848,23 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       crossed, and the jump goes through the same prerequisite gate as opening a lesson from
       the grid. The welcome demo is not in the library and is told none of this.
 - [ ] Tier 2 Apprentice and Tier 3 Journeyman authored (20 lessons, 9/13/19).
+- [x] The opening track opens, and its verdicts are measured (2026-09-12, branch
+      `feat/more-lessons`): `opening-big-points` (tier 3, 12k) and
+      `opening-third-and-fourth` (tier 4, 8k), the first lessons on nineteen lines outside
+      the master replays, and the first anywhere in the library whose choice verdicts were
+      not decided by the author. Every option of every `choice` step in them carries `net`:
+      the weight and the rank the shipped human network gave that point in that exact
+      position, read off with `tools/joseki/policy.py --cands` at a professional profile.
+      `library.test.js` now requires, in any step that carries `net`, that the option marked
+      best is the one the network ranked first, and that no two options share a rank.
+      Decisions: the proverb "corners, then sides, then the centre" is taught as a sequence
+      of measurements rather than as a saying, because the same side point is eightieth with
+      two corners open and second once they are gone, and that movement is the lesson. Where
+      the network'"'"'s own first choice on the whole board was not one of the three offered
+      points, the step says so instead of pretending the offered set was the whole question.
+- [ ] The rest of the opening track: direction of play, the approach and its answers in
+      context, and the frameworks. The joseki dictionary covers the corner sequences
+      themselves, so these should be about which corner and which side, not which move.
 - [ ] SGF authoring pipeline: build-time script turns SGF with comments into steps.
 - [ ] Tier 4 Craftsman and Tier 5 Master authored (20 lessons, 19x19).
 - [ ] Tier 6 Dan authored (8 lessons; the last needs Phase 4 analysis). Four are in as of
