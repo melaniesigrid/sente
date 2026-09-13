@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import {
   ChevronLeft, Flag, RotateCcw, Trophy, CircleDot, Scale, MessageCircle, Send, Handshake, Check, X,
-  Download, Eye, Link as LinkIcon, WifiOff,
+  Download, Eye, Link as LinkIcon, WifiOff, History,
 } from "lucide-react";
 import {
   scoreBoard, chainsInAtari, idx, lastMoveIndex, toSgf, colorOfSeat, canSeatPlay, partnerSeat,
@@ -22,6 +22,8 @@ import { onlineStatus, settledLine, onlineCaption, teamName } from "./onlineStat
 import { talkParts, pointsNamed, etiquette } from "./tableTalk.js";
 import { useT } from "../components/langStore.js";
 import { lineOr } from "../i18n/index.js";
+import { Review } from "./Review.jsx";
+import { WinCard } from "./WinCard.jsx";
 
 /* `seat` in this view is a seat id ("b1", "w1", "b2", "w2"), which is what the
    server now hands out: at a pair table a colour names two people, and the one
@@ -89,6 +91,9 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
   const [sent, setSent] = useState([]);
   const [confirmResign, setConfirmResign] = useState(false);
   const [gone, setGone] = useState(false);
+  // Walking back through the finished game. Review takes the whole view, as it
+  // does for a local game: two boards on one screen invite a click on the wrong one.
+  const [reviewing, setReviewing] = useState(false);
   const [pending, setPending] = useState(null);
   const sock = useRef(null);
   const resignTimer = useRef(null);
@@ -328,6 +333,10 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
   const partner = room && seat && room.pair ? seatName(room, partnerSeat(seat)) : "";
   const settled = settledLine(room, seat, t);
 
+  if (reviewing && rec && over) {
+    return <Review record={rec} profile={profile} onExit={() => setReviewing(false)} />;
+  }
+
   if (gone) {
     return (
       <div className="stack">
@@ -423,11 +432,15 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
                 {over.method === "score" && rec.dead.length > 0 && t("game.deadRemoved", { count: rec.dead.length })}
               </p>
               <div className="row">
+                <Btn icon={History} small onClick={() => setReviewing(true)}>{t("game.review")}</Btn>
                 <Btn icon={Download} small onClick={downloadSgf}>{t("game.sgf")}</Btn>
                 <Btn icon={ChevronLeft} small onClick={onExit}>{t("online.game.lobby")}</Btn>
               </div>
             </Card>
           )}
+          {/* Who was winning, drawn at the table once it is over, for players
+              and spectators alike: the record is public to whoever is in the room. */}
+          {card && <WinCard record={rec} onReview={() => setReviewing(true)} />}
           {scoring && preview && (
             <Card inset className="caps">
               <div className="stat-head"><Scale size={15} /><span>{t("game.counting.head")}</span></div>

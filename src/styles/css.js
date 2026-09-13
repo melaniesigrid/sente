@@ -560,6 +560,12 @@ ${FONT_FACES}
    legend. The hairline along it is the room's own ground, which is the one colour
    that stands out against both stones in every palette. */
 .review-analysis { width: 100%; }
+/* The same graph at the table, in the side column, once a game is over. Shorter
+   than in review, where it is the instrument; here it is the summary beside the
+   result, and the board next to it is the one that owns the height. */
+.win-card { gap: 10px; }
+.win-card .wingraph svg { height: 96px; }
+.win-card .fine { margin: 0; }
 .wingraph { width: 100%; border-radius: var(--r); box-shadow: var(--sink-sm); padding: 8px; }
 .wingraph svg { display: block; width: 100%; height: 132px; border-radius: calc(var(--r) - 10px); touch-action: none; cursor: pointer; }
 .wingraph-white { fill: var(--stone-w-2); }

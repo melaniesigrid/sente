@@ -14,6 +14,7 @@ import { ClockFace } from "../components/Clock.jsx";
 import { Card, Btn, Pill, Avatar, RankBadge, BeltRibbon } from "../components/ui.jsx";
 import { Passage } from "../components/Passage.jsx";
 import { Review } from "./Review.jsx";
+import { WinCard } from "./WinCard.jsx";
 import { MokuMark } from "../components/Moku.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
 import { playStone, playCapture, playBell, haptic } from "../components/sound.js";
@@ -704,6 +705,8 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
               </div>
             </Card>
           )}
+          {/* Who was winning, at the table, the same card the online table draws. */}
+          {card && <WinCard record={rec} onReview={() => setReviewing(true)} />}
           {duel && hostLost && !over && (
             <Card inset className="caps">
               <div className="stat-head"><Bot size={15} /><span>{t("game.hostLost.head")}</span></div>

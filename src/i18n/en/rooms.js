@@ -39,6 +39,7 @@ export const rooms = {
        time, and never described as the truth about a game. */
     graphNote: "The win rate graph asks the network about every position in turn: quick on a small board, minutes on 19x19. You can stop it part way and keep what it drew. ",
     winGraph: "Win rate graph",
+    card: { head: "Who was winning" },
     keepAnalysing: "Keep analysing",
     positions: "{done} / {total} positions",
     stop: "Stop",

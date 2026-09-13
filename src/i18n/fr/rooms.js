@@ -32,6 +32,7 @@ export const rooms = {
     },
     graphNote: "La courbe de chances interroge le réseau sur chaque position tour à tour : rapide sur un petit goban, des minutes en 19x19. Tu peux l'arrêter en route et garder ce qu'elle a déjà tracé. ",
     winGraph: "Courbe de chances",
+    card: { head: "Qui menait" },
     keepAnalysing: "Continuer l'analyse",
     positions: "{done} / {total} positions",
     stop: "Arrêter",

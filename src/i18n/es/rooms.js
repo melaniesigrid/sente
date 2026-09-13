@@ -32,6 +32,7 @@ export const rooms = {
     },
     graphNote: "El gráfico de probabilidad pregunta a la red por cada posición por turno: rápido en un tablero pequeño, minutos en 19x19. Puedes pararlo a medias y quedarte con lo que ya dibujó. ",
     winGraph: "Gráfico de probabilidad",
+    card: { head: "Quién iba ganando" },
     keepAnalysing: "Seguir analizando",
     positions: "{done} / {total} posiciones",
     stop: "Parar",
