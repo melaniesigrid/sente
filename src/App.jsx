@@ -39,6 +39,7 @@ import { ProblemsView } from "./views/Problems.jsx";
 import { RecallView } from "./views/Recall.jsx";
 import { JosekiView } from "./views/Joseki.jsx";
 import { RankingsView } from "./views/Rankings.jsx";
+import { HousePlayerPage } from "./views/HousePlayer.jsx";
 import { PlayerPage } from "./views/PlayerPage.jsx";
 import { ProfileView } from "./views/Profile.jsx";
 import { DojoView } from "./views/Dojo.jsx";
@@ -205,14 +206,19 @@ export default function JosekiApp() {
           {view === "home" && <Home profile={profile} go={go} onResume={resumeGame} />}
           {/* Keyed by the game asked for, so opening a second game from the archive or
               the dashboard remounts the table rather than leaving the first one up. */}
-          {view === "play" && <PlayView key={(params && params.gameId) || "lobby"}
+          {view === "play" && <PlayView key={(params && (params.gameId || params.botId)) || "lobby"}
             profile={profile} setProfile={setProfile} notify={notify} resume={resume}
-            openGame={params ? params.gameId : null} go={go} />}
+            openGame={params ? params.gameId : null} withBot={params ? params.botId : null} go={go} />}
           {view === "learn" && <LearnView profile={profile} setProfile={setProfile} go={go} />}
           {view === "joseki" && <JosekiView />}
           {view === "tsumego" && <ProblemsView profile={profile} setProfile={setProfile} initialId={params ? params.problemId : null} />}
           {view === "recall" && <RecallView profile={profile} setProfile={setProfile} go={go} />}
           {view === "ladder" && <RankingsView profile={profile} go={go} />}
+          {/* A house player's page. It remembers where it was opened from the
+              way a person's page does, so coming back from the roster lands on
+              the roster and coming back from a table lands at the table. */}
+          {view === "house" && <HousePlayerPage id={params ? params.botId : null} go={go}
+            onBack={() => go(params && params.from ? params.from : "ladder")} />}
           {/* A player's page remembers where it was opened from, so coming back
               from a ladder row lands on the ladder and coming back from a table
               lands at the table rather than always at the ladder. */}

@@ -1295,9 +1295,28 @@ Free, because the engine already does the hard part:
 - [ ] Bots that show their work: after each house move, show the top three candidates
       and their weighted scores ("Tetsu: capture 16, atari 6, played here"). Only a
       heuristic bot can be this honest.
-- [ ] Every house player has a tell: make Moku's lobby line literal. Hoshi really forgets
-      ladders; a mirror-go persona copies you through tengen until you take tengen.
-      Exploit a tell to unlock the scouting report.
+- [x] The house players have pages, and the ladder says what it is (2026-09-12, branch
+      `feat/house-players`): `src/views/HousePlayer.jsx` is one page per persona, reached
+      from a roster row or from another player's page. It says what the thing is (software,
+      the same network asked to imitate a different kind of player), how closely it is asked
+      to follow (`faithfulnessOf`, four named bands over `profile.temperature`, with the
+      number printed beside the band), how it plays and what its tell is (`plays` and `tell`
+      on the persona, held by the suite to the house voice and to naming the temperature the
+      data actually carries), what it says at the table, and your own record against it from
+      the device's ring buffer, marked thin under five games.
+      The ladder is three sections with a sentence under each heading instead of two
+      one-word heads. Your rank comes first and on its own, rather than sorted in among the
+      bots. The house list stopped being a ladder: it had been sorted by rating with a crown
+      on the strongest, which is meaningless when every one of them plays at whatever level
+      the table is set to, and which invited the belief the lobby spends a paragraph denying.
+      `PlayView` takes `withBot`, so the page's button sits you down rather than returning
+      you to the lobby beside the card you just left.
+- [ ] The tells are written, not measured. Hoshi really does forget ladders and Tetsu really
+      does answer contact with contact, but nothing in the suite proves either, and the
+      telemetry ring buffer is the thing that could: it keeps enough per-bot to check whether
+      a persona's stated habit shows up in its games. Until then a tell is a claim by the
+      author, which is the one kind of claim this repo usually refuses.
+- [ ] Exploit a tell to unlock the scouting report: make Moku's lobby line literal.
 
 A weekend each:
 - [ ] Tsumego mined from your own games: scan a finished record for positions where a
