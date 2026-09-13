@@ -1,7 +1,7 @@
 // es · overlay
 /* Overlays: the English for these lives in the data file that owns each
-   thing — a room's note, a stone set's name, a pairing's note, a belt's
-   label — and these lines stand in front of it by id. `i18n.test.js` holds
+   thing (a room's note, a stone set's name, a pairing's note, a belt's
+   label) and these lines stand in front of it by id. `i18n.test.js` holds
    them complete against the data rather than against en.js. */
 export const overlay = {
   seen: {

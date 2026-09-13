@@ -132,7 +132,7 @@ export const front = {
     ready: {
       eyebrow: "Esa es la regla",
       title: "Ya sabes lo suficiente para jugar",
-      lede: "Todo lo demás —las aperturas, las formas, el final— es gente averiguando qué se sigue de ella. Los jugadores de la casa son bots, etiquetados como bots, y jugarán al nivel que les pidas, empezando bastante por debajo del tuyo.",
+      lede: "Todo lo demás (las aperturas, las formas, el final) es gente averiguando qué se sigue de ella. Los jugadores de la casa son bots, etiquetados como bots, y jugarán al nivel que les pidas, empezando bastante por debajo del tuyo.",
       fine: "Un tablero de nueve por nueve lleva unos diez minutos y es donde empieza la mayoría. Las lecciones están ahí cuando las quieras.",
       play: "Juega una primera partida",
       look: "Echa un vistazo primero",

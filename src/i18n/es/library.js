@@ -1,6 +1,6 @@
 // es · library
-/* Overlays for the library's own furniture — the tiers, the tracks, the books
-   and the series — plus the tsumego and the coach's shape commentary. */
+/* Overlays for the library's own furniture (the tiers, the tracks, the books
+   and the series), plus the tsumego and the coach's shape commentary. */
 
 export const tier = {
   1: { name: "Cimientos", identity: "Sé las reglas y sé capturar", exit: { label: "Gana a Hoshi en 9×9 con 4 piedras" } },
@@ -89,7 +89,7 @@ export const problem = {
 };
 
 /* The coach's shape commentary, in each house player's voice. Same rules as the
-   English: no exclamation marks here — the coach is calm, whatever the opponent
+   English: no exclamation marks here, the coach is calm whatever the opponent
    is doing in the chat. */
 export const shape = {
   "empty-triangle": {

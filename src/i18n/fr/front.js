@@ -132,7 +132,7 @@ export const front = {
     ready: {
       eyebrow: "Voilà la règle",
       title: "Tu en sais assez pour jouer",
-      lede: "Tout le reste — les ouvertures, les formes, la fin de partie — n'est que des gens qui déduisent ce qui en découle. Les joueurs de la maison sont des bots, étiquetés comme tels, et ils joueront au niveau que tu demandes, en commençant bien en dessous du tien.",
+      lede: "Tout le reste (les ouvertures, les formes, la fin de partie) n'est que des gens qui déduisent ce qui en découle. Les joueurs de la maison sont des bots, étiquetés comme tels, et ils joueront au niveau que tu demandes, en commençant bien en dessous du tien.",
       fine: "Un goban de neuf sur neuf prend une dizaine de minutes et c'est là que commencent la plupart des joueurs. Les leçons sont là quand tu les voudras.",
       play: "Joue une première partie",
       look: "Regarde d'abord autour",

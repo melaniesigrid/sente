@@ -64,7 +64,7 @@ export const lessons5 = {
   "classic-corner-shapes": {
     title: "Die benannten Eckformen",
     subtitle: "Kapitel dreizehn: die Formen, die der Klassiker für entschieden hält",
-    plain: "Manche Eckstellungen sind entschieden, bevor jemand darin spielt. Dieser Katalog sagt, welche leben und welche sterben, und der Unterschied ist der Augenraum, nicht die Zahl der Steine — sie zu lernen erspart dir den Kampf.",
+    plain: "Manche Eckstellungen sind entschieden, bevor jemand darin spielt. Dieser Katalog sagt, welche leben und welche sterben, und der Unterschied ist der Augenraum, nicht die Zahl der Steine: sie zu lernen erspart dir den Kampf.",
     steps: {
       0: { text: "Kapitel dreizehn hört auf zu philosophieren und zählt Formen auf. Es gibt jeder einen Namen und sagt dann schlicht, ob sie lebt oder stirbt. Dies ist die erste: vier weiße Steine, um zwei Punkte in der Ecke gebogen. Der Klassiker sagt, eine solche Gruppe sei gewiss tot, und er sagt es ohne Begründung, so wie man die Größe einer Münze angibt." },
       1: {

@@ -1,6 +1,6 @@
 // fr · lessons, tier 2
 /* Apprenti : 20k à 15k. Quatre chapitres du Classique et trois proverbes.
-   Les termes chinois gardent leur translittération — guan, fei, duan, zhan
+   Les termes chinois gardent leur translittération : guan, fei, duan, zhan
    sont les noms dont parle le chapitre onze, et un chapitre qui soutient qu'il
    faut rectifier les noms est le dernier endroit où les remplacer. */
 export const lessons2 = {
@@ -121,7 +121,7 @@ export const lessons2 = {
   "proverb-bamboo-joint": {
     title: "Ne lorgne pas un nœud de bambou",
     subtitle: "Une connexion qui n'a besoin d'aucun coup, et un coup qui coûte à celui qui le joue",
-    plain: "Certaines formes sont déjà connectées : les tâter ne gagne rien et dépense discrètement quelque chose — la menace de ko que cette position aurait été plus tard. Un coup forçant dont tu n'avais pas besoin est un coup jeté.",
+    plain: "Certaines formes sont déjà connectées : les tâter ne gagne rien et dépense discrètement quelque chose : la menace de ko que cette position aurait été plus tard. Un coup forçant dont tu n'avais pas besoin est un coup jeté.",
     steps: {
       0: {
         line: "Ne lorgne pas un nœud de bambou.",

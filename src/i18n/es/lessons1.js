@@ -1,6 +1,6 @@
 // es · lessons, tier 1
 /* Cimientos: the ten lessons from 30k to 20k, overlaid by lesson id. The board
-   positions are data and are never touched — only the words around them. */
+   positions are data and are never touched: only the words around them. */
 export const lessons1 = {
   liberties: {
     title: "Libertades y captura",
@@ -268,7 +268,7 @@ export const lessons1 = {
       },
       4: {
         text: "Tablero vacío, juegan las negras. Toma un punto grande.",
-        success: "Bien. Primero la eficiencia: toma el territorio barato antes de que empiece la pelea de contacto. El módulo completo de patrones de esquina —secuencias canónicas de 4-4 y 3-4 con sus desviaciones y castigos, verificadas por el motor— es lo siguiente en la hoja de ruta del temario.",
+        success: "Bien. Primero la eficiencia: toma el territorio barato antes de que empiece la pelea de contacto. El módulo completo de patrones de esquina (secuencias canónicas de 4-4 y 3-4 con sus desviaciones y castigos, verificadas por el motor) es lo siguiente en la hoja de ruta del temario.",
         hint: "Las esquinas valen más que el centro de un lado.",
         wrongText: "Ese no es un punto grande. En un tablero vacío, primero las esquinas y el centro.",
       },

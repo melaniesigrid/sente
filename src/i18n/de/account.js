@@ -24,7 +24,7 @@ export const account = {
     badEmail: "Das sieht nicht nach einer Adresse aus",
     badName: "Ein Name hat zwei bis achtzehn Zeichen",
     oldFirst: "Zuerst dein aktuelles Passwort",
-    short: "Ein Passwort hat {min} Zeichen oder mehr — ein kurzer Satz ist leichter zu merken als ein kurzes Passwort",
+    short: "Ein Passwort hat {min} Zeichen oder mehr. Ein kurzer Satz ist leichter zu merken als ein kurzes Passwort",
     choose: "Wähle ein Passwort",
     mismatch: "Die beiden Passwörter sind nicht gleich",
     needPassword: "Dein Passwort",

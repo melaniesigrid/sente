@@ -20,7 +20,7 @@ export const rooms = {
     hideNumbers: "Nummern verbergen",
     sgf: "SGF",
     playAgain: "Noch einmal spielen",
-    tryLine: "Spiel auf dem Brett, um eine Variante auszuprobieren — sie wird nie in die Partie gespeichert. ",
+    tryLine: "Spiel auf dem Brett, um eine Variante auszuprobieren; sie wird nie in die Partie gespeichert. ",
     keys: "Die Pfeile gehen einen Zug, hoch und runter springen zehn, Pos1 und Ende gehen an die Enden, und N schaltet die Nummern um.",
     turnKeys: " Die eckigen Klammern gehen die Wendepunkte ab.",
     advice: {
@@ -68,7 +68,7 @@ export const rooms = {
 
   dojo: {
     title: "Bau dein eigenes Dojo",
-    sub: "Sechs Farben machen einen Raum, und jede Farbe, die hier angeboten wird, ist eine, mit der Joseki irgendwo schon spielt: nimm den Grund dieses Raums, die Marke jenes Raums und die Steine eines dritten. Das Brett bewegt sich unterwegs mit ihnen — Steine, Gitter, Schatten und alles. Nichts wird gespeichert, bis du es sagst, und die Zahlen unten sind dieselben, die der Build prüft.",
+    sub: "Sechs Farben machen einen Raum, und jede Farbe, die hier angeboten wird, ist eine, mit der Joseki irgendwo schon spielt: nimm den Grund dieses Raums, die Marke jenes Raums und die Steine eines dritten. Das Brett bewegt sich unterwegs mit ihnen: Steine, Gitter, Schatten und alles. Nichts wird gespeichert, bis du es sagst, und die Zahlen unten sind dieselben, die der Build prüft.",
     resetBoard: "Brett zurücksetzen",
     nameRoom: "Gib diesem Raum einen Namen",
     swatch: "{tone} aus {rooms}",
@@ -117,7 +117,7 @@ export const rooms = {
     },
     accent: {
       label: "Marke",
-      role: "Die eine Farbe, die hier bedeutet. Eine Marke, nie Fließtext — deshalb 3:1 und nicht 4,5:1.",
+      role: "Die eine Farbe, die hier bedeutet. Eine Marke, nie Fließtext, deshalb 3:1 und nicht 4,5:1.",
     },
     cream: {
       label: "Muschel",

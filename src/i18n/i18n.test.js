@@ -29,8 +29,8 @@ import {
    against the data below rather than against English. */
 /* Namespaces whose English lives in a data file rather than in en.js. The
    first four are complete-or-fail: every room, set, pairing and belt must have
-   its line. `lesson.` is not, and cannot be — the library is translated a file
-   at a time and an untranslated lesson is simply still in English — so what is
+   its line. `lesson.` is not, and cannot be: the library is translated a file
+   at a time and an untranslated lesson is simply still in English, so what is
    checked there is that every key names something real. */
 const OVERLAYS = [
   "room.", "stones.", "type.", "belt.", "tone.", "rule.",        // the design system
@@ -48,7 +48,7 @@ const holesIn = (line) => new Set([...String(line).matchAll(HOLE)].map(m => m[1]
 const lines = (entry) => (typeof entry === "string" ? [entry] : Object.values(entry));
 /* The field names that carry prose rather than data. Kept in step with
    `TEXT_FIELDS` by `translate.test.js`; named here as a path suffix because a
-   flattened key ends in the field it came from — or in the index of the line,
+   flattened key ends in the field it came from, or in the index of the line,
    for the fields that hold a list of them. */
 const PROSE = /\.(title|subtitle|plain|text|hint|success|wrongText|question|commentary|line|analogy|partial)(\.\d+)*$/;
 
@@ -175,7 +175,7 @@ describe.each(others)("$name is complete", (locale) => {
     for (const [key, entry] of mine) {
       for (const line of lines(entry)) {
         expect(String(line).trim(), `${locale.id}: ${key}`).not.toBe("");
-        /* House style: the app does not shout. A voice it is translating may —
+        /* House style: the app does not shout. A voice it is translating may
            Moku and the house players have exclamation marks in the English they
            were written in, and flattening those would make a character quieter
            in one language than in another. */
@@ -212,7 +212,7 @@ describe.each(others)("$name is complete", (locale) => {
      names, which is what walking the lesson and comparing proves. */
   it("puts every lesson line somewhere the lesson can read it", () => {
     /* A reader that answers every lookup with the key it was asked for, so
-       that a field the walker reads is a field that changed — even where the
+       that a field the walker reads is a field that changed, even where the
        translation and the English are the same word. */
     const probe = (key) => `\u0000${key}`;
     const all = [...LIBRARY, WELCOME_LESSON];
@@ -292,7 +292,7 @@ describe.each(others)("$name is complete", (locale) => {
       const [ns, id] = key.split(".");
       // A one-word overlay names a single line rather than a family of them.
       if (id !== undefined) expect(ids[ns], `${locale.id}: ${key}`).toContain(id);
-      /* An overlay has no holes, because there is nobody to fill them — except
+      /* An overlay has no holes, because there is nobody to fill them, except
          the legal documents, which are written around a handful of constants
          and are handed exactly these. */
       const allowed = key.startsWith("legalDoc.") || key.startsWith("credit.")

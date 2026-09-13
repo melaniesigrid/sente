@@ -6,7 +6,7 @@
    les citations d'aucune traduction publiée, dans aucune langue.
 
    Ce qui n'est pas traduit : le nom de l'auteur, celui de la dynastie, et les
-   trente-deux termes translittérés eux-mêmes — chong, fei, guan, zheng. Le
+   trente-deux termes translittérés eux-mêmes : chong, fei, guan, zheng. Le
    chapitre onze porte sur ces noms et se termine en soutenant qu'il faut les
    rectifier avant que les formes puissent se voir. Les remplacer serait le seul
    changement que le chapitre interdit lui-même. Leurs gloses et leurs

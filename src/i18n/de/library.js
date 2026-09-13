@@ -1,5 +1,5 @@
 // de · library
-/* Das Mobiliar der Bibliothek — Stufen, Wege, Bücher, Reihen — dazu die
+/* Das Mobiliar der Bibliothek (Stufen, Wege, Bücher, Reihen), dazu die
    Tsumego und die Formkommentare des Trainers in allen sieben Stimmen. */
 
 export const tier = {
@@ -59,7 +59,7 @@ export const problem = {
   p2: {
     theme: "Fangen",
     title: "Zwei auf einmal",
-    prompt: "Schwarz am Zug. Die weiße Kette teilt ihre Freiheiten — nimm ihr beide.",
+    prompt: "Schwarz am Zug. Die weiße Kette teilt ihre Freiheiten: nimm ihr beide.",
     explain: "Verbundene Steine zählen als eine Kette. Ihre einzige gemeinsame Freiheit lag darunter.",
   },
   p3: {
@@ -71,20 +71,20 @@ export const problem = {
   p4: {
     theme: "Fangen",
     title: "Der falsche Selbstmord",
-    prompt: "Schwarz am Zug. Der einzige Zug sieht verboten aus — ist er es?",
+    prompt: "Schwarz am Zug. Der einzige Zug sieht verboten aus. Ist er es?",
     explain: "Gefangene werden abgerechnet, bevor deine eigenen Freiheiten gezählt werden. Die letzte Freiheit von Weiß zu besetzen nimmt fünf Steine herunter, dein Stein landet also im Freien.",
   },
   p5: {
     theme: "Leben und Tod",
-    title: "Gerade drei — töten",
+    title: "Gerade drei: töten",
     prompt: "Der Augenraum von Weiß sind drei Punkte in einer Reihe. Schwarz am Zug und tötet.",
     explain: "Die Mitte einer geraden Drei ist der vitale Punkt. An einem der beiden Enden spielt Weiß die Mitte selbst und teilt den Raum in zwei Augen. Diese Form ist der erste Eintrag in jeder klassischen Sammlung zu Leben und Tod.",
   },
   p6: {
     theme: "Leben und Tod",
-    title: "Gerade drei — leben",
+    title: "Gerade drei: leben",
     prompt: "Jetzt ist es deine Gruppe. Schwarz am Zug und lebt.",
-    explain: "Derselbe vitale Punkt, die Dringlichkeit umgekehrt: der Zug in die Mitte teilt den Raum in zwei echte Augen. Wer den vitalen Punkt zuerst erreicht, entscheidet über das Schicksal der Gruppe — Sente im Kleinen.",
+    explain: "Derselbe vitale Punkt, die Dringlichkeit umgekehrt: der Zug in die Mitte teilt den Raum in zwei echte Augen. Wer den vitalen Punkt zuerst erreicht, entscheidet über das Schicksal der Gruppe: Sente im Kleinen.",
   },
 };
 

@@ -1,6 +1,6 @@
 // fr · lessons, tier 1
 /* Fondations : les dix leçons de 30k à 20k. Les positions sont des données et
-   ne sont jamais touchées — seuls les mots autour d'elles le sont. */
+   ne sont jamais touchées : seuls les mots autour d'elles le sont. */
 export const lessons1 = {
   /* La démo d'accueil. C'est la première chose que lit qui que ce soit : un
      débutant à qui l'on tend quatre paragraphes dans une langue qu'il n'a pas
@@ -22,7 +22,7 @@ export const lessons1 = {
         wrongText: "Pas là. Cherche le point vide qui touche encore la pierre blanche.",
       },
       3: {
-        text: "Les captures sont ta façon d'argumenter. Le territoire est ta façon de gagner. À la fin, chaque camp compte les points vides qu'il a enclos — les noirs en haut à gauche ici, les blancs en bas à droite — et la plus grande part emporte la partie. Tu en sais maintenant assez pour en jouer une.",
+        text: "Les captures sont ta façon d'argumenter. Le territoire est ta façon de gagner. À la fin, chaque camp compte les points vides qu'il a enclos (les noirs en haut à gauche ici, les blancs en bas à droite), et la plus grande part emporte la partie. Tu en sais maintenant assez pour en jouer une.",
       },
     },
   },
@@ -84,7 +84,7 @@ export const lessons1 = {
       0: { text: "Cette forme en miroir est un ko. La pierre blanche du milieu a une liberté, mais la capturer rend aux blancs exactement la même capture." },
       1: {
         text: "Prends le ko : capture la pierre blanche.",
-        success: "Capturée — et la règle du ko mord : les blancs ne peuvent pas reprendre tout de suite, parce que cela répéterait la position de tout le goban. Les blancs doivent d'abord jouer ailleurs (une menace de ko) et ne revenir qu'ensuite.",
+        success: "Capturée, et la règle du ko mord : les blancs ne peuvent pas reprendre tout de suite, parce que cela répéterait la position de tout le goban. Les blancs doivent d'abord jouer ailleurs (une menace de ko) et ne revenir qu'ensuite.",
         hint: "Remplis la dernière liberté des blancs.",
       },
       2: {
@@ -293,7 +293,7 @@ export const lessons1 = {
       },
       4: {
         text: "Goban vide, aux noirs de jouer. Prends un grand point.",
-        success: "Bien. L'efficacité d'abord : prends le territoire bon marché avant que le combat de contact ne commence. Le module complet des motifs de coin — séquences canoniques de 4-4 et de 3-4 avec leurs écarts et leurs punitions, vérifiées par le moteur — est la prochaine étape du programme.",
+        success: "Bien. L'efficacité d'abord : prends le territoire bon marché avant que le combat de contact ne commence. Le module complet des motifs de coin (séquences canoniques de 4-4 et de 3-4 avec leurs écarts et leurs punitions, vérifiées par le moteur) est la prochaine étape du programme.",
         hint: "Les coins valent plus que le milieu d'un côté.",
         wrongText: "Ce n'est pas un grand point. Sur un goban vide, les coins et le centre d'abord.",
       },

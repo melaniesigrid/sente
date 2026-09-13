@@ -4,10 +4,10 @@
    English line, so an unfinished language is a page with some English on it and
    never a page with a hole in it.
 
-   Nesting is for whoever edits this — a screen's lines sit together, and a diff
+   Nesting is for whoever edits this: a screen's lines sit together, and a diff
    that touches one screen touches one block. The caller sees dotted keys.
 
-   Prose that lives in a data file — a room's note, a stone set's, a pairing's —
+   Prose that lives in a data file (a room's note, a stone set's, a pairing's)
    is NOT repeated here. The data file is the English; a translation overlays it
    by id under `room.`, `stones.` and `type.`, and `i18n.test.js` holds those
    namespaces complete against the data rather than against this file. */

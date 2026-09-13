@@ -1,5 +1,5 @@
 // fr · overlay
-/* Overlays whose English lives in the data file that owns each thing — a
+/* Overlays whose English lives in the data file that owns each thing: a
    room's note, a stone set's name, a pairing's note, a belt's label. These are
    complete-or-fail: `i18n.test.js` holds them against PALETTES, STONE_SETS,
    TYPEFACES and BELTS, because a half-translated design system is not

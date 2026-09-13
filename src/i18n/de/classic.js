@@ -6,7 +6,7 @@
    aus irgendeiner veröffentlichten Übersetzung, in keiner Sprache.
 
    Was nicht übersetzt wird: der Name des Verfassers, der der Dynastie und die
-   zweiunddreißig umschriebenen Namen selbst — chong, fei, guan, zheng. Kapitel
+   zweiunddreißig umschriebenen Namen selbst: chong, fei, guan, zheng. Kapitel
    elf handelt von diesen Namen und endet mit dem Argument, sie müssten
    richtiggestellt werden, ehe die Formen sich sehen lassen. Sie zu ersetzen
    wäre die einzige Änderung, die das Kapitel selbst verbietet. Ihre

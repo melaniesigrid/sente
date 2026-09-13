@@ -30,6 +30,6 @@ export const look = {
       note: "Jedes Paar setzt die Überschriften, die Serifenschrift, die die Sprüche trägt, den Fließtext und die kleinen Beschriftungen; die Palette und die Schatten bewegen sich nie.",
       pick: "Schrift {name}",
     },
-    device: "Die Sprache, der Raum, die Steine und das Schriftpaar leben auf diesem Gerät, neben deinem Profil. Es sind Vorlieben und keine Kontoeinstellungen — ein geliehener Laptop behält seine eigenen.",
+    device: "Die Sprache, der Raum, die Steine und das Schriftpaar leben auf diesem Gerät, neben deinem Profil. Es sind Vorlieben und keine Kontoeinstellungen: ein geliehener Laptop behält seine eigenen.",
   },
 };

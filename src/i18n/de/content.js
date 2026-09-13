@@ -107,7 +107,7 @@ export const moku = {
 export const ruleset = {
   aga: {
     scoring: "Fläche",
-    blurb: "Die Steine plus die Punkte, die du umschließt, und Weiß bekommt einen Punkt je Vorgabestein nach dem ersten — die amerikanische Übereinkunft, die dafür sorgt, dass Flächenzählung und Gebietszählung beim selben Sieger landen.",
+    blurb: "Die Steine plus die Punkte, die du umschließt, und Weiß bekommt einen Punkt je Vorgabestein nach dem ersten: die amerikanische Übereinkunft, die dafür sorgt, dass Flächenzählung und Gebietszählung beim selben Sieger landen.",
   },
   japanese: {
     name: "Japanisch",
@@ -122,7 +122,7 @@ export const ruleset = {
   nz: {
     name: "Neuseeland",
     scoring: "Fläche",
-    blurb: "Das kürzeste Regelwerk des Spiels. Das Komi ist eine ganze Zahl, ein Unentschieden ist also möglich, und ein Spieler darf seine eigene letzte Freiheit auffüllen — selten nützlich, gelegentlich der einzige Zug, der wirkt.",
+    blurb: "Das kürzeste Regelwerk des Spiels. Das Komi ist eine ganze Zahl, ein Unentschieden ist also möglich, und ein Spieler darf seine eigene letzte Freiheit auffüllen, was selten nützlich ist, gelegentlich der einzige Zug, der wirkt.",
   },
 };
 
@@ -138,8 +138,8 @@ export const persona = {
     tagline: "Sanft und neugierig",
     bio: "Lernt neben dir. Vergisst Leitern. Liebt die Sternpunkte, natürlich. Am glücklichsten zwischen 25k und 12k.",
     chat: {
-      greet: { 0: "Hallo, ich lerne auch noch — machen wir eine gute daraus.", 1: "Ein frisches Brett. Mein Lieblingsding." },
-      botCapture: { 0: "Einen erwischt. Tut mir leid.", 1: "Oh — das hat geklappt?" },
+      greet: { 0: "Hallo, ich lerne auch noch, machen wir eine gute daraus.", 1: "Ein frisches Brett. Mein Lieblingsding." },
+      botCapture: { 0: "Einen erwischt. Tut mir leid.", 1: "Oh, das hat geklappt?" },
       userCapture: { 0: "Autsch. Schön gelesen.", 1: "Ich habe es kommen sehen und bin trotzdem hineingelaufen." },
       reply: { 0: "Guter Zug, glaube ich?", 1: "Die Ecken sind wirklich groß, nicht wahr.", 2: "Ich vergesse Leitern immer.", 3: "Das macht Spaß." },
       win: { 0: "Das war knapp. Revanche jederzeit.", 1: "In der Ecke hatte ich wohl Glück." },
@@ -150,7 +150,7 @@ export const persona = {
     tagline: "Kämpft um alles",
     bio: "Glaubt, der kürzeste Weg zur Stärke führe geradewegs durch die Mitte deiner Stellung. Zu Hause von 20k bis 6k.",
     chat: {
-      greet: { 0: "Keine Gefangenen. Na ja — viele Gefangene, eigentlich.", 1: "Lassen wir den leisen Teil aus." },
+      greet: { 0: "Keine Gefangenen. Na ja, viele Gefangene, eigentlich.", 1: "Lassen wir den leisen Teil aus." },
       botCapture: { 0: "Die Jagd geht weiter.", 1: "Die Steine waren ohnehin einsam." },
       userCapture: { 0: "Ein fairer Tausch. Vermutlich.", 1: "Hm. Notiert." },
       reply: { 0: "Kämpfen ist der schnellste Lehrer.", 1: "Erst schneiden, dann fragen.", 2: "Dick? Langsam. Dasselbe." },
@@ -166,7 +166,7 @@ export const persona = {
       botCapture: { 0: "Die lagen ohnehin in meinem Gebiet.", 1: "Aufgeräumt." },
       userCapture: { 0: "Annehmbar. Die Grenze hält.", 1: "Die darfst du behalten." },
       reply: { 0: "Erst Dicke, dann Punkte.", 1: "Jede Mauer ist ein Versprechen.", 2: "Zähl. Und dann zähl noch einmal." },
-      win: { 0: "Das Endspiel hat es entschieden, wie üblich.", 1: "Gute Partie — deine Eröffnung war solide." },
+      win: { 0: "Das Endspiel hat es entschieden, wie üblich.", 1: "Gute Partie, deine Eröffnung war solide." },
       loss: { 0: "Deine Grenzen waren heute besser als meine.", 1: "Gut gezählt. Wirklich." },
     },
   },

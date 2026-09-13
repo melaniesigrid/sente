@@ -1,6 +1,6 @@
 /* ----------------------- ESPAÑOL -----------------------
    Spanish. `tú`, never `usted`: Joseki talks to one person at a board, and the
-   formal register would put a counter between them. Neutral Spanish — nothing
+   formal register would put a counter between them. Neutral Spanish: nothing
    that only a reader in Madrid or only a reader in Buenos Aires would say.
 
    Two words are deliberate. The ladder is `Clasificación` and never `Escalera`,
@@ -34,7 +34,7 @@ import { content } from "./content.js";
 import { overlay } from "./overlay.js";
 
 /** One catalogue, assembled from its parts. The parts never share a top-level
- *  key, so the spread is a join and never an override — except `lesson`, which
+ *  key, so the spread is a join and never an override, except `lesson`, which
  *  is assembled from every file that carries one. */
 export const es = {
   ...shell,

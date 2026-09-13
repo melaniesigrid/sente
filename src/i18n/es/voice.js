@@ -130,8 +130,8 @@ export const moku = {
   promoted: { 0: "Cinturón nuevo. Átatelo fuerte.", 1: "Ascenso. El tablero acaba de hacerse más grande." },
 };
 
-/* The rulesets, from src/engine/rulesets.js. The names are names — AGA is AGA
-   in every language — and `scoring` is the word the caption sets beside them. */
+/* The rulesets, from src/engine/rulesets.js. The names are names (AGA is AGA
+   in every language), and `scoring` is the word the caption sets beside them. */
 export const ruleset = {
   aga: {
     scoring: "área",

@@ -41,7 +41,7 @@ describe("the set itself", () => {
 
   it("has no badge that anybody could hand out", () => {
     /* Every badge must be a function of the record alone. If one ever reads a
-       field nobody can recompute — a grant list, a flag an operator sets — this
+       field nobody can recompute (a grant list, a flag an operator sets) this
        is where it should be caught: the same record gives the same answer. */
     const p = player({ wins: 40, losses: 40, draws: 0, createdAt: daysAgo(200) });
     expect(ids(badgesFor(p, NOW))).toEqual(ids(badgesFor({ ...p }, NOW)));

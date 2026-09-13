@@ -34,6 +34,6 @@ export const look = {
       note: "Each pairing sets the headings, the serif that carries the sayings, the body text and the small labels; the palette and the shadows never move.",
       pick: "Typeface {name}",
     },
-    device: "The language, the room, the stones and the pairing live on this device, beside your profile. They are preferences rather than account settings — a borrowed laptop keeps its own.",
+    device: "The language, the room, the stones and the pairing live on this device, beside your profile. They are preferences rather than account settings: a borrowed laptop keeps its own.",
   },
 };

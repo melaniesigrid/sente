@@ -1,6 +1,6 @@
 // de · lessons, Stufe 2
 /* Lehrling: 20k bis 15k. Vier Kapitel des Klassikers und drei Sprichwörter.
-   Die chinesischen Begriffe behalten ihre Umschrift — guan, fei, duan, zhan
+   Die chinesischen Begriffe behalten ihre Umschrift: guan, fei, duan, zhan
    sind die Namen, um die es in Kapitel elf geht, und ein Kapitel, das darauf
    besteht, die Namen richtigzustellen, ist der letzte Ort, sie zu ersetzen. */
 export const lessons2 = {

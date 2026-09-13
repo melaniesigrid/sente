@@ -1,6 +1,6 @@
 // de · lessons, Stufe 1
 /* Grundlagen: die zehn Lektionen von 30k bis 20k. Die Stellungen sind Daten
-   und werden nie angefasst — nur die Worte darum herum. */
+   und werden nie angefasst: nur die Worte darum herum. */
 export const lessons1 = {
   /* Die Willkommens-Vorführung. Sie ist das Erste, was überhaupt jemand
      liest: einem Anfänger, dem man vier Absätze in einer Sprache hinhält, die
@@ -22,7 +22,7 @@ export const lessons1 = {
         wrongText: "Nicht dort. Such den leeren Punkt, der den weißen Stein noch berührt.",
       },
       3: {
-        text: "Fangen ist, wie du argumentierst. Gebiet ist, wie du gewinnst. Am Ende zählt jede Seite die leeren Punkte, die sie umschlossen hat — Schwarz hier oben links, Weiß unten rechts — und der größere Anteil nimmt die Partie. Du weißt jetzt genug, um eine zu spielen.",
+        text: "Fangen ist, wie du argumentierst. Gebiet ist, wie du gewinnst. Am Ende zählt jede Seite die leeren Punkte, die sie umschlossen hat (Schwarz hier oben links, Weiß unten rechts), und der größere Anteil nimmt die Partie. Du weißt jetzt genug, um eine zu spielen.",
       },
     },
   },
@@ -32,14 +32,14 @@ export const lessons1 = {
     subtitle: "Die eine Regel, aus der alles wächst",
     plain: "Ein Stein atmet durch die leeren Punkte neben sich. Nimm den letzten und der Stein kommt vom Brett; verbundene Steine atmen gemeinsam, zähl also die Gruppe und nie den einzelnen Stein.",
     steps: {
-      0: { text: "Jeder Stein lebt von den leeren Punkten neben sich — seinen Freiheiten. Dieser weiße Stein hatte anfangs vier; Schwarz hat drei genommen. Wenn eine Freiheit bleibt, heißt das Atari." },
+      0: { text: "Jeder Stein lebt von den leeren Punkten neben sich, seinen Freiheiten. Dieser weiße Stein hatte anfangs vier; Schwarz hat drei genommen. Wenn eine Freiheit bleibt, heißt das Atari." },
       1: {
         text: "Schwarz am Zug. Füll die letzte Freiheit von Weiß und fang den Stein.",
         success: "Gefangen. Ein Stein oder eine Kette ohne Freiheit kommt sofort vom Brett.",
         hint: "Welcher leere Punkt berührt den weißen Stein?",
       },
       2: {
-        text: "Verbundene Steine teilen ihre Freiheiten und leben oder sterben zusammen. Diesem weißen Paar bleibt eine einzige Freiheit — fang beide.",
+        text: "Verbundene Steine teilen ihre Freiheiten und leben oder sterben zusammen. Diesem weißen Paar bleibt eine einzige Freiheit: fang beide.",
         success: "Beide Steine fallen auf einmal. Eine Kette ist ein Organismus: zähl die Freiheiten der Gruppe, nie die des Steins.",
         hint: "Verfolg die gemeinsame Grenze des weißen Paares. Nur ein Punkt ist noch offen.",
       },
@@ -49,7 +49,7 @@ export const lessons1 = {
         success: "Fünf: drei unten und daneben, dazu die beiden Enden. Der weiße Stein hat die sechste genommen.",
       },
       4: {
-        text: "Jetzt verteidige. Dein Stein steht im Atari — zieh auf seine letzte Freiheit heraus und atme.",
+        text: "Jetzt verteidige. Dein Stein steht im Atari: zieh auf seine letzte Freiheit heraus und atme.",
         success: "Die neue Zweisteinkette hat drei Freiheiten. Aus dem Atari herauszuziehen ist der erste Reflex, den man übt, bis er von selbst kommt.",
         hint: "Lauf zur offenen Seite.",
       },
@@ -61,10 +61,10 @@ export const lessons1 = {
     subtitle: "Ein „Selbstmord“-Punkt, der keiner ist",
     plain: "Du darfst keinen Stein setzen, der ohne Freiheit dasteht, aber Gefangene werden zuerst abgerechnet. Nimmt dein Zug die letzte Freiheit des Gegners, kommen seine Steine herunter und deiner atmet durch den Platz, den sie hinterlassen.",
     steps: {
-      0: { text: "Selbstmord ist verboten — du darfst keinen Stein setzen, der seine eigene Kette ohne Freiheit zurücklässt. Aber es gibt eine herrliche Ausnahme." },
+      0: { text: "Selbstmord ist verboten: du darfst keinen Stein setzen, der seine eigene Kette ohne Freiheit zurücklässt. Aber es gibt eine herrliche Ausnahme." },
       1: {
-        text: "Der markierte Punkt ist die letzte Freiheit von Weiß. Schwarz am Zug — der Zug sieht wie Selbstmord aus, aber Gefangene werden zuerst abgerechnet.",
-        success: "Fünf Steine gefangen. Die Steine des Gegners kommen herunter, bevor deine eigenen Freiheiten gezählt werden — der Punkt war nie Selbstmord.",
+        text: "Der markierte Punkt ist die letzte Freiheit von Weiß. Schwarz am Zug. Der Zug sieht wie Selbstmord aus, aber Gefangene werden zuerst abgerechnet.",
+        success: "Fünf Steine gefangen. Die Steine des Gegners kommen herunter, bevor deine eigenen Freiheiten gezählt werden: der Punkt war nie Selbstmord.",
         hint: "Zähl die Freiheiten von Weiß, bevor du deine eigenen zählst.",
       },
       2: {
@@ -81,10 +81,10 @@ export const lessons1 = {
     subtitle: "Keine endlosen Schleifen",
     plain: "Manche Formen lassen jede Seite ewig zurückschlagen, deshalb verbieten die Regeln, die eben verlassene Stellung wiederherzustellen. Du musst zuerst woanders drohen, und das macht aus einer Schleife ein Geschäft.",
     steps: {
-      0: { text: "Diese gespiegelte Form ist ein Ko. Der weiße Stein in der Mitte hat eine Freiheit — aber ihn zu fangen gibt Weiß genau denselben Fang zurück." },
+      0: { text: "Diese gespiegelte Form ist ein Ko. Der weiße Stein in der Mitte hat eine Freiheit, aber ihn zu fangen gibt Weiß genau denselben Fang zurück." },
       1: {
         text: "Nimm das Ko: fang den weißen Stein.",
-        success: "Gefangen — und jetzt beißt die Ko-Regel: Weiß darf nicht sofort zurückschlagen, weil das die Stellung des ganzen Bretts wiederholen würde. Weiß muss erst woanders spielen (eine Ko-Drohung) und erst dann zurückkehren.",
+        success: "Gefangen, und jetzt beißt die Ko-Regel: Weiß darf nicht sofort zurückschlagen, weil das die Stellung des ganzen Bretts wiederholen würde. Weiß muss erst woanders spielen (eine Ko-Drohung) und erst dann zurückkehren.",
         hint: "Füll die letzte Freiheit von Weiß.",
       },
       2: {
@@ -98,7 +98,7 @@ export const lessons1 = {
         hint: "Folg der Linie: erst der Fang, dann die Antwort auf die Drohung.",
         success: "Das ist der ganze Rhythmus eines Ko: nehmen, drohen, antworten, zurücknehmen.",
       },
-      3: { text: "Der markierte Punkt ist für einen Zug lang „heiß“. Ko-Kämpfe sind die Stelle, an der Partien kippen — Drohungen, Zeitpunkt, und zu wissen, wann ein Ko größer ist als das Brett um es herum. Ein vollständiges Modul zum Ko-Kampf steht auf dem Lehrplan." },
+      3: { text: "Der markierte Punkt ist für einen Zug lang „heiß“. Ko-Kämpfe sind die Stelle, an der Partien kippen: Drohungen, Zeitpunkt, und zu wissen, wann ein Ko größer ist als das Brett um es herum. Ein vollständiges Modul zum Ko-Kampf steht auf dem Lehrplan." },
     },
   },
 
@@ -169,7 +169,7 @@ export const lessons1 = {
         hint: "Spiel auf die letzte Freiheit des Steins.",
       },
       2: {
-        text: "Schwarz am Zug. Der Eckstein steht im Atari, aber Laufen führt nur zu weiteren weißen Steinen. Zähl seine Freiheiten nach dem Herausziehen, bevor du dich entscheidest — und sieh dann auf den Rest des Bretts.",
+        text: "Schwarz am Zug. Der Eckstein steht im Atari, aber Laufen führt nur zu weiteren weißen Steinen. Zähl seine Freiheiten nach dem Herausziehen, bevor du dich entscheidest, und sieh dann auf den Rest des Bretts.",
         success: "Richtig. Der Eckstein war schon verloren; Laufen hätte zwei verloren. Der weiße Stein in der Mitte stand auch im Atari, und den kannst du nehmen.",
         hint: "Wenn du nach dem Herausziehen wieder nur eine Freiheit hast, ist der Stein nicht zu retten. Steht sonst etwas im Atari?",
         refutations: { 0: { text: "Laufen hat Weiß nur einen zweiten Stein geliefert. Aus einer Freiheit wurde eine Freiheit, und Weiß hat sie geschlossen." } },
@@ -190,7 +190,7 @@ export const lessons1 = {
   "edge-first-line": {
     title: "Der Rand ist eine Mauer",
     subtitle: "Steine auf der ersten Linie haben weniger Freiheiten",
-    plain: "Der Rand des Bretts ist eine Mauer, die Freiheiten nimmt und nichts dafür gibt. Ein Stein atmet in der Mitte nach vier Seiten, am Rand nach drei und in der Ecke nur nach zwei — deshalb sterben Ecksteine am billigsten.",
+    plain: "Der Rand des Bretts ist eine Mauer, die Freiheiten nimmt und nichts dafür gibt. Ein Stein atmet in der Mitte nach vier Seiten, am Rand nach drei und in der Ecke nur nach zwei: deshalb sterben Ecksteine am billigsten.",
     steps: {
       0: { text: "Derselbe Stein, an drei Orten. In der Mitte hat er vier Freiheiten. Am Rand drei. In der Ecke zwei. Der Brettrand ist eine Mauer, die Freiheiten umsonst nimmt." },
       1: {
@@ -242,7 +242,7 @@ export const lessons1 = {
     subtitle: "Wann die Partie vorbei ist, und was mit toten Steinen geschieht",
     plain: "Die Partie endet, wenn keine Seite durch einen Zug noch etwas gewinnen kann, also passen beide. Steine, die nie hätten entkommen können, kommen als tot herunter, und wenn ihr euch uneins seid, welche das sind, ist es der ehrliche Weg, es auszuspielen.",
     steps: {
-      0: { text: "Wenn keiner der beiden Spieler durch einen Zug noch etwas gewinnen kann, passen sie. Zweimal Passen hintereinander beendet die Partie. Vor dem Zählen werden Steine, die der Gefangennahme nie hätten entkommen können, als tot entfernt — der markierte weiße Stein ist einer davon." },
+      0: { text: "Wenn keiner der beiden Spieler durch einen Zug noch etwas gewinnen kann, passen sie. Zweimal Passen hintereinander beendet die Partie. Vor dem Zählen werden Steine, die der Gefangennahme nie hätten entkommen können, als tot entfernt: der markierte weiße Stein ist einer davon." },
       1: {
         text: "Du musst einen toten Stein nicht fangen; er kommt am Ende ohnehin herunter. Aber wenn du dir nicht sicher bist, ob er tot ist, kostet dich das Fangen im eigenen Gebiet nichts. Schwarz am Zug: fang ihn.",
         success: "Weg. Im eigenen Bereich kostet der Fang nichts, denn bei der Flächenzählung gehört der gefüllte Punkt weiterhin dir.",
@@ -263,7 +263,7 @@ export const lessons1 = {
     subtitle: "Tengen, 3-3 und 4-4 auf einem kleinen Brett",
     plain: "Grund ist dort am billigsten, wo das Brett schon einen Teil der Mauer für dich übernimmt: Eröffnungen beginnen also nahe den Ecken, dann die Seiten, dann die Mitte. Nimm den billigen Grund, solange er billig ist.",
     steps: {
-      0: { text: "Gebiet ist dort am billigsten, wo schon Mauern stehen. Ecken brauchen Verteidigung in zwei Richtungen, Seiten in drei, die Mitte in vier — Eröffnungen beginnen also nahe den Ecken. Auf 9×9 sind die Sternpunkte die 3-3-Punkte, und der Mittelpunkt, Tengen, liegt nah genug an jeder Ecke, um zu zählen." },
+      0: { text: "Gebiet ist dort am billigsten, wo schon Mauern stehen. Ecken brauchen Verteidigung in zwei Richtungen, Seiten in drei, die Mitte in vier: Eröffnungen beginnen also nahe den Ecken. Auf 9×9 sind die Sternpunkte die 3-3-Punkte, und der Mittelpunkt, Tengen, liegt nah genug an jeder Ecke, um zu zählen." },
       1: {
         text: "Der erste Zug von Schwarz. Drei Kandidaten sind markiert. Wähl einen und lies das Urteil; der beste beendet den Schritt.",
         options: {
@@ -293,7 +293,7 @@ export const lessons1 = {
       },
       4: {
         text: "Leeres Brett, Schwarz am Zug. Nimm einen großen Punkt.",
-        success: "Gut. Wirksamkeit zuerst: nimm das billige Gebiet, bevor der Nahkampf beginnt. Das vollständige Modul zu Eckmustern — kanonische 4-4- und 3-4-Folgen mit Abweichungen und Bestrafungen, vom Motor geprüft — ist der nächste Punkt auf dem Lehrplan.",
+        success: "Gut. Wirksamkeit zuerst: nimm das billige Gebiet, bevor der Nahkampf beginnt. Das vollständige Modul zu Eckmustern (kanonische 4-4- und 3-4-Folgen mit Abweichungen und Bestrafungen, vom Motor geprüft) ist der nächste Punkt auf dem Lehrplan.",
         hint: "Ecken sind mehr wert als die Mitte einer Seite.",
         wrongText: "Das ist kein großer Punkt. Auf einem leeren Brett kommen Ecken und Mitte zuerst.",
       },

@@ -1,6 +1,6 @@
 /* ----------------------- CONTENT, IN ANOTHER LANGUAGE -----------------------
-   The screens' own words live in `src/i18n/<locale>/`. The content's words —
-   a lesson's prompt, a problem's explanation, a persona's bio — live in the
+   The screens' own words live in `src/i18n/<locale>/`. The content's words (a
+   lesson's prompt, a problem's explanation, a persona's bio) live in the
    data file that owns them, because that file is where they are written,
    reviewed and verified against the engine. A translation stands in front of
    them by id.
@@ -12,8 +12,8 @@
    has translated is simply still in English, which is the same bargain the
    screens make.
 
-   Only the fields named below are text. Everything else — a point, a setup, a
-   verdict, a rank, an id — is data the engine reads, and translating any of it
+   Only the fields named below are text. Everything else (a point, a setup, a
+   verdict, a rank, an id) is data the engine reads, and translating any of it
    would break the lesson rather than the prose. That list is the contract:
    adding a text field to a lesson means adding its name here, and
    `translate.test.js` holds the two in step.
@@ -43,13 +43,13 @@ const NEVER = new Set(["id", "key", "src", "url", "href"]);
 
 /** A deep copy of `value` with its text fields read from the catalogue.
  *
- *  A text field may be a string or an array of strings — a document's
- *  paragraphs, a chapter's prose — and an array is translated line by line, by
+ *  A text field may be a string or an array of strings (a document's
+ *  paragraphs, a chapter's prose), and an array is translated line by line, by
  *  index, so a paragraph that nobody has reached keeps the one the author
  *  wrote while the ones around it move.
  *
  *  `vars` is handed to every lookup. The legal documents are written around a
- *  handful of constants — the product, the studio, the address to write to —
+ *  handful of constants (the product, the studio, the address to write to),
  *  and a translation says them with holes rather than copying them in, so
  *  changing the address changes it in every language at once.
  *
@@ -106,5 +106,5 @@ export const lessonKey = (lesson) => `lesson.${lesson.id}`;
 /** A lesson in the language in force. */
 export const localizeLesson = (lesson, t) => localize(lesson, lessonKey(lesson), t);
 
-/** One field of a lesson — its title on a card, say. */
+/** One field of a lesson: its title on a card, say. */
 export const lessonField = (lesson, name, t) => field(lesson, lessonKey(lesson), name, t);

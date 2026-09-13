@@ -3,7 +3,7 @@
    Höflichkeitsform stellte einen Tresen dazwischen.
 
    Zwei Wörter sind bewusst gewählt. Die Rangliste heißt `Rangliste` und nie
-   `Leiter` — die Leiter ist im Deutschen die *Technik* (shicho), und ein
+   `Leiter`: die Leiter ist im Deutschen die *Technik* (shicho), und ein
    Navigationsknopf darf keine Form benennen. Eine Palette ist ein `Raum`,
    dieselbe Metapher wie im Englischen. Die Namen der Räume, der Schriftpaare
    und der Danksagungen werden nicht übersetzt: das sind Namen von Dingen im

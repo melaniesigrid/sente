@@ -23,7 +23,7 @@ export const front = {
     primerLabel: "The game",
     primerH2a: "Two players. One board.",
     primerH2b: "Hold more of it than they do.",
-    primerLede: "Go is four thousand years old and its rules fit on a napkin. What takes a lifetime is not the rules — it is everything they turn out to imply.",
+    primerLede: "Go is four thousand years old and its rules fit on a napkin. What takes a lifetime is not the rules: it is everything they turn out to imply.",
     primer: {
       players: {
         title: "Two players, one board",
@@ -59,7 +59,7 @@ export const front = {
       },
       classic: {
         title: "The Classic in {n} chapters",
-        body: "{author}’s {era} treatise runs through the whole app — a saying at the door, a chapter beside the lesson it belongs to, the nine levels on your profile.",
+        body: "{author}’s {era} treatise runs through the whole app: a saying at the door, a chapter beside the lesson it belongs to, the nine levels on your profile.",
       },
       rank: {
         title: "A rank that means something",
@@ -67,12 +67,12 @@ export const front = {
       },
       rules: {
         title: "{rules} rulesets, {rooms} rooms",
-        body: "AGA, Japanese, Chinese and New Zealand — scoring, komi and handicap compensation each done the way its own book says. Then set the room and the type to suit your eyes.",
+        body: "AGA, Japanese, Chinese and New Zealand: scoring, komi and handicap compensation each done the way its own book says. Then set the room and the type to suit your eyes.",
       },
     },
 
     classicSrc: "Chapter {n}, {title} · {author}, {era}",
-    classicLede: "The thirteen chapters are threaded through the app rather than filed in a corner of it — a line at the door each day, and the chapter that belongs to a lesson sitting beside the lesson.",
+    classicLede: "The thirteen chapters are threaded through the app rather than filed in a corner of it: a line at the door each day, and the chapter that belongs to a lesson sitting beside the lesson.",
 
     pathLabel: "Where to start",
     pathH2: "Three weeks to a real game.",
@@ -87,7 +87,7 @@ export const front = {
       },
       3: {
         title: "Read something every day",
-        body: "One tsumego, one saying, one game. The rank follows on its own — it is the only part you do not have to work at.",
+        body: "One tsumego, one saying, one game. The rank follows on its own: it is the only part you do not have to work at.",
       },
     },
 
@@ -134,7 +134,7 @@ export const front = {
     ready: {
       eyebrow: "That is the rule",
       title: "You know enough to play",
-      lede: "Everything else — the openings, the shapes, the endgame — is people working out what follows from it. The house players are bots, labelled as bots, and they will play at whatever level you ask for, starting well below yours.",
+      lede: "Everything else (the openings, the shapes, the endgame) is people working out what follows from it. The house players are bots, labelled as bots, and they will play at whatever level you ask for, starting well below yours.",
       fine: "A nine by nine board takes about ten minutes and is where most players start. The lessons are there when you want them.",
       play: "Play a first game",
       look: "Look around first",

@@ -2,7 +2,7 @@
 /* Maître : 5k à 1k. Les derniers chapitres du Classique, deux problèmes du
    Xuanxuan et les deux parties de maîtres.
 
-   Les coordonnées — Q15, K11, N3 — se lisent de la même façon dans toutes les
+   Les coordonnées (Q15, K11, N3) se lisent de la même façon dans toutes les
    langues et ne sont jamais traduites. Les noms des joueurs et les années non
    plus. */
 export const lessons5 = {

@@ -1,6 +1,6 @@
 // de · overlay
 /* Overlays, deren Englisch in der Datendatei wohnt, der das jeweilige Ding
-   gehört — die Notiz eines Raums, der Name eines Steinsatzes, die Notiz eines
+   gehört: die Notiz eines Raums, der Name eines Steinsatzes, die Notiz eines
    Schriftpaars, die Beschriftung eines Gürtels. Diese sind vollständig oder
    gar nicht: `i18n.test.js` hält sie gegen PALETTES, STONE_SETS, TYPEFACES und
    BELTS, denn ein halb übersetztes Designsystem soll niemand ausliefern

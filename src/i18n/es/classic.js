@@ -6,7 +6,7 @@
    are not quotations of any published translation, in any language.
 
    What is not translated: the author's name, the dynasty's, and the thirty-two
-   transliterated terms themselves — chong, fei, guan, zheng. Chapter eleven is
+   transliterated terms themselves: chong, fei, guan, zheng. Chapter eleven is
    about those names, and it ends by arguing that names must be set right
    before shapes can be seen. Replacing them would be the one change the
    chapter itself forbids. Their glosses and their modern equivalents are

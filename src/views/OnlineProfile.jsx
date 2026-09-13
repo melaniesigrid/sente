@@ -66,8 +66,8 @@ export function OnlineProfileCard({ account, setAccount, notify }) {
    one word, the answer is instant, and a privacy control that needs confirming
    is a privacy control people leave half-changed.
 
-   Being here is never written down — it is an open connection and nothing else
-   — so this setting governs who may be told, not what is kept. The line under
+   Being here is never written down (it is an open connection and nothing
+   else), so this setting governs who may be told, not what is kept. The line under
    the choices says so, because a person deciding how visible to be deserves to
    know there is no history behind the question. */
 function WhoMaySee({ player, token, onSaved, notify }) {

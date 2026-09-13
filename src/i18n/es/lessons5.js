@@ -2,7 +2,7 @@
 /* Maestro: 5k to 1k. The last chapters of the Classic, two problems from the
    Xuanxuan, and the two master games.
 
-   Board coordinates — Q15, K11, N3 — are how a record is read in every
+   Board coordinates (Q15, K11, N3) are how a record is read in every
    language and are never translated. Nor are the players' names, nor the years. */
 export const lessons5 = {
   "classic-details": {

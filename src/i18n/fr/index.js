@@ -5,7 +5,7 @@
    name a shape.
 
    The parts never share a top-level key, so the spread is a join and never an
-   override — except `lesson`, which is assembled from every file that carries
+   override, except `lesson`, which is assembled from every file that carries
    one, because the library arrives a tier at a time. */
 import { shell } from "./shell.js";
 import { look } from "./look.js";

@@ -80,7 +80,7 @@ export const rooms = {
 
   dojo: {
     title: "Build your own dojo",
-    sub: "Six colours make a room, and every colour offered here is one Joseki already plays in somewhere: take this room’s ground, that room’s mark, and the stones from a third. The board moves with them as you go — stones, grid, shadows and all. Nothing is saved until you say so, and the numbers below are the same ones the build checks.",
+    sub: "Six colours make a room, and every colour offered here is one Joseki already plays in somewhere: take this room’s ground, that room’s mark, and the stones from a third. The board moves with them as you go: stones, grid, shadows and all. Nothing is saved until you say so, and the numbers below are the same ones the build checks.",
     resetBoard: "Reset board",
     nameRoom: "Name this room",
     swatch: "{tone} from {rooms}",

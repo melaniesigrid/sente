@@ -1,6 +1,6 @@
 // es · lessons, tier 2
 /* Aprendiz: 20k to 15k. Four chapters of the Classic, and three proverbs.
-   The Chinese terms keep their transliterations — guan, fei, duan, zhan are
+   The Chinese terms keep their transliterations: guan, fei, duan, zhan are
    the names the chapter is about, and a chapter arguing that names must be set
    right is the last place to replace them. */
 export const lessons2 = {

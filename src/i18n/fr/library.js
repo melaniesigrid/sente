@@ -1,5 +1,5 @@
 // fr · library
-/* The library's own furniture — tiers, tracks, books, series — plus the
+/* The library's own furniture (tiers, tracks, books, series), plus the
    tsumego and the coach's shape commentary in all seven voices. */
 
 export const tier = {

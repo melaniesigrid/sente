@@ -5,12 +5,12 @@ export const screens = {
     greetingNew: "Willkommen am Brett",
     wonOf: "{wins} von {games} gewonnen",
     noGames: "noch keine Partie gespielt",
-    nudgeNone: "Noch nichts gespielt. Ein Hausspieler wartet, wann immer du willst — neun Linien reichen für eine erste Partie vollkommen.",
+    nudgeNone: "Noch nichts gespielt. Ein Hausspieler wartet, wann immer du willst. Neun Linien reichen für eine erste Partie vollkommen.",
     nudgeLessons: {
       one: "Noch {count} Lektion liegt vor dir, und die Rangliste ist den ganzen Tag offen.",
       other: "Noch {count} Lektionen liegen vor dir, und die Rangliste ist den ganzen Tag offen.",
     },
-    nudgeDone: "Alle Lektionen gelesen. Was bleibt, sind Partien — und das Lesen, das mit ihnen kommt.",
+    nudgeDone: "Alle Lektionen gelesen. Was bleibt, sind Partien, und das Lesen, das mit ihnen kommt.",
     findGame: "Finde eine Partie",
     keepLearning: "Lerne weiter",
     resume: {
@@ -67,7 +67,7 @@ export const screens = {
 
   sgf: {
     head: "Eine Partie öffnen",
-    note: "Zieh eine SGF-Datei hierher oder wähle eine aus, und geh sie in der Nachbetrachtung durch. Die Datei bleibt auf deinem Gerät — Joseki hat nirgendwohin, wo es sie senden könnte.",
+    note: "Zieh eine SGF-Datei hierher oder wähle eine aus, und geh sie in der Nachbetrachtung durch. Die Datei bleibt auf deinem Gerät. Joseki hat nirgendwohin, wo es sie senden könnte.",
     choose: "Wähle eine Datei",
     unreadable: "{name} konnte nicht von der Festplatte gelesen werden.",
   },
@@ -77,7 +77,7 @@ export const screens = {
     titleBefore: "Finde eine ",
     titleEm: "Partie",
     titleAfter: ".",
-    lede: "Spiel über das Netz gegen einen anderen Menschen, tritt gegen einen Hausgegner an — jeder mit eigenem Stil und eigener Tischrede — oder reich das Gerät über den Tisch für eine Partie von Angesicht zu Angesicht. Hausspieler passen sich dem Niveau an, das du wählst, von 25 Kyu bis 9 Dan, und spielen auf jedem Brett.",
+    lede: "Spiel über das Netz gegen einen anderen Menschen, tritt gegen einen Hausgegner an, jeder mit eigenem Stil und eigener Tischrede, oder reich das Gerät über den Tisch für eine Partie von Angesicht zu Angesicht. Hausspieler passen sich dem Niveau an, das du wählst, von 25 Kyu bis 9 Dan, und spielen auf jedem Brett.",
     levelGroup: "Niveau, auf dem gespielt wird",
     playAt: "Spielen auf",
     yourLevel: "deinem Niveau",
@@ -142,14 +142,14 @@ export const screens = {
     titleBefore: "Lies es ",
     titleEm: "zu Ende",
     titleAfter: ".",
-    lede: "Klassische Formen — das gemeinfreie Vokabular, auf dem jede ernsthafte Sammlung zu Leben und Tod aufbaut. Eine davon ist das Kata von heute; löse es täglich und deine Anwesenheit wächst.",
+    lede: "Klassische Formen: das gemeinfreie Vokabular, auf dem jede ernsthafte Sammlung zu Leben und Tod aufbaut. Eine davon ist das Kata von heute; löse es täglich und deine Anwesenheit wächst.",
     kataTitle: "Kata des Tages",
     kataChip: "Kata des Tages",
     attendance: {
       one: "Anwesenheit: {count} Tag in Folge.",
       other: "Anwesenheit: {count} Tage in Folge.",
     },
-    wrong: "Die Gruppe antwortet — wir setzen zurück.",
+    wrong: "Die Gruppe antwortet. Wir setzen zurück.",
     reset: "Zurücksetzen",
     next: "Nächstes Problem",
   },
@@ -181,7 +181,7 @@ export const screens = {
     },
     seal: {
       head: "Siegelfarbe",
-      note: "Dein Zeichen auf der Rangliste, im Vorraum und — eines Tages — im ganzen Netz.",
+      note: "Dein Zeichen auf der Rangliste, im Vorraum und, eines Tages, im ganzen Netz.",
       pick: "Siegelfarbe {name}",
     },
     look: {
@@ -218,7 +218,7 @@ export const screens = {
       lessons: "Lektionen",
       tsumego: "Tsumego",
     },
-    device: "Dein Profil lebt auf diesem Gerät. Konten, Freunde und Partieverlauf gleichen sich ab, sobald das Spiel über das Netz kommt — die Form des Profils ist schon serverfertig.",
+    device: "Dein Profil lebt auf diesem Gerät. Konten, Freunde und Partieverlauf gleichen sich ab, sobald das Spiel über das Netz kommt; die Form des Profils ist schon serverfertig.",
     full: " · voll",
     keepThem: "Behalten",
     deja: {
@@ -354,7 +354,7 @@ export const screens = {
     sittingDone: "Sitzung beendet",
     allKept: "Alle, beim ersten Versuch. Sie rücken alle eine Schachtel weiter.",
     someMissed: "Die, die du dir erschließen musstest, beginnen wieder bei einem Tag. Dafür sind sie da: eine Frage, die du dir erschließen musstest, ist eine Frage, die noch nicht sitzt.",
-    recapLine: "{name} \u2014 kommt {when} wieder",
+    recapLine: "{name} \u00b7 kommt {when} wieder",
     cardQuestion: "{title}, Frage {n}",
     counts: "{due} für heute \u00b7 {known} sitzen fest \u00b7 {total} in der Reihe",
     finish: "Abschließen",

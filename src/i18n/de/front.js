@@ -21,7 +21,7 @@ export const front = {
     primerLabel: "Das Spiel",
     primerH2a: "Zwei Spieler. Ein Brett.",
     primerH2b: "Halte mehr davon als sie.",
-    primerLede: "Go ist viertausend Jahre alt und seine Regeln passen auf eine Serviette. Was ein Leben dauert, sind nicht die Regeln — es ist alles, was sich am Ende aus ihnen ergibt.",
+    primerLede: "Go ist viertausend Jahre alt und seine Regeln passen auf eine Serviette. Was ein Leben dauert, sind nicht die Regeln: es ist alles, was sich am Ende aus ihnen ergibt.",
     primer: {
       players: {
         title: "Zwei Spieler, ein Brett",
@@ -57,7 +57,7 @@ export const front = {
       },
       classic: {
         title: "Der Klassiker in {n} Kapiteln",
-        body: "Die Abhandlung von {author}, {era}, zieht sich durch die ganze Anwendung — ein Spruch an der Tür, ein Kapitel neben der Lektion, zu der es gehört, die neun Stufen auf deinem Profil.",
+        body: "Die Abhandlung von {author}, {era}, zieht sich durch die ganze Anwendung: ein Spruch an der Tür, ein Kapitel neben der Lektion, zu der es gehört, die neun Stufen auf deinem Profil.",
       },
       rank: {
         title: "Ein Rang, der etwas bedeutet",
@@ -65,12 +65,12 @@ export const front = {
       },
       rules: {
         title: "{rules} Regelwerke, {rooms} Räume",
-        body: "AGA, japanisch, chinesisch und neuseeländisch — Zählung, Komi und Vorgabeausgleich, jeweils so gemacht, wie es das eigene Buch sagt. Dann stell Raum und Schrift auf deine Augen ein.",
+        body: "AGA, japanisch, chinesisch und neuseeländisch: Zählung, Komi und Vorgabeausgleich, jeweils so gemacht, wie es das eigene Buch sagt. Dann stell Raum und Schrift auf deine Augen ein.",
       },
     },
 
     classicSrc: "Kapitel {n}, {title} · {author}, {era}",
-    classicLede: "Die dreizehn Kapitel sind durch die Anwendung gezogen statt in einer Ecke abgelegt — eine Zeile an der Tür an jedem Tag, und das Kapitel, das zu einer Lektion gehört, neben dieser Lektion.",
+    classicLede: "Die dreizehn Kapitel sind durch die Anwendung gezogen statt in einer Ecke abgelegt: eine Zeile an der Tür an jedem Tag, und das Kapitel, das zu einer Lektion gehört, neben dieser Lektion.",
 
     pathLabel: "Wo anfangen",
     pathH2: "Drei Wochen bis zu einer echten Partie.",
@@ -85,7 +85,7 @@ export const front = {
       },
       3: {
         title: "Lies jeden Tag etwas",
-        body: "Ein Tsumego, ein Spruch, eine Partie. Der Rang folgt von selbst — er ist der einzige Teil, an dem du nicht arbeiten musst.",
+        body: "Ein Tsumego, ein Spruch, eine Partie. Der Rang folgt von selbst: er ist der einzige Teil, an dem du nicht arbeiten musst.",
       },
     },
 
@@ -132,7 +132,7 @@ export const front = {
     ready: {
       eyebrow: "Das ist die Regel",
       title: "Du weißt genug, um zu spielen",
-      lede: "Alles andere — die Eröffnungen, die Formen, das Endspiel — sind Menschen, die herausarbeiten, was daraus folgt. Die Hausspieler sind Bots, als Bots beschriftet, und sie spielen auf jedem Niveau, das du verlangst, beginnend deutlich unter deinem.",
+      lede: "Alles andere (die Eröffnungen, die Formen, das Endspiel) sind Menschen, die herausarbeiten, was daraus folgt. Die Hausspieler sind Bots, als Bots beschriftet, und sie spielen auf jedem Niveau, das du verlangst, beginnend deutlich unter deinem.",
       fine: "Ein Brett von neun mal neun dauert etwa zehn Minuten und ist der Ort, an dem die meisten Spieler anfangen. Die Lektionen sind da, wenn du sie willst.",
       play: "Spiel eine erste Partie",
       look: "Sieh dich erst um",

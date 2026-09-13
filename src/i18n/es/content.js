@@ -4,7 +4,7 @@
    `src/content/translate.js` does the standing-in-front; the shape here mirrors
    the shape there, with array indices as keys.
 
-   A lesson nobody has translated is simply still in English — which is why
+   A lesson nobody has translated is simply still in English, which is why
    these can land one file at a time. */
 export const content = {
   lesson: {
@@ -28,7 +28,7 @@ export const content = {
           wrongText: "Ahí no. Busca el punto vacío que todavía toca la piedra blanca.",
         },
         3: {
-          text: "Las capturas son cómo discutes. El territorio es cómo ganas. Al final, cada lado cuenta los puntos vacíos que ha cercado —las negras arriba a la izquierda, las blancas abajo a la derecha— y la parte mayor se lleva la partida. Ya sabes lo suficiente para jugar una.",
+          text: "Las capturas son cómo discutes. El territorio es cómo ganas. Al final, cada lado cuenta los puntos vacíos que ha cercado (las negras arriba a la izquierda, las blancas abajo a la derecha), y la parte mayor se lleva la partida. Ya sabes lo suficiente para jugar una.",
         },
       },
     },

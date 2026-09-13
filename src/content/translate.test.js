@@ -70,7 +70,7 @@ describe("localizing content", () => {
       }
     };
     walk([...LIBRARY, WELCOME_LESSON]);
-    /* Strings that are data rather than prose: ids, ranks, keys, types — and
+    /* Strings that are data rather than prose: ids, ranks, keys, types, and
        `author`, which is somebody's name and stays their name in every language. */
     const DATA = new Set(["id", "rank", "track", "type", "toPlay", "series", "book", "verdict", "answer", "key", "source", "author"]);
     for (const f of seen) {

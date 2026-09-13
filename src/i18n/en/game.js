@@ -106,7 +106,7 @@ export const game = {
       label: "Chat message",
       send: "Send",
     },
-    local: "Face-to-face games are unrated. Pass the device after each move \u2014 and settle disputes the traditional way: another game.",
+    local: "Face-to-face games are unrated. Pass the device after each move, and settle disputes the traditional way: another game.",
     ceremony: {
       label: "Promoted to {belt}",
       head: "Promotion",

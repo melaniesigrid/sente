@@ -51,7 +51,7 @@ export const COPYRIGHT = `© ${COPYRIGHT_YEAR} ${STUDIO}`;
    being stopped and handed the line where the date lives. */
 export const REVISION = {
   updated: "12 September 2026",
-  stamp: "be912437",
+  stamp: "80fb718f",
 };
 
 /** The day the documents last changed. */
@@ -149,7 +149,7 @@ const TERMS = {
       heading: "What you write stays yours",
       paras: [
         "Your bio, your chat lines and your picture are yours. Putting them into Joseki allows the Studio to store them and to show them where the product shows them: your profile, the room you are playing in, and the record afterwards.",
-        "A game record is a record of a game two people played. Joseki keeps finished games and may show them to the players, to anyone holding the link to that room, and — if either player chooses to show that game on their own page — to anyone who opens that page. A game is two people's, so showing one shows both names, exactly as the room and the ladder already do. What nobody may do is publish a line about somebody else under their own name: the sentence a player writes beside a game they show is attributed to them and is theirs alone.",
+        "A game record is a record of a game two people played. Joseki keeps finished games and may show them to the players, to anyone holding the link to that room, and, if either player chooses to show that game on their own page, to anyone who opens that page. A game is two people's, so showing one shows both names, exactly as the room and the ladder already do. What nobody may do is publish a line about somebody else under their own name: the sentence a player writes beside a game they show is attributed to them and is theirs alone.",
       ],
     },
     {

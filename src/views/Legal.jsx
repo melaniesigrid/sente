@@ -27,7 +27,7 @@ import { BASE_LOCALE } from "../i18n/index.js";
    TRANSLATION
    The documents are offered in the reader's language and say so. A translated
    contract is a courtesy rather than a second contract, so every language but
-   the one they were written in carries a line naming which version governs —
+   the one they were written in carries a line naming which version governs,
    which is the honest half of offering a translation at all. The constants the
    documents are written around arrive as holes rather than copied in, so the
    address to write to is one string in every language. */
