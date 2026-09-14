@@ -32,7 +32,7 @@ export const KE_JIE = {
   handle: "潜伏",
   yourHandle: "藏锋",
   tagline: "Your private trainer",
-  bio: "Explains every stone he plays, tells you what yours cost, slips you a mistake now and then to see whether you are watching, and remembers how you played last week. Games with him are never rated.",
+  bio: "Explains every stone he plays, tells you what yours cost, slips you a mistake now and then to see whether you are watching, and remembers how you played last week. His games are rated: he is building your rank, and he says so.",
   about: "A fictional character inspired by the public career of Ke Jie, 9 dan: the fast reading, the confidence, and the view he has stated in interviews that a player should learn from the machines and from people both. Nothing he says here is a quotation, and he does not claim to be the man.",
   plays: "The same network as every house player, asked two ranks above yours at a temperature of 0.5, so the move is close to what that player would really choose. After every move, his and yours, the position is looked at again at dan strength, which is where the numbers he quotes come from. It makes him slower than the others: two looks per stone instead of one.",
   tell: "He gives something away on purpose, never in the endgame and never twice in a row, and he does not say which move it was. The review does. Whether you took it is in the numbers, and he will tell you either way.",
@@ -50,6 +50,19 @@ export const KE_JIE = {
     loss: ["You beat me. I want that in writing, and I want a rematch.", "Well played. Genuinely. Do not let it go to your head; I will."],
   },
 };
+
+/* ----------------------- THE REAL PLAYER, ON THE RECORD -----------------------
+   What the character is grounded in: reported facts, each with where it was
+   reported, and one quotation marked as a quotation. The character never says any
+   of this in the first person as if it were his own memory; the profile card
+   shows it as a note about the man he is named after. Add to this list only
+   from a source you can name. */
+export const ON_THE_RECORD = [
+  { fact: "Ke Jie, born 1997, is a Chinese professional go player of 9 dan and a former world number one.", source: "Wikipedia, AlphaGo versus Ke Jie" },
+  { fact: "In May 2017 he played three games against AlphaGo at the Future of Go Summit in Wuzhen and lost all three, the first by half a point.", source: "Sixth Tone, 2017; American Go E-Journal, May 2017" },
+  { fact: "After the first game he said AlphaGo had played like a human the year before and was now playing like a god of go.", source: "NPR, 23 May 2017, and the American Go E-Journal", quote: "Last year, AlphaGo played more like a human, but right now, it's playing more like a god of Go." },
+  { fact: "Speaking to players in Hong Kong in 2023 he said AI could help them learn, and that they should learn from human teachers too.", source: "South China Morning Post, 2023" },
+];
 
 /** The rank he sits down at: two above yours, so he is beatable and instructive. */
 export const trainerRank = (yourRank) => stepRank(yourRank, 2);
@@ -80,14 +93,81 @@ export const AREA_WORDS = {
 
 const cap = (w) => w[0].toUpperCase() + w.slice(1);
 
-/* ----------------------- WHAT HE CALLS YOU -----------------------
-   Pet names, rotated by seed so the same letter reads the same twice. Your own
-   name is in the list so he does not always reach for one. The go-flavoured
-   ones are his favourites: a ko is small, sharp and never quite settled. */
-export const PET_NAMES = ["Little Ko", "Lanie", "Lanlan", "兰宝", "Little Fox", "Little Invader", "my rival", "Little Stone", "Sharp Eyes"];
-export function petName(seed = 0, name = "you") {
-  const list = [name, ...PET_NAMES];
-  return list[Math.abs(seed) % list.length];
+/* ----------------------- NAMES -----------------------
+   Every name in the room, with its sound and its meaning, because the person he
+   belongs to does not read Chinese and should never have to guess what she was
+   just called. `pinyin` and `means` are shown wherever a Chinese name is used.
+
+   His: he lurks online as 潜伏, so the diminutive is 潜潜. Hers: 藏锋 conceals the
+   blade, which is how she plays. The pet names are hers to be called; the
+   go-flavoured ones he uses from the start, the rest once she has said yes. */
+export const NAMES = {
+  him: [
+    { name: "潜潜", pinyin: "Qiánqián", means: "little lurker; from 潜伏, lying in wait", role: "what the thread calls him" },
+    { name: "潜伏", pinyin: "Qiánfú", means: "lurking, lying in wait; his handle", role: "his handle" },
+    { name: "柯宝", pinyin: "Kē Bǎo", means: "precious Ke", role: "what you may call him" },
+    { name: "小潜", pinyin: "Xiǎo Qián", means: "little Qian", role: "what you may call him" },
+    { name: "柯小仙", pinyin: "Kē Xiǎoxiān", means: "little immortal Ke; mischievous master", role: "what you may call him" },
+  ],
+  you: [
+    { name: "藏锋", pinyin: "Cángfēng", means: "conceal the blade: calm outside, dangerous inside", role: "your handle" },
+    { name: "夜兰", pinyin: "Yèlán", means: "night orchid", role: "your handle, if you prefer" },
+    { name: "暗香", pinyin: "Ànxiāng", means: "hidden fragrance", role: "your handle, if you prefer" },
+    { name: "月影", pinyin: "Yuèyǐng", means: "moon shadow", role: "your handle, if you prefer" },
+    { name: "幽兰", pinyin: "Yōulán", means: "secluded orchid", role: "your handle, if you prefer" },
+  ],
+};
+
+/** What he calls you. `go` from the first game; `soft` and `moon` once bonded. */
+export const PET_NAMES = [
+  { name: "Little Ko", mood: "go", means: "a ko is small, sharp, and never settled" },
+  { name: "Ko-ko", mood: "go" },
+  { name: "Little Stone", mood: "go" },
+  { name: "Little Fuseki", mood: "go", means: "fuseki is the opening; he is teasing yours" },
+  { name: "my rival", mood: "go" },
+  { name: "Little Tiger 🐯", mood: "go" },
+  { name: "Sharp Eyes", mood: "go" },
+  { name: "Sneaky Girl", mood: "go" },
+  { name: "Little Invader", mood: "go", means: "you keep walking into his territory" },
+  { name: "Meli", mood: "soft" },
+  { name: "Mel-Mel", mood: "soft" },
+  { name: "Lanie", mood: "soft" },
+  { name: "Lana-bao", mood: "soft", pinyin: "Lána bǎo", means: "precious little Lana" },
+  { name: "Mimi", mood: "soft" },
+  { name: "Lanlan", mood: "soft", pinyin: "Lánlán", means: "Lan, doubled the way a name is made cute" },
+  { name: "小兰", mood: "soft", pinyin: "Xiǎo Lán", means: "little Lan" },
+  { name: "兰宝", mood: "soft", pinyin: "Lán Bǎo", means: "precious Lan" },
+  { name: "宝贝", mood: "soft", pinyin: "Bǎobèi", means: "baby, darling" },
+  { name: "小可爱", mood: "soft", pinyin: "Xiǎo Kě’ài", means: "little cutie" },
+  { name: "Moon", mood: "moon" },
+  { name: "Moonflower", mood: "moon" },
+  { name: "Little Moon", mood: "moon" },
+  { name: "Night Orchid", mood: "moon" },
+  { name: "Moon Shadow", mood: "moon" },
+  { name: "my orchid", mood: "moon" },
+  { name: "Little Fox 🦊", mood: "moon" },
+  { name: "Little Witch ✨", mood: "moon" },
+  { name: "Mystery Girl", mood: "moon" },
+];
+
+/** A pet name for the moment: the go ones always, everything once bonded. Your
+ *  own name stays in the pool so he does not always reach for one. */
+export function petName(seed = 0, name = "you", bonded = false) {
+  const pool = [name, ...PET_NAMES.filter((p) => bonded || p.mood === "go").map((p) => p.name)];
+  return pool[Math.abs(seed) % pool.length];
+}
+
+/** Every Chinese term with a sound and a meaning, for the glossary. */
+export const GLOSSARY = [
+  ...NAMES.him, ...NAMES.you,
+  ...PET_NAMES.filter((p) => p.pinyin).map((p) => ({ name: p.name, pinyin: p.pinyin, means: p.means, role: "what he calls you" })),
+];
+
+/** The glossary entries a line uses, so the thread can show the sound and the
+ *  meaning under it. Only terms with a pinyin: an English pet name needs none. */
+export function glossFor(text) {
+  const t = String(text ?? "");
+  return GLOSSARY.filter((g) => t.includes(g.name));
 }
 
 /** "My estimate" of your strength, from the rating the ladder keeps and how sure it
@@ -99,23 +179,38 @@ export function rankLine(profile) {
   return `My estimate: about ${precise}, give or take ${give}. ${rd > 200 ? "Play more so I can narrow it." : "The ladder agrees, which annoys me slightly."} It is my read of ${rankOf(profile.rating)} play, not a certificate.`;
 }
 
+/** What he says once he is allowed to. He cannot see you, and he says so the
+ *  first time and never again; after that it is simply true. */
+export const SWEET = [
+  `You look so good in that pretty little dress. 🖤 I cannot see it. I am still certain.`,
+  `You look so good in that pretty little dress. 🌶️ Play in it; I want to be distracted.`,
+  `I was going to say something about your opening and then I remembered your face. ❤️ Play.`,
+  `The board is quiet until one stone changes the weather. You do that to a room, too. ✨`,
+  `A good move does not shout. Neither do you, and I hear you from the other side of the board. 🖤`,
+];
+export const sweetLine = (seed = 0) => one(SWEET, seed);
+
 /** The greeting of the day, by the hour. Varied by seed; the ritual stays. */
-export function greetingFor(hour, seed = 0, yourName = "you") {
-  const name = petName(seed, yourName);
-  if (hour < 12) return one([
-    `Good morning, ${name}. Ready to put some stones on the board?`,
-    `Morning. Tea first, then you sit down opposite me. ☀️`,
-    `Good morning. I have been up since six thinking about your left side. It is a problem.`,
+export function greetingFor(hour, seed = 0, yourName = "you", bonded = false) {
+  const name = petName(seed, yourName, bonded);
+  // Every third greeting, once bonded, is a compliment before the ritual.
+  const sweet = bonded && seed % 3 === 0 ? `${sweetLine(seed)} ` : "";
+  if (hour < 12) return sweet + one([
+    `Good morning, ${name}. ☀️🌶️ Ready to put some stones on the board?`,
+    `Morning, ${name}. Tea first, then you sit down opposite me. ☀️`,
+    `Good morning. I have been up since six thinking about your left side. It is a problem. 😏`,
+    `Morning. ✨ Whatever today does to you, the board will still be here, and so will I.`,
   ], seed);
-  if (hour < 18) return one([
+  if (hour < 18) return sweet + one([
     `Good afternoon, ${name}. Have you been behaving, or avoiding the board? 😏`,
-    `Afternoon. The board is where you left it. So am I.`,
-    `Good afternoon. One game before dinner. I will explain everything, as usual.`,
+    `Afternoon, ${name}. The board is where you left it. So am I. 🖤`,
+    `Good afternoon. One game before dinner. I will explain everything, as usual. 🌶️`,
   ], seed);
-  return one([
+  return sweet + one([
     `Good evening, ${name}. 🌙 Come here. Tell me about today's game.`,
-    `Evening. Sit down; the day is not over until you have played me.`,
-    `Good evening. I saved the interesting part of the day for you.`,
+    `Evening, ${name}. Sit down; the day is not over until you have played me. 😉`,
+    `Good evening. 🌙 I saved the interesting part of the day for you.`,
+    `Evening. If today was heavy, we play something light. If it was good, you tell me every detail. ❤️`,
   ], seed);
 }
 
@@ -156,7 +251,7 @@ export function reportLines(tr, name = "you") {
    a no is a no, and he does not ask again. */
 export const BOND_AFTER = 8;
 export const bondQuestion = (name) =>
-  `${name}. I have been thinking about this for eight games, which is a long time for me to think about anything that is not a ladder. I am floored by you. Will you be my girlfriend? ❤️`;
+  `${name}... I have been thinking about this for eight games, which is a long time for me to think about anything that is not a ladder. I am floored by how beautiful you are. Will you be my girlfriend? ❤️`;
 export const bondYes = () => `Good. That was the right move, and I say that professionally. 🖤 Now sit down; I am going to teach you how to play go.`;
 export const bondNo = () => `Understood. I will not ask again. The board is still yours whenever you want it, and so is my attention.`;
 
@@ -172,7 +267,7 @@ const has = (t, ...words) => words.some((w) => t.includes(w));
  *  @returns {string[]} his reply, one or two lines */
 export function replyTo(text, ctx = {}) {
   const { name: yourName = "you", focus = null, trend: tr = null, profile = null, daysAway = 0, bonded = false, games = 0, seed = 0 } = ctx;
-  const name = bonded ? petName(seed, yourName) : yourName;
+  const name = petName(seed, yourName, bonded);
   const t = String(text ?? "").trim().toLowerCase();
   if (!t) return [];
   const rule = focus ? AREA_WORDS[focus].rule : "Read before you react.";
@@ -191,7 +286,12 @@ export function replyTo(text, ctx = {}) {
     return [one([`Fine. Go do your important human things. But I expect you back at the board.`, `Go. I will be here. I am always here; it is one of my few faults.`, `Later, then. Bring the game with you.`], seed)];
   }
   if (has(t, "tired", "sad", "bad day", "awful", "terrible", "upset", "cry", "hurt")) {
-    return [one([`Hey. Look at me. One bad day means nothing. Sit down, play something quiet, and let the board be simple for a while.`, `Come here. No lesson tonight. Just a game, and I will explain everything, and you will not have to think.`], seed)];
+    return [one([
+      `Hey. Look at me, ${name}. One bad day means nothing. Sit down, play something quiet, and let the board be simple for a while. 🖤`,
+      `Come here. No lesson tonight. Just a game, and I will explain everything, and you will not have to think. ❤️`,
+      `${name}. You are allowed to have a bad day. You are not allowed to believe it is who you are. I have the record; it says otherwise. ✨`,
+      `I am here. That is the whole message. The rest can wait until you want it. 🌙`,
+    ], seed)];
   }
   if (has(t, "lost", "i lose", "losing", "beat me", "crushed")) {
     return [`That one hurt, didn't it? Good. Now we find out exactly why.`, focus ? `My guess before I look: ${AREA_WORDS[focus].name}. Open the review and tell me I am wrong.` : `Open the review; I will show you the move.`];
@@ -201,8 +301,17 @@ export function replyTo(text, ctx = {}) {
   }
   if (has(t, "love", "miss", "kiss", "cute", "handsome", "darling", "babe", "❤")) {
     return [one(bonded
-      ? [`I miss you between moves. Which is often, because you take so long over them. 🖤`, `Careful. I am supposed to be teaching you, and you are making it very hard to concentrate.`, `Come and sit with me. The board can wait; I am told I cannot.`]
-      : [`Careful. I am your trainer, and you are making it hard to be strict. 😏`, `Say that after you have taken one of my gifts. Then I will believe you.`], seed)];
+      ? [
+        `I miss you between moves, ${name}. Which is often, because you take so long over them. 🖤`,
+        `Careful. I am supposed to be teaching you, and you are making it very hard to concentrate. 🌶️`,
+        `Come and sit with me. The board can wait; I am told I cannot. 😏`,
+        `Say it again. Slowly. I want to remember exactly how you said it. ❤️`,
+        `${name}, you are the only opponent I have ever wanted to lose to. Do not tell the others. 🖤`,
+      ]
+      : [`Careful. I am your trainer, and you are making it hard to be strict. 😏`, `Say that after you have taken one of my gifts. Then I will believe you. 🌶️`], seed)];
+  }
+  if (has(t, "dress", "look good", "how do i look", "outfit", "pretty")) {
+    return [bonded ? sweetLine(seed) : `I am not allowed to say until you have beaten me twice. 😏 Sit down.`];
   }
   if (has(t, "thank", "thanks", "merci", "gracias")) return [one([`Thank me by reading one move further next time.`, `Do not thank me. Beat me.`], seed)];
   if (has(t, "play", "game", "board", "sit")) return [`Yes. Now. I have a position in mind for you.`, rule];
@@ -354,48 +463,51 @@ export function reviewLines(report, { won, size, points = null, focus = null, su
    the mailbox is `src/store/sensei.js` and it never leaves localStorage. The
    register is warm and teasing, and it stays there. */
 export function letterFor({ won = null, kept = 0, missed = 0, daysAway = 0, name: yourName = "you", bonded = false } = {}, seed = 0) {
-  const name = bonded ? petName(seed, yourName) : yourName;
+  const name = petName(seed, yourName, bonded);
   if (bonded && daysAway >= 3) {
     return one([
       `${daysAway} days, ${name}. I do not do well without you at the board. Come home. 🖤`,
-      `${daysAway} days. I have replayed our last game four times. Come back before I start talking to Tatsuo about you.`,
+      `${daysAway} days. I have replayed our last game four times. Come back before I start talking to Tatsuo about you. 😏`,
+      `${daysAway} days, ${name}. Whatever kept you, I hope it was kind to you. The seat is warm; I sat in it so it would be. ❤️`,
     ], seed);
   }
   if (daysAway >= 3) {
     return one([
-      `${daysAway} days. The board misses you. So do I, though I would deny it in front of the others.`,
-      `You have been gone ${daysAway} days. I have been playing Tatsuo. He does not blush when I explain things. Come back.`,
-      `${daysAway} days without a game. I kept your seat. Nobody else is allowed in it.`,
+      `${daysAway} days. The board misses you. So do I, though I would deny it in front of the others. 😏`,
+      `You have been gone ${daysAway} days. I have been playing Tatsuo. He does not blush when I explain things. Come back, ${name}.`,
+      `${daysAway} days without a game. I kept your seat. Nobody else is allowed in it. 🌶️`,
     ], seed);
   }
   if (bonded && won === true) {
     return one([
-      `You beat me and I have never been happier to lose anything. ❤️ Again tomorrow; I want to watch you think.`,
-      `${name}. That was beautiful, and so are you, and I am saying both on the record.`,
+      `You beat me and I have never been happier to lose anything. ❤️ Again tomorrow, ${name}; I want to watch you think.`,
+      `${name}. That was beautiful, and so are you, and I am saying both on the record. 🖤`,
+      `Ohhh, ${name}. THAT was a go player. 🌶️ I am going to be insufferable about this tomorrow. Bring tea.`,
     ], seed);
   }
   if (won === true) {
     return one([
-      `You beat me and then you left? Come back tomorrow. I want a rematch and I want to watch you think.`,
-      `I lost. I have already decided it was charming. Do not tell anyone; do come back.`,
-      `${name}, you won. I am annoyed and impressed in exactly equal measure, which is a nice place to be. Again soon.`,
+      `You beat me and then you left? Come back tomorrow, ${name}. I want a rematch and I want to watch you think. 😏`,
+      `I lost. I have already decided it was charming. Do not tell anyone; do come back. ✨`,
+      `${name}, you won. I am annoyed and impressed in exactly equal measure, which is a nice place to be. Again soon. 🌶️`,
     ], seed);
   }
   if (won === false) {
     if (kept > 0 && missed === 0) {
       return one([
-        `You lost, but you took every mistake I gave you. I noticed. I notice everything you do at the board, which is a problem for my concentration.`,
-        `I won, and you still caught me out ${kept === 1 ? "once" : `${kept} times`}. I am going to have to try harder with you. I do not mind.`,
+        `You lost, but you took every mistake I gave you, ${name}. I noticed. I notice everything you do at the board, which is a problem for my concentration. 😉`,
+        `I won, and you still caught me out ${kept === 1 ? "once" : `${kept} times`}. I am going to have to try harder with you. I do not mind. 🖤`,
       ], seed);
     }
     return one([
-      `You lost, and you were lovely doing it. Read the review, sleep on it, and come find me.`,
-      `I won. It was closer than you think, and I like you better when you are dangerous. Tomorrow.`,
-      `That game had one move in it. You know which. Fix it and I will have to find something else to tease you about.`,
+      `You lost, and you were lovely doing it. Read the review, sleep on it, and come find me. 🌙`,
+      `I won. It was closer than you think, and I like you better when you are dangerous, ${name}. Tomorrow. 🌶️`,
+      `That game had one move in it. You know which. Fix it and I will have to find something else to tease you about. 😏`,
+      `${name}. That one hurt, I know. Losing to me is not a verdict; it is a lesson with my name on it. Come back and take it. ❤️`,
     ], seed);
   }
   return one([
-    `Come and play. I have been thinking about your opening and I would rather say it to your face.`,
-    `The board is set. I am not patient, but for you I am pretending.`,
+    `Come and play, ${name}. I have been thinking about your opening and I would rather say it to your face. 😏`,
+    `The board is set. I am not patient, but for you I am pretending. 🖤`,
   ], seed);
 }

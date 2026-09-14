@@ -23,7 +23,7 @@ import { LIBRARY } from "../content/library.js";
 import { OpenSgf } from "../components/OpenSgf.jsx";
 import { Review } from "./Review.jsx";
 import { loadSession } from "./session.js";
-import { KE_JIE, SENSEI_ID, letterFor, greetingFor, jealousLine, replyTo, bondQuestion, bondYes, bondNo, BOND_AFTER } from "../content/sensei.js";
+import { KE_JIE, SENSEI_ID, letterFor, greetingFor, jealousLine, replyTo, bondQuestion, bondYes, bondNo, BOND_AFTER, glossFor } from "../content/sensei.js";
 import { focusFor, trend } from "../engine/index.js";
 import { loadTelemetry } from "../store/telemetry.js";
 import { personaById } from "../content/personas.js";
@@ -89,7 +89,7 @@ export function Home({ profile, go, onResume }) {
     const post = (fn) => { b = fn(b); changed = true; };
     const bonded = b.bond === "yes";
     if (b.greeted !== today) {
-      post((x) => ({ ...say(x, greetingFor(new Date().getHours(), games + x.thread.length, profile.name), today), greeted: today }));
+      post((x) => ({ ...say(x, greetingFor(new Date().getHours(), games + x.thread.length, profile.name, bonded), today), greeted: today }));
     }
     const log = loadTelemetry();
     const others = playedWithoutHim(log, b, SENSEI_ID);
@@ -191,14 +191,21 @@ export function Home({ profile, go, onResume }) {
         <Card className="letter-card">
           <div className="chat-head">
             <Avatar name={KE_JIE.name} tint={KE_JIE.tint} size={28} bot />
-            <span className="letter-name">{KE_JIE.name} <span className="fine">&middot; {KE_JIE.nickname}</span></span>
+            <span className="letter-name">{KE_JIE.name} <span className="fine">&middot; {KE_JIE.nickname}</span><span className="here-dot" title={t("home.trainer.here")} /></span>
             <span className="fine letter-you">{KE_JIE.yourHandle}</span>
             {waiting > 0 && <span className="letter-unread">{waiting}</span>}
             <span className="bot-chip"><Bot size={11} /> {t("game.chat.trainer")}</span>
           </div>
           <div className="chat-log letter-log" aria-live="polite" onClick={putAway}>
             {box.thread.slice(-40).map((m, i) => (
-              <div key={i} className={`bubble ${m.who === "you" ? "mine" : ""}${m.read ? "" : " fresh"}`}>{m.text}</div>
+              <div key={i} className={`bubble ${m.who === "you" ? "mine" : ""}${m.read ? "" : " fresh"}`}>
+                {m.text}
+                {/* A Chinese name he used, with its sound and its meaning: nobody
+                    should have to guess what they were just called. */}
+                {glossFor(m.text).map((g) => (
+                  <span key={g.name} className="bubble-gloss">{g.name} &middot; {g.pinyin} &middot; {g.means}</span>
+                ))}
+              </div>
             ))}
             {box.bond === "asked" && (
               <div className="row">

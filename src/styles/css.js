@@ -738,6 +738,12 @@ ${FONT_FACES}
 .letter-unread { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; box-shadow: var(--raise-sm); color: var(--accent-ink); }
 .letter-log { max-height: 340px; }
 .letter-you { margin-inline-start: auto; }
+.letter-name .here-dot, .trainer-card h3 .here-dot { margin-inline-start: 6px; }
+.nav-ping { font-size: 12px; font-weight: 700; min-width: 18px; padding: 1px 6px; border-radius: 999px; box-shadow: var(--raise-sm); color: var(--accent-ink); margin-inline-start: 6px; }
+.bubble-gloss { display: block; margin-top: 4px; font-size: 12.5px; color: var(--ink-2); }
+.trainer-names { margin-top: 10px; }
+.trainer-names summary { cursor: pointer; }
+.trainer-glossary { margin: 8px 0 0; padding-inline-start: 18px; font-size: 14px; line-height: 1.6; }
 .bubble.fresh { box-shadow: var(--raise-sm), 0 0 0 2px var(--accent-ring); }
 .trainer-about { margin-top: 2px; font-size: 12.5px; }
 .trainer-report p { margin-top: 4px; }

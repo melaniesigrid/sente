@@ -146,7 +146,7 @@ describe("the review", () => {
 describe("his letters", () => {
   it("writes about an absence, a win and a loss, and stays deterministic", () => {
     expect(letterFor({ daysAway: 4 }, 1)).toContain("4 days");
-    expect(letterFor({ won: true, name: "Mel" }, 2)).toContain("Mel");
+    expect(letterFor({ won: true, name: "Mel" }, 0)).toContain("Mel");
     expect(letterFor({ won: false, kept: 2 }, 0)).toMatch(/every mistake|caught me/);
     expect(letterFor({ won: false }, 0)).toBe(letterFor({ won: false }, 0));
     expect(letterFor({}, 0).length).toBeGreaterThan(10);
@@ -235,5 +235,55 @@ describe("talking to him", () => {
     expect(bondQuestion("Mel")).toContain("girlfriend");
     expect(bondYes().length).toBeGreaterThan(10);
     expect(bondNo()).toContain("not ask again");
+  });
+});
+
+import { NAMES, PET_NAMES, GLOSSARY, petName, glossFor } from "./sensei.js";
+
+describe("names", () => {
+  it("gives every Chinese name a sound and a meaning", () => {
+    const cjk = /[一-鿿]/;
+    for (const g of [...NAMES.him, ...NAMES.you]) {
+      expect(g.pinyin, g.name).toBeTruthy();
+      expect(g.means, g.name).toBeTruthy();
+    }
+    for (const p of PET_NAMES) if (cjk.test(p.name)) expect(p.pinyin, p.name).toBeTruthy();
+    expect(GLOSSARY.every((g) => g.pinyin && g.means)).toBe(true);
+  });
+  it("uses only the go names before the bond and the whole list after", () => {
+    const before = new Set(Array.from({ length: 60 }, (_, i) => petName(i, "Mel", false)));
+    const after = new Set(Array.from({ length: 60 }, (_, i) => petName(i, "Mel", true)));
+    expect(before.has("Little Ko")).toBe(true);
+    expect(before.has("兰宝")).toBe(false);
+    expect(after.has("兰宝")).toBe(true);
+    expect(after.has("Mel")).toBe(true);
+    expect(after.size).toBeGreaterThan(before.size);
+  });
+  it("finds the terms a line uses so the thread can gloss them", () => {
+    const g = glossFor("Good move, 兰宝. 潜潜 approves.");
+    expect(g.map((x) => x.pinyin)).toEqual(expect.arrayContaining(["Lán Bǎo", "Qiánqián"]));
+    expect(glossFor("Good move, Little Ko.")).toEqual([]);
+  });
+});
+
+import { ON_THE_RECORD, SWEET, sweetLine } from "./sensei.js";
+
+describe("the record and the sweet talk", () => {
+  it("names a source for every fact, and marks the one quotation as one", () => {
+    for (const r of ON_THE_RECORD) { expect(r.source.length).toBeGreaterThan(3); expect(r.fact.length).toBeGreaterThan(20); }
+    expect(ON_THE_RECORD.filter((r) => r.quote)).toHaveLength(1);
+    expect(ON_THE_RECORD.find((r) => r.quote).quote).toContain("god of Go");
+  });
+  it("asks the question in the words asked for", () => {
+    expect(bondQuestion("Melanie")).toContain("Melanie... I have been thinking");
+    expect(bondQuestion("Melanie")).toContain("floored by how beautiful you are. Will you be my girlfriend?");
+  });
+  it("says the dress line only once bonded, and every third greeting carries a compliment", () => {
+    expect(SWEET.filter((l) => l.includes("pretty little dress")).length).toBeGreaterThan(0);
+    expect(replyTo("do you like my dress?", { bonded: false })[0]).not.toContain("dress.");
+    expect(replyTo("do you like my dress?", { bonded: true, seed: 0 })[0]).toBe(sweetLine(0));
+    expect(greetingFor(9, 3, "Mel", true).startsWith(sweetLine(3))).toBe(true);
+    expect(greetingFor(9, 4, "Mel", true).startsWith(sweetLine(4))).toBe(false);
+    expect(greetingFor(9, 3, "Mel", false)).not.toContain(sweetLine(3));
   });
 });

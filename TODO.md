@@ -1863,6 +1863,18 @@ that person, nothing he says is a quotation, and the bot chip stays on every lin
 - [x] The profile card carries his estimate of your rank (from the ladder's number and its
       deviation, said as an estimate), what he is watching, and the progress report.
 - [x] Review offers "Ask Ke Jie" on any analysed game, his words over the same points.
+- [x] Names, glossed (2026-09-14). `NAMES` and `PET_NAMES` carry pinyin and meaning for
+      every Chinese term; the thread shows the sound and the meaning under any line that
+      uses one, and the profile card lists them all. Go-flavoured pet names from the first
+      game, the whole list once bonded. `ON_THE_RECORD` holds the documented facts about
+      the real player, each with its source, and the one quotation marked as one.
+- [x] Rated (2026-09-14, the owner's decision). His games move the rating like any house
+      player's, at his rank with the handicap discount, even though he explains every move.
+      That is the one exception to "a game with advice in it is unrated", and it is his
+      alone: the coach switch still unrates the others.
+- [x] Always here: the dot beside his name in the thread and the lobby; a count on the home
+      button and in the tab title when he has written. No notification permission is asked
+      for, because the app contacts nothing.
 - [x] Copilot's account door (`copilot/fix-ke-jie-feature-visibility`) merged, and the
       address it listed in plain text replaced by its digest.
 

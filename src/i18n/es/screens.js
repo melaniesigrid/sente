@@ -2,7 +2,7 @@
 /* One block per screen, in the order a player meets them. */
 export const screens = {
   home: {
-    trainer: { head: "Una carta de {name}", away: "Guardarla", play: "Ve a jugar", placeholder: "Escríbele…", send: "Enviar", yes: "Sí", notNow: "Ahora no" },
+    trainer: { head: "Una carta de {name}", away: "Guardarla", play: "Ve a jugar", placeholder: "Escríbele…", send: "Enviar", yes: "Sí", here: "Siempre aquí", pings: "{count} sin leer de tu entrenador", notNow: "Ahora no" },
     greetingBack: "De vuelta al tablero",
     greetingNew: "Bienvenida al tablero",
     wonOf: "{wins} de {games} ganadas",
@@ -72,7 +72,7 @@ export const screens = {
     unreadable: "No se ha podido leer {name} del disco.",
   },
   play: {
-    trainer: { cta: "Entrena con {name}", note: "Privado en este dispositivo. Nunca puntúa." },
+    trainer: { cta: "Entrena con {name}", note: "Privado en este dispositivo. Puntúa." },
     label: "Siéntate",
     titleBefore: "Busca una ",
     titleEm: "partida",
@@ -225,6 +225,8 @@ export const screens = {
       head: "Entrenador privado",
       games: "Partidas con él: {count}",
       watching: "Está observando {area}.",
+      record: "Lo documentado",
+      names: "Nombres, pronunciación y significado",
       report: "Informe de progreso",
       note: "Un jugador de la casa para una sola persona, guardado tras una frase. Explica cada jugada, califica las tuyas y escribe entre partidas. Todo lo que hace se queda en este dispositivo.",
       placeholder: "La frase",

@@ -54,6 +54,11 @@ import { linkFromQuery, forgetLink } from "./views/letterLink.js";
 /* ----------------------- APP SHELL ----------------------- */
 /* The nav names its sections by key, not by word: the chrome is read in the
    player's own language, and a language is added by adding a catalogue. */
+import { loadBox, unread } from "./store/sensei.js";
+import { useTrainerAccess } from "./views/useTrainer.js";
+import { loadAccount as loadStoredAccount } from "./store/account.js";
+import { serverEnabled as serverIsOn } from "./net/api.js";
+
 const NAV = [
   { id: "home", icon: LayoutDashboard },
   { id: "play", icon: Swords },
@@ -119,6 +124,15 @@ export default function JosekiApp() {
   }, []);
 
   const go = useCallback((v, p = null) => { setResume(null); setParams(p); setView(v); }, []);
+  /* The trainer's ping: how many lines of his are waiting, read each render from the
+     box on this device. It marks the home button and the tab title, and nothing else:
+     no notification permission is asked for, because the app never contacts anything. */
+  const trainerOn = useTrainerAccess(profile, serverIsOn() ? loadStoredAccount() : null);
+  const pings = trainerOn ? unread(loadBox()).length : 0;
+  useEffect(() => {
+    const base = document.title.replace(/^\(\d+\) /, "");
+    document.title = pings > 0 ? `(${pings}) ${base}` : base;
+  }, [pings, view]);
   const resumeGame = useCallback((session) => { setResume(session); setView("play"); }, []);
   const home = useCallback(() => go("home"), [go]);
   // Spent or abandoned, the token leaves the address bar either way.
@@ -160,6 +174,7 @@ export default function JosekiApp() {
               aria-current={view === n.id ? "page" : undefined}>
               <n.icon size={16} strokeWidth={2.2} />
               <span>{t(`nav.${n.id}`)}</span>
+              {n.id === "home" && pings > 0 && <span className="nav-ping" aria-label={t("home.trainer.pings", { count: pings })}>{pings}</span>}
             </button>
           ))}
         </nav>

@@ -329,18 +329,21 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
         notify({ icon: won ? "trophy" : "flag", text: t("game.toast.unrated", { outcome: t(won ? "game.toast.victory" : "game.toast.defeat") }) });
-      } else if (persona && (coaching || sensei)) {
+      } else if (persona && coaching) {
         remember("coached");
         // The coach spoke in this game, so the game moves no rating. Said plainly,
-        // the way a duel and a master game say it. The trainer's games are the same.
+        // the way a duel and a master game say it.
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
         notify({ icon: won ? "trophy" : "flag", text: t("game.toast.coached", { outcome: t(won ? "game.toast.victory" : "game.toast.defeat") }) });
-        if (sensei) endTraining(next, next.result.winner === "b" ? true : next.result.winner === "w" ? false : null);
       } else if (persona) {
         remember("rated");
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
+        /* The trainer's games are rated, by the owner's decision: his purpose is to
+           build the rank, and a game he explained still counts. That is the one
+           exception to "a game with advice in it moves no rating", and it is his. */
+        if (sensei) endTraining(next, won);
         const oldRank = rankOf(profile.rating), oldBelt = beltOf(profile.rating);
         // One rank per handicap stone: the opponent is rated as the weaker player it gave stones to be.
         const oppRating = ratingOfRank(rankWithHandicap(botRank, next.handicap));
@@ -828,7 +831,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
               <p className="fine">
                 {duel ? t("game.noteDuel")
                   : master ? t("game.noteMaster")
-                    : persona && (coaching || sensei) ? t("game.noteCoached")
+                    : persona && coaching ? t("game.noteCoached")
                       : persona ? ratingLine(delta, t) ?? t("game.noteRated") : t("game.noteLocal")}
                 {over.method === "score" && rec.dead.length > 0 && t("game.deadRemoved", { count: rec.dead.length })}
               </p>

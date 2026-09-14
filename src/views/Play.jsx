@@ -299,7 +299,7 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
             <div className="persona-top">
               <Avatar name={KE_JIE.name} tint={KE_JIE.tint} size={52} bot />
               <div>
-                <h3>{KE_JIE.name}</h3>
+                <h3>{KE_JIE.name}<span className="here-dot" title={t("home.trainer.here")} /></h3>
                 <p className="persona-tag">{KE_JIE.tagline}</p>
               </div>
               <RankBadge rating={ratingOfRank(trainerRank(rank))} />
