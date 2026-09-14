@@ -2,13 +2,16 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
   ChevronLeft, Flag, RotateCcw, RefreshCw, Trophy, Timer, CircleDot, Scale, History,
   MessageCircle, Bot, Send, User, Handshake, Check, Download, Undo2, Award, GraduationCap, X,
-  Sparkle,
+  Sparkle, BookOpenText,
 } from "lucide-react";
 import {
   createGame, play, pass, resign, timeout, undo, markDead, acceptScore, scoreBoard, chainsInAtari, idx,
   lastMoveIndex, aiChooseMoveForRecord, kataChooseMoveForRecord, profileForRank, loadModel, onModelProgress, modelReady,
   toSgf, IllegalMoveError, GLICKO, rateAgainst, detectShapes,
+  withMoveComment, evaluatePosition, seedAnalysis, describeMove, policyStanding, giftDue, pickGift, trainerReport,
 } from "../engine/index.js";
+import { ownMoveLine, yourMoveLine, reviewLines, letterFor } from "../content/sensei.js";
+import { loadBox, saveBox, postLetter } from "../store/sensei.js";
 import { Board } from "../components/Board.jsx";
 import { ClockFace } from "../components/Clock.jsx";
 import { Card, Btn, Pill, Avatar, RankBadge, BeltRibbon } from "../components/ui.jsx";
@@ -94,6 +97,12 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
      Joseki does not put a number on the screen it cannot stand behind. Master games
      are therefore unrated, and the table says so. */
   const master = mode.master ?? null;
+  /* The private trainer. A house player that explains every move, grades yours,
+     gives something away on purpose now and then and reviews the game at the end.
+     Never rated, like a coached game, and never a duel or a master. His evaluation
+     points are the same shape the review graph is drawn from, so the graph is
+     already there when review opens. See src/content/sensei.js. */
+  const sensei = !!(persona && persona.sensei);
   // The rank this game is played at; house players adapt to it. A duel fixes it by the
   // day so everyone meets the same opponent; otherwise it defaults to the player's own.
   const botRank = persona && !master ? (duel ? duel.rank : (mode.rank ?? rankOf(profile.rating))) : null;
@@ -133,6 +142,12 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const [memory, setMemory] = useState(loadMemory);
   const [spoken, setSpoken] = useState(() => mode.spoken ?? {});
   const lastChatterMove = useRef(-99);              // the coach yields to table talk
+  const trainerPoints = useRef([]);                // the trainer's evaluation, one point per position looked at
+  const trainerGifts = useRef([]);                 // [{ move, best }] the mistakes he made on purpose
+  const trainerOwnMoves = useRef(0);               // how many stones he has played this game
+  const trainerLastGift = useRef(null);            // his own-move count at the last gift
+  const trainerQueue = useRef(Promise.resolve());  // network calls in order, so points land in order
+  const [trainerReview, setTrainerReview] = useState(null);  // his paragraphs, once the game has ended
   const resumed = useRef(false);                   // the resume effect runs once, StrictMode or not
   const alive = useRef(true);
   const chatEndRef = useRef(null);
@@ -246,6 +261,27 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     }
   }, [sound, persona]);
 
+  /* The trainer's report. Written from the points gathered as the game went, so it
+     costs nothing at the end; the same points seed the review graph. A letter goes
+     to the mailbox on this device, and nowhere else. */
+  const endTraining = useCallback((next, won) => {
+    const points = trainerPoints.current;
+    const report = trainerReport(points, trainerGifts.current, "b");
+    setTrainerReview(reviewLines(report, { won, size: next.size }));
+    if (points.length) seedAnalysis(next, points);
+    const gifts = report.gifts;
+    const box = loadBox();
+    const today = dayKey();
+    saveBox({
+      ...postLetter(box, letterFor({
+        won, name: profile.name,
+        kept: gifts.filter((g) => g.kept === true).length,
+        missed: gifts.filter((g) => g.kept === false).length,
+      }, next.moves.length), today),
+      lastGame: today,
+    });
+  }, [profile.name]);
+
   /* A rated game settles exactly once: only on the transition into `ended`, and
      the new profile is computed from the current prop so a double-invoked updater
      (StrictMode) cannot save or toast twice. A belt change is a ceremony; a rank
@@ -290,13 +326,14 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
         notify({ icon: won ? "trophy" : "flag", text: t("game.toast.unrated", { outcome: t(won ? "game.toast.victory" : "game.toast.defeat") }) });
-      } else if (persona && coaching) {
+      } else if (persona && (coaching || sensei)) {
         remember("coached");
         // The coach spoke in this game, so the game moves no rating. Said plainly,
-        // the way a duel and a master game say it.
+        // the way a duel and a master game say it. The trainer's games are the same.
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
         notify({ icon: won ? "trophy" : "flag", text: t("game.toast.coached", { outcome: t(won ? "game.toast.victory" : "game.toast.defeat") }) });
+        if (sensei) endTraining(next, next.result.winner === "b" ? true : next.result.winner === "w" ? false : null);
       } else if (persona) {
         remember("rated");
         const won = next.result.winner === "b";
@@ -327,7 +364,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       }
     }
     return next;
-  }, [persona, duel, master, botRank, profile, say, setProfile, notify, sound, coaching, t]);
+  }, [persona, duel, master, botRank, profile, say, setProfile, notify, sound, coaching, t, sensei, endTraining]);
 
   /* The clock. Running out of time is a rule, so the flag goes through the engine's
      `timeout` and settles through the same `conclude` a resignation does: a loss on
@@ -341,10 +378,96 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     preset: rec.clock, rec, timed: persona ? "b" : "bw", onFlag,
   });
 
+  /* One network call at a time, in the order they were asked, so the trainer's
+     points arrive in move order and a grade never reads a position it has not
+     looked at yet. A call that fails resolves null; the game never waits on it. */
+  const trainerAsk = useCallback((fn) => {
+    const run = trainerQueue.current.then(fn, fn).catch(() => null);
+    trainerQueue.current = run.then(() => undefined, () => undefined);
+    return run;
+  }, []);
+  const notePoint = useCallback((p) => {
+    if (!p || !alive.current) return;
+    const have = trainerPoints.current;
+    if (have.some((q) => q.move === p.move)) return;
+    trainerPoints.current = [...have, p].sort((a, b) => a.move - b.move);
+  }, []);
+
+  /* The trainer's turn. Three things, in order: your last move is looked at and
+     graded against the position before it; his own move is chosen, sometimes as a
+     gift; and once it has landed, the new position is looked at for the graph and
+     for grading your reply. Both his sentence and yours go into the record as SGF
+     comments, so the review and the download carry them. */
+  const senseiTurn = useCallback((r) => {
+    setThinking(true);
+    const started = Date.now();
+    const wait = (ms) => new Promise((res) => { thinkTimer.current = setTimeout(res, ms); });
+    (async () => {
+      const here = await trainerAsk(() => evaluatePosition(r));
+      if (!alive.current) return;
+      let r2 = r;
+      const lastMv = r.moves.length ? r.moves[r.moves.length - 1] : null;
+      if (lastMv && lastMv.color === "b" && (lastMv.type === "play" || lastMv.type === "pass")) {
+        const before = undo(r);
+        const mv = lastMv.type === "play" ? [lastMv.c, lastMv.r] : null;
+        const facts = describeMove(before, r, mv);
+        const prev = trainerPoints.current.find((q) => q.move === r.moves.length - 1) ?? null;
+        const standing = prev ? policyStanding(prev.top, mv) : null;
+        const cost = prev && here ? prev.black - here.black : null;
+        const line = yourMoveLine(facts, standing, cost);
+        say(line);
+        r2 = withMoveComment(r, line);
+      }
+      notePoint(here);
+
+      const ask = { ...profileForRank(botRank, persona.profile.temperature), oppRank: rankOf(profile.rating) };
+      const res = await trainerAsk(() => kataChooseMoveForRecord(r2, ask));
+      if (!alive.current) return;
+      let mv = res ? res.move : aiChooseMoveForRecord(r2, persona.weights);
+      let gift = false;
+      if (res) {
+        trainerOwnMoves.current += 1;
+        const due = giftDue({
+          ownMoves: trainerOwnMoves.current, moveNumber: r2.moves.length + 1, size: r2.size, lastGift: trainerLastGift.current,
+        });
+        const g = due ? pickGift(res.top) : null;
+        if (g) {
+          mv = g.move; gift = true;
+          trainerLastGift.current = trainerOwnMoves.current;
+          trainerGifts.current = [...trainerGifts.current, { move: r2.moves.length + 1, best: g.best }];
+        }
+      }
+      await wait(Math.max(0, 380 + Math.random() * 500 - (Date.now() - started)));
+      if (!alive.current) return;
+      let next;
+      let played = mv;
+      if (mv) {
+        try { next = play(r2, mv[0], mv[1]); } catch { next = pass(r2); played = null; }
+      } else {
+        next = pass(r2);
+      }
+      const facts = describeMove(r2, next, played);
+      const standing = res ? policyStanding(res.top, played) : null;
+      const line = ownMoveLine(facts, standing, { gift });
+      next = withMoveComment(next, line);
+      setThinking(false);
+      say(line);
+      if (played) {
+        const caps = next.lastCaptured.length;
+        if (caps >= 2) say(pick(persona.chat.botCapture));
+        afterMove(next, "w");
+      }
+      setRec(conclude(next, r));
+      // The position he left you, for the graph and for grading what you do with it.
+      trainerAsk(() => evaluatePosition(next)).then(notePoint);
+    })().catch(() => { if (alive.current) setThinking(false); });
+  }, [persona, botRank, profile.rating, say, conclude, afterMove, trainerAsk, notePoint]);
+
   /* Ask the human network what a player of the persona's rank would do; if it is
      unavailable (offline, old browser) the heuristic house player answers instead.
      A short minimum delay keeps the reply from feeling instant. */
   const botTurn = useCallback((r) => {
+    if (sensei) { senseiTurn(r); return; }
     setThinking(true);
     const started = Date.now();
     const settle = (mv) => {
@@ -388,13 +511,15 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     kataChooseMoveForRecord(r, ask)
       .then((res) => { if (res) settle(res.move); else if (duel || master) unreachable(); else settle(fallback()); })
       .catch(() => { if (duel || master) unreachable(); else settle(fallback()); });
-  }, [persona, duel, master, botRank, profile.rating, say, conclude, afterMove]);
+  }, [persona, duel, master, botRank, profile.rating, say, conclude, afterMove, sensei, senseiTurn]);
 
   // A resumed game, or a fresh handicap game, may be waiting on the house player.
   useEffect(() => {
     if (resumed.current) return;
     resumed.current = true;
     if (persona && rec.phase === "playing" && rec.toPlay === "w" && !thinking) botTurn(rec);
+    // The trainer looks at the opening position too, so your first move can be graded.
+    else if (sensei && rec.phase === "playing" && rec.moves.length === 0) trainerAsk(() => evaluatePosition(rec)).then(notePoint);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -570,8 +695,14 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     setConfirmCoach(false);
     setSpoken({});
     lastChatterMove.current = -99;
+    trainerPoints.current = [];
+    trainerGifts.current = [];
+    trainerOwnMoves.current = 0;
+    trainerLastGift.current = null;
+    setTrainerReview(null);
     // With a handicap White opens, and White is the house player.
     if (persona && fresh.toPlay === "w") botTurn(fresh);
+    else if (sensei) trainerAsk(() => evaluatePosition(fresh)).then(notePoint);
   };
 
   const downloadSgf = () => {
@@ -690,7 +821,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
               <p className="fine">
                 {duel ? t("game.noteDuel")
                   : master ? t("game.noteMaster")
-                    : persona && coaching ? t("game.noteCoached")
+                    : persona && (coaching || sensei) ? t("game.noteCoached")
                       : persona ? ratingLine(delta, t) ?? t("game.noteRated") : t("game.noteLocal")}
                 {over.method === "score" && rec.dead.length > 0 && t("game.deadRemoved", { count: rec.dead.length })}
               </p>
@@ -733,11 +864,20 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
               {deja && <div key={deja} className="deja"><Sparkle size={14} /><span>{deja}</span></div>}
             </Card>
           )}
+          {sensei && trainerReview && (
+            <Card className="trainer-review">
+              <div className="stat-head"><BookOpenText size={15} /><span>{t("game.trainer.reviewHead", { name: persona.name })}</span></div>
+              {trainerReview.map((para, i) => <p key={i} className="lesson-text">{para}</p>)}
+              <div className="row">
+                <Btn icon={History} small primary onClick={() => setReviewing(true)}>{t("game.trainer.walk")}</Btn>
+              </div>
+            </Card>
+          )}
           {persona ? (
             <Card className="chat-card">
               <div className="chat-head">
                 <MessageCircle size={15} /><span>{t("game.chat.head")}</span>
-                {!duel && !master && (
+                {!duel && !master && !sensei && (
                   <button
                     type="button"
                     className={`coach-toggle${coaching ? " on" : ""}${confirmCoach ? " asking" : ""}`}
@@ -750,7 +890,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
                     {t(coaching ? "game.chat.coachOn" : confirmCoach ? "game.chat.coachAsk" : "game.chat.coachOff")}
                   </button>
                 )}
-                <span className="bot-chip"><Bot size={11} /> {t(duel ? "game.chat.todayHost" : "game.chat.housePlayer")}</span>
+                <span className="bot-chip"><Bot size={11} /> {t(duel ? "game.chat.todayHost" : sensei ? "game.chat.trainer" : "game.chat.housePlayer")}</span>
               </div>
               <div className="chat-log" aria-live="polite">
                 {chat.map((m, i) => (

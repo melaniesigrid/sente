@@ -54,6 +54,7 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
   const numbers = useMemo(() => (showNumbers ? moveNumbers(record, n) : null), [showNumbers, record, n]);
   const caps = useMemo(() => captureMoves(record), [record]);
   const marker = useMemo(() => markerAt(record, n), [record, n]);
+  const note = at.moves.length ? (at.moves[at.moves.length - 1].comment ?? null) : (at.comment ?? null);
 
   /* Moving to another position leaves the line behind. A line belongs to the position
      it started from, and carrying it along would show stones from a variation on top
@@ -151,6 +152,10 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
             numbers={line ? null : numbers} captured={[]} marks={marks}
             coordinates={profile.coordinates} mark={profile.lastMoveMark ?? "dot"} />
           {refused && <p className="review-refused" role="alert">{refused}</p>}
+          {/* A comment on the move, when the record carries one: a trainer's note, or
+              whatever the SGF that was opened had to say. The game's own line, never a
+              variation's, because a variation is scratch and has no comments to show. */}
+          {!line && note && <p className="review-note">{note}</p>}
           {line ? (
             <div className="row review-controls">
               <Btn icon={Undo2} small onClick={undoTry}>{t("review.takeBack")}</Btn>

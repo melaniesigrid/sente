@@ -90,7 +90,9 @@ export const game = {
     captures: { b: "黒のアゲハマ：{n}", w: "白のアゲハマ：{n}" },
     hintsOn: " · アタリの合図あり",
     keys: " · P でパス、U で待った",
+    trainer: { reviewHead: "{name}の講評", walk: "一手ずつ辿る" },
     chat: {
+      trainer: "専属の師匠",
       head: "盤側の話",
       coachOnTitle: "この対局はコーチが入っていて、レートなしです。",
       coachOffTitle: "打った形の名前を、相手に呼んでもらえます。この対局はこれ以降ずっとレートなしになります。",

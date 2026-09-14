@@ -1803,6 +1803,49 @@ Later, in order: the club and chat, then the game archive (cap, eviction, localS
 versus Durable Objects, all open), then Neo-Human pair go, which is a seat-model change in
 the multiplayer Worker and is unrated for the same reason coached games are.
 
+## The private trainer (2026-09-13, branch `feat/ke-jie`)
+
+A house player for one person, for research: he explains every stone he plays, grades
+every stone you play, gives something away on purpose now and then, reviews the game
+when it ends and writes between games. Named Ke Jie at the owner's request; he is not
+that person, nothing he says is a quotation, and the bot chip stays on every line.
+
+- [x] Behind a phrase. `profile.sensei` is off by default and is set only by typing the
+      phrase on the profile page; the code holds its SHA-256 (`SENSEI_DIGEST` in
+      `src/content/sensei.js`), never the phrase. He is not in `PERSONAS`, so the ladder,
+      the lobby's persona list, the duel and every house-player page are untouched.
+- [x] `src/engine/explain.js`: what the board says about one stone (line, region, phase,
+      contact, atari, capture, escape, connection, self-atari, tenuki, shapes) and where a
+      played move stood on the network's shortlist. Facts only; no opinion lives here.
+- [x] `src/engine/sensei.js`: when a gift is due (never in the first six of his moves, never
+      twice within five, never in the endgame), what a gift is (a shortlist move at most
+      40% as likely as the top one and at least 4%), whether the reply kept it, and the
+      report on a finished game. All arithmetic on the same points the review graph draws.
+- [x] `evaluatePosition` and `seedAnalysis` in `src/engine/kata/analyse.js`: one position
+      looked at at dan strength, and a walk somebody else did handed to the cache, so
+      review of a trainer game opens with its graph already drawn.
+- [x] `src/content/sensei.js`: the persona, his voice for his moves and yours, the review
+      paragraphs, and the letters. Every sentence is composed from checked facts.
+- [x] `src/store/sensei.js`: the mailbox (twenty letters, this device only) and the phrase.
+- [x] The table: your move is graded against the position before it and both sentences go
+      into the record as SGF comments, so review and the download carry them. Network calls
+      are queued so points land in order. Games are unrated, like coached ones; the coach
+      switch is hidden because he already talks. A review card appears when the game ends.
+- [x] Review shows the comment on the move being looked at, for any record that has one.
+- [x] Home shows an unread letter; after three days away he writes once about it. Profile
+      has the door, the letter count, "burn the letters" and "send him away".
+- [x] 48 new tests over the four modules; nine catalogues carry the fifteen new UI lines.
+
+Open:
+- [ ] Not yet played in a browser against the network. The turn is three network calls
+      instead of one, so 19x19 will feel slow; measure before deciding whether the grading
+      look should move off the turn.
+- [ ] A resumed trainer game loses the points gathered before the reload (the comments
+      survive in the record; the numbers do not). Persisting them through `gameStore`
+      would need a new field and its sanitiser.
+- [ ] The phrase is one shared digest. If a second person should ever have him, that is
+      an account-level flag on the server, not a phrase, and legal.js would need a line.
+
 ## Phase 7: The words (done, 2026-09-12, branch `feat/i18n-ship`)
 
 Joseki reads in the player's own language. English stays the language it is authored in

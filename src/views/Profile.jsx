@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Check, Pencil, Trophy, Flame, Sparkles, Sparkle, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Mountain, Palette, Grid3x3, Dot, Hammer, History, Trash2 } from "lucide-react";
+import { Check, Pencil, Trophy, Flame, Sparkles, Sparkle, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Mountain, Palette, Grid3x3, Dot, Hammer, History, Trash2, KeyRound } from "lucide-react";
 import { Card, Btn, Pill, Avatar, RankBadge, BeltRibbon, Toggle, PullQuote, Statement } from "../components/ui.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
@@ -24,6 +24,8 @@ import { loadAccount } from "../store/account.js";
 import { loadTelemetry, clearTelemetry, byBot, summarize, CAP } from "../store/telemetry.js";
 import { loadMemory, clearMemory, summarize as summarizeDeja, CAP as DEJA_CAP } from "../store/deja.js";
 import { PERSONAS } from "../content/personas.js";
+import { KE_JIE } from "../content/sensei.js";
+import { phraseOpens, loadBox, saveBox } from "../store/sensei.js";
 import { serverEnabled } from "../net/api.js";
 import { OnlineProfileCard } from "./OnlineProfile.jsx";
 import { useT } from "../components/langStore.js";
@@ -126,6 +128,52 @@ function GameLogCard() {
    dan grades. Kyu players get no step, because the chapter refuses to number
    anything below the ninth, and saying so is more honest than inventing a
    title. The step is derived from the rating, never stored. */
+/* ----------------------- THE PRIVATE TRAINER'S DOOR -----------------------
+   Behind a phrase, compared by digest, so nothing about him shows on a profile
+   that has not asked. Once open, the card says he is at the table, counts the
+   letters he has written on this device, and offers to burn them or send him
+   away. Both are one press: this is a private feature and it should be as easy
+   to leave as to enter. */
+function TrainerCard({ profile, commit }) {
+  const t = useT();
+  const [phrase, setPhrase] = useState("");
+  const [wrong, setWrong] = useState(false);
+  const [letters, setLetters] = useState(() => loadBox().letters.length);
+  const tryOpen = async () => {
+    if (await phraseOpens(phrase)) { commit({ sensei: true }); setPhrase(""); setWrong(false); }
+    else setWrong(true);
+  };
+  const burn = () => { saveBox({ ...loadBox(), letters: [] }); setLetters(0); };
+  return (
+    <Card>
+      <div className="stat-head"><KeyRound size={16} /><span>{t("profile.trainer.head")}</span></div>
+      {profile.sensei ? (
+        <>
+          <p className="fine" style={{ marginTop: 6 }}>{t("profile.trainer.on", { name: KE_JIE.name })}</p>
+          <div className="row" style={{ marginTop: 10 }}>
+            <Pill icon={History}>{t("profile.trainer.letters", { count: letters })}</Pill>
+          </div>
+          <div className="row" style={{ marginTop: 10 }}>
+            <Btn small icon={Trash2} onClick={burn} disabled={letters === 0}>{t("profile.trainer.burn")}</Btn>
+            <Btn small onClick={() => commit({ sensei: false })}>{t("profile.trainer.hide")}</Btn>
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="fine" style={{ marginTop: 6 }}>{t("profile.trainer.note")}</p>
+          <div className="chat-row" style={{ marginTop: 10 }}>
+            <input className="chat-input" type="password" value={phrase} placeholder={t("profile.trainer.placeholder")}
+              onChange={e => { setPhrase(e.target.value); setWrong(false); }}
+              onKeyDown={e => e.key === "Enter" && tryOpen()} aria-label={t("profile.trainer.placeholder")} autoComplete="off" />
+            <button className="chat-send" onClick={tryOpen} aria-label={t("profile.trainer.unlock")}><KeyRound size={15} /></button>
+          </div>
+          {wrong && <p className="fine review-refused" role="alert">{t("profile.trainer.wrong")}</p>}
+        </>
+      )}
+    </Card>
+  );
+}
+
 function LevelsCard({ rank }) {
   const t = useT();
   const mine = levelForRank(rank);
@@ -279,6 +327,7 @@ export function ProfileView({ profile, setProfile, go, room, notify, writeTo = n
       </div>
 
       <LevelsCard rank={rankOf(profile.rating)} />
+      <TrainerCard profile={profile} commit={commit} />
 
       {/* Everything that decides how the place looks lives on its own screen
           now: the rooms, the stones, the pairings and the dojo behind them.
