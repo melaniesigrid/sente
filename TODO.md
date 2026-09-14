@@ -2744,6 +2744,33 @@ friends"; this phase is the three verbs in that sentence that were still missing
       for Black. `server/invites.js` is the policy, pure, in 31 cases;
       `tools/server/invites.mjs` proves it against a deployment in 31 checks, playing a
       whole game out to reach "somebody you have finished a game against".
+- [x] **The board the button names** (2026-09-13, branch `fix/online-board-size`): the
+      online card said "Find an opponent on 9×9" and the only control over that 9 was
+      in the table card three cards down the page, past fourteen other controls, under
+      a heading that never says "online". Nothing was broken — the picker down there
+      did set the board and the button did follow it — which is why every test passed
+      while a player who wanted 19×19 had no way to learn that 9 was a choice. The card
+      now carries its own board picker, writing the same table setting, and the tests
+      check placement rather than state: a test that only asserted the state would have
+      gone green on the bug.
+- [ ] **Hebrew has no words for the club** (found 2026-09-13, not fixed): the club landed
+      after Hebrew did, so `src/i18n/he/` carries none of the `club.` namespace and
+      `i18n.test.js` fails two cases on main, not only on a branch. The club's CSS had the
+      same shape of gap and is fixed in `fix/online-board-size`: `.hall-line`,
+      `.hall-unsay` and `.hall-table-open` were written with `padding-right`, `right` and
+      `text-align: left`, which the RTL test added alongside Hebrew forbids. Both halves
+      are one lesson: two branches that each pass alone can still break main together, and
+      nothing re-runs the older one against the newer. Translating the namespace is its own
+      sitting, by somebody who has seen the club.
+- [ ] **The phantom seek** (found 2026-09-13, not fixed): the client sets "Looking for
+      an opponent…" when it sends the seek and only clears it on a reply, but the server
+      deletes `seek:<id>` whenever the player's socket count falls to one
+      (`server/registry.js` `webSocketClose`) — which includes the case where a second
+      tab replaces the first. The replaced tab is closed with code 4000, which
+      `openSocket` deliberately does not reconnect, so it is left spinning on a seek the
+      server has already thrown away and nobody can ever match it. Two halves to fix:
+      the server should re-send the waiting state on a new lobby socket, and the client
+      should stop claiming to be waiting once the connection is gone.
 - [x] **The way in** (branch `feat/reach`): the acts on a person reachable from where
       somebody is standing when they want one. Three things, and the first is a bug:
       **"Write to them" on a player page did not write to them.** It landed on the profile
@@ -2836,7 +2863,6 @@ on the foundation it was deferred onto.
 **Phase 12 is complete.** Three slices, three branches, one design doc. What is deliberately
 not in it, each for a reason written down in `docs/designs/the-club.md`: voice, reactions,
 threads, bots and uploads.
-
 ## Principles (do not trade away)
 
 - Rules live in the engine, never in a view.

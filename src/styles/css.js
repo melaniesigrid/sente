@@ -685,7 +685,11 @@ ${FONT_FACES}
   transition: box-shadow .15s ease, color .15s ease; color: var(--ink-2);
 }
 .seg-btn.active { box-shadow: var(--raise-sm); color: var(--accent-ink); opacity: 1; }
-.seg-btn:not(.active):hover { opacity: 1; }
+.seg-btn:not(.active):hover:not(:disabled) { opacity: 1; }
+/* Last of the three on purpose: .seg-btn.active sets opacity 1 at the same
+   weight, so a disabled rule written above it would be a silent no-op on the
+   one button in the group that is actually selected. */
+.seg-btn:disabled { opacity: .4; cursor: default; }
 .handicap-num { min-width: 96px; text-align: center; font-weight: 700; font-size: 14.5px; }
 .vs-strip { display: flex; align-items: center; gap: 12px; padding: 8px 14px; border-radius: 16px; box-shadow: var(--sink-sm); flex-wrap: wrap; }
 .vs-side { display: flex; align-items: center; gap: 9px; }

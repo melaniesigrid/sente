@@ -129,7 +129,11 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
           lede={t("play.lede")} />
         <Statement lines={statementFor("play", t)} figure="play">{plainFor("play", t)}</Statement>
         <Passage context="play" />
-        <OnlineCard profile={profile} notify={notify} onPlay={setSession} size={table.size} go={go} />
+        {/* The online card sets the same board the table card below does: one
+            value, two controls, because the one down there is too far from the
+            find button to be found from it. */}
+        <OnlineCard profile={profile} notify={notify} onPlay={setSession} go={go}
+          size={table.size} setSize={(n) => setTable({ size: n })} />
         <DuelCard profile={profile} today={today} mode={duelMode(PERSONAS, today)}
           saved={saved && saved.mode.kind === "duel" ? saved : null} onPlay={setSession} />
         <div className="rank-picker neu-card" role="group" aria-label={t("play.levelGroup")}>

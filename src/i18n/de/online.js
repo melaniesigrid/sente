@@ -196,11 +196,16 @@ export const online = {
     looking: "Suche einen Gegner für {size}×{size}…",
     lookingOthers: "Suche einen Gegner für {size}×{size} · {count} andere warten…",
     cancel: "Abbrechen",
+    /* The board every find on this card seeks on: the table's board,
+       offered here because the button names it and a name is not a control. */
+    boardGroup: "Brettgröße",
+    boardNote: "Jede Partie, die du hier startest, wird auf diesem Brett gespielt.",
+    boardWhileSeeking: "Das Brett, auf dem gerade gesucht wird. Brich ab, um auf einem anderen zu suchen.",
     meetAt: "Treffen bei „{word}“ auf {size}×{size}",
     findOn: "Finde einen Gegner auf {size}×{size}",
     wordPlaceholder: "oder ein Wort, das ihr beide kennt",
     wordLabel: "Treffwort, um mit einem Freund zu spielen",
-    note: "Der Tisch unten stellt das Brett ein. Partien über das Netz sind ohne Vorgabe und ohne Uhr, gleich welche Vorgabe und Bedenkzeit du für das Haus einstellst. Verabredet mit einem Freund ein Wort und ihr findet einander, wie voll es auch ist.",
+    note: "Partien über das Netz sind ohne Vorgabe und ohne Uhr, gleich welche Vorgabe und Bedenkzeit du für das Haus einstellst. Verabredet mit einem Freund ein Wort und ihr findet einander, wie voll es auch ist.",
     waitingFor: " · wartet seit {waited}",
     waitingOnYou: {
       one: "Ein Tisch wartet auf dich. Diese Partien haben keine Uhr: Hier läuft nichts ab und niemand verliert, weil ein Tag vergeht.",
