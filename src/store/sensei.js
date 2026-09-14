@@ -12,10 +12,12 @@ import { SENSEI_DIGEST } from "../content/sensei.js";
 
 export const SENSEI_KEY = "sente-sensei-v1";
 export const LETTER_CAP = 20;
+export const SENSEI_ACCOUNTS = ["melaniesigrid@protonmail.com"];
 
 const empty = () => ({ letters: [], lastGame: "", wrote: "" });
 
 const defaultStorage = () => (typeof localStorage !== "undefined" ? localStorage : null);
+const foldEmail = (v) => (typeof v === "string" ? v.trim().toLowerCase() : "");
 
 const isLetter = (l) => l && typeof l === "object" && typeof l.at === "string" && typeof l.text === "string" && typeof l.read === "boolean";
 
@@ -64,6 +66,17 @@ export function daysBetween(a, b) {
 export function shouldWriteAbout(box, today, minDays = 3) {
   if (!box.lastGame || box.wrote === today) return false;
   return daysBetween(box.lastGame, today) >= minDays;
+}
+
+/** This account gets the trainer without typing the phrase. */
+export function accountOpensSensei(account, allowed = SENSEI_ACCOUNTS) {
+  const email = foldEmail(account && account.player && account.player.email);
+  return !!email && allowed.includes(email);
+}
+
+/** The trainer is on when either the local profile unlocked it or the account does. */
+export function hasSensei(profile, account, allowed = SENSEI_ACCOUNTS) {
+  return !!(profile && profile.sensei) || accountOpensSensei(account, allowed);
 }
 
 /* ----------------------- THE PHRASE ----------------------- */

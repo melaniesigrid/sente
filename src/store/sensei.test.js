@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   SENSEI_KEY, LETTER_CAP, loadBox, saveBox, postLetter, unread, markRead, daysBetween, shouldWriteAbout,
-  digestOf, phraseOpens,
+  digestOf, phraseOpens, accountOpensSensei, hasSensei,
 } from "./sensei.js";
 
 const memory = () => {
@@ -66,5 +66,18 @@ describe("the phrase", () => {
     expect(await phraseOpens("open sesame!", d)).toBe(false);
     expect(await phraseOpens("", d)).toBe(false);
     expect(await phraseOpens(null, d)).toBe(false);
+  });
+});
+
+describe("account unlock", () => {
+  it("opens the trainer for melaniesigrid's GoTiger account", () => {
+    expect(accountOpensSensei({ player: { email: "melaniesigrid@protonmail.com" } })).toBe(true);
+    expect(accountOpensSensei({ player: { email: "  MelAnieSigrid@ProtonMail.com " } })).toBe(true);
+    expect(accountOpensSensei({ player: { email: "other@example.com" } })).toBe(false);
+  });
+  it("keeps local unlocks and account unlocks as independent doors", () => {
+    expect(hasSensei({ sensei: true }, null)).toBe(true);
+    expect(hasSensei({ sensei: false }, { player: { email: "melaniesigrid@protonmail.com" } })).toBe(true);
+    expect(hasSensei({ sensei: false }, { player: { email: "other@example.com" } })).toBe(false);
   });
 });

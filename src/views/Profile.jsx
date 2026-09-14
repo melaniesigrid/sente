@@ -25,7 +25,7 @@ import { loadTelemetry, clearTelemetry, byBot, summarize, CAP } from "../store/t
 import { loadMemory, clearMemory, summarize as summarizeDeja, CAP as DEJA_CAP } from "../store/deja.js";
 import { PERSONAS } from "../content/personas.js";
 import { KE_JIE } from "../content/sensei.js";
-import { phraseOpens, loadBox, saveBox } from "../store/sensei.js";
+import { phraseOpens, loadBox, saveBox, hasSensei, accountOpensSensei } from "../store/sensei.js";
 import { serverEnabled } from "../net/api.js";
 import { OnlineProfileCard } from "./OnlineProfile.jsx";
 import { useT } from "../components/langStore.js";
@@ -134,11 +134,13 @@ function GameLogCard() {
    letters he has written on this device, and offers to burn them or send him
    away. Both are one press: this is a private feature and it should be as easy
    to leave as to enter. */
-function TrainerCard({ profile, commit }) {
+function TrainerCard({ profile, account, commit }) {
   const t = useT();
   const [phrase, setPhrase] = useState("");
   const [wrong, setWrong] = useState(false);
   const [letters, setLetters] = useState(() => loadBox().letters.length);
+  const fromAccount = accountOpensSensei(account);
+  const trainerOn = hasSensei(profile, account);
   const tryOpen = async () => {
     if (await phraseOpens(phrase)) { commit({ sensei: true }); setPhrase(""); setWrong(false); }
     else setWrong(true);
@@ -147,7 +149,7 @@ function TrainerCard({ profile, commit }) {
   return (
     <Card>
       <div className="stat-head"><KeyRound size={16} /><span>{t("profile.trainer.head")}</span></div>
-      {profile.sensei ? (
+      {trainerOn ? (
         <>
           <p className="fine" style={{ marginTop: 6 }}>{t("profile.trainer.on", { name: KE_JIE.name })}</p>
           <div className="row" style={{ marginTop: 10 }}>
@@ -155,7 +157,7 @@ function TrainerCard({ profile, commit }) {
           </div>
           <div className="row" style={{ marginTop: 10 }}>
             <Btn small icon={Trash2} onClick={burn} disabled={letters === 0}>{t("profile.trainer.burn")}</Btn>
-            <Btn small onClick={() => commit({ sensei: false })}>{t("profile.trainer.hide")}</Btn>
+            {!fromAccount && <Btn small onClick={() => commit({ sensei: false })}>{t("profile.trainer.hide")}</Btn>}
           </div>
         </>
       ) : (
@@ -327,7 +329,7 @@ export function ProfileView({ profile, setProfile, go, room, notify, writeTo = n
       </div>
 
       <LevelsCard rank={rankOf(profile.rating)} />
-      <TrainerCard profile={profile} commit={commit} />
+      <TrainerCard profile={profile} account={account} commit={commit} />
 
       {/* Everything that decides how the place looks lives on its own screen
           now: the rooms, the stones, the pairings and the dojo behind them.

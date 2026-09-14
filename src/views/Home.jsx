@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { serverEnabled } from "../net/api.js";
-import { loadAccount } from "../store/account.js";
+import { ACCOUNT_KEY, loadAccount } from "../store/account.js";
 import { DashboardCard } from "./DashboardCard.jsx";
 import { Swords, GraduationCap, Target, Trophy, Play, Trash2, CalendarCheck, BrainCircuit, Check, Circle, Mail } from "lucide-react";
 import { MiniSelfPlay } from "../components/MiniSelfPlay.jsx";
@@ -24,13 +24,30 @@ import { OpenSgf } from "../components/OpenSgf.jsx";
 import { Review } from "./Review.jsx";
 import { loadSession } from "./session.js";
 import { KE_JIE, SENSEI_ID, letterFor } from "../content/sensei.js";
-import { loadBox, saveBox, postLetter, markRead, unread, shouldWriteAbout, daysBetween } from "../store/sensei.js";
+import {
+  loadBox, saveBox, postLetter, markRead, unread, shouldWriteAbout, daysBetween, hasSensei,
+} from "../store/sensei.js";
 import { useT } from "../components/langStore.js";
 
 /* ----------------------- HOME ----------------------- */
 export function Home({ profile, go, onResume }) {
   const t = useT();
-  const account = serverEnabled() ? loadAccount() : null;
+  const [account, setAccount] = useState(() => (serverEnabled() ? loadAccount() : null));
+  useEffect(() => {
+    if (!serverEnabled()) return undefined;
+    const refresh = () => setAccount(loadAccount());
+    const onStorage = (e) => { if (!e.key || e.key === ACCOUNT_KEY) refresh(); };
+    const onVisible = () => { if (document.visibilityState === "visible") refresh(); };
+    refresh();
+    window.addEventListener("focus", refresh);
+    window.addEventListener("storage", onStorage);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener("storage", onStorage);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
   // A game opened from a file. Review takes the whole view while it is open, the
   // same way it does from a finished game.
   const [opened, setOpened] = useState(null);
@@ -51,20 +68,32 @@ export function Home({ profile, go, onResume }) {
   const kata = authoredKata && localizeProblem(authoredKata, t);
   const kataDone = profile.kataDate === today;
   const recall = recallSummary(LIBRARY, profile.recall, today);
+  const trainerOn = hasSensei(profile, account);
   /* The trainer's mailbox, read once. If you have been away a few days he writes
      about it, once per day at most, and the letter is kept on this device. */
-  const [, setBoxRev] = useState(0);
-  const box = (() => {
-    if (!profile.sensei) return null;
-    let b = loadBox();
-    if (shouldWriteAbout(b, today)) {
-     b = postLetter(b, letterFor({ daysAway: daysBetween(b.lastGame, today), name: profile.name }, daysBetween(b.lastGame, today)), today);
-     saveBox(b);
-    }
-    return b;
-  })();
+  const [box, setBox] = useState(() => (trainerOn ? loadBox() : null));
+  useEffect(() => {
+    if (!trainerOn) { setBox(null); return; }
+    setBox((current) => {
+      let b = current || loadBox();
+      let changed = false;
+      let seeded = false;
+      if (!b.lastGame && b.letters.length === 0 && b.wrote !== today) {
+        b = postLetter(b, letterFor({ name: profile.name }, games), today);
+        changed = true;
+        seeded = true;
+      }
+      const away = daysBetween(b.lastGame, today);
+      if (!seeded && shouldWriteAbout(b, today)) {
+        b = postLetter(b, letterFor({ daysAway: away, name: profile.name }, away), today);
+        changed = true;
+      }
+      if (changed) saveBox(b);
+      return changed || !current ? b : current;
+    });
+  }, [trainerOn, today, profile.name, games]);
   const letter = box ? unread(box).slice(-1)[0] ?? null : null;
-  const putAway = () => { const b = markRead(box); saveBox(b); setBoxRev(n => n + 1); };
+  const putAway = () => { const b = markRead(box); saveBox(b); setBox(b); };
   useMokuFacts({ view: "home", seed: games });
   const greeting = t(games ? "home.greetingBack" : "home.greetingNew");
   // One line naming the next honest thing to do, so the dashboard opens on a
