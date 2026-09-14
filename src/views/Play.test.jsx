@@ -76,6 +76,7 @@ describe("the guided play screen", () => {
     expect(document.body.textContent).not.toContain("Pass & play");
     expect(onlineCard()).toBeTruthy();
     expect(screen.getByRole("button", { name: /rengo/i }).textContent).toContain("13×13");
+    expect(screen.getByRole("button", { name: /pair game/i }).textContent).toContain("13×13");
   });
 
   it("switches from human play to ai play and then to pair go", async () => {

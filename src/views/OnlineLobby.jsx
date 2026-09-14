@@ -28,9 +28,10 @@ import { useT } from "../components/langStore.js";
    flow and hides the picker here; the standalone lobby still shows it so the
    online card remains self-contained when rendered on its own.
 
-   `mode` narrows which seek rows are offered: `"normal"`, `"pair"`, `"rengo"`
-   or `"all"`. That lets the Play screen ask one question at a time without
-   teaching the same game twice in two cards.
+   `mode` narrows which seek rows are offered: `"normal"`, `"pair"`, `"rengo"`,
+   `"team"` or `"all"`. `"team"` means the two multi-seat forms together:
+   pair go with house partners and human-only rengo. That lets the Play screen
+   ask one question at a time without teaching the same game twice in two cards.
 
    Online games are even; handicap is a house arrangement, and two strangers
    have no way to agree on one yet. */
@@ -159,8 +160,8 @@ function Lobby({ account, setAccount, notify, onPlay, size, setSize, go, mode, s
     .slice(0, 3);
   const yours = board.waiting;
   const showNormal = mode === "all" || mode === "normal";
-  const showPair = mode === "all" || mode === "pair";
-  const showRengo = mode === "all" || mode === "rengo";
+  const showPair = mode === "all" || mode === "pair" || mode === "team";
+  const showRengo = mode === "all" || mode === "rengo" || mode === "team";
 
   return (
     <>

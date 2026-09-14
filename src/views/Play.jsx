@@ -179,7 +179,7 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
           <p className="fine">
             {humanGame
               ? teamGame
-                ? t("play.guideHumanRengo", {}, "Four people, online, two to a side.")
+                ? t("play.guideHumanRengo", {}, "Choose four-person rengo or pair go with house partners.")
                 : t("play.guideHumanNormal", {}, "Choose online play or pass the device across the table.")
               : teamGame
                 ? t("play.guideAiRengo", {}, "Pair go with house players: stronger company, one rotation.")
@@ -269,7 +269,7 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
         {humanGame && teamGame && (
           <OnlineCard profile={profile} notify={notify} onPlay={setSession} go={go}
             size={table.size} setSize={(n) => setTable({ size: n })}
-            mode="rengo" showBoardPicker={false} />
+            mode="team" showBoardPicker={false} />
         )}
         {/* The private trainer, on this device only, once the profile has opened the
             door. Two ranks above the table so he is beatable and instructive; his
