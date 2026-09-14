@@ -24,7 +24,9 @@ import { OpenSgf } from "../components/OpenSgf.jsx";
 import { Review } from "./Review.jsx";
 import { loadSession } from "./session.js";
 import { KE_JIE, SENSEI_ID, letterFor } from "../content/sensei.js";
-import { loadBox, saveBox, postLetter, markRead, unread, shouldWriteAbout, daysBetween } from "../store/sensei.js";
+import {
+  loadBox, saveBox, postLetter, markRead, unread, shouldWriteAbout, daysBetween, hasSensei,
+} from "../store/sensei.js";
 import { useT } from "../components/langStore.js";
 
 /* ----------------------- HOME ----------------------- */
@@ -51,11 +53,16 @@ export function Home({ profile, go, onResume }) {
   const kata = authoredKata && localizeProblem(authoredKata, t);
   const kataDone = profile.kataDate === today;
   const recall = recallSummary(LIBRARY, profile.recall, today);
+  const trainerOn = hasSensei(profile, account);
   /* The trainer's mailbox, read once. If you have been away a few days he writes
      about it, once per day at most, and the letter is kept on this device. */
   const [box, setBox] = useState(() => {
-    if (!profile.sensei) return null;
+    if (!trainerOn) return null;
     let b = loadBox();
+    if (!b.lastGame && b.letters.length === 0 && b.wrote !== today) {
+      b = postLetter(b, letterFor({ name: profile.name }, games), today);
+      saveBox(b);
+    }
     if (shouldWriteAbout(b, today)) {
       b = postLetter(b, letterFor({ daysAway: daysBetween(b.lastGame, today), name: profile.name }, daysBetween(b.lastGame, today)), today);
       saveBox(b);

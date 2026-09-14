@@ -10,6 +10,8 @@ import { KE_JIE, SENSEI_ID, trainerRank } from "../content/sensei.js";
 import { rankOf, ratingOfRank, stepRank, rankInRange, rankWithHandicap, RANK_LADDER } from "../content/rank.js";
 import { SIZES, defaultKomi, RULESET_IDS, rulesetOf } from "../engine/index.js";
 import { loadLobby, saveLobby, HANDICAPS, KOMI_STEPS } from "../store/lobby.js";
+import { loadAccount } from "../store/account.js";
+import { hasSensei } from "../store/sensei.js";
 import { duelMode } from "../content/duel.js";
 import { dayKey } from "../content/kata.js";
 import { suggestLevel, suggestionText } from "../content/level.js";
@@ -23,6 +25,7 @@ import { OnlineCard } from "./OnlineLobby.jsx";
 import { OnlineGame } from "./OnlineGame.jsx";
 import { PairGame } from "./PairGame.jsx";
 import { useT } from "../components/langStore.js";
+import { serverEnabled } from "../net/api.js";
 
 /* ----------------------- PLAY (lobby) -----------------------
    `resume` is `{ mode, record }` from the Home card; it seeds the first
@@ -46,13 +49,13 @@ function linkedGame() {
   return null;
 }
 
-function routeSession({ profile, resume, openGame, withBot, t }) {
+function routeSession({ profile, account, resume, openGame, withBot, t }) {
   if (resume) return resume;
   if (openGame) return { mode: { kind: "online", gameId: openGame } };
   /* The private trainer is asked for by his id too, from a letter on the dashboard.
-     Only when this profile has unlocked him; otherwise the request falls to the lobby. */
+     Only when this profile or account has unlocked him; otherwise the request falls to the lobby. */
   if (withBot === SENSEI_ID) {
-    if (!profile.sensei) return null;
+    if (!hasSensei(profile, account)) return null;
     const lobby = loadLobby();
     return { mode: { kind: "bot", persona: KE_JIE, rank: trainerRank(lobby.rank ?? rankOf(profile.rating)) } };
   }
@@ -64,6 +67,8 @@ function routeSession({ profile, resume, openGame, withBot, t }) {
 
 export function PlayView({ profile, setProfile, notify, resume, openGame = null, withBot = null, go = null }) {
   const t = useT();
+  const account = useMemo(() => (serverEnabled() ? loadAccount() : null), []);
+  const trainerOn = hasSensei(profile, account);
   // session: null | { mode: {kind:'bot', persona, rank, size, handicap} | {kind:'local', size, handicap}
   //                  | {kind:'online', gameId} | duel, record? }
   /* `openGame` is a table asked for by id from somewhere else in the app (the
@@ -79,13 +84,13 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
     : openGame ? `online:${openGame}`
      : withBot ? `bot:${withBot}`
        : null;
-  const [session, setSession] = useState(() => routeSession({ profile, resume, openGame, withBot, t }) || linkedGame());
+  const [session, setSession] = useState(() => routeSession({ profile, account, resume, openGame, withBot, t }) || linkedGame());
   const lastRouteKey = useRef(routeKey);
   useEffect(() => {
     if (routeKey === lastRouteKey.current) return;
     lastRouteKey.current = routeKey;
-    setSession(routeSession({ profile, resume, openGame, withBot, t }) || linkedGame());
-  }, [routeKey, profile, resume, openGame, withBot, t]);
+    setSession(routeSession({ profile, account, resume, openGame, withBot, t }) || linkedGame());
+  }, [routeKey, profile, account, resume, openGame, withBot, t]);
   // The level the next game is played at. Starts at the player's own rank; every house
   // player adapts to it, so nobody has to "graduate" to an opponent.
   const myRank = rankOf(profile.rating);
@@ -220,7 +225,7 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
         {/* The private trainer, on this device only, once the profile has opened the
             door. Two ranks above the table so he is beatable and instructive; his
             games are never rated, and the card says so. */}
-        {profile.sensei && (
+        {trainerOn && (
           <button className="neu-card persona-card trainer-card" onClick={() => sit({ kind: "bot", persona: KE_JIE, rank: trainerRank(rank) })}>
             <div className="persona-top">
               <Avatar name={KE_JIE.name} tint={KE_JIE.tint} size={52} bot />
