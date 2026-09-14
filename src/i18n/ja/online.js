@@ -231,6 +231,15 @@ export const online = {
     attachNote: "レートも、対局も、名も、そのままです。",
   },
 
+  /* The main room: games in progress a person may sit beside. Which games
+     is the server's rule (server/watch.js); these are the words. */
+  watch: {
+    head: "観戦できる対局",
+    none: "いま観戦できる対局はありません。",
+    note: "その盤のすべての対局者が、自分がここにいることをあなたに見せている間だけ、その対局はあなたの一覧に載ります。卓のリンクを持つ人は、これまでどおり開けます。",
+    open: "{who}を観戦",
+  },
+
   game: {
     lobby: "ロビー",
     gone: "その盤はないか、もうなくなっています。",

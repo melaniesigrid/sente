@@ -1,4 +1,4 @@
-import { atMove, play, IllegalMoveError, reviewLength, pointAt, pct } from "../engine/index.js";
+import { atMove, play, IllegalMoveError, reviewLength, pointAt, pct, clampMove, playedMoves } from "../engine/index.js";
 import { BASE_LOCALE, makeT } from "../i18n/index.js";
 
 const EN = makeT(BASE_LOCALE);

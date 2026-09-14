@@ -257,6 +257,15 @@ export const online = {
     attachNote: "Твій рейтинг, твої партії і твоє ім'я лишаються рівно такими, які є.",
   },
 
+  /* The main room: games in progress a person may sit beside. Which games
+     is the server's rule (server/watch.js); these are the words. */
+  watch: {
+    head: "Партії, за якими можна стежити",
+    none: "Зараз немає партій, за якими можна стежити.",
+    note: "Партія є у твоєму списку лише доки кожен гравець за тією дошкою дозволяє тобі бачити, що він тут. Той, хто має посилання на стіл, може відкрити його, як і раніше.",
+    open: "Дивитися {who}",
+  },
+
   game: {
     lobby: "Хол",
     gone: "Такого столу немає або він уже зачинився.",

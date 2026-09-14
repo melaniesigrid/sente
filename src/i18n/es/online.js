@@ -232,6 +232,15 @@ export const online = {
     attachNote: "Tu puntuación, tus partidas y tu identidad se quedan exactamente como están.",
   },
 
+  /* The main room: games in progress a person may sit beside. Which games
+     is the server's rule (server/watch.js); these are the words. */
+  watch: {
+    head: "Partidas para mirar",
+    none: "Ahora mismo no hay ninguna partida para mirar.",
+    note: "Una partida aparece en tu lista solo mientras cada jugador de ese tablero te deje ver que está aquí. Quien tenga el enlace de una mesa puede abrirla, como antes.",
+    open: "Mirar {who}",
+  },
+
   game: {
     lobby: "Salir",
     gone: "Esa mesa no existe, o ya no está.",

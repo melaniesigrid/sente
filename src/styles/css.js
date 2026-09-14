@@ -209,7 +209,7 @@ ${FONT_FACES}
    points of luminance to spend. A dark room has far less, so the rule underneath
    is what keeps state from resting on hue alone. */
 .nav-btn { position: relative; }
-.nav-btn.active::after { content: ""; position: absolute; left: 13px; right: 13px; bottom: 5px; height: 2px; border-radius: 2px; background: var(--accent); opacity: .8; }
+.nav-btn.active::after { content: ""; position: absolute; inset-inline: 13px; bottom: 5px; height: 2px; border-radius: 2px; background: var(--accent); opacity: .8; }
 .nav-btn:not(.active):hover { transform: translateY(-1px); }
 @media (max-width: 760px) { .nav-btn span { display: none; } .nav-btn { padding: 10px 12px; } }
 
@@ -643,6 +643,12 @@ ${FONT_FACES}
    legend. The hairline along it is the room's own ground, which is the one colour
    that stands out against both stones in every palette. */
 .review-analysis { width: 100%; }
+/* The same graph at the table, in the side column, once a game is over. Shorter
+   than in review, where it is the instrument; here it is the summary beside the
+   result, and the board next to it is the one that owns the height. */
+.win-card { gap: 10px; }
+.win-card .wingraph svg { height: 96px; }
+.win-card .fine { margin: 0; }
 .wingraph { width: 100%; border-radius: var(--r); box-shadow: var(--sink-sm); padding: 8px; }
 .wingraph svg { display: block; width: 100%; height: 132px; border-radius: calc(var(--r) - 10px); touch-action: none; cursor: pointer; }
 .wingraph-white { fill: var(--stone-w-2); }
@@ -2214,10 +2220,10 @@ ${FONT_FACES}
 .hall-who strong { font-size: 14.5px; }
 .hall-line {
   margin: 0; font-size: 14.5px; line-height: 1.45; white-space: pre-wrap;
-  overflow-wrap: anywhere; position: relative; padding-right: 20px;
+  overflow-wrap: anywhere; position: relative; padding-inline-end: 20px;
 }
 .hall-unsay {
-  position: absolute; top: 1px; right: 0; opacity: 0;
+  position: absolute; top: 1px; inset-inline-end: 0; opacity: 0;
   border: 0; background: none; color: var(--ink-2); cursor: pointer;
   padding: 2px; border-radius: 7px; transition: opacity .12s ease;
 }
@@ -2233,7 +2239,7 @@ ${FONT_FACES}
 .hall-table-terms { display: inline-flex; align-items: center; gap: 7px; font-size: 14px; flex: 1; min-width: 0; }
 .hall-table-open {
   appearance: none; border: 0; background: none; font: inherit; cursor: pointer;
-  color: var(--accent-ink); font-size: 13.5px; padding: 4px 2px; text-align: left;
+  color: var(--accent-ink); font-size: 13.5px; padding: 4px 2px; text-align: start;
 }
 .hall-table-open:hover, .hall-table-open:focus-visible { text-decoration: underline; }
 .hall-composer { display: flex; align-items: flex-end; gap: 8px; }
