@@ -7,7 +7,10 @@ import { ratingOfValue } from "../content/rank.js";
 
 vi.mock("../components/Board.jsx", () => ({ Board: () => null }));
 vi.mock("../components/Passage.jsx", () => ({ Passage: () => null }));
-vi.mock("../components/mokuStore.js", () => ({ useMokuFacts: () => {} }));
+vi.mock("../components/mokuStore.js", async (importOriginal) => {
+  const actual = await importOriginal();
+  return { ...actual, useMokuFacts: () => {} };
+});
 vi.mock("../store/profile.js", () => ({ saveProfile: () => {} }));
 
 const { ProblemsView } = await import("./Problems.jsx");
