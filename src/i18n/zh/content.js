@@ -234,3 +234,20 @@ export const persona = {
     },
   },
 };
+
+/* The masks a player may wear beside their name: the name and the one line,
+   overlaid on `src/content/archetypes.js` by id. The hanzi is the mask's own name
+   and stays as written. */
+export const arche = {
+  ambusher: { name: "潜伏者", line: "潜伏五十手，回头一看，整条边都是陷阱。" },
+  silent: { name: "无声的杀手", line: "剑过无声。数目的时候你才发现。" },
+  invisible: { name: "无痕者", line: "不留痕迹。每颗子看起来都无害，直到没有一颗是无害的。" },
+  riddle: { name: "看不透的人", line: "没人知道计划是什么，有时连棋手自己也不知道。" },
+  autumn: { name: "捕食者", line: "秋天的老虎：耐心，饥饿，而且已经在你身后。" },
+  tiger: { name: "老虎", line: "不埋伏，不打哑谜。直奔棋盘上最大的一块棋。" },
+  roar: { name: "斗士", line: "见缝就断。相信和平是提子之后的事。" },
+  champion: { name: "冠军", line: "诸神的荣耀。每一盘都当作决赛来下。" },
+  philosopher: { name: "哲学家", line: "思想的星空。超时输棋，复盘赢回。" },
+  ancient: { name: "老仙", line: "与星辰同寿。走的是一本别人都没读过的书里的一手。" },
+  doomsday: { name: "毁灭者", line: "末日。也叫终结者、无悔。从不认输。" },
+};

@@ -1448,6 +1448,12 @@ Open:
       sorted light to dark. The two lights are always derived, and the panel picks the room's
       own stones beside the tones rather than inheriting whatever it was started from.
 - [ ] Dark variant of the stone palette.
+- [x] Archetypes (`src/content/archetypes.js`, 2026-09-14): eleven masks, each an emoji
+      glyph, a name in Chinese and English, and one line about the way. Chosen on the
+      profile, kept as `archetype` on the profile (`""` is the plain player), drawn beside
+      the name in the header and the game strip. It is play, not a rank: the copy says it
+      is allowed to be untrue. The glyph is text, so the Lucide-only rule holds for every
+      icon that points at a fact. Name and line are overlaid per language under `arche.`.
 - [x] Sound and haptic feedback on stone placement (opt-in, synthesised, no assets).
 - [x] Self-host fonts instead of the Google Fonts `@import` (2026-09-11, branch
       `feat/self-host-fonts`). `tools/fonts/fetch.mjs` (`npm run fonts`) downloads the five

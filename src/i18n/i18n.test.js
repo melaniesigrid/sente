@@ -13,6 +13,7 @@ import { DOCUMENTS, CREDITS } from "../content/legal.js";
 import { PLAIN_WORDS, STATEMENTS } from "../content/plain.js";
 import { MOKU_STATES } from "../content/moku.js";
 import { PERSONAS } from "../content/personas.js";
+import { ARCHETYPES } from "../content/archetypes.js";
 import { RULESET_IDS } from "../engine/rulesets.js";
 import { CLOCK_PRESETS } from "../content/clockFace.js";
 import { TIERS, TRACKS, BOOKS, SERIES } from "../content/library.js";
@@ -38,6 +39,7 @@ const OVERLAYS = [
   "badge.", "fact.", "seen.",                                    // what a record has earned, what a card says, who may see
   "lesson.", "legalDoc.", "credit.",                             // the documents and the library
   "plain.", "statement.", "moku.", "ruleset.", "preset.", "persona.",  // the house's voices
+  "arche.",                                                     // the masks a player may wear
   "tier.", "track.", "book.", "series.", "problem.", "problemSet.", "shape.",   // the library and the coach
   "josekiEntry.", "josekiCorner.", "josekiSource.",              // the corner dictionary
   "classicBook.", "preface.", "kind.", "level.", "chapter.", "name.", "passage.", // the Classic
@@ -360,6 +362,7 @@ describe.each(others)("$name is complete", (locale) => {
       ruleset: RULESET_IDS,
       preset: CLOCK_PRESETS.map(p2 => p2.id),
       persona: PERSONAS.map(p2 => p2.id),
+      arche: ARCHETYPES.map(a => a.id),
       tier: TIERS.map(x => String(x.id)),
       track: TRACKS.map(x => x.key),
       book: BOOKS.map(x => x.id),

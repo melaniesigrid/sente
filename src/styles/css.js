@@ -1898,6 +1898,27 @@ ${FONT_FACES}
 .type-btn.active .type-name { opacity: 1; }
 .type-note { margin-top: 14px; }
 .type-credit { color: var(--ink-2); display: block; margin-top: 5px; }
+/* ---- archetype picker ---- */
+/* The mask sits beside the name as inline text: it is an emoji, drawn by the
+   device, so it takes the line's colour and needs no chrome of its own. */
+.arche-mark { line-height: 1; vertical-align: -0.08em; }
+.arche-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); gap: 10px; margin-top: 14px; }
+.arche-btn {
+  border: 0; background: var(--ground); color: var(--ink); cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 12px 8px 10px; border-radius: 16px; box-shadow: var(--sink-sm);
+  transition: box-shadow .18s ease, transform .18s ease, color .18s ease;
+}
+.arche-btn:hover { transform: translateY(-1px); }
+.arche-btn:focus-visible { outline: 0; box-shadow: var(--raise-sm), 0 0 0 2px var(--accent-ring); }
+.arche-btn.active { box-shadow: var(--raise-sm), 0 0 0 2px var(--accent-ring); color: var(--accent-ink); transform: none; }
+.arche-btn:active { box-shadow: var(--sink); }
+.arche-glyph { font-size: 30px; line-height: 1.2; }
+.arche-none { color: var(--ink-3); font-family: var(--font-display); }
+.arche-hanzi { font-size: 13px; color: var(--ink-2); letter-spacing: .08em; }
+.arche-name { font: 700 12px var(--font-body); letter-spacing: .09em; text-transform: uppercase; color: var(--ink-2); text-align: center; }
+.arche-btn.active .arche-name { color: inherit; }
+.arche-way { margin-top: 14px; }
 
 /* ---- kata of the day ---- */
 .kata-card { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }

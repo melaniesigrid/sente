@@ -239,3 +239,20 @@ export const persona = {
     },
   },
 };
+
+/* The masks a player may wear beside their name: the name and the one line,
+   overlaid on `src/content/archetypes.js` by id. The hanzi is the mask's own name
+   and stays as written. */
+export const arche = {
+  ambusher: { name: "Der Lauerer", line: "Hält fünfzig Züge lang still, und dann war die ganze Seite eine Falle." },
+  silent: { name: "Der stille Killer", line: "Das Schwert geht lautlos vorbei. Du merkst es beim Zählen." },
+  invisible: { name: "Der Unsichtbare", line: "Hinterlässt keine Spur. Jeder Stein sieht harmlos aus, bis keiner es mehr ist." },
+  riddle: { name: "Der Unlesbare", line: "Niemand weiß, was der Plan ist, manchmal nicht einmal der Spieler." },
+  autumn: { name: "Der Räuber", line: "Der Tiger im Herbst: geduldig, hungrig und schon hinter dir." },
+  tiger: { name: "Der Tiger", line: "Kein Hinterhalt, kein Rätsel. Geradewegs auf die größte Gruppe auf dem Brett." },
+  roar: { name: "Der Kämpfer", line: "Schneidet alles. Glaubt, Frieden sei das, was nach dem Fangen kommt." },
+  champion: { name: "Der Champion", line: "Der Ruhm der Götter. Spielt jede Partie, als wäre es das Titelmatch." },
+  philosopher: { name: "Der Philosoph", line: "Ein Sternenhimmel aus Gedanken. Verliert auf Zeit, gewinnt in der Nachbesprechung." },
+  ancient: { name: "Der alte Meister", line: "Alt wie die Sterne. Spielt einen Zug aus einem Buch, das sonst niemand gelesen hat." },
+  doomsday: { name: "Der Zerstörer", line: "Der Jüngste Tag. Hört auch auf Terminator und Ohne Reue. Gibt nie auf." },
+};

@@ -17,7 +17,7 @@ import { sayingBySeed, localizeSaying } from "./content/classic.js";
    src/views, the stylesheet in src/styles, rules in src/engine.
    ================================================================ */
 import { CSS } from "./styles/css.js";
-import { Avatar } from "./components/ui.jsx";
+import { Avatar, ArchetypeMark } from "./components/ui.jsx";
 import { Toast } from "./components/Toast.jsx";
 import { Wordmark } from "./components/Brand.jsx";
 import { ErrorBoundary } from "./components/ErrorBoundary.jsx";
@@ -191,7 +191,7 @@ export default function JosekiApp() {
           <button className="profile-chip" onClick={() => go("profile")} aria-label={t("topbar.profile")}>
             <Avatar name={profile.name} tint={profile.tint} size={34} />
             <div className="chip-meta">
-              <strong>{profile.name}</strong>
+              <strong>{profile.name} <ArchetypeMark id={profile.archetype} size={14} /></strong>
               <span>{preciseRankOf(profile.rating)}</span>
             </div>
           </button>

@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
-import { Check, Pencil, Trophy, Flame, Sparkles, Sparkle, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Mountain, Palette, Grid3x3, Dot, Hammer, History, Trash2, KeyRound } from "lucide-react";
-import { Card, Btn, Pill, Avatar, RankBadge, BeltRibbon, Toggle, PullQuote, Statement } from "../components/ui.jsx";
+import { Check, Pencil, Trophy, Flame, Sparkles, Sparkle, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Mountain, Palette, Grid3x3, Dot, Hammer, History, Trash2, KeyRound, VenetianMask } from "lucide-react";
+import { Card, Btn, Pill, Avatar, ArchetypeMark, RankBadge, BeltRibbon, Toggle, PullQuote, Statement } from "../components/ui.jsx";
+import { ARCHETYPES, NO_ARCHETYPE, archetypeOf, localizeArchetype } from "../content/archetypes.js";
 import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { MokuMark } from "../components/Moku.jsx";
@@ -280,6 +281,7 @@ export function ProfileView({ profile, setProfile, go, room, notify, writeTo = n
           ) : (
             <h2 className="profile-name">
               {profile.name}
+              <ArchetypeMark id={profile.archetype} size={24} />
               <button className="icon-btn" onClick={() => { setNameDraft(profile.name); setEditing(true); }} aria-label={t("profile.editName")}>
                 <Pencil size={14} />
               </button>
@@ -341,6 +343,42 @@ export function ProfileView({ profile, setProfile, go, room, notify, writeTo = n
           </div>
         </Card>
       </div>
+
+      {/* The mask is the one thing on this screen that is chosen rather than
+          measured, and the copy says so. The plain player comes first, so
+          taking a mask off is as easy as putting one on. */}
+      <Card>
+        <div className="stat-head"><VenetianMask size={16} /><span>{t("profile.arche.head")}</span></div>
+        <p className="fine" style={{ marginTop: 6 }}>{t("profile.arche.note")}</p>
+        <div className="arche-row" role="group" aria-label={t("profile.arche.head")}>
+          <button
+            className={`arche-btn ${profile.archetype === NO_ARCHETYPE ? "active" : ""}`}
+            onClick={() => commit({ archetype: NO_ARCHETYPE })}
+            aria-pressed={profile.archetype === NO_ARCHETYPE}>
+            <span className="arche-glyph arche-none" aria-hidden="true">{"·"}</span>
+            <span className="arche-name">{t("profile.arche.none")}</span>
+          </button>
+          {ARCHETYPES.map(a => {
+            const m = localizeArchetype(a, t);
+            return (
+              <button key={a.id}
+                className={`arche-btn ${profile.archetype === a.id ? "active" : ""}`}
+                onClick={() => commit({ archetype: a.id })}
+                aria-pressed={profile.archetype === a.id}
+                aria-label={`${m.name}, ${a.hanzi}`}>
+                <span className="arche-glyph" aria-hidden="true">{a.glyph}</span>
+                <span className="arche-hanzi" lang="zh" aria-hidden="true">{a.hanzi}</span>
+                <span className="arche-name">{m.name}</span>
+              </button>
+            );
+          })}
+        </div>
+        <p className="fine arche-way">
+          {archetypeOf(profile.archetype)
+            ? <><strong>{localizeArchetype(archetypeOf(profile.archetype), t).name}</strong>{" · "}{localizeArchetype(archetypeOf(profile.archetype), t).line}</>
+            : t("profile.arche.noneLine")}
+        </p>
+      </Card>
 
       <LevelsCard rank={rankOf(profile.rating)} />
       <TrainerCard profile={profile} account={account} commit={commit} />

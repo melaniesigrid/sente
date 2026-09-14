@@ -4,6 +4,7 @@ import { localizeBadge } from "../content/badges.js";
 import { useT } from "./langStore.js";
 import { isProvisional } from "../engine/index.js";
 import { Figure } from "./Figure.jsx";
+import { archetypeOf, localizeArchetype } from "../content/archetypes.js";
 
 /* ----------------------- SHARED UI ----------------------- */
 export const Card = ({ children, className = "", inset, ...rest }) => (
@@ -43,6 +44,21 @@ export const Avatar = ({ name, tint, size = 44, bot, src, className = "" }) => (
     {bot && <span className="avatar-bot"><Bot size={11} strokeWidth={2.4} /></span>}
   </div>
 );
+
+/* The mask a player chose, drawn beside their name wherever the name is drawn.
+   Renders nothing for the plain player, so a profile that never chose one is
+   laid out exactly as before. The glyph carries the mask's name as its label,
+   so a screen reader says the mask and not the emoji. */
+export const ArchetypeMark = ({ id, size = 16, className = "" }) => {
+  const t = useT();
+  const a = archetypeOf(id);
+  if (!a) return null;
+  const name = localizeArchetype(a, t).name;
+  return (
+    <span className={`arche-mark ${className}`} style={{ fontSize: size }}
+      role="img" aria-label={name} title={`${name} · ${a.hanzi}`}>{a.glyph}</span>
+  );
+};
 
 /* The badge carries the belt as a thin stripe under the rank, so the dojo
    colour travels everywhere a rank is shown without any extra chrome. */

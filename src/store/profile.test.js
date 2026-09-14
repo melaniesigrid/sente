@@ -82,6 +82,14 @@ describe("sanitizeProfile", () => {
     expect(warn).toHaveBeenCalledTimes(1);
     expect(warn.mock.calls[0][0]).toMatch(/lessonsDone/);
   });
+  it("keeps a known archetype and resets an unknown one to the plain player", () => {
+    expect(sanitizeProfile({ ...defaultProfile, archetype: "tiger" }).archetype).toBe("tiger");
+    expect(warn).not.toHaveBeenCalled();
+    const out = sanitizeProfile({ ...defaultProfile, archetype: "dragon" });
+    expect(out.archetype).toBe("");
+    expect(warn.mock.calls[0][0]).toMatch(/archetype/);
+    expect(sanitizeProfile({ ...defaultProfile, archetype: 7 }).archetype).toBe("");
+  });
   it("resets non-finite or non-numeric numbers", () => {
     const out = sanitizeProfile({ ...defaultProfile, rating: "1200", wins: NaN, losses: Infinity });
     expect(out.rating).toBe(defaultProfile.rating);
