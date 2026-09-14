@@ -86,7 +86,9 @@ export const game = {
     captures: { b: "Gefangene von Schwarz: {n}", w: "Gefangene von Weiß: {n}" },
     hintsOn: " · Atari-Hinweise an",
     keys: " · P passt, U nimmt zurück",
+    trainer: { reviewHead: "Kommentar von {name}", walk: "Durchgehen" },
     chat: {
+      trainer: "privater Trainer",
       head: "Tischrede",
       coachOnTitle: "Der Trainer ist für diese Partie eingeschaltet, und diese Partie wird nicht gewertet.",
       coachOffTitle: "Lass deinen Gegner die Formen benennen, die du machst. Diese Partie wird dann endgültig nicht mehr gewertet.",

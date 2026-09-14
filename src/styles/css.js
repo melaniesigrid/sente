@@ -725,6 +725,11 @@ ${FONT_FACES}
 
 /* ---- chat ---- */
 .chat-card { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+.trainer-review { display: flex; flex-direction: column; gap: 12px; }
+.trainer-card { border-inline-start: 3px solid var(--accent-ink); }
+.trainer-card .persona-cta .fine { font-size: 12.5px; }
+.letter-card { display: flex; flex-direction: column; gap: 12px; }
+.review-note { margin: 0; text-align: center; font-size: 15px; line-height: 1.55; color: var(--ink); font-style: var(--display-italic-style); }
 .chat-head { color: var(--ink-2); display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
 /* Asking for coaching is a one-way door, so the switch is raised while it is an offer
    and sunken once it is a fact - the same two shadows every other control uses. No

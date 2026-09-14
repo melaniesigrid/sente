@@ -3,7 +3,12 @@
    agree on what "resume" means. Unresolvable or finished games are dropped;
    a daily duel from another day is dropped too, since its board belongs to
    that day. Kept out of React so it can be tested with an injected store. */
-import { personaById, PERSONAS } from "../content/personas.js";
+import { personaById as houseById, PERSONAS } from "../content/personas.js";
+import { KE_JIE, SENSEI_ID } from "../content/sensei.js";
+
+/** A house player by id, the private trainer included: a saved game with him at the
+ *  table has to come back with him at the table. */
+const personaById = (id) => (id === SENSEI_ID ? KE_JIE : houseById(id));
 import { duelMode } from "../content/duel.js";
 import { dayKey } from "../content/kata.js";
 import { rankOf } from "../content/rank.js";

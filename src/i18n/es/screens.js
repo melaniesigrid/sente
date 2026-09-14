@@ -2,6 +2,7 @@
 /* One block per screen, in the order a player meets them. */
 export const screens = {
   home: {
+    trainer: { head: "Una carta de {name}", away: "Guardarla", play: "Ve a jugar" },
     greetingBack: "De vuelta al tablero",
     greetingNew: "Bienvenida al tablero",
     wonOf: "{wins} de {games} ganadas",
@@ -71,6 +72,7 @@ export const screens = {
     unreadable: "No se ha podido leer {name} del disco.",
   },
   play: {
+    trainer: { cta: "Entrena con {name}", note: "Privado en este dispositivo. Nunca puntúa." },
     label: "Siéntate",
     titleBefore: "Busca una ",
     titleEm: "partida",
@@ -219,6 +221,17 @@ export const screens = {
     openProblem: "{set}, número {n}, {rank}",
   },
   profile: {
+    trainer: {
+      head: "Entrenador privado",
+      note: "Un jugador de la casa para una sola persona, guardado tras una frase. Explica cada jugada, califica las tuyas y escribe entre partidas. Todo lo que hace se queda en este dispositivo.",
+      placeholder: "La frase",
+      unlock: "Abrir la puerta",
+      wrong: "Esa no es la frase.",
+      on: "{name} está en la mesa. Búscalo en el vestíbulo.",
+      hide: "Despedirlo",
+      letters: "Cartas guardadas en este dispositivo: {count}",
+      burn: "Quemar las cartas",
+    },
     displayName: "Nombre visible",
     saveName: "Guarda el nombre",
     editName: "Edita el nombre",

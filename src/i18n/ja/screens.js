@@ -2,6 +2,7 @@
 /* 画面ごとにひとかたまり。並びは、打つ人がそれに出会う順です。 */
 export const screens = {
   home: {
+    trainer: { head: "{name}からの手紙", away: "しまう", play: "打ちに行く" },
     greetingBack: "おかえりなさい",
     greetingNew: "盤へようこそ",
     wonOf: "{games} 局中 {wins} 勝",
@@ -71,6 +72,7 @@ export const screens = {
     unreadable: "{name} をディスクから読めませんでした。",
   },
   play: {
+    trainer: { cta: "{name}と稽古する", note: "この端末だけの非公開。決してレーティングされません。" },
     label: "座る",
     titleBefore: "一局",
     titleEm: "探す",
@@ -216,6 +218,17 @@ export const screens = {
     openProblem: "{set}、第 {n} 題、{rank}",
   },
   profile: {
+    trainer: {
+      head: "専属の師匠",
+      note: "ひとりのためだけの家の棋士。合言葉の向こうにいます。すべての手を説明し、あなたの手を採点し、対局の合間に手紙を書きます。彼のすることはすべてこの端末に残ります。",
+      placeholder: "合言葉",
+      unlock: "扉を開ける",
+      wrong: "その合言葉ではありません。",
+      on: "{name}が盤の前にいます。ロビーで探してください。",
+      hide: "帰ってもらう",
+      letters: "この端末に保管された手紙：{count}",
+      burn: "手紙を燃やす",
+    },
     displayName: "表示する名前",
     saveName: "名前を保存",
     editName: "名前を変える",

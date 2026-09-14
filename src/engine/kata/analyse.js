@@ -161,3 +161,41 @@ export async function analyseGame(rec, o = {}) {
   }
   return { points, complete: true };
 }
+
+/** One position, looked at once, as a point of the same shape the walk produces.
+ *  A trainer that grades the game as it goes asks this after every move, so that
+ *  at the end the graph is already drawn and the review is arithmetic on a list
+ *  that was never re-walked. `move` is the number of played moves standing on the
+ *  board. Null when the network cannot answer.
+ *  @returns {Promise<object|null>} `{ move, black, noResult, color, played, best, top }` */
+export async function evaluatePosition(rec, rank = ANALYSIS_RANK) {
+  const res = await humanPolicy(rec, { rank, oppRank: rank });
+  if (!res) return null;
+  const { black, noResult } = winRateForBlack(res.value, rec.toPlay);
+  const pick = choosePolicyMove(res.logits, rec, { temperature: 0, floor: 0.02, rng: () => 0 });
+  const moves = playedMoves(rec);
+  const mv = moves.length ? moves[moves.length - 1] : null;
+  return {
+    move: moves.length,
+    black,
+    noResult,
+    color: mv ? mv.color : null,
+    played: mv && mv.type === "play" ? { c: mv.c, r: mv.r } : null,
+    best: pick.move,
+    top: pick.top,
+  };
+}
+
+/** Hand the cache a walk somebody else did, position by position, so review of that
+ *  game opens with its graph already there. Only a contiguous run from the opening
+ *  is kept, because that is the only shape the walk itself ever leaves. */
+export function seedAnalysis(rec, points, rank = ANALYSIS_RANK) {
+  const sorted = [...points].sort((a, b) => a.move - b.move);
+  const run = [];
+  for (const p of sorted) {
+    if (p.move !== run.length) break;
+    run.push(p);
+  }
+  remember(rec, rank, run);
+  return run.length;
+}

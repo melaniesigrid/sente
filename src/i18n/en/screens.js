@@ -3,6 +3,7 @@
 export const screens = {
   /* The dashboard. */
   home: {
+    trainer: { head: "A letter from {name}", away: "Put it away", play: "Go and play" },
     greetingBack: "Welcome back",
     greetingNew: "Welcome to the board",
     wonOf: "{wins} of {games} won",
@@ -77,6 +78,7 @@ export const screens = {
   },
   /* The lobby: the level, the table, and who is sitting at it. */
   play: {
+    trainer: { cta: "Train with {name}", note: "Private to this device. Never rated." },
     label: "Sit down",
     titleBefore: "Find a ",
     titleEm: "game",
@@ -232,6 +234,17 @@ export const screens = {
   },
   /* The profile: who you are on this device, and what it has watched you do. */
   profile: {
+    trainer: {
+      head: "Private trainer",
+      note: "A house player for one person, kept behind a phrase. He explains every move, grades yours, and writes between games. Everything he does stays on this device.",
+      placeholder: "The phrase",
+      unlock: "Open the door",
+      wrong: "That is not the phrase.",
+      on: "{name} is at the table. Find him in the lobby.",
+      hide: "Send him away",
+      letters: "Letters kept on this device: {count}",
+      burn: "Burn the letters",
+    },
     displayName: "Display name",
     saveName: "Save name",
     editName: "Edit name",

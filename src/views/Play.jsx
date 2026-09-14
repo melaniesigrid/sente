@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Play, Users, Handshake, Minus, Plus, Home, TrendingUp, TrendingDown, X } from "lucide-react";
+import { Play, Users, Handshake, Minus, Plus, Home, TrendingUp, TrendingDown, X, GraduationCap } from "lucide-react";
 import { Avatar, RankBadge, Btn, Statement } from "../components/ui.jsx";
 import { ScreenHeader } from "../components/ScreenHeader.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { DuelCard } from "../components/DuelCard.jsx";
 import { personasFor, PERSONAS, personaById, localizePersona } from "../content/personas.js";
+import { KE_JIE, SENSEI_ID, trainerRank } from "../content/sensei.js";
 import { rankOf, ratingOfRank, stepRank, rankInRange, rankWithHandicap, RANK_LADDER } from "../content/rank.js";
 import { SIZES, defaultKomi, RULESET_IDS, rulesetOf } from "../engine/index.js";
 import { loadLobby, saveLobby, HANDICAPS, KOMI_STEPS } from "../store/lobby.js";
@@ -48,6 +49,13 @@ function linkedGame() {
 function routeSession({ profile, resume, openGame, withBot, t }) {
   if (resume) return resume;
   if (openGame) return { mode: { kind: "online", gameId: openGame } };
+  /* The private trainer is asked for by his id too, from a letter on the dashboard.
+     Only when this profile has unlocked him; otherwise the request falls to the lobby. */
+  if (withBot === SENSEI_ID) {
+    if (!profile.sensei) return null;
+    const lobby = loadLobby();
+    return { mode: { kind: "bot", persona: KE_JIE, rank: trainerRank(lobby.rank ?? rankOf(profile.rating)) } };
+  }
   const persona = withBot ? personaById(withBot) : null;
   if (!persona) return null;
   const lobby = loadLobby();
@@ -205,6 +213,23 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
             </div>
           </div>
         </div>
+        {/* The private trainer, on this device only, once the profile has opened the
+            door. Two ranks above the table so he is beatable and instructive; his
+            games are never rated, and the card says so. */}
+        {profile.sensei && (
+          <button className="neu-card persona-card trainer-card" onClick={() => sit({ kind: "bot", persona: KE_JIE, rank: trainerRank(rank) })}>
+            <div className="persona-top">
+              <Avatar name={KE_JIE.name} tint={KE_JIE.tint} size={52} bot />
+              <div>
+                <h3>{KE_JIE.name}</h3>
+                <p className="persona-tag">{KE_JIE.tagline}</p>
+              </div>
+              <RankBadge rating={ratingOfRank(trainerRank(rank))} />
+            </div>
+            <p className="persona-bio">{KE_JIE.bio}</p>
+            <span className="persona-cta"><GraduationCap size={13} /> {t("play.trainer.cta", { name: KE_JIE.name })} <span className="fine">&middot; {t("play.trainer.note")}</span></span>
+          </button>
+        )}
         <div className="grid3">
           {personasFor(rank).map(localized => localizePersona(localized, t)).map(p => (
             <button key={p.id} className="neu-card persona-card" onClick={() => sit({ kind: "bot", persona: p, rank })}>

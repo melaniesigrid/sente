@@ -3,6 +3,7 @@
 export const screens = {
   /* לוח המחוונים. */
   home: {
+    trainer: { head: "מכתב מ{name}", away: "להניח בצד", play: "לך לשחק" },
     greetingBack: "טוב לראותך שוב",
     greetingNew: "ברוך בואך אל הלוח",
     wonOf: "{wins} מתוך {games} נוצחו",
@@ -77,6 +78,7 @@ export const screens = {
   },
   /* המבואה: הרמה, השולחן, ומי יושב אליו. */
   play: {
+    trainer: { cta: "להתאמן עם {name}", note: "פרטי למכשיר הזה. לעולם לא מדורג." },
     label: "להתיישב",
     titleBefore: "חיפוש ",
     titleEm: "משחק",
@@ -230,6 +232,17 @@ export const screens = {
   },
   /* הפרופיל: מי אתה במכשיר הזה, ומה הוא ראה אותך עושה. */
   profile: {
+    trainer: {
+      head: "מאמן פרטי",
+      note: "שחקן בית לאדם אחד, שמור מאחורי משפט. הוא מסביר כל מהלך, מעריך את שלך וכותב בין משחקים. כל מה שהוא עושה נשאר במכשיר הזה.",
+      placeholder: "המשפט",
+      unlock: "לפתוח את הדלת",
+      wrong: "זה לא המשפט.",
+      on: "{name} ליד הלוח. חפשי אותו בלובי.",
+      hide: "לשלוח אותו",
+      letters: "מכתבים שנשמרו במכשיר הזה: {count}",
+      burn: "לשרוף את המכתבים",
+    },
     displayName: "שם תצוגה",
     saveName: "לשמור שם",
     editName: "לערוך שם",

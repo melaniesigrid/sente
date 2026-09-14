@@ -86,7 +86,9 @@ export const game = {
     captures: { b: "Captures des noirs : {n}", w: "Captures des blancs : {n}" },
     hintsOn: " · avertissements d'atari activés",
     keys: " · P passe, U annule",
+    trainer: { reviewHead: "Commentaire de {name}", walk: "La parcourir" },
     chat: {
+      trainer: "entraîneur privé",
       head: "Propos de table",
       coachOnTitle: "L'entraîneur est activé pour cette partie, et cette partie n'est pas classée.",
       coachOffTitle: "Demande à ton adversaire de nommer les formes que tu fais. Cette partie cessera d'être classée, définitivement.",
