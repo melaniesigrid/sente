@@ -4,8 +4,12 @@ import { render, screen, cleanup, within } from "@testing-library/react";
 import { PROBLEMS, problemsInSet } from "../content/problems.js";
 import { SENSEI_KEY } from "../store/sensei.js";
 
-vi.mock("../net/api.js", () => ({ serverEnabled: () => false }));
-vi.mock("../store/account.js", () => ({ loadAccount: () => null }));
+const serverEnabled = vi.fn(() => false);
+const loadAccount = vi.fn(() => null);
+
+vi.mock("../net/api.js", () => ({ serverEnabled: () => serverEnabled() }));
+vi.mock("../store/account.js", () => ({ loadAccount: () => loadAccount() }));
+vi.mock("./DashboardCard.jsx", () => ({ DashboardCard: ({ account }) => <div>dashboard:{account.player.name}</div> }));
 vi.mock("../components/MiniSelfPlay.jsx", () => ({ MiniSelfPlay: () => null }));
 vi.mock("../components/DuelCard.jsx", () => ({ DuelCard: () => null }));
 vi.mock("../components/Chain.jsx", () => ({ ChainLine: () => null }));
@@ -35,6 +39,10 @@ const stat = (tile) => within(tile).getByText((_, e) => e?.classList.contains("s
 afterEach(() => {
   cleanup();
   localStorage.clear();
+  serverEnabled.mockReset();
+  serverEnabled.mockReturnValue(false);
+  loadAccount.mockReset();
+  loadAccount.mockReturnValue(null);
 });
 
 describe("the tsumego dashboard tile", () => {
@@ -73,5 +81,15 @@ describe("the trainer mailbox", () => {
 
     rerender(<Home profile={profile({ sensei: true })} go={() => {}} onResume={() => {}} />);
     expect(await screen.findByText("A lesson arrives.")).toBeTruthy();
+  });
+
+  it("shows the dashboard card after signing in later in the same session", () => {
+    serverEnabled.mockReturnValue(true);
+    const { rerender } = render(<Home profile={profile()} go={() => {}} onResume={() => {}} />);
+    expect(screen.queryByText("dashboard:Ada")).toBe(null);
+
+    loadAccount.mockReturnValue({ player: { name: "Ada" } });
+    rerender(<Home profile={profile()} go={() => {}} onResume={() => {}} />);
+    expect(screen.getByText("dashboard:Ada")).toBeTruthy();
   });
 });

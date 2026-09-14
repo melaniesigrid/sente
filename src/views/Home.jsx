@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { serverEnabled } from "../net/api.js";
 import { loadAccount } from "../store/account.js";
 import { DashboardCard } from "./DashboardCard.jsx";
@@ -30,7 +30,7 @@ import { useT } from "../components/langStore.js";
 /* ----------------------- HOME ----------------------- */
 export function Home({ profile, go, onResume }) {
   const t = useT();
-  const account = useMemo(() => (serverEnabled() ? loadAccount() : null), []);
+  const account = serverEnabled() ? loadAccount() : null;
   // A game opened from a file. Review takes the whole view while it is open, the
   // same way it does from a finished game.
   const [opened, setOpened] = useState(null);
