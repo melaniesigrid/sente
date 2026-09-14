@@ -2710,6 +2710,15 @@ friends"; this phase is the three verbs in that sentence that were still missing
       now carries its own board picker, writing the same table setting, and the tests
       check placement rather than state: a test that only asserted the state would have
       gone green on the bug.
+- [ ] **Hebrew has no words for the club** (found 2026-09-13, not fixed): the club landed
+      after Hebrew did, so `src/i18n/he/` carries none of the `club.` namespace and
+      `i18n.test.js` fails two cases on main, not only on a branch. The club's CSS had the
+      same shape of gap and is fixed in `fix/online-board-size`: `.hall-line`,
+      `.hall-unsay` and `.hall-table-open` were written with `padding-right`, `right` and
+      `text-align: left`, which the RTL test added alongside Hebrew forbids. Both halves
+      are one lesson: two branches that each pass alone can still break main together, and
+      nothing re-runs the older one against the newer. Translating the namespace is its own
+      sitting, by somebody who has seen the club.
 - [ ] **The phantom seek** (found 2026-09-13, not fixed): the client sets "Looking for
       an opponent…" when it sends the seek and only clears it on a reply, but the server
       deletes `seek:<id>` whenever the player's socket count falls to one
