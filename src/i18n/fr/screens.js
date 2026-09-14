@@ -269,6 +269,12 @@ export const screens = {
       note: "Ta marque sur le classement, dans le salon et, un jour, à travers le réseau.",
       pick: "Couleur du sceau {name}",
     },
+    arche: {
+      head: "Ton archétype",
+      note: "Un masque à porter à côté de ton nom. Il ne change rien à ton rang, et il a le droit d'être faux : choisis le joueur qu'on doit croire que tu es.",
+      none: "Sans masque",
+      noneLine: "Sans masque. Juste un joueur, ce qui est le plus difficile à lire.",
+    },
     look: {
       head: "L'allure du lieu",
       note: "Tu es dans {room}, tu joues avec {stones}, le tout composé avec l'appariement {type}.",
