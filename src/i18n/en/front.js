@@ -143,4 +143,16 @@ export const front = {
       learn: "Start the lessons",
     },
   },
+
+  /* The door. Joseki is private to the association; this is the one screen a
+     stranger sees, and it says the true thing in the first line. */
+  door: {
+    title: "Members only",
+    tagline: "Joseki is private to the association",
+    bio: "Enter the password you were given. This device will remember it.",
+    password: "Password",
+    enter: "Enter",
+    checking: "Checking…",
+    wrong: "That is not the password. Check it and try again.",
+  },
 };

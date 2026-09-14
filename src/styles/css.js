@@ -2074,6 +2074,15 @@ ${FONT_FACES}
 .gate-fields { display: flex; flex-direction: column; gap: 9px; }
 .gate-fields .chat-input { width: 100%; }
 .gate-problem { margin: 0; font-size: 14px; line-height: 1.5; color: var(--danger-ink); }
+
+/* ---- the door ----
+   Joseki is private to the association, and this is the one screen a stranger
+   sees: the wordmark over a single card, centred, with nothing else on the page
+   to say what lies behind it. The card borrows the account gate's field and
+   red line so a member who has met one has met both. */
+.door { max-width: 420px; margin: clamp(24px, 10vh, 96px) auto 0; display: flex; flex-direction: column; align-items: center; gap: 26px; }
+.door-wordmark { font-size: 34px; }
+.door-card { width: 100%; }
 .attach-row {
   display: flex; align-items: center; gap: 9px; width: 100%; text-align: start; cursor: pointer;
   border: 0; background: transparent; color: var(--ink-2); border-radius: 12px; padding: 10px 12px;
