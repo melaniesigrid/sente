@@ -883,7 +883,7 @@ ${FONT_FACES}
 .lesson-meta h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 18px; margin: 0 0 3px; }
 .lesson-meta p { color: var(--ink-2); font-size: 15.5px; margin: 0; }
 .lesson-state { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; box-shadow: var(--sink-sm); }
-.lesson-state.done { color: var(--accent-ink); }
+.lesson-state.done { background: var(--accent); color: var(--ground); box-shadow: var(--raise-sm); }
 /* ---- the lesson player ----
    One response block for every tone, a stepper that shows the shape of the
    lesson, and a footer inside the card so the controls belong to it. */

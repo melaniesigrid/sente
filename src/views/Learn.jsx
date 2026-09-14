@@ -25,7 +25,7 @@ import { dayKey } from "../content/kata.js";
 import { rankOf } from "../content/rank.js";
 import { attendDay } from "../content/chain.js";
 import { modelReady, kataChooseMoveForRecord, profileForRank } from "../engine/index.js";
-import { initStep, stepReducer, marksFor, boardLocked, canReveal, recordAtStop, coordLabel, verdictLabel, withHouseWords } from "./lessonStep.js";
+import { initStep, stepReducer, marksFor, boardLocked, canReveal, recordAtStop, coordLabel, verdictLabel, withHouseWords, foldTold } from "./lessonStep.js";
 import { useT, useDir } from "../components/langStore.js";
 import { localizeLesson, lessonField } from "../content/translate.js";
 import { localizeTrack, localizeTier, localizeBook, localizeSeries } from "../content/library.js";
@@ -79,13 +79,13 @@ function crossingNote(lesson, next, t) {
    uses: same step behaviour, same timings, same board. `exitLabel` is the only thing
    it needs to say differently: a first-time visitor has never seen a library. */
 
-export function LessonPlayer({ lesson: authored, nextLesson, onDone, onExit, onOpenNext, rank, onProgress, exitLabel = null }) {
+export function LessonPlayer({ lesson: authored, nextLesson, onDone, onSolved = null, onExit, onOpenNext, rank, onProgress, exitLabel = null }) {
   const t = useT();
   const dir = useDir();
   const exitWord = exitLabel ?? t("learn.library");
   /* The lesson in the reader's language. Memoised on the pair, so a lesson
      nobody has translated costs one identity check and no copying. */
-  const lesson = useMemo(() => withHouseWords(localizeLesson(authored, t), t), [authored, t]);
+  const lesson = useMemo(() => foldTold(withHouseWords(localizeLesson(authored, t), t)), [authored, t]);
   const saved = SESSIONS.get(lesson.id);
   const [stepIdx, setStepIdx] = useState(saved?.stepIdx ?? 0);
   const [maxIdx, setMaxIdx] = useState(saved?.maxIdx ?? 0);
@@ -158,6 +158,19 @@ export function LessonPlayer({ lesson: authored, nextLesson, onDone, onExit, onO
   };
   const back = () => { if (stepIdx > 0) goto(stepIdx - 1); };
   const next = () => { if (isLast) { setFinished(true); onDone(); } else goto(stepIdx + 1); };
+
+  /* Solving the last step is finishing the lesson. It is credited there and
+     not on the Complete button, so a learner who solves the last position and
+     leaves through the nav has still finished. A told last step is solved on
+     arrival, so a lesson that closes with a reading is credited when its last
+     puzzle is. Once per visit: the recap is still what Complete shows. */
+  const credited = useRef(false);
+  useEffect(() => {
+    if (!isLast || !solved || credited.current) return;
+    credited.current = true;
+    onSolved?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLast, solved]);
 
   /* Arrows walk the lesson; Enter fires the primary when nothing else is focused,
      so it never steals the board's own Enter-to-play or the count field.
@@ -292,6 +305,7 @@ export function LessonPlayer({ lesson: authored, nextLesson, onDone, onExit, onO
                 <p className="fine maxim-analogy">{step.analogy}</p>
               </>
             )}
+            {step.lead && <p className="lesson-text">{step.lead}</p>}
             <p className="lesson-text">{prompt}</p>
 
             {showHint && (
@@ -615,7 +629,8 @@ export function LearnView({ profile, setProfile, go }) {
     ) : null);
   /* Completing records the lesson but leaves the player mounted: it shows its own
      recap and offers the next lesson there, so the learner sees what the lesson
-     taught before moving on. The session is dropped so a replay starts at step one. */
+     taught before moving on. The session is dropped so a replay after Complete
+     starts at step one; it is also called when the last step is solved. */
   const finish = (lesson) => {
     SESSIONS.delete(lesson.id);
     setProfile(p => {
@@ -669,7 +684,7 @@ export function LearnView({ profile, setProfile, go }) {
          last lesson in the library ends. The prerequisite gate still applies to the jump. */
       <LessonPlayer key={active} lesson={lesson} nextLesson={lessonAfter(lesson, profile)}
         rank={rankOf(profile.rating)} onProgress={progress}
-        onExit={() => setActive(null)} onDone={() => finish(lesson)}
+        onExit={() => setActive(null)} onDone={() => finish(lesson)} onSolved={() => finish(lesson)}
         onOpenNext={(l) => { setActive(null); open(l); }} />
     );
   }

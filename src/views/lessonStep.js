@@ -93,6 +93,50 @@ export function withHouseWords(lesson, t = EN) {
   };
 }
 
+/* ----------------------- FOLDING THE TOLD STEP -----------------------
+   Many lessons open by showing a position with the answer marked, and then
+   show the same position again as the puzzle. Two clicks where one will do,
+   and the second is no puzzle once the first has pointed at the move. So an
+   info step whose position is exactly the step after it folds into that step:
+   its text becomes the `lead`, read above the question, and the board is the
+   learner's at once. Marks that point at nothing but the answer are dropped;
+   marks that outline a region (an eye space, the candidate points) stay,
+   because the text talks about them and they give nothing away. Applied to
+   the localized lesson, so the catalogue's step numbers stay the author's. */
+const SOLVED_BY_PLAYING = new Set(["quiz", "sequence", "choice"]);
+
+const setupKey = (s = {}) => JSON.stringify([
+  s.size ?? null,
+  (s.b || []).map(p => `${p.c},${p.r}`).sort(),
+  (s.w || []).map(p => `${p.c},${p.r}`).sort(),
+]);
+
+/** The points a step is solved by playing: the quiz answers, a sequence's
+ *  first move, every option of a choice. */
+const solvingPoints = (step) =>
+  step.answers || (step.moves ? step.moves.slice(0, 1) : null) || (step.options ? step.options.map(o => o.point) : []);
+
+/** Whether an info step is only the step after it, shown once more. */
+export const foldsInto = (told, next) =>
+  told.type === "info" && !!next && SOLVED_BY_PLAYING.has(next.type) && !next.lead
+  && setupKey(told.setup) === setupKey(next.setup);
+
+export function foldTold(lesson) {
+  const steps = [];
+  for (let i = 0; i < lesson.steps.length; i++) {
+    const step = lesson.steps[i];
+    const next = lesson.steps[i + 1];
+    if (!foldsInto(step, next)) { steps.push(step); continue; }
+    const answers = solvingPoints(next);
+    const marks = step.marks || [];
+    const onlyTheAnswer = marks.length > 0 && marks.every(m => answers.some(a => same(a, m.c, m.r)));
+    const kept = (onlyTheAnswer ? [] : marks).filter(m => !(next.marks || []).some(n => same(n, m.c, m.r)));
+    steps.push({ ...next, lead: step.text, marks: [...kept, ...(next.marks || [])] });
+    i++;
+  }
+  return steps.length === lesson.steps.length ? lesson : { ...lesson, steps };
+}
+
 export function initStep(lesson, step) {
   const base = {
     board: setupToBoard(step.setup, lesson.size),
@@ -186,7 +230,10 @@ export const sideToMove = (step, state) =>
 
 /** Marks the board should show for this step. */
 export function marksFor(step, state = null) {
-  if (step.type === "choice") return step.options.map(o => o.point);
+  if (step.type === "choice") {
+    const options = step.options.map(o => o.point);
+    return [...(step.marks || []).filter(m => !options.some(o => same(o, m.c, m.r))), ...options];
+  }
   if (step.type === "replay") return state && state.guess ? [state.guess] : [];
   return step.marks || [];
 }

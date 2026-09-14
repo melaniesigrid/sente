@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   initStep, resetStep, stepReducer, marksFor, boardLocked, sideToMove, wrongTextFor,
   canReveal, isGated, DEFAULT_WRONG, DEFAULT_PARTIAL, TIMINGS, SCORE, REVEAL_AFTER, GATE_FROM,
-  recordAtStop, coordLabel,
+  recordAtStop, coordLabel, foldTold, foldsInto,
 } from "./lessonStep.js";
 import { pt } from "../content/positions.js";
 import { lessonById, LIBRARY } from "../content/library.js";
@@ -438,5 +438,87 @@ describe("every step in the library can be finished without guessing", () => {
         }
       }
     }
+  });
+});
+
+describe("foldTold", () => {
+  it("folds an info step into the same position asked as a quiz, and drops the mark that was the answer", () => {
+    const authored = lessonById("liberties");
+    const folded = foldTold(authored);
+    expect(authored.steps[0].type).toBe("info");
+    expect(authored.steps[1].type).toBe("quiz");
+    expect(folded.steps).toHaveLength(authored.steps.length - 1);
+    expect(folded.steps[0].type).toBe("quiz");
+    expect(folded.steps[0].lead).toBe(authored.steps[0].text);
+    expect(folded.steps[0].text).toBe(authored.steps[1].text);
+    expect(folded.steps[0].answers).toEqual(authored.steps[1].answers);
+    expect(folded.steps[0].marks).toEqual([]);
+    expect(initStep(folded, folded.steps[0]).status).toBe("open");
+  });
+  it("keeps marks that outline a region rather than point at the move", () => {
+    const authored = lessonById("life-big-eye");
+    const folded = foldTold(authored);
+    expect(folded.steps[0].type).toBe("quiz");
+    expect(folded.steps[0].marks).toEqual(authored.steps[0].marks);
+  });
+  it("folds into a sequence as well, on its first move", () => {
+    const authored = lessonById("ko-as-strategy");
+    const folded = foldTold(authored);
+    expect(folded.steps[0].type).toBe("sequence");
+    expect(folded.steps[0].lead).toBe(authored.steps[0].text);
+    expect(folded.steps[0].marks).toEqual([]);
+  });
+  it("leaves a lesson alone when the position that follows is a different one", () => {
+    const told = { type: "info", setup: { b: [pt(1, 1)], w: [] }, text: "a" };
+    const asked = { type: "quiz", setup: { b: [pt(1, 1), pt(2, 2)], w: [] }, toPlay: "b", answers: [pt(3, 3)], text: "b" };
+    expect(foldsInto(told, asked)).toBe(false);
+    const lesson = { id: "x", size: 9, steps: [told, asked] };
+    expect(foldTold(lesson)).toBe(lesson);
+  });
+  it("folds into a choice, keeping region marks, and marksFor shows them beside the options", () => {
+    const authored = lessonById("first-9x9-opening");
+    const folded = foldTold(authored);
+    expect(authored.steps[0].type).toBe("info");
+    expect(folded.steps[0].type).toBe("choice");
+    expect(folded.steps[0].lead).toBe(authored.steps[0].text);
+    const options = folded.steps[0].options.map(o => o.point);
+    const shown = marksFor(folded.steps[0]);
+    for (const m of authored.steps[0].marks) expect(shown).toContainEqual(m);
+    for (const o of options) expect(shown).toContainEqual(o);
+    expect(shown.length).toBe(new Set(shown.map(p => `${p.c},${p.r}`)).size);
+  });
+  it("keeps the marks the next step already carries once, after the region marks", () => {
+    const told = { type: "info", setup: { b: [pt(1, 1)], w: [pt(5, 5)] }, marks: [pt(2, 2), pt(3, 3), pt(4, 4)], text: "a" };
+    const asked = { type: "quiz", setup: { w: [pt(5, 5)], b: [pt(1, 1)] }, toPlay: "b", answers: [pt(4, 4)], marks: [pt(3, 3)], text: "b" };
+    const folded = foldTold({ id: "x", size: 9, steps: [told, asked] });
+    expect(folded.steps).toHaveLength(1);
+    expect(folded.steps[0].marks).toEqual([pt(2, 2), pt(4, 4), pt(3, 3)]);
+  });
+  it("folds a told step with no marks, and reads the setup regardless of stone order", () => {
+    const told = { type: "info", setup: { b: [pt(1, 1), pt(2, 2)], w: [] }, text: "a" };
+    const asked = { type: "quiz", setup: { b: [pt(2, 2), pt(1, 1)], w: [] }, toPlay: "b", answers: [pt(3, 3)], text: "b" };
+    expect(foldsInto(told, asked)).toBe(true);
+    expect(foldTold({ id: "x", size: 9, steps: [told, asked] }).steps[0].marks).toEqual([]);
+    expect(foldsInto(told, { ...asked, setup: { ...asked.setup, size: 13 } })).toBe(false);
+    expect(foldsInto(told, { ...asked, setup: { ...asked.setup, w: [pt(8, 8)] } })).toBe(false);
+  });
+  it("only ever drops text and marks, because no told step in the library carries anything else", () => {
+    for (const lesson of LIBRARY) {
+      lesson.steps.forEach((step, i) => {
+        if (!foldsInto(step, lesson.steps[i + 1])) return;
+        expect(Object.keys(step).sort()).toEqual(["marks", "setup", "text", "type"].filter(k => k in step));
+      });
+    }
+  });
+  it("never folds into a count, and is a no-op on a lesson already folded", () => {
+    const told = { type: "info", setup: { b: [pt(1, 1)], w: [] }, text: "a" };
+    const count = { type: "count", setup: { b: [pt(1, 1)], w: [] }, question: "q", answer: 3 };
+    expect(foldsInto(told, count)).toBe(false);
+    for (const lesson of LIBRARY) {
+      const once = foldTold(lesson);
+      expect(foldTold(once)).toBe(once);
+      for (const step of once.steps) if (step.lead) expect(step.type).not.toBe("info");
+    }
+    expect(LIBRARY.filter(l => foldTold(l) !== l).length).toBeGreaterThan(0);
   });
 });
