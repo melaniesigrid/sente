@@ -9,10 +9,11 @@ import { ScreenHeader } from "../components/ScreenHeader.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
+import { MokuCard } from "../components/Moku.jsx";
 import {
   LIBRARY, TIERS, TRACKS, BOOKS, lessonById, prereqsMissing, nextLessonFor, currentTierFor, searchLibrary,
-  lessonsInTier, lessonsInBook, lessonAfter, bookProgressFor, trackByKey, isDone,
-  tierById, seriesByKey,
+  lessonsInTier, lessonsInBook, lessonsInSeries, lessonAfter, bookProgressFor, trackByKey, isDone,
+  tierById, seriesByKey, stretchLessonsFor,
 } from "../content/library.js";
 import {
   CHAPTERS, NAMES, lessonIdsForChapter,
@@ -194,6 +195,7 @@ export function LessonPlayer({ lesson: authored, nextLesson, onDone, onExit, onO
         <div className="play-wrap">
           <Board board={state.board} sizePx={600} marks={marksFor(step, state)} lastMove={state.lastMove} disabled />
           <div className="side stack-sm">
+            <MokuCard title={t("profile.table.moku")} size={64} />
             <Card className="lesson-card-body">
               <div className="prob-head">
                 <span className="rank-chip">{lesson.rank}</span>
@@ -276,6 +278,7 @@ export function LessonPlayer({ lesson: authored, nextLesson, onDone, onExit, onO
           flash={state.flash} captured={state.flash} captureKey={stepIdx * 100 + state.moveIdx + (solved ? 50 : 0)}
         />
         <div className="side stack-sm">
+          <MokuCard title={t("profile.table.moku")} size={64} />
           <Card className="lesson-card-body">
             <div className="prob-head">
               <span className="rank-chip">{lesson.rank}</span>
@@ -402,9 +405,16 @@ function PrereqGate({ lesson, missing, onStart, onAnyway, onDismiss }) {
    Books are a grouping over lessons that carry `book`; a book with no lessons yet
    says so and takes no space beyond its line. Guess-the-move points come from
    `bookProgress`, the best run per study. */
-function Shelf({ profile, onOpen, gateFor }) {
+function Shelf({ profile, onOpen, gateFor, excludeIds = [] }) {
   const t = useT();
-  const rows = BOOKS.map(b => ({ book: localizeBook(b, t), lessons: lessonsInBook(b.id), progress: bookProgressFor(profile, b.id) }));
+  const skip = new Set(excludeIds);
+  const rows = BOOKS.flatMap((b) => {
+    if (b.id === "classic") return [];
+    const all = lessonsInBook(b.id);
+    const lessons = all.filter((lesson) => !skip.has(lesson.id));
+    if (lessons.length === 0 && all.length > 0) return [];
+    return [{ book: localizeBook(b, t), lessons, progress: bookProgressFor(profile, b.id) }];
+  });
   return (
     <div className="stack-sm shelf">
       <div className="stat-head track-head"><span>{t("learn.shelf.head")}</span><span className="fine track-trains">{t("learn.shelf.note")}</span></div>
@@ -635,9 +645,19 @@ export function LearnView({ profile, setProfile, go }) {
   const results = useMemo(() => searchLibrary(query), [query]);
   const recall = recallSummary(LIBRARY, profile.recall, dayKey());
   const searching = query.trim().length > 0;
+  const currentTier = currentTierFor(profile);
   const tierInfo = TIERS.find(x => x.id === tier);
   const tierLessons = lessonsInTier(tier);
   const continueLesson = nextLessonFor(profile);
+  const stretch = useMemo(() => stretchLessonsFor(profile, {
+    exclude: lessonsInTier(currentTier).map((lesson) => lesson.id),
+    limit: 6,
+  }), [profile, currentTier]);
+  const shelfExclude = useMemo(() => new Set([
+    ...lessonsInTier(currentTier).map((lesson) => lesson.id),
+    ...lessonsInSeries("classic").map((lesson) => lesson.id),
+    ...stretch.map((lesson) => lesson.id),
+  ]), [currentTier, stretch]);
   const grouped = useMemo(() => TRACKS
     .map(t => ({ track: t, lessons: (searching ? results : tierLessons).filter(l => l.track === t.key) }))
     .filter(g => g.lessons.length), [searching, results, tierLessons]);
@@ -667,6 +687,9 @@ export function LearnView({ profile, setProfile, go }) {
         </div>
       </ScreenHeader>
       <p className="lede">{t("learn.sub")}</p>
+      <MokuCard
+        title={t("profile.table.moku")}
+        note={t("learn.mokuNote", {}, "Kept in the lesson instead of hovering over the page.")} />
 
       {/* What you have already read, asked back. It comes before Continue: a
           question that is due is worth more than the next lesson, because it is
@@ -693,6 +716,23 @@ export function LearnView({ profile, setProfile, go }) {
             <Btn icon={Play} primary small onClick={() => open(continueLesson, "continue")}>{t("learn.recall.start")}</Btn>
           </Card>
           {gateFor(continueLesson, "continue")}
+        </div>
+      )}
+
+      {!searching && stretch.length > 0 && (
+        <div className="stack-sm">
+          <div className="stat-head track-head">
+            <span>{t("learn.stretchHead", {}, "Stretch lessons")}</span>
+            <span className="fine track-trains">
+              {t("learn.stretchNote", { rank: rankOf(profile.rating) },
+                "Bigger-board work and tougher reading up to ten ranks above {rank}.")}
+            </span>
+          </div>
+          <div className="grid2">
+            {stretch.map((lesson) => (
+              <LessonCard key={lesson.id} lesson={lesson} done={done(lesson.id)} onOpen={open} gate={gateFor(lesson)} />
+            ))}
+          </div>
         </div>
       )}
 
@@ -746,7 +786,7 @@ export function LearnView({ profile, setProfile, go }) {
               </div>
             </div>
           ))}
-          {!searching && <Shelf profile={profile} onOpen={open} gateFor={gateFor} />}
+          {!searching && <Shelf profile={profile} onOpen={open} gateFor={gateFor} excludeIds={[...shelfExclude]} />}
         </div>
       </div>
     </div>

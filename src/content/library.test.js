@@ -3,7 +3,8 @@
    this is the authoring safety net from docs/designs/lesson-library.md. */
 import { describe, it, expect } from "vitest";
 import { tryPlay, chainAt, idx, opponent } from "../engine/index.js";
-import { LIBRARY, TIERS, TRACKS, BOOKS, SERIES, bookById, rankToNumber, lessonById, prereqsMissing, nextLessonFor, currentTierFor, searchLibrary, lessonsInTier, lessonsInBook, lessonsInSeries, lessonAfter, bookProgressFor } from "./library.js";
+import { LIBRARY, TIERS, TRACKS, BOOKS, SERIES, bookById, rankToNumber, lessonById, prereqsMissing, nextLessonFor, currentTierFor, searchLibrary, lessonsInTier, lessonsInBook, lessonsInSeries, lessonAfter, bookProgressFor, stretchLessonsFor } from "./library.js";
+import { ratingOfRank } from "./rank.js";
 import { LESSONS } from "./lessons.js";
 import { setupToBoard } from "./positions.js";
 
@@ -366,5 +367,19 @@ describe("library helpers", () => {
     expect(searchLibrary("judgement").map(l => l.id)).toEqual(expect.arrayContaining(["territory-count", "passing-and-ending"]));
     expect(searchLibrary("Life and death").every(l => l.track === "life")).toBe(true);
     expect(searchLibrary("zzz")).toEqual([]);
+  });
+  it("stretchLessonsFor shows unfinished work up to ten ranks ahead, preferring larger boards", () => {
+    const stretch = stretchLessonsFor({
+      rating: ratingOfRank("15k"),
+      lessonsDone: [],
+      tierPassed: [],
+    }, { exclude: lessonsInTier(1).map(l => l.id), limit: 6 });
+    expect(stretch.length).toBeGreaterThan(0);
+    expect(stretch.every(l => {
+      const ahead = rankToNumber(l.rank) - rankToNumber("15k");
+      return ahead > 0 && ahead <= 10;
+    })).toBe(true);
+    expect(stretch[0].size).toBeGreaterThanOrEqual(stretch[stretch.length - 1].size);
+    expect(stretch.some(l => l.size === 19)).toBe(true);
   });
 });

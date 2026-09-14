@@ -11,6 +11,7 @@ import { TIER5 } from "./lessons/tier5/index.js";
 import { TIER6 } from "./lessons/tier6/index.js";
 import { SHAPES_BOOK } from "./shapes.js";
 import { SHAPEUP_BOOK } from "./shapeup.js";
+import { rankOf } from "./rank.js";
 import { BASE_LOCALE, makeT } from "../i18n/index.js";
 import { localize } from "./translate.js";
 
@@ -174,6 +175,22 @@ export function nextLessonFor(profile) {
   return lessonsInTier(tier).find(l => !isDone(profile, l.id))
     || LIBRARY.find(l => !isDone(profile, l.id))
     || null;
+}
+
+/** Unfinished lessons ahead of the learner, capped by a span of whole ranks.
+ *  Sorted to surface larger boards first, then the nearest stronger work. */
+export function stretchLessonsFor(profile, { span = 10, exclude = [], limit = Infinity } = {}) {
+  const me = rankToNumber(rankOf(profile?.rating));
+  if (!Number.isFinite(me)) return [];
+  const skip = new Set(exclude);
+  return LIBRARY
+    .filter((lesson) => {
+      if (skip.has(lesson.id) || isDone(profile, lesson.id)) return false;
+      const at = rankToNumber(lesson.rank);
+      return Number.isFinite(at) && at > me && at <= me + span;
+    })
+    .sort((a, b) => (b.size - a.size) || (rankToNumber(a.rank) - rankToNumber(b.rank)) || (a.tier - b.tier))
+    .slice(0, limit);
 }
 
 /** Title or track-name search, case-insensitive. Empty query returns everything. */

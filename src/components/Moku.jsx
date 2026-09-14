@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { mokuState } from "../content/moku.js";
 import { useT } from "./langStore.js";
 import { MokuCtx } from "./mokuStore.js";
+import { Card } from "./ui.jsx";
 
 /* ----------------------- MOKU (mascot) -----------------------
    A black stone with two eyes. One eye is dead; two eyes live. That is the
@@ -118,6 +119,22 @@ export function MokuMark({ size = 56, state = "idle", sash = null, className = "
         <path className="moku-brow moku-brow-r" d={`M${EYE_R.cx - BROW.in} ${EYE_R.cy - BROW.low} L${EYE_R.cx + BROW.out} ${EYE_R.cy - BROW.high}`} />
       </g>
     </svg>
+  );
+}
+
+export function MokuCard({ title, note = null, className = "", children = null, size = 72 }) {
+  const m = useContext(MokuCtx);
+  if (!m || m.off) return null;
+  return (
+    <Card inset className={`moku-card ${className}`.trim()}>
+      <MokuMark state={m.state} size={size} className="moku-card-mark" />
+      <div className="moku-card-copy">
+        {title ? <strong>{title}</strong> : null}
+        <p className="lesson-text">{m.line}</p>
+        {note ? <p className="fine">{note}</p> : null}
+        {children}
+      </div>
+    </Card>
   );
 }
 
