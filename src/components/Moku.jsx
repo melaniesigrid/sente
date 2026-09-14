@@ -1,8 +1,9 @@
-import { useContext, useMemo, useState, useCallback } from "react";
+import { createContext, useContext, useMemo, useState, useCallback } from "react";
 import { X } from "lucide-react";
 import { mokuState } from "../content/moku.js";
 import { useT } from "./langStore.js";
-import { MokuCtx } from "./mokuStore.js";
+import * as mokuStore from "./mokuStore.js";
+import { Card } from "./ui.jsx";
 
 /* ----------------------- MOKU (mascot) -----------------------
    A black stone with two eyes. One eye is dead; two eyes live. That is the
@@ -23,6 +24,7 @@ import { MokuCtx } from "./mokuStore.js";
 const OFF_KEY = "sente-moku-off";
 const readOff = () => { try { return localStorage.getItem(OFF_KEY) === "1"; } catch { return false; } };
 const writeOff = (v) => { try { if (v) localStorage.setItem(OFF_KEY, "1"); else localStorage.removeItem(OFF_KEY); } catch { /* per-device nicety only */ } };
+const EMPTY_CTX = createContext(null);
 
 const VIEW_FACT = { home: "home", play: "play", learn: "learn", tsumego: "tsumego", ladder: "ladder", profile: "profile", look: "look" };
 
@@ -43,7 +45,7 @@ export function MokuProvider({ view, children }) {
     [facts, view, visits, t],
   );
   const value = useMemo(() => ({ ...resolved, off, setOff, report, clear }), [resolved, off, setOff, report, clear]);
-  return <MokuCtx.Provider value={value}>{children}</MokuCtx.Provider>;
+  return <mokuStore.MokuCtx.Provider value={value}>{children}</mokuStore.MokuCtx.Provider>;
 }
 
 let counter = 0;
@@ -121,6 +123,22 @@ export function MokuMark({ size = 56, state = "idle", sash = null, className = "
   );
 }
 
+export function MokuCard({ title, note = null, className = "", children = null, size = 72 }) {
+  const m = useContext(mokuStore.MokuCtx || EMPTY_CTX);
+  if (!m || m.off) return null;
+  return (
+    <Card inset className={`moku-card ${className}`.trim()}>
+      <MokuMark state={m.state} size={size} className="moku-card-mark" />
+      <div className="moku-card-copy">
+        {title ? <strong>{title}</strong> : null}
+        <p className="lesson-text">{m.line}</p>
+        {note ? <p className="fine">{note}</p> : null}
+        {children}
+      </div>
+    </Card>
+  );
+}
+
 /* The seat is a button so the line can be asked for rather than delivered. On a
    wide screen the bubble is always up and the button only gives a keyboard the
    same reach a mouse has; on a phone the stylesheet hides the bubble until this
@@ -128,7 +146,7 @@ export function MokuMark({ size = 56, state = "idle", sash = null, className = "
    and the line would otherwise lie across whatever you were reading. */
 export function MokuDock() {
   const t = useT();
-  const m = useContext(MokuCtx);
+  const m = useContext(mokuStore.MokuCtx || EMPTY_CTX);
   const [open, setOpen] = useState(false);
   if (!m || m.off) return null;
   return (

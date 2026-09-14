@@ -7,6 +7,7 @@ import { tryPlay } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
 import { Card, Btn, Statement } from "../components/ui.jsx";
 import { ScreenHeader } from "../components/ScreenHeader.jsx";
+import { MokuCard } from "../components/Moku.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
@@ -196,6 +197,9 @@ export function ProblemsView({ profile, setProfile, initialId }) {
         lede={t("tsumego.lede")} />
       <Statement lines={statementFor("tsumego", t)} figure="tsumego">{plainFor("tsumego", t)}</Statement>
       <Passage context="tsumego" />
+      <MokuCard
+        title={t("profile.table.moku")}
+        note={t("tsumego.mokuNote", {}, "The stone stays with the reading instead of floating over it.")} />
 
       <div className="prob-modes" role="tablist" aria-label={t("drill.modes", {}, "What to work on")}>
         <button type="button" role="tab" aria-selected={mode === "sets"}

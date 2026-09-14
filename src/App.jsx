@@ -21,7 +21,7 @@ import { Avatar } from "./components/ui.jsx";
 import { Toast } from "./components/Toast.jsx";
 import { Wordmark } from "./components/Brand.jsx";
 import { ErrorBoundary } from "./components/ErrorBoundary.jsx";
-import { MokuProvider, MokuDock } from "./components/Moku.jsx";
+import { MokuProvider } from "./components/Moku.jsx";
 import { preciseRankOf } from "./content/rank.js";
 import { typefaceVars } from "./content/typeface.js";
 import { themeVars, resolveTheme } from "./theme/index.js";
@@ -248,11 +248,6 @@ export default function JosekiApp() {
         </ErrorBoundary>
       </main>
       <Toast toast={toast} />
-      {/* Moku keeps a player company. The front door is not a screen anybody is
-          being kept company on yet, and a bubble there only fights the headline. The
-          small print is the other one: reference material is read, not sat with, and
-          the dock lands on the left edge of a 68ch measure. */}
-      {view !== "landing" && view !== "legal" && view !== "journal" && <MokuDock />}
       <footer className="foot">
         {/* The footer takes the letters alone. The mark would have to be
             smaller here than it can survive, and a mark nobody can read is

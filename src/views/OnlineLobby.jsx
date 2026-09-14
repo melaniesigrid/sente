@@ -23,38 +23,28 @@ import { useT } from "../components/langStore.js";
    games with Glicko-2 and keeps the ladder.
    `onPlay(session)` opens a table: `{ mode: { kind: "online", gameId } }`.
 
-   The board is the lobby's table board: `size` and `setSize` read and write the
-   one setting every kind of game here plays on, and the picker at the top of
-   this card is the second view of it. It used to be the only one, drawn in the
-   table card three cards down the page, and the only thing up here was the
-   board's name baked into the button label - so a player whose table said 9x9
-   read "Find an opponent on 9x9" with no control anywhere near it and no way to
-   tell that the number was a choice. Asking for another board meant scrolling
-   past fourteen other controls to a card that does not mention the word
-   "online". Two views of one value is the cheaper wrong: a control you cannot
-   find is a board you cannot play on.
+   The lobby reads the current board through `size` and `setSize`, but the
+   picker itself is optional. `Play.jsx` owns the board choice in its guided
+   flow and hides the picker here; the standalone lobby still shows it so the
+   online card remains self-contained when rendered on its own.
 
-   Neither prop has a default, on purpose. A default board would be a second
-   answer to a question the table already answers, and it would disagree with
-   it: the table's own default is 19, and the 9 that used to sit here would have
-   put "Find an opponent on 9x9" above a table card reading 19x19 - the exact
-   disagreement this card exists to end. A default `setSize` would be worse
-   still: drop the wiring in `Play.jsx` and you get a picker that highlights and
-   does nothing, which is this bug again, wearing a control. Let it fail where
-   it is wrong.
+   `mode` narrows which seek rows are offered: `"normal"`, `"pair"`, `"rengo"`,
+   `"team"` or `"all"`. `"team"` means the two multi-seat forms together:
+   pair go with house partners and human-only rengo. That lets the Play screen
+   ask one question at a time without teaching the same game twice in two cards.
 
    Online games are even; handicap is a house arrangement, and two strangers
    have no way to agree on one yet. */
-export function OnlineCard({ profile, notify, onPlay, size, setSize, go = null }) {
+export function OnlineCard({ profile, notify, onPlay, size, setSize, go = null, mode = "all", showBoardPicker = true }) {
   const [account, setAccount] = useState(() => loadAccount());
   if (!serverEnabled()) return null;
   return account
     ? <Lobby account={account} setAccount={setAccount} notify={notify} onPlay={onPlay}
-        size={size} setSize={setSize} go={go} />
+        size={size} setSize={setSize} go={go} mode={mode} showBoardPicker={showBoardPicker} />
     : <AccountGate profile={profile} notify={notify} onSignedIn={setAccount} />;
 }
 
-function Lobby({ account, setAccount, notify, onPlay, size, setSize, go }) {
+function Lobby({ account, setAccount, notify, onPlay, size, setSize, go, mode, showBoardPicker }) {
   const t = useT();
   /* The lobby socket outlives a change of language, and reconnecting it to
      translate one toast would drop a player out of the queue they are waiting
@@ -169,6 +159,9 @@ function Lobby({ account, setAccount, notify, onPlay, size, setSize, go }) {
     .sort((a, b) => (b.endedAt || b.updatedAt || 0) - (a.endedAt || a.updatedAt || 0))
     .slice(0, 3);
   const yours = board.waiting;
+  const showNormal = mode === "all" || mode === "normal";
+  const showPair = mode === "all" || mode === "pair" || mode === "team";
+  const showRengo = mode === "all" || mode === "rengo" || mode === "team";
 
   return (
     <>
@@ -199,17 +192,19 @@ function Lobby({ account, setAccount, notify, onPlay, size, setSize, go }) {
           carries the board it was sent with, and quietly re-seeking somebody
           onto a different board is not a thing a picker should do. Cancel is
           right there, and now it is obvious what cancelling is for. */}
-      <div className="row">
-        <div className="seg" role="radiogroup" aria-label={t("online.lobby.boardGroup")}>
-          {SIZES.map(n => (
-            <button key={n} type="button" role="radio" aria-checked={size === n} disabled={!!seek}
-              className={`seg-btn ${size === n ? "active" : ""}`} onClick={() => setSize(n)}>
-              {n}×{n}
-            </button>
-          ))}
+      {showBoardPicker && (
+        <div className="row">
+          <div className="seg" role="radiogroup" aria-label={t("online.lobby.boardGroup")}>
+            {SIZES.map(n => (
+              <button key={n} type="button" role="radio" aria-checked={size === n} disabled={!!seek}
+                className={`seg-btn ${size === n ? "active" : ""}`} onClick={() => setSize(n)}>
+                {n}×{n}
+              </button>
+            ))}
+          </div>
+          <span className="fine">{t(seek ? "online.lobby.boardWhileSeeking" : "online.lobby.boardNote")}</span>
         </div>
-        <span className="fine">{t(seek ? "online.lobby.boardWhileSeeking" : "online.lobby.boardNote")}</span>
-      </div>
+      )}
       {seek ? (
         <div className="seek-state" role="status">
           <Radio size={16} className="pulse" />
@@ -231,43 +226,49 @@ function Lobby({ account, setAccount, notify, onPlay, size, setSize, go }) {
         </div>
       ) : (
         <>
-          <div className="row">
-            <Btn icon={Play} primary small onClick={() => findGame()} disabled={conn !== "open"}>
-              {key ? t("online.lobby.meetAt", { word: key, size }) : t("online.lobby.findOn", { size })}
-            </Btn>
-            <input className="chat-input word-input" value={word} maxLength={32}
-              placeholder={t("online.lobby.wordPlaceholder")}
-              onChange={e => setWord(e.target.value)} onKeyDown={e => e.key === "Enter" && findGame()}
-              aria-label={t("online.lobby.wordLabel")} />
-          </div>
+          {showNormal && (
+            <div className="row">
+              <Btn icon={Play} primary small onClick={() => findGame()} disabled={conn !== "open"}>
+                {key ? t("online.lobby.meetAt", { word: key, size }) : t("online.lobby.findOn", { size })}
+              </Btn>
+              <input className="chat-input word-input" value={word} maxLength={32}
+                placeholder={t("online.lobby.wordPlaceholder")}
+                onChange={e => setWord(e.target.value)} onKeyDown={e => e.key === "Enter" && findGame()}
+                aria-label={t("online.lobby.wordLabel")} />
+            </div>
+          )}
           {/* Pair go over the network. The partner runs in each player's own
               browser, which is the one thing about it a player has to be told:
               their half of your team stops when your device does. */}
-          <div className="row">
-            <Btn icon={Users} small onClick={() => findGame({ pair: { rank: DEFAULT_PARTNER_RANK } })} disabled={conn !== "open"}>
-              {t("online.lobby.findPair", { size })}
-            </Btn>
-            <span className="fine">{t("online.lobby.pairNote", { rank: DEFAULT_PARTNER_RANK })}</span>
-          </div>
+          {showPair && (
+            <div className="row">
+              <Btn icon={Users} small onClick={() => findGame({ pair: { rank: DEFAULT_PARTNER_RANK } })} disabled={conn !== "open"}>
+                {t("online.lobby.findPair", { size })}
+              </Btn>
+              <span className="fine">{t("online.lobby.pairNote", { rank: DEFAULT_PARTNER_RANK })}</span>
+            </div>
+          )}
           {/* Rengo as it is actually played: four people and no house players.
               It waits for three others, so it says how full the table is. */}
-          <div className="row">
-            <Btn icon={UsersRound} small onClick={() => findGame({ rengo: true, ...(team ? { team } : {}) })} disabled={conn !== "open"}>
-              {t("online.lobby.findRengo", { size })}
-            </Btn>
-            <div className="seg" role="radiogroup" aria-label={t("online.lobby.whichTeam")}>
-              {[[null, t("online.lobby.eitherSide")], [1, t("online.lobby.team", { n: 1 })], [2, t("online.lobby.team", { n: 2 })]].map(([v, label]) => (
-                <button key={label} type="button" role="radio" aria-checked={team === v}
-                  className={`seg-btn ${team === v ? "active" : ""}`} onClick={() => setTeam(v)}>
-                  {label}
-                </button>
-              ))}
+          {showRengo && (
+            <div className="row">
+              <Btn icon={UsersRound} small onClick={() => findGame({ rengo: true, ...(team ? { team } : {}) })} disabled={conn !== "open"}>
+                {t("online.lobby.findRengo", { size })}
+              </Btn>
+              <div className="seg" role="radiogroup" aria-label={t("online.lobby.whichTeam")}>
+                {[[null, t("online.lobby.eitherSide")], [1, t("online.lobby.team", { n: 1 })], [2, t("online.lobby.team", { n: 2 })]].map(([v, label]) => (
+                  <button key={label} type="button" role="radio" aria-checked={team === v}
+                    className={`seg-btn ${team === v ? "active" : ""}`} onClick={() => setTeam(v)}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <span className="fine">
+                {t("online.lobby.rengoNoteA")}<em>{t("online.lobby.rengoNoteEm")}</em>{t("online.lobby.rengoNoteB")}
+              </span>
             </div>
-            <span className="fine">
-              {t("online.lobby.rengoNoteA")}<em>{t("online.lobby.rengoNoteEm")}</em>{t("online.lobby.rengoNoteB")}
-            </span>
-          </div>
-          <p className="fine">{t("online.lobby.note")}</p>
+          )}
+          {(showNormal || showPair || showRengo) && <p className="fine">{t("online.lobby.note")}</p>}
         </>
       )}
       {(live.length > 0 || done.length > 0) && (

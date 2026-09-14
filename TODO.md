@@ -42,6 +42,16 @@ point), the tactics tsumego set (four boards, none of them a tesuji), the endgam
 lessons), and the middle game everywhere. Life and death below 15k was on this list until
 2026-09-13 and is the one thing on it that moved.
 
+## Open on study depth
+
+- [ ] Replace the shallow early tsumego arc with larger-board reading tutorials: authored 13x13
+      and 19x19 life-and-death positions whose text teaches the surrounding fight rather than
+      only the vital point.
+- [ ] Expand the authored problem sets above 10k so the jump from shape drills to richer board
+      reading is gradual instead of a cliff, and keep every new answer engine-proved.
+- [ ] Audit the lesson catalogue for repeated concepts that now surface in multiple places, then
+      keep one canonical route and let the secondary shelves point at it rather than repeat it.
+
 ## Phase 0: Foundation (done)
 
 - [x] Extract the pure engine and AI into `src/engine/` (go.js, ai.js)

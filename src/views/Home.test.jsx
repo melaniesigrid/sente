@@ -14,7 +14,10 @@ vi.mock("../components/MiniSelfPlay.jsx", () => ({ MiniSelfPlay: () => null }));
 vi.mock("../components/DuelCard.jsx", () => ({ DuelCard: () => null }));
 vi.mock("../components/Chain.jsx", () => ({ ChainLine: () => null }));
 vi.mock("../components/OpenSgf.jsx", () => ({ OpenSgf: () => null }));
-vi.mock("../components/mokuStore.js", () => ({ useMokuFacts: () => {} }));
+vi.mock("../components/mokuStore.js", async (importOriginal) => {
+  const actual = await importOriginal();
+  return { ...actual, useMokuFacts: () => {} };
+});
 vi.mock("./Review.jsx", () => ({ Review: () => null }));
 vi.mock("./session.js", () => ({ loadSession: () => null }));
 

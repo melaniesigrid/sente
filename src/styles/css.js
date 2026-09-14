@@ -1981,6 +1981,11 @@ ${FONT_FACES}
 .ceremony-card .lesson-text { color: var(--ink-2); font-size: 16px; }
 
 /* ---- Moku ---- */
+.moku-card { display: flex; align-items: center; gap: 14px; }
+.moku-card-mark { flex: 0 0 auto; }
+.moku-card-copy { display: grid; gap: 6px; }
+.moku-card-copy .lesson-text, .moku-card-copy .fine { margin: 0; }
+.play-guide .seg { flex-wrap: wrap; }
 .moku-dock { position: fixed; inset-inline-start: clamp(12px, 2vw, 24px); bottom: clamp(12px, 2vw, 24px); z-index: 40; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; pointer-events: none; }
 .moku-dock > * { pointer-events: auto; }
 /* The bubble is sized to the margin it stands in, not to itself.
@@ -2006,6 +2011,7 @@ ${FONT_FACES}
 .moku-off { position: absolute; top: -2px; inset-inline-end: -8px; width: 23px; height: 23px; border: 0; border-radius: 50%; background: var(--ground); color: var(--ink); box-shadow: var(--raise-sm); display: grid; place-items: center; cursor: pointer; opacity: 0; transition: opacity .18s ease; }
 .moku-seat:hover .moku-off, .moku-off:focus-visible { opacity: .85; }
 @media (max-width: 760px) { .moku-bubble { max-width: 180px; font-size: 15px; } .moku-off { opacity: .6; } .moku-dock .moku { width: 68px; height: 68px; } }
+@media (max-width: 760px) { .moku-card { align-items: flex-start; } }
 
 .moku .moku-stone { filter: drop-shadow(3px 3px 4px rgba(var(--sh-ink),.45)) drop-shadow(-2px -2px 3px rgba(var(--sh-lite),.55)); }
 .moku .moku-body, .moku .moku-eyes, .moku .moku-pupils, .moku .moku-brow, .moku .moku-mouth, .moku .moku-ko { transform-origin: center; transform-box: fill-box; }
