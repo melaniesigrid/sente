@@ -261,10 +261,15 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
             </div>
           </div>
         )}
-        {humanGame && (
+        {humanGame && !teamGame && (
           <OnlineCard profile={profile} notify={notify} onPlay={setSession} go={go}
             size={table.size} setSize={(n) => setTable({ size: n })}
-            mode={teamGame ? "rengo" : "normal"} showBoardPicker={false} />
+            mode="normal" showBoardPicker={false} />
+        )}
+        {humanGame && teamGame && (
+          <OnlineCard profile={profile} notify={notify} onPlay={setSession} go={go}
+            size={table.size} setSize={(n) => setTable({ size: n })}
+            mode="rengo" showBoardPicker={false} />
         )}
         {/* The private trainer, on this device only, once the profile has opened the
             door. Two ranks above the table so he is beatable and instructive; his

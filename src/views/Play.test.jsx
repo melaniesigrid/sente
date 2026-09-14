@@ -69,10 +69,12 @@ describe("the guided play screen", () => {
   it("switches the human branch from normal play to rengo without showing pass-and-play", async () => {
     await playScreen(13);
     expect(document.body.textContent).toContain("Pass & play");
+    expect(onlineCard()).toBeTruthy();
     await act(async () => {
       fireEvent.click(screen.getByRole("radio", { name: /rengo/i }));
     });
     expect(document.body.textContent).not.toContain("Pass & play");
+    expect(onlineCard()).toBeTruthy();
     expect(screen.getByRole("button", { name: /rengo/i }).textContent).toContain("13×13");
   });
 
