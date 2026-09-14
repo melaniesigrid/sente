@@ -77,12 +77,14 @@ export function Home({ profile, go, onResume }) {
     setBox((current) => {
       let b = current || loadBox();
       let changed = false;
+      let seeded = false;
       if (!b.lastGame && b.letters.length === 0 && b.wrote !== today) {
         b = postLetter(b, letterFor({ name: profile.name }, games), today);
         changed = true;
+        seeded = true;
       }
       const away = daysBetween(b.lastGame, today);
-      if (shouldWriteAbout(b, today)) {
+      if (!seeded && shouldWriteAbout(b, today)) {
         b = postLetter(b, letterFor({ daysAway: away, name: profile.name }, away), today);
         changed = true;
       }
