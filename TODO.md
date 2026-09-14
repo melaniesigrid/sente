@@ -44,6 +44,9 @@ lessons), and the middle game everywhere. Life and death below 15k was on this l
 
 ## Open on study depth
 
+- [x] A told step that only repeats the puzzle after it folds into that puzzle in the player
+      (`foldTold` in `src/views/lessonStep.js`), and a lesson is credited when its last
+      step is solved, not only on Complete (v0.13.2.0, 2026-09-14).
 - [ ] Replace the shallow early tsumego arc with larger-board reading tutorials: authored 13x13
       and 19x19 life-and-death positions whose text teaches the surrounding fight rather than
       only the vital point.

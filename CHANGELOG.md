@@ -6,6 +6,30 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.13.2.0 (2026-09-14)
+
+### Changed
+
+- **A lesson no longer shows you the move and then asks you to play it.** Thirty-four
+  lessons opened with the position and a mark on the answer, then showed the same position
+  again as the puzzle. The two are now one step: the explanation reads above the question,
+  and the board is yours the moment it appears. A mark that pointed at nothing but the
+  answer is gone; marks that outline a region, an eye space or the candidate points, stay,
+  because the text talks about them and they give nothing away. The fold happens in the
+  player, on the lesson in your language, so nothing in the nine catalogues moved.
+- The few sentences that named "the marked point" where the mark was the answer now name
+  the point itself, in English and in every language that had translated them.
+
+### Fixed
+
+- **Finishing a lesson counts the moment you solve its last step.** It used to count only
+  when you pressed Complete, so solving the last position and leaving through the menu, or
+  the Library button, left the lesson unrecorded. It is credited on the solve now; Complete
+  still shows the recap.
+- **A finished lesson is a green check on its card.** The tick sat in the sunken circle in
+  the same ink as everything else and read as unpressed. It is now a raised accent disc
+  with the check on it.
+
 ## v0.13.1.0 (2026-09-13)
 
 ### Fixed
