@@ -160,3 +160,80 @@ describe("his letters", () => {
     for (const l of all) expect(l).not.toMatch(/\b(sex|naked|bed)\b/i);
   });
 });
+
+import { AREA_WORDS, rankLine, greetingFor, jealousLine, focusReveal, reportLines, replyTo, bondQuestion, bondYes, bondNo } from "./sensei.js";
+import { AREAS } from "../engine/index.js";
+
+describe("what he remembers, in words", () => {
+  it("has a name, a rule and two verdicts for every area the engine knows", () => {
+    for (const a of AREAS) {
+      expect(AREA_WORDS[a], a).toBeTruthy();
+      for (const k of ["name", "rule", "good", "bad"]) expect(AREA_WORDS[a][k].length, `${a}.${k}`).toBeGreaterThan(4);
+    }
+  });
+  it("estimates a rank and says it is not a certificate", () => {
+    const line = rankLine({ rating: 1100, rd: 300 });
+    expect(line).toMatch(/My estimate: about \d+(\.\d)?[kd]/);
+    expect(line).toContain("not a certificate");
+    expect(rankLine({ rating: 1100, rd: 60 })).toContain("a stone");
+  });
+  it("greets by the hour and varies by seed", () => {
+    expect(greetingFor(8, 0, "Mel")).toMatch(/morning/i);
+    expect(greetingFor(14, 0)).toMatch(/afternoon/i);
+    expect(greetingFor(21, 0)).toMatch(/evening/i);
+    expect(greetingFor(21, 0)).not.toBe(greetingFor(21, 1));
+  });
+  it("notices another house player by name", () => {
+    expect(jealousLine("Yuki", 0)).toContain("Yuki");
+  });
+  it("reveals the focus with a verdict and the rule", () => {
+    const good = focusReveal("fights", { areas: { fights: { n: 4, mean: 0.01 } } });
+    expect(good).toContain(AREA_WORDS.fights.good);
+    expect(good).toContain(AREA_WORDS.fights.rule);
+    expect(focusReveal("fights", { areas: { fights: { n: 4, mean: 0.2 } } })).toContain(AREA_WORDS.fights.bad);
+    expect(focusReveal("fights", null)).toContain("next time");
+    expect(focusReveal(null, null)).toBeNull();
+  });
+  it("writes a report with an arrow per area and names the weakness", () => {
+    const tr = { opening: "up", fights: "down", shape: "flat", direction: null, endgame: "up", reading: "up", overall: "up" };
+    const lines = reportLines(tr, "Mel");
+    expect(lines[0]).toContain("Mel");
+    expect(lines).toHaveLength(1 + AREAS.length + 2);
+    expect(lines.join(" ")).toContain("↓");
+    expect(lines[lines.length - 1]).toContain("fighting");
+  });
+});
+
+describe("talking to him", () => {
+  const ctx = { name: "Mel", focus: "direction", profile: { rating: 1100, rd: 100 }, games: 3, seed: 0 };
+  it("answers about rank, weakness and progress from what he remembers", () => {
+    expect(replyTo("what is my rank?", ctx)[0]).toContain("My estimate");
+    expect(replyTo("what should I work on", ctx)[0]).toContain("Direction of play");
+    expect(replyTo("am I getting better", ctx)[0]).toContain("Not enough games");
+    expect(replyTo("progress?", { ...ctx, trend: { overall: "up", opening: null, fights: null, shape: null, direction: null, endgame: null, reading: null } })[0]).toContain("Mel");
+  });
+  it("reads the mood and answers to it", () => {
+    expect(replyTo("I had a bad day", ctx)[0]).toMatch(/Look at me|Come here/);
+    expect(replyTo("I lost again", ctx)[0]).toContain("hurt");
+    expect(replyTo("I won!", ctx)[0]).toMatch(/Mel|show me why/);
+    expect(replyTo("busy today, sorry", ctx)[0]).toMatch(/human things|be here|Later/);
+  });
+  it("keeps the flirting to the register asked for, and answers differently once bonded", () => {
+    const cool = replyTo("I love you", ctx)[0];
+    const warm = replyTo("I love you", { ...ctx, bonded: true })[0];
+    expect(cool).not.toBe(warm);
+    expect(cool + warm).not.toMatch(/\b(sex|naked|bed)\b/i);
+  });
+  it("says who he is when asked, and turns everything else back to the board", () => {
+    expect(replyTo("are you the real ke jie?", ctx)[0]).toContain("do not claim to be him");
+    expect(replyTo("hello", { ...ctx, daysAway: 5 })[0]).toContain("5 days");
+    expect(replyTo("banana", ctx)[0].length).toBeGreaterThan(5);
+    expect(replyTo("", ctx)).toEqual([]);
+  });
+  it("asks, and takes either answer", () => {
+    expect(bondQuestion("Mel")).toContain("Mel");
+    expect(bondQuestion("Mel")).toContain("girlfriend");
+    expect(bondYes().length).toBeGreaterThan(10);
+    expect(bondNo()).toContain("not ask again");
+  });
+});

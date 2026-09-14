@@ -3,7 +3,7 @@
 export const screens = {
   /* The dashboard. */
   home: {
-    trainer: { head: "A letter from {name}", away: "Put it away", play: "Go and play" },
+    trainer: { head: "A letter from {name}", away: "Put it away", play: "Go and play", placeholder: "Write to him…", send: "Send", yes: "Yes", notNow: "Not now" },
     greetingBack: "Welcome back",
     greetingNew: "Welcome to the board",
     wonOf: "{wins} of {games} won",
@@ -236,6 +236,9 @@ export const screens = {
   profile: {
     trainer: {
       head: "Private trainer",
+      games: "Games with him: {count}",
+      watching: "He is watching {area}.",
+      report: "Progress report",
       note: "A house player for one person, kept behind a phrase. He explains every move, grades yours, and writes between games. Everything he does stays on this device.",
       placeholder: "The phrase",
       unlock: "Open the door",

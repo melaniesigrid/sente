@@ -3,6 +3,7 @@
    לאחור ואחד כדי לבנות את החדר שקוראים אותו בו. */
 export const rooms = {
   review: {
+    trainer: { ask: "לשאול את {name}" },
     back: "חזרה",
     unfinished: "משחק שלא הסתיים",
     start: "התחלה",

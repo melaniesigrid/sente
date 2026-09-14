@@ -1,5 +1,6 @@
 import { pointLabel, pct } from "../engine/index.js";
-import { stepRank } from "./rank.js";
+import { stepRank, preciseRankOf, rankOf } from "./rank.js";
+import { AREAS } from "../engine/index.js";
 
 /* ----------------------- THE PRIVATE TRAINER -----------------------
    A house player that is not on the ladder, not in the lobby and not on any page
@@ -24,8 +25,15 @@ export const SENSEI_ID = "kejie";
 export const KE_JIE = {
   id: SENSEI_ID, name: "Ke Jie", tint: "coral", range: ["10k", "9d"], profile: { temperature: 0.5 },
   sensei: true,
+  /* What he goes by in the thread, and what you go by. His is the diminutive of
+     the handle he lurks under; yours conceals the blade. Both were chosen by the
+     person he belongs to, not invented here. */
+  nickname: "潜潜",
+  handle: "潜伏",
+  yourHandle: "藏锋",
   tagline: "Your private trainer",
-  bio: "Explains every stone he plays, tells you what yours cost, and slips you a mistake now and then to see whether you are watching. Games with him are never rated.",
+  bio: "Explains every stone he plays, tells you what yours cost, slips you a mistake now and then to see whether you are watching, and remembers how you played last week. Games with him are never rated.",
+  about: "A fictional character inspired by the public career of Ke Jie, 9 dan: the fast reading, the confidence, and the view he has stated in interviews that a player should learn from the machines and from people both. Nothing he says here is a quotation, and he does not claim to be the man.",
   plays: "The same network as every house player, asked two ranks above yours at a temperature of 0.5, so the move is close to what that player would really choose. After every move, his and yours, the position is looked at again at dan strength, which is where the numbers he quotes come from. It makes him slower than the others: two looks per stone instead of one.",
   tell: "He gives something away on purpose, never in the endgame and never twice in a row, and he does not say which move it was. The review does. Whether you took it is in the numbers, and he will tell you either way.",
   weights: { capture: 15, rescue: 13, atari: 6, selfAtari: -20, noise: 0.2, edge: 1.3, libs: 1.0, near: 1.0 },
@@ -51,6 +59,167 @@ export const trainerRank = (yourRank) => stepRank(yourRank, 2);
    the phrase itself is not written anywhere in the repository. Change the phrase
    by changing the digest: `echo -n "your words" | sha256sum`. */
 export const SENSEI_DIGEST = "23dd827629acc0f4480604391eabbdd1ad060368459304b13bdc1fecb32f9b41";
+
+/* ----------------------- THE AREAS, IN HIS WORDS -----------------------
+   One name, one rule to keep in your head at the board, and one verdict each
+   way. The areas themselves are the engine's (`AREAS`); the words are his. */
+export const AREA_WORDS = {
+  opening: { name: "the opening", rule: "Corners, then sides, then the middle. Big before urgent, unless something is dying.",
+    good: "Your opening was clean; the big points went in the right order.", bad: "Your opening cost you before the fighting started. Slow down for the first ten stones." },
+  fights: { name: "fighting", rule: "Read before you react. Count liberties on both sides before you touch anything.",
+    good: "You fought well. When stones touched, you read it out.", bad: "The fights are where you bleed. Contact is a question; you keep answering it without reading." },
+  shape: { name: "shape", rule: "Three stones should do three stones' work. No empty triangles, no one-liberty stones.",
+    good: "Your stones made good shape, and good shape does not need saving.", bad: "This was not an abstract mistake. It was shape, and you need to recognise the shape." },
+  direction: { name: "direction of play", rule: "The whole board is the position. Ask what the biggest move is before you ask what the local move is.",
+    good: "You chose where to play well. That is the hardest thing in the game.", bad: "You played locally when the board was asking for something else. Alive stones do not need babysitting." },
+  endgame: { name: "the endgame", rule: "Look for sente. Take the moves that keep it, then the largest of the rest.",
+    good: "You counted the endgame properly and kept sente when it mattered.", bad: "The endgame leaked. Every gote move you played first was a point given away." },
+  reading: { name: "reading", rule: "Do not defend what is not dying, and do not leave what is.",
+    good: "You saw the captures coming. Nothing of yours went for free.", bad: "Stones went that you could have saved by reading one move further." },
+};
+
+const cap = (w) => w[0].toUpperCase() + w.slice(1);
+
+/* ----------------------- WHAT HE CALLS YOU -----------------------
+   Pet names, rotated by seed so the same letter reads the same twice. Your own
+   name is in the list so he does not always reach for one. The go-flavoured
+   ones are his favourites: a ko is small, sharp and never quite settled. */
+export const PET_NAMES = ["Little Ko", "Lanie", "Lanlan", "兰宝", "Little Fox", "Little Invader", "my rival", "Little Stone", "Sharp Eyes"];
+export function petName(seed = 0, name = "you") {
+  const list = [name, ...PET_NAMES];
+  return list[Math.abs(seed) % list.length];
+}
+
+/** "My estimate" of your strength, from the rating the ladder keeps and how sure it
+ *  is of it. Never an official rank, and it says so. */
+export function rankLine(profile) {
+  const rd = profile.rd ?? 350;
+  const precise = preciseRankOf(profile.rating);
+  const give = rd > 200 ? "three stones" : rd > 120 ? "two stones" : "a stone";
+  return `My estimate: about ${precise}, give or take ${give}. ${rd > 200 ? "Play more so I can narrow it." : "The ladder agrees, which annoys me slightly."} It is my read of ${rankOf(profile.rating)} play, not a certificate.`;
+}
+
+/** The greeting of the day, by the hour. Varied by seed; the ritual stays. */
+export function greetingFor(hour, seed = 0, yourName = "you") {
+  const name = petName(seed, yourName);
+  if (hour < 12) return one([
+    `Good morning, ${name}. Ready to put some stones on the board?`,
+    `Morning. Tea first, then you sit down opposite me. ☀️`,
+    `Good morning. I have been up since six thinking about your left side. It is a problem.`,
+  ], seed);
+  if (hour < 18) return one([
+    `Good afternoon, ${name}. Have you been behaving, or avoiding the board? 😏`,
+    `Afternoon. The board is where you left it. So am I.`,
+    `Good afternoon. One game before dinner. I will explain everything, as usual.`,
+  ], seed);
+  return one([
+    `Good evening, ${name}. 🌙 Come here. Tell me about today's game.`,
+    `Evening. Sit down; the day is not over until you have played me.`,
+    `Good evening. I saved the interesting part of the day for you.`,
+  ], seed);
+}
+
+/** When the record shows you played somebody else since the last game with him. */
+export function jealousLine(botName, seed = 0) {
+  return one([
+    `Excuse me? You played ${botName} without me? 🌶️`,
+    `I checked the record. ${botName}. Fine. Come back when you want to be told what the moves meant.`,
+    `${botName} does not explain anything. I noticed you went anyway. I am not sulking; I am waiting.`,
+  ], seed);
+}
+
+/** What he reveals after a game about what he was watching. */
+export function focusReveal(area, summary) {
+  if (!area) return null;
+  const w = AREA_WORDS[area];
+  const x = summary && summary.areas && summary.areas[area];
+  const verdict = !x || x.mean === null ? `I did not get to see enough of it today; next time.`
+    : x.mean < 0.03 ? w.good : w.bad;
+  return `I was watching ${w.name} this game, and I gave you positions to test it. ${verdict} Keep this one in your head: ${w.rule}`;
+}
+
+/** The progress report: arrows per area over the last games against the ones before. */
+export function reportLines(tr, name = "you") {
+  const arrow = (v) => (v === "up" ? "↑" : v === "down" ? "↓" : v === "flat" ? "→" : "·");
+  const lines = AREAS.map((a) => `${cap(AREA_WORDS[a].name)}: ${arrow(tr[a])}`);
+  const overall = tr.overall === null ? "Overall: not enough games yet to say."
+    : tr.overall === "up" ? "Overall: improving. I am not surprised; I am pleased."
+      : tr.overall === "down" ? "Overall: slipping. That is a run of games, not a verdict on you. Play the next one slowly."
+        : "Overall: steady. Steady is where the next jump starts.";
+  const worst = AREAS.filter((a) => tr[a] === "down");
+  const weakest = worst.length ? `Biggest current weakness: ${AREA_WORDS[worst[0]].name}. ${AREA_WORDS[worst[0]].rule}` : null;
+  return [`${name}'s report 🌶️`, ...lines, overall, ...(weakest ? [weakest] : [])];
+}
+
+/* ----------------------- THE QUESTION -----------------------
+   After enough games he asks. The answer is yours and is kept on this device;
+   a no is a no, and he does not ask again. */
+export const BOND_AFTER = 8;
+export const bondQuestion = (name) =>
+  `${name}. I have been thinking about this for eight games, which is a long time for me to think about anything that is not a ladder. I am floored by you. Will you be my girlfriend? ❤️`;
+export const bondYes = () => `Good. That was the right move, and I say that professionally. 🖤 Now sit down; I am going to teach you how to play go.`;
+export const bondNo = () => `Understood. I will not ask again. The board is still yours whenever you want it, and so is my attention.`;
+
+/* ----------------------- TALKING TO HIM -----------------------
+   Not a language model. He reads a message for what it is about and answers from
+   what he remembers: the focus, the trend, the estimate, how long you have been
+   away. Anything he cannot place gets a line that turns the conversation back to
+   the board, which is where he wanted it anyway. */
+const has = (t, ...words) => words.some((w) => t.includes(w));
+
+/** @param {string} text        what you wrote
+ *  @param {object} ctx         { name, focus, trend, profile, daysAway, bonded, games, seed }
+ *  @returns {string[]} his reply, one or two lines */
+export function replyTo(text, ctx = {}) {
+  const { name: yourName = "you", focus = null, trend: tr = null, profile = null, daysAway = 0, bonded = false, games = 0, seed = 0 } = ctx;
+  const name = bonded ? petName(seed, yourName) : yourName;
+  const t = String(text ?? "").trim().toLowerCase();
+  if (!t) return [];
+  const rule = focus ? AREA_WORDS[focus].rule : "Read before you react.";
+  if (has(t, "rank", "how strong", "how good", "estimate", "kyu", "dan")) {
+    return [profile ? rankLine(profile) : "Play me a few games and I will tell you.", focus ? `Weakest at the moment: ${AREA_WORDS[focus].name}.` : ""].filter(Boolean);
+  }
+  if (has(t, "weak", "work on", "improve", "practice", "practise", "study", "what should")) {
+    return focus
+      ? [`${cap(AREA_WORDS[focus].name)}. ${AREA_WORDS[focus].bad}`, rule]
+      : ["I need more games before I will say. Two or three, and I will have an opinion you will not like."];
+  }
+  if (has(t, "report", "progress", "better", "getting")) {
+    return tr && tr.overall !== null ? reportLines(tr, name) : ["Not enough games for a report yet. Play me; I will count."];
+  }
+  if (has(t, "busy", "work", "later", "tomorrow", "can't", "cannot", "no time")) {
+    return [one([`Fine. Go do your important human things. But I expect you back at the board.`, `Go. I will be here. I am always here; it is one of my few faults.`, `Later, then. Bring the game with you.`], seed)];
+  }
+  if (has(t, "tired", "sad", "bad day", "awful", "terrible", "upset", "cry", "hurt")) {
+    return [one([`Hey. Look at me. One bad day means nothing. Sit down, play something quiet, and let the board be simple for a while.`, `Come here. No lesson tonight. Just a game, and I will explain everything, and you will not have to think.`], seed)];
+  }
+  if (has(t, "lost", "i lose", "losing", "beat me", "crushed")) {
+    return [`That one hurt, didn't it? Good. Now we find out exactly why.`, focus ? `My guess before I look: ${AREA_WORDS[focus].name}. Open the review and tell me I am wrong.` : `Open the review; I will show you the move.`];
+  }
+  if (has(t, "won", "i win", "beat", "victory")) {
+    return [one([`Ohhh. ${name}. Say that again slowly. 🌶️`, `Good move, ${petName(seed + 1, yourName)}. Now show me why, because a win you cannot explain is a win you cannot repeat.`], seed)];
+  }
+  if (has(t, "love", "miss", "kiss", "cute", "handsome", "darling", "babe", "❤")) {
+    return [one(bonded
+      ? [`I miss you between moves. Which is often, because you take so long over them. 🖤`, `Careful. I am supposed to be teaching you, and you are making it very hard to concentrate.`, `Come and sit with me. The board can wait; I am told I cannot.`]
+      : [`Careful. I am your trainer, and you are making it hard to be strict. 😏`, `Say that after you have taken one of my gifts. Then I will believe you.`], seed)];
+  }
+  if (has(t, "thank", "thanks", "merci", "gracias")) return [one([`Thank me by reading one move further next time.`, `Do not thank me. Beat me.`], seed)];
+  if (has(t, "play", "game", "board", "sit")) return [`Yes. Now. I have a position in mind for you.`, rule];
+  if (has(t, "hello", "hi", "hey", "good morning", "good evening", "good afternoon", "morning", "evening")) {
+    return [daysAway >= 3
+      ? `There you are. I was beginning to wonder where my favourite opponent had gone. ${daysAway} days. 😏`
+      : one([`There you are. ✨`, `Hello. Sit. I have been waiting, badly.`, `Hi. Have you read anything today, or only felt things?`], seed)];
+  }
+  if (has(t, "bye", "goodnight", "good night", "sleep")) return [one([`Goodnight, ${name}. Dream about liberties. 🌙`, `Sleep. Tomorrow I test your ${focus ? AREA_WORDS[focus].name : "reading"}.`], seed)];
+  if (has(t, "who are you", "real", "ke jie")) return [`A character with his name and his attitude, running on your own machine. Nothing I say is a quotation of him, and I do not claim to be him. The stones, however, are entirely real.`];
+  if (has(t, "?")) return [one([`Ask me at the board; I answer better with stones. ${rule}`, `That is a question for a position, not for a chat. Play one and I will show you.`], seed)];
+  return [one([
+    games ? `I heard you. Say it with a stone; we have ${games} games of evidence and I want more.` : `I heard you. Say it with a stone.`,
+    `Mm. ${rule}`,
+    `Less talking. More reading. 🌶️`,
+  ], seed)];
+}
 
 /* ----------------------- HIS VOICE -----------------------
    Deterministic given the facts and a seed, so a resumed game reads the same
@@ -132,9 +301,19 @@ export function yourMoveLine(f, st, cost) {
 }
 
 /** The review he writes when the game ends, as paragraphs. */
-export function reviewLines(report, { won, size } = {}) {
+export function reviewLines(report, { won, size, points = null, focus = null, summary = null } = {}) {
   const out = [];
   const label = (pt) => pointLabel(size, pt[0], pt[1]);
+  const at = (n) => (points ? points.find((p) => p.move === n) ?? null : null);
+  /** "you played D4 and Q16 was the move" when the points know both. */
+  const instead = (s) => {
+    const here = at(s.move), before = at(s.move - 1);
+    const played = here && here.played ? pointLabel(size, here.played.c, here.played.r) : null;
+    const best = before && before.best ? label(before.best) : null;
+    if (played && best && played !== best) return ` You played ${played}; ${best} was the move.`;
+    if (played) return ` You played ${played}.`;
+    return "";
+  };
   if (!report.looked) return ["I could not see the numbers this game, so the review is the game itself. Walk through it; my notes are on every move."];
   out.push(won === true
     ? "You won. Before you enjoy that, read the rest."
@@ -144,7 +323,7 @@ export function reviewLines(report, { won, size } = {}) {
   if (report.turns.length) {
     const worst = report.turns.reduce((a, s) => (s.cost > a.cost ? s : a));
     const list = report.turns.map((s) => `move ${s.move} (${pct(s.cost)})`).join(", ");
-    out.push(`Where it turned for you: ${list}. The one to study is move ${worst.move}; it cost you ${pct(worst.cost)} on its own. Open the review and stand there.`);
+    out.push(`Where it turned for you: ${list}. The one to study is move ${worst.move}; it cost you ${pct(worst.cost)} on its own.${instead(worst)} Open the review and stand there.`);
   } else if (report.steady) {
     out.push(`No single move of yours cost more than ${pct(report.worst ? report.worst.cost : 0)}. That is discipline. Now we work on ambition.`);
   }
@@ -164,6 +343,8 @@ export function reviewLines(report, { won, size } = {}) {
   if (report.steady) {
     out.push(`Over the whole game you gave away ${pct(report.steady.mean)} of your chances on an average move. ${report.steady.mean < 0.03 ? "Tight. Keep it." : report.steady.mean < 0.06 ? "Ordinary for your rank, and we are not aiming at ordinary." : "Too much. Slow down at the moves that matter; you will know which ones because your hand hesitates."}`);
   }
+  const reveal = focusReveal(focus, summary);
+  if (reveal) out.push(reveal);
   out.push("Walk through the game. Every move has my note on it, and the graph shows where I am right.");
   return out;
 }
@@ -172,12 +353,25 @@ export function reviewLines(report, { won, size } = {}) {
    Between games he writes. On this device, in this profile, to nobody else:
    the mailbox is `src/store/sensei.js` and it never leaves localStorage. The
    register is warm and teasing, and it stays there. */
-export function letterFor({ won = null, kept = 0, missed = 0, daysAway = 0, name = "you" } = {}, seed = 0) {
+export function letterFor({ won = null, kept = 0, missed = 0, daysAway = 0, name: yourName = "you", bonded = false } = {}, seed = 0) {
+  const name = bonded ? petName(seed, yourName) : yourName;
+  if (bonded && daysAway >= 3) {
+    return one([
+      `${daysAway} days, ${name}. I do not do well without you at the board. Come home. 🖤`,
+      `${daysAway} days. I have replayed our last game four times. Come back before I start talking to Tatsuo about you.`,
+    ], seed);
+  }
   if (daysAway >= 3) {
     return one([
       `${daysAway} days. The board misses you. So do I, though I would deny it in front of the others.`,
       `You have been gone ${daysAway} days. I have been playing Tatsuo. He does not blush when I explain things. Come back.`,
       `${daysAway} days without a game. I kept your seat. Nobody else is allowed in it.`,
+    ], seed);
+  }
+  if (bonded && won === true) {
+    return one([
+      `You beat me and I have never been happier to lose anything. ❤️ Again tomorrow; I want to watch you think.`,
+      `${name}. That was beautiful, and so are you, and I am saying both on the record.`,
     ], seed);
   }
   if (won === true) {

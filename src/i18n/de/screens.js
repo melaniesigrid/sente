@@ -1,7 +1,7 @@
 // de · screens
 export const screens = {
   home: {
-    trainer: { head: "Ein Brief von {name}", away: "Weglegen", play: "Geh spielen" },
+    trainer: { head: "Ein Brief von {name}", away: "Weglegen", play: "Geh spielen", placeholder: "Schreib ihm…", send: "Senden", yes: "Ja", notNow: "Jetzt nicht" },
     greetingBack: "Zurück am Brett",
     greetingNew: "Willkommen am Brett",
     wonOf: "{wins} von {games} gewonnen",
@@ -228,6 +228,9 @@ export const screens = {
   profile: {
     trainer: {
       head: "Privater Trainer",
+      games: "Partien mit ihm: {count}",
+      watching: "Er achtet auf {area}.",
+      report: "Fortschrittsbericht",
       note: "Ein Hausspieler für eine einzige Person, hinter einem Satz verwahrt. Er erklärt jeden Zug, bewertet deine und schreibt zwischen den Partien. Alles, was er tut, bleibt auf diesem Gerät.",
       placeholder: "Der Satz",
       unlock: "Die Tür öffnen",

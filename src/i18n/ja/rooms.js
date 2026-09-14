@@ -1,6 +1,7 @@
 // ja · rooms
 export const rooms = {
   review: {
+    trainer: { ask: "{name}に聞く" },
     back: "戻る",
     unfinished: "打ちかけの対局",
     start: "初手の前",

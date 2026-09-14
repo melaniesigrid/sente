@@ -99,3 +99,111 @@ export function trainerReport(points, gifts, you = "b") {
     gifts: graded,
   };
 }
+
+/* ----------------------- WHAT HE REMEMBERS -----------------------
+   A trainer who tracks development needs a memory that is arithmetic, not
+   anecdote. Each of your moves has facts (`describeMove`) and a cost (the swing
+   between the two positions around it); grouped into areas, a game becomes a
+   handful of numbers, and a run of games becomes a trend. The areas are chosen so
+   that every one of them is decided by something the board holds:
+
+     opening    what a stone cost in the opening phase
+     fights     what a contact move cost in the middle game
+     shape      what a move that made a poor shape or a self-atari cost
+     direction  what a quiet, non-contact middle-game move cost: where to play
+     endgame    what a stone cost in the endgame
+     reading    what a move cost when his reply captured something */
+
+export const AREAS = ["opening", "fights", "shape", "direction", "endgame", "reading"];
+
+/** Which areas a move of yours belongs to, from its facts and what came next.
+ *  `nextCaptured` is how many stones his reply took. A move can be in several. */
+export function areasOf(f, nextCaptured = 0) {
+  if (!f || f.pass) return [];
+  const out = [];
+  if (f.phase === "opening") out.push("opening");
+  if (f.phase === "endgame") out.push("endgame");
+  if (f.phase === "middle") out.push(f.contact > 0 ? "fights" : "direction");
+  if (f.selfAtari || f.shapes.includes("empty-triangle") || f.shapes.includes("dumpling")) out.push("shape");
+  if (nextCaptured > 0 || f.selfAtari) out.push("reading");
+  return out;
+}
+
+/** One game as numbers. `facts` maps your move numbers to their facts; `points`
+ *  are the evaluation points. Returns null when nothing of yours was graded. */
+export function gameSummary(points, facts, you = "b") {
+  const mine = swings(points).filter((s) => s.color === you);
+  if (!mine.length) return null;
+  const byArea = Object.fromEntries(AREAS.map((a) => [a, { n: 0, cost: 0 }]));
+  let selfAtari = 0;
+  for (const s of mine) {
+    const f = facts[s.move];
+    if (!f) continue;
+    if (f.selfAtari) selfAtari++;
+    const next = facts[s.move + 1];   // not yours; his capture count rides on his own facts when given
+    for (const a of areasOf(f, next && next.captured ? next.captured : 0)) {
+      byArea[a].n++;
+      byArea[a].cost += Math.max(0, s.cost);
+    }
+  }
+  const areas = {};
+  for (const a of AREAS) areas[a] = { n: byArea[a].n, mean: byArea[a].n ? byArea[a].cost / byArea[a].n : null };
+  const lost = mine.map((s) => Math.max(0, s.cost));
+  const worst = mine.reduce((a, s) => (s.cost > a.cost ? s : a));
+  return {
+    moves: mine.length,
+    mean: lost.reduce((a, b) => a + b, 0) / lost.length,
+    worst: worst.cost > 0 ? { move: worst.move, cost: worst.cost } : null,
+    selfAtari,
+    areas,
+  };
+}
+
+/** The mean cost per area over a run of summaries, weighting by moves. Areas with
+ *  fewer than `min` moves across the run are null: not enough to say. */
+export function areaMeans(summaries, min = 4) {
+  const out = {};
+  for (const a of AREAS) {
+    let n = 0, cost = 0;
+    for (const g of summaries) {
+      const x = g && g.areas && g.areas[a];
+      if (!x || x.mean === null) continue;
+      n += x.n; cost += x.mean * x.n;
+    }
+    out[a] = n >= min ? cost / n : null;
+  }
+  return out;
+}
+
+/** Where he should look next: the area that has cost you most over the last few
+ *  games, or null while there is not enough to say. */
+export function focusFor(summaries, last = 5) {
+  const means = areaMeans(summaries.slice(-last));
+  let best = null;
+  for (const a of AREAS) {
+    if (means[a] === null) continue;
+    if (!best || means[a] > means[best]) best = a;
+  }
+  return best;
+}
+
+/** How each area moved: the last `n` games against the `n` before them. A lower
+ *  cost is "up". Null where either half has too little to compare. `step` is how
+ *  much of the win rate per move counts as movement rather than noise. */
+export function trend(summaries, n = 5, step = 0.01) {
+  const recent = summaries.slice(-n), before = summaries.slice(-2 * n, -n);
+  const a = areaMeans(recent), b = areaMeans(before);
+  const out = {};
+  for (const k of AREAS) {
+    if (a[k] === null || b[k] === null) { out[k] = null; continue; }
+    const d = b[k] - a[k];
+    out[k] = d > step ? "up" : d < -step ? "down" : "flat";
+  }
+  const overall = (list) => {
+    const xs = list.filter((g) => g && typeof g.mean === "number");
+    return xs.length ? xs.reduce((s, g) => s + g.mean, 0) / xs.length : null;
+  };
+  const ra = overall(recent), rb = overall(before);
+  out.overall = ra === null || rb === null ? null : rb - ra > step ? "up" : ra - rb > step ? "down" : "flat";
+  return out;
+}

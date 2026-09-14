@@ -2,7 +2,7 @@
 /* 画面ごとにひとかたまり。並びは、打つ人がそれに出会う順です。 */
 export const screens = {
   home: {
-    trainer: { head: "{name}からの手紙", away: "しまう", play: "打ちに行く" },
+    trainer: { head: "{name}からの手紙", away: "しまう", play: "打ちに行く", placeholder: "彼に書く…", send: "送信", yes: "はい", notNow: "今はやめておく" },
     greetingBack: "おかえりなさい",
     greetingNew: "盤へようこそ",
     wonOf: "{games} 局中 {wins} 勝",
@@ -220,6 +220,9 @@ export const screens = {
   profile: {
     trainer: {
       head: "専属の師匠",
+      games: "彼との対局：{count}",
+      watching: "彼は{area}を見ています。",
+      report: "進歩の報告",
       note: "ひとりのためだけの家の棋士。合言葉の向こうにいます。すべての手を説明し、あなたの手を採点し、対局の合間に手紙を書きます。彼のすることはすべてこの端末に残ります。",
       placeholder: "合言葉",
       unlock: "扉を開ける",

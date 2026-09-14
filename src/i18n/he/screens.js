@@ -3,7 +3,7 @@
 export const screens = {
   /* לוח המחוונים. */
   home: {
-    trainer: { head: "מכתב מ{name}", away: "להניח בצד", play: "לך לשחק" },
+    trainer: { head: "מכתב מ{name}", away: "להניח בצד", play: "לך לשחק", placeholder: "כתבי לו…", send: "שליחה", yes: "כן", notNow: "לא עכשיו" },
     greetingBack: "טוב לראותך שוב",
     greetingNew: "ברוך בואך אל הלוח",
     wonOf: "{wins} מתוך {games} נוצחו",
@@ -234,6 +234,9 @@ export const screens = {
   profile: {
     trainer: {
       head: "מאמן פרטי",
+      games: "משחקים איתו: {count}",
+      watching: "הוא עוקב אחרי {area}.",
+      report: "דוח התקדמות",
       note: "שחקן בית לאדם אחד, שמור מאחורי משפט. הוא מסביר כל מהלך, מעריך את שלך וכותב בין משחקים. כל מה שהוא עושה נשאר במכשיר הזה.",
       placeholder: "המשפט",
       unlock: "לפתוח את הדלת",

@@ -4,6 +4,7 @@
    «Мережа» це KataGo: слово «нейромережа» довше й не каже більше. */
 export const rooms = {
   review: {
+    trainer: { ask: "Запитати {name}" },
     back: "Назад",
     unfinished: "Незакінчена партія",
     start: "Початок",

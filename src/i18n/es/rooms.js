@@ -1,6 +1,7 @@
 // es · rooms
 export const rooms = {
   review: {
+    trainer: { ask: "Pregunta a {name}" },
     back: "Atrás",
     unfinished: "Partida sin terminar",
     start: "Inicio",

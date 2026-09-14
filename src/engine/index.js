@@ -44,7 +44,9 @@ export { loadModel, onModelProgress, modelReady, loadMaster, loadEval, MODEL_BYT
 export { kataChooseMoveForRecord, clampRank, profileForRank, masterYear } from "./kata/bot.js";
 export { ANALYSIS_RANK, analyseGame, cachedAnalysis, positions, evaluatePosition, seedAnalysis } from "./kata/analyse.js";
 export { PHASE_AT, phaseOf, lineOf, regionOf, distance, describeMove, policyStanding } from "./explain.js";
-export { TRAINER, giftDue, pickGift, giftOutcome, trainerReport } from "./sensei.js";
+export {
+  TRAINER, AREAS, giftDue, pickGift, giftOutcome, trainerReport, areasOf, gameSummary, areaMeans, focusFor, trend,
+} from "./sensei.js";
 export { createRng, hashString, positionSeed } from "./rng.js";
 export {
   TRANSFORMS, transformPoint, inverseTransform, transformBoard, canonical, canonicalMove, bookKey, fromCanonical,

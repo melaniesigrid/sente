@@ -1,6 +1,7 @@
 // zh · rooms
 export const rooms = {
   review: {
+    trainer: { ask: "问问{name}" },
     back: "返回",
     unfinished: "没下完的棋",
     start: "开局",

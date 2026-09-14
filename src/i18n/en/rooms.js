@@ -3,6 +3,7 @@
    a game back and one to build the room you read it in. */
 export const rooms = {
   review: {
+    trainer: { ask: "Ask {name}" },
     back: "Back",
     unfinished: "Unfinished game",
     start: "Start",
