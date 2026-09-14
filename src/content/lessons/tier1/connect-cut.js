@@ -13,7 +13,7 @@ export default {
       type: "info",
       setup: { b: [pt(3, 3), pt(4, 4)], w: [pt(4, 3)] },
       marks: [pt(3, 4)],
-      text: "Diagonal stones are not connected yet. White has taken one of the two points between them; the marked point is the cutting point. Whoever plays there decides whether Black is one group or two.",
+      text: "Diagonal stones are not connected yet. White has taken one of the two points between them; the other is the cutting point. Whoever plays there decides whether Black is one group or two.",
     },
     {
       type: "quiz",

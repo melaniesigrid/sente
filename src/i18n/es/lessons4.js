@@ -117,7 +117,7 @@ export const lessons4 = {
     subtitle: "Capítulo nueve: toma el punto antes de que piensen en él",
     plain: "La fuerza es lectura, no teatro. La buena jugada sale de pensar más lejos de lo que la posición parece pedir, nunca de esperar que tu rival se equivoque.",
     steps: {
-      0: { text: "Alguien le objetó a Zhang Ni que un juego construido sobre el cambio y la captura tenía que ser una Vía falsa. Él respondió que es una Vía pequeña, pero la misma Vía que la guerra, y que la habilidad en ella no es engaño. Los mejores jugadores piensan hondo, sopesan consecuencias lejanas y dejan que su pensamiento recorra el tablero entero antes de colocar una piedra. Apuntan a la conquista antes de que la conquista sea visible, y toman un punto antes de que el rival haya pensado en él. El punto marcado es uno de esos." },
+      0: { text: "Alguien le objetó a Zhang Ni que un juego construido sobre el cambio y la captura tenía que ser una Vía falsa. Él respondió que es una Vía pequeña, pero la misma Vía que la guerra, y que la habilidad en ella no es engaño. Los mejores jugadores piensan hondo, sopesan consecuencias lejanas y dejan que su pensamiento recorra el tablero entero antes de colocar una piedra. Apuntan a la conquista antes de que la conquista sea visible, y toman un punto antes de que el rival haya pensado en él. El punto a medio camino entre las dos piedras es uno de esos." },
       1: {
         text: "Juegan las negras: toma el punto que quieren los dos lados, arriba.",
         success: "Tomado por las negras es una extensión desde la esquina. Tomado por las blancas habría sido una pinza contra ella. El mismo punto, dos sentidos; el lado que lo ve primero se queda con el bueno.",

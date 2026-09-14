@@ -151,7 +151,7 @@ export const lessons2 = {
     subtitle: "Chapitre six : ton point faible est là où ils viendront",
     plain: "Trouve ton groupe le plus faible avant de partir chasser. C'est là que ton adversaire vise déjà, et le réparer d'abord vaut en général mieux que l'attaque que tu avais en tête.",
     steps: {
-      0: { text: "Le joueur sage, dit le classique, voit ce qui n'est pas encore visible ; le sot manque ce qu'il a sous les yeux. Deux points sont marqués. L'un est une pierre blanche en atari. L'autre est le trou entre tes propres pierres. Connais ton point faible et tu sauras par où vient ton adversaire." },
+      0: { text: "Le joueur sage, dit le classique, voit ce qui n'est pas encore visible ; le sot manque ce qu'il a sous les yeux. Regarde les points marqués. L'un est une pierre blanche en atari. Un autre est le trou entre tes propres pierres. Connais ton point faible et tu sauras par où vient ton adversaire." },
       1: {
         text: "Aux noirs de jouer. Où ?",
         options: {

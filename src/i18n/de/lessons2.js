@@ -151,7 +151,7 @@ export const lessons2 = {
     subtitle: "Kapitel sechs: deine schwache Stelle ist die, an der sie kommen",
     plain: "Finde deine schwächste Gruppe, bevor du auf die Jagd gehst. Dorthin zielt dein Gegner schon, und sie zuerst zu flicken ist meist mehr wert als der Angriff, den du vorhattest.",
     steps: {
-      0: { text: "Der weise Spieler, sagt der Klassiker, sieht, was noch nicht sichtbar ist; der törichte übersieht, was vor ihm liegt. Zwei Punkte sind markiert. Der eine ist ein weißer Stein im Atari. Der andere ist die Lücke zwischen deinen eigenen Steinen. Kenne deine schwache Stelle und du weißt, woher dein Gegner kommt." },
+      0: { text: "Der weise Spieler, sagt der Klassiker, sieht, was noch nicht sichtbar ist; der törichte übersieht, was vor ihm liegt. Sieh dir die markierten Punkte an. Einer ist ein weißer Stein im Atari. Ein anderer ist die Lücke zwischen deinen eigenen Steinen. Kenne deine schwache Stelle und du weißt, woher dein Gegner kommt." },
       1: {
         text: "Schwarz am Zug. Wohin?",
         options: {

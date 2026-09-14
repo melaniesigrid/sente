@@ -38,7 +38,7 @@ export const lessons1 = {
     steps: {
       0: { text: "El suicidio es ilegal: no puedes jugar una piedra que deje su propia cadena con cero libertades. Pero hay una excepción gloriosa." },
       1: {
-        text: "El punto marcado es la última libertad de las blancas. Juegan las negras: la jugada parece un suicidio, pero las capturas se resuelven antes.",
+        text: "La última libertad de las blancas está dentro de su propia forma. Juegan las negras: la jugada parece un suicidio, pero las capturas se resuelven antes.",
         success: "Cinco piedras capturadas. Retirar las del rival ocurre antes de contar las tuyas propias: ese punto nunca fue un suicidio.",
         hint: "Cuenta las libertades de las blancas antes de contar las tuyas.",
       },
@@ -107,7 +107,7 @@ export const lessons1 = {
     subtitle: "Dos piedras, un hueco, y quién lo rellena",
     plain: "Una diagonal es un hueco, y quien lo rellena decide la pelea. Si conectas, tus piedras son una cadena fuerte; si cortas, tu rival tiene dos cadenas débiles que mantener vivas a la vez.",
     steps: {
-      0: { text: "Las piedras en diagonal todavía no están conectadas. Las blancas han ocupado uno de los dos puntos que hay entre ellas; el punto marcado es el punto de corte. Quien juegue ahí decide si las negras son un grupo o dos." },
+      0: { text: "Las piedras en diagonal todavía no están conectadas. Las blancas han ocupado uno de los dos puntos que hay entre ellas; el otro es el punto de corte. Quien juegue ahí decide si las negras son un grupo o dos." },
       1: {
         text: "Juegan las negras. Conecta.",
         success: "Sólido. Tres piedras, una cadena, y ahora la piedra blanca es la que parece sola.",
@@ -137,7 +137,7 @@ export const lessons1 = {
     subtitle: "Extender desde el atari, y cuándo correr no sirve",
     plain: "Que quede una libertad significa que queda una jugada. Extender hacia el espacio abierto compra aire, pero cuando la vía de escape va a dar con las piedras del rival la piedra ya está perdida, y la jugada vale más en otro sitio.",
     steps: {
-      0: { text: "Queda una libertad. El punto marcado es la única salida. Extender ahí hace una cadena de dos piedras con tres libertades, y el peligro pasa por ahora." },
+      0: { text: "Queda una libertad, y esa libertad es la única salida. Extender ahí hace una cadena de dos piedras con tres libertades, y el peligro pasa por ahora." },
       1: {
         text: "Juegan las negras. Extiende y sal del atari.",
         success: "Tres libertades. Fíjate en la dirección: hacia el centro abierto, lejos del borde.",

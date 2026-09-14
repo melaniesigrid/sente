@@ -121,7 +121,7 @@ export const lessons4 = {
     subtitle: "Kapitel neun: nimm den Punkt, ehe der andere an ihn denkt",
     plain: "Stärke ist Lesen, nicht Aufführung. Der gute Zug kommt daher, weiter vorauszudenken, als die Stellung zu verlangen scheint, nie daher, auf einen Fehltritt des Gegners zu hoffen.",
     steps: {
-      0: { text: "Jemand hielt Zhang Ni entgegen, ein Spiel, das auf Wandel und Fang gebaut sei, müsse ein falscher Weg sein. Er antwortete, es sei ein kleiner Weg, aber derselbe Weg wie der Krieg, und Können darin sei keine List. Die besten Spieler denken tief, wägen ferne Folgen ab und lassen ihre Gedanken über das ganze Brett wandern, ehe sie einen Stein setzen. Sie zielen auf die Eroberung, bevor die Eroberung sichtbar ist, und nehmen einen Punkt, bevor der Gegner an ihn gedacht hat. Der markierte Punkt ist ein solcher." },
+      0: { text: "Jemand hielt Zhang Ni entgegen, ein Spiel, das auf Wandel und Fang gebaut sei, müsse ein falscher Weg sein. Er antwortete, es sei ein kleiner Weg, aber derselbe Weg wie der Krieg, und Können darin sei keine List. Die besten Spieler denken tief, wägen ferne Folgen ab und lassen ihre Gedanken über das ganze Brett wandern, ehe sie einen Stein setzen. Sie zielen auf die Eroberung, bevor die Eroberung sichtbar ist, und nehmen einen Punkt, bevor der Gegner an ihn gedacht hat. Der Punkt auf halbem Weg zwischen den beiden Steinen ist ein solcher." },
       1: {
         text: "Schwarz spielt den Punkt oben, den beide Seiten wollen.",
         success: "Von Schwarz genommen ist er eine Erweiterung aus der Ecke. Von Weiß genommen wäre er eine Zange dagegen gewesen. Derselbe Punkt, zwei Bedeutungen; die Seite, die ihn zuerst sieht, bekommt die gute.",

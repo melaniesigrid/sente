@@ -117,7 +117,7 @@ export const lessons4 = {
     subtitle: "Chapitre neuf : prends le point avant qu'ils y pensent",
     plain: "La force est lecture, pas théâtre. Le bon coup vient d'avoir pensé plus loin que la position ne semble le demander, jamais d'espérer que l'adversaire trébuche.",
     steps: {
-      0: { text: "On objecta à Zhang Ni qu'un jeu bâti sur le changement et la capture devait être une Voie fausse. Il répondit que c'est une petite Voie, mais la même Voie que la guerre, et que l'habileté qu'on y déploie n'est pas une ruse. Les meilleurs joueurs pensent profond, pèsent les conséquences lointaines et laissent leur pensée parcourir tout le goban avant de poser une pierre. Ils visent la conquête avant qu'elle soit visible, et prennent un point avant que l'adversaire y ait pensé. Le point marqué en est un." },
+      0: { text: "On objecta à Zhang Ni qu'un jeu bâti sur le changement et la capture devait être une Voie fausse. Il répondit que c'est une petite Voie, mais la même Voie que la guerre, et que l'habileté qu'on y déploie n'est pas une ruse. Les meilleurs joueurs pensent profond, pèsent les conséquences lointaines et laissent leur pensée parcourir tout le goban avant de poser une pierre. Ils visent la conquête avant qu'elle soit visible, et prennent un point avant que l'adversaire y ait pensé. Le point à mi-chemin entre les deux pierres en est un." },
       1: {
         text: "Aux noirs de jouer le point que les deux camps veulent, en haut.",
         success: "Pris par les noirs, c'est une extension depuis le coin. Pris par les blancs, c'eût été une pince contre lui. Le même point, deux sens ; le camp qui le voit le premier obtient le bon.",

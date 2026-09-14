@@ -14,7 +14,7 @@ export default {
       type: "info",
       setup: { b: [pt(3, 3)], w: [pt(9, 3)] },
       marks: [pt(6, 3)],
-      text: "Someone objected to Zhang Ni that a game built on change and capture must be a false Way. He answered that it is a small Way, but the same Way as war, and that skill in it is not trickery. The best players think deep, weigh distant consequences, and let their thoughts travel the whole board before placing a stone. They aim at conquest before conquest is visible, and take a point before the opponent has thought of it. The marked point is one such.",
+      text: "Someone objected to Zhang Ni that a game built on change and capture must be a false Way. He answered that it is a small Way, but the same Way as war, and that skill in it is not trickery. The best players think deep, weigh distant consequences, and let their thoughts travel the whole board before placing a stone. They aim at conquest before conquest is visible, and take a point before the opponent has thought of it. The point halfway between the two stones is one such.",
     },
     {
       type: "quiz",

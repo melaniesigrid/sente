@@ -151,7 +151,7 @@ export const lessons2 = {
     subtitle: "Capítulo seis: tu punto débil es por donde vendrán",
     plain: "Encuentra tu propio grupo más débil antes de salir de caza. Ahí es donde tu rival ya está apuntando, y remendarlo primero suele valer más que el ataque que tenías pensado.",
     steps: {
-      0: { text: "El jugador sabio, dice el clásico, ve lo que todavía no es visible; el necio no ve lo que tiene delante. Hay dos puntos marcados. Uno es una piedra blanca en atari. El otro es el hueco entre tus propias piedras. Conoce tu punto débil y sabrás por dónde viene tu rival." },
+      0: { text: "El jugador sabio, dice el clásico, ve lo que todavía no es visible; el necio no ve lo que tiene delante. Mira los puntos marcados. Uno es una piedra blanca en atari. Otro es el hueco entre tus propias piedras. Conoce tu punto débil y sabrás por dónde viene tu rival." },
       1: {
         text: "Juegan las negras. ¿Dónde?",
         options: {

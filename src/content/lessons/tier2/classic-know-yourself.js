@@ -27,7 +27,7 @@ export default {
       type: "info",
       setup: base,
       marks: [pt(4, 3), pt(7, 5)],
-      text: "The wise player, the classic says, sees what is not yet visible; the foolish one misses what is in front of them. Two points are marked. One is a white stone in atari. The other is the gap between your own stones. Know your own weak point and you know where your opponent is coming.",
+      text: "The wise player, the classic says, sees what is not yet visible; the foolish one misses what is in front of them. Look at the marked points. One is a white stone in atari. Another is the gap between your own stones. Know your own weak point and you know where your opponent is coming.",
     },
     {
       type: "choice",
