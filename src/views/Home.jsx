@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { serverEnabled } from "../net/api.js";
 import { loadAccount } from "../store/account.js";
 import { DashboardCard } from "./DashboardCard.jsx";
@@ -56,19 +56,25 @@ export function Home({ profile, go, onResume }) {
   const trainerOn = hasSensei(profile, account);
   /* The trainer's mailbox, read once. If you have been away a few days he writes
      about it, once per day at most, and the letter is kept on this device. */
-  const [box, setBox] = useState(() => {
-    if (!trainerOn) return null;
-    let b = loadBox();
-    if (!b.lastGame && b.letters.length === 0 && b.wrote !== today) {
-      b = postLetter(b, letterFor({ name: profile.name }, games), today);
-      saveBox(b);
-    }
-    if (shouldWriteAbout(b, today)) {
-      b = postLetter(b, letterFor({ daysAway: daysBetween(b.lastGame, today), name: profile.name }, daysBetween(b.lastGame, today)), today);
-      saveBox(b);
-    }
-    return b;
-  });
+  const [box, setBox] = useState(() => (trainerOn ? loadBox() : null));
+  useEffect(() => {
+    if (!trainerOn) { setBox(null); return; }
+    setBox((current) => {
+      let b = current || loadBox();
+      let changed = false;
+      if (!b.lastGame && b.letters.length === 0 && b.wrote !== today) {
+        b = postLetter(b, letterFor({ name: profile.name }, games), today);
+        changed = true;
+      }
+      const away = daysBetween(b.lastGame, today);
+      if (shouldWriteAbout(b, today)) {
+        b = postLetter(b, letterFor({ daysAway: away, name: profile.name }, away), today);
+        changed = true;
+      }
+      if (changed) saveBox(b);
+      return changed || !current ? b : current;
+    });
+  }, [trainerOn, today, profile.name, games]);
   const letter = box ? unread(box).slice(-1)[0] ?? null : null;
   const putAway = () => { const b = markRead(box); saveBox(b); setBox(b); };
   useMokuFacts({ view: "home", seed: games });
