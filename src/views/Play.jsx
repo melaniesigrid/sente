@@ -129,7 +129,7 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
     const humanGame = opponent === "human";
     const teamGame = format === "rengo";
     const showLevel = !humanGame && !teamGame;
-    const showTable = !humanGame || !teamGame;
+    const showTable = !teamGame;
     const sit = (mode) => setSession({
       mode: { ...mode, size: table.size, handicap: table.handicap, rules: table.rules, komi, clock },
     });
