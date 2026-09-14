@@ -1,6 +1,7 @@
 // fr · screens
 export const screens = {
   home: {
+    trainer: { head: "Une lettre de {name}", away: "La ranger", play: "Va jouer" },
     greetingBack: "De retour au goban",
     greetingNew: "Bienvenue au goban",
     wonOf: "{wins} sur {games} gagnées",
@@ -73,6 +74,7 @@ export const screens = {
   },
 
   play: {
+    trainer: { cta: "Entraîne-toi avec {name}", note: "Privé, sur cet appareil. Jamais classé." },
     label: "Assieds-toi",
     titleBefore: "Trouve une ",
     titleEm: "partie",
@@ -224,6 +226,17 @@ export const screens = {
   },
 
   profile: {
+    trainer: {
+      head: "Entraîneur privé",
+      note: "Un joueur de la maison pour une seule personne, gardé derrière une phrase. Il explique chaque coup, note les tiens et écrit entre les parties. Tout ce qu'il fait reste sur cet appareil.",
+      placeholder: "La phrase",
+      unlock: "Ouvrir la porte",
+      wrong: "Ce n'est pas la phrase.",
+      on: "{name} est à la table. Retrouve-le dans le salon.",
+      hide: "Le renvoyer",
+      letters: "Lettres gardées sur cet appareil : {count}",
+      burn: "Brûler les lettres",
+    },
     displayName: "Nom affiché",
     saveName: "Enregistre le nom",
     editName: "Modifie le nom",

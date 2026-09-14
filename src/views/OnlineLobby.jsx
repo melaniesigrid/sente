@@ -4,11 +4,12 @@ import { Card, Btn, Avatar, RankBadge } from "../components/ui.jsx";
 import { api, lobbySocket, serverEnabled, SERVER_URL } from "../net/api.js";
 import { loadAccount, saveAccount, clearAccount } from "../store/account.js";
 import { provisionalText } from "../content/online.js";
-import { DEFAULT_PARTNER_RANK } from "../engine/index.js";
+import { SIZES, DEFAULT_PARTNER_RANK } from "../engine/index.js";
 import { tableLine } from "./onlineStatus.js";
 import { dashboard, waitingText, waitedMinutes } from "./dashboard.js";
 import { AccountGate } from "./AccountGate.jsx";
 import { InvitesCard } from "./InvitesCard.jsx";
+import { WatchCard } from "./WatchCard.jsx";
 import { useInvites } from "./useInvites.js";
 import { HereNow } from "./HereNow.jsx";
 import { useFriends } from "./useFriends.js";
@@ -21,18 +22,39 @@ import { useT } from "../components/langStore.js";
    and a password, or a handle kept in this browser alone. The server rates
    games with Glicko-2 and keeps the ladder.
    `onPlay(session)` opens a table: `{ mode: { kind: "online", gameId } }`.
-   The board comes from the lobby's table picker, so one control sets the
-   size for every kind of game. Online games are even; handicap is a house
-   arrangement, and two strangers have no way to agree on one yet. */
-export function OnlineCard({ profile, notify, onPlay, size = 9, go = null }) {
+
+   The board is the lobby's table board: `size` and `setSize` read and write the
+   one setting every kind of game here plays on, and the picker at the top of
+   this card is the second view of it. It used to be the only one, drawn in the
+   table card three cards down the page, and the only thing up here was the
+   board's name baked into the button label - so a player whose table said 9x9
+   read "Find an opponent on 9x9" with no control anywhere near it and no way to
+   tell that the number was a choice. Asking for another board meant scrolling
+   past fourteen other controls to a card that does not mention the word
+   "online". Two views of one value is the cheaper wrong: a control you cannot
+   find is a board you cannot play on.
+
+   Neither prop has a default, on purpose. A default board would be a second
+   answer to a question the table already answers, and it would disagree with
+   it: the table's own default is 19, and the 9 that used to sit here would have
+   put "Find an opponent on 9x9" above a table card reading 19x19 - the exact
+   disagreement this card exists to end. A default `setSize` would be worse
+   still: drop the wiring in `Play.jsx` and you get a picker that highlights and
+   does nothing, which is this bug again, wearing a control. Let it fail where
+   it is wrong.
+
+   Online games are even; handicap is a house arrangement, and two strangers
+   have no way to agree on one yet. */
+export function OnlineCard({ profile, notify, onPlay, size, setSize, go = null }) {
   const [account, setAccount] = useState(() => loadAccount());
   if (!serverEnabled()) return null;
   return account
-    ? <Lobby account={account} setAccount={setAccount} notify={notify} onPlay={onPlay} size={size} go={go} />
+    ? <Lobby account={account} setAccount={setAccount} notify={notify} onPlay={onPlay}
+        size={size} setSize={setSize} go={go} />
     : <AccountGate profile={profile} notify={notify} onSignedIn={setAccount} />;
 }
 
-function Lobby({ account, setAccount, notify, onPlay, size, go }) {
+function Lobby({ account, setAccount, notify, onPlay, size, setSize, go }) {
   const t = useT();
   /* The lobby socket outlives a change of language, and reconnecting it to
      translate one toast would drop a player out of the queue they are waiting
@@ -169,6 +191,25 @@ function Lobby({ account, setAccount, notify, onPlay, size, go }) {
         </div>
         <RankBadge rating={player.rating} />
       </div>
+      {/* The board, above the seek state rather than inside the branch below it,
+          so that looking for an opponent does not take the board off the screen.
+          A search is the moment a player is most likely to reconsider it, and a
+          setting that vanishes exactly then reads as no setting at all. It is
+          disabled rather than live while a seek is out: the seek on the server
+          carries the board it was sent with, and quietly re-seeking somebody
+          onto a different board is not a thing a picker should do. Cancel is
+          right there, and now it is obvious what cancelling is for. */}
+      <div className="row">
+        <div className="seg" role="radiogroup" aria-label={t("online.lobby.boardGroup")}>
+          {SIZES.map(n => (
+            <button key={n} type="button" role="radio" aria-checked={size === n} disabled={!!seek}
+              className={`seg-btn ${size === n ? "active" : ""}`} onClick={() => setSize(n)}>
+              {n}×{n}
+            </button>
+          ))}
+        </div>
+        <span className="fine">{t(seek ? "online.lobby.boardWhileSeeking" : "online.lobby.boardNote")}</span>
+      </div>
       {seek ? (
         <div className="seek-state" role="status">
           <Radio size={16} className="pulse" />
@@ -247,6 +288,11 @@ function Lobby({ account, setAccount, notify, onPlay, size, go }) {
         </div>
       </div>
     </Card>
+    {/* The main room: games in progress you may sit beside. Opening one is the
+        same door as opening your own table; the server seats nobody it did not
+        seat already, so the socket comes back with no chair and the view is
+        the spectator's. */}
+    <WatchCard token={token} onWatch={(gameId) => onPlay({ mode: { kind: "online", gameId } })} />
     </>
   );
 }

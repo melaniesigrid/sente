@@ -87,7 +87,9 @@ export const game = {
     captures: { b: "Capturas de las negras: {n}", w: "Capturas de las blancas: {n}" },
     hintsOn: " \u00b7 avisos de atari activados",
     keys: " \u00b7 P pasa, U deshace",
+    trainer: { reviewHead: "Comentario de {name}", walk: "Recorrerla" },
     chat: {
+      trainer: "entrenador privado",
       head: "Charla de mesa",
       coachOnTitle: "El entrenador est\u00e1 activado en esta partida, y esta partida no puntúa.",
       coachOffTitle: "Pide a tu rival que nombre las formas que haces. Esta partida dejar\u00e1 de puntuar, para siempre.",

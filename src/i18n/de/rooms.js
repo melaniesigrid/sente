@@ -32,6 +32,7 @@ export const rooms = {
     },
     graphNote: "Die Gewinnkurve fragt das Netz nach jeder Stellung der Reihe nach: schnell auf einem kleinen Brett, Minuten auf 19x19. Du kannst sie unterwegs anhalten und behalten, was sie schon gezeichnet hat. ",
     winGraph: "Gewinnkurve",
+    card: { head: "Wer vorne lag" },
     keepAnalysing: "Weiter auswerten",
     positions: "{done} / {total} Stellungen",
     stop: "Anhalten",

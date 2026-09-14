@@ -196,6 +196,11 @@ export const online = {
     looking: "正在找 {size}×{size} 的对手…",
     lookingOthers: "正在找 {size}×{size} 的对手 · 另有 {count} 人也在等…",
     cancel: "取消",
+    /* The board every find on this card seeks on: the table's board,
+       offered here because the button names it and a name is not a control. */
+    boardGroup: "棋盘大小",
+    boardNote: "从这里开始的对局都在这张棋盘上下。",
+    boardWhileSeeking: "这次搜索用的棋盘。要换一张，请先取消。",
     meetAt: "在 {size}×{size} 上用暗号「{word}」碰头",
     findOn: "在 {size}×{size} 上找对手",
     wordPlaceholder: "或者一个你们俩都知道的词",
@@ -217,7 +222,7 @@ export const online = {
     rengoNoteA: "四个人，两人一队，按一个固定次序轮着下。要跟某个人",
     rengoNoteEm: "一起",
     rengoNoteB: "下而不是跟他对着下，就约好一个词，然后两个人挑同一队；挑「哪边都行」，就跟碰上的人组队。不计分：一个队的战绩跟一位棋手的段位不是同一个数字，而 Joseki 不会把自己担保不了的数字放到屏幕上。同伴不许商量，所以没有通往同伴的那条线，本来也不该有。",
-    note: "下面这张桌子决定棋盘。联网对局一律分先、不计时，不管你给馆里的棋手设了什么让子和用时。跟朋友约好一个词，无论多忙你们都能碰上。",
+    note: "联网对局一律分先、不计时，不管你给馆里的棋手设了什么让子和用时。跟朋友约好一个词，无论多忙你们都能碰上。",
     rated: "在服务器上用 Glicko-2 计分。每一手都在那儿用同一套规则核过。",
     signOut: "退出",
     leave: "离开排行榜，并删除这个名号",
@@ -229,6 +234,15 @@ export const online = {
     keepHandle: "留住这个名号",
     notNow: "以后再说",
     attachNote: "你的分数、你的棋和你的名号，原样不动。",
+  },
+
+  /* The main room: games in progress a person may sit beside. Which games
+     is the server's rule (server/watch.js); these are the words. */
+  watch: {
+    head: "观战",
+    none: "现在没有可以观看的对局。",
+    note: "只有当那盘棋的每位棋手都让你看到他在线时，这盘棋才会出现在你的列表里。拿到棋桌链接的人照旧可以打开它。",
+    open: "观看{who}",
   },
 
   game: {

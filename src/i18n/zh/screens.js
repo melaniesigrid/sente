@@ -2,6 +2,7 @@
 /* 每块屏幕一段，顺序就是一位棋手遇到它们的顺序。 */
 export const screens = {
   home: {
+    trainer: { head: "{name}的来信", away: "收起来", play: "去下棋" },
     greetingBack: "欢迎回来",
     greetingNew: "欢迎来到棋盘前",
     wonOf: "{games} 局中 {wins} 胜",
@@ -71,6 +72,7 @@ export const screens = {
     unreadable: "{name} 从磁盘上读不出来。",
   },
   play: {
+    trainer: { cta: "跟{name}训练", note: "仅在此设备上，私人使用。从不计分。" },
     label: "坐下",
     titleBefore: "找一局",
     titleEm: "棋",
@@ -216,6 +218,17 @@ export const screens = {
     openProblem: "{set}，第 {n} 题，{rank}",
   },
   profile: {
+    trainer: {
+      head: "私人教练",
+      note: "只为一个人准备的馆内棋手，藏在一句话后面。他解释每一手棋，评判你的每一手，并在对局之间写信。他做的一切都留在这台设备上。",
+      placeholder: "那句话",
+      unlock: "开门",
+      wrong: "不是这句话。",
+      on: "{name}已在棋盘前。到大厅找他。",
+      hide: "请他离开",
+      letters: "此设备上保存的信：{count}",
+      burn: "烧掉这些信",
+    },
     displayName: "显示的名字",
     saveName: "保存名字",
     editName: "改名字",

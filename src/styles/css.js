@@ -209,7 +209,7 @@ ${FONT_FACES}
    points of luminance to spend. A dark room has far less, so the rule underneath
    is what keeps state from resting on hue alone. */
 .nav-btn { position: relative; }
-.nav-btn.active::after { content: ""; position: absolute; left: 13px; right: 13px; bottom: 5px; height: 2px; border-radius: 2px; background: var(--accent); opacity: .8; }
+.nav-btn.active::after { content: ""; position: absolute; inset-inline: 13px; bottom: 5px; height: 2px; border-radius: 2px; background: var(--accent); opacity: .8; }
 .nav-btn:not(.active):hover { transform: translateY(-1px); }
 @media (max-width: 760px) { .nav-btn span { display: none; } .nav-btn { padding: 10px 12px; } }
 
@@ -643,6 +643,12 @@ ${FONT_FACES}
    legend. The hairline along it is the room's own ground, which is the one colour
    that stands out against both stones in every palette. */
 .review-analysis { width: 100%; }
+/* The same graph at the table, in the side column, once a game is over. Shorter
+   than in review, where it is the instrument; here it is the summary beside the
+   result, and the board next to it is the one that owns the height. */
+.win-card { gap: 10px; }
+.win-card .wingraph svg { height: 96px; }
+.win-card .fine { margin: 0; }
 .wingraph { width: 100%; border-radius: var(--r); box-shadow: var(--sink-sm); padding: 8px; }
 .wingraph svg { display: block; width: 100%; height: 132px; border-radius: calc(var(--r) - 10px); touch-action: none; cursor: pointer; }
 .wingraph-white { fill: var(--stone-w-2); }
@@ -679,7 +685,11 @@ ${FONT_FACES}
   transition: box-shadow .15s ease, color .15s ease; color: var(--ink-2);
 }
 .seg-btn.active { box-shadow: var(--raise-sm); color: var(--accent-ink); opacity: 1; }
-.seg-btn:not(.active):hover { opacity: 1; }
+.seg-btn:not(.active):hover:not(:disabled) { opacity: 1; }
+/* Last of the three on purpose: .seg-btn.active sets opacity 1 at the same
+   weight, so a disabled rule written above it would be a silent no-op on the
+   one button in the group that is actually selected. */
+.seg-btn:disabled { opacity: .4; cursor: default; }
 .handicap-num { min-width: 96px; text-align: center; font-weight: 700; font-size: 14.5px; }
 .vs-strip { display: flex; align-items: center; gap: 12px; padding: 8px 14px; border-radius: 16px; box-shadow: var(--sink-sm); flex-wrap: wrap; }
 .vs-side { display: flex; align-items: center; gap: 9px; }
@@ -719,6 +729,11 @@ ${FONT_FACES}
 
 /* ---- chat ---- */
 .chat-card { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+.trainer-review { display: flex; flex-direction: column; gap: 12px; }
+.trainer-card { border-inline-start: 3px solid var(--accent-ink); }
+.trainer-card .persona-cta .fine { font-size: 12.5px; }
+.letter-card { display: flex; flex-direction: column; gap: 12px; }
+.review-note { margin: 0; text-align: center; font-size: 15px; line-height: 1.55; color: var(--ink); font-style: var(--display-italic-style); }
 .chat-head { color: var(--ink-2); display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
 /* Asking for coaching is a one-way door, so the switch is raised while it is an offer
    and sunken once it is a fact - the same two shadows every other control uses. No

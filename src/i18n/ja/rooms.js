@@ -32,6 +32,7 @@ export const rooms = {
     },
     graphNote: "勝率のグラフは、局面をひとつずつ順にネットワークへ尋ねます。小さい盤ならすぐ、十九路なら数分。途中で止めても、そこまで描けた分は残ります。",
     winGraph: "勝率のグラフ",
+    card: { head: "どちらが優勢だったか" },
     keepAnalysing: "続けて調べる",
     positions: "{done} / {total} 局面",
     stop: "止める",

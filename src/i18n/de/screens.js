@@ -1,6 +1,7 @@
 // de · screens
 export const screens = {
   home: {
+    trainer: { head: "Ein Brief von {name}", away: "Weglegen", play: "Geh spielen" },
     greetingBack: "Zurück am Brett",
     greetingNew: "Willkommen am Brett",
     wonOf: "{wins} von {games} gewonnen",
@@ -73,6 +74,7 @@ export const screens = {
   },
 
   play: {
+    trainer: { cta: "Trainiere mit {name}", note: "Privat auf diesem Gerät. Nie gewertet." },
     label: "Setz dich",
     titleBefore: "Finde eine ",
     titleEm: "Partie",
@@ -224,6 +226,17 @@ export const screens = {
   },
 
   profile: {
+    trainer: {
+      head: "Privater Trainer",
+      note: "Ein Hausspieler für eine einzige Person, hinter einem Satz verwahrt. Er erklärt jeden Zug, bewertet deine und schreibt zwischen den Partien. Alles, was er tut, bleibt auf diesem Gerät.",
+      placeholder: "Der Satz",
+      unlock: "Die Tür öffnen",
+      wrong: "Das ist nicht der Satz.",
+      on: "{name} sitzt am Brett. Du findest ihn in der Lobby.",
+      hide: "Wegschicken",
+      letters: "Briefe auf diesem Gerät: {count}",
+      burn: "Die Briefe verbrennen",
+    },
     displayName: "Angezeigter Name",
     saveName: "Name speichern",
     editName: "Name ändern",

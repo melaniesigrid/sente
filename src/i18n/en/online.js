@@ -214,6 +214,12 @@ export const online = {
     looking: "Looking for a {size}×{size} opponent…",
     lookingOthers: "Looking for a {size}×{size} opponent · {count} others waiting…",
     cancel: "Cancel",
+    /* The board every find on this card seeks on. It is the table's board, the
+       same one the table card below sets; it is offered here as well because
+       the button says which board it will use and a name is not a control. */
+    boardGroup: "Board size",
+    boardNote: "Every game you start here is played on this board.",
+    boardWhileSeeking: "The board this search is on. Cancel to look on another.",
     meetAt: "Meet at “{word}” on {size}×{size}",
     findOn: "Find an opponent on {size}×{size}",
     wordPlaceholder: "or a word you both know",
@@ -240,7 +246,7 @@ export const online = {
     rengoNoteA: "Four people, two to a team, taking turns in one rotation. To play ",
     rengoNoteEm: "with",
     rengoNoteB: " somebody rather than against them, agree on a word and both pick the same team; pick either side and you are partnered with whoever is there. Unrated: a team result is a different number from a player's rank, and Joseki will not put one on the screen it cannot stand behind. Partners may not consult, so there is no line to your partner and there is not meant to be.",
-    note: "The table below sets the board. Online games are even and untimed, whatever handicap and clock you set for the house. Agree on a word with a friend and you will find each other, however busy it is.",
+    note: "Online games are even and untimed, whatever handicap and clock you set for the house. Agree on a word with a friend and you will find each other, however busy it is.",
     rated: "Rated with Glicko-2 on the server. Every move is checked there with the same rules.",
     signOut: "Sign out",
     leave: "Leave the ladder and remove this handle",
@@ -252,6 +258,15 @@ export const online = {
     keepHandle: "Keep this handle",
     notNow: "Not now",
     attachNote: "Your rating, your games and your handle stay exactly as they are.",
+  },
+
+  /* The main room: games in progress a person may sit beside. Which games
+     is the server's rule (server/watch.js); these are the words. */
+  watch: {
+    head: "Games to watch",
+    none: "No game to watch just now.",
+    note: "A game is listed for you only while every player at that board lets you see they are here. Anybody holding a table's link can open it, as before.",
+    open: "Watch {who}",
   },
 
   game: {

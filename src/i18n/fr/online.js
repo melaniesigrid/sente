@@ -196,11 +196,16 @@ export const online = {
     looking: "Recherche d'un adversaire en {size}×{size}…",
     lookingOthers: "Recherche d'un adversaire en {size}×{size} · {count} autres attendent…",
     cancel: "Annuler",
+    /* The board every find on this card seeks on: the table's board,
+       offered here because the button names it and a name is not a control. */
+    boardGroup: "Taille du goban",
+    boardNote: "Chaque partie que tu lances ici se joue sur ce goban.",
+    boardWhileSeeking: "Le goban sur lequel porte cette recherche. Annule pour en chercher un autre.",
     meetAt: "Rendez-vous à « {word} » en {size}×{size}",
     findOn: "Trouve un adversaire en {size}×{size}",
     wordPlaceholder: "ou un mot que vous connaissez tous les deux",
     wordLabel: "Mot de rendez-vous pour jouer avec un ami",
-    note: "La table ci-dessous règle le goban. Les parties en ligne sont à égalité et sans pendule, quels que soient le handicap et la cadence que tu règles pour la maison. Convenez d'un mot avec un ami et vous vous trouverez, si chargé que ce soit.",
+    note: "Les parties en ligne sont à égalité et sans pendule, quels que soient le handicap et la cadence que tu règles pour la maison. Convenez d'un mot avec un ami et vous vous trouverez, si chargé que ce soit.",
     waitingFor: " · attend depuis {waited}",
     waitingOnYou: {
       one: "Une table t'attend. Ces parties n'ont pas d'horloge : rien ici ne s'épuise et personne ne perd pour avoir pris une journée.",
@@ -230,6 +235,15 @@ export const online = {
     keepHandle: "Garde cette identité",
     notNow: "Pas maintenant",
     attachNote: "Ton score, tes parties et ton identité restent exactement comme ils sont.",
+  },
+
+  /* The main room: games in progress a person may sit beside. Which games
+     is the server's rule (server/watch.js); these are the words. */
+  watch: {
+    head: "Parties à regarder",
+    none: "Aucune partie à regarder pour l'instant.",
+    note: "Une partie n'apparaît dans ta liste que tant que chaque joueur à ce plateau te laisse voir qu'il est là. Quiconque a le lien d'une table peut l'ouvrir, comme avant.",
+    open: "Regarder {who}",
   },
 
   game: {

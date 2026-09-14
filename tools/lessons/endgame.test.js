@@ -110,12 +110,18 @@ describe("the solver itself", () => {
     w: [P(3, 0), P(3, 1), P(2, 1)],
   }, 4);
 
+  /* Slow on purpose, and given room to be. The search is exhaustive over every
+     empty point on the board rather than over a sealed region, so this one case
+     is seconds where the rest of the file is milliseconds: about 17 of them on
+     a loaded machine, against vitest's 15 second default. It is not flaky, it
+     is just long, and a default timeout is the wrong thing to be measuring it
+     against - so the limit is stated here, where the reason for it is. */
   it("passes rather than filling its own eye when nothing is to be gained", () => {
     const S = solver(emptyPoints(tiny), { rules: "japanese" });
     const v = S.values(tiny, "b");
     const eye = v.moves.find(m => m.point.c === 0 && m.point.r === 0);
     expect(eye.score).toBeLessThanOrEqual(v.pass);
-  });
+  }, 60_000);
 
   it("agrees with itself whichever side is asked to move first", () => {
     const S = solver(region, { rules: "japanese" });
