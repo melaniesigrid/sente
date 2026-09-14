@@ -130,6 +130,17 @@ describe("a coordinate somebody typed", () => {
     expect(screen.getByRole("button", { name: "D4", pressed: false })).toBeTruthy();
   });
 
+  it("keeps the light on the exact duplicate line that was tapped", () => {
+    show();
+    open();
+    const at = 1234567890;
+    push({ t: "state", room: room({ chat: [line("D4", { at }), line("D4", { at })] }) });
+    const coords = screen.getAllByRole("button", { name: "D4" });
+    fireEvent.click(coords[1]);
+    expect(coords[0].getAttribute("aria-pressed")).toBe("false");
+    expect(coords[1].getAttribute("aria-pressed")).toBe("true");
+  });
+
   /* A ring points at a board, so it means nothing the moment the stones move. */
   it("goes out when the board changes underneath it", () => {
     const { container } = show();
