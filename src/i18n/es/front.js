@@ -141,4 +141,14 @@ export const front = {
       learn: "Empieza las lecciones",
     },
   },
+
+  door: {
+    title: "Solo para socios",
+    tagline: "Joseki es privado, solo para la asociación",
+    bio: "Escribe la contraseña que te dieron. Este dispositivo la recordará.",
+    password: "Contraseña",
+    enter: "Entrar",
+    checking: "Comprobando…",
+    wrong: "Esa no es la contraseña. Revísala e inténtalo de nuevo.",
+  },
 };

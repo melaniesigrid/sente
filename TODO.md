@@ -3028,3 +3028,18 @@ Decisions:
 - Plain beats literary here and nowhere else. The Record is the only writing on this site
   addressed to somebody who has not decided to care yet. The lessons, the journal and the
   Classic are all read by somebody who already sat down.
+
+## The door (done 2026-09-13, branch `feat/private-gate`)
+
+Joseki is private to the association. One shared password in front of everything:
+the front door, the small print, the journal, every screen. The rule is
+`src/store/door.js` (a SHA-256 digest ships, never the word; a device that has
+answered is remembered by the digest, so changing the password locks every device
+again on its own) and the screen is `src/views/Door.jsx`, in all nine languages.
+
+- [x] Gate the shell: nothing under `.sente-root` renders until the device has answered.
+- [ ] The multiplayer Worker still answers anybody who knows its URL. If that
+      matters, the same digest can be asked for as a header on `/api/*`.
+- [ ] A static site cannot keep out a reader of its own source. If the association
+      needs that, put Cloudflare Access (or Pages middleware) in front of the domain
+      and this screen becomes decoration.

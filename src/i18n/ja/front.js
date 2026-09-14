@@ -144,4 +144,14 @@ export const front = {
       learn: "課を始める",
     },
   },
+
+  door: {
+    title: "会員限定",
+    tagline: "Joseki は協会の会員だけの非公開サイトです",
+    bio: "受け取ったパスワードを入力してください。この端末は記憶します。",
+    password: "パスワード",
+    enter: "入る",
+    checking: "確認中…",
+    wrong: "パスワードが違います。確かめて、もう一度どうぞ。",
+  },
 };

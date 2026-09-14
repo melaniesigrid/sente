@@ -30,6 +30,8 @@ import { LangProvider } from "./components/lang.jsx";
 import { LangPill } from "./components/LangPill.jsx";
 import { useLang } from "./components/langStore.js";
 import { defaultProfile, loadProfile, needsOnboarding } from "./store/profile.js";
+import { doorIsOpen } from "./store/door.js";
+import { DoorView } from "./views/Door.jsx";
 import { Home } from "./views/Home.jsx";
 import { Welcome } from "./views/Welcome.jsx";
 import { Landing } from "./views/Landing.jsx";
@@ -71,6 +73,11 @@ export default function JosekiApp() {
      after. `null` is the beat before the stored profile has been read: the shell
      shows nothing rather than flashing the wrong screen at a returning player. */
   const [view, setView] = useState(null);
+  /* Joseki is private to the association. Until this device has given the
+     password nothing below renders: not the nav, not the front door, not the
+     footer. Read once, synchronously, so a member is never shown the door for
+     a frame on the way to their board (`src/store/door.js`). */
+  const [opened, setOpened] = useState(() => doorIsOpen());
   const [profile, setProfile] = useState(defaultProfile);
   // `system` is a pointer at two rooms; the device says which one, here and nowhere else.
   const prefersDark = usePrefersDark();
@@ -129,7 +136,9 @@ export default function JosekiApp() {
     <MokuProvider view={view}>
     <div className="sente-root" style={{ ...themeVars(room, profile.dojo, profile.stones), ...typefaceVars(profile.typeface, lang.locale.id) }}>
       <style>{CSS}</style>
-      {view === null ? null : <>
+      {!opened ? (
+        <main className="content"><DoorView onOpen={() => setOpened(true)} /></main>
+      ) : view === null ? null : <>
       <header className={`topbar ${view === "landing" ? "slim" : ""}`}>
         {/* The primary lockup: the answer mark and the wordmark on one
             baseline. The mark is the whole idea of the place (a move and

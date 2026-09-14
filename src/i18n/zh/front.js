@@ -144,4 +144,14 @@ export const front = {
       learn: "开始上课",
     },
   },
+
+  door: {
+    title: "仅限会员",
+    tagline: "Joseki 是协会内部的私密站点",
+    bio: "输入你拿到的密码。这台设备会记住它。",
+    password: "密码",
+    enter: "进入",
+    checking: "正在核对…",
+    wrong: "密码不对。请检查后再试一次。",
+  },
 };
