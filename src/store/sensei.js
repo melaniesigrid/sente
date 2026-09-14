@@ -1,27 +1,37 @@
-/* ----------------------- THE TRAINER'S MAILBOX -----------------------
-   Where the private trainer's letters live: localStorage, this device, this
-   profile, and nowhere else. Nothing here has a network call in it. The store
-   keeps the last twenty letters, the day of the last game he played, and the
-   day he last wrote unprompted, so he writes once about an absence and not
-   every time the dashboard is opened.
+/* ----------------------- THE TRAINER'S BOX -----------------------
+   Everything the private trainer keeps: localStorage, this device, this
+   profile, and nowhere else. Nothing here has a network call in it.
 
-   Unlocking him is a phrase compared by digest. The phrase is not in the code;
-   the digest is (`src/content/sensei.js`), and the comparison happens here so the
-   profile page never sees a hash. */
+   The box holds the thread (what he wrote and what you wrote back, a messenger
+   between games), the summaries of your last fifty games with him (numbers per
+   area, from which he knows what to watch and whether you are improving), the
+   day of the last game, the day he last wrote unprompted, the day he last
+   greeted you, how many games the telemetry log held when he last looked (so he
+   can notice a game played with somebody else), and his question and your
+   answer to it.
+
+   Unlocking him is a phrase compared by digest, or an account whose address
+   compares by digest. Neither the phrase nor the address is in the code. */
 import { SENSEI_DIGEST } from "../content/sensei.js";
 
 export const SENSEI_KEY = "sente-sensei-v1";
-export const LETTER_CAP = 20;
-export const SENSEI_ACCOUNTS = ["melaniesigrid@protonmail.com"];
+export const THREAD_CAP = 200;
+export const GAMES_CAP = 50;
+/** SHA-256 of the lowercased addresses that open the door without the phrase. */
+export const SENSEI_ACCOUNT_DIGESTS = ["953e6e6703c0242c0c1bce472bd076bce64afe4f23f81931d1df044a61cdaeff"];
 
-const empty = () => ({ letters: [], lastGame: "", wrote: "" });
+const empty = () => ({ thread: [], games: [], lastGame: "", wrote: "", greeted: "", seen: 0, bond: "" });
 
 const defaultStorage = () => (typeof localStorage !== "undefined" ? localStorage : null);
-const foldEmail = (v) => (typeof v === "string" ? v.trim().toLowerCase() : "");
 
-const isLetter = (l) => l && typeof l === "object" && typeof l.at === "string" && typeof l.text === "string" && typeof l.read === "boolean";
+const isMsg = (m) => m && typeof m === "object" && typeof m.at === "string" && typeof m.text === "string"
+  && (m.who === "him" || m.who === "you") && typeof m.read === "boolean";
+const isSummary = (g) => g && typeof g === "object" && typeof g.at === "string" && typeof g.mean === "number"
+  && g.areas && typeof g.areas === "object";
+const BONDS = ["", "asked", "yes", "no"];
 
-/** Read the box, tolerating anything that is stored there. */
+/** Read the box, tolerating anything that is stored there. A box written before
+ *  the thread existed carried `letters`; they become his side of the thread. */
 export function loadBox(storage = defaultStorage()) {
   if (!storage) return empty();
   try {
@@ -29,29 +39,59 @@ export function loadBox(storage = defaultStorage()) {
     if (!raw) return empty();
     const blob = JSON.parse(raw);
     if (!blob || typeof blob !== "object") return empty();
+    const old = Array.isArray(blob.letters)
+      ? blob.letters.filter((l) => l && typeof l.at === "string" && typeof l.text === "string")
+        .map((l) => ({ who: "him", at: l.at, text: l.text, read: l.read === true, letter: true }))
+      : [];
+    const thread = Array.isArray(blob.thread) ? blob.thread.filter(isMsg) : [];
     return {
-      letters: Array.isArray(blob.letters) ? blob.letters.filter(isLetter).slice(-LETTER_CAP) : [],
+      thread: [...old, ...thread].slice(-THREAD_CAP),
+      games: Array.isArray(blob.games) ? blob.games.filter(isSummary).slice(-GAMES_CAP) : [],
       lastGame: typeof blob.lastGame === "string" ? blob.lastGame : "",
       wrote: typeof blob.wrote === "string" ? blob.wrote : "",
+      greeted: typeof blob.greeted === "string" ? blob.greeted : "",
+      seen: Number.isInteger(blob.seen) && blob.seen >= 0 ? blob.seen : 0,
+      bond: BONDS.includes(blob.bond) ? blob.bond : "",
     };
   } catch { return empty(); }
 }
 
 export function saveBox(box, storage = defaultStorage()) {
   if (!storage) return;
-  try { storage.setItem(SENSEI_KEY, JSON.stringify(box)); } catch { /* full or blocked: the letter is lost, the game is not */ }
+  try { storage.setItem(SENSEI_KEY, JSON.stringify(box)); } catch { /* full or blocked: the line is lost, the game is not */ }
 }
 
-/** Post a letter. `at` is the day key it was written. Returns the new box. */
+/** He writes. A letter is a message that arrived between games; `wrote` marks the
+ *  day so he does not write twice about one absence. */
 export function postLetter(box, text, at) {
-  const letters = [...box.letters, { at, text, read: false }].slice(-LETTER_CAP);
-  return { ...box, letters, wrote: at };
+  return { ...say(box, text, at, { letter: true }), wrote: at };
 }
 
-export const unread = (box) => box.letters.filter((l) => !l.read);
+/** A line of his in the thread. */
+export function say(box, text, at, extra = {}) {
+  const thread = [...box.thread, { who: "him", at, text, read: false, ...extra }].slice(-THREAD_CAP);
+  return { ...box, thread };
+}
+
+/** A line of yours. Yours are read by definition. */
+export function tell(box, text, at) {
+  const thread = [...box.thread, { who: "you", at, text, read: true }].slice(-THREAD_CAP);
+  return { ...box, thread };
+}
+
+export const unread = (box) => box.thread.filter((m) => m.who === "him" && !m.read);
+export const letters = (box) => box.thread.filter((m) => m.who === "him" && m.letter);
 
 export function markRead(box) {
-  return { ...box, letters: box.letters.map((l) => (l.read ? l : { ...l, read: true })) };
+  if (!box.thread.some((m) => !m.read)) return box;
+  return { ...box, thread: box.thread.map((m) => (m.read ? m : { ...m, read: true })) };
+}
+
+/** A finished game's numbers, kept for his memory. */
+export function rememberGame(box, summary, at) {
+  if (!summary) return { ...box, lastGame: at };
+  const games = [...box.games, { ...summary, at }].slice(-GAMES_CAP);
+  return { ...box, games, lastGame: at };
 }
 
 /** Days between two day keys ("2026-09-13"). Zero when either is missing. */
@@ -68,18 +108,18 @@ export function shouldWriteAbout(box, today, minDays = 3) {
   return daysBetween(box.lastGame, today) >= minDays;
 }
 
-/** This account gets the trainer without typing the phrase. */
-export function accountOpensSensei(account, allowed = SENSEI_ACCOUNTS) {
-  const email = foldEmail(account && account.player && account.player.email);
-  return !!email && allowed.includes(email);
+/** Games in the device's own log played against somebody else since he last
+ *  looked, newest last. `log` is the telemetry ring buffer; `seen` its length at
+ *  his last look. He notices only games with another house player. */
+export function playedWithoutHim(log, box, hisId) {
+  const fresh = log.slice(box.seen);
+  return fresh.filter((g) => g.bot && g.bot !== hisId);
 }
 
-/** The trainer is on when either the local profile unlocked it or the account does. */
-export function hasSensei(profile, account, allowed = SENSEI_ACCOUNTS) {
-  return !!(profile && profile.sensei) || accountOpensSensei(account, allowed);
-}
+/** Whether it is time for his question: enough games, and never asked. */
+export const shouldAsk = (box, after) => box.bond === "" && box.games.length >= after;
 
-/* ----------------------- THE PHRASE ----------------------- */
+/* ----------------------- THE DOORS ----------------------- */
 
 const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
 
@@ -97,4 +137,13 @@ export async function digestOf(text) {
 export async function phraseOpens(phrase, digest = SENSEI_DIGEST) {
   const d = await digestOf(String(phrase ?? "").trim().toLowerCase());
   return d !== null && d === digest;
+}
+
+/** Does this account open the door on its own? Compared by digest of the
+ *  lowercased address, so the address is not in the code. */
+export async function accountOpens(account, allowed = SENSEI_ACCOUNT_DIGESTS) {
+  const email = account && account.player && typeof account.player.email === "string" ? account.player.email.trim().toLowerCase() : "";
+  if (!email) return false;
+  const d = await digestOf(email);
+  return d !== null && allowed.includes(d);
 }

@@ -10,10 +10,14 @@ import { useT } from "../components/langStore.js";
 import { Board } from "../components/Board.jsx";
 import { WinGraph } from "../components/WinGraph.jsx";
 import { useAnalysis, remainingText } from "./useAnalysis.js";
+import { KE_JIE, reviewLines } from "../content/sensei.js";
+import { useTrainerAccess } from "./useTrainer.js";
+import { loadAccount } from "../store/account.js";
+import { serverEnabled } from "../net/api.js";
 import {
   atMove, moveNumbers, captureMoves, nextCapture, prevCapture,
   reviewLength, clampMove, markerAt, toSgf, lastMoveIndex,
-  turningPoints, pointAt, pct, steadiness, nextTurn, prevTurn, ANALYSIS_RANK,
+  turningPoints, pointAt, pct, steadiness, nextTurn, prevTurn, ANALYSIS_RANK, trainerReport,
 } from "../engine/index.js";
 
 /* ----------------------- REVIEW -----------------------
@@ -49,6 +53,14 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
   // The graph, and whether the board is showing what the network would have done.
   const analysis = useAnalysis(record);
   const [showBest, setShowBest] = useState(false);
+  /* The trainer, when he is at the table: once the graph is drawn he will say
+     what it means, in his words, for any game at all, opened or played here. */
+  const trainerOn = useTrainerAccess(profile, serverEnabled() ? loadAccount() : null);
+  const [asked, setAsked] = useState(false);
+  const askHim = () => setAsked(true);
+  const hisWords = asked && analysis.complete
+    ? reviewLines(trainerReport(analysis.points, [], "b"), { won: record.result ? record.result.winner === "b" : null, size: record.size, points: analysis.points })
+    : null;
 
   const at = useMemo(() => atMove(record, n), [record, n]);
   const numbers = useMemo(() => (showNumbers ? moveNumbers(record, n) : null), [showNumbers, record, n]);
@@ -223,8 +235,16 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
                 {showBest ? t("review.hideBest") : t("review.showBest")}
               </Btn>
             )}
+            {trainerOn && analysis.complete && !asked && (
+              <Btn small primary onClick={askHim}>{t("review.trainer.ask", { name: KE_JIE.name })}</Btn>
+            )}
           </div>
           {analysis.error && <p className="review-refused" role="alert">{analysis.error}</p>}
+          {hisWords && (
+            <div className="trainer-review stack-sm">
+              {hisWords.map((para, i) => <p key={i} className="lesson-text">{para}</p>)}
+            </div>
+          )}
           <div className="row review-controls">
             <Btn icon={ChevronsLeft} small label={t("review.start")} onClick={() => go(0)} disabled={n === 0} />
             <Btn icon={SkipBack} small label={t("review.prevCapture")} onClick={() => go(back.move)} disabled={!back} />

@@ -9,9 +9,10 @@ import {
   lastMoveIndex, aiChooseMoveForRecord, kataChooseMoveForRecord, profileForRank, loadModel, onModelProgress, modelReady,
   toSgf, IllegalMoveError, GLICKO, rateAgainst, detectShapes,
   withMoveComment, evaluatePosition, seedAnalysis, describeMove, policyStanding, giftDue, pickGift, trainerReport,
+  gameSummary, focusFor,
 } from "../engine/index.js";
 import { ownMoveLine, yourMoveLine, reviewLines, letterFor } from "../content/sensei.js";
-import { loadBox, saveBox, postLetter } from "../store/sensei.js";
+import { loadBox, saveBox, postLetter, rememberGame as trainerRemember } from "../store/sensei.js";
 import { Board } from "../components/Board.jsx";
 import { ClockFace } from "../components/Clock.jsx";
 import { Card, Btn, Pill, Avatar, RankBadge, BeltRibbon } from "../components/ui.jsx";
@@ -148,6 +149,9 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const trainerOwnMoves = useRef(0);               // how many stones he has played this game
   const trainerLastGift = useRef(null);            // his own-move count at the last gift
   const trainerQueue = useRef(Promise.resolve());  // network calls in order, so points land in order
+  const trainerFacts = useRef({});                 // move number -> facts, yours and his, for the summary
+  // What he decided to watch before the game, from the games before it. Revealed after.
+  const trainerFocus = useRef(sensei ? focusFor(loadBox().games) : null);
   const [trainerReview, setTrainerReview] = useState(null);  // his paragraphs, once the game has ended
   const resumed = useRef(false);                   // the resume effect runs once, StrictMode or not
   const alive = useRef(true);
@@ -268,19 +272,17 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const endTraining = useCallback((next, won) => {
     const points = trainerPoints.current;
     const report = trainerReport(points, trainerGifts.current, "b");
-    setTrainerReview(reviewLines(report, { won, size: next.size }));
+    const summary = gameSummary(points, trainerFacts.current, "b");
+    setTrainerReview(reviewLines(report, { won, size: next.size, points, focus: trainerFocus.current, summary }));
     if (points.length) seedAnalysis(next, points);
     const gifts = report.gifts;
     const box = loadBox();
     const today = dayKey();
-    saveBox({
-      ...postLetter(box, letterFor({
-        won, name: profile.name,
-        kept: gifts.filter((g) => g.kept === true).length,
-        missed: gifts.filter((g) => g.kept === false).length,
-      }, next.moves.length), today),
-      lastGame: today,
-    });
+    saveBox(trainerRemember(postLetter(box, letterFor({
+      won, name: profile.name, bonded: box.bond === "yes",
+      kept: gifts.filter((g) => g.kept === true).length,
+      missed: gifts.filter((g) => g.kept === false).length,
+    }, next.moves.length), today), summary, today));
   }, [profile.name]);
 
   /* A rated game settles exactly once: only on the transition into `ended`, and
@@ -412,6 +414,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         const before = undo(r);
         const mv = lastMv.type === "play" ? [lastMv.c, lastMv.r] : null;
         const facts = describeMove(before, r, mv);
+        trainerFacts.current[r.moves.length] = facts;
         const prev = trainerPoints.current.find((q) => q.move === r.moves.length - 1) ?? null;
         const standing = prev ? policyStanding(prev.top, mv) : null;
         const cost = prev && here ? prev.black - here.black : null;
@@ -448,6 +451,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         next = pass(r2);
       }
       const facts = describeMove(r2, next, played);
+      trainerFacts.current[next.moves.length] = facts;
       const standing = res ? policyStanding(res.top, played) : null;
       const line = ownMoveLine(facts, standing, { gift });
       next = withMoveComment(next, line);
@@ -700,6 +704,8 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     trainerGifts.current = [];
     trainerOwnMoves.current = 0;
     trainerLastGift.current = null;
+    trainerFacts.current = {};
+    if (sensei) trainerFocus.current = focusFor(loadBox().games);
     setTrainerReview(null);
     // With a handicap White opens, and White is the house player.
     if (persona && fresh.toPlay === "w") botTurn(fresh);

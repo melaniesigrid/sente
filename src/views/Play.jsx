@@ -12,7 +12,7 @@ import { rankOf, ratingOfRank, stepRank, rankInRange, rankWithHandicap, RANK_LAD
 import { SIZES, defaultKomi, RULESET_IDS, rulesetOf } from "../engine/index.js";
 import { loadLobby, saveLobby, HANDICAPS, KOMI_STEPS } from "../store/lobby.js";
 import { ACCOUNT_KEY, loadAccount } from "../store/account.js";
-import { hasSensei } from "../store/sensei.js";
+import { useTrainerAccess } from "./useTrainer.js";
 import { duelMode } from "../content/duel.js";
 import { dayKey } from "../content/kata.js";
 import { suggestLevel, suggestionText } from "../content/level.js";
@@ -51,13 +51,13 @@ function linkedGame() {
   return null;
 }
 
-function routeSession({ profile, account, resume, openGame, withBot, t }) {
+function routeSession({ profile, trainerOn, resume, openGame, withBot, t }) {
   if (resume) return resume;
   if (openGame) return { mode: { kind: "online", gameId: openGame } };
   /* The private trainer is asked for by his id too, from a letter on the dashboard.
      Only when this profile or account has unlocked him; otherwise the request falls to the lobby. */
   if (withBot === SENSEI_ID) {
-    if (!hasSensei(profile, account)) return null;
+    if (!trainerOn) return null;
     const lobby = loadLobby();
     return { mode: { kind: "bot", persona: KE_JIE, rank: trainerRank(lobby.rank ?? rankOf(profile.rating)) } };
   }
@@ -85,7 +85,7 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
       document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
-  const trainerOn = hasSensei(profile, account);
+  const trainerOn = useTrainerAccess(profile, account);
   // session: null | { mode: {kind:'bot', persona, rank, size, handicap} | {kind:'local', size, handicap}
   //                  | {kind:'online', gameId} | duel, record? }
   /* `openGame` is a table asked for by id from somewhere else in the app (the
@@ -101,13 +101,13 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
     : openGame ? `online:${openGame}`
      : withBot ? `bot:${withBot}`
        : null;
-  const [session, setSession] = useState(() => routeSession({ profile, account, resume, openGame, withBot, t }) || linkedGame());
+  const [session, setSession] = useState(() => routeSession({ profile, trainerOn, resume, openGame, withBot, t }) || linkedGame());
   const lastRouteKey = useRef(routeKey);
   useEffect(() => {
-    if (routeKey === lastRouteKey.current) return;
+    if (routeKey === lastRouteKey.current && !(trainerOn && withBot === SENSEI_ID)) return;
     lastRouteKey.current = routeKey;
-    setSession(routeSession({ profile, account, resume, openGame, withBot, t }) || linkedGame());
-  }, [routeKey, profile, account, resume, openGame, withBot, t]);
+    setSession(routeSession({ profile, trainerOn, resume, openGame, withBot, t }) || linkedGame());
+  }, [routeKey, profile, trainerOn, resume, openGame, withBot, t]);
   // The level the next game is played at. Starts at the player's own rank; every house
   // player adapts to it, so nobody has to "graduate" to an opponent.
   const myRank = rankOf(profile.rating);
@@ -306,6 +306,7 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
             </div>
             <p className="persona-bio">{KE_JIE.bio}</p>
             <span className="persona-cta"><GraduationCap size={13} /> {t("play.trainer.cta", { name: KE_JIE.name })} <span className="fine">&middot; {t("play.trainer.note")}</span></span>
+            <p className="fine trainer-about">{KE_JIE.about}</p>
           </button>
         )}
         {!humanGame && !teamGame && (

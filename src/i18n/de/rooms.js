@@ -1,6 +1,7 @@
 // de · rooms
 export const rooms = {
   review: {
+    trainer: { ask: "Frag {name}" },
     back: "Zurück",
     unfinished: "Unbeendete Partie",
     start: "Anfang",

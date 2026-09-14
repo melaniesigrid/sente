@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { serverEnabled } from "../net/api.js";
 import { ACCOUNT_KEY, loadAccount } from "../store/account.js";
 import { DashboardCard } from "./DashboardCard.jsx";
-import { Swords, GraduationCap, Target, Trophy, Play, Trash2, CalendarCheck, BrainCircuit, Check, Circle, Mail } from "lucide-react";
+import { Swords, GraduationCap, Target, Trophy, Play, Trash2, CalendarCheck, BrainCircuit, Check, Circle, MessageCircle, Send, Bot } from "lucide-react";
 import { MiniSelfPlay } from "../components/MiniSelfPlay.jsx";
-import { Card, Btn, RankBadge, Statement } from "../components/ui.jsx";
+import { Card, Btn, RankBadge, Statement, Avatar } from "../components/ui.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { LESSONS } from "../content/lessons.js";
@@ -23,22 +23,29 @@ import { LIBRARY } from "../content/library.js";
 import { OpenSgf } from "../components/OpenSgf.jsx";
 import { Review } from "./Review.jsx";
 import { loadSession } from "./session.js";
-import { KE_JIE, SENSEI_ID, letterFor } from "../content/sensei.js";
+import { KE_JIE, SENSEI_ID, letterFor, greetingFor, jealousLine, replyTo, bondQuestion, bondYes, bondNo, BOND_AFTER } from "../content/sensei.js";
+import { focusFor, trend } from "../engine/index.js";
+import { loadTelemetry } from "../store/telemetry.js";
+import { personaById } from "../content/personas.js";
+import { useTrainerAccess } from "./useTrainer.js";
 import {
-  loadBox, saveBox, postLetter, markRead, unread, shouldWriteAbout, daysBetween, hasSensei,
+  loadBox, saveBox, postLetter, markRead, unread, shouldWriteAbout, daysBetween, say, tell, playedWithoutHim, shouldAsk,
 } from "../store/sensei.js";
 import { useT } from "../components/langStore.js";
 
 /* ----------------------- HOME ----------------------- */
 export function Home({ profile, go, onResume }) {
   const t = useT();
-  const [account, setAccount] = useState(() => (serverEnabled() ? loadAccount() : null));
+  /* Read on every render, so signing in elsewhere on the page shows here on the
+     next one; the listeners below only ask for that next render when the tab
+     comes back or another tab wrote the account. */
+  const account = serverEnabled() ? loadAccount() : null;
+  const [, bump] = useState(0);
   useEffect(() => {
     if (!serverEnabled()) return undefined;
-    const refresh = () => setAccount(loadAccount());
+    const refresh = () => bump((n) => n + 1);
     const onStorage = (e) => { if (!e.key || e.key === ACCOUNT_KEY) refresh(); };
     const onVisible = () => { if (document.visibilityState === "visible") refresh(); };
-    refresh();
     window.addEventListener("focus", refresh);
     window.addEventListener("storage", onStorage);
     document.addEventListener("visibilitychange", onVisible);
@@ -68,32 +75,60 @@ export function Home({ profile, go, onResume }) {
   const kata = authoredKata && localizeProblem(authoredKata, t);
   const kataDone = profile.kataDate === today;
   const recall = recallSummary(LIBRARY, profile.recall, today);
-  const trainerOn = hasSensei(profile, account);
-  /* The trainer's mailbox, read once. If you have been away a few days he writes
-     about it, once per day at most, and the letter is kept on this device. */
+  const trainerOn = useTrainerAccess(profile, account);
+  /* The trainer's thread. Opening the dashboard is when he speaks: a greeting once
+     a day, a line about an absence once a day after three days, a line when the
+     device's own log shows a game with somebody else, and his question once there
+     are enough games behind it. Everything lands in the thread and the thread lands
+     in localStorage, on this device only. */
   const [box, setBox] = useState(() => (trainerOn ? loadBox() : null));
   useEffect(() => {
     if (!trainerOn) { setBox(null); return; }
-    setBox((current) => {
-      let b = current || loadBox();
-      let changed = false;
-      let seeded = false;
-      if (!b.lastGame && b.letters.length === 0 && b.wrote !== today) {
-        b = postLetter(b, letterFor({ name: profile.name }, games), today);
-        changed = true;
-        seeded = true;
-      }
+    let b = loadBox();
+    let changed = false;
+    const post = (fn) => { b = fn(b); changed = true; };
+    const bonded = b.bond === "yes";
+    if (b.greeted !== today) {
+      post((x) => ({ ...say(x, greetingFor(new Date().getHours(), games + x.thread.length, profile.name), today), greeted: today }));
+    }
+    const log = loadTelemetry();
+    const others = playedWithoutHim(log, b, SENSEI_ID);
+    if (others.length) {
+      const other = personaById(others[others.length - 1].bot);
+      post((x) => say(x, jealousLine(other ? other.name : "somebody else", x.thread.length), today));
+    }
+    if (log.length !== b.seen) post((x) => ({ ...x, seen: log.length }));
+    if (shouldWriteAbout(b, today)) {
       const away = daysBetween(b.lastGame, today);
-      if (!seeded && shouldWriteAbout(b, today)) {
-        b = postLetter(b, letterFor({ daysAway: away, name: profile.name }, away), today);
-        changed = true;
-      }
-      if (changed) saveBox(b);
-      return changed || !current ? b : current;
+      post((x) => postLetter(x, letterFor({ daysAway: away, name: profile.name, bonded }, away), today));
+    }
+    if (shouldAsk(b, BOND_AFTER)) post((x) => ({ ...say(x, bondQuestion(profile.name), today), bond: "asked" }));
+    if (changed) saveBox(b);
+    setBox(b);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trainerOn, today]);
+  const [draft, setDraft] = useState("");
+  const threadEnd = useRef(null);
+  useEffect(() => { const el = threadEnd.current; if (el && typeof el.scrollIntoView === "function") el.scrollIntoView({ block: "nearest" }); }, [box]);
+  const putAway = () => { if (!box) return; const b = markRead(box); saveBox(b); setBox(b); };
+  const write = () => {
+    const line = draft.trim();
+    if (!line || !box) return;
+    const focus = focusFor(box.games);
+    const reply = replyTo(line, {
+      name: profile.name, focus, trend: trend(box.games), profile, games: box.games.length,
+      daysAway: daysBetween(box.lastGame, today), bonded: box.bond === "yes", seed: box.thread.length,
     });
-  }, [trainerOn, today, profile.name, games]);
-  const letter = box ? unread(box).slice(-1)[0] ?? null : null;
-  const putAway = () => { const b = markRead(box); saveBox(b); setBox(b); };
+    let b = tell(box, line, today);
+    for (const r of reply) b = say(b, r, today, { read: true });
+    saveBox(b); setBox(b); setDraft("");
+  };
+  const answer = (yes) => {
+    if (!box) return;
+    const b = { ...say(box, yes ? bondYes() : bondNo(), today, { read: true }), bond: yes ? "yes" : "no" };
+    saveBox(b); setBox(b);
+  };
+  const waiting = box ? unread(box).length : 0;
   useMokuFacts({ view: "home", seed: games });
   const greeting = t(games ? "home.greetingBack" : "home.greetingNew");
   // One line naming the next honest thing to do, so the dashboard opens on a
@@ -152,13 +187,36 @@ export function Home({ profile, go, onResume }) {
         </Card>
       )}
 
-      {letter && (
-        <Card inset className="letter-card">
-          <div className="stat-head"><Mail size={16} /><span>{t("home.trainer.head", { name: KE_JIE.name })}</span></div>
-          <p className="lesson-text house-line">{letter.text}</p>
+      {box && (
+        <Card className="letter-card">
+          <div className="chat-head">
+            <Avatar name={KE_JIE.name} tint={KE_JIE.tint} size={28} bot />
+            <span className="letter-name">{KE_JIE.name} <span className="fine">&middot; {KE_JIE.nickname}</span></span>
+            <span className="fine letter-you">{KE_JIE.yourHandle}</span>
+            {waiting > 0 && <span className="letter-unread">{waiting}</span>}
+            <span className="bot-chip"><Bot size={11} /> {t("game.chat.trainer")}</span>
+          </div>
+          <div className="chat-log letter-log" aria-live="polite" onClick={putAway}>
+            {box.thread.slice(-40).map((m, i) => (
+              <div key={i} className={`bubble ${m.who === "you" ? "mine" : ""}${m.read ? "" : " fresh"}`}>{m.text}</div>
+            ))}
+            {box.bond === "asked" && (
+              <div className="row">
+                <Btn small primary onClick={() => answer(true)}>{t("home.trainer.yes")}</Btn>
+                <Btn small onClick={() => answer(false)}>{t("home.trainer.notNow")}</Btn>
+              </div>
+            )}
+            <div ref={threadEnd} />
+          </div>
+          <div className="chat-row">
+            <input className="chat-input" value={draft} placeholder={t("home.trainer.placeholder")}
+              onChange={(e) => setDraft(e.target.value)} onFocus={putAway}
+              onKeyDown={(e) => e.key === "Enter" && write()} aria-label={t("home.trainer.placeholder")} />
+            <button className="chat-send" onClick={write} aria-label={t("home.trainer.send")}><Send size={15} /></button>
+          </div>
           <div className="row">
             <Btn icon={Play} primary small onClick={() => { putAway(); go("play", { withBot: SENSEI_ID }); }}>{t("home.trainer.play")}</Btn>
-            <Btn small onClick={putAway}>{t("home.trainer.away")}</Btn>
+            <Btn icon={MessageCircle} small onClick={putAway} disabled={waiting === 0}>{t("home.trainer.away")}</Btn>
           </div>
         </Card>
       )}

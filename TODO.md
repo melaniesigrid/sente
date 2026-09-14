@@ -1846,6 +1846,26 @@ that person, nothing he says is a quotation, and the bot chip stays on every lin
       has the door, the letter count, "burn the letters" and "send him away".
 - [x] 48 new tests over the four modules; nine catalogues carry the fifteen new UI lines.
 
+- [x] He remembers (2026-09-14). `gameSummary` files every graded move of yours under
+      the areas the board decides (opening, fights, shape, direction, endgame, reading)
+      and keeps fifty games of numbers on the device; `focusFor` picks what he watches
+      next, `trend` says whether each area moved over the last five games against the
+      five before. The review reveals the focus and its verdict, with one rule to keep.
+- [x] He talks (2026-09-14). A messenger thread on the dashboard: a greeting by the hour
+      once a day, a line when the device's own log shows a game with another house
+      player, the absence letter, and replies to what you write, read for what it is
+      about (rank, weakness, progress, mood, a win, a loss, busy, goodnight) and answered
+      from the numbers. Not a language model; every reply is a line he already had.
+- [x] The question, after eight games; either answer is kept and he does not ask twice.
+      Once bonded the letters and replies warm up and he rotates pet names.
+- [x] Names: he is 潜潜 in the thread, you are 藏锋. His `about` line says he is a
+      fictional character inspired by a public career and that nothing is a quotation.
+- [x] The profile card carries his estimate of your rank (from the ladder's number and its
+      deviation, said as an estimate), what he is watching, and the progress report.
+- [x] Review offers "Ask Ke Jie" on any analysed game, his words over the same points.
+- [x] Copilot's account door (`copilot/fix-ke-jie-feature-visibility`) merged, and the
+      address it listed in plain text replaced by its digest.
+
 Open:
 - [ ] Not yet played in a browser against the network. The turn is three network calls
       instead of one, so 19x19 will feel slow; measure before deciding whether the grading
@@ -1853,6 +1873,7 @@ Open:
 - [ ] A resumed trainer game loses the points gathered before the reload (the comments
       survive in the record; the numbers do not). Persisting them through `gameStore`
       would need a new field and its sanitiser.
+- [ ] Daily go news is not possible: the privacy contract forbids the app fetching anything.
 - [ ] The phrase is one shared digest. If a second person should ever have him, that is
       an account-level flag on the server, not a phrase, and legal.js would need a line.
 

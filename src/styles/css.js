@@ -733,6 +733,14 @@ ${FONT_FACES}
 .trainer-card { border-inline-start: 3px solid var(--accent-ink); }
 .trainer-card .persona-cta .fine { font-size: 12.5px; }
 .letter-card { display: flex; flex-direction: column; gap: 12px; }
+.letter-card .chat-head { display: flex; align-items: center; gap: 10px; }
+.letter-name { font-weight: 700; }
+.letter-unread { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; box-shadow: var(--raise-sm); color: var(--accent-ink); }
+.letter-log { max-height: 340px; }
+.letter-you { margin-inline-start: auto; }
+.bubble.fresh { box-shadow: var(--raise-sm), 0 0 0 2px var(--accent-ring); }
+.trainer-about { margin-top: 2px; font-size: 12.5px; }
+.trainer-report p { margin-top: 4px; }
 .review-note { margin: 0; text-align: center; font-size: 15px; line-height: 1.55; color: var(--ink); font-style: var(--display-italic-style); }
 .chat-head { color: var(--ink-2); display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
 /* Asking for coaching is a one-way door, so the switch is raised while it is an offer

@@ -24,8 +24,10 @@ import { loadAccount } from "../store/account.js";
 import { loadTelemetry, clearTelemetry, byBot, summarize, CAP } from "../store/telemetry.js";
 import { loadMemory, clearMemory, summarize as summarizeDeja, CAP as DEJA_CAP } from "../store/deja.js";
 import { PERSONAS } from "../content/personas.js";
-import { KE_JIE } from "../content/sensei.js";
-import { phraseOpens, loadBox, saveBox, hasSensei, accountOpensSensei } from "../store/sensei.js";
+import { KE_JIE, reportLines, rankLine, AREA_WORDS } from "../content/sensei.js";
+import { phraseOpens, loadBox, saveBox, letters } from "../store/sensei.js";
+import { useTrainerAccess } from "./useTrainer.js";
+import { focusFor, trend } from "../engine/index.js";
 import { serverEnabled } from "../net/api.js";
 import { OnlineProfileCard } from "./OnlineProfile.jsx";
 import { useT } from "../components/langStore.js";
@@ -138,14 +140,17 @@ function TrainerCard({ profile, account, commit }) {
   const t = useT();
   const [phrase, setPhrase] = useState("");
   const [wrong, setWrong] = useState(false);
-  const [letters, setLetters] = useState(() => loadBox().letters.length);
-  const fromAccount = accountOpensSensei(account);
-  const trainerOn = hasSensei(profile, account);
+  const [box, setBox] = useState(loadBox);
+  const kept = letters(box).length;
+  const trainerOn = useTrainerAccess(profile, account);
+  const fromAccount = trainerOn && !profile.sensei;
+  const focus = focusFor(box.games);
+  const tr = trend(box.games);
   const tryOpen = async () => {
     if (await phraseOpens(phrase)) { commit({ sensei: true }); setPhrase(""); setWrong(false); }
     else setWrong(true);
   };
-  const burn = () => { saveBox({ ...loadBox(), letters: [] }); setLetters(0); };
+  const burn = () => { const b = { ...loadBox(), thread: [] }; saveBox(b); setBox(b); };
   return (
     <Card>
       <div className="stat-head"><KeyRound size={16} /><span>{t("profile.trainer.head")}</span></div>
@@ -153,10 +158,19 @@ function TrainerCard({ profile, account, commit }) {
         <>
           <p className="fine" style={{ marginTop: 6 }}>{t("profile.trainer.on", { name: KE_JIE.name })}</p>
           <div className="row" style={{ marginTop: 10 }}>
-            <Pill icon={History}>{t("profile.trainer.letters", { count: letters })}</Pill>
+            <Pill icon={History}>{t("profile.trainer.letters", { count: kept })}</Pill>
+            <Pill icon={Swords}>{t("profile.trainer.games", { count: box.games.length })}</Pill>
           </div>
+          <p className="fine" style={{ marginTop: 10 }}>{rankLine(profile)}</p>
+          {focus && <p className="fine">{t("profile.trainer.watching", { area: AREA_WORDS[focus].name })} {AREA_WORDS[focus].rule}</p>}
+          {box.games.length >= 2 && (
+            <div className="trainer-report">
+              <div className="stat-head" style={{ marginTop: 12 }}><GraduationCap size={14} /><span>{t("profile.trainer.report")}</span></div>
+              {reportLines(tr, profile.name).slice(1).map((line, i) => <p key={i} className="fine">{line}</p>)}
+            </div>
+          )}
           <div className="row" style={{ marginTop: 10 }}>
-            <Btn small icon={Trash2} onClick={burn} disabled={letters === 0}>{t("profile.trainer.burn")}</Btn>
+            <Btn small icon={Trash2} onClick={burn} disabled={box.thread.length === 0}>{t("profile.trainer.burn")}</Btn>
             {!fromAccount && <Btn small onClick={() => commit({ sensei: false })}>{t("profile.trainer.hide")}</Btn>}
           </div>
         </>

@@ -2,7 +2,7 @@
 /* 每块屏幕一段，顺序就是一位棋手遇到它们的顺序。 */
 export const screens = {
   home: {
-    trainer: { head: "{name}的来信", away: "收起来", play: "去下棋" },
+    trainer: { head: "{name}的来信", away: "收起来", play: "去下棋", placeholder: "给他写点什么…", send: "发送", yes: "好", notNow: "现在不要" },
     greetingBack: "欢迎回来",
     greetingNew: "欢迎来到棋盘前",
     wonOf: "{games} 局中 {wins} 胜",
@@ -220,6 +220,9 @@ export const screens = {
   profile: {
     trainer: {
       head: "私人教练",
+      games: "与他的对局：{count}",
+      watching: "他正在关注{area}。",
+      report: "进步报告",
       note: "只为一个人准备的馆内棋手，藏在一句话后面。他解释每一手棋，评判你的每一手，并在对局之间写信。他做的一切都留在这台设备上。",
       placeholder: "那句话",
       unlock: "开门",

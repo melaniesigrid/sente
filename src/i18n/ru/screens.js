@@ -7,7 +7,7 @@
    по-русски нельзя. */
 export const screens = {
   home: {
-    trainer: { head: "Письмо от {name}", away: "Убрать", play: "Иди играть" },
+    trainer: { head: "Письмо от {name}", away: "Убрать", play: "Иди играть", placeholder: "Напиши ему…", send: "Отправить", yes: "Да", notNow: "Не сейчас" },
     greetingBack: "С возвращением",
     greetingNew: "Добро пожаловать к доске",
     wonOf: "выиграно {wins} из {games}",
@@ -268,6 +268,9 @@ export const screens = {
   profile: {
     trainer: {
       head: "Личный тренер",
+      games: "Партий с ним: {count}",
+      watching: "Он следит за {area}.",
+      report: "Отчёт о прогрессе",
       note: "Домашний игрок для одного человека, спрятанный за фразой. Он объясняет каждый ход, оценивает твои и пишет между партиями. Всё, что он делает, остаётся на этом устройстве.",
       placeholder: "Фраза",
       unlock: "Открыть дверь",

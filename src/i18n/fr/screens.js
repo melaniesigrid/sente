@@ -1,7 +1,7 @@
 // fr · screens
 export const screens = {
   home: {
-    trainer: { head: "Une lettre de {name}", away: "La ranger", play: "Va jouer" },
+    trainer: { head: "Une lettre de {name}", away: "La ranger", play: "Va jouer", placeholder: "Écris-lui…", send: "Envoyer", yes: "Oui", notNow: "Pas maintenant" },
     greetingBack: "De retour au goban",
     greetingNew: "Bienvenue au goban",
     wonOf: "{wins} sur {games} gagnées",
@@ -228,6 +228,9 @@ export const screens = {
   profile: {
     trainer: {
       head: "Entraîneur privé",
+      games: "Parties avec lui : {count}",
+      watching: "Il surveille {area}.",
+      report: "Rapport de progrès",
       note: "Un joueur de la maison pour une seule personne, gardé derrière une phrase. Il explique chaque coup, note les tiens et écrit entre les parties. Tout ce qu'il fait reste sur cet appareil.",
       placeholder: "La phrase",
       unlock: "Ouvrir la porte",

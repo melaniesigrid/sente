@@ -95,3 +95,56 @@ describe("the report", () => {
     expect(r.gifts[0].kept).toBeNull();
   });
 });
+
+import { AREAS, areasOf, gameSummary, areaMeans, focusFor, trend } from "./sensei.js";
+
+const facts = (over) => ({ pass: false, phase: "middle", contact: 0, selfAtari: false, shapes: [], captured: 0, ...over });
+
+describe("what he remembers", () => {
+  it("files a move under the areas the board decides", () => {
+    expect(areasOf(facts({ phase: "opening" }))).toEqual(["opening"]);
+    expect(areasOf(facts({ contact: 1 }))).toEqual(["fights"]);
+    expect(areasOf(facts({}))).toEqual(["direction"]);
+    expect(areasOf(facts({ phase: "endgame", shapes: ["empty-triangle"] }))).toEqual(["endgame", "shape"]);
+    expect(areasOf(facts({ selfAtari: true }))).toEqual(["direction", "shape", "reading"]);
+    expect(areasOf(facts({}), 2)).toEqual(["direction", "reading"]);
+    expect(areasOf({ pass: true })).toEqual([]);
+    expect(areasOf(null)).toEqual([]);
+  });
+
+  it("sums a game into means per area, counting only what cost you", () => {
+    const points = [pt(0, 0.5), pt(1, 0.5, "b"), pt(2, 0.5, "w"), pt(3, 0.4, "b"), pt(4, 0.4, "w"), pt(5, 0.45, "b"), pt(6, 0.45, "w")];
+    const f = { 1: facts({ phase: "opening" }), 3: facts({ contact: 1 }), 4: facts({ captured: 1 }), 5: facts({}) };
+    const s = gameSummary(points, f, "b");
+    expect(s.moves).toBe(3);
+    expect(s.areas.opening).toEqual({ n: 1, mean: 0 });
+    expect(s.areas.fights.n).toBe(1);
+    expect(s.areas.fights.mean).toBeCloseTo(0.1);
+    expect(s.areas.reading.n).toBe(1);          // move 3 was followed by his capture
+    expect(s.areas.direction).toEqual({ n: 1, mean: 0 });
+    expect(s.areas.endgame).toEqual({ n: 0, mean: null });
+    expect(s.worst.move).toBe(3);
+    expect(gameSummary([pt(0, 0.5)], {}, "b")).toBeNull();
+  });
+
+  it("finds the focus where the cost is, once there is enough of it", () => {
+    const game = (fights, direction) => ({
+      mean: 0.05, areas: { ...Object.fromEntries(AREAS.map((a) => [a, { n: 0, mean: null }])),
+        fights: { n: 3, mean: fights }, direction: { n: 3, mean: direction } },
+    });
+    expect(focusFor([game(0.1, 0.02)])).toBeNull();               // three moves is not enough
+    expect(focusFor([game(0.1, 0.02), game(0.1, 0.02)])).toBe("fights");
+    expect(areaMeans([game(0.1, 0.02), game(0.2, 0.02)]).fights).toBeCloseTo(0.15);
+  });
+
+  it("reads a trend as the last games against the ones before, lower cost being up", () => {
+    const game = (mean) => ({ mean, areas: { ...Object.fromEntries(AREAS.map((a) => [a, { n: 0, mean: null }])), fights: { n: 2, mean } } });
+    const before = [game(0.1), game(0.1), game(0.1)], after = [game(0.05), game(0.05), game(0.05)];
+    const tr = trend([...before, ...after], 3);
+    expect(tr.fights).toBe("up");
+    expect(tr.overall).toBe("up");
+    expect(tr.opening).toBeNull();
+    expect(trend([...after, ...before], 3).overall).toBe("down");
+    expect(trend(after, 3).overall).toBeNull();
+  });
+});
