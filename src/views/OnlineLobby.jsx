@@ -45,8 +45,9 @@ import { useT } from "../components/langStore.js";
 
    Online games are even; handicap is a house arrangement, and two strangers
    have no way to agree on one yet. */
-export function OnlineCard({ profile, notify, onPlay, size, setSize, go = null }) {
+export function OnlineCard({ profile, notify, onPlay, size, setSize, go = null, onAccount = null }) {
   const [account, setAccount] = useState(() => loadAccount());
+  useEffect(() => { if (onAccount) onAccount(account); }, [account, onAccount]);
   if (!serverEnabled()) return null;
   return account
     ? <Lobby account={account} setAccount={setAccount} notify={notify} onPlay={onPlay}

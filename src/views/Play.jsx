@@ -10,7 +10,7 @@ import { KE_JIE, SENSEI_ID, trainerRank } from "../content/sensei.js";
 import { rankOf, ratingOfRank, stepRank, rankInRange, rankWithHandicap, RANK_LADDER } from "../content/rank.js";
 import { SIZES, defaultKomi, RULESET_IDS, rulesetOf } from "../engine/index.js";
 import { loadLobby, saveLobby, HANDICAPS, KOMI_STEPS } from "../store/lobby.js";
-import { loadAccount } from "../store/account.js";
+import { ACCOUNT_KEY, loadAccount } from "../store/account.js";
 import { hasSensei } from "../store/sensei.js";
 import { duelMode } from "../content/duel.js";
 import { dayKey } from "../content/kata.js";
@@ -67,7 +67,22 @@ function routeSession({ profile, account, resume, openGame, withBot, t }) {
 
 export function PlayView({ profile, setProfile, notify, resume, openGame = null, withBot = null, go = null }) {
   const t = useT();
-  const account = useMemo(() => (serverEnabled() ? loadAccount() : null), []);
+  const [account, setAccount] = useState(() => (serverEnabled() ? loadAccount() : null));
+  useEffect(() => {
+    if (!serverEnabled()) return undefined;
+    const refresh = () => setAccount(loadAccount());
+    const onStorage = (e) => { if (!e.key || e.key === ACCOUNT_KEY) refresh(); };
+    const onVisible = () => { if (document.visibilityState === "visible") refresh(); };
+    refresh();
+    window.addEventListener("focus", refresh);
+    window.addEventListener("storage", onStorage);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener("storage", onStorage);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
   const trainerOn = hasSensei(profile, account);
   // session: null | { mode: {kind:'bot', persona, rank, size, handicap} | {kind:'local', size, handicap}
   //                  | {kind:'online', gameId} | duel, record? }
@@ -138,7 +153,7 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
             value, two controls, because the one down there is too far from the
             find button to be found from it. */}
         <OnlineCard profile={profile} notify={notify} onPlay={setSession} go={go}
-          size={table.size} setSize={(n) => setTable({ size: n })} />
+          size={table.size} setSize={(n) => setTable({ size: n })} onAccount={setAccount} />
         <DuelCard profile={profile} today={today} mode={duelMode(PERSONAS, today)}
           saved={saved && saved.mode.kind === "duel" ? saved : null} onPlay={setSession} />
         <div className="rank-picker neu-card" role="group" aria-label={t("play.levelGroup")}>

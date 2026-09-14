@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { serverEnabled } from "../net/api.js";
-import { loadAccount } from "../store/account.js";
+import { ACCOUNT_KEY, loadAccount } from "../store/account.js";
 import { DashboardCard } from "./DashboardCard.jsx";
 import { Swords, GraduationCap, Target, Trophy, Play, Trash2, CalendarCheck, BrainCircuit, Check, Circle, Mail } from "lucide-react";
 import { MiniSelfPlay } from "../components/MiniSelfPlay.jsx";
@@ -32,7 +32,22 @@ import { useT } from "../components/langStore.js";
 /* ----------------------- HOME ----------------------- */
 export function Home({ profile, go, onResume }) {
   const t = useT();
-  const account = useMemo(() => (serverEnabled() ? loadAccount() : null), []);
+  const [account, setAccount] = useState(() => (serverEnabled() ? loadAccount() : null));
+  useEffect(() => {
+    if (!serverEnabled()) return undefined;
+    const refresh = () => setAccount(loadAccount());
+    const onStorage = (e) => { if (!e.key || e.key === ACCOUNT_KEY) refresh(); };
+    const onVisible = () => { if (document.visibilityState === "visible") refresh(); };
+    refresh();
+    window.addEventListener("focus", refresh);
+    window.addEventListener("storage", onStorage);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener("storage", onStorage);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
   // A game opened from a file. Review takes the whole view while it is open, the
   // same way it does from a finished game.
   const [opened, setOpened] = useState(null);
