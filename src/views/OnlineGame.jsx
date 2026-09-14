@@ -40,6 +40,7 @@ const CHAT_KEEP = 200;
    millisecond; when they do they are the same sentence, and lighting either of
    them rings the same points. */
 const lineKey = (m) => `${m.from}:${m.at}:${m.text}`;
+const chatKey = (m) => m.chatKey ?? lineKey(m);
 const sameLine = (a, b) => lineKey(a) === lineKey(b);
 const reconcileChat = (prev, next, seq) => {
   const out = new Array(next.length);
@@ -187,7 +188,7 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
     () => (rec ? chat.map(m => talkParts(m.text, rec.size)) : []),
     [chat, rec],
   );
-  const litLine = lit === null ? null : chat.find(m => lineKey(m) === lit);
+  const litLine = lit === null ? null : chat.find(m => chatKey(m) === lit);
   const litText = litLine ? litLine.text : null;
   const litPoints = useMemo(
     () => (litText && rec ? pointsNamed(litText, rec.size) : EMPTY),
@@ -485,9 +486,9 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
                   {parsed[i] ? parsed[i].map((part, j) => (
                     part.t === "point" ? (
                       <button key={j} type="button"
-                        className={`talk-coord ${lit === lineKey(m) ? "on" : ""}`}
-                        onClick={() => setLit(lit === lineKey(m) ? null : lineKey(m))}
-                        aria-pressed={lit === lineKey(m)}
+                        className={`talk-coord ${lit === chatKey(m) ? "on" : ""}`}
+                        onClick={() => setLit(lit === chatKey(m) ? null : chatKey(m))}
+                        aria-pressed={lit === chatKey(m)}
                       >{part.s}</button>
                     ) : <span key={j}>{part.s}</span>
                   )) : m.text}
