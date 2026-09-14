@@ -622,6 +622,12 @@ two Durable Object classes, deployed at https://api.joseki.online.
       so signing in on a phone does not sign out the laptop, and `POST /api/signout`
       ends one or (with `{everywhere: true}`) all of them.
       `tools/server/accounts.mjs <url>` proves the whole flow against a deployment.
+- [x] A way back for a guest who lost their browser (2026-09-14, branch `feat/admin-adopt`).
+      A handle with no address had no way back at all: no password to type, no letter to
+      post, and nothing the operator could do but delete it. `POST /api/admin/players/:id/email`
+      puts an address on the handle; `POST /api/admin/mail/reset/:id` then mints the way in,
+      and following it leaves the person in their own seat with a password. Found when a
+      club member could not get back to a game in progress. `tools/server/mail.mjs` proves it.
 - [x] Verify the address, and a way back in when the password is forgotten (2026-09-10,
       branch `feat/mail`). Two letters and no others, both asked for, neither carrying an
       unsubscribe link because there is no list to leave (`server/mail.js` holds the copy,

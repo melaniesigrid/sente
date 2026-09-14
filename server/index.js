@@ -23,6 +23,7 @@
    is not told it.
      DELETE /api/admin/players/:id     ADMIN_TOKEN bearer
      POST   /api/admin/players/:id/reseed  ADMIN_TOKEN bearer (:id may be an address)
+     POST   /api/admin/players/:id/email   ADMIN_TOKEN bearer {email} -> put an address on a guest handle
      GET   /api/admin/players          ADMIN_TOKEN bearer
      DELETE /api/admin/ratelimit/:ip   ADMIN_TOKEN bearer
      GET    /api/admin/waitlist        ADMIN_TOKEN bearer -> who is waiting
@@ -268,6 +269,16 @@ async function route(req, env) {
       if (req.method !== "POST") return fail(405, "method");
       const player = await reg.reseed(decodeURIComponent(reseed[1]));
       return player ? json({ reseeded: player }) : fail(404, "no-player");
+    }
+    /* A guest who lost the browser their handle lived in has no way back: no
+       password to type, no address to post a letter to. This puts an address
+       on the handle so `mail/reset` below can mint one. Two operator calls and
+       the person is back in their own seat, mid-game, with a password now. */
+    const adopt = /^\/api\/admin\/players\/([^/]+)\/email$/.exec(path);
+    if (adopt) {
+      if (req.method !== "POST") return fail(405, "method");
+      const b = await readJson(req);
+      return json({ player: await reg.adopt(decodeURIComponent(adopt[1]), b.email) });
     }
     const players = /^\/api\/admin\/players(?:\/([^/]+))?$/.exec(path);
     if (players) {
