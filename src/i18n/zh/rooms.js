@@ -32,6 +32,7 @@ export const rooms = {
     },
     graphNote: "胜率图会把每一个局面挨个问一遍网络：小盘上很快，十九路要几分钟。你可以中途停下，画出来的那一段留着。",
     winGraph: "胜率图",
+    card: { head: "谁在领先" },
     keepAnalysing: "接着算",
     positions: "{done} / {total} 个局面",
     stop: "停",

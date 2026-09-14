@@ -236,6 +236,15 @@ export const online = {
     attachNote: "你的分数、你的棋和你的名号，原样不动。",
   },
 
+  /* The main room: games in progress a person may sit beside. Which games
+     is the server's rule (server/watch.js); these are the words. */
+  watch: {
+    head: "观战",
+    none: "现在没有可以观看的对局。",
+    note: "只有当那盘棋的每位棋手都让你看到他在线时，这盘棋才会出现在你的列表里。拿到棋桌链接的人照旧可以打开它。",
+    open: "观看{who}",
+  },
+
   game: {
     lobby: "大厅",
     gone: "这张桌子不存在，或者已经没了。",

@@ -9,6 +9,7 @@ import { tableLine } from "./onlineStatus.js";
 import { dashboard, waitingText, waitedMinutes } from "./dashboard.js";
 import { AccountGate } from "./AccountGate.jsx";
 import { InvitesCard } from "./InvitesCard.jsx";
+import { WatchCard } from "./WatchCard.jsx";
 import { useInvites } from "./useInvites.js";
 import { HereNow } from "./HereNow.jsx";
 import { useFriends } from "./useFriends.js";
@@ -287,6 +288,11 @@ function Lobby({ account, setAccount, notify, onPlay, size, setSize, go }) {
         </div>
       </div>
     </Card>
+    {/* The main room: games in progress you may sit beside. Opening one is the
+        same door as opening your own table; the server seats nobody it did not
+        seat already, so the socket comes back with no chair and the view is
+        the spectator's. */}
+    <WatchCard token={token} onWatch={(gameId) => onPlay({ mode: { kind: "online", gameId } })} />
     </>
   );
 }

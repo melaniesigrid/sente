@@ -151,8 +151,13 @@ export async function analyseGame(rec, o = {}) {
       best,
     };
     points.push(point);
+    /* Remembered as it arrives, not only when the walk stops. A screen that
+       leaves mid-walk (the table handing over to review, say) reads the cache
+       the moment it mounts, and a walk that only wrote on stopping would be
+       one network run behind it: the reader would see the graph vanish and
+       have to ask again. `remember` is a map write; the run was the cost. */
+    remember(rec, rank, points);
     if (onPoint) onPoint(point, i, list.length);
   }
-  remember(rec, rank, points);
   return { points, complete: true };
 }
