@@ -35,6 +35,7 @@
      GET   /api/players/:id                     -> a public profile
      GET   /api/players/:id/avatar              -> the picture, cached by its stamp
      GET   /api/games           bearer         -> recent games
+     GET   /api/live            bearer optional -> games in progress you may watch
      GET   /api/me/archive?cursor=&limit= bearer -> finished games, newest first
      POST  /api/clubs           bearer {name, about, listed} -> found one
      GET   /api/clubs?q=        bearer         -> listed clubs by name
@@ -398,6 +399,17 @@ async function route(req, env) {
   if (path === "/api/games" && req.method === "GET") {
     const player = await requirePlayer(req, reg);
     return json(await reg.gamesOf(player.id));
+  }
+
+  /* Games in progress, to watch. The token is optional for the same reason
+     it is on /api/presence: a player who lets anybody see them is visible to
+     a visitor with no handle. The answer is filtered by that setting for
+     every player at every board (server/watch.js), and is never cached: it is
+     a statement about who is at their desk this minute. */
+  if (path === "/api/live" && req.method === "GET") {
+    const viewer = await reg.auth(bearer(req));
+    const games = await reg.liveGames(viewer ? viewer.id : null);
+    return json({ games }, 200, { "cache-control": "no-store" });
   }
 
   /* The archive: every finished game, newest first, a page at a time. The

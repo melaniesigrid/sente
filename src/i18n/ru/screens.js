@@ -7,6 +7,7 @@
    по-русски нельзя. */
 export const screens = {
   home: {
+    trainer: { head: "Письмо от {name}", away: "Убрать", play: "Иди играть" },
     greetingBack: "С возвращением",
     greetingNew: "Добро пожаловать к доске",
     wonOf: "выиграно {wins} из {games}",
@@ -93,6 +94,7 @@ export const screens = {
     unreadable: "{name} не удалось прочитать с диска.",
   },
   play: {
+    trainer: { cta: "Тренируйся с {name}", note: "Только на этом устройстве. Никогда не в зачёт." },
     label: "Садись",
     titleBefore: "Найди ",
     titleEm: "партию",
@@ -264,6 +266,17 @@ export const screens = {
     openProblem: "{set}, номер {n}, {rank}",
   },
   profile: {
+    trainer: {
+      head: "Личный тренер",
+      note: "Домашний игрок для одного человека, спрятанный за фразой. Он объясняет каждый ход, оценивает твои и пишет между партиями. Всё, что он делает, остаётся на этом устройстве.",
+      placeholder: "Фраза",
+      unlock: "Открыть дверь",
+      wrong: "Это не та фраза.",
+      on: "{name} за доской. Ищи его в лобби.",
+      hide: "Отослать его",
+      letters: "Писем на этом устройстве: {count}",
+      burn: "Сжечь письма",
+    },
     displayName: "Отображаемое имя",
     saveName: "Сохранить имя",
     editName: "Изменить имя",

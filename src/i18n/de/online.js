@@ -196,11 +196,16 @@ export const online = {
     looking: "Suche einen Gegner für {size}×{size}…",
     lookingOthers: "Suche einen Gegner für {size}×{size} · {count} andere warten…",
     cancel: "Abbrechen",
+    /* The board every find on this card seeks on: the table's board,
+       offered here because the button names it and a name is not a control. */
+    boardGroup: "Brettgröße",
+    boardNote: "Jede Partie, die du hier startest, wird auf diesem Brett gespielt.",
+    boardWhileSeeking: "Das Brett, auf dem gerade gesucht wird. Brich ab, um auf einem anderen zu suchen.",
     meetAt: "Treffen bei „{word}“ auf {size}×{size}",
     findOn: "Finde einen Gegner auf {size}×{size}",
     wordPlaceholder: "oder ein Wort, das ihr beide kennt",
     wordLabel: "Treffwort, um mit einem Freund zu spielen",
-    note: "Der Tisch unten stellt das Brett ein. Partien über das Netz sind ohne Vorgabe und ohne Uhr, gleich welche Vorgabe und Bedenkzeit du für das Haus einstellst. Verabredet mit einem Freund ein Wort und ihr findet einander, wie voll es auch ist.",
+    note: "Partien über das Netz sind ohne Vorgabe und ohne Uhr, gleich welche Vorgabe und Bedenkzeit du für das Haus einstellst. Verabredet mit einem Freund ein Wort und ihr findet einander, wie voll es auch ist.",
     waitingFor: " · wartet seit {waited}",
     waitingOnYou: {
       one: "Ein Tisch wartet auf dich. Diese Partien haben keine Uhr: Hier läuft nichts ab und niemand verliert, weil ein Tag vergeht.",
@@ -230,6 +235,15 @@ export const online = {
     keepHandle: "Behalte diesen Namen",
     notNow: "Jetzt nicht",
     attachNote: "Deine Wertung, deine Partien und dein Name bleiben genau, wie sie sind.",
+  },
+
+  /* The main room: games in progress a person may sit beside. Which games
+     is the server's rule (server/watch.js); these are the words. */
+  watch: {
+    head: "Partien zum Zuschauen",
+    none: "Gerade gibt es keine Partie zum Zuschauen.",
+    note: "Eine Partie steht nur so lange auf deiner Liste, wie jeder Spieler an diesem Brett dich sehen lässt, dass er da ist. Wer den Link eines Tisches hat, kann ihn öffnen, wie bisher.",
+    open: "{who} zuschauen",
   },
 
   game: {

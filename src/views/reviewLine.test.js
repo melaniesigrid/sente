@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { startLine, playInLine, backInLine, lineLabel, canBranch } from "./reviewLine.js";
+import { startLine, playInLine, backInLine, lineLabel, canBranch, reviewLabelText } from "./reviewLine.js";
 import { createGame, play, pass, resign, idx, toSgf } from "../engine/index.js";
 
 const game = () => {
@@ -7,6 +7,22 @@ const game = () => {
   g = play(g, 4, 4); g = play(g, 2, 2); g = play(g, 6, 6);
   return g;
 };
+
+/* The label over the review board is rendered on every open of Review. It
+   once reached for two engine helpers it had not imported, and every review
+   crashed at the error boundary while the pure tests stayed green, because
+   nothing called it. So something calls it. */
+describe("reviewLabelText", () => {
+  it("names the start, a move and its side, and a pass", () => {
+    expect(reviewLabelText(game(), 0)).toBe("Start");
+    expect(reviewLabelText(game(), 2)).toMatch(/2/);
+    expect(reviewLabelText(game(), 2)).toMatch(/White/);
+    expect(reviewLabelText(pass(game()), 4)).toMatch(/pass/i);
+  });
+  it("clamps past the end rather than reading a move that is not there", () => {
+    expect(reviewLabelText(game(), 99)).toBe(reviewLabelText(game(), 3));
+  });
+});
 
 describe("startLine", () => {
   it("branches from the position at that move", () => {

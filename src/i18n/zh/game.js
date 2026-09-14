@@ -89,7 +89,9 @@ export const game = {
     captures: { b: "黑提子：{n}", w: "白提子：{n}" },
     hintsOn: " · 打吃提示已开",
     keys: " · P 虚着，U 悔棋",
+    trainer: { reviewHead: "{name}的复盘", walk: "逐手回顾" },
     chat: {
+      trainer: "私人教练",
       head: "盘边闲话",
       coachOnTitle: "这一局教练在，所以这一局不计分。",
       coachOffTitle: "让对手替你把下出来的形状叫出名字。这一局从此不计分，不能反悔。",

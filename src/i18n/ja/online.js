@@ -196,6 +196,11 @@ export const online = {
     looking: "{size}×{size} の相手を探しています…",
     lookingOthers: "{size}×{size} の相手を探しています · ほかに {count} 人が待機中…",
     cancel: "やめる",
+    /* The board every find on this card seeks on: the table's board,
+       offered here because the button names it and a name is not a control. */
+    boardGroup: "盤の大きさ",
+    boardNote: "ここから始める対局は、この盤で打ちます。",
+    boardWhileSeeking: "いま探しているのはこの盤です。別の盤にするには、取り消してください。",
     meetAt: "{size}×{size} で「{word}」を合言葉に会う",
     findOn: "{size}×{size} で相手を探す",
     wordPlaceholder: "または、二人とも知っている言葉",
@@ -217,7 +222,7 @@ export const online = {
     rengoNoteA: "四人、二人ひと組で、ひとつの順番で回ります。誰かと向かい合うのではなく、誰かと",
     rengoNoteEm: "組んで",
     rengoNoteB: "打ちたいときは、合言葉を決めて二人とも同じ組を選んでください。「どちらでも」を選べば、居合わせた人と組みます。レートなし。組の成績は打ち手の段級とは別の数字で、Joseki は責任を持てない数字を画面に出しません。相棒どうしの相談は禁じられているので、相棒への線はありませんし、あってはいけません。",
-    note: "下の設定が盤を決めます。ネット対局は、家の棋士にどんな置き石と持ち時間を設定していても、互先で時計なしです。友だちと合言葉を決めておけば、どれだけ混んでいても会えます。",
+    note: "ネット対局は、家の棋士にどんな置き石と持ち時間を設定していても、互先で時計なしです。友だちと合言葉を決めておけば、どれだけ混んでいても会えます。",
     rated: "サーバーで Glicko-2 によってレートがつきます。どの一手も、同じルールでそこで検められます。",
     signOut: "出る",
     leave: "ランキングを離れて、この名を消す",
@@ -229,6 +234,15 @@ export const online = {
     keepHandle: "この名を残す",
     notNow: "いまはやめておく",
     attachNote: "レートも、対局も、名も、そのままです。",
+  },
+
+  /* The main room: games in progress a person may sit beside. Which games
+     is the server's rule (server/watch.js); these are the words. */
+  watch: {
+    head: "観戦できる対局",
+    none: "いま観戦できる対局はありません。",
+    note: "その盤のすべての対局者が、自分がここにいることをあなたに見せている間だけ、その対局はあなたの一覧に載ります。卓のリンクを持つ人は、これまでどおり開けます。",
+    open: "{who}を観戦",
   },
 
   game: {

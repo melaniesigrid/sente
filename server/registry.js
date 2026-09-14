@@ -76,6 +76,7 @@ import { inviteKey, invitePrefix, readInvite, shelf, expired, offer, takeUp, dro
   seatsFor, cleanTerms, INVITE_LIMIT, INVITE_WINDOW_MS } from "./invites.js";
 import { dayOf, dayBefore, emptyDay, counted, raised, isFinish, sealed, stale,
   clampDays, recent, nextSeal, RETAIN_DAYS } from "./rollup.js";
+import { LIVE_PREFIX, liveKey, peopleToAsk, watchable } from "./watch.js";
 
 const KEEP_GAMES = 24;
 /* Storage lists cap at a thousand keys a page, so anything counting every
@@ -1126,6 +1127,12 @@ export class Registry extends DurableObject {
     // double every game.
     const finished = isFinish(summary);
     await this.#note(finished ? "gamesFinished" : "gamesStarted");
+    /* The index of games in progress, one key a game, so "what is there to
+       watch" is a walk over the live games and never over anybody's list.
+       Written on every move (this call is made on every move) and taken out
+       at the move that ends the game. `watch.js` decides who is shown which. */
+    if (finished) await this.ctx.storage.delete(liveKey(summary.id));
+    else await this.ctx.storage.put(liveKey(summary.id), summary);
     for (const id of [summary.black.id, summary.white.id]) {
       const key = `games:${id}`;
       const list = (await this.ctx.storage.get(key)) || [];
@@ -1146,6 +1153,23 @@ export class Registry extends DurableObject {
 
   async gamesOf(id) {
     return (await this.ctx.storage.get(`games:${id}`)) || [];
+  }
+
+  /** The games in progress this viewer may be shown, so they can watch one.
+   *
+   *  Who is shown what is presence's rule and not this file's: every player
+   *  at the board has to let the viewer see they are here, or the game is
+   *  simply absent from the answer, the way `presenceOf` leaves people out.
+   *  The index is one key a game, so this is a walk over the live games plus
+   *  one batched read of the people seated at them, and never a scan. */
+  async liveGames(viewerId) {
+    const live = [...(await this.ctx.storage.list({ prefix: LIVE_PREFIX, limit: 200 })).values()];
+    if (!live.length) return [];
+    const people = await this.#peopleByIds(peopleToAsk(live));
+    const friends = viewerId
+      ? new Set((await this.#book(viewerId)).friends.map((e) => e.id))
+      : new Set();
+    return watchable(live, viewerId, people, friends, Date.now());
   }
 
   /** Settle a finished rated game exactly once. Returns `{ b, w }` rating changes. */

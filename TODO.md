@@ -1803,6 +1803,49 @@ Later, in order: the club and chat, then the game archive (cap, eviction, localS
 versus Durable Objects, all open), then Neo-Human pair go, which is a seat-model change in
 the multiplayer Worker and is unrated for the same reason coached games are.
 
+## The private trainer (2026-09-13, branch `feat/ke-jie`)
+
+A house player for one person, for research: he explains every stone he plays, grades
+every stone you play, gives something away on purpose now and then, reviews the game
+when it ends and writes between games. Named Ke Jie at the owner's request; he is not
+that person, nothing he says is a quotation, and the bot chip stays on every line.
+
+- [x] Behind a phrase. `profile.sensei` is off by default and is set only by typing the
+      phrase on the profile page; the code holds its SHA-256 (`SENSEI_DIGEST` in
+      `src/content/sensei.js`), never the phrase. He is not in `PERSONAS`, so the ladder,
+      the lobby's persona list, the duel and every house-player page are untouched.
+- [x] `src/engine/explain.js`: what the board says about one stone (line, region, phase,
+      contact, atari, capture, escape, connection, self-atari, tenuki, shapes) and where a
+      played move stood on the network's shortlist. Facts only; no opinion lives here.
+- [x] `src/engine/sensei.js`: when a gift is due (never in the first six of his moves, never
+      twice within five, never in the endgame), what a gift is (a shortlist move at most
+      40% as likely as the top one and at least 4%), whether the reply kept it, and the
+      report on a finished game. All arithmetic on the same points the review graph draws.
+- [x] `evaluatePosition` and `seedAnalysis` in `src/engine/kata/analyse.js`: one position
+      looked at at dan strength, and a walk somebody else did handed to the cache, so
+      review of a trainer game opens with its graph already drawn.
+- [x] `src/content/sensei.js`: the persona, his voice for his moves and yours, the review
+      paragraphs, and the letters. Every sentence is composed from checked facts.
+- [x] `src/store/sensei.js`: the mailbox (twenty letters, this device only) and the phrase.
+- [x] The table: your move is graded against the position before it and both sentences go
+      into the record as SGF comments, so review and the download carry them. Network calls
+      are queued so points land in order. Games are unrated, like coached ones; the coach
+      switch is hidden because he already talks. A review card appears when the game ends.
+- [x] Review shows the comment on the move being looked at, for any record that has one.
+- [x] Home shows an unread letter; after three days away he writes once about it. Profile
+      has the door, the letter count, "burn the letters" and "send him away".
+- [x] 48 new tests over the four modules; nine catalogues carry the fifteen new UI lines.
+
+Open:
+- [ ] Not yet played in a browser against the network. The turn is three network calls
+      instead of one, so 19x19 will feel slow; measure before deciding whether the grading
+      look should move off the turn.
+- [ ] A resumed trainer game loses the points gathered before the reload (the comments
+      survive in the record; the numbers do not). Persisting them through `gameStore`
+      would need a new field and its sanitiser.
+- [ ] The phrase is one shared digest. If a second person should ever have him, that is
+      an account-level flag on the server, not a phrase, and legal.js would need a line.
+
 ## Phase 7: The words (done, 2026-09-12, branch `feat/i18n-ship`)
 
 Joseki reads in the player's own language. English stays the language it is authored in
@@ -2701,6 +2744,33 @@ friends"; this phase is the three verbs in that sentence that were still missing
       for Black. `server/invites.js` is the policy, pure, in 31 cases;
       `tools/server/invites.mjs` proves it against a deployment in 31 checks, playing a
       whole game out to reach "somebody you have finished a game against".
+- [x] **The board the button names** (2026-09-13, branch `fix/online-board-size`): the
+      online card said "Find an opponent on 9×9" and the only control over that 9 was
+      in the table card three cards down the page, past fourteen other controls, under
+      a heading that never says "online". Nothing was broken — the picker down there
+      did set the board and the button did follow it — which is why every test passed
+      while a player who wanted 19×19 had no way to learn that 9 was a choice. The card
+      now carries its own board picker, writing the same table setting, and the tests
+      check placement rather than state: a test that only asserted the state would have
+      gone green on the bug.
+- [ ] **Hebrew has no words for the club** (found 2026-09-13, not fixed): the club landed
+      after Hebrew did, so `src/i18n/he/` carries none of the `club.` namespace and
+      `i18n.test.js` fails two cases on main, not only on a branch. The club's CSS had the
+      same shape of gap and is fixed in `fix/online-board-size`: `.hall-line`,
+      `.hall-unsay` and `.hall-table-open` were written with `padding-right`, `right` and
+      `text-align: left`, which the RTL test added alongside Hebrew forbids. Both halves
+      are one lesson: two branches that each pass alone can still break main together, and
+      nothing re-runs the older one against the newer. Translating the namespace is its own
+      sitting, by somebody who has seen the club.
+- [ ] **The phantom seek** (found 2026-09-13, not fixed): the client sets "Looking for
+      an opponent…" when it sends the seek and only clears it on a reply, but the server
+      deletes `seek:<id>` whenever the player's socket count falls to one
+      (`server/registry.js` `webSocketClose`) — which includes the case where a second
+      tab replaces the first. The replaced tab is closed with code 4000, which
+      `openSocket` deliberately does not reconnect, so it is left spinning on a seek the
+      server has already thrown away and nobody can ever match it. Two halves to fix:
+      the server should re-send the waiting state on a new lobby socket, and the client
+      should stop claiming to be waiting once the connection is gone.
 - [x] **The way in** (branch `feat/reach`): the acts on a person reachable from where
       somebody is standing when they want one. Three things, and the first is a bug:
       **"Write to them" on a player page did not write to them.** It landed on the profile
@@ -2793,7 +2863,6 @@ on the foundation it was deferred onto.
 **Phase 12 is complete.** Three slices, three branches, one design doc. What is deliberately
 not in it, each for a reason written down in `docs/designs/the-club.md`: voice, reactions,
 threads, bots and uploads.
-
 ## Principles (do not trade away)
 
 - Rules live in the engine, never in a view.

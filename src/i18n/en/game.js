@@ -93,7 +93,9 @@ export const game = {
     captures: { b: "Black captures: {n}", w: "White captures: {n}" },
     hintsOn: " \u00b7 atari hints on",
     keys: " \u00b7 P passes, U takes back",
+    trainer: { reviewHead: "Review from {name}", walk: "Walk through it" },
     chat: {
+      trainer: "private trainer",
       head: "Table talk",
       coachOnTitle: "The coach is on for this game, and this game is unrated.",
       coachOffTitle: "Have your opponent name the shapes you make. This game becomes unrated, for good.",

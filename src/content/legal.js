@@ -51,7 +51,7 @@ export const COPYRIGHT = `© ${COPYRIGHT_YEAR} ${STUDIO}`;
    being stopped and handed the line where the date lives. */
 export const REVISION = {
   updated: "13 September 2026",
-  stamp: "b1825bf8",
+  stamp: "598144a8",
 };
 
 /** The day the documents last changed. */
@@ -267,6 +267,7 @@ const PRIVACY = {
         "Whether you are at a board right now is a question about an open connection and nothing else. Arriving writes nothing, leaving writes nothing, and there is no history of when you were here for anybody to read later, this Studio included. Close the tab and the only thing that survives is the date of your last finished game, which is what your page has always shown, to the month or the week and never to the hour.",
         "Who may be told is yours to set, and the setting starts at your friends rather than at everybody. Somebody who has asked to be your friend and is waiting for an answer is not yet a friend and is told nothing: a request is not a way to watch when you are at your desk while you decide.",
         "When somebody asks which of a list of people are here, the answer names only the ones who are here and who let them know. Nobody is ever reported as being away, so somebody who is out and somebody who chose not to say look exactly alike.",
+        "The lobby lists games being played right now, so that somebody can sit beside one and watch. A game is on that list for a person only while every player at that board lets that person see they are here, under the same setting as above, and it leaves the list the moment the game ends. Nothing is written for it that was not written already: the list is read off the rooms that exist. A game is not listed to you for one of three reasons that look exactly alike: it is over, it has gone quiet, or somebody at the board chose not to be seen.",
       ],
     },
     {

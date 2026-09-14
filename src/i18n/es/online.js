@@ -196,6 +196,11 @@ export const online = {
     looking: "Buscando un rival para {size}×{size}…",
     lookingOthers: "Buscando un rival para {size}×{size} · {count} más esperando…",
     cancel: "Cancelar",
+    /* The board every find on this card seeks on: the table's board,
+       offered here because the button names it and a name is not a control. */
+    boardGroup: "Tamaño del tablero",
+    boardNote: "Cada partida que empieces aquí se juega en este tablero.",
+    boardWhileSeeking: "El tablero en el que busca esta partida. Cancela para buscar en otro.",
     meetAt: "Quedar en «{word}» sobre {size}×{size}",
     findOn: "Busca un rival en {size}×{size}",
     wordPlaceholder: "o una palabra que sepáis los dos",
@@ -218,7 +223,7 @@ export const online = {
     rengoNoteA: "Cuatro personas, dos por equipo, jugando por turnos en una sola rotación. Para jugar ",
     rengoNoteEm: "con",
     rengoNoteB: " alguien en vez de contra ese alguien, acordad una palabra y elegid los dos el mismo equipo; elige cualquier lado y te emparejamos con quien esté. Sin puntuación: el resultado de un equipo es un número distinto del rango de un jugador, y Joseki no va a poner en pantalla uno que no pueda sostener. Las parejas no pueden consultarse, así que no hay línea con tu pareja y no la va a haber.",
-    note: "La mesa de abajo fija el tablero. Las partidas en línea son parejas y sin reloj, sea cual sea el hándicap y el reloj que pongas para la casa. Acordad una palabra con un amigo y os encontraréis, por concurrido que esté.",
+    note: "Las partidas en línea son parejas y sin reloj, sea cual sea el hándicap y el reloj que pongas para la casa. Acordad una palabra con un amigo y os encontraréis, por concurrido que esté.",
     rated: "Puntuada con Glicko-2 en el servidor. Cada jugada se comprueba allí con las mismas reglas.",
     signOut: "Cerrar sesión",
     leave: "Deja la clasificación y elimina esta identidad",
@@ -230,6 +235,15 @@ export const online = {
     keepHandle: "Conserva esta identidad",
     notNow: "Ahora no",
     attachNote: "Tu puntuación, tus partidas y tu identidad se quedan exactamente como están.",
+  },
+
+  /* The main room: games in progress a person may sit beside. Which games
+     is the server's rule (server/watch.js); these are the words. */
+  watch: {
+    head: "Partidas para mirar",
+    none: "Ahora mismo no hay ninguna partida para mirar.",
+    note: "Una partida aparece en tu lista solo mientras cada jugador de ese tablero te deje ver que está aquí. Quien tenga el enlace de una mesa puede abrirla, como antes.",
+    open: "Mirar {who}",
   },
 
   game: {

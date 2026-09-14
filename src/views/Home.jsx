@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { serverEnabled } from "../net/api.js";
 import { loadAccount } from "../store/account.js";
 import { DashboardCard } from "./DashboardCard.jsx";
-import { Swords, GraduationCap, Target, Trophy, Play, Trash2, CalendarCheck, BrainCircuit, Check, Circle } from "lucide-react";
+import { Swords, GraduationCap, Target, Trophy, Play, Trash2, CalendarCheck, BrainCircuit, Check, Circle, Mail } from "lucide-react";
 import { MiniSelfPlay } from "../components/MiniSelfPlay.jsx";
 import { Card, Btn, RankBadge, Statement } from "../components/ui.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
@@ -23,12 +23,14 @@ import { LIBRARY } from "../content/library.js";
 import { OpenSgf } from "../components/OpenSgf.jsx";
 import { Review } from "./Review.jsx";
 import { loadSession } from "./session.js";
+import { KE_JIE, SENSEI_ID, letterFor } from "../content/sensei.js";
+import { loadBox, saveBox, postLetter, markRead, unread, shouldWriteAbout, daysBetween } from "../store/sensei.js";
 import { useT } from "../components/langStore.js";
 
 /* ----------------------- HOME ----------------------- */
 export function Home({ profile, go, onResume }) {
   const t = useT();
-  const account = useMemo(() => (serverEnabled() ? loadAccount() : null), []);
+  const account = serverEnabled() ? loadAccount() : null;
   // A game opened from a file. Review takes the whole view while it is open, the
   // same way it does from a finished game.
   const [opened, setOpened] = useState(null);
@@ -49,6 +51,20 @@ export function Home({ profile, go, onResume }) {
   const kata = authoredKata && localizeProblem(authoredKata, t);
   const kataDone = profile.kataDate === today;
   const recall = recallSummary(LIBRARY, profile.recall, today);
+  /* The trainer's mailbox, read once. If you have been away a few days he writes
+     about it, once per day at most, and the letter is kept on this device. */
+  const [, setBoxRev] = useState(0);
+  const box = (() => {
+    if (!profile.sensei) return null;
+    let b = loadBox();
+    if (shouldWriteAbout(b, today)) {
+     b = postLetter(b, letterFor({ daysAway: daysBetween(b.lastGame, today), name: profile.name }, daysBetween(b.lastGame, today)), today);
+     saveBox(b);
+    }
+    return b;
+  })();
+  const letter = box ? unread(box).slice(-1)[0] ?? null : null;
+  const putAway = () => { const b = markRead(box); saveBox(b); setBoxRev(n => n + 1); };
   useMokuFacts({ view: "home", seed: games });
   const greeting = t(games ? "home.greetingBack" : "home.greetingNew");
   // One line naming the next honest thing to do, so the dashboard opens on a
@@ -103,6 +119,17 @@ export function Home({ profile, go, onResume }) {
           <div className="row">
             <Btn icon={Play} primary small onClick={() => onResume({ mode: saved.mode, record: saved.record })}>{t("home.resume.resume")}</Btn>
             <Btn icon={Trash2} small onClick={discard}>{t("home.resume.discard")}</Btn>
+          </div>
+        </Card>
+      )}
+
+      {letter && (
+        <Card inset className="letter-card">
+          <div className="stat-head"><Mail size={16} /><span>{t("home.trainer.head", { name: KE_JIE.name })}</span></div>
+          <p className="lesson-text house-line">{letter.text}</p>
+          <div className="row">
+            <Btn icon={Play} primary small onClick={() => { putAway(); go("play", { withBot: SENSEI_ID }); }}>{t("home.trainer.play")}</Btn>
+            <Btn small onClick={putAway}>{t("home.trainer.away")}</Btn>
           </div>
         </Card>
       )}

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import {
   ChevronLeft, Flag, RotateCcw, Trophy, CircleDot, Scale, MessageCircle, Send, Handshake, Check, X,
-  Download, Eye, Link as LinkIcon, WifiOff,
+  Download, Eye, Link as LinkIcon, WifiOff, History,
 } from "lucide-react";
 import {
   scoreBoard, chainsInAtari, idx, lastMoveIndex, toSgf, colorOfSeat, canSeatPlay, partnerSeat,
@@ -22,6 +22,8 @@ import { onlineStatus, settledLine, onlineCaption, teamName } from "./onlineStat
 import { talkParts, pointsNamed, etiquette } from "./tableTalk.js";
 import { useT } from "../components/langStore.js";
 import { lineOr } from "../i18n/index.js";
+import { Review } from "./Review.jsx";
+import { WinCard } from "./WinCard.jsx";
 
 /* `seat` in this view is a seat id ("b1", "w1", "b2", "w2"), which is what the
    server now hands out: at a pair table a colour names two people, and the one
@@ -38,6 +40,21 @@ const CHAT_KEEP = 200;
    millisecond; when they do they are the same sentence, and lighting either of
    them rings the same points. */
 const lineKey = (m) => `${m.from}:${m.at}:${m.text}`;
+const chatKey = (m) => m.chatKey ?? lineKey(m);
+const sameLine = (a, b) => lineKey(a) === lineKey(b);
+const reconcileChat = (prev, next, seq) => {
+  const out = new Array(next.length);
+  let i = prev.length - 1;
+  for (let j = next.length - 1; j >= 0; j -= 1) {
+    if (i >= 0 && sameLine(prev[i], next[j])) {
+      out[j] = { ...next[j], chatKey: prev[i].chatKey };
+      i -= 1;
+    } else {
+      out[j] = { ...next[j], chatKey: `${lineKey(next[j])}:${seq.current++}` };
+    }
+  }
+  return out;
+};
 /* One array, so a board with no marks is handed the same empty prop every time. */
 const EMPTY = [];
 const lead = (room, c) => room.seats[c + "1"];
@@ -89,10 +106,14 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
   const [sent, setSent] = useState([]);
   const [confirmResign, setConfirmResign] = useState(false);
   const [gone, setGone] = useState(false);
+  // Walking back through the finished game. Review takes the whole view, as it
+  // does for a local game: two boards on one screen invite a click on the wrong one.
+  const [reviewing, setReviewing] = useState(false);
   const [pending, setPending] = useState(null);
   const sock = useRef(null);
   const resignTimer = useRef(null);
   const chatEndRef = useRef(null);
+  const nextChatKey = useRef(0);
   const lastMoves = useRef(-1);
   const sound = !!profile.sound;
 
@@ -102,9 +123,9 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
       onFrame: (f) => {
         if (f.t === "state") {
           setRoom(f.room);
-          setChat(f.room.chat);
+          setChat((c) => reconcileChat(c, f.room.chat, nextChatKey));
         } else if (f.t === "seat") { setSeat(f.seat); setRuns(f.runs ?? []); setWatching(f.watching); }
-        else if (f.t === "chat") setChat(c => [...c, f.msg].slice(-CHAT_KEEP));
+        else if (f.t === "chat") setChat((c) => reconcileChat(c, [...c, f.msg].slice(-CHAT_KEEP), nextChatKey));
         else if (f.t === "undo") { if (f.status === "declined") notify({ icon: "info", text: tRef.current("online.game.undoDeclined") }); }
         else if (f.t === "error") {
           if (f.reason === "no-room") setGone(true);
@@ -167,7 +188,7 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
     () => (rec ? chat.map(m => talkParts(m.text, rec.size)) : []),
     [chat, rec],
   );
-  const litLine = lit === null ? null : chat.find(m => lineKey(m) === lit);
+  const litLine = lit === null ? null : chat.find(m => chatKey(m) === lit);
   const litText = litLine ? litLine.text : null;
   const litPoints = useMemo(
     () => (litText && rec ? pointsNamed(litText, rec.size) : EMPTY),
@@ -328,6 +349,10 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
   const partner = room && seat && room.pair ? seatName(room, partnerSeat(seat)) : "";
   const settled = settledLine(room, seat, t);
 
+  if (reviewing && rec && over) {
+    return <Review record={rec} profile={profile} onExit={() => setReviewing(false)} />;
+  }
+
   if (gone) {
     return (
       <div className="stack">
@@ -423,11 +448,15 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
                 {over.method === "score" && rec.dead.length > 0 && t("game.deadRemoved", { count: rec.dead.length })}
               </p>
               <div className="row">
+                <Btn icon={History} small onClick={() => setReviewing(true)}>{t("game.review")}</Btn>
                 <Btn icon={Download} small onClick={downloadSgf}>{t("game.sgf")}</Btn>
                 <Btn icon={ChevronLeft} small onward onClick={onExit}>{t("online.game.lobby")}</Btn>
               </div>
             </Card>
           )}
+          {/* Who was winning, drawn at the table once it is over, for players
+              and spectators alike: the record is public to whoever is in the room. */}
+          {card && <WinCard record={rec} onReview={() => setReviewing(true)} />}
           {scoring && preview && (
             <Card inset className="caps">
               <div className="stat-head"><Scale size={15} /><span>{t("game.counting.head")}</span></div>
@@ -452,14 +481,14 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
             </div>
             <div className="chat-log" aria-live="polite">
               {chat.map((m, i) => (
-                <div key={i} className={`bubble ${account && m.from === account.player.id ? "mine" : ""}`}>
+                <div key={m.chatKey} className={`bubble ${account && m.from === account.player.id ? "mine" : ""}`}>
                   {(!account || m.from !== account.player.id) && <span className="bubble-who">{m.name}{m.seat ? "" : t("online.game.watchingWho")} · </span>}
                   {parsed[i] ? parsed[i].map((part, j) => (
                     part.t === "point" ? (
                       <button key={j} type="button"
-                        className={`talk-coord ${lit === lineKey(m) ? "on" : ""}`}
-                        onClick={() => setLit(lit === lineKey(m) ? null : lineKey(m))}
-                        aria-pressed={lit === lineKey(m)}
+                        className={`talk-coord ${lit === chatKey(m) ? "on" : ""}`}
+                        onClick={() => setLit(lit === chatKey(m) ? null : chatKey(m))}
+                        aria-pressed={lit === chatKey(m)}
                       >{part.s}</button>
                     ) : <span key={j}>{part.s}</span>
                   )) : m.text}

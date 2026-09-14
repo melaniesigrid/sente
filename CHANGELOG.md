@@ -6,6 +6,29 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.13.1.0 (2026-09-13)
+
+### Fixed
+
+- **The board the find button names is now a control, not a caption.** The online card
+  said "Find an opponent on 9×9" and the only thing that could change that 9 lived in
+  the table card three cards further down the page, past fourteen other controls, under a
+  heading that never says "online". Nothing was broken underneath. The picker down there
+  did set the board, the button did follow it, and the seek did carry it, which is
+  exactly why it lasted: every test passed while a player whose table happened to say 9×9
+  had no way to learn that the 9 was a choice at all. The card now carries its own board
+  picker, above all three finds, writing the same table setting every other game here
+  reads. It is the segmented control this card already draws for rengo teams, so there is
+  no new styling and nothing new to learn.
+- The card no longer tells you to go and look at the table below for the board, in any of
+  the eight languages, because the board is here.
+- **Looking for an opponent no longer takes the board off the screen.** Pressing find used
+  to replace the whole card with the search and its cancel button, so the one moment a
+  player is most likely to reconsider the board was the one moment they could not see it.
+  The board stays put now, greyed out while the search is running and saying which board
+  the search is on. Cancel to look on another; the search on the server carries the board
+  it was sent with, and Joseki will not quietly move you onto a different one.
+
 ## v0.13.0.0 (2026-09-13)
 
 ### Added
@@ -53,6 +76,25 @@ They are left as they were written rather than rewritten after the fact.
   of them pinned to a physical side while the thing they were drawn against had already
   moved. The suite now fails on the next one, shorthands and corner lists included.
 
+## v0.12.2.0 (2026-09-13)
+
+### Added
+
+- **Games to watch.** The room had always taken a spectator socket, and the table had a
+  "share" chip that copied its link; what did not exist was a way to find a game you were
+  not sent to. The lobby now draws a card of games being played right now, freshest first,
+  and any row sits you down beside that board. Which games are on it is presence's rule and
+  not a new one: a game is listed for you only while every player at that board lets you
+  see they are here, under the same nobody / friends / anybody setting, and a game that is
+  absent never says why. `GET /api/live` answers it; `server/watch.js` decides it, pure;
+  `tools/server/watch.mjs` proves it against a running server in 22 checks. The privacy
+  notice says so in a paragraph of its own.
+- **Who was winning, at the table.** The win rate graph shipped in v0.7.3 but lived only
+  inside Review, and the online table had no way into Review, so an online game never showed
+  it. The same graph, from the same hook and cache, is now a card beside the result on both
+  tables, drawn when asked and never assumed; clicking it, or the Review button that now
+  sits on the online result card, opens Review where it scrubs.
+
 ## v0.12.1.0 (2026-09-13)
 
 ### Fixed
@@ -96,7 +138,6 @@ They are left as they were written rather than rewritten after the fact.
 - The dojo no longer promises that a named room clears "all six" rules. A dark room measures
   both stones against its board and a light one only the black, so there is no longer one
   number to name.
-
 ## v0.12.0.0 (2026-09-13)
 
 ### Added
