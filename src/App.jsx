@@ -136,7 +136,7 @@ export default function JosekiApp() {
     <MokuProvider view={view}>
     <div className="sente-root" style={{ ...themeVars(room, profile.dojo, profile.stones), ...typefaceVars(profile.typeface, lang.locale.id) }}>
       <style>{CSS}</style>
-      {!opened ? (
+      {!opened && !mailLink ? (
         <main className="content"><DoorView onOpen={() => setOpened(true)} /></main>
       ) : view === null ? null : <>
       <header className={`topbar ${view === "landing" ? "slim" : ""}`}>
