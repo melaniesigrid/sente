@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   initStep, resetStep, stepReducer, marksFor, boardLocked, sideToMove, wrongTextFor,
   canReveal, isGated, DEFAULT_WRONG, DEFAULT_PARTIAL, TIMINGS, SCORE, REVEAL_AFTER, GATE_FROM,
-  recordAtStop, coordLabel,
+  recordAtStop, coordLabel, foldSteps, foldLesson, FOLDS_INTO,
 } from "./lessonStep.js";
 import { pt } from "../content/positions.js";
 import { lessonById, LIBRARY } from "../content/library.js";
@@ -436,6 +436,74 @@ describe("every step in the library can be finished without guessing", () => {
           expect(step.type).toBe("sequence");
           expect(step.moves.length).toBeGreaterThanOrEqual(GATE_FROM);
         }
+      }
+    }
+  });
+});
+
+describe("look, then play: folding an explanation into the move it sets up", () => {
+  const liberties = lessonById("liberties");
+  it("hands the learner the board straight after the explanation", () => {
+    const steps = foldSteps(liberties.steps);
+    expect(steps).toHaveLength(liberties.steps.length - 1);
+    expect(steps[0].type).toBe("quiz");
+    expect(steps[0].lead).toBe(liberties.steps[0].text);
+    expect(steps[0].text).toBe(liberties.steps[1].text);
+    expect(steps[0].answers).toEqual(liberties.steps[1].answers);
+  });
+  it("drops a mark that would give the answer away", () => {
+    const [first] = foldSteps(liberties.steps);
+    expect(liberties.steps[0].marks).toEqual(liberties.steps[1].answers);
+    expect(first.marks).toBeUndefined();
+    expect(marksFor(first)).toEqual([]);
+  });
+  it("keeps a region the answer merely lies in", () => {
+    const lesson = lessonById("life-big-eye");
+    const [first] = foldSteps(lesson.steps);
+    expect(first.type).toBe("quiz");
+    expect(first.marks).toEqual(lesson.steps[0].marks);
+    expect(first.marks.length).toBeGreaterThan(first.answers.length);
+  });
+  it("leaves a step on a different board alone", () => {
+    const info = { type: "info", setup: { b: [pt(1, 1)] }, text: "a" };
+    const quiz = { type: "quiz", setup: { b: [pt(2, 2)] }, toPlay: "b", answers: [pt(3, 3)], text: "b" };
+    expect(foldSteps([info, quiz])).toEqual([info, quiz]);
+  });
+  it("compares boards by their stones, not their spelling", () => {
+    const info = { type: "info", setup: { b: [pt(1, 1), pt(2, 2)], w: [] }, text: "a" };
+    const quiz = { type: "quiz", setup: { b: [pt(2, 2), pt(1, 1)] }, toPlay: "b", answers: [pt(3, 3)], text: "b" };
+    expect(foldSteps([info, quiz])).toHaveLength(1);
+  });
+  it("never folds two explanations, a replay, or a maxim", () => {
+    const setup = { b: [pt(1, 1)] };
+    const a = { type: "info", setup, text: "a" };
+    expect(foldSteps([a, { type: "info", setup, text: "b" }])).toHaveLength(2);
+    expect(foldSteps([a, { type: "replay", setup, moves: [], stops: [] }])).toHaveLength(2);
+    expect(foldSteps([{ type: "maxim", setup, line: "l", analogy: "n" }, { type: "quiz", setup, toPlay: "b", answers: [pt(2, 2)] }])).toHaveLength(2);
+    expect(FOLDS_INTO).not.toContain("replay");
+  });
+  it("lets a step keep its own marks over the explanation's", () => {
+    const setup = { b: [pt(1, 1)] };
+    const info = { type: "info", setup, marks: [pt(5, 5)], text: "a" };
+    const quiz = { type: "quiz", setup, marks: [pt(4, 4)], toPlay: "b", answers: [pt(3, 3)], text: "b" };
+    expect(foldSteps([info, quiz])[0].marks).toEqual([pt(4, 4)]);
+  });
+  it("never reshapes the authored lesson, which recall and translation index by step", () => {
+    const before = liberties.steps.length;
+    const played = foldLesson(liberties);
+    expect(played).not.toBe(liberties);
+    expect(liberties.steps).toHaveLength(before);
+    expect(lessonById("liberties").steps[0].type).toBe("info");
+  });
+  it("returns the lesson itself when nothing folds", () => {
+    const lesson = { id: "x", size: 9, steps: [{ type: "quiz", setup: {}, toPlay: "b", answers: [pt(1, 1)] }] };
+    expect(foldLesson(lesson)).toBe(lesson);
+  });
+  it("no folded step without marks still talks about a mark", () => {
+    for (const lesson of LIBRARY) {
+      for (const step of foldSteps(lesson.steps)) {
+        if (!step.lead || step.marks || step.type === "choice") continue;
+        expect(/\bmarked\b/i.test(`${step.lead} ${step.text || step.question || ""}`), `${lesson.id}: ${step.lead.slice(0, 40)}`).toBe(false);
       }
     }
   });

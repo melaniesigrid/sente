@@ -63,7 +63,7 @@ export const lessons1 = {
     steps: {
       0: { text: "Le suicide est illégal : tu ne peux pas poser une pierre qui laisse sa propre chaîne à zéro liberté. Mais il y a une glorieuse exception." },
       1: {
-        text: "Le point marqué est la dernière liberté des blancs. Aux noirs de jouer : le coup a l'air d'un suicide, mais les captures se règlent d'abord.",
+        text: "Les cinq pierres blanches n'ont plus qu'une liberté, le point vide au creux de leur propre forme. Aux noirs de jouer : le coup a l'air d'un suicide, mais les captures se règlent d'abord.",
         success: "Cinq pierres capturées. Retirer celles de l'adversaire se fait avant qu'on compte les tiennes : ce point n'a jamais été un suicide.",
         hint: "Compte les libertés des blancs avant de compter les tiennes.",
       },
@@ -132,7 +132,7 @@ export const lessons1 = {
     subtitle: "Deux pierres, un trou, et qui le remplit",
     plain: "Une diagonale est un trou, et celui qui le remplit décide du combat. Si tu connectes, tes pierres forment une chaîne solide ; si tu coupes, ton adversaire a deux chaînes faibles à garder en vie en même temps.",
     steps: {
-      0: { text: "Des pierres en diagonale ne sont pas encore connectées. Les blancs ont pris l'un des deux points entre elles ; le point marqué est le point de coupe. Celui qui y joue décide si les noirs sont un groupe ou deux." },
+      0: { text: "Des pierres en diagonale ne sont pas encore connectées. Les blancs ont pris l'un des deux points entre elles ; l'autre est le point de coupe. Celui qui y joue décide si les noirs sont un groupe ou deux." },
       1: {
         text: "Aux noirs de jouer. Connecte.",
         success: "Solide. Trois pierres, une chaîne, et c'est la pierre blanche qui a maintenant l'air seule.",
@@ -162,7 +162,7 @@ export const lessons1 = {
     subtitle: "Étendre depuis l'atari, et quand courir ne sert à rien",
     plain: "Une liberté restante veut dire un coup restant. Étendre vers l'espace libre achète de l'air, mais quand la voie de fuite débouche sur les pierres de l'adversaire la pierre est déjà perdue, et le coup vaut davantage ailleurs.",
     steps: {
-      0: { text: "Il reste une liberté. Le point marqué est la seule sortie. Y étendre fait une chaîne de deux pierres avec trois libertés, et le danger est écarté pour l'instant." },
+      0: { text: "Il reste une liberté, et c'est la seule sortie. Y étendre fait une chaîne de deux pierres avec trois libertés, et le danger est écarté pour l'instant." },
       1: {
         text: "Aux noirs de jouer. Étends et sors de l'atari.",
         success: "Trois libertés. Remarque la direction : vers le centre ouvert, loin du bord.",
