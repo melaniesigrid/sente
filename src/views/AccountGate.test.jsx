@@ -16,16 +16,15 @@ import { render, screen, cleanup, act, fireEvent } from "@testing-library/react"
 
 const stats = vi.fn();
 const waitlist = vi.fn();
-const register = vi.fn();
+const signUp = vi.fn();
 const signIn = vi.fn();
 
 vi.mock("../net/api.js", () => ({
   api: {
     stats: (...a) => stats(...a),
     waitlist: (...a) => waitlist(...a),
-    register: (...a) => register(...a),
     signIn: (...a) => signIn(...a),
-    signUp: () => Promise.reject(new Error("not used")),
+    signUp: (...a) => signUp(...a),
     forgot: () => Promise.resolve({ ok: true }),
     sendConfirmation: () => Promise.resolve(),
   },
@@ -43,24 +42,44 @@ const settle = async () => {
   await act(async () => { for (let i = 0; i < 4; i++) await Promise.resolve(); });
 };
 const text = () => document.body.textContent;
+/** Open the sign-up door and fill it in well enough to be sent. */
+const fillSignup = async () => {
+  await act(async () => { fireEvent.click(screen.getByRole("tab", { name: "Create an account" })); });
+  fireEvent.change(screen.getByLabelText("Handle"), { target: { value: "Ada" } });
+  fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "ada@example.com" } });
+  fireEvent.change(screen.getByLabelText("Password"), { target: { value: "two eyes live" } });
+  fireEvent.change(screen.getByLabelText("Confirm password"), { target: { value: "two eyes live" } });
+  await act(async () => { fireEvent.click(screen.getByText("Create the account")); });
+};
 
 beforeEach(() => {
   // The seat answer is remembered for the page session, so each test starts by
   // forgetting it; otherwise every test after the first reads the first one's
   // answer and the mocks below do nothing.
   forgetSeats();
-  stats.mockReset(); waitlist.mockReset(); register.mockReset(); signIn.mockReset();
+  stats.mockReset(); waitlist.mockReset(); signUp.mockReset(); signIn.mockReset();
   stats.mockResolvedValue({ players: 4, online: 0, seeking: 0, cap: 100, full: false, seatsLeft: 96 });
   waitlist.mockResolvedValue({ ok: true });
 });
 afterEach(cleanup);
 
 describe("while there are seats", () => {
-  it("offers the three doors and no waiting list", async () => {
+  it("offers the two doors and no waiting list", async () => {
     show();
     await settle();
     expect(screen.getByRole("tab", { name: "Create an account" })).toBeTruthy();
+    expect(screen.getByRole("tab", { name: "Sign in" })).toBeTruthy();
     expect(text()).not.toContain("The beta is full");
+  });
+
+  /* The third door, a handle with nothing behind it, closed on 2026-09-15.
+     Everybody signs in now, so every handle has a way back to it. */
+  it("no longer offers a handle with nothing behind it", async () => {
+    show();
+    await settle();
+    expect(screen.getAllByRole("tab")).toHaveLength(2);
+    expect(screen.queryByRole("tab", { name: "Just a handle" })).toBeNull();
+    expect(screen.queryByText("Claim handle")).toBeNull();
   });
 
   it("offers them anyway when the server cannot be asked, rather than turning people away on a network error", async () => {
@@ -163,12 +182,10 @@ describe("when the server does not answer at all", () => {
 
 describe("after the door has been shut in somebody's face", () => {
   it("does not offer them the same form again on the way back", async () => {
-    register.mockRejectedValue(Object.assign(new Error("beta-full"), { reason: "beta-full" }));
+    signUp.mockRejectedValue(Object.assign(new Error("beta-full"), { reason: "beta-full" }));
     const { unmount } = show();
     await settle();
-    await act(async () => { fireEvent.click(screen.getByRole("tab", { name: "Just a handle" })); });
-    fireEvent.change(screen.getByLabelText("Handle"), { target: { value: "Ada" } });
-    await act(async () => { fireEvent.click(screen.getByText("Claim handle")); });
+    await fillSignup();
     expect(text()).toContain("The beta is full");
 
     // Leaving the screen and coming back used to offer the three doors again,
@@ -184,12 +201,10 @@ describe("after the door has been shut in somebody's face", () => {
 
 describe("when the last seat goes while somebody is typing", () => {
   it("hands them the list rather than an error under a form they can no longer use", async () => {
-    register.mockRejectedValue(Object.assign(new Error("beta-full"), { reason: "beta-full" }));
+    signUp.mockRejectedValue(Object.assign(new Error("beta-full"), { reason: "beta-full" }));
     show();
     await settle();
-    await act(async () => { fireEvent.click(screen.getByRole("tab", { name: "Just a handle" })); });
-    fireEvent.change(screen.getByLabelText("Handle"), { target: { value: "Ada" } });
-    await act(async () => { fireEvent.click(screen.getByText("Claim handle")); });
+    await fillSignup();
     expect(text()).toContain("The beta is full");
     expect(screen.getByLabelText("Your email address")).toBeTruthy();
   });

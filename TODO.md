@@ -628,6 +628,12 @@ two Durable Object classes, deployed at https://api.joseki.online.
       puts an address on the handle; `POST /api/admin/mail/reset/:id` then mints the way in,
       and following it leaves the person in their own seat with a password. Found when a
       club member could not get back to a game in progress. `tools/server/mail.mjs` proves it.
+- [x] Everybody signs in (2026-09-15, branch `feat/sign-in-only`). The third door, a handle
+      with nothing behind it, is gone from `AccountGate`: people claimed one, lost the browser
+      it lived in, had nothing to sign in with, and claimed another. Two doors now, sign in
+      and create an account. The handles that already exist keep working, and the lobby's
+      add-an-address form starts open for them until they do. `POST /api/register` still
+      exists on the server because sign-up is built on it; nothing in the app calls it alone.
 - [x] Verify the address, and a way back in when the password is forgotten (2026-09-10,
       branch `feat/mail`). Two letters and no others, both asked for, neither carrying an
       unsubscribe link because there is no list to leave (`server/mail.js` holds the copy,

@@ -44,7 +44,6 @@ export const account = {
     tabs: "Comment entrer",
     signin: "Ouvrir une session",
     signup: "Créer un compte",
-    guest: "Juste une identité",
     signupBio: "Une adresse et un mot de passe, gardés ici et nulle part ailleurs. Pas de connexion avec Google, aucun tiers informé de ce que tu joues. L'adresse est la façon de retrouver ton identité sur un autre appareil.",
     signinBio: "Ouvre une session et ton identité, ton score et tes parties te suivent sur cet appareil.",
     handlePlaceholder: "Ton identité",
@@ -79,13 +78,6 @@ export const account = {
     address: "L'adresse du compte",
     post: "Envoie-moi un moyen de revenir",
     nevermind: "Laisse tomber",
-  },
-
-  guest: {
-    bio: "Assieds-toi maintenant et décide plus tard. Une identité sans adresse derrière elle vit dans ce navigateur : elle joue des parties classées comme n'importe quelle autre, et tu peux lui ajouter une adresse à tout moment sans perdre le score que tu as gagné.",
-    claim: "Réserve l'identité",
-    fine: "Effacer les données du site dans ce navigateur fait disparaître pour de bon une identité sans adresse.",
-    welcome: "Bienvenue au classement, {name}",
   },
 
   mail: {

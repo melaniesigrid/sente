@@ -44,7 +44,6 @@ export const account = {
     tabs: "Cómo entrar",
     signin: "Iniciar sesión",
     signup: "Crear una cuenta",
-    guest: "Solo una identidad",
     signupBio: "Una dirección y una contraseña, guardadas aquí y en ningún otro sitio. Sin iniciar sesión con Google, sin que ningún tercero sepa a qué juegas. La dirección es como recuperas tu identidad en otro dispositivo.",
     signinBio: "Inicia sesión y tu identidad, tu puntuación y tus partidas te siguen hasta este dispositivo.",
     handlePlaceholder: "Tu identidad",
@@ -79,13 +78,6 @@ export const account = {
     address: "La dirección de la cuenta",
     post: "Envíame una forma de volver a entrar",
     nevermind: "Déjalo",
-  },
-
-  guest: {
-    bio: "Siéntate ahora y decide después. Una identidad sin dirección detrás vive en este navegador: juega partidas puntuadas como cualquier otra, y puedes añadirle una dirección en cualquier momento sin perder la puntuación que hayas ganado.",
-    claim: "Reserva la identidad",
-    fine: "Borrar los datos del sitio en este navegador hace que una identidad sin dirección se pierda para siempre.",
-    welcome: "Bienvenida a la clasificación, {name}",
   },
 
   mail: {

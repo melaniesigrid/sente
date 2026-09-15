@@ -300,11 +300,13 @@ function Lobby({ account, setAccount, notify, onPlay, size, setSize, go, mode, s
 }
 
 /** The offer a handle with no address behind it should keep seeing: this
- *  rating only exists in this browser, and one address fixes that. It is a
- *  disclosure rather than a banner, so it never argues with the board. */
+ *  rating only exists in this browser, and one address fixes that. Open by
+ *  default since 2026-09-15, when the door that made such handles closed:
+ *  the people who still hold one are the ones with no way back, and a folded
+ *  row was easy to never notice. "Not now" folds it for this visit only. */
 function AttachRow({ onAttach }) {
   const t = useT();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);

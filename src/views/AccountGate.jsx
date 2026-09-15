@@ -8,15 +8,19 @@ import { askSeats, seatsAreGone } from "./seats.js";
 import { useT } from "../components/langStore.js";
 
 /* ----------------------- ACCOUNT GATE (card) -----------------------
-   The three doors into the ladder, in the order most people want them:
+   The two doors into the ladder, in the order most people want them:
 
      sign in    an address and a password, from any device
      sign up    a handle, an address and a password
-     guest      a handle and nothing else, kept in this browser only
 
-   A fourth door, folded away under the first: having forgotten the password.
+   There used to be a third, a handle with nothing behind it, kept in this
+   browser alone. It went on 2026-09-15: people claimed one, lost the browser
+   it lived in, and had nothing to sign in with, then claimed another and had
+   two. Everybody signs in now, so every handle has a way back to it.
+
+   A third door, folded away under the first: having forgotten the password.
    It is a disclosure rather than a tab because it is not a way most people
-   get in, and a row of four would suggest it was.
+   get in, and a row of three would suggest it was.
 
    There is no third party here. Joseki holds the address, and it holds a hash
    of a key the browser derives from the password, never the password, which
@@ -26,7 +30,7 @@ import { useT } from "../components/langStore.js";
    button here goes through `busy` and says what it is doing. */
 export function AccountGate({ profile, notify, onSignedIn }) {
   const t = useT();
-  const [mode, setMode] = useState("signin");   // signin | signup | guest
+  const [mode, setMode] = useState("signin");   // signin | signup
   const [full, setFull] = useState(null);       // null while the answer is unknown
   useEffect(() => {
     let live = true;
@@ -70,14 +74,12 @@ export function AccountGate({ profile, notify, onSignedIn }) {
         </div>
       </div>
       <div className="gate-tabs" role="tablist" aria-label={t("account.gate.tabs")}>
-        {["signin", "signup", "guest"].map(id => (
+        {["signin", "signup"].map(id => (
           <button key={id} role="tab" aria-selected={mode === id}
             className={`gate-tab ${mode === id ? "on" : ""}`} onClick={() => setMode(id)}>{t(`account.gate.${id}`)}</button>
         ))}
       </div>
-      {mode === "guest"
-        ? <GuestForm profile={profile} notify={notify} onSignedIn={onSignedIn} onFull={shut} />
-        : <CredentialForm mode={mode} profile={profile} notify={notify} onSignedIn={onSignedIn} onFull={shut} />}
+      <CredentialForm mode={mode} profile={profile} notify={notify} onSignedIn={onSignedIn} onFull={shut} />
     </Card>
   );
 }
@@ -314,41 +316,5 @@ function ForgotRow() {
         <Btn small onClick={() => setOpen(false)}>{t("account.forgot.nevermind")}</Btn>
       </div>
     </div>
-  );
-}
-
-function GuestForm({ profile, notify, onSignedIn, onFull = null }) {
-  const t = useT();
-  const [name, setName] = useState(profile.name === "Player" ? "" : profile.name);
-  const [busy, setBusy] = useState(false);
-  const [shown, setShown] = useState(null);
-  const claim = async () => {
-    const v = name.trim();
-    if (v.length < 2 || busy) return;
-    setBusy(true);
-    try {
-      const { token, player } = await api.register(v, profile.tint);
-      saveAccount({ token, player });
-      onSignedIn({ token, player });
-      notify({ icon: "medal", text: t("account.guest.welcome", { name: player.name }) });
-    } catch (e) {
-      /* No `onFull` means this form is already inside the card that says the
-         beta is full, where nothing is refused for the cap. Falling through to
-         the message is what a surprise should do, not silence. */
-      if (e.reason === "beta-full" && onFull) onFull();
-      else setShown(errorText(e.reason, t));
-    } finally { setBusy(false); }
-  };
-  return (
-    <>
-      <p className="persona-bio">{t("account.guest.bio")}</p>
-      <div className="row">
-        <input className="chat-input name-input" value={name} maxLength={18} placeholder={t("account.gate.handlePlaceholder")}
-          onChange={e => setName(e.target.value)} onKeyDown={e => e.key === "Enter" && claim()} aria-label={t("account.gate.handleLabel")} />
-        <Btn icon={KeyRound} primary small onClick={claim} disabled={busy || name.trim().length < 2}>{t("account.guest.claim")}</Btn>
-      </div>
-      {shown && <p className="gate-problem" role="alert">{shown}</p>}
-      <p className="fine">{t("account.guest.fine")}</p>
-    </>
   );
 }
