@@ -393,7 +393,7 @@ function LessonCard({ lesson, done, focus = false, onOpen, slot = null, gate = n
   );
 }
 
-const tierWindow = (lessons, profile, lead = 2, span = 10) => {
+export const tierWindow = (lessons, profile, lead = 2, span = 10) => {
   const first = lessons.findIndex((lesson) => !isDone(profile, lesson.id));
   const at = first < 0
     ? Math.max(0, lessons.length - span)
@@ -739,7 +739,7 @@ export function LearnView({ profile, setProfile, go }) {
               <strong>{lessonField(continueLesson, "title", t)}</strong>
               <span className="fine">{t("learn.continueMeta", { rank: continueLesson.rank, min: continueLesson.minutes, track: localizeTrack(trackByKey(continueLesson.track), t)?.name })}</span>
             </div>
-            <Btn icon={Play} primary small onClick={() => open(continueLesson, "continue")}>{t("learn.recall.start")}</Btn>
+            <Btn icon={Play} primary small onClick={() => open(continueLesson, "continue")}>{t("learn.continue")}</Btn>
           </Card>
           {gateFor(continueLesson, "continue")}
         </div>
