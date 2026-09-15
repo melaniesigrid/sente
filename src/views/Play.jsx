@@ -138,18 +138,6 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
     setSession(routeSession({ profile, trainerOn, resume, openGame, withBot, t }) || linkedGame());
   }, [routeKey, profile, trainerOn, resume, openGame, withBot, t]);
   const restoreLobbyRoute = () => {
-    if (withBot === SENSEI_ID && trainerOn) {
-      setOpponent("ai");
-      setHumanMode(null);
-      setAiMode("kejie");
-      return true;
-    }
-    if (withBot && personaById(withBot)) {
-      setOpponent("ai");
-      setHumanMode(null);
-      setAiMode("house");
-      return true;
-    }
     if (openGame) {
       setOpponent("human");
       setHumanMode("online");
@@ -159,6 +147,10 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
     return false;
   };
   const leaveSession = () => {
+    if (withBot) {
+      setSession(routeSession({ profile, trainerOn, resume, openGame, withBot, t }));
+      return;
+    }
     setSession(null);
     if (restoreLobbyRoute()) return;
     setOpponent(null);
