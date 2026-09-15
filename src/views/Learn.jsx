@@ -393,10 +393,11 @@ function LessonCard({ lesson, done, focus = false, onOpen, slot = null, gate = n
   );
 }
 
-const tierWindow = (lessons, profile, lead = 2) => {
+const tierWindow = (lessons, profile, lead = 2, span = 10) => {
   const first = lessons.findIndex((lesson) => !isDone(profile, lesson.id));
   if (first <= 0) return lessons;
-  return lessons.slice(Math.max(0, first - lead));
+  const at = Math.max(0, first - lead);
+  return lessons.slice(at, at + span);
 };
 
 /* What a lesson that builds on unfinished ones says before it opens. Nothing
@@ -453,7 +454,7 @@ function Shelf({ profile, onOpen, gateFor, excludeIds = [] }) {
               <div className="grid2">
                 {lessons.map(l => (
                   <LessonCard key={l.id} lesson={l} done={isDone(profile, l.id)} onOpen={onOpen}
-                    slot={`shelf-${book.id}`} gate={gateFor(l, `shelf-${book.id}`)} />
+                    slot={`shelf-${book.id}-${l.id}`} gate={gateFor(l, `shelf-${book.id}-${l.id}`)} />
                 ))}
               </div>
             )}
