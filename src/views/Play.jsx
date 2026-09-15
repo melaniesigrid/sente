@@ -137,8 +137,30 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
     lastRouteKey.current = routeKey;
     setSession(routeSession({ profile, trainerOn, resume, openGame, withBot, t }) || linkedGame());
   }, [routeKey, profile, trainerOn, resume, openGame, withBot, t]);
+  const restoreLobbyRoute = () => {
+    if (withBot === SENSEI_ID && trainerOn) {
+      setOpponent("ai");
+      setHumanMode(null);
+      setAiMode("kejie");
+      return true;
+    }
+    if (withBot && personaById(withBot)) {
+      setOpponent("ai");
+      setHumanMode(null);
+      setAiMode("house");
+      return true;
+    }
+    if (openGame) {
+      setOpponent("human");
+      setHumanMode("online");
+      setAiMode(null);
+      return true;
+    }
+    return false;
+  };
   const leaveSession = () => {
     setSession(null);
+    if (restoreLobbyRoute()) return;
     setOpponent(null);
     setHumanMode(null);
     setAiMode(null);
