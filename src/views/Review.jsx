@@ -51,7 +51,7 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
   const [line, setLine] = useState(null);
   const [refused, setRefused] = useState(null);
   // The graph, and whether the board is showing what the network would have done.
-  const analysis = useAnalysis(record);
+  const analysis = useAnalysis(record, { auto: record.phase === "ended" });
   const [showBest, setShowBest] = useState(false);
   /* The trainer, when he is at the table: once the graph is drawn he will say
      what it means, in his words, for any game at all, opened or played here. */

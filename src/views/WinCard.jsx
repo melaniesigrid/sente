@@ -24,7 +24,7 @@ import { useT } from "../components/langStore.js";
    where the graph scrubs and the turning points are buttons. */
 export function WinCard({ record, onReview }) {
   const t = useT();
-  const analysis = useAnalysis(record);
+  const analysis = useAnalysis(record, { auto: record.phase === "ended" });
   const total = reviewLength(record);
   const turns = useMemo(() => turningPoints(analysis.points), [analysis.points]);
   const drawn = analysis.points.length > 0;

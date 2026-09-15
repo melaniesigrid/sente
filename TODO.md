@@ -57,6 +57,9 @@ lessons), and the middle game everywhere. Life and death below 15k was on this l
       the answer is dropped. The authored data keeps its step indices, because translations and
       recall cards are keyed by them. A lesson is recorded as done the moment its last step is
       solved, not only when the button is pressed, and the finished card shows a filled check.
+- [x] Finished games now start their win-rate walk at once (2026-09-15). The result card and
+      review both mount `useAnalysis` in auto mode once a game is ended, so the graph begins
+      filling without a click and keeps its partial cache when you open review mid-walk.
 
 ## Phase 0: Foundation (done)
 
