@@ -48,7 +48,6 @@ export const account = {
     tabs: "How to get in",
     signin: "Sign in",
     signup: "Create an account",
-    guest: "Just a handle",
     signupBio: "An address and a password, kept here and nowhere else. No sign-in with Google, no third party told what you play. The address is how you get your handle back on another device.",
     signinBio: "Sign in and your handle, your rating and your games follow you to this device.",
     handlePlaceholder: "Your handle",
@@ -87,13 +86,6 @@ export const account = {
     address: "The address on the account",
     post: "Post me a way back in",
     nevermind: "Never mind",
-  },
-
-  guest: {
-    bio: "Sit down now and decide later. A handle with no address behind it lives in this browser: it plays rated games like any other, and you can add an address to it at any time without losing the rating you have earned.",
-    claim: "Claim handle",
-    fine: "Clearing this browser’s site data lets a handle with no address go for good.",
-    welcome: "Welcome to the ladder, {name}",
   },
 
   mail: {
