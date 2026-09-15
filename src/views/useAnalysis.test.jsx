@@ -3,12 +3,14 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, cleanup, fireEvent, waitFor, act } from "@testing-library/react";
 
 const analyseGame = vi.fn();
+const analysisCacheKey = vi.fn((record) => String(record.id));
 const cachedAnalysis = vi.fn(() => null);
 const reviewLength = vi.fn(() => 1);
 const t = (key) => key;
 
 vi.mock("../engine/index.js", () => ({
   analyseGame: (...a) => analyseGame(...a),
+  analysisCacheKey: (...a) => analysisCacheKey(...a),
   cachedAnalysis: (...a) => cachedAnalysis(...a),
   reviewLength: (...a) => reviewLength(...a),
 }));
@@ -37,6 +39,8 @@ function Probe({ record, auto = false }) {
 afterEach(() => {
   cleanup();
   analyseGame.mockReset();
+  analysisCacheKey.mockReset();
+  analysisCacheKey.mockImplementation((record) => String(record.id));
   cachedAnalysis.mockReset();
   cachedAnalysis.mockReturnValue(null);
   reviewLength.mockReset();

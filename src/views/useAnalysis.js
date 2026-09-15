@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { analyseGame, cachedAnalysis, reviewLength } from "../engine/index.js";
+import { analyseGame, analysisCacheKey, cachedAnalysis, reviewLength } from "../engine/index.js";
 
 /* ----------------------- ASKING FOR THE GRAPH -----------------------
    The React side of analysis: it holds the points as they arrive, and it holds the
@@ -34,7 +34,7 @@ export function useAnalysis(record, { auto = false } = {}) {
   const [base, setBase] = useState(0);
   const [now, setNow] = useState(0);
   const stop = useRef(false);
-  const autoAttempted = useRef(null);
+  const autoAttempted = useRef("");
   // The same list as `points`, readable without making `start` depend on it: the
   // callback would otherwise be rebuilt once per position of a long walk.
   const got = useRef([]);
@@ -91,8 +91,9 @@ export function useAnalysis(record, { auto = false } = {}) {
 
   useEffect(() => {
     if (!auto || running || points.length === total + 1) return;
-    if (autoAttempted.current === record) return;
-    autoAttempted.current = record;
+    const key = analysisCacheKey(record);
+    if (autoAttempted.current === key) return;
+    autoAttempted.current = key;
     start();
   }, [auto, record, running, points.length, total, start]);
 

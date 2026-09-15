@@ -42,7 +42,7 @@ export { RANKS, inverseRank, encodeInputs } from "./kata/features.js";
 export { choosePolicyMove, keepSet } from "./kata/policy.js";
 export { loadModel, onModelProgress, modelReady, loadMaster, loadEval, MODEL_BYTES, MODEL_FILE } from "./kata/net.js";
 export { kataChooseMoveForRecord, clampRank, profileForRank, masterYear } from "./kata/bot.js";
-export { ANALYSIS_RANK, analyseGame, cachedAnalysis, positions, evaluatePosition, seedAnalysis } from "./kata/analyse.js";
+export { ANALYSIS_RANK, analyseGame, analysisCacheKey, cachedAnalysis, positions, evaluatePosition, seedAnalysis } from "./kata/analyse.js";
 export { PHASE_AT, phaseOf, lineOf, regionOf, distance, describeMove, policyStanding } from "./explain.js";
 export {
   TRAINER, AREAS, giftDue, pickGift, giftOutcome, trainerReport, areasOf, gameSummary, areaMeans, focusFor, trend,
