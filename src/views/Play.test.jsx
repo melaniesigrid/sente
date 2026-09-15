@@ -1,11 +1,13 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup, act, fireEvent } from "@testing-library/react";
+import { render, screen, cleanup, act, fireEvent, waitFor } from "@testing-library/react";
 
 const PLAYER = {
   id: "p_me", name: "Me", tint: "eucalyptus", rating: 1200, rd: 60,
   wins: 0, losses: 0, draws: 0, avatarAt: null, email: "me@example.test", emailVerified: true,
 };
+let accountPlayer = PLAYER;
+let trainerOpen = false;
 
 vi.mock("../net/api.js", () => ({
   api: {
@@ -22,9 +24,12 @@ vi.mock("../net/api.js", () => ({
   SERVER_URL: "https://server.test",
 }));
 vi.mock("../store/account.js", () => ({
-  loadAccount: () => ({ token: "a".repeat(64), player: PLAYER }),
+  loadAccount: () => ({ token: "a".repeat(64), player: accountPlayer }),
   saveAccount: () => true,
   clearAccount: () => {},
+}));
+vi.mock("../store/sensei.js", () => ({
+  accountOpens: () => Promise.resolve(trainerOpen),
 }));
 
 const { PlayView } = await import("./Play.jsx");
@@ -43,7 +48,7 @@ const playScreen = async (size, profile = PROFILE) => {
 const onlineCard = () => document.querySelector(".online-card");
 const boardPicker = () => screen.getByRole("radiogroup", { name: /board/i });
 
-beforeEach(() => { localStorage.clear(); });
+beforeEach(() => { localStorage.clear(); trainerOpen = false; accountPlayer = PLAYER; });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 describe("the guided play screen", () => {
@@ -121,6 +126,13 @@ describe("the guided play screen", () => {
     cleanup();
     await playScreen(19, PROFILE);
     expect(screen.queryByRole("button", { name: /^Ke Jie\b/ })).toBeNull();
+  });
+
+  it("shows the Ke Jie shortcut for an entitled account even without the device flag", async () => {
+    accountPlayer = { ...PLAYER, email: "trainer@example.test" };
+    trainerOpen = true;
+    await playScreen(19, PROFILE);
+    await waitFor(() => expect(screen.getByRole("button", { name: /^Ke Jie\b/ })).toBeTruthy());
   });
 
   it("returns to the first staged step after leaving a started game", async () => {
