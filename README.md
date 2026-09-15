@@ -19,6 +19,10 @@ problems, climb a Glicko-2 ladder, and keep a persistent profile.
 - **Tsumego**: life-and-death and tesuji problems with hints and progress tracking.
 - **Ladder**: Elo-style rating with rank badges (kyu/dan), win streaks, and standings.
 - **Profile**: name, avatar tint, record, and lesson/problem completion, persisted locally.
+  An archetype too, if you want one: eleven masks (an emoji, a name in Chinese and in your
+  language, one line about the way), drawn beside your name on the profile, in the top bar
+  and at the table against a house player. It is chosen, not measured, so it sits beside the
+  name and not the rank; it stays on this device for now.
 - **A controlled beta**: the server is open to a hundred players while it is new, which is
   as many as its free plan carries without failing for everybody. Once the seats are taken
   the account gate offers a waiting list instead of a form: an address and the day it was
