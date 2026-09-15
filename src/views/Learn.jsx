@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef, Fragment } from "react";
 import {
-  ChevronLeft, ChevronRight, Check, X, Lightbulb, BookOpen, RotateCcw, Play, Search, Clock, Lock, Quote, FastForward,
+  ChevronLeft, ChevronRight, Check, CheckCheck, X, Lightbulb, BookOpen, RotateCcw, Play, Search, Clock, Lock, Quote, FastForward,
   CornerDownRight, Eye, BrainCircuit,
 } from "lucide-react";
 import { Board } from "../components/Board.jsx";
@@ -371,11 +371,12 @@ export function LessonPlayer({ lesson: authored, nextLesson, onDone, onSolved, o
    there rather than at the head of the view because a learner reading chapter
    eight is two thousand pixels down the page and would see the press do
    nothing at all. `slot` says where the press happened. */
-function LessonCard({ lesson, done, onOpen, slot = null, gate = null }) {
+function LessonCard({ lesson, done, focus = false, onOpen, slot = null, gate = null }) {
   const t = useT();
+  const status = done ? "done" : "open";
   return (
     <div className="lesson-slot">
-      <button className={`neu-card lesson-card ${gate ? "gated" : ""}`}
+      <button id={slot || undefined} className={`neu-card lesson-card ${gate ? "gated" : ""} ${focus ? "current" : ""}`}
         onClick={() => onOpen(lesson, slot)} aria-expanded={gate ? true : undefined}>
         <div className="lesson-num">{lesson.rank}</div>
         <div className="lesson-meta">
@@ -383,14 +384,22 @@ function LessonCard({ lesson, done, onOpen, slot = null, gate = null }) {
           <p>{lessonField(lesson, "subtitle", t)}</p>
           <p className="lesson-chips"><Clock size={12} /> {t("learn.minutes", { min: lesson.minutes, track: localizeTrack(trackByKey(lesson.track), t)?.name })}</p>
         </div>
-        <div className={`lesson-state ${done ? "done" : ""}`}>
-          {done ? <Check size={16} /> : <Play size={15} />}
+        <div className={`lesson-state ${status}`}>
+          {done ? <CheckCheck size={16} /> : <Play size={15} />}
         </div>
       </button>
       {gate}
     </div>
   );
 }
+
+export const tierWindow = (lessons, profile, lead = 2, span = 10) => {
+  const first = lessons.findIndex((lesson) => !isDone(profile, lesson.id));
+  const at = first < 0
+    ? Math.max(0, lessons.length - span)
+    : Math.max(0, first - lead);
+  return lessons.slice(at, at + span);
+};
 
 /* What a lesson that builds on unfinished ones says before it opens. Nothing
    in the library is locked: "open anyway" is a real door, and the gate can be
@@ -446,7 +455,7 @@ function Shelf({ profile, onOpen, gateFor, excludeIds = [] }) {
               <div className="grid2">
                 {lessons.map(l => (
                   <LessonCard key={l.id} lesson={l} done={isDone(profile, l.id)} onOpen={onOpen}
-                    slot={`shelf-${book.id}`} gate={gateFor(l, `shelf-${book.id}`)} />
+                    slot={`shelf-${book.id}-${l.id}`} gate={gateFor(l, `shelf-${book.id}-${l.id}`)} />
                 ))}
               </div>
             )}
@@ -528,7 +537,7 @@ function ChapterRow({ chapter: authored, lessons, done, onOpen, open, onToggle, 
           {chapter.n === 11 && <NamesTable />}
           {lessons.map(l => (
             <LessonCard key={l.id} lesson={l} done={done(l.id)} onOpen={onOpen}
-              slot={slot} gate={gateFor(l, slot)} />
+              slot={`${slot}-${l.id}`} gate={gateFor(l, `${slot}-${l.id}`)} />
           ))}
         </div>
       )}
@@ -661,7 +670,10 @@ export function LearnView({ profile, setProfile, go }) {
   const searching = query.trim().length > 0;
   const currentTier = currentTierFor(profile);
   const tierInfo = TIERS.find(x => x.id === tier);
-  const tierLessons = lessonsInTier(tier);
+  const allTierLessons = lessonsInTier(tier);
+  const tierLessons = useMemo(() => (
+    searching || tier !== currentTier ? allTierLessons : tierWindow(allTierLessons, profile)
+  ), [searching, tier, currentTier, allTierLessons, profile]);
   const continueLesson = nextLessonFor(profile);
   const stretch = useMemo(() => stretchLessonsFor(profile, {
     exclude: lessonsInTier(currentTier).map((lesson) => lesson.id),
@@ -727,7 +739,7 @@ export function LearnView({ profile, setProfile, go }) {
               <strong>{lessonField(continueLesson, "title", t)}</strong>
               <span className="fine">{t("learn.continueMeta", { rank: continueLesson.rank, min: continueLesson.minutes, track: localizeTrack(trackByKey(continueLesson.track), t)?.name })}</span>
             </div>
-            <Btn icon={Play} primary small onClick={() => open(continueLesson, "continue")}>{t("learn.recall.start")}</Btn>
+            <Btn icon={Play} primary small onClick={() => open(continueLesson, "continue")}>{t("learn.continue")}</Btn>
           </Card>
           {gateFor(continueLesson, "continue")}
         </div>
@@ -744,7 +756,8 @@ export function LearnView({ profile, setProfile, go }) {
           </div>
           <div className="grid2">
             {stretch.map((lesson) => (
-              <LessonCard key={lesson.id} lesson={lesson} done={done(lesson.id)} onOpen={open} gate={gateFor(lesson)} />
+              <LessonCard key={lesson.id} lesson={lesson} done={done(lesson.id)} onOpen={open}
+                slot={`stretch-${lesson.id}`} gate={gateFor(lesson, `stretch-${lesson.id}`)} />
             ))}
           </div>
         </div>
@@ -795,7 +808,9 @@ export function LearnView({ profile, setProfile, go }) {
               <div className="stat-head track-head"><span>{localizeTrack(g.track, t).name}</span><span className="fine track-trains">{localizeTrack(g.track, t).trains}</span></div>
               <div className="grid2">
                 {g.lessons.map(l => (
-                  <LessonCard key={l.id} lesson={l} done={done(l.id)} onOpen={open} gate={gateFor(l)} />
+                  <LessonCard key={l.id} lesson={l} done={done(l.id)} onOpen={open}
+                    focus={continueLesson?.id === l.id}
+                    slot={`tier-${tier}-${l.id}`} gate={gateFor(l, `tier-${tier}-${l.id}`)} />
                 ))}
               </div>
             </div>
