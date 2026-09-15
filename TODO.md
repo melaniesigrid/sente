@@ -1460,6 +1460,10 @@ Open:
       the name in the header and the game strip. It is play, not a rank: the copy says it
       is allowed to be untrue. The glyph is text, so the Lucide-only rule holds for every
       icon that points at a fact. Name and line are overlaid per language under `arche.`.
+- [ ] The mask across the network: the server's player record is a name and a seal colour,
+      so an opponent online never sees the archetype. Carry it on register and `PATCH
+      /api/me`, put it in `asSeat` and the hall actors, and draw the mark beside seat names
+      in the online game, pair go and the lobby. Until then the mask is local-only.
 - [x] Sound and haptic feedback on stone placement (opt-in, synthesised, no assets).
 - [x] Self-host fonts instead of the Google Fonts `@import` (2026-09-11, branch
       `feat/self-host-fonts`). `tools/fonts/fetch.mjs` (`npm run fonts`) downloads the five

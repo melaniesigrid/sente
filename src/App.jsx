@@ -191,7 +191,7 @@ export default function JosekiApp() {
           <button className="profile-chip" onClick={() => go("profile")} aria-label={t("topbar.profile")}>
             <Avatar name={profile.name} tint={profile.tint} size={34} />
             <div className="chip-meta">
-              <strong>{profile.name} <ArchetypeMark id={profile.archetype} size={14} /></strong>
+              <strong>{profile.name}<ArchetypeMark id={profile.archetype} size={14} /></strong>
               <span>{preciseRankOf(profile.rating)}</span>
             </div>
           </button>

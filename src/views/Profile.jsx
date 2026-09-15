@@ -254,6 +254,8 @@ export function ProfileView({ profile, setProfile, go, room, notify, writeTo = n
   const moku = useMoku();
   useMokuFacts({ view: "profile", seed: profile.wins + profile.losses });
   const commit = (patch) => setProfile(p => { const np = { ...p, ...patch }; saveProfile(np); return np; });
+  const worn = archetypeOf(profile.archetype);
+  const wornMask = worn && localizeArchetype(worn, t);
   const saveName = () => {
     const v = nameDraft.trim().slice(0, 18);
     if (v) commit({ name: v });
@@ -374,8 +376,8 @@ export function ProfileView({ profile, setProfile, go, room, notify, writeTo = n
           })}
         </div>
         <p className="fine arche-way">
-          {archetypeOf(profile.archetype)
-            ? <><strong>{localizeArchetype(archetypeOf(profile.archetype), t).name}</strong>{" · "}{localizeArchetype(archetypeOf(profile.archetype), t).line}</>
+          {wornMask
+            ? <><strong>{wornMask.name}</strong>{" · "}{wornMask.line}</>
             : t("profile.arche.noneLine")}
         </p>
       </Card>

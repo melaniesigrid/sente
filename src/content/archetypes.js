@@ -18,8 +18,13 @@ import { localize } from "./translate.js";
    `arche.<id>` in every other language; the hanzi is the mask's own name and
    travels untranslated, like House or Sumi.
 
-   The first entry is the plain player: no mask. It is the default, and a
-   profile that never opens the picker looks exactly as it did before. */
+   The plain player is not on the shelf: NO_ARCHETYPE, the empty string, is
+   the default, the picker draws its tile first by hand, and a profile that
+   never opens the picker looks exactly as it did before.
+
+   The mask lives on this device only. The server's player record carries a
+   name and a seal colour and nothing else, so an opponent online never sees
+   it; sending it across is a separate piece of work, noted in TODO.md. */
 export const NO_ARCHETYPE = "";
 
 export const ARCHETYPES = [

@@ -45,10 +45,15 @@ export const Avatar = ({ name, tint, size = 44, bot, src, className = "" }) => (
   </div>
 );
 
-/* The mask a player chose, drawn beside their name wherever the name is drawn.
-   Renders nothing for the plain player, so a profile that never chose one is
-   laid out exactly as before. The glyph carries the mask's name as its label,
-   so a screen reader says the mask and not the emoji. */
+/* The mask a player chose, drawn beside their own name in three places: the
+   profile heading, the header chip, and the game strip against a house
+   player. Renders nothing for the plain player, so a profile that never chose
+   one is laid out exactly as before. The glyph carries the mask's name as its
+   label, so a screen reader says the mask and not the emoji; the hanzi rides
+   in the tooltip alone, so it is not read out twice. The gap to the name is
+   the mark's own inline-start margin, not a space in the markup, so nothing
+   is left behind when the mark is absent and Hebrew gets the gap on the
+   right side for free. */
 export const ArchetypeMark = ({ id, size = 16, className = "" }) => {
   const t = useT();
   const a = archetypeOf(id);
@@ -56,7 +61,7 @@ export const ArchetypeMark = ({ id, size = 16, className = "" }) => {
   const name = localizeArchetype(a, t).name;
   return (
     <span className={`arche-mark ${className}`} style={{ fontSize: size }}
-      role="img" aria-label={name} title={`${name} · ${a.hanzi}`}>{a.glyph}</span>
+      role="img" aria-label={name} title={a.hanzi}>{a.glyph}</span>
   );
 };
 
