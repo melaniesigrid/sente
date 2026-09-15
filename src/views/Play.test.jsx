@@ -122,4 +122,24 @@ describe("the guided play screen", () => {
     await playScreen(19, PROFILE);
     expect(screen.queryByRole("button", { name: /^Ke Jie\b/ })).toBeNull();
   });
+
+  it("returns to the first staged step after leaving a started game", async () => {
+    await playScreen(19);
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /^Human\b/ }));
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /^Pass & play\b/ }));
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /^Pass & play\b/ }));
+    });
+    expect(screen.getByRole("button", { name: /Lobby/i })).toBeTruthy();
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Lobby/i }));
+    });
+    expect(screen.getByRole("button", { name: /^Human\b/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^AI\b/ })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^Online match\b/ })).toBeNull();
+  });
 });

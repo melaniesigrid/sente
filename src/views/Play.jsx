@@ -137,6 +137,12 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
     lastRouteKey.current = routeKey;
     setSession(routeSession({ profile, trainerOn, resume, openGame, withBot, t }) || linkedGame());
   }, [routeKey, profile, trainerOn, resume, openGame, withBot, t]);
+  const leaveSession = () => {
+    setSession(null);
+    setOpponent(null);
+    setHumanMode(null);
+    setAiMode(null);
+  };
   // The level the next game is played at. Starts at the player's own rank; every house
   // player adapts to it, so nobody has to "graduate" to an opponent.
   const myRank = rankOf(profile.rating);
@@ -445,13 +451,13 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
     );
   }
   if (session.mode.kind === "pair") {
-    return <PairGame mode={session.mode} initial={session.record} onExit={() => setSession(null)} profile={profile} notify={notify} />;
+    return <PairGame mode={session.mode} initial={session.record} onExit={leaveSession} profile={profile} notify={notify} />;
   }
   if (session.mode.kind === "online") {
-    return <OnlineGame gameId={session.mode.gameId} onExit={() => setSession(null)} profile={profile} notify={notify} go={go} />;
+    return <OnlineGame gameId={session.mode.gameId} onExit={leaveSession} profile={profile} notify={notify} go={go} />;
   }
   return (
-    <Game mode={session.mode} initial={session.record} onExit={() => setSession(null)}
+    <Game mode={session.mode} initial={session.record} onExit={leaveSession}
       profile={profile} setProfile={setProfile} notify={notify} />
   );
 }
