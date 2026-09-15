@@ -281,6 +281,7 @@ Every one of them needs `Authorization: Bearer $ADMIN_TOKEN`.
 | `GET /api/admin/players` | Every account, newest first |
 | `DELETE /api/admin/players/:id` | Remove one account for good |
 | `POST /api/admin/players/:id/reseed` | Put one account back at the newcomer's seat: the rating trio and the win/loss record, nothing else. `:id` may be the address instead, url-encoded |
+| `POST /api/admin/players/:id/email` | Body `{email}`. Put an address on a guest handle that has none, so `mail/reset` below can mint it a way back in. Refused with 409 if the handle already has an address or the address is on another account |
 | `DELETE /api/admin/ratelimit/:ip` | Forget one address's handle-claiming count |
 | `GET /api/admin/whoami` | What the edge says about the caller, for checking addresses arrive |
 | `POST /api/admin/mail/:kind/:id` | Mint a `verify` or `reset` link for one player and hand it back, unsent |

@@ -294,6 +294,29 @@ export class Registry extends DurableObject {
     return this.#self(next);
   }
 
+  /** Put an address on a handle that has none, for the operator. A guest's
+   *  only key is the token in one browser: lose that browser and there is no
+   *  password to type and no address to post a letter to, and until this line
+   *  existed nothing on the server could hand the handle back. This writes the
+   *  address and nothing else: no password, so `hasPassword` stays false and the
+   *  address is still unconfirmed. What it unlocks is `startReset`, which only
+   *  needs an address to mint a way back in; the link sets the password, and
+   *  following it confirms the address the way it would anybody's. The
+   *  operator is trusted with the address being the right person's, which is
+   *  the same trust `mail/reset` already places in them. */
+  async adopt(id, rawEmail) {
+    const p = await this.ctx.storage.get(`player:${id}`);
+    if (!p) throw new Error("no-player");
+    if (p.email) throw new Error("already-attached");
+    const email = cleanEmail(rawEmail);
+    if (!email) throw new Error("bad-email");
+    if (await this.ctx.storage.get(`email:${email}`)) throw new Error("email-taken");
+    const next = { ...p, email, emailAt: Date.now(), emailVerifiedAt: null, lastSeen: Date.now() };
+    await this.ctx.storage.put({ [`player:${id}`]: next, [`email:${email}`]: id });
+    await this.ctx.storage.delete(waitKey(email));
+    return this.#self(next);
+  }
+
   /** Claim a handle and an account in one step. */
   async signUp(rawName, rawTint, rawEmail, rawKey, ip = null) {
     const email = cleanEmail(rawEmail);
