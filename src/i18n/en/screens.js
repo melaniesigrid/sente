@@ -101,7 +101,7 @@ export const screens = {
     changeHow: "Change how",
     choiceHumanNote: "Play another person online or hand the device across the table.",
     choiceAiNote: "Choose a house player or open today’s fixed duel.",
-    choiceKeJieNote: "A direct line to Ke Jie, private to Melanie on this device.",
+    choiceKeJieNote: "A direct line to Ke Jie on this device.",
     onlineTitle: "Online match",
     onlineNote: "Find another person on the server and play a rated game.",
     onlineMeta: "rated online",

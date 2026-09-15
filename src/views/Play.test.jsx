@@ -109,9 +109,15 @@ describe("the guided play screen", () => {
     expect(document.querySelectorAll(".persona-card").length).toBeGreaterThan(0);
   });
 
-  it("shows the Ke Jie shortcut only for Melanie", async () => {
-    await playScreen(19, { ...PROFILE, name: "Melanie" });
+  it("shows the Ke Jie shortcut only when trainer access is open, and it skips the ai chooser", async () => {
+    await playScreen(19, { ...PROFILE, sensei: true });
     expect(screen.getByRole("button", { name: /^Ke Jie\b/ })).toBeTruthy();
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /^Ke Jie\b/ }));
+    });
+    expect(screen.queryByRole("button", { name: /^House players\b/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Daily duel/i })).toBeNull();
+    expect(document.querySelector(".trainer-card")).toBeTruthy();
     cleanup();
     await playScreen(19, PROFILE);
     expect(screen.queryByRole("button", { name: /^Ke Jie\b/ })).toBeNull();

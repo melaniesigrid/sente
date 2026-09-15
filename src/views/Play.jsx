@@ -114,8 +114,7 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
       document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
-  const isMelanie = typeof profile?.name === "string" && profile.name.trim().toLowerCase() === "melanie";
-  const trainerOn = useTrainerAccess(profile, account) || isMelanie;
+  const trainerOn = useTrainerAccess(profile, account);
   // session: null | { mode: {kind:'bot', persona, rank, size, handicap} | {kind:'local', size, handicap}
   //                  | {kind:'online', gameId} | duel, record? }
   /* `openGame` is a table asked for by id from somewhere else in the app (the
@@ -219,9 +218,9 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
               <ChoiceCard icon={Bot} title={t("play.opponentAi", {}, "AI")}
                 note={t("play.choiceAiNote", {}, "Choose a house player or open today’s fixed duel.")}
                 onClick={() => chooseOpponent("ai")} />
-              {isMelanie && (
+              {trainerOn && (
                 <ChoiceCard icon={GraduationCap} title={KE_JIE.name}
-                  note={t("play.choiceKeJieNote", {}, "A direct line to Ke Jie, private to Melanie on this device.")}
+                  note={t("play.choiceKeJieNote", {}, "A direct line to Ke Jie on this device.")}
                   meta={t("play.trainer.note")}
                   className="play-choice-special"
                   onClick={() => { setOpponent("ai"); setHumanMode(null); setAiMode("kejie"); }} />
@@ -271,7 +270,7 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
           <StepCard icon={Bot}
             title={t("play.levelGroup")}
             note={choice === "kejie"
-              ? t("play.choiceKeJieNote", {}, "A direct line to Ke Jie, private to Melanie on this device.")
+              ? t("play.choiceKeJieNote", {}, "A direct line to Ke Jie on this device.")
               : t("play.aiHouseNote", {}, "Pick a style, then set the level and board before you sit down.")}
             actions={<div className="row">
               <Btn icon={X} small onClick={() => setAiMode(null)}>{t("play.changeHow", {}, "Change how")}</Btn>
@@ -382,7 +381,7 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
             size={table.size} setSize={(n) => setTable({ size: n })}
             mode="team" showBoardPicker={false} onAccount={setAccount} />
         )}
-        {(aiMode === "kejie" || (aiMode === "house" && trainerOn && !isMelanie)) && (
+        {aiMode === "kejie" && (
           <button className="neu-card persona-card trainer-card" onClick={() => sit({ kind: "bot", persona: KE_JIE, rank: trainerRank(rank) })}>
             <div className="persona-top">
               <Avatar name={KE_JIE.name} tint={KE_JIE.tint} size={52} bot />
