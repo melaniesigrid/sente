@@ -49,8 +49,8 @@ afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 describe("the guided play screen", () => {
   it("starts with only the first decision and no board picker or online lobby", async () => {
     await playScreen(9);
-    expect(screen.getByRole("button", { name: "Human" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "AI" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^Human\b/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^AI\b/ })).toBeTruthy();
     expect(screen.queryByRole("radiogroup", { name: /board/i })).toBeNull();
     expect(onlineCard()).toBeNull();
   });
@@ -58,13 +58,13 @@ describe("the guided play screen", () => {
   it("shows the human branch first and only later the board picker and online card", async () => {
     await playScreen(9);
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Human" }));
+      fireEvent.click(screen.getByRole("button", { name: /^Human\b/ }));
     });
-    expect(screen.getByRole("button", { name: "Online match" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Pass & play" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^Online match\b/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^Pass & play\b/ })).toBeTruthy();
     expect(screen.queryByRole("radiogroup", { name: /board/i })).toBeNull();
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Online match" }));
+      fireEvent.click(screen.getByRole("button", { name: /^Online match\b/ }));
     });
     expect(boardPicker()).toBeTruthy();
     expect(onlineCard()).toBeTruthy();
@@ -80,11 +80,11 @@ describe("the guided play screen", () => {
     await playScreen(13);
     expect(document.body.textContent).not.toContain("Team play");
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Human" }));
+      fireEvent.click(screen.getByRole("button", { name: /^Human\b/ }));
     });
     expect(document.body.textContent).toContain("Team play");
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Team play" }));
+      fireEvent.click(screen.getByRole("button", { name: /^Team play\b/ }));
     });
     expect(document.body.textContent).not.toContain("Pass & play");
     expect(onlineCard()).toBeTruthy();
@@ -97,23 +97,23 @@ describe("the guided play screen", () => {
     await playScreen(19);
     expect(document.querySelectorAll(".persona-card")).toHaveLength(0);
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "AI" }));
+      fireEvent.click(screen.getByRole("button", { name: /^AI\b/ }));
     });
     expect(onlineCard()).toBeNull();
-    expect(screen.getByRole("button", { name: "House players" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^House players\b/ })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Daily duel/i })).toBeTruthy();
     expect(document.querySelectorAll(".persona-card")).toHaveLength(0);
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "House players" }));
+      fireEvent.click(screen.getByRole("button", { name: /^House players\b/ }));
     });
     expect(document.querySelectorAll(".persona-card").length).toBeGreaterThan(0);
   });
 
   it("shows the Ke Jie shortcut only for Melanie", async () => {
     await playScreen(19, { ...PROFILE, name: "Melanie" });
-    expect(screen.getByRole("button", { name: "Ke Jie" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^Ke Jie\b/ })).toBeTruthy();
     cleanup();
     await playScreen(19, PROFILE);
-    expect(screen.queryByRole("button", { name: "Ke Jie" })).toBeNull();
+    expect(screen.queryByRole("button", { name: /^Ke Jie\b/ })).toBeNull();
   });
 });
