@@ -1,17 +1,18 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, cleanup, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, cleanup, fireEvent, waitFor, act } from "@testing-library/react";
 
 const analyseGame = vi.fn();
 const cachedAnalysis = vi.fn(() => null);
 const reviewLength = vi.fn(() => 1);
+const t = (key) => key;
 
 vi.mock("../engine/index.js", () => ({
   analyseGame: (...a) => analyseGame(...a),
   cachedAnalysis: (...a) => cachedAnalysis(...a),
   reviewLength: (...a) => reviewLength(...a),
 }));
-vi.mock("../components/langStore.js", () => ({ useT: () => (key) => key }));
+vi.mock("../components/langStore.js", () => ({ useT: () => t }));
 
 const { useAnalysis } = await import("./useAnalysis.js");
 
@@ -46,17 +47,18 @@ describe("useAnalysis", () => {
   it("starts by itself for a finished game when asked", async () => {
     const run = deferred();
     analyseGame.mockReturnValue(run.promise);
+    const record = { id: "g1" };
 
-    render(<Probe record={{ id: "g1" }} auto />);
+    render(<Probe record={record} auto />);
 
     await waitFor(() => expect(analyseGame).toHaveBeenCalledTimes(1));
     expect(screen.getByTestId("running").textContent).toBe("true");
 
     const [, opts] = analyseGame.mock.calls[0];
-    await waitFor(() => {
+    act(() => {
       opts.onPoint({ move: 0, black: 0.5, color: null, best: null });
-      expect(screen.getByTestId("done").textContent).toBe("1");
     });
+    expect(screen.getByTestId("done").textContent).toBe("1");
 
     run.resolve({ complete: false, reason: "stopped" });
     await waitFor(() => expect(screen.getByTestId("running").textContent).toBe("false"));
