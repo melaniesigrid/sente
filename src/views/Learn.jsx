@@ -395,8 +395,9 @@ function LessonCard({ lesson, done, focus = false, onOpen, slot = null, gate = n
 
 const tierWindow = (lessons, profile, lead = 2, span = 10) => {
   const first = lessons.findIndex((lesson) => !isDone(profile, lesson.id));
-  if (first <= 0) return lessons;
-  const at = Math.max(0, first - lead);
+  const at = first < 0
+    ? Math.max(0, lessons.length - span)
+    : Math.max(0, first - lead);
   return lessons.slice(at, at + span);
 };
 
@@ -536,7 +537,7 @@ function ChapterRow({ chapter: authored, lessons, done, onOpen, open, onToggle, 
           {chapter.n === 11 && <NamesTable />}
           {lessons.map(l => (
             <LessonCard key={l.id} lesson={l} done={done(l.id)} onOpen={onOpen}
-              slot={slot} gate={gateFor(l, slot)} />
+              slot={`${slot}-${l.id}`} gate={gateFor(l, `${slot}-${l.id}`)} />
           ))}
         </div>
       )}
