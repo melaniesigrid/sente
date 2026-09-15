@@ -34,7 +34,7 @@ export function useAnalysis(record, { auto = false } = {}) {
   const [base, setBase] = useState(0);
   const [now, setNow] = useState(0);
   const stop = useRef(false);
-  const autoStarted = useRef(null);
+  const autoAttempted = useRef(null);
   // The same list as `points`, readable without making `start` depend on it: the
   // callback would otherwise be rebuilt once per position of a long walk.
   const got = useRef([]);
@@ -43,7 +43,7 @@ export function useAnalysis(record, { auto = false } = {}) {
   // A different game is a different graph. Anything in flight is abandoned.
   useEffect(() => {
     stop.current = true;
-    autoStarted.current = null;
+    autoAttempted.current = null;
     got.current = cachedAnalysis(record) ?? [];
     setPoints(got.current);
     setRunning(false);
@@ -90,11 +90,11 @@ export function useAnalysis(record, { auto = false } = {}) {
   useEffect(() => () => { stop.current = true; }, []);
 
   useEffect(() => {
-    if (!auto || running || error || points.length === total + 1) return;
-    if (autoStarted.current === record) return;
-    autoStarted.current = record;
+    if (!auto || running || points.length === total + 1) return;
+    if (autoAttempted.current === record) return;
+    autoAttempted.current = record;
     start();
-  }, [auto, record, running, error, points.length, total, start]);
+  }, [auto, record, running, points.length, total, start]);
 
   const doneCount = points.length;
   const measured = doneCount - base;              // positions this run actually asked about
