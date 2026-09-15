@@ -68,6 +68,18 @@ describe("useAnalysis", () => {
     await waitFor(() => expect(screen.getByTestId("running").textContent).toBe("false"));
   });
 
+  it("does not auto-start the same finished game twice", async () => {
+    const record = { id: "g3" };
+    analyseGame.mockResolvedValue({ complete: false, reason: "stopped" });
+
+    const shown = render(<Probe record={record} auto />);
+    await waitFor(() => expect(analyseGame).toHaveBeenCalledTimes(1));
+
+    shown.rerender(<Probe record={record} auto />);
+    await waitFor(() => expect(screen.getByTestId("running").textContent).toBe("false"));
+    expect(analyseGame).toHaveBeenCalledTimes(1);
+  });
+
   it("stays manual when auto-start is off", async () => {
     analyseGame.mockResolvedValue({ complete: false, reason: "stopped" });
 

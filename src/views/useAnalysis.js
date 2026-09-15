@@ -48,7 +48,7 @@ export function useAnalysis(record, { auto = false } = {}) {
     setPoints(got.current);
     setRunning(false);
     setError(null);
-  }, [record, t]);
+  }, [record]);
 
   // A clock only while the walk is running, so the estimate moves between points.
   useEffect(() => {
