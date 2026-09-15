@@ -269,6 +269,12 @@ export const screens = {
       note: "Dein Zeichen auf der Rangliste, im Vorraum und, eines Tages, im ganzen Netz.",
       pick: "Siegelfarbe {name}",
     },
+    arche: {
+      head: "Dein Archetyp",
+      note: "Eine Maske neben deinem Namen. Sie ändert nichts an deinem Rang, und sie darf unwahr sein: wähl den Spieler, für den man dich halten soll.",
+      none: "Keine Maske",
+      noneLine: "Keine Maske. Nur ein Spieler, und das ist am schwersten zu lesen.",
+    },
     look: {
       head: "Das Aussehen des Ortes",
       note: "Du bist in {room}, spielst mit {stones} und liest im Schriftpaar {type}.",

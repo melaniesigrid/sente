@@ -15,7 +15,7 @@ import { ownMoveLine, yourMoveLine, reviewLines, letterFor } from "../content/se
 import { loadBox, saveBox, postLetter, rememberGame as trainerRemember } from "../store/sensei.js";
 import { Board } from "../components/Board.jsx";
 import { ClockFace } from "../components/Clock.jsx";
-import { Card, Btn, Pill, Avatar, RankBadge, BeltRibbon } from "../components/ui.jsx";
+import { Card, Btn, Pill, Avatar, ArchetypeMark, RankBadge, BeltRibbon } from "../components/ui.jsx";
 import { Passage } from "../components/Passage.jsx";
 import { Review } from "./Review.jsx";
 import { WinCard } from "./WinCard.jsx";
@@ -755,7 +755,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         <div className="vs-strip">
           <div className="vs-side">
             <Avatar name={profile.name} tint={profile.tint} size={34} />
-            <div className="vs-meta"><strong>{persona ? profile.name : t("game.side.b")}</strong>{persona && <RankBadge rating={profile.rating} rd={profile.rd} precise size="sm" />}<ClockFace clock={clock} color="b" active={!over && rec.phase === "playing" && turn === "b"} /></div>
+            <div className="vs-meta"><strong>{persona ? profile.name : t("game.side.b")}{persona && <ArchetypeMark id={profile.archetype} size={13} />}</strong>{persona && <RankBadge rating={profile.rating} rd={profile.rd} precise size="sm" />}<ClockFace clock={clock} color="b" active={!over && rec.phase === "playing" && turn === "b"} /></div>
           </div>
           <span className="vs-x">vs</span>
           <div className="vs-side">

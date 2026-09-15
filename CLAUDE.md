@@ -32,7 +32,9 @@ in `server/` (Durable Objects), deployed separately.
   framework-free so it can move to a server. Do not import React into engine modules.
 - The two-shadow neumorphism is fixed: every raised thing is one light shadow from the top
   left and one dark from the bottom right, every sunken thing those two turned inward.
-  Lucide icons only. Don't introduce another UI library.
+  Lucide icons only. Don't introduce another UI library. The one glyph that is not Lucide is
+  the archetype mask (`src/content/archetypes.js`), an emoji on purpose: Lucide is for every
+  icon that points at a fact, and a mask is a costume, not a fact.
 - Palette is themed the way type is, and lives in `src/theme/` with `index.js` as the only
   import surface, like the engine. `tokens.js` is the contract (every custom property, every
   contrast rule); `palettes.js` is the named rooms as data; `derive.js` turns four authored

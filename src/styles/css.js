@@ -341,7 +341,7 @@ ${FONT_FACES}
    sinks while still held two pixels up is being pressed and lifted at once. */
 .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active { transform: none; }
 
-.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn:active, .swatch:active, .look-btn:active, .lang-pill:active, .btn:active:not(:disabled), .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active, .lp-btn:active, .lp-card-btn:active, .lp-enter:active { transition-duration: .06s; }
+.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn:active, .swatch:active, .look-btn:active, .lang-pill:active, .btn:active:not(:disabled), .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active, .lp-btn:active, .lp-card-btn:active, .lp-enter:active, .arche-btn:active { transition-duration: .06s; }
 
 /* A screen arrives a beat at a time rather than all at once. It is the front
    door's entrance, applied where a whole screen is swapped in by the nav: the
@@ -1898,6 +1898,32 @@ ${FONT_FACES}
 .type-btn.active .type-name { opacity: 1; }
 .type-note { margin-top: 14px; }
 .type-credit { color: var(--ink-2); display: block; margin-top: 5px; }
+/* ---- archetype picker ---- */
+/* The mask sits beside the name as inline text: it is an emoji, drawn by the
+   device, so it takes the line's colour and needs no chrome of its own. */
+.arche-mark { line-height: 1; vertical-align: -0.08em; margin-inline-start: .3em; }
+.profile-name .arche-mark { margin-inline-start: 0; }
+/* The track is wide enough for the longest single word a mask's name becomes
+   in caps, and a single word never wraps: Latin PHILOSOPHER, UNSICHTBARE and
+   DESTRUCTEUR run to about 100px, and Cyrillic РАЗРУШИТЕЛЬ, set in the
+   device's own bold, to 107. */
+.arche-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 10px; margin-top: 14px; }
+.arche-btn {
+  border: 0; background: var(--ground); color: var(--ink); cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 12px 8px 10px; border-radius: 16px; box-shadow: var(--sink-sm);
+  transition: box-shadow .18s ease, transform .18s ease, color .18s ease;
+}
+.arche-btn:hover { transform: translateY(-1px); }
+.arche-btn.active { box-shadow: var(--raise-sm), 0 0 0 2px var(--accent-ring); color: var(--accent-ink); transform: none; }
+.arche-btn:active { box-shadow: var(--sink); transform: none; }
+.arche-btn.active:active { box-shadow: var(--sink), 0 0 0 2px var(--accent-ring); }
+.arche-glyph { font-size: 30px; line-height: 1.2; }
+.arche-none { color: var(--ink-3); font-family: var(--font-display); }
+.arche-hanzi { font-size: 13px; color: var(--ink-2); letter-spacing: .08em; }
+.arche-name { font: 700 12px var(--font-body); letter-spacing: .11em; text-transform: uppercase; color: var(--ink-2); text-align: center; }
+.arche-btn.active .arche-name { color: inherit; }
+.arche-way { margin-top: 14px; }
 
 /* ---- kata of the day ---- */
 .kata-card { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }

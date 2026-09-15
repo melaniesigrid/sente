@@ -6,6 +6,27 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.14.0.0 (2026-09-15)
+
+### Added
+
+- **A mask to wear beside your name.** The profile has a new card, Your archetype, with
+  eleven masks to choose from: the ambusher, the silent killer, the invisible player, the
+  unreadable, the predator, the tiger, the fighter, the champion, the philosopher, the
+  ancient master and the destroyer. Each is an emoji, a name in Chinese and in your own
+  language, and one line about the way that player takes a board. The one you choose is
+  drawn beside your name on the profile, in the top bar, and at the table against a house
+  player. It changes nothing about your rank, and it is allowed to be untrue: pick the
+  player you would like people to think you are. No mask is the default, so nothing moves
+  for a player who never opens the card, and a saved profile from before today loads as it
+  did.
+- The card and every mask read in all nine languages.
+
+### Changed
+
+- The mask is kept on this device for now. An opponent online does not see it yet; that is
+  on the roadmap.
+
 ## v0.13.1.0 (2026-09-13)
 
 ### Fixed

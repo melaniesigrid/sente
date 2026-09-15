@@ -13,6 +13,7 @@ import { DOCUMENTS, CREDITS } from "../content/legal.js";
 import { PLAIN_WORDS, STATEMENTS } from "../content/plain.js";
 import { MOKU_STATES } from "../content/moku.js";
 import { PERSONAS } from "../content/personas.js";
+import { ARCHETYPES } from "../content/archetypes.js";
 import { RULESET_IDS } from "../engine/rulesets.js";
 import { CLOCK_PRESETS } from "../content/clockFace.js";
 import { TIERS, TRACKS, BOOKS, SERIES } from "../content/library.js";
@@ -38,6 +39,7 @@ const OVERLAYS = [
   "badge.", "fact.", "seen.",                                    // what a record has earned, what a card says, who may see
   "lesson.", "legalDoc.", "credit.",                             // the documents and the library
   "plain.", "statement.", "moku.", "ruleset.", "preset.", "persona.",  // the house's voices
+  "arche.",                                                     // the masks a player may wear
   "tier.", "track.", "book.", "series.", "problem.", "problemSet.", "shape.",   // the library and the coach
   "josekiEntry.", "josekiCorner.", "josekiSource.",              // the corner dictionary
   "classicBook.", "preface.", "kind.", "level.", "chapter.", "name.", "passage.", // the Classic
@@ -288,6 +290,21 @@ describe.each(others)("$name is complete", (locale) => {
     }
   });
 
+  /* A mask stands beside the player's name on the header of every screen, so
+     one left in English is a bug on every page at once, and its one line is
+     the whole of what the picker says about it. The hanzi and the glyph are
+     the mask's own and travel untranslated; a catalogue line for either would
+     be read by nothing. */
+  it("gives every mask a name and a line of its own, and translates nothing else about it", () => {
+    for (const a of ARCHETYPES) {
+      expect(mine.get(`arche.${a.id}.name`), `${locale.id}: arche.${a.id}.name`).toBeTruthy();
+      expect(mine.get(`arche.${a.id}.line`), `${locale.id}: arche.${a.id}.line`).toBeTruthy();
+    }
+    for (const key of [...mine.keys()].filter(k => k.startsWith("arche."))) {
+      expect(key, `${locale.id}: ${key}`).toMatch(/^arche\.[a-z]+\.(name|line)$/);
+    }
+  });
+
   /* A screen heading is assembled out of three keys because the emphasised
      word sits in an <em> in the middle of it, and the JSX puts nothing between
      them. In a language written with spaces, the space belongs to the first
@@ -360,6 +377,7 @@ describe.each(others)("$name is complete", (locale) => {
       ruleset: RULESET_IDS,
       preset: CLOCK_PRESETS.map(p2 => p2.id),
       persona: PERSONAS.map(p2 => p2.id),
+      arche: ARCHETYPES.map(a => a.id),
       tier: TIERS.map(x => String(x.id)),
       track: TRACKS.map(x => x.key),
       book: BOOKS.map(x => x.id),

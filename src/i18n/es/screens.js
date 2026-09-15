@@ -264,6 +264,12 @@ export const screens = {
       note: "Tu marca en la clasificaci\u00f3n, en la sala de juego y, alg\u00fan d\u00eda, en toda la red.",
       pick: "Color del sello {name}",
     },
+    arche: {
+      head: "Tu arquetipo",
+      note: "Una máscara para llevar junto a tu nombre. No cambia nada en tu rango, y puede ser mentira: elige el jugador que quieres que la gente crea que eres.",
+      none: "Sin máscara",
+      noneLine: "Sin máscara. Solo un jugador, que es lo más difícil de leer.",
+    },
     look: {
       head: "El aspecto del lugar",
       note: "Est\u00e1s en {room}, jugando con {stones}, compuesto con la pareja {type}.",

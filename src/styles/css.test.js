@@ -531,3 +531,36 @@ describe("the sheet runs in both directions", () => {
     }
   });
 });
+
+/* The archetype picker and the mark are drawn with eight classes between them;
+   a class the view names and the sheet does not is a silently unstyled button.
+   The mask's name is the smallest type on the card, and the card carries the
+   whole picker in a grid that is spaced by gap, never by a side. */
+describe("the archetype picker", () => {
+  const drawn = ["arche-mark", "arche-row", "arche-btn", "arche-glyph", "arche-none", "arche-hanzi", "arche-name", "arche-way"];
+  const mine = rules(CSS).filter(r => /\.arche-/.test(r.selector));
+
+  it("styles every class the picker and the mark are drawn with", () => {
+    const named = new Set(mine.flatMap(r => [...r.selector.matchAll(/\.(arche-[a-z]+)/g)].map(m => m[1])));
+    for (const cls of drawn) expect(named.has(cls), cls).toBe(true);
+  });
+
+  it("sets no word on the card below the twelve-pixel floor", () => {
+    let sized = 0;
+    for (const r of mine) {
+      const size = smallestSize(r.body);
+      if (!size) continue;
+      sized++;
+      expect(size, r.selector).toBeGreaterThanOrEqual(12);
+    }
+    expect(sized).toBeGreaterThan(0);
+  });
+
+  it("lifts the chosen mask and sinks the rest, with the two shadows and nothing else", () => {
+    const active = mine.find(r => r.selector === ".arche-btn.active");
+    const rest = mine.find(r => r.selector === ".arche-btn");
+    expect(active.body).toMatch(/var\(--raise-sm\)/);
+    expect(rest.body).toMatch(/var\(--sink-sm\)/);
+    for (const r of mine) expect(r.body, r.selector).not.toMatch(/#[0-9a-f]{3,8}\b|rgb\(|hsl\(/i);
+  });
+});

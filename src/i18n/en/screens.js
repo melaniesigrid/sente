@@ -279,6 +279,12 @@ export const screens = {
       note: "Your mark on the ladder, the lobby, and, one day, across the network.",
       pick: "Seal color {name}",
     },
+    arche: {
+      head: "Your archetype",
+      note: "A mask to wear beside your name. It changes nothing about your rank, and it is allowed to be untrue: pick the player you would like people to think you are.",
+      none: "No mask",
+      noneLine: "No mask. Just a player, which is the hardest thing to read.",
+    },
     look: {
       head: "The look of the place",
       note: "You are in {room}, playing with {stones}, set in the {type} pairing.",

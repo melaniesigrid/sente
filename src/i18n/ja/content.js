@@ -235,3 +235,20 @@ export const persona = {
     },
   },
 };
+
+/* The masks a player may wear beside their name: the name and the one line,
+   overlaid on `src/content/archetypes.js` by id. The hanzi is the mask's own name
+   and stays as written. */
+export const arche = {
+  ambusher: { name: "伏兵", line: "五十手のあいだ息をひそめ、気づけば辺全体が罠だった。" },
+  silent: { name: "音なき剣", line: "剣は音もなく通り過ぎる。数えてはじめて気づく。" },
+  invisible: { name: "痕跡を残さぬ者", line: "跡を残さない。どの石も無害に見えて、やがてどれも無害ではなくなる。" },
+  riddle: { name: "読めない者", line: "何を狙っているのか誰にもわからない。ときには本人にも。" },
+  autumn: { name: "捕食者", line: "秋の虎。辛抱強く、飢えていて、もう背後にいる。" },
+  tiger: { name: "虎", line: "伏兵も謎もなし。盤上でいちばん大きな石へまっすぐ。" },
+  roar: { name: "闘士", line: "すべてを切る。平和とは取ったあとに来るものだと信じている。" },
+  champion: { name: "王者", line: "神々の栄光。どの一局もタイトル戦のつもりで打つ。" },
+  philosopher: { name: "哲学者", line: "思想の星空。時間切れで負け、感想戦で勝つ。" },
+  ancient: { name: "古の名人", line: "星のように古い。誰も読んだことのない本の一手を打つ。" },
+  doomsday: { name: "破壊者", line: "終末。ターミネーター、ノーリモースとも名乗る。決して投了しない。" },
+};
