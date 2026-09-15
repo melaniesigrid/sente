@@ -573,6 +573,31 @@ ${FONT_FACES}
 .persona-bio { color: var(--ink-2); font-size: 15.5px; line-height: 1.55; margin: 0; }
 .persona-cta { display: inline-flex; align-items: center; gap: 6px; font: 700 12px var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--accent-ink); }
 .local-card { max-width: 560px; }
+.play-step { display: flex; flex-direction: column; gap: 18px; }
+.play-step-head { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap; }
+.play-step-icon, .play-choice-icon {
+  width: 54px; height: 54px; border-radius: 18px; display: inline-flex; align-items: center; justify-content: center;
+  box-shadow: var(--sink-sm); color: var(--accent-ink); flex: none;
+}
+.play-step-copy { display: flex; flex-direction: column; gap: 4px; flex: 1 1 260px; }
+.play-step-copy strong { font-family: var(--font-display); font-weight: var(--w-display); font-size: 24px; line-height: 1.1; }
+.play-step-copy .fine { margin: 0; max-width: 62ch; }
+.play-step-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-inline-start: auto; }
+.play-choice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.play-choice {
+  text-align: start; border: 0; cursor: pointer; color: var(--ink); display: flex; flex-direction: column; gap: 14px;
+  min-height: 220px; transition: transform .15s ease, box-shadow .15s ease;
+}
+.play-choice:hover { transform: translateY(-2px); }
+.play-choice-copy { display: flex; flex-direction: column; gap: 9px; }
+.play-choice-copy h3 { margin: 0; font-family: var(--font-display); font-weight: var(--w-display); font-size: 24px; line-height: 1.08; }
+.play-choice-copy p { margin: 0; color: var(--ink-2); font-size: 15.5px; line-height: 1.6; }
+.play-choice-meta { margin-top: auto; color: var(--accent-ink); font: 700 12px var(--font-body); letter-spacing: .12em; text-transform: uppercase; }
+.play-choice-special { border-inline-start: 3px solid var(--accent-ink); }
+@media (max-width: 640px) {
+  .play-choice { min-height: 0; }
+  .play-step-copy strong, .play-choice-copy h3 { font-size: 21px; }
+}
 
 /* The pair table's lobby card. Four faces before you commit to any of it: a format
    whose whole point is who is sitting with you has to show you who is sitting with

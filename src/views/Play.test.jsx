@@ -32,65 +32,88 @@ const { LOBBY_KEY } = await import("../store/lobby.js");
 
 const PROFILE = { name: "Me", rating: 1200, rd: 60, tint: "eucalyptus", sensei: false };
 
-const playScreen = async (size) => {
+const playScreen = async (size, profile = PROFILE) => {
   localStorage.setItem(LOBBY_KEY, JSON.stringify({ size }));
   await act(async () => {
-    render(<PlayView profile={PROFILE} setProfile={() => {}} notify={() => {}} resume={null} />);
+    render(<PlayView profile={profile} setProfile={() => {}} notify={() => {}} resume={null} />);
     await Promise.resolve(); await Promise.resolve();
   });
 };
 
 const onlineCard = () => document.querySelector(".online-card");
 const boardPicker = () => screen.getByRole("radiogroup", { name: /board/i });
-const findBtn = () => screen.getByRole("button", { name: /opponent/i });
 
 beforeEach(() => { localStorage.clear(); });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 describe("the guided play screen", () => {
-  it("starts with one board picker in the guide, not duplicated inside the online card", async () => {
+  it("starts with only the first decision and no board picker or online lobby", async () => {
     await playScreen(9);
-    expect(boardPicker()).toBeTruthy();
-    expect(onlineCard()).toBeTruthy();
-    expect(onlineCard().contains(boardPicker()), "the guide owns the board choice now").toBe(false);
-    expect(screen.getAllByRole("radiogroup", { name: /board/i })).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "Human" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "AI" })).toBeTruthy();
+    expect(screen.queryByRole("radiogroup", { name: /board/i })).toBeNull();
+    expect(onlineCard()).toBeNull();
   });
 
-  it("changes the board the human-play button names when the guide board is pressed", async () => {
+  it("shows the human branch first and only later the board picker and online card", async () => {
     await playScreen(9);
-    expect(findBtn().textContent).toContain("9×9");
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Human" }));
+    });
+    expect(screen.getByRole("button", { name: "Online match" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Pass & play" })).toBeTruthy();
+    expect(screen.queryByRole("radiogroup", { name: /board/i })).toBeNull();
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Online match" }));
+    });
+    expect(boardPicker()).toBeTruthy();
+    expect(onlineCard()).toBeTruthy();
+    expect(onlineCard().contains(boardPicker()), "the setup owns the board choice now").toBe(false);
     await act(async () => {
       fireEvent.click(screen.getByRole("radio", { name: "19×19" }));
     });
-    expect(findBtn().textContent).toContain("19×19");
     expect(JSON.parse(localStorage.getItem(LOBBY_KEY)).size).toBe(19);
+    expect(screen.getAllByRole("radiogroup", { name: /board/i })).toHaveLength(1);
   });
 
-  it("switches the human branch from normal play to rengo without showing pass-and-play", async () => {
+  it("keeps team play off the first step and shows it only inside the human branch", async () => {
     await playScreen(13);
-    expect(document.body.textContent).toContain("Pass & play");
-    expect(onlineCard()).toBeTruthy();
+    expect(document.body.textContent).not.toContain("Team play");
     await act(async () => {
-      fireEvent.click(screen.getByRole("radio", { name: /rengo/i }));
+      fireEvent.click(screen.getByRole("button", { name: "Human" }));
+    });
+    expect(document.body.textContent).toContain("Team play");
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Team play" }));
     });
     expect(document.body.textContent).not.toContain("Pass & play");
     expect(onlineCard()).toBeTruthy();
+    expect(boardPicker()).toBeTruthy();
     expect(screen.getByRole("button", { name: /rengo/i }).textContent).toContain("13×13");
     expect(screen.getByRole("button", { name: /pair game/i }).textContent).toContain("13×13");
   });
 
-  it("switches from human play to ai play and then to pair go", async () => {
+  it("shows ai choices before house players and only reveals them after house play is chosen", async () => {
     await playScreen(19);
-    expect(onlineCard()).toBeTruthy();
+    expect(document.querySelectorAll(".persona-card")).toHaveLength(0);
     await act(async () => {
-      fireEvent.click(screen.getByRole("radio", { name: "AI" }));
+      fireEvent.click(screen.getByRole("button", { name: "AI" }));
     });
     expect(onlineCard()).toBeNull();
-    expect(document.querySelectorAll(".persona-card").length).toBeGreaterThan(0);
-    await act(async () => {
-      fireEvent.click(screen.getByRole("radio", { name: /rengo/i }));
-    });
-    expect(document.querySelector(".pair-card")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "House players" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Daily duel/i })).toBeTruthy();
     expect(document.querySelectorAll(".persona-card")).toHaveLength(0);
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "House players" }));
+    });
+    expect(document.querySelectorAll(".persona-card").length).toBeGreaterThan(0);
+  });
+
+  it("shows the Ke Jie shortcut only for Melanie", async () => {
+    await playScreen(19, { ...PROFILE, name: "Melanie" });
+    expect(screen.getByRole("button", { name: "Ke Jie" })).toBeTruthy();
+    cleanup();
+    await playScreen(19, PROFILE);
+    expect(screen.queryByRole("button", { name: "Ke Jie" })).toBeNull();
   });
 });

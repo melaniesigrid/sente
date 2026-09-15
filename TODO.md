@@ -1591,6 +1591,11 @@ Free, because the engine already does the hard part:
       the table is set to, and which invited the belief the lobby spends a paragraph denying.
       `PlayView` takes `withBot`, so the page's button sits you down rather than returning
       you to the lobby beside the card you just left.
+- [x] The play chooser became a staged flow (2026-09-15): `src/views/Play.jsx` now asks one
+      decision at a time — first human or AI, with a Melanie-only Ke Jie shortcut, then the
+      branch-specific next choice, and only then the board and table settings. The screen
+      keeps the large neumorphic cards, moves team play behind the human branch, and leaves
+      the existing online, local, duel and house-player destinations intact.
 - [ ] The tells are written, not measured. Hoshi really does forget ladders and Tetsu really
       does answer contact with contact, but nothing in the suite proves either, and the
       telemetry ring buffer is the thing that could: it keeps enough per-bot to check whether
