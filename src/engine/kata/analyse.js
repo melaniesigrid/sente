@@ -41,7 +41,7 @@ export const ANALYSIS_RANK = "9d";
  *  say so. It is the whole string rather than a hash of it, because a hash here buys
  *  nothing and gives away a collision. */
 const done = new Map();
-const cacheKey = (rec, rank) =>
+export const analysisCacheKey = (rec, rank = ANALYSIS_RANK) =>
   [rank, rec.size, rec.komi, rec.handicap, rec.rules, rec.firstToPlay,
     (rec.setup?.b ?? []).map(([c, r]) => `${c},${r}`).join(","),
     (rec.setup?.w ?? []).map(([c, r]) => `${c},${r}`).join(","),
@@ -54,14 +54,14 @@ const cacheKey = (rec, rank) =>
  *  A shorter walk never overwrites a longer one. */
 function remember(rec, rank, points) {
   if (!points.length) return;
-  const key = cacheKey(rec, rank);
+  const key = analysisCacheKey(rec, rank);
   const had = done.get(key);
   if (!had || had.length < points.length) done.set(key, points);
 }
 
 /** Points already known for this record, oldest first, or null. Contiguous from the
  *  opening position, and possibly short of the end. */
-export const cachedAnalysis = (rec, rank = ANALYSIS_RANK) => done.get(cacheKey(rec, rank)) ?? null;
+export const cachedAnalysis = (rec, rank = ANALYSIS_RANK) => done.get(analysisCacheKey(rec, rank)) ?? null;
 
 /** The positions of a game, in order, including the opening position. Built forward,
  *  each from the one before, so a 300 move game replays 300 moves and not 45,000. */
@@ -94,7 +94,7 @@ export function positions(rec) {
 export async function analyseGame(rec, o = {}) {
   const { onPoint, stopped, have = [], rank = ANALYSIS_RANK } = o;
   const list = positions(rec);
-  const cached = done.get(cacheKey(rec, rank));
+  const cached = done.get(analysisCacheKey(rec, rank));
   if (cached && cached.length === list.length) {
     cached.forEach((p, i) => onPoint && onPoint(p, i, cached.length));
     return { points: cached, complete: true };
