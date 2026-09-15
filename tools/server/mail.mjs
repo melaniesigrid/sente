@@ -51,6 +51,7 @@ const now = "one eye dies in the corner, alone";
 const [wasKey, nowKey] = await Promise.all([deriveKey(email, was), deriveKey(email, now)]);
 const junk = "f".repeat(64);
 let live = null;   // the session to clean up with
+let lost = null;   // the guest handle's session, likewise
 
 try {
   const health = await ok("/api/health");
@@ -141,6 +142,40 @@ try {
   const short = await call("/api/verify", { method: "POST", body: { token: "abc" } });
   assert(short.status === 400 && short.data.error === "bad-token", "and so is one that is not a token at all");
 
+  /* ----- a guest who lost their browser -----
+     A handle with no address has no way back on its own. The operator puts an
+     address on it, mints a reset link, and the person follows it into the
+     same handle with a password now. */
+  const guest = await ok("/api/register", { method: "POST", body: { name: "Lost" + stamp.slice(0, 3), tint: "moss" } });
+  lost = guest.token;
+  const guestEmail = `lost-${stamp}@example.com`;
+  const guestKey = await deriveKey(guestEmail, now);
+
+  const taken = await call(`/api/admin/players/${guest.player.id}/email`, { method: "POST", token: admin, body: { email } });
+  assert(taken.status === 409 && taken.data.error === "email-taken", "an address already on an account cannot be put on a second handle");
+  const nonsenseAddress = await call(`/api/admin/players/${guest.player.id}/email`, { method: "POST", token: admin, body: { email: "not an address" } });
+  assert(nonsenseAddress.status === 400 && nonsenseAddress.data.error === "bad-email", "nor can something that is not an address");
+  const nobodyHome = await call(`/api/admin/players/p_0000000000000000/email`, { method: "POST", token: admin, body: { email: guestEmail } });
+  assert(nobodyHome.status === 404 && nobodyHome.data.error === "no-player", "and a handle that does not exist is said so");
+  const unguarded = await call(`/api/admin/players/${guest.player.id}/email`, { method: "POST", body: { email: guestEmail } });
+  assert(unguarded.status === 401, "the route is behind the operator secret");
+
+  const adopted = await ok(`/api/admin/players/${guest.player.id}/email`, { method: "POST", token: admin, body: { email: guestEmail } });
+  assert(adopted.player.email === guestEmail && adopted.player.hasPassword === false && adopted.player.emailVerified === false,
+    "the operator puts an address on the guest handle: no password yet, and unconfirmed");
+  const twice = await call(`/api/admin/players/${guest.player.id}/email`, { method: "POST", token: admin, body: { email: `again-${stamp}@example.com` } });
+  assert(twice.status === 409 && twice.data.error === "already-attached", "a handle that has an address keeps it");
+
+  const wayBack = await mint("reset", guest.player.id);
+  const back = await ok("/api/reset", { method: "POST", body: { token: wayBack, key: guestKey } });
+  assert(back.player.id === guest.player.id, "the reset link leads back into the same handle");
+  assert(back.player.hasPassword === true && back.player.emailVerified === true, "with a password now, and the address confirmed by the link");
+  const oldGuest = await call("/api/me", { token: lost });
+  lost = back.token;
+  assert(oldGuest.status === 401, "the token from the lost browser is signed out");
+  const found = await ok("/api/signin", { method: "POST", body: { email: guestEmail, key: guestKey } });
+  assert(found.player.id === guest.player.id, "and the address and password sign into it from any device");
+
   console.log("\nall good");
 } catch (e) {
   console.error("\nFAILED " + e.message);
@@ -148,4 +183,5 @@ try {
 } finally {
   // Leave nothing behind, whether it passed or not.
   if (live) await call("/api/me", { method: "DELETE", token: live }).catch(() => {});
+  if (lost) await call("/api/me", { method: "DELETE", token: lost }).catch(() => {});
 }
