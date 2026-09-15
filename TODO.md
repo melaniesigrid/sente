@@ -51,6 +51,12 @@ lessons), and the middle game everywhere. Life and death below 15k was on this l
       reading is gradual instead of a cliff, and keep every new answer engine-proved.
 - [ ] Audit the lesson catalogue for repeated concepts that now surface in multiple places, then
       keep one canonical route and let the secondary shelves point at it rather than repeat it.
+- [x] Lessons no longer split a look from the move it sets up (2026-09-15). An info step followed
+      by a question on the same board is folded at play time (`foldLesson` in `lessonStep.js`):
+      the explanation leads the question and the board is live at once, and a mark that sat on
+      the answer is dropped. The authored data keeps its step indices, because translations and
+      recall cards are keyed by them. A lesson is recorded as done the moment its last step is
+      solved, not only when the button is pressed, and the finished card shows a filled check.
 
 ## Phase 0: Foundation (done)
 

@@ -13,7 +13,7 @@ export default {
       type: "info",
       setup: { b: [pt(4, 2)], w: [pt(3, 2), pt(4, 1), pt(5, 2)] },
       marks: [pt(4, 3)],
-      text: "One liberty left. The marked point is the only way out. Extending there makes a two-stone chain with three liberties, and the danger is over for now.",
+      text: "One liberty left, and that liberty is the only way out. Extending there makes a two-stone chain with three liberties, and the danger is over for now.",
     },
     {
       type: "quiz",

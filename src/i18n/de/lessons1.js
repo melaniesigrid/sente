@@ -63,7 +63,7 @@ export const lessons1 = {
     steps: {
       0: { text: "Selbstmord ist verboten: du darfst keinen Stein setzen, der seine eigene Kette ohne Freiheit zurücklässt. Aber es gibt eine herrliche Ausnahme." },
       1: {
-        text: "Der markierte Punkt ist die letzte Freiheit von Weiß. Schwarz am Zug. Der Zug sieht wie Selbstmord aus, aber Gefangene werden zuerst abgerechnet.",
+        text: "Die fünf weißen Steine haben nur noch eine Freiheit, den leeren Punkt in ihrer eigenen Form. Schwarz am Zug. Der Zug sieht wie Selbstmord aus, aber Gefangene werden zuerst abgerechnet.",
         success: "Fünf Steine gefangen. Die Steine des Gegners kommen herunter, bevor deine eigenen Freiheiten gezählt werden: der Punkt war nie Selbstmord.",
         hint: "Zähl die Freiheiten von Weiß, bevor du deine eigenen zählst.",
       },
@@ -132,7 +132,7 @@ export const lessons1 = {
     subtitle: "Zwei Steine, eine Lücke, und wer sie füllt",
     plain: "Eine Diagonale ist eine Lücke, und wer sie füllt, entscheidet den Kampf dort. Verbindest du, sind deine Steine eine starke Kette; schneidest du, hat dein Gegner zwei schwache Ketten, die er gleichzeitig am Leben halten muss.",
     steps: {
-      0: { text: "Diagonal stehende Steine sind noch nicht verbunden. Weiß hat einen der beiden Punkte dazwischen genommen; der markierte Punkt ist der Schnittpunkt. Wer dort spielt, entscheidet, ob Schwarz eine Gruppe ist oder zwei." },
+      0: { text: "Diagonal stehende Steine sind noch nicht verbunden. Weiß hat einen der beiden Punkte dazwischen genommen; der andere ist der Schnittpunkt. Wer dort spielt, entscheidet, ob Schwarz eine Gruppe ist oder zwei." },
       1: {
         text: "Schwarz am Zug. Verbinde.",
         success: "Solide. Drei Steine, eine Kette, und jetzt ist es der weiße Stein, der einsam aussieht.",
@@ -162,7 +162,7 @@ export const lessons1 = {
     subtitle: "Aus dem Atari herausziehen, und wann Laufen nichts nützt",
     plain: "Eine verbleibende Freiheit heißt ein verbleibender Zug. Zum offenen Raum hin herauszuziehen kauft Luft, aber wenn der Fluchtweg in die Steine des Gegners läuft, ist der Stein schon verloren, und der Zug ist woanders mehr wert.",
     steps: {
-      0: { text: "Eine Freiheit bleibt. Der markierte Punkt ist der einzige Ausweg. Dorthin herauszuziehen macht eine Zweisteinkette mit drei Freiheiten, und die Gefahr ist vorerst vorbei." },
+      0: { text: "Eine Freiheit bleibt, und sie ist der einzige Ausweg. Dorthin herauszuziehen macht eine Zweisteinkette mit drei Freiheiten, und die Gefahr ist vorerst vorbei." },
       1: {
         text: "Schwarz am Zug. Zieh aus dem Atari heraus.",
         success: "Drei Freiheiten. Achte auf die Richtung: zur offenen Mitte hin, weg vom Rand.",
