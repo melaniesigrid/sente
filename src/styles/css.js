@@ -323,7 +323,7 @@ ${FONT_FACES}
    left standing proud of a tray. A card keeps its two shadows and spends them:
    two pixels of offset is a card with a thumb on it. It travels the one pixel
    that offset gives up, so the card goes down rather than only going quiet. */
-.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active { box-shadow: var(--press); transform: translateY(1px); }
+.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .play-choice:active { box-shadow: var(--press); transform: translateY(1px); }
 
 /* A control is small enough to invert, which is what the nine already do. */
 .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn.active:active { box-shadow: var(--sink-sm); transform: none; }
@@ -341,7 +341,7 @@ ${FONT_FACES}
    sinks while still held two pixels up is being pressed and lifted at once. */
 .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active { transform: none; }
 
-.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn:active, .swatch:active, .look-btn:active, .lang-pill:active, .btn:active:not(:disabled), .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active, .lp-btn:active, .lp-card-btn:active, .lp-enter:active, .arche-btn:active { transition-duration: .06s; }
+.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .play-choice:active, .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn:active, .swatch:active, .look-btn:active, .lang-pill:active, .btn:active:not(:disabled), .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active, .lp-btn:active, .lp-card-btn:active, .lp-enter:active, .arche-btn:active { transition-duration: .06s; }
 
 /* A screen arrives a beat at a time rather than all at once. It is the front
    door's entrance, applied where a whole screen is swapped in by the nav: the
@@ -573,6 +573,31 @@ ${FONT_FACES}
 .persona-bio { color: var(--ink-2); font-size: 15.5px; line-height: 1.55; margin: 0; }
 .persona-cta { display: inline-flex; align-items: center; gap: 6px; font: 700 12px var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--accent-ink); }
 .local-card { max-width: 560px; }
+.play-step { display: flex; flex-direction: column; gap: 18px; }
+.play-step-head { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap; }
+.play-step-icon, .play-choice-icon {
+  width: 54px; height: 54px; border-radius: 18px; display: inline-flex; align-items: center; justify-content: center;
+  box-shadow: var(--sink-sm); color: var(--accent-ink); flex: none;
+}
+.play-step-copy { display: flex; flex-direction: column; gap: 4px; flex: 1 1 260px; }
+.play-step-copy strong { font-family: var(--font-display); font-weight: var(--w-display); font-size: 24px; line-height: 1.1; }
+.play-step-copy .fine { margin: 0; max-width: 62ch; }
+.play-step-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-inline-start: auto; }
+.play-choice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.play-choice {
+  text-align: start; border: 0; cursor: pointer; color: var(--ink); display: flex; flex-direction: column; gap: 14px;
+  min-height: 220px; transition: transform .15s ease, box-shadow .15s ease;
+}
+.play-choice:hover { transform: translateY(-2px); }
+.play-choice-copy { display: flex; flex-direction: column; gap: 9px; }
+.play-choice-copy h3 { margin: 0; font-family: var(--font-display); font-weight: var(--w-display); font-size: 24px; line-height: 1.08; }
+.play-choice-copy p { margin: 0; color: var(--ink-2); font-size: 15.5px; line-height: 1.6; }
+.play-choice-meta { margin-top: auto; color: var(--accent-ink); font: 700 12px var(--font-body); letter-spacing: .12em; text-transform: uppercase; }
+.play-choice-special { border-inline-start: 3px solid var(--accent-ink); }
+@media (max-width: 640px) {
+  .play-choice { min-height: 0; }
+  .play-step-copy strong, .play-choice-copy h3 { font-size: 21px; }
+}
 
 /* The pair table's lobby card. Four faces before you commit to any of it: a format
    whose whole point is who is sitting with you has to show you who is sitting with
