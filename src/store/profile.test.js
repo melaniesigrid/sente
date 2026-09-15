@@ -90,6 +90,19 @@ describe("sanitizeProfile", () => {
     expect(warn.mock.calls[0][0]).toMatch(/archetype/);
     expect(sanitizeProfile({ ...defaultProfile, archetype: 7 }).archetype).toBe("");
   });
+  it("gives a profile saved before the masks existed the plain player, without a word", () => {
+    const { archetype, ...old } = defaultProfile;
+    expect(archetype).toBe("");
+    expect(sanitizeProfile(old).archetype).toBe("");
+    expect(warn).not.toHaveBeenCalled();
+  });
+  it("keeps the plain player when it was chosen on purpose, and resets a null mask", () => {
+    expect(sanitizeProfile({ ...defaultProfile, archetype: "" }).archetype).toBe("");
+    expect(warn).not.toHaveBeenCalled();
+    expect(sanitizeProfile({ ...defaultProfile, archetype: null }).archetype).toBe("");
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0][0]).toMatch(/archetype/);
+  });
   it("resets non-finite or non-numeric numbers", () => {
     const out = sanitizeProfile({ ...defaultProfile, rating: "1200", wins: NaN, losses: Infinity });
     expect(out.rating).toBe(defaultProfile.rating);
