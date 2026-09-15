@@ -876,14 +876,25 @@ ${FONT_FACES}
 .tint-dot.active { box-shadow: var(--sink-sm), 0 0 0 2px var(--accent-ring); transform: none; }
 
 /* ---- lessons ---- */
-.lesson-card { display: flex; align-items: center; gap: 16px; text-align: start; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease, box-shadow .15s ease; }
+.lesson-card { display: flex; align-items: center; gap: 16px; text-align: start; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease, box-shadow .15s ease, background .2s ease; }
 .lesson-card:hover { transform: translateY(-2px); }
 .lesson-num { color: var(--ink-3); font-family: var(--font-display-italic); font-style: var(--display-italic-style); font-size: 26px; flex: none; }
 .lesson-meta { flex: 1; }
 .lesson-meta h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 18px; margin: 0 0 3px; }
 .lesson-meta p { color: var(--ink-2); font-size: 15.5px; margin: 0; }
 .lesson-state { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; box-shadow: var(--sink-sm); }
-.lesson-state.done { color: var(--ground); background: var(--accent); box-shadow: var(--raise-sm); }
+.lesson-state.done { color: var(--accent-ink); background: color-mix(in oklab, var(--accent) 14%, var(--ground)); box-shadow: var(--raise-sm), inset 0 0 0 2px color-mix(in oklab, var(--accent) 75%, var(--ground)); }
+.lesson-card.current { position: relative; overflow: hidden; box-shadow: var(--raise-sm), 0 0 0 1px color-mix(in oklab, var(--accent) 35%, transparent); }
+.lesson-card.current::after {
+  content: ""; position: absolute; inset-block: 0; inset-inline-end: -44%; width: 64%;
+  background: linear-gradient(120deg, transparent, color-mix(in oklab, var(--accent) 18%, transparent), transparent);
+  transform: skewX(-20deg); pointer-events: none; animation: lesson-sheen 3.8s ease-in-out infinite;
+}
+@keyframes lesson-sheen {
+  0%, 20% { opacity: 0; transform: translateX(0) skewX(-20deg); }
+  45% { opacity: .8; }
+  70%, 100% { opacity: 0; transform: translateX(-170%) skewX(-20deg); }
+}
 .lesson-lead { margin-bottom: 10px !important; }
 /* ---- the lesson player ----
    One response block for every tone, a stepper that shows the shape of the
@@ -1080,7 +1091,14 @@ ${FONT_FACES}
 @keyframes rise { from { transform: translate(-50%, 14px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
 
 /* ---- learn: library ---- */
-.library { display: flex; gap: clamp(16px, 2.5vw, 26px); align-items: flex-start; flex-wrap: wrap; }
+.library {
+  display: flex; gap: clamp(16px, 2.5vw, 26px); align-items: flex-start; flex-wrap: wrap;
+  border-radius: 22px; padding: clamp(10px, 1.7vw, 16px);
+  background:
+    radial-gradient(120% 120% at 4% 2%, color-mix(in oklab, var(--accent) 11%, transparent), transparent 62%),
+    linear-gradient(155deg, color-mix(in oklab, var(--ground) 87%, var(--board)), var(--ground));
+  box-shadow: var(--sink-sm);
+}
 .tier-rail { display: flex; flex-direction: column; gap: 8px; flex: 0 0 200px; padding: 8px; border-radius: 18px; box-shadow: var(--sink-sm); }
 .tier-btn { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; border: 0; background: transparent; color: var(--ink); cursor: pointer; text-align: start; padding: 10px 12px; border-radius: 13px; transition: box-shadow .18s ease, color .18s ease; }
 .tier-btn .tier-name { font: 700 13px var(--font-body); letter-spacing: .08em; text-transform: uppercase; }
