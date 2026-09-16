@@ -50,8 +50,8 @@ const PROFILE = { name: "Me", rating: 1200, rd: 60, tint: "eucalyptus", sensei: 
 
 /** The play screen, walked as far as his card. His shortcut sits at the first
  *  step and skips the AI chooser: sitting down with him is its own decision. */
-const trainerCard = async (profile = PROFILE) => {
-  localStorage.setItem(LOBBY_KEY, JSON.stringify({ size: 19 }));
+const trainerCard = async (profile = PROFILE, lobby = { size: 19 }) => {
+  localStorage.setItem(LOBBY_KEY, JSON.stringify(lobby));
   await act(async () => {
     render(<PlayView profile={profile} setProfile={() => {}} notify={() => {}} resume={null} />);
     await Promise.resolve(); await Promise.resolve();
@@ -89,6 +89,17 @@ describe("choosing how he teaches", () => {
     expect(sat.rank).toBe(trainerRank(rankOf(PROFILE.rating), modeRules("spar").rankStep));
     // A spar is an even game: only the teaching game puts stones down first.
     expect(sat.handicap).toBe(0);
+  });
+
+  it("leaves a handicap set on the lobby table behind when the mode is an even game", async () => {
+    /* Five of the six modes declare no stones. Declaring none has to mean zero of
+       them, not "whatever the table last had": a handicap left on the lobby table
+       from a game against somebody else must not follow her into an even game with
+       him, least of all now that his card does not draw the picker to take it back. */
+    await trainerCard(PROFILE, { size: 19, handicap: 5 });
+    const spar = [...document.querySelectorAll(".trainer-mode")].find((r) => r.textContent.includes("Spar"));
+    await act(async () => { fireEvent.click(spar); });
+    expect(seat().handicap).toBe(0);
   });
 
   it("gives her the four stones a teaching game is made of, whatever the table said", async () => {

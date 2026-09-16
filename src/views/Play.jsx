@@ -384,11 +384,17 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
                       {table.komi !== null && komi !== owed
                         && <Btn icon={Home} small onClick={() => setTable({ komi: null })}>{t("play.komiDefault")}</Btn>}
                     </div>
-                    <div className="rank-picker-controls" role="group" aria-label={t("play.handicapGroup")}>
-                      <Btn icon={Minus} small label={t("play.fewerStones")} disabled={hi <= 0} onClick={() => setTable({ handicap: HANDICAPS[hi - 1] })} />
-                      <span className="handicap-num" aria-live="polite">{table.handicap ? t("play.stones", { count: table.handicap }) : t("play.noHandicap")}</span>
-                      <Btn icon={Plus} small label={t("play.moreStones")} disabled={hi >= HANDICAPS.length - 1} onClick={() => setTable({ handicap: HANDICAPS[hi + 1] })} />
-                    </div>
+                    {/* Not on the trainer's table: there the stones belong to the
+                        lesson, and only one of his six puts any down. A picker
+                        reading "no handicap" above a row that seats you with four
+                        would be telling you the opposite of what happens. */}
+                    {choice !== "kejie" && (
+                      <div className="rank-picker-controls" role="group" aria-label={t("play.handicapGroup")}>
+                        <Btn icon={Minus} small label={t("play.fewerStones")} disabled={hi <= 0} onClick={() => setTable({ handicap: HANDICAPS[hi - 1] })} />
+                        <span className="handicap-num" aria-live="polite">{table.handicap ? t("play.stones", { count: table.handicap }) : t("play.noHandicap")}</span>
+                        <Btn icon={Plus} small label={t("play.moreStones")} disabled={hi >= HANDICAPS.length - 1} onClick={() => setTable({ handicap: HANDICAPS[hi + 1] })} />
+                      </div>
+                    )}
                     <div className="seg" role="radiogroup" aria-label={t("play.clockGroup")}>
                       {CLOCK_PRESETS.map((p) => (
                         <button key={p.id} type="button" role="radio" aria-checked={table.clock === p.id}
@@ -436,7 +442,11 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
                   <button key={m.id} className="neu-card trainer-mode"
                     onClick={() => sit({
                       kind: "bot", persona: KE_JIE, rank: at,
-                      handicap: rules.handicap || undefined, senseiMode: m.id,
+                      // Not `|| undefined`: a mode that declares no stones declares
+                      // zero of them, and `0 ?? table.handicap` keeps the zero. Coercing
+                      // it away let a handicap left on the lobby table follow her into
+                      // an even game with him.
+                      handicap: rules.handicap, senseiMode: m.id,
                     })}>
                     <div className="trainer-mode-top">
                       <strong>{m.name}</strong>

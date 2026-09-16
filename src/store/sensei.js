@@ -67,7 +67,9 @@ export function loadBox(storage = defaultStorage()) {
       seen: Number.isInteger(blob.seen) && blob.seen >= 0 ? blob.seen : 0,
       bond: BONDS.includes(blob.bond) ? blob.bond : "",
       taught: readTaught(blob.taught),
-      rung: typeof blob.rung === "string" ? blob.rung : "",
+      // Validated against the ladder, not merely typed: the comparison below is a
+      // position on it, and a label that is not on it would compare as -1.
+      rung: RANK_LADDER.includes(blob.rung) ? blob.rung : "",
     };
   } catch { return empty(); }
 }
