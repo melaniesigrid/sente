@@ -125,10 +125,13 @@ describe("a label you can actually read", () => {
 
   it("clears the type floor on the rank dial, the one figure that draws one", async () => {
     const { DIAL_CROP } = await import("../content/rankdial.js");
-    const dial = readFileSync(new URL("../components/RankDial.jsx", import.meta.url), "utf8");
-    const drawn = Number(dial.match(/sizePx=\{(\d+)\}/)[1]);
+    const css = readFileSync(new URL("../styles/css.js", import.meta.url), "utf8");
+    /* The narrowest the figure's column may be drawn, not the width it asks
+       for: a flex basis is a wish and min-width is the promise, so the floor
+       has to be checked against the promise. */
+    const narrowest = Number(css.match(/\.dial-board \{[^}]*min-width: (\d+)px/)[1]);
     // The well pads the board; .board-well is clamp(12px, 1.8vw, 22px) a side,
     // and border-box, so the widest padding is the narrowest drawing.
-    expect(labelPx(drawn - 22 * 2, DIAL_CROP)).toBeGreaterThanOrEqual(TYPE_FLOOR);
+    expect(labelPx(narrowest - 22 * 2, DIAL_CROP)).toBeGreaterThanOrEqual(TYPE_FLOOR);
   });
 });

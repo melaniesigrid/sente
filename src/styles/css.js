@@ -2644,7 +2644,10 @@ ${FONT_FACES}
 .dial-head { margin: clamp(46px, 6vw, 70px) 0 0; }
 .dial-lede { margin: 12px 0 0; max-width: 60ch; }
 .dial { display: flex; flex-wrap: wrap; align-items: center; gap: clamp(20px, 3.5vw, 44px); margin: clamp(26px, 4vw, 44px) 0 0; }
-.dial-board { flex: 0 1 300px; min-width: 240px; margin-inline: auto; }
+/* The minimum is the label's, not the layout's: the letters on the board are
+   SVG text, so a narrower column prints them smaller, and under about 254px
+   they fall through the 12px floor. coordinates.test.js reads this number. */
+.dial-board { flex: 0 1 300px; min-width: 260px; margin-inline: auto; }
 .dial-read { flex: 1 1 340px; min-width: 260px; }
 .dial-keys { list-style: none; padding: 0; margin: 0 0 18px; display: flex; flex-direction: column; gap: 7px; font-size: 14px; color: var(--ink-2); }
 .dial-keys li { display: flex; align-items: baseline; gap: 9px; line-height: 1.45; }

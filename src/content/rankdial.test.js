@@ -82,6 +82,20 @@ describe("the rank dial numbers", () => {
     expect([...second].sort((a, b) => b - a)).toEqual(second);
   });
 
+  /* The claim on the page is "measured on the network this site ships", so the
+     numbers have to be tied to the file, not to its name. Skipped rather than
+     failed where the model is not on disk: a checkout without it is a checkout
+     that cannot play either, and that is not this test's news to break. */
+  it("is a measurement of the network that is actually shipped", async () => {
+    const { createHash } = await import("node:crypto");
+    const { readFileSync, existsSync } = await import("node:fs");
+    const file = new URL(`../../public/models/${DIAL_SOURCE.model}`, import.meta.url);
+    if (!existsSync(file)) return;
+    const sha = createHash("sha256").update(readFileSync(file)).digest("hex");
+    expect(sha, "the shipped model is not the one these numbers were taken off; re-run "
+      + DIAL_SOURCE.tool).toBe(DIAL_SOURCE.sha256);
+  });
+
   it("says what it was measured against", () => {
     expect(DIAL_SOURCE.model).toMatch(/\.onnx$/);
     expect(DIAL_SOURCE.tool).toMatch(/^tools\//);

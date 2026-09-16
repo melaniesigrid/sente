@@ -139,6 +139,24 @@ describe("the demo board and the network", () => {
     expect(stones(container), "a dead worker may not freeze the board").toBeGreaterThan(0);
   });
 
+  /* A demo game ends by agreement every minute or so. The network answers null
+     on a finished position exactly as it answers null when it cannot load, and
+     reading the first as the second retired the network for good after the
+     first completed game. */
+  it("does not read the end of a game as the network giving up", async () => {
+    /* Faithful to bot.js: the network passes with { move: null } while the game
+       is on, and returns null outright once the record is no longer playing --
+       which is the same null it returns when it cannot load at all. */
+    choose.mockImplementation(rec => Promise.resolve(rec.phase === "playing" ? { move: null } : null));
+    const onSource = vi.fn();
+    const { container } = render(<MiniSelfPlay size={SIZE} players={PAIR} onSource={onSource} />);
+    await tick(4);
+    expect(onSource.mock.calls.map(c => c[0]), "a finished game is not a failure").toEqual(["kata"]);
+    expect(stones(container), "and it deals a new board rather than sitting there").toBe(0);
+    // The network is still the one being asked on the new board.
+    expect(choose).toHaveBeenCalled();
+  });
+
   it("never touches the network when the model is not in memory", async () => {
     ready.mockReturnValue(false);
     const onSource = vi.fn();

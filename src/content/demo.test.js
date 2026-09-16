@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import { demoPair } from "./demo.js";
 import { PERSONAS } from "./personas.js";
 import { rankInRange, RANK_LADDER } from "./rank.js";
-import { RANKS } from "../engine/index.js";
 
 const DAYS = Array.from({ length: 120 }, (_, i) => `2026-09-${String((i % 28) + 1).padStart(2, "0")}-${i}`);
 
@@ -35,14 +34,15 @@ describe("the demo pair", () => {
     expect(seen.size).toBeGreaterThan(2);
   });
 
-  // The caption says "at their own rank". It may only print a rank the network
-  // has a profile for; anything weaker is asked at 20k and softened, and the
-  // printed number would be a claim the board is not keeping.
-  it("only seats a rank the network can be asked at", () => {
+  // Not clamped to what the network can imitate on its own: below 20k the bot
+  // plays a softened 20k, and the app calls that 23k at every other table, so
+  // the demo board calls it 23k too. What it may never be is a rank off the
+  // ladder the app plays on.
+  it("seats a rank the app can actually play at", () => {
     for (const key of DAYS) {
       const pair = demoPair(PERSONAS, key);
       for (const seat of [pair.b, pair.w]) {
-        expect(RANKS, `${seat.persona.name} at ${seat.rank}`).toContain(seat.rank);
+        expect(RANK_LADDER, `${seat.persona.name} at ${seat.rank}`).toContain(seat.rank);
       }
     }
   });

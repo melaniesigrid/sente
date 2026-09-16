@@ -16,7 +16,7 @@
    Pure. The rank each one plays at is a real rank from its own home range, and
    the caption on the board prints it: a pair of names with no ranks would be
    the kind of decoration this page is not allowed to have. */
-import { clampRank, hashString } from "../engine/index.js";
+import { hashString } from "../engine/index.js";
 import { rankFromRange } from "./rank.js";
 
 /** The two house players on today's demo board, Black first, or null if there
@@ -35,11 +35,13 @@ export function demoPair(personas, key) {
 }
 
 function seat(persona, key, side) {
-  // Clamped to a rank the network can actually imitate, because the line under
-  // the board prints this rank and says the network was asked at it. Below 20k
-  // there is no such profile: `profileForRank` asks at 20k and softens the
-  // sampling instead, which is a true thing to say about how a bot plays and a
-  // false thing to print as the rank it was asked at.
-  const drawn = rankFromRange(persona, hashString(`demo-rank-${side}:${key}`));
-  return { persona, rank: clampRank(drawn) ?? drawn };
+  /* The rank is drawn from the persona's own range and handed on as it is.
+     Below 20k the network has no profile of its own -- `profileForRank` asks at
+     20k and softens the sampling a notch per rank -- and clamping here to what
+     the network can imitate looked more honest for about a day: it printed 20k
+     beside Hoshi, whose range starts at 25k, and quietly made the demo board
+     the one place in the app where Hoshi plays stronger than Hoshi. A rank in
+     this app means the rank a player plays at, on the demo board as at every
+     table, and the softening is how that is kept. */
+  return { persona, rank: rankFromRange(persona, hashString(`demo-rank-${side}:${key}`)) };
 }

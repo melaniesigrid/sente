@@ -75,4 +75,9 @@ export const DIAL_SOURCE = {
   model: "humanv0.fp16w.onnx",
   tool: "tools/kata/rankdial.mjs",
   date: "2026-09-16",
+  /* The file these numbers came off, by content rather than by name. A retrain
+     or a requant shipped under the same filename would leave the front door
+     printing a measurement of a network nobody is playing, and the page calls
+     it measured rather than estimated. The test fails when the two part ways. */
+  sha256: "5637c2fb778c66859a8a7a3cbcbbe057f64c9ddb04dfe2872a9593d3f21a7a38",
 };

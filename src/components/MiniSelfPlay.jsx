@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { modelReady, kataChooseMoveForRecord, profileForRank } from "../engine/index.js";
 import { Board } from "./Board.jsx";
-import { openingFrame, nextFrameWith, demoMove, demoCount } from "./selfPlay.js";
+import { openingFrame, nextFrameWith, demoMove, demoCount, demoSpent } from "./selfPlay.js";
 
 /* ----------------------- A SELF-PLAYING BOARD -----------------------
    The demo is the real engine: the same createGame, the same play, the same
@@ -87,7 +87,11 @@ export function MiniSelfPlay({ sizePx = 300, size = 9, players = null, onSource 
     // the position of describing whichever engine answered last.
     let fallen = false;
     const demote = () => {
-      if (fallen) return;
+      // `alive` as well as `fallen`: a question left over from a loop that has
+      // been cleaned up (a size change, a new pair at midnight, StrictMode's
+      // double mount in dev) would otherwise demote the caption of the loop
+      // that replaced it, and that loop's network is fine.
+      if (fallen || !alive) return;
       fallen = true;
       saying = "heuristic";
       if (sourceRef.current) sourceRef.current(saying);
@@ -104,6 +108,12 @@ export function MiniSelfPlay({ sizePx = 300, size = 9, players = null, onSource 
     };
     const tick = () => {
       if (!seats || fallen) { step(demoMove(frameRef.current)); return; }
+      /* A finished game is not a failure. Both sides passing puts the record in
+         scoring, where the network answers null the same way it answers null
+         when it cannot load -- and demoting on that would retire a healthy
+         network the first time a demo game ended properly. Nobody is asked
+         about a spent position; stepping it deals a new board. */
+      if (demoSpent(frameRef.current)) { step(null); return; }
       /* A question with no answer and no error is the one way this board can
          stop for good: the worker can be reclaimed under memory pressure with
          54MB of weights resident, and net.js hands out a promise that then
@@ -128,10 +138,13 @@ export function MiniSelfPlay({ sizePx = 300, size = 9, players = null, onSource 
       askedAt = Date.now();
       kataChooseMoveForRecord(asked.rec, profileForRank(seat.rank, seat.persona.profile?.temperature))
         .then(res => {
-          // A null answer is the network declining, not passing: the position
-          // is played on by the heuristic, under the heuristic's name.
+          // An answer about a board that is gone is discarded whole: it may not
+          // demote the caption either, which is why this is checked first.
+          if (frameRef.current !== asked) return;
+          // A null answer here is the network declining -- the spent-game case
+          // never reaches it -- so the heuristic plays on under its own name.
           if (!res) demote();
-          if (frameRef.current === asked) step(res ? res.move : demoMove(asked));
+          step(res ? res.move : demoMove(asked));
         })
         .catch(() => {
           demote();
@@ -149,7 +162,14 @@ export function MiniSelfPlay({ sizePx = 300, size = 9, players = null, onSource 
     let timer = null;
     let onScreen = true, awake = !document.hidden;
     const stop = () => { if (timer) { clearInterval(timer); timer = null; } };
-    const start = () => { if (!timer && onScreen && awake && alive) timer = setInterval(tick, reduce ? 2600 : 1100); };
+    const start = () => {
+      if (timer || !onScreen || !awake || !alive) return;
+      // The patience below is a wait on the network, not on the reader: a tab
+      // hidden for a minute with a question outstanding has not been kept
+      // waiting a minute, so the window starts again with the clock.
+      if (thinking) askedAt = Date.now();
+      timer = setInterval(tick, reduce ? 2600 : 1100);
+    };
 
     const onVisibility = () => { awake = !document.hidden; if (awake) start(); else stop(); };
     document.addEventListener("visibilitychange", onVisibility);

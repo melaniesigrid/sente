@@ -11,6 +11,13 @@
    it. That is the whole reason this is a tool and not a paragraph: the landing
    page may only show a measurement it can reproduce.
 
+   What it prints is the network's policy as the network emits it: a softmax
+   over every point and the pass, with no legality mask and none of the
+   temperature or floor a house player samples with (engine/kata/policy.js).
+   That is the honest thing to draw beside "one network, one dial", and the copy
+   on the page says so -- but it is not what any one bot would do, and a figure
+   that wants the bot's own frequencies has to sample instead of read.
+
    Ranks are the network's own labels (RANKS in features.js), strongest first. */
 
 import { readFileSync } from "node:fs";
@@ -26,12 +33,22 @@ const WASM = resolve(ROOT, "public/ort/");
 const argv = process.argv.slice(2);
 const arg = (name, fallback) => {
   const i = argv.indexOf(`--${name}`);
-  return i >= 0 ? argv[i + 1] : fallback;
+  if (i < 0) return fallback;
+  const v = argv[i + 1];
+  // A flag swallowing the next flag is how a typo becomes a measurement: the
+  // numbers this prints are copied into a page that calls them measured.
+  if (v === undefined || v.startsWith("--")) throw new Error(`--${name} needs a value`);
+  return v;
 };
 const flag = (name) => argv.includes(`--${name}`);
+const num = (name, fallback) => {
+  const v = Number(arg(name, fallback));
+  if (!Number.isInteger(v) || v <= 0) throw new RangeError(`--${name} must be a positive whole number`);
+  return v;
+};
 
-const size = Number(arg("size", 19));
-const top = Number(arg("top", 5));
+const size = num("size", 19);
+const top = num("top", 5);
 const ranks = arg("ranks", "20k,8k,1d,9d").split(",");
 for (const r of ranks) if (!RANKS.includes(r)) throw new RangeError(`unknown rank ${r}`);
 
