@@ -1,6 +1,26 @@
 import { useState, useMemo } from "react";
 import { idx, starPoints, colLabel, rowLabel, pointLabel } from "../engine/index.js";
 
+/* A stone as the game screen was drawn (design pass, 2026-09-15): a flat disc
+   of the set's body colour, the black one with a single bright highlight high
+   on its left shoulder, the white one with a hairline rim. The highlight is a
+   hard disc, not a fade: that is the drawing, and it is what makes the pieces
+   read as polished glass rather than as ink. No cast shadow: the board is the
+   object on the table, and the stones lie on it rather than floating above it.
+   The colours are the room's --stone-* tokens; nothing here names one, and in
+   a printed room the crown is the body, so the highlight paints nothing. */
+const R = 18.5;
+function Stone({ cx, cy, color }) {
+  return color === "b" ? (
+    <>
+      <circle cx={cx} cy={cy} r={R} className="stone-b" />
+      <circle cx={cx - R * 0.3} cy={cy - R * 0.3} r={R * 0.35} className="stone-gloss" />
+    </>
+  ) : (
+    <circle cx={cx} cy={cy} r={R} className="stone-w" />
+  );
+}
+
 /* ----------------------- BOARD (SVG) -----------------------
    Renders any board size; reads it from the board object. Presentational
    only: every rule decision happens in the engine before onPlay is called.
@@ -56,18 +76,10 @@ export function Board({
         role="grid"
         aria-label={`Go board, ${N} by ${N}`}
       >
-        <defs>
-          <radialGradient id="stB" cx="0.36" cy="0.34" r="0.85">
-            <stop offset="0%" stopColor="var(--stone-b-1)" />
-            <stop offset="55%" stopColor="var(--stone-b-2)" />
-            <stop offset="100%" stopColor="var(--stone-b-3)" />
-          </radialGradient>
-          <radialGradient id="stW" cx="0.36" cy="0.34" r="0.85">
-            <stop offset="0%" stopColor="var(--stone-w-1)" />
-            <stop offset="60%" stopColor="var(--stone-w-2)" />
-            <stop offset="100%" stopColor="var(--stone-w-3)" />
-          </radialGradient>
-        </defs>
+        {/* The wood, under everything. It is the board's, not the well's: the
+            well is the page the board is set on, and a cropped view still
+            shows the wood because the rect is the whole board, not the view. */}
+        <rect x={0} y={0} width={S} height={S} rx={10} className="wood" />
         {Array.from({ length: N }).map((_, i) => (
           <g key={i}>
             <line x1={m} y1={y(i)} x2={x(N - 1)} y2={y(i)} className="grid-line" />
@@ -118,9 +130,7 @@ export function Board({
           const isDead = deadSet.has(i);
           return (
             <g key={i} className={`${flashSet.has(i) ? "stone-pop" : "stone-in"} ${isDead ? "stone-dead" : ""}`}>
-              <circle cx={x(c)} cy={y(r)} r={18.5}
-                fill={v === "b" ? "url(#stB)" : "url(#stW)"}
-                className={v === "b" ? "stone-b" : "stone-w"} />
+              <Stone cx={x(c)} cy={y(r)} color={v} />
               {isDead && (
                 <path className={`dead-x ${v === "b" ? "on-b" : "on-w"}`}
                   d={`M${x(c) - 7} ${y(r) - 7} L${x(c) + 7} ${y(r) + 7} M${x(c) + 7} ${y(r) - 7} L${x(c) - 7} ${y(r) + 7}`} />
@@ -141,9 +151,7 @@ export function Board({
         })}
         {pending && (
           <g className="stone-staged">
-            <circle cx={x(pending.c)} cy={y(pending.r)} r={18.5}
-              fill={pending.color === "b" ? "url(#stB)" : "url(#stW)"}
-              className={pending.color === "b" ? "stone-b" : "stone-w"} />
+            <Stone cx={x(pending.c)} cy={y(pending.r)} color={pending.color} />
             <circle cx={x(pending.c)} cy={y(pending.r)} r={21.5} className="staged-ring" />
           </g>
         )}
