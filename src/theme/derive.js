@@ -232,11 +232,11 @@ export function tokensFor(tones) {
 export function stonesFor(tones) {
   const set = stonesOf(tones.stones);
   /* The printed white stone is the page with a line round it. The line is
-     mixed rather than the ink itself, because these three stops are also the
-     gradient the big drawn stones are made of (components/stoneArt.jsx): a
-     rim of solid ink there would ramp a three-hundred-pixel stone to black
-     over its outer third. Half-way to the ink is a firm printed outline at
-     the size of a game and a shaded edge at the size of a figure. */
+     mixed rather than being the ink itself, because one drawing serves every
+     size (components/stoneArt.jsx) and the rim thickens with the stone: at the
+     size of a game solid ink would be right, and at the size of a figure it
+     would be a heavy black ring round a sheet of paper. Half-way to the ink is
+     a firm printed outline at both. */
   if (tones.print) {
     return { b: [tones.ink, tones.ink, tones.ink], w: [tones.ground, tones.ground, mix(tones.ground, tones.ink, 0.55)], set };
   }

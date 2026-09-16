@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef, useId } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   FIELD_N, SETTLED, freshField, advanceField, fieldSpent, fieldStones, departed,
 } from "./fieldGame.js";
-import { StoneArt, Shine } from "./stoneArt.jsx";
+import { StoneFace } from "./stoneArt.jsx";
 
 /* ----------------------- THE GROUND -----------------------
    The texture behind the front door's first and last bands: a go position,
@@ -16,8 +16,8 @@ import { StoneArt, Shine } from "./stoneArt.jsx";
    words and never competes with them, little enough that the stones are
    stones, and little enough that a move landing is a thing you can watch.
 
-   Which is the second change. The stones are drawn the way the figures beside
-   the statements are drawn, off the same shared gradients, and a stone arriving
+   Which is the second change. The stones are the board's stones, by the one
+   drawing the whole app uses (components/stoneArt.jsx), and a stone arriving
    settles in rather than appearing between two frames. One move every couple of
    seconds, in a position that really is being played: it is the slowest thing
    on the page and the only one that is a game.
@@ -75,8 +75,6 @@ export function StoneField({ live = true }) {
      land between the two and draw a capture against the wrong board. */
   const [frame, setFrame] = useState(null);
   const host = useRef(null);
-  const uid = useId().replace(/[:]/g, "");
-  const ids = { b: `fsb-${uid}`, w: `fsw-${uid}`, shine: `fss-${uid}` };
 
   useEffect(() => {
     const query = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -171,18 +169,15 @@ export function StoneField({ live = true }) {
   const board = frame && frame.board;
   const gone = (frame && frame.gone) || [];
 
-  /** One stone, at the size the field draws them. */
+  /* One stone, at the size the field draws them, by the board's own drawing.
+     The white stone's rim comes with it and is load-bearing here: on a pale
+     ground without an edge a white stone is a hole in the field rather than a
+     stone in it, and half the position does not arrive. A board needs it less,
+     because a board has lines under its stones to cut them out, and this has
+     none. */
   const stone = (s, className, key) => (
     <g key={key} className={className}>
-      <circle cx={at(s.c)} cy={at(s.r)} r={R}
-        fill={`url(#${s.colour === "b" ? ids.b : ids.w})`} />
-      {/* A white stone on a pale ground is the same value as the ground:
-          without an edge it is a hole in the field rather than a stone in it,
-          and half the position simply does not arrive. The board does not need
-          this because a board has lines under its stones to cut them out. This
-          has none. */}
-      <circle cx={at(s.c)} cy={at(s.r)} r={R} className="fs-rim" />
-      <Shine x={at(s.c)} y={at(s.r)} r={R} id={ids.shine} className="fs-shine" />
+      <StoneFace cx={at(s.c)} cy={at(s.r)} r={R} colour={s.colour} />
     </g>
   );
 
@@ -190,7 +185,6 @@ export function StoneField({ live = true }) {
     <div className={`stone-field${board ? " ready" : ""}`} ref={host} aria-hidden="true">
       {board && (
         <svg viewBox={`0 0 ${VIEW} ${VIEW}`} preserveAspectRatio="xMidYMid slice" focusable="false">
-          <defs><StoneArt ids={ids} /></defs>
           {/* Keyed by the point it sits on, which is what makes the arriving
               visible: a stone that was not there last tick is a new element and
               settles in, and one that was there is the same element and does

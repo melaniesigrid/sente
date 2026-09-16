@@ -90,9 +90,14 @@ const RIM = "#b9a98a";
  *  the body, the rim. The constants are read off the drawn stones and then
  *  applied to every set, so a new set is two colours and nothing else. The
  *  black crown is the body a quarter of the way to white, which is the exact
- *  highlight the game screen was drawn with (2026-09-15): the board paints it
- *  as one hard, bright disc on the stone's left shoulder, and the big figures
- *  fade from it. */
+ *  highlight the game screen was drawn with (2026-09-15): every stone in the
+ *  app paints it as one hard, bright disc on the left shoulder, at the size of
+ *  a game and at the size of a plum alike.
+ *
+ *  The white crown is the one stop nothing draws today: a white stone is a
+ *  body and a rim, because a highlight on a stone that is already the lightest
+ *  thing in the room says nothing. It is cut anyway, so that a set stays two
+ *  colours in and a full stone out, and so the pair of cuts stay symmetrical. */
 export const cutBlack = (core) => [lighten(core, 0.25), core, darken(core, 0.22)];
 /* The rim is a turn of the surface, not a separator, and it cannot become one:
    RIM is within 1.21:1 of the wood, so cutting the rim deeper walks it toward

@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState, useId } from "react";
 import { figureFor, figureLives } from "../content/figures.js";
-import { StoneArt, Shine } from "./stoneArt.jsx";
+import { StoneFace } from "./stoneArt.jsx";
 
 /* ----------------------- THE FIGURE, SET LARGE -----------------------
    A shape out of the game, drawn at the size of the thing it stands behind.
@@ -22,13 +22,12 @@ import { StoneArt, Shine } from "./stoneArt.jsx";
 
    How it is drawn, and the rules it keeps:
 
-   - The stones are the room's stones. The same three-stop radial the board
-     uses, off the same --stone-* tokens, so the figure changes set with the
-     board and never names a colour of its own. What is added here and not on
-     the board is the shine: at this size a stone is the size of a plum and a
-     polished thing that size has a highlight on it and a lit rim where the
-     surface turns. Both are drawn in --sh-lite, the light the whole design
-     system is lit from, so they stay the same light as every raised card.
+   - The stones are the board's stones, drawn by the board's own drawing
+     (components/stoneArt.jsx) off the same --stone-* tokens: a flat disc, one
+     hard highlight on the black stone's shoulder, a hairline rim on the white.
+     The geometry is ratios of the radius, so a figure is the goban's stone
+     seen closer and not a second idea of what a stone looks like. It changes
+     room and set with the board and never names a colour of its own.
    - No cast shadow, as on the board: two shadows at three hundred pixels is
      a smear, not a relief, and the board's stones lie flat too.
    - It is never in front of anything. z-index 0 in a positioned block, no
@@ -43,13 +42,10 @@ import { StoneArt, Shine } from "./stoneArt.jsx";
    seconds, which is about as long as a decoration may hold a reader. */
 const STEP_MS = 95;
 
-/** One stone, drawn at `r` with the light on it. */
-function Stone({ x, y, r, colour, laid, gone, sheen, ids }) {
+/** One stone, drawn at `r`. */
+function Stone({ x, y, r, colour, laid, gone }) {
   const style = {
     "--laid": `${laid * STEP_MS}ms`,
-    /* negative, so every stone is already somewhere in the one loop rather than
-       waiting to join it: the light is crossing the figure before it is read */
-    "--sheen": `${-sheen}ms`,
     ...(gone === null ? null : { "--gone": `${gone * STEP_MS}ms` }),
   };
   return (
@@ -73,11 +69,7 @@ function Stone({ x, y, r, colour, laid, gone, sheen, ids }) {
         )}
       </g>
       <g className={`fig-stone${gone === null ? "" : " taken"}`} style={style}>
-        <circle cx={x} cy={y} r={r} fill={`url(#${colour === "b" ? ids.b : ids.w})`} />
-        {/* the rim the light catches as the surface turns away, and the
-            highlight it catches where the surface faces it */}
-        <circle cx={x} cy={y} r={r * 0.985} fill="none" className="fig-rim" strokeWidth={r * 0.06} />
-        <Shine x={x} y={y} r={r} id={ids.shine} />
+        <StoneFace cx={x} cy={y} r={r} colour={colour} />
       </g>
     </>
   );
@@ -95,7 +87,7 @@ export function Figure({ screen, figure, at = "right", className = "" }) {
     || typeof IntersectionObserver !== "function"
     || (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches));
   const uid = useId().replace(/[:]/g, "");
-  const ids = { b: `fgb-${uid}`, w: `fgw-${uid}`, shine: `fgs-${uid}`, grid: `fgg-${uid}` };
+  const ids = { grid: `fgg-${uid}` };
 
   /* Watching is set up as the element arrives rather than in an effect, so the
      figure above the fold is shown in the frame it is drawn in and not one
@@ -171,7 +163,6 @@ export function Figure({ screen, figure, at = "right", className = "" }) {
     >
       <svg viewBox={`0 0 ${span} ${span}`} focusable="false" preserveAspectRatio="xMidYMid meet">
         <defs>
-          <StoneArt ids={ids} />
           {/* The lines end sooner than the stones do. The block's own mask is
               sized to carry every stone at full strength, which leaves the grid
               running on past the shape to a corner, and a grid that stops on a
@@ -201,7 +192,7 @@ export function Figure({ screen, figure, at = "right", className = "" }) {
 
         {lives.map((s, i) => (
           <Stone key={i} x={to(s.c)} y={to(s.r)} r={r} colour={s.colour}
-            laid={s.laid} gone={s.gone} sheen={(s.c + s.r) * 320} ids={ids} />
+            laid={s.laid} gone={s.gone} />
         ))}
       </svg>
     </span>
