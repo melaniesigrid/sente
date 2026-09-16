@@ -26,7 +26,8 @@ export function RankDial({ t }) {
     () => DIAL_MOVES.reduce((g, [color, c, r]) => play(g, c, r, color), createGame({ size: DIAL_SIZE })),
     [],
   );
-  const letters = ["A", "B"];
+  // A, B, C... off the index: a third candidate in the data draws a third key.
+  const letter = (i) => String.fromCharCode(65 + i);
   const pct = (p) => Math.round(p * 100);
   return (
     <figure className="dial">
@@ -35,7 +36,7 @@ export function RankDial({ t }) {
           board={rec.board} disabled sizePx={300} crop={DIAL_CROP}
           lastMove={lastMoveIndex(rec)} mark="dot"
           marks={DIAL_CANDIDATES.map(({ c, r }) => ({ c, r }))}
-          labels={DIAL_CANDIDATES.map(({ c, r }, i) => ({ c, r, text: letters[i] }))}
+          labels={DIAL_CANDIDATES.map(({ c, r }, i) => ({ c, r, text: letter(i) }))}
         />
       </div>
       <div className="dial-read">
@@ -43,7 +44,7 @@ export function RankDial({ t }) {
           {DIAL_CANDIDATES.map((cand, i) => (
             <li key={cand.key}>
               <span className={`dial-swatch s${i}`} aria-hidden="true" />
-              <b>{letters[i]}</b> {t(`landing.dial.${cand.key}`)}
+              <b>{letter(i)}</b> {t(`landing.dial.${cand.key}`)}
             </li>
           ))}
         </ul>

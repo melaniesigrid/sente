@@ -3,6 +3,7 @@ import { createGame, play, tryPlay, RANKS } from "../engine/index.js";
 import {
   DIAL_MOVES, DIAL_SIZE, DIAL_CROP, DIAL_CANDIDATES, DIAL_ROWS, DIAL_SOURCE,
 } from "./rankdial.js";
+import { BASE_LOCALE, makeT } from "../i18n/index.js";
 
 /* The figure prints a measurement, so the one thing this file can check is that
    the position it is a measurement of is a position: the engine has to accept
@@ -76,5 +77,43 @@ describe("the rank dial numbers", () => {
     expect(DIAL_SOURCE.model).toMatch(/\.onnx$/);
     expect(DIAL_SOURCE.tool).toMatch(/^tools\//);
     expect(DIAL_SOURCE.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+});
+
+describe("what the figure can be drawn from", () => {
+  const t = makeT(BASE_LOCALE);
+
+  it("puts both candidates inside the corner it crops to", () => {
+    for (const { c, r } of DIAL_CANDIDATES) {
+      expect(c).toBeGreaterThanOrEqual(DIAL_CROP.c0);
+      expect(c).toBeLessThanOrEqual(DIAL_CROP.c1);
+      expect(r).toBeGreaterThanOrEqual(DIAL_CROP.r0);
+      expect(r).toBeLessThanOrEqual(DIAL_CROP.r1);
+    }
+  });
+
+  it("names two different points, neither of them already played", () => {
+    const at = DIAL_CANDIDATES.map(({ c, r }) => `${c},${r}`);
+    expect(new Set(at).size).toBe(at.length);
+    const played = new Set(DIAL_MOVES.map(([, c, r]) => `${c},${r}`));
+    for (const point of at) expect(played.has(point)).toBe(false);
+  });
+
+  it("has a line of copy for every candidate it draws a bar for", () => {
+    // The key names the copy, so a renamed candidate would print its own key.
+    for (const cand of DIAL_CANDIDATES) {
+      const line = t(`landing.dial.${cand.key}`);
+      expect(line).not.toBe(`landing.dial.${cand.key}`);
+      expect(line.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("fills the holes the row and the source line leave", () => {
+    const row = t("landing.dial.row", { rank: "9d", a: 92, b: 7 });
+    expect(row).toContain("9d");
+    expect(row).not.toMatch(/\{\w+\}/);
+    const src = t("landing.dial.source", { model: DIAL_SOURCE.model, date: DIAL_SOURCE.date });
+    expect(src).toContain(DIAL_SOURCE.model);
+    expect(src).not.toMatch(/\{\w+\}/);
   });
 });

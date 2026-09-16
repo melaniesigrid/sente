@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   rankOf, preciseRankOf, gradeOf, rankValue, ratingOfValue, ratingOfRank, beltOf, nextBelt,
   beltFloor, kyuFloor, hintsForBelt, hintsFor, BELTS, RANK_LADDER, stepRank, rankInRange,
+  rankFromRange,
   rankWithHandicap, rankGain, MIN_RATING, MAX_RATING, DAN_RATING, RATING_A, RATING_C,
 } from "./rank.js";
 import { GLICKO } from "../engine/glicko.js";
@@ -152,5 +153,46 @@ describe("belts", () => {
     expect(hintsForBelt(beltOf(ratingOfRank("20k")))).toBe(true);
     expect(hintsForBelt(beltOf(ratingOfRank("14k")))).toBe(false);
     expect(hintsForBelt(beltOf(DAN_RATING))).toBe(false);
+  });
+});
+
+/* The pick every seated bot goes through: the daily duel's host and both seats
+   on the dashboard's demo board. The interesting half is the fallbacks, since a
+   persona whose range is missing or written the wrong way round still has to
+   come back with a rank the ladder knows rather than undefined. */
+describe("a rank picked out of a persona's range", () => {
+  it("stays inside the range, whatever it is handed", () => {
+    const persona = { range: ["8k", "3k"] };
+    for (let n = 0; n < 200; n++) expect(rankInRange(rankFromRange(persona, n), persona.range)).toBe(true);
+  });
+
+  it("gives the same answer for the same number", () => {
+    const persona = { range: ["8k", "3k"] };
+    expect(rankFromRange(persona, 7)).toBe(rankFromRange(persona, 7));
+  });
+
+  it("uses the whole range rather than one end of it", () => {
+    const persona = { range: ["8k", "3k"] };
+    const seen = new Set(Array.from({ length: 60 }, (_, n) => rankFromRange(persona, n)));
+    expect(seen.size).toBe(6);
+  });
+
+  it("plays at the foot of the ladder when the persona has no range", () => {
+    expect(rankFromRange({}, 0)).toBe(RANK_LADDER[0]);
+    expect(rankFromRange({}, 37)).toBe(RANK_LADDER[0]);
+  });
+
+  it("does not invert a range written the wrong way round", () => {
+    // strong first: there is nothing between them, so it is the one end.
+    expect(rankFromRange({ range: ["3k", "8k"] }, 5)).toBe("3k");
+  });
+
+  it("falls to the foot rather than off the ladder for a label it does not know", () => {
+    expect(rankFromRange({ range: ["banana", "3k"] }, 0)).toBe(RANK_LADDER[0]);
+    expect(RANK_LADDER).toContain(rankFromRange({ range: ["8k", "banana"] }, 3));
+  });
+
+  it("names a rank on the ladder for a one-rank range", () => {
+    expect(rankFromRange({ range: ["1d", "1d"] }, 99)).toBe("1d");
   });
 });

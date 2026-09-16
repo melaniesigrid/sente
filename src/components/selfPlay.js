@@ -14,19 +14,15 @@ import { createGame, play, pass, aiChooseMoveForRecord, lastMoveIndex } from "..
    The move count doubles as the Board's capture key, so a capture on move 13
    replays rather than sitting on screen from move 12.
 
-   The chooser is the caller's. `demoMove` is the heuristic house player and is
-   what the front door uses; the dashboard hands in the network's move instead
-   when the model is already in memory. Either way the stepping is the same,
-   which is the point of doing it here.
+   The chooser is the caller's: `demoMove` is the heuristic house player and is
+   what the front door plays, and the dashboard hands in the network's move
+   instead when the model is already in memory. Both go through nextFrameWith,
+   so there is one stepping and the tests walk the same one the board does.
 
    Pure, and it never mutates the frame it is given. */
 
-const opening = (size) => ({ rec: createGame({ size }), last: null, took: [] });
-
 /** A fresh game: empty board, black to play, nothing said yet. */
-export function openingFrame(size) {
-  return opening(size);
-}
+export const openingFrame = (size) => ({ rec: createGame({ size }), last: null, took: [] });
 
 /** How long a demo game runs before it starts over. Long enough to build a
  *  shape worth looking at, short enough that nobody watches a seki. */
@@ -48,7 +44,7 @@ export const demoCount = (frame) => frame.rec.moves.length;
  *  those in a row and the game is over, which is how a demo ends by agreement
  *  rather than by running out of moves. */
 export function nextFrameWith(frame, move, size = frame.rec.size) {
-  if (demoSpent(frame)) return opening(size);
+  if (demoSpent(frame)) return openingFrame(size);
   if (!move) return { rec: pass(frame.rec), last: frame.last, took: [] };
   let rec;
   try {
@@ -57,10 +53,4 @@ export function nextFrameWith(frame, move, size = frame.rec.size) {
     return { rec: pass(frame.rec), last: frame.last, took: [] };
   }
   return { rec, last: lastMoveIndex(rec), took: rec.lastCaptured ?? [] };
-}
-
-/** The next frame with the heuristic playing: the front door's whole loop. */
-export function nextFrame(frame, size = frame.rec.size) {
-  if (demoSpent(frame)) return opening(size);
-  return nextFrameWith(frame, demoMove(frame), size);
 }

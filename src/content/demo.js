@@ -16,7 +16,7 @@
    Pure. The rank each one plays at is a real rank from its own home range, and
    the caption on the board prints it: a pair of names with no ranks would be
    the kind of decoration this page is not allowed to have. */
-import { hashString } from "../engine/index.js";
+import { clampRank, hashString } from "../engine/index.js";
 import { rankFromRange } from "./rank.js";
 
 /** The two house players on today's demo board, Black first, or null if there
@@ -35,5 +35,11 @@ export function demoPair(personas, key) {
 }
 
 function seat(persona, key, side) {
-  return { persona, rank: rankFromRange(persona, hashString(`demo-rank-${side}:${key}`)) };
+  // Clamped to a rank the network can actually imitate, because the line under
+  // the board prints this rank and says the network was asked at it. Below 20k
+  // there is no such profile: `profileForRank` asks at 20k and softens the
+  // sampling instead, which is a true thing to say about how a bot plays and a
+  // false thing to print as the rank it was asked at.
+  const drawn = rankFromRange(persona, hashString(`demo-rank-${side}:${key}`));
+  return { persona, rank: clampRank(drawn) ?? drawn };
 }

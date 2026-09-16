@@ -498,13 +498,9 @@ ${FONT_FACES}
 .hero { display: flex; gap: clamp(18px, 3vw, 36px); align-items: center; flex-wrap: wrap; }
 .hero-copy { flex: 1 1 300px; }
 /* The dashboard's demo board carries a caption saying what is playing it, so
-   the column holds the board and the line under it. The line is 12px, the
-   floor of the scale, because it is a credit and not a heading. */
+   the column holds the board and the line under it. The line itself is set
+   beside the front door's, at .lp-board-note: one idiom, one rule. */
 .hero-board { flex: 0 1 300px; margin-inline: auto; display: flex; flex-direction: column; gap: 10px; }
-.board-note {
-  color: var(--ink-2); margin: 0; text-align: center; max-width: 34ch; margin-inline: auto;
-  font-family: var(--font-caption); font-style: var(--caption-style); font-size: 12px; line-height: 1.45;
-}
 .hero .row { margin-top: 18px; }
 
 .tile { text-align: start; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease, box-shadow .15s ease; }
@@ -557,9 +553,18 @@ ${FONT_FACES}
 .star-pt { fill: var(--grid); fill-opacity: calc(var(--grid-alpha) * 1.45); }
 .ghost { fill: var(--accent); opacity: .28; }
 .mark-ring { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 4 4; opacity: .85; }
-/* A named empty point in a figure. It sits inside the mark ring, so it is
-   the accent's ink rather than the board's. */
-.point-label { font-size: 17px; font-weight: 700; fill: var(--accent-ink); pointer-events: none; }
+/* A named empty point in a figure. Two things it has to get right, and the
+   first draft got both wrong.
+
+   It is drawn on the wood, and the wood is a constant: --accent-ink is derived
+   against the page's ground, so in Night it is a pale green sitting on a pale
+   board and the letter disappears. The stone inks are the pair held against
+   the board, which is why .stone-num uses them, and this uses them too.
+
+   And it is SVG text inside the viewBox, so the page scales it down: LABEL_PX
+   in boardGeometry.js is the size that still clears the 12px floor on the
+   narrowest board that draws one, and coordinates.test.js holds it there. */
+.point-label { font-size: 24px; font-weight: 700; fill: var(--stone-b-2); pointer-events: none; }
 /* The ring a chat line puts on a point. Wider than a stone rather than inside
    it, so it reads the same whether the point is empty or has been played on;
    the atari ring above it is drawn the same way for the same reason. */
@@ -2617,7 +2622,14 @@ ${FONT_FACES}
    lifted out of a recess it was cut into. The outer frame wins here: it is the
    one that belongs to the page's composition. */
 .lp-board-well .board-well { box-shadow: none; padding: 0; }
-.lp-board-note { color: var(--ink-2); margin: 0; font-family: var(--font-caption); font-style: var(--caption-style); font-size: 13px; text-align: center; }
+/* A caption under a board: the front door's and the dashboard's. They differ
+   only in the size the page around them asks for. */
+.board-note, .lp-board-note {
+  color: var(--ink-2); margin: 0; text-align: center;
+  font-family: var(--font-caption); font-style: var(--caption-style);
+}
+.lp-board-note { font-size: 13px; }
+.board-note { font-size: 12px; line-height: 1.45; max-width: 34ch; margin-inline: auto; }
 
 /* ---- the rank dial ----
    One figure, two columns: the corner on the left and the reading of it on the
@@ -2626,6 +2638,11 @@ ${FONT_FACES}
    full strength, the alternative at a quarter of it -- and neither is a hue a
    reader has to learn. The track is sunken and the bars sit in it, which is
    the same two shadows as everything else, turned the way a groove is. */
+/* The heading and its lede hang on .lp-h3 and .lp-body, which both zero their
+   margins for use inside a card. Out here they need the section's own rhythm,
+   and the lede needs a measure the card used to give it. */
+.dial-head { margin: clamp(46px, 6vw, 70px) 0 0; }
+.dial-lede { margin: 12px 0 0; max-width: 60ch; }
 .dial { display: flex; flex-wrap: wrap; align-items: center; gap: clamp(20px, 3.5vw, 44px); margin: clamp(26px, 4vw, 44px) 0 0; }
 .dial-board { flex: 0 1 300px; min-width: 240px; margin-inline: auto; }
 .dial-read { flex: 1 1 340px; min-width: 260px; }

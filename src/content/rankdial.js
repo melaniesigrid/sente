@@ -61,7 +61,8 @@ export const DIAL_ROWS = [
   { rank: "9d", p: [0.9171, 0.0656] },
 ];
 
-/** What the measurement rests on, printed under the figure. */
+/** What the measurement rests on. The model and the date are printed under
+ *  the figure; the tool is the record of how to take it again. */
 export const DIAL_SOURCE = {
   model: "humanv0.fp16w.onnx",
   tool: "tools/kata/rankdial.mjs",

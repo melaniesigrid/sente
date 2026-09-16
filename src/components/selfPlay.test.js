@@ -4,16 +4,21 @@
    there. The second is these three facts, and they are easy to drop without
    anything failing to build, which is why they are held here. */
 import { describe, it, expect } from "vitest";
-import { openingFrame, nextFrame, nextFrameWith, demoCount, DEMO_MOVES } from "./selfPlay.js";
+import {
+  openingFrame, nextFrameWith, demoMove, demoCount, demoSpent, DEMO_MOVES,
+} from "./selfPlay.js";
 import { idx } from "../engine/index.js";
 
 const SIZE = 9;
 const stonesOn = (board) => board.cells.filter(v => v !== null).length;
 
+/** One tick, exactly as MiniSelfPlay takes one: pick a move, then step it. */
+const step = (frame, size = SIZE) => nextFrameWith(frame, demoMove(frame), size);
+
 /** A whole demo game as the component would step it. */
 function play(size = SIZE, ticks = 400) {
   const frames = [openingFrame(size)];
-  for (let i = 0; i < ticks; i++) frames.push(nextFrame(frames.at(-1), size));
+  for (let i = 0; i < ticks; i++) frames.push(step(frames.at(-1), size));
   return frames;
 }
 
@@ -27,7 +32,7 @@ describe("the self-playing demo", () => {
   });
 
   it("marks the stone it just played", () => {
-    const f = nextFrame(openingFrame(SIZE), SIZE);
+    const f = step(openingFrame(SIZE), SIZE);
     expect(stonesOn(f.rec.board)).toBe(1);
     expect(demoCount(f)).toBe(1);
     // the mark points at the one stone on the board, not at some other point
@@ -54,7 +59,7 @@ describe("the self-playing demo", () => {
   it("never mutates the frame it was given", () => {
     const before = openingFrame(SIZE);
     const snapshot = before.rec.board.cells.slice();
-    nextFrame(before, SIZE);
+    step(before, SIZE);
     expect(before.rec.board.cells).toEqual(snapshot);
     expect(demoCount(before)).toBe(0);
   });
@@ -96,5 +101,44 @@ describe("the self-playing demo", () => {
     }
     // and it never runs away past the limit
     expect(Math.max(...frames.map(demoCount))).toBeLessThanOrEqual(DEMO_MOVES + 1);
+  });
+});
+
+/* ----------------------- ENDING, AND STARTING AGAIN -----------------------
+   The chooser is allowed to have nothing to say, and both of them do: the
+   heuristic returns null when every point it would consider is bad, and the
+   network returns null when it is asked about a game that is already over.
+   Neither may leave the board stuck on a position nobody is adding to. */
+describe("a demo with nothing to play", () => {
+  const SIZE9 = 9;
+
+  it("passes rather than stalling when handed no move", () => {
+    const played = nextFrameWith(openingFrame(SIZE9), [4, 4], SIZE9);
+    const passed = nextFrameWith(played, null, SIZE9);
+    expect(passed.rec.passes).toBe(1);
+    expect(passed.rec.toPlay).toBe("b");
+    // the mark stays on the last stone, because a pass did not move it
+    expect(passed.last).toBe(idx(SIZE9, 4, 4));
+    expect(passed.took).toEqual([]);
+  });
+
+  it("is spent once both sides have passed, and deals a new board", () => {
+    let f = nextFrameWith(openingFrame(SIZE9), [4, 4], SIZE9);
+    f = nextFrameWith(f, null, SIZE9);
+    f = nextFrameWith(f, null, SIZE9);
+    expect(f.rec.phase).not.toBe("playing");
+    expect(demoSpent(f)).toBe(true);
+    const fresh = nextFrameWith(f, [2, 2], SIZE9);
+    expect(demoCount(fresh)).toBe(0);
+    expect(stonesOn(fresh.rec.board)).toBe(0);
+    expect(fresh.last).toBe(null);
+  });
+
+  it("keeps the size it was playing when nobody tells it one", () => {
+    const f = step(openingFrame(13));
+    expect(f.rec.size).toBe(13);
+    expect(stonesOn(f.rec.board)).toBe(1);
+    const handed = nextFrameWith(openingFrame(13), [6, 6]);
+    expect(handed.rec.size).toBe(13);
   });
 });

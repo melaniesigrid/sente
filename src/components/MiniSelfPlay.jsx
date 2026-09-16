@@ -43,11 +43,18 @@ import { openingFrame, nextFrameWith, demoMove, demoCount } from "./selfPlay.js"
 export function MiniSelfPlay({ sizePx = 300, size = 9, players = null, onSource }) {
   const [frame, setFrame] = useState(() => openingFrame(size));
   const frameRef = useRef(frame);
+  // Who is playing, as a string. The effect below starts a new game whenever it
+  // re-runs, so it may not depend on the identity of the `players` object: a
+  // caller writing players={{...}} inline would deal a fresh board on every
+  // render of its parent and the game would never reach move two.
+  const seatKey = players ? `${players.b.persona.id}@${players.b.rank}/${players.w.persona.id}@${players.w.rank}` : "";
+  const playersRef = useRef(players);
+  const host = useRef(null);
   // Held in a ref so that a caller passing a fresh function every render does
   // not restart the game underneath it. Assigned in its own effect, which runs
   // before the loop's below, rather than during render.
   const sourceRef = useRef(onSource);
-  useEffect(() => { sourceRef.current = onSource; });
+  useEffect(() => { sourceRef.current = onSource; playersRef.current = players; });
   useEffect(() => {
     // A board of a different size is a different game, so it starts over
     // rather than stepping the old position under the new size.
@@ -56,7 +63,7 @@ export function MiniSelfPlay({ sizePx = 300, size = 9, players = null, onSource 
     // Decided once, when the loop starts: a board that changed hands halfway
     // through a game would be telling a visitor two different things about
     // what they are watching, and the caption under it only says one.
-    const seats = players && modelReady() ? players : null;
+    const seats = playersRef.current && modelReady() ? playersRef.current : null;
     if (sourceRef.current) sourceRef.current(seats ? "kata" : "heuristic");
 
     let alive = true;
@@ -70,23 +77,62 @@ export function MiniSelfPlay({ sizePx = 300, size = 9, players = null, onSource 
     const tick = () => {
       if (!seats) { step(demoMove(frameRef.current)); return; }
       if (thinking) return;
-      const frame = frameRef.current;
-      const seat = frame.rec.toPlay === "b" ? seats.b : seats.w;
+      // Named for what it is, and deliberately not the state `frame`: the loop
+      // reads the ref so the interval never closes over a stale render, and an
+      // answer is only played if the position it was asked about is still up.
+      //
+      // That check and the `alive` flag are deliberately redundant -- either
+      // one alone retires a question whose board has been dealt away, which is
+      // why removing just one breaks no test. Removing both does: the suite's
+      // "does not play an answer about a position the board has moved past".
+      const asked = frameRef.current;
+      const seat = asked.rec.toPlay === "b" ? seats.b : seats.w;
       thinking = true;
-      kataChooseMoveForRecord(frame.rec, profileForRank(seat.rank, seat.persona.profile?.temperature))
-        .then(res => { if (frameRef.current === frame) step(res ? res.move : demoMove(frame)); })
+      kataChooseMoveForRecord(asked.rec, profileForRank(seat.rank, seat.persona.profile?.temperature))
+        .then(res => { if (frameRef.current === asked) step(res ? res.move : demoMove(asked)); })
         // The network failing is not a reason for the board to stop: the
         // heuristic finishes the game and the caption already said which
         // engine the visitor was promised, so it stays honest by stopping
         // rather than by lying about the rest of it.
-        .catch(() => { if (frameRef.current === frame) step(demoMove(frame)); })
+        .catch(() => { if (frameRef.current === asked) step(demoMove(asked)); })
         .finally(() => { thinking = false; });
     };
-    const iv = setInterval(tick, reduce ? 2600 : 1100);
-    return () => { alive = false; clearInterval(iv); };
-  }, [size, players]);
+    /* The clock runs only while somebody could be looking. It always cost a
+       heuristic search a second; with the network playing it costs a third of
+       a second of wasm in the same worker a real game is using, and a
+       dashboard left open in a background tab would ask for that forever.
+       StoneField gates its own beat exactly this way, and the failure is the
+       same shape: a browser with no IntersectionObserver keeps playing, which
+       is the right way to fail. */
+    let timer = null;
+    let onScreen = true, awake = !document.hidden;
+    const stop = () => { if (timer) { clearInterval(timer); timer = null; } };
+    const start = () => { if (!timer && onScreen && awake && alive) timer = setInterval(tick, reduce ? 2600 : 1100); };
+
+    const onVisibility = () => { awake = !document.hidden; if (awake) start(); else stop(); };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    let io = null;
+    if (typeof IntersectionObserver === "function" && host.current) {
+      io = new IntersectionObserver(([entry]) => {
+        onScreen = entry.isIntersecting;
+        if (onScreen) start(); else stop();
+      }, { rootMargin: "120px" });
+      io.observe(host.current);
+    }
+    start();
+
+    return () => {
+      alive = false;
+      stop();
+      document.removeEventListener("visibilitychange", onVisibility);
+      if (io) io.disconnect();
+    };
+  }, [size, seatKey]); // eslint-disable-line react-hooks/exhaustive-deps -- players is read through the key below
   return (
-    <Board board={frame.rec.board} disabled sizePx={sizePx}
-      lastMove={frame.last} captured={frame.took} captureKey={demoCount(frame)} />
+    <div ref={host}>
+      <Board board={frame.rec.board} disabled sizePx={sizePx}
+        lastMove={frame.last} captured={frame.took} captureKey={demoCount(frame)} />
+    </div>
   );
 }

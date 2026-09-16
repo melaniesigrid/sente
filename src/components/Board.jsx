@@ -164,8 +164,13 @@ export function Board({
         {pointed.map((p, i) => (
           <circle key={"pt" + i} cx={x(p.c)} cy={y(p.r)} r={21} className="point-ring" />
         ))}
+        {/* A hit target and a named gridcell for every point -- except the ones
+            a crop has moved outside the viewBox. Those can neither be clicked
+            nor seen, and on a cropped nineteen-line figure they are three
+            hundred rects and three hundred labels nobody can reach. */}
         {Array.from({ length: N * N }).map((_, i) => {
           const c = i % N, r = Math.floor(i / N);
+          if (crop && (c < crop.c0 || c > crop.c1 || r < crop.r0 || r > crop.r1)) return null;
           const stone = board.cells[i];
           const staged = pending && pending.c === c && pending.r === r;
           const label = `${pointLabel(N, c, r)}${stone ? (stone === "b" ? ", black stone" : ", white stone") : ""}${deadSet.has(i) ? ", marked dead" : ""}${staged ? ", move waiting to be confirmed" : ""}`;
