@@ -159,15 +159,24 @@ export const legalDoc = {
         },
       },
       5: {
+        heading: "Am Brett sprechen",
+        paras: {
+          0: "Zwei Menschen am selben Brett können ein Mikrofon einschalten und miteinander sprechen. Es ist aus, bis du danach fragst, und zwar jedes Mal, und nichts wird je aufgezeichnet: nicht von der anderen Person, nicht vom Studio, nirgends. Wenn das Gespräch endet, bleibt nichts davon übrig, und deshalb gibt es auch keinen Weg, eine Kopie davon zu verlangen.",
+          1: "Der Ton geht von deinem Browser zu ihrem, den ganzen Weg verschlüsselt, und der Spielserver trägt ihn nie. Was der Spielserver trägt, sind die wenigen Nachrichten, die die beiden Browser brauchen, um einander zu finden. Die werden gelesen, an den anderen Stuhl weitergegeben und vergessen: Sie stehen nicht in der Partie, nicht im Protokoll und in nichts, was danach aufbewahrt wird. Eine Partie mit eingeschaltetem Mikrofon und eine ohne hinterlassen genau dieselbe Spur.",
+          2: "Jedes Gespräch wird weitergeleitet statt direkt geführt, und das ist eine Entscheidung über Adressen. Zwei Browser, die direkt miteinander sprechen, sehen jeweils die Netzwerkadresse der anderen Seite, also ungefähr, wo du bist. Die Weiterleitung bedeutet, dass die Person, gegen die du spielst, deine nie sieht und du ihre nie siehst. Weitergeleitet wird über Cloudflare, die schon den Spielserver betreiben. Sie reichen den Ton weiter, ohne ihn hören zu können, und was sie sehen können, ist, dass zwei Verbindungen verschlüsselten Ton ausgetauscht haben und wann. Das ist etwas, das man wirklich über jemanden weiß, und es ist der ehrliche Preis dafür, deine Adresse keiner fremden Person zu geben.",
+          3: "Bevor einem Gespräch vertraut wird, werden beiden dieselben drei Go-Begriffe gezeigt, und eine Person sagt sie laut. Das ist keine Verzierung. So prüfen die beiden Browser, dass sie miteinander sprechen und nicht mit etwas dazwischen, und wenn die Begriffe nicht übereinstimmen, ist die Antwort aufzulegen.",
+        },
+      },
+      6: {
         heading: "Wofür deine E-Mail-Adresse gebraucht wird",
         paras: {
           0: "Zwei Briefe an ein Konto, und sonst nichts: einer, der bestätigt, dass die Adresse dir gehört, und einer, mit dem du ein neues Passwort setzen kannst. Es gibt keinen Newsletter und keine Produktankündigung. Die einzige Liste, auf der überhaupt jemand stehen kann, ist die Warteliste oben, auf die du dich selbst setzt und die einmal benutzt und dann erledigt ist. Die Adresse wird nie verkauft, vermietet oder jemandem zum eigenen Gebrauch überlassen.",
         },
       },
-      6: {
+      7: {
         heading: "Wer sonst etwas davon sieht",
         paras: {
-          0: "Drei Unternehmen, und alle drei stehen der Seite eher im Weg, als dass sie sich für sie interessierten.",
+          0: "Zwei Unternehmen, und beide stehen der Seite eher im Weg, als dass sie sich für sie interessierten.",
         },
         list: {
           0: "Cloudflare betreibt den Spielserver und verschickt die beiden Briefe. Alles, was der Server bewahrt, liegt in ihrem Netz, das Länder außerhalb Kanadas umfasst.",
@@ -175,7 +184,7 @@ export const legalDoc = {
           2: "Sonst niemand. Jede Schrift wird von Joseki selbst ausgeliefert und nicht von einem Font-CDN, sodass das Öffnen einer Seite hier keiner dritten Partei verrät, dass du es getan hast. Es gibt keine dritte Partei und keine Abmachung mit einer.",
         },
       },
-      7: {
+      8: {
         heading: "Gehen",
         paras: {
           0: "Es gibt einen Weg hinaus, der niemandes Erlaubnis braucht. Zu gehen entfernt dein Konto, deine Sitzungen, deine Adresse, dein Bild, deinen Platz in der Rangliste und die Spur der Adresse, von der aus du dich angemeldet hast.",
@@ -183,19 +192,19 @@ export const legalDoc = {
           2: "Um eine Kopie dessen zu verlangen, was über dich gespeichert ist, um es zu berichtigen oder um etwas entfernen zu lassen, das ein Austritt nicht erreicht, schreib an {contact}, und ein Mensch erledigt es von Hand. Es gibt keinen Export-Knopf, und etwas anderes zu sagen wäre der leicht zu schreibende Satz und der falsche.",
         },
       },
-      8: {
+      9: {
         heading: "Kinder",
         paras: {
           0: "Joseki richtet sich nicht an Kinder unter 13, und für eines sollte kein Konto angelegt werden. Ist es doch geschehen, schreib, und es wird entfernt, ohne dass vorher noch etwas anderes verlangt wird.",
         },
       },
-      9: {
+      10: {
         heading: "Änderungen",
         paras: {
           0: "Dieser Hinweis ändert sich, indem er hier neu geschrieben und das Datum oben weitergerückt wird. Sollte er sich je ändern, weil Joseki angefangen hat, etwas Neues zu erheben, wird die Änderung das in einem eigenen Satz sagen, statt in einen Absatz gefaltet zu werden.",
         },
       },
-      10: {
+      11: {
         heading: "Wie man Kontakt aufnimmt",
         paras: {
           0: "Jede Frage zu all dem: {contact}.",

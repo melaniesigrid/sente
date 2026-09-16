@@ -159,15 +159,24 @@ export const legalDoc = {
         },
       },
       5: {
+        heading: "Hablar en el tablero",
+        paras: {
+          0: "Dos personas en el mismo tablero pueden encender un micrófono y hablar. Está apagado hasta que lo pides, cada vez, y nunca se graba nada: ni la otra persona, ni el Estudio, ni en ningún sitio. Cuando la llamada termina no queda nada de ella, y por eso no hay forma de pedir una copia.",
+          1: "El sonido va de tu navegador al suyo, cifrado todo el camino, y el servidor de juego no lo transporta nunca. Lo que sí transporta el servidor son los pocos mensajes que los dos navegadores necesitan para encontrarse. Se leen, se pasan a la otra silla y se olvidan: no están en la partida, ni en el registro, ni en nada que se guarde después. Una partida jugada con el micrófono encendido y una jugada sin él dejan exactamente el mismo rastro.",
+          2: "Toda llamada se retransmite en lugar de hacerse directamente, y eso es una decisión sobre direcciones. Dos navegadores que hablan directamente ven la dirección de red del otro, que es aproximadamente dónde estás; retransmitir significa que la persona con la que juegas nunca ve la tuya y tú nunca ves la suya. Quien retransmite es Cloudflare, que ya opera el servidor de juego. Pasan el sonido sin poder oírlo, y lo que sí pueden ver es que dos conexiones intercambiaron audio cifrado y cuándo. Eso es algo real que se sabe de alguien, y es el precio honesto de no entregar tu dirección a un desconocido.",
+          3: "Antes de confiar en una llamada, a las dos personas se les muestran los mismos tres términos de go y una de ellas los dice en voz alta. No es un adorno. Es cómo los dos navegadores comprueban que están hablando entre sí y no con algo que se ha puesto en medio, y si los términos no coinciden, la respuesta es colgar.",
+        },
+      },
+      6: {
         heading: "Para qué se usa tu dirección de correo",
         paras: {
           0: "Dos cartas a una cuenta, y nada más: una que confirma que la dirección es tuya y otra que te deja fijar una contraseña nueva. No hay boletín ni anuncios de producto. La única lista en la que alguien puede estar es la lista de espera de arriba, en la que te pones tú y que se usa una vez y ya está. La dirección no se vende, ni se alquila, ni se entrega a nadie para sus propios fines.",
         },
       },
-      6: {
+      7: {
         heading: "Quién más ve algo de esto",
         paras: {
-          0: "Tres empresas, todas ellas de paso en la página y no interesadas en ella.",
+          0: "Dos empresas, ambas de paso en la página y no interesadas en ella.",
         },
         list: {
           0: "Cloudflare aloja el servidor de juego y envía las dos cartas. Todo lo que el servidor guarda está en su red, que abarca países fuera de Canadá.",
@@ -175,7 +184,7 @@ export const legalDoc = {
           2: "Nadie más. Cada tipografía se sirve desde el propio Joseki y no desde un CDN de fuentes, así que abrir una página aquí no le dice a ningún tercero que lo hiciste. No hay terceros, ni acuerdo con ninguno.",
         },
       },
-      7: {
+      8: {
         heading: "Marcharse",
         paras: {
           0: "Hay una salida que no necesita el permiso de nadie. Marcharse elimina tu cuenta, tus sesiones, tu dirección, tu imagen, tu puesto en la clasificación y el registro de la dirección desde la que te registraste.",
@@ -183,19 +192,19 @@ export const legalDoc = {
           2: "Para pedir una copia de lo que se guarda sobre ti, para corregirlo o para que se elimine algo que marcharse no alcanza, escribe a {contact} y una persona lo hará a mano. No hay un botón de exportación, y decir lo contrario sería la frase fácil de escribir y la falsa.",
         },
       },
-      8: {
+      9: {
         heading: "Menores",
         paras: {
           0: "Joseki no está dirigido a menores de 13 años, y no debería crearse ninguna cuenta para uno. Si se ha creado, escribe y se eliminará sin pedir nada más antes.",
         },
       },
-      9: {
+      10: {
         heading: "Cambios",
         paras: {
           0: "Este aviso cambia reescribiéndose aquí, moviendo la fecha de arriba. Si alguna vez cambia porque Joseki ha empezado a recoger algo nuevo, el cambio lo dirá en una frase propia en lugar de doblarlo dentro de un párrafo.",
         },
       },
-      10: {
+      11: {
         heading: "Cómo ponerse en contacto",
         paras: {
           0: "Cualquier duda sobre cualquiera de estas cosas: {contact}.",
