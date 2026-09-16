@@ -33,3 +33,6 @@ public/ort
 
 # Security reports from /cso stay local.
 .gstack
+
+# Built from talk/ by tools/build-talk-wasm.mjs
+public/talk

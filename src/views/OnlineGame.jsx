@@ -417,6 +417,7 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
     const leave = () => send({ t: "reviewLeave" });
     return (
       <Review record={rec} profile={profile} onExit={leave}
+        seat={color ? { side: color, opponent: teamName(room, color === "b" ? "w" : "b", t), trainer: false } : null}
         shared={{
           move: review.move, base: review.base, line: review.line, marks: review.marks,
           can: true,
@@ -432,7 +433,10 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
   }
 
   if (reviewing && rec && over) {
-    return <Review record={rec} profile={profile} onExit={() => setReviewing(false)} />;
+    return (
+      <Review record={rec} profile={profile} onExit={() => setReviewing(false)}
+        seat={color ? { side: color, opponent: teamName(room, color === "b" ? "w" : "b", t), trainer: false } : null} />
+    );
   }
 
   if (gone) {

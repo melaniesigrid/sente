@@ -14,6 +14,7 @@
 import { NBRS, idx, inB, chainAt } from "./board.js";
 import { chainsInAtari, opponent } from "./rules.js";
 import { detectShapes } from "./shape.js";
+import { relationsAt } from "./relations.js";
 
 /** How far through a game a move count is, as a share of the board's points.
  *  The boundaries are conventions, not measurements: on 19x19 the opening is
@@ -105,6 +106,9 @@ export function describeMove(before, after, move) {
     tenuki: lastPoint ? distance(lastPoint, move) > 4 : false,
     near: lastPoint ? distance(lastPoint, move) : null,
     shapes: detectShapes(after.board, { c, r }, { color, captured: after.lastCaptured }).map((s) => s.id),
+    // The teacher's wider vocabulary: the jump, the keima, the hane, the cut. The
+    // house players do not use it; the trainer names what you played.
+    relations: relationsAt(after.board, { c, r }, { color, captured: after.lastCaptured }),
   };
 }
 

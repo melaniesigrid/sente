@@ -25,6 +25,11 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      # talk.wasm is built from talk/ during prebuild and is not committed, so a
+      # deploy without Go would publish an app whose voice never loads.
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: talk/go.mod
       - run: npm ci
       - run: npm run build
         env:

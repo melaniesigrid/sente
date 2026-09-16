@@ -237,3 +237,216 @@ describe("talking to him", () => {
     expect(bondNo()).toContain("not ask again");
   });
 });
+
+/* ----------------------- THE COACH ----------------------- */
+import { moveNote, teachingFor, coachPrompt, prescribe, syllabusLine, sideName, openingLesson } from "./sensei.js";
+import { SHAPE_COURSE } from "./senseiShapes.js";
+
+/** A move played into a fresh board, with the facts the engine read off it. */
+const factsFor = (moves) => {
+  let rec = createGame({ size: 9 });
+  let before = rec;
+  for (const [c, r] of moves) { before = rec; rec = play(rec, c, r); }
+  const last = moves[moves.length - 1];
+  return describeMove(before, rec, last);
+};
+
+describe("naming the shape you just made", () => {
+  it("teaches the shape the first time, cautions it the second, and is brief after", () => {
+    // Black at (3,3) and (5,3): a one-point jump, whoever is watching.
+    const f = factsFor([[3, 3], [0, 0], [5, 3]]);
+    expect(f.relations).toContain("one-point-jump");
+    const first = teachingFor(f, {});
+    expect(first.id).toBe("one-point-jump");
+    expect(first.line).toMatch(/ikken tobi/);
+    const second = teachingFor(f, { "one-point-jump": 1 });
+    expect(second.line).not.toBe(first.line);
+    const later = teachingFor({ ...f, moveNumber: 9 }, { "one-point-jump": 4 });
+    expect(later.line.length).toBeLessThan(first.line.length);
+  });
+
+  it("says nothing about a shape he taught recently until it is time again", () => {
+    const f = factsFor([[3, 3], [0, 0], [5, 3]]);
+    expect(teachingFor({ ...f, moveNumber: 7 }, { "one-point-jump": 5 })).toBe(null);
+    expect(teachingFor({ ...f, moveNumber: 9 }, { "one-point-jump": 5 })).toBeTruthy();
+  });
+
+  it("teaches the most basic shape on the board, not the cleverest", () => {
+    // A stone that is both beside a friend and a knight's move from another.
+    const f = { moveNumber: 4, pass: false, relations: ["knights-move", "solid-extension"], shapes: [] };
+    expect(teachingFor(f, {}).id).toBe("solid-extension");
+  });
+
+  it("says nothing at all about a pass, or about a move with no shape in it", () => {
+    expect(teachingFor({ pass: true, moveNumber: 3 }, {})).toBe(null);
+    expect(teachingFor({ moveNumber: 3, relations: [], shapes: [] }, {})).toBe(null);
+    expect(teachingFor(null, {})).toBe(null);
+  });
+});
+
+describe("the questions he asks", () => {
+  it("asks you to count when your own chain is short of breath", () => {
+    expect(coachPrompt({ moveNumber: 8, selfAtari: true })).toMatch(/liberties/i);
+  });
+
+  it("asks nothing about a pass, and not on every move", () => {
+    expect(coachPrompt({ pass: true, moveNumber: 5 })).toBe(null);
+    expect(coachPrompt({ moveNumber: 7, phase: "middle" })).toBe(null);
+    expect(coachPrompt({ moveNumber: 10, phase: "middle" })).toBeTruthy();
+  });
+
+  it("is deterministic, so a resumed game reads back the same question", () => {
+    const f = { moveNumber: 10, phase: "middle" };
+    expect(coachPrompt(f)).toBe(coachPrompt(f));
+  });
+});
+
+describe("one note on one move", () => {
+  const f = () => factsFor([[3, 3], [0, 0], [5, 3]]);
+
+  it("puts the sentence, the lesson and the question in one line, and names what it taught", () => {
+    const note = moveNote(f(), null, null, { taught: {} });
+    expect(note.taughtId).toBe("one-point-jump");
+    expect(note.text).toContain("ikken tobi");
+    expect(note.text.startsWith("F6")).toBe(true);
+  });
+
+  it("explains nothing about a gift, because explaining it would give it away", () => {
+    const note = moveNote(f(), null, null, { mine: true, gift: true, taught: {} });
+    expect(note.taughtId).toBe(null);
+    expect(note.text).not.toContain("ikken tobi");
+  });
+
+  it("uses his own words for his own stones and asks you nothing about them", () => {
+    const note = moveNote(f(), null, null, { mine: true, taught: {} });
+    expect(note.text).toMatch(/one-point jump|Tobi/i);
+    expect(note.text).not.toMatch(/\?$/);
+  });
+});
+
+describe("the syllabus and the homework", () => {
+  it("counts the course from nothing to everything", () => {
+    expect(syllabusLine({})).toMatch(/none yet/);
+    expect(syllabusLine({ "solid-extension": 3 })).toMatch(/1 of 15/);
+    const all = Object.fromEntries(SHAPE_COURSE.map((id) => [id, 3]));
+    expect(syllabusLine(all)).toMatch(/whole course/);
+  });
+
+  it("prescribes the shape behind the area that has been costing you", () => {
+    const rx = prescribe("fights", {});
+    expect(rx.shape).toBe("cut");
+    expect(rx.lesson).toBe("connect-cut");
+    expect(rx.line).toMatch(/Homework/);
+  });
+
+  it("prescribes the next thing on the course when there is no area to go on", () => {
+    expect(prescribe(null, { "solid-extension": 2 }).shape).toBe("diagonal");
+  });
+});
+
+describe("whose game he is reading", () => {
+  const points = [
+    { move: 0, black: 0.5, color: null }, { move: 1, black: 0.5, color: "b" },
+    { move: 2, black: 0.5, color: "w" }, { move: 3, black: 0.3, color: "b" },
+  ];
+  const report = {
+    looked: 4,
+    turns: [{ move: 3, color: "b", cost: 0.2 }],
+    gained: [],
+    steady: { moves: 2, mean: 0.04, worst: { move: 3, cost: 0.2 } },
+    worst: { move: 3, cost: 0.2 },
+    gifts: [],
+  };
+
+  it("names both players in somebody else's game, and claims neither of them", () => {
+    const text = reviewLines(report, {
+      won: false, size: 9, points, voice: "watching", names: { b: "Shusaku", w: "Gennan" },
+    }).join(" ");
+    expect(text).toContain("Shusaku (Black)");
+    expect(text).toContain("Gennan (White)");
+    expect(text).not.toMatch(/\bI won\b/);
+    expect(text).not.toMatch(/\bYou won\b/);
+    expect(text).not.toMatch(/\byour\b/);
+    expect(text).toMatch(/I was not at this board/);
+  });
+
+  it("falls back to the colours when the record carries no names", () => {
+    const text = reviewLines(report, { won: true, size: 9, points, voice: "watching", side: "w" }).join(" ");
+    expect(text).toContain("White");
+    expect(text).toContain("Black");
+    expect(text).not.toContain("(White)");
+  });
+
+  it("names your opponent, and never himself, in a game you played without him", () => {
+    const text = reviewLines(report, {
+      won: false, size: 9, points, voice: "yours", opponent: "Tatsuo", taught: { cut: 1 },
+    }).join(" ");
+    expect(text).toMatch(/^Tatsuo beat you/);
+    expect(text).not.toMatch(/\bI won\b/);
+    expect(text).toMatch(/Shapes we have worked on/);
+    expect(text).toMatch(/Homework/);
+  });
+
+  it("still speaks as himself about the games he actually played", () => {
+    const lines = reviewLines(report, { won: false, size: 9, points, voice: "his", taught: {} });
+    expect(lines[0]).toMatch(/^I won/);
+    expect(lines.join(" ")).toMatch(/Shapes we have worked on/);
+  });
+
+  it("puts a name in front of a colour only when there is one", () => {
+    expect(sideName({ b: "Mika", w: "" }, "b")).toBe("Mika (Black)");
+    expect(sideName({ b: "Mika", w: "" }, "w")).toBe("White");
+    expect(sideName(null, "b")).toBe("Black");
+  });
+});
+
+describe("how he sounds", () => {
+  const hasEmoji = (s) => /\p{Extended_Pictographic}/u.test(s);
+
+  it("greets you with something more than words", () => {
+    expect(KE_JIE.chat.greet.every(hasEmoji)).toBe(true);
+    expect(KE_JIE.chat.win.every(hasEmoji)).toBe(true);
+    expect(KE_JIE.chat.loss.every(hasEmoji)).toBe(true);
+  });
+
+  it("puts one in every shape lesson and every verdict", () => {
+    for (const id of SHAPE_COURSE) {
+      const line = moveNote({ moveNumber: 1, pass: false, relations: [id], shapes: [] }, null, null, { taught: {} });
+      expect(hasEmoji(line.text), id).toBe(true);
+    }
+  });
+});
+
+describe("asking him about a shape", () => {
+  it("answers the shape you named, in full, before anything else", () => {
+    const reply = replyTo("what is a keima?", {});
+    expect(reply[0]).toMatch(/knight's move/);
+    expect(reply.join(" ")).toMatch(/waist/);
+  });
+
+  it("does not mistake the large knight's move for the small one", () => {
+    expect(replyTo("what is a large knight's move?", {})[0]).toMatch(/large knight/i);
+  });
+
+  it("takes a shape word only when you were asking about it", () => {
+    expect(replyTo("i lost again", {}).join(" ")).not.toMatch(/tora no kuchi/);
+  });
+
+  it("gives the next thing on the course when you ask to be taught", () => {
+    const reply = replyTo("teach me", { taught: { "solid-extension": 3, diagonal: 2 } });
+    expect(reply[0]).toMatch(/Shapes we have worked on: 2 of 15/);
+    expect(reply[1]).toMatch(/tiger's mouth/);
+  });
+});
+
+describe("the shape of the day", () => {
+  it("names the next shape on the course before the game starts", () => {
+    expect(openingLesson({}, 0)).toMatch(/solid extension/);
+    expect(openingLesson({ "solid-extension": 2 }, 0)).toMatch(/diagonal/);
+  });
+
+  it("still has something to say once the course is finished", () => {
+    const all = Object.fromEntries(SHAPE_COURSE.map((id) => [id, 3]));
+    expect(openingLesson(all, 4)).toMatch(/\w/);
+  });
+});
