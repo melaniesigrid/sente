@@ -11,8 +11,8 @@ import {
   withMoveComment, evaluatePosition, seedAnalysis, describeMove, policyStanding, giftDue, pickGift, trainerReport,
   gameSummary, focusFor,
 } from "../engine/index.js";
-import { ownMoveLine, yourMoveLine, reviewLines, letterFor } from "../content/sensei.js";
-import { loadBox, saveBox, postLetter, rememberGame as trainerRemember } from "../store/sensei.js";
+import { moveNote, reviewLines, letterFor, openingLesson } from "../content/sensei.js";
+import { loadBox, saveBox, postLetter, teachShape, rememberGame as trainerRemember } from "../store/sensei.js";
 import { Board } from "../components/Board.jsx";
 import { ClockFace } from "../components/Clock.jsx";
 import { Card, Btn, Pill, Avatar, ArchetypeMark, CountryFlag, RankBadge, BeltRibbon } from "../components/ui.jsx";
@@ -120,8 +120,19 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   }));
   const table = { size: rec.size, handicap: rec.handicap, rules: rec.rules, komi: rec.komi, clock: rec.clock };
   const [thinking, setThinking] = useState(false);
-  const [chat, setChat] = useState(() =>
-    persona ? [{ who: "bot", text: pick(persona.chat.greet) }] : []);
+  /* He opens with the greeting every house player has, and then, because he is
+     the one who teaches, with the shape this game is for. Naming it up front is
+     the opposite of the gift: the gift has to stay secret to be a test, and the
+     lesson has to be said out loud to be a lesson. */
+  const [chat, setChat] = useState(() => {
+    if (!persona) return [];
+    const opening = [{ who: "bot", text: pick(persona.chat.greet) }];
+    if (persona.sensei) {
+      const box = loadBox();
+      opening.push({ who: "bot", text: openingLesson(box.taught, box.games.length) });
+    }
+    return opening;
+  });
   const [draft, setDraft] = useState("");
   const [confirmResign, setConfirmResign] = useState(false);
   const [pending, setPending] = useState(null);    // {c, r, next}: a staged move, not yet played
@@ -153,6 +164,10 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const trainerFacts = useRef({});                 // move number -> facts, yours and his, for the summary
   // What he decided to watch before the game, from the games before it. Revealed after.
   const trainerFocus = useRef(sensei ? focusFor(loadBox().games) : null);
+  /* The shapes he has already taught, read once when the table is set up so a
+     move never waits on storage to decide what to say. Written through on every
+     teaching, because a lesson he forgets giving is one he gives again. */
+  const trainerTaught = useRef(sensei ? loadBox().taught : {});
   const [trainerReview, setTrainerReview] = useState(null);  // his paragraphs, once the game has ended
   const resumed = useRef(false);                   // the resume effect runs once, StrictMode or not
   const alive = useRef(true);
@@ -269,6 +284,14 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     }
   }, [sound, persona]);
 
+  /* One shape has been taught. The register is his, so it outlives the game. */
+  const noteTaught = useCallback((id) => {
+    if (!id) return;
+    const box = teachShape(loadBox(), id);
+    saveBox(box);
+    trainerTaught.current = box.taught;
+  }, []);
+
   /* The trainer's report. Written from the points gathered as the game went, so it
      costs nothing at the end; the same points seed the review graph. A letter goes
      to the mailbox on this device, and nowhere else. */
@@ -276,7 +299,10 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     const points = trainerPoints.current;
     const report = trainerReport(points, trainerGifts.current, "b");
     const summary = gameSummary(points, trainerFacts.current, "b");
-    setTrainerReview(reviewLines(report, { won, size: next.size, points, focus: trainerFocus.current, summary }));
+    setTrainerReview(reviewLines(report, {
+      won, size: next.size, points, focus: trainerFocus.current, summary,
+      voice: "his", taught: trainerTaught.current,
+    }));
     if (points.length) seedAnalysis(next, points);
     const gifts = report.gifts;
     const box = loadBox();
@@ -421,9 +447,10 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         const prev = trainerPoints.current.find((q) => q.move === r.moves.length - 1) ?? null;
         const standing = prev ? policyStanding(prev.top, mv) : null;
         const cost = prev && here ? prev.black - here.black : null;
-        const line = yourMoveLine(facts, standing, cost);
-        say(line);
-        r2 = withMoveComment(r, line);
+        const note = moveNote(facts, standing, cost, { taught: trainerTaught.current });
+        noteTaught(note.taughtId);
+        say(note.text);
+        r2 = withMoveComment(r, note.text);
       }
       notePoint(here);
 
@@ -456,10 +483,11 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       const facts = describeMove(r2, next, played);
       trainerFacts.current[next.moves.length] = facts;
       const standing = res ? policyStanding(res.top, played) : null;
-      const line = ownMoveLine(facts, standing, { gift });
-      next = withMoveComment(next, line);
+      const note = moveNote(facts, standing, null, { mine: true, gift, taught: trainerTaught.current });
+      noteTaught(note.taughtId);
+      next = withMoveComment(next, note.text);
       setThinking(false);
-      say(line);
+      say(note.text);
       if (played) {
         const caps = next.lastCaptured.length;
         if (caps >= 2) say(pick(persona.chat.botCapture));
@@ -469,7 +497,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       // The position he left you, for the graph and for grading what you do with it.
       trainerAsk(() => evaluatePosition(next)).then(notePoint);
     })().catch(() => { if (alive.current) setThinking(false); });
-  }, [persona, botRank, profile.rating, say, conclude, afterMove, trainerAsk, notePoint]);
+  }, [persona, botRank, profile.rating, say, conclude, afterMove, trainerAsk, notePoint, noteTaught]);
 
   /* Ask the human network what a player of the persona's rank would do; if it is
      unavailable (offline, old browser) the heuristic house player answers instead.
@@ -712,7 +740,11 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     trainerOwnMoves.current = 0;
     trainerLastGift.current = null;
     trainerFacts.current = {};
-    if (sensei) trainerFocus.current = focusFor(loadBox().games);
+    if (sensei) {
+      const box = loadBox();
+      trainerFocus.current = focusFor(box.games);
+      trainerTaught.current = box.taught;
+    }
     setTrainerReview(null);
     // With a handicap White opens, and White is the house player.
     if (persona && fresh.toPlay === "w") botTurn(fresh);
@@ -751,6 +783,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   if (reviewing) {
     return (
       <Review record={rec} profile={profile} onExit={() => setReviewing(false)}
+        seat={{ side: "b", opponent: persona ? persona.name : null, trainer: sensei }}
         onRematch={duel ? null : () => { setReviewing(false); reset(); }} />
     );
   }

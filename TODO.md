@@ -2101,6 +2101,28 @@ that person, nothing he says is a quotation, and the bot chip stays on every lin
 - [x] Review offers "Ask Ke Jie" on any analysed game, his words over the same points.
 - [x] Copilot's account door (`copilot/fix-ke-jie-feature-visibility`) merged, and the
       address it listed in plain text replaced by its digest.
+- [x] He coaches (2026-09-16, branch `feat/kejie-coach`). Commentary became a course.
+      `src/engine/relations.js` names twelve more shapes off the board - the jump, the
+      knight's move and the large one, the bamboo joint, the two-space extension, nobi and
+      kosumi, the attachment, the hane, the cut, the shoulder hit, the ponnuki - all local
+      to the stone just played, all with the connecting points checked empty, and they ride
+      on `describeMove` as `relations` so the house players are untouched.
+      `src/content/senseiShapes.js` is the syllabus: fifteen shapes in teaching order from
+      the solid extension to the large knight's move, each with the teaching, the caution
+      the books leave out, short lines for later, his own words for his own stones, and the
+      Book of Shapes article and lesson that drill it. He teaches the most basic shape on
+      the board rather than the cleverest, once properly, once with the caution, and then
+      about every third sighting; `taught` in his box remembers, so the syllabus is the
+      player's. He announces the shape of the day when you sit down, asks a question the
+      board can answer on about one move in five, and ends the review with the syllabus
+      count and homework. Ask him "what is a keima" in the thread and he answers in full.
+- [x] Whose game is whose (2026-09-16). `reviewLines` takes a voice: `his` when he played
+      it, `yours` when you played somebody else - your opponent is named and he never calls
+      himself "I" - and `watching` for a record neither of you was in, where both players
+      are named from the record and "you" is reserved for the reader. Review is told which
+      by the screen that knows (`seat`), never by a guess. Before this, opening somebody
+      else's SGF and asking him about it produced "I won", which was a claim about a board
+      he was never at.
 
 Open:
 - [ ] Not yet played in a browser against the network. The turn is three network calls
