@@ -28,7 +28,7 @@ export const TAUGHT_CAP = 9;
 /** SHA-256 of the lowercased addresses that open the door without the phrase. */
 export const SENSEI_ACCOUNT_DIGESTS = ["953e6e6703c0242c0c1bce472bd076bce64afe4f23f81931d1df044a61cdaeff"];
 
-const empty = () => ({ thread: [], games: [], lastGame: "", wrote: "", greeted: "", seen: 0, bond: "", taught: {} });
+const empty = () => ({ thread: [], games: [], lastGame: "", wrote: "", greeted: "", seen: 0, bond: "", taught: {}, rung: "" });
 
 const defaultStorage = () => (typeof localStorage !== "undefined" ? localStorage : null);
 
@@ -61,6 +61,7 @@ export function loadBox(storage = defaultStorage()) {
       seen: Number.isInteger(blob.seen) && blob.seen >= 0 ? blob.seen : 0,
       bond: BONDS.includes(blob.bond) ? blob.bond : "",
       taught: readTaught(blob.taught),
+      rung: typeof blob.rung === "string" ? blob.rung : "",
     };
   } catch { return empty(); }
 }
@@ -150,6 +151,13 @@ export function playedWithoutHim(log, box, hisId) {
 
 /** Whether it is time for his question: enough games, and never asked. */
 export const shouldAsk = (box, after) => box.bond === "" && box.games.length >= after;
+
+/* The route to champion has rungs, and he says something the day she reaches a
+   new one. Which rung she is on is arithmetic on her rating (`championStep`);
+   what is kept here is only the last one he has already spoken about, so a
+   milestone is marked once and never becomes a thing he says every morning. */
+export const rungPassed = (box, rung) => !!rung && box.rung !== rung;
+export const markRung = (box, rung) => ({ ...box, rung });
 
 /* ----------------------- THE DOORS ----------------------- */
 

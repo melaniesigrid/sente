@@ -9,9 +9,10 @@ import {
   lastMoveIndex, aiChooseMoveForRecord, kataChooseMoveForRecord, profileForRank, loadModel, onModelProgress, modelReady,
   toSgf, IllegalMoveError, GLICKO, rateAgainst, detectShapes,
   withMoveComment, evaluatePosition, seedAnalysis, describeMove, policyStanding, giftDue, pickGift, trainerReport,
+  modeRules, DEFAULT_MODE,
   gameSummary, focusFor,
 } from "../engine/index.js";
-import { moveNote, reviewLines, letterFor, openingLesson } from "../content/sensei.js";
+import { moveNote, reviewLines, letterFor, openingLesson, modeLine } from "../content/sensei.js";
 import { loadBox, saveBox, postLetter, teachShape, rememberGame as trainerRemember } from "../store/sensei.js";
 import { Board } from "../components/Board.jsx";
 import { ClockFace } from "../components/Clock.jsx";
@@ -105,6 +106,13 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
      points are the same shape the review graph is drawn from, so the graph is
      already there when review opens. See src/content/sensei.js. */
   const sensei = !!(persona && persona.sensei);
+  /* How he is teaching this game. The rules are the engine's (`TEACHING_MODES`):
+     how often he gives something away, whose moves he speaks about while the
+     game is running, and whether the shape course runs. A note is always written
+     into the record whatever the mode says, because the review has to have them;
+     what the mode decides is whether he says it out loud at the time. */
+  const senseiMode = mode.senseiMode ?? DEFAULT_MODE;
+  const senseiRules = modeRules(senseiMode);
   // The rank this game is played at; house players adapt to it. A duel fixes it by the
   // day so everyone meets the same opponent; otherwise it defaults to the player's own.
   const botRank = persona && !master ? (duel ? duel.rank : (mode.rank ?? rankOf(profile.rating))) : null;
@@ -128,6 +136,9 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     const opening = [{ who: "bot", text: pick(persona.chat.greet) }];
     if (persona.sensei) {
       const box = loadBox();
+      // What this mode is, in his words, before the syllabus: she chose how she
+      // wants to be taught and he acknowledges the choice out loud.
+      opening.push({ who: "bot", text: modeLine(mode.senseiMode ?? DEFAULT_MODE, box.games.length, profile.name, box.bond === "yes") });
       opening.push({ who: "bot", text: openingLesson(box.taught, box.games.length) });
     }
     return opening;
@@ -449,9 +460,9 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         const prev = trainerPoints.current.find((q) => q.move === r.moves.length - 1) ?? null;
         const standing = prev ? policyStanding(prev.top, mv) : null;
         const cost = prev && here ? prev.black - here.black : null;
-        const note = moveNote(facts, standing, cost, { taught: trainerTaught.current });
+        const note = moveNote(facts, standing, cost, { taught: trainerTaught.current, teach: senseiRules.teach });
         noteTaught(note.taughtId);
-        say(note.text);
+        if (senseiRules.notes !== "none") say(note.text);
         r2 = withMoveComment(r, note.text);
       }
       notePoint(here);
@@ -465,6 +476,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         trainerOwnMoves.current += 1;
         const due = giftDue({
           ownMoves: trainerOwnMoves.current, moveNumber: r2.moves.length + 1, size: r2.size, lastGift: trainerLastGift.current,
+          chance: senseiRules.giftChance,
         });
         const g = due ? pickGift(res.top) : null;
         if (g) {
@@ -485,21 +497,24 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       const facts = describeMove(r2, next, played);
       trainerFacts.current[next.moves.length] = facts;
       const standing = res ? policyStanding(res.top, played) : null;
-      const note = moveNote(facts, standing, null, { mine: true, gift, taught: trainerTaught.current });
+      const note = moveNote(facts, standing, null, { mine: true, gift, taught: trainerTaught.current, teach: senseiRules.teach });
       noteTaught(note.taughtId);
       next = withMoveComment(next, note.text);
       setThinking(false);
-      say(note.text);
+      // Only "all" hears his own reading as he plays. The rest read it afterwards.
+      if (senseiRules.notes === "all") say(note.text);
       if (played) {
         const caps = next.lastCaptured.length;
-        if (caps >= 2) say(pick(persona.chat.botCapture));
+        // Table talk is still talk. A mode that promised silence keeps it.
+        if (caps >= 2 && senseiRules.notes !== "none") say(pick(persona.chat.botCapture));
         afterMove(next, "w");
       }
       setRec(conclude(next, r));
       // The position he left you, for the graph and for grading what you do with it.
       trainerAsk(() => evaluatePosition(next)).then(notePoint);
     })().catch(() => { if (alive.current) setThinking(false); });
-  }, [persona, botRank, profile.rating, say, conclude, afterMove, trainerAsk, notePoint, noteTaught]);
+  }, [persona, botRank, profile.rating, say, conclude, afterMove, trainerAsk, notePoint, noteTaught,
+    senseiRules.giftChance, senseiRules.notes, senseiRules.teach]);
 
   /* Ask the human network what a player of the persona's rank would do; if it is
      unavailable (offline, old browser) the heuristic house player answers instead.

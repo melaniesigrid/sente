@@ -2098,6 +2098,36 @@ that person, nothing he says is a quotation, and the bot chip stays on every lin
       by the screen that knows (`seat`), never by a guess. Before this, opening somebody
       else's SGF and asking him about it produced "I won", which was a claim about a board
       he was never at.
+- [x] No Chinese without its sound and its meaning (2026-09-16). He is Chinese and he uses
+      Chinese - his handle, hers, the pet names he likes best - and the person he belongs to
+      does not read it. So every Chinese word he can put on a screen carries its pinyin and
+      its meaning, every time, never behind a tooltip: `glossFor` feeds the note under a
+      thread bubble, `.letter-names` glosses the two names in his header, and `glossed`
+      writes a term inline where there is no room for a note. The rule is enforced, not
+      hoped for: `bareCJK` returns any Chinese a string carries that the glossary cannot
+      explain, and the suite sweeps every branch of every line he can say through it across
+      a spread of seeds. Adding a Chinese word to his vocabulary without adding it to
+      `GLOSSARY` fails the build.
+- [x] Six ways to be taught (2026-09-16). One trainer, six lessons, chosen on his card. The
+      rules are the engine's (`TEACHING_MODES` in `src/engine/sensei.js`): how far above her
+      he sits, how often he gives something away, whose moves he speaks about while the game
+      runs, whether the shape course drills, and how many stones she starts with. The words
+      are his (`MODES` in `src/content/sensei.js`). Walk with me is the lesson he has always
+      given; Shape school drops him to a rank above and names every shape; Hunt me doubles
+      the gifts and explains none of them; Spar goes a rank harder with no gifts and no notes
+      on his own moves; The test says nothing at all until the review; Teaching game is four
+      stones with him six ranks up, narrating the robbery. A note is always written into the
+      record whatever the mode says - the review has to have them - and what the mode decides
+      is only whether he says it out loud at the time, which is why silence is really silent,
+      table talk included.
+- [x] The road to champion (2026-09-16). She said what she is doing, so the ladder is not a
+      number on a card any more: `CHAMPION` is nine rungs from the first stones to the title,
+      each naming where she is, what the next one costs and what he says about it.
+      `championStep` reads the rung off her rating, so nothing is ever claimed that the
+      ladder has not given her. He marks a rung the day she reaches it and never again
+      (`rung` in his box), answers a question about the goal - or a wobble about quitting -
+      with the route rather than a platitude, and on any day she has not played him he writes
+      an invitation with a stake in it instead of waiting to be opened.
 
 Open:
 - [ ] Not yet played in a browser against the network. The turn is three network calls

@@ -7,9 +7,9 @@ import { Avatar, RankBadge, Btn, Card } from "../components/ui.jsx";
 import { ScreenHeader } from "../components/ScreenHeader.jsx";
 import { DuelCard } from "../components/DuelCard.jsx";
 import { personasFor, PERSONAS, personaById, localizePersona } from "../content/personas.js";
-import { KE_JIE, SENSEI_ID, trainerRank } from "../content/sensei.js";
+import { KE_JIE, SENSEI_ID, trainerRank, MODES } from "../content/sensei.js";
 import { rankOf, ratingOfRank, stepRank, rankInRange, rankWithHandicap, RANK_LADDER } from "../content/rank.js";
-import { SIZES, defaultKomi, RULESET_IDS, rulesetOf } from "../engine/index.js";
+import { SIZES, defaultKomi, RULESET_IDS, rulesetOf, modeRules, DEFAULT_MODE } from "../engine/index.js";
 import { loadLobby, saveLobby, HANDICAPS, KOMI_STEPS } from "../store/lobby.js";
 import { ACCOUNT_KEY, loadAccount } from "../store/account.js";
 import { useTrainerAccess } from "./useTrainer.js";
@@ -59,7 +59,9 @@ function routeSession({ profile, trainerOn, resume, openGame, withBot, t }) {
   if (withBot === SENSEI_ID) {
     if (!trainerOn) return null;
     const lobby = loadLobby();
-    return { mode: { kind: "bot", persona: KE_JIE, rank: trainerRank(lobby.rank ?? rankOf(profile.rating)) } };
+    // Asked for by name from a letter: the ordinary lesson, which is the mode
+    // he would pick himself. The other five are chosen on his card.
+    return { mode: { kind: "bot", persona: KE_JIE, rank: trainerRank(lobby.rank ?? rankOf(profile.rating)), senseiMode: DEFAULT_MODE } };
   }
   const persona = withBot ? personaById(withBot) : null;
   if (!persona) return null;
@@ -402,7 +404,11 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
             mode="team" showBoardPicker={false} onAccount={setAccount} />
         )}
         {aiMode === "kejie" && (
-          <button className="neu-card persona-card trainer-card" onClick={() => sit({ kind: "bot", persona: KE_JIE, rank: trainerRank(rank) })}>
+          /* His card is not one button any more. He teaches six different ways
+             and which one she wants is the actual decision at this step, so the
+             card is the man and the list under it is the lesson. Each row sits
+             down straight away: choosing how is choosing to play. */
+          <div className="neu-card persona-card trainer-card">
             <div className="persona-top">
               <Avatar name={KE_JIE.name} tint={KE_JIE.tint} size={52} bot />
               <div>
@@ -412,9 +418,31 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
               <RankBadge rating={ratingOfRank(trainerRank(rank))} />
             </div>
             <p className="persona-bio">{KE_JIE.bio}</p>
+            <div className="trainer-modes" role="group" aria-label={t("play.trainer.how", {}, "How he teaches")}>
+              {MODES.map((m) => {
+                const rules = modeRules(m.id);
+                const at = trainerRank(rank, rules.rankStep);
+                return (
+                  <button key={m.id} className="neu-card trainer-mode"
+                    onClick={() => sit({
+                      kind: "bot", persona: KE_JIE, rank: at,
+                      handicap: rules.handicap || undefined, senseiMode: m.id,
+                    })}>
+                    <div className="trainer-mode-top">
+                      <strong>{m.name}</strong>
+                      <span className="fine">
+                        {at}
+                        {rules.handicap ? ` · ${t("play.trainer.stones", { count: rules.handicap }, `${rules.handicap} stones`)}` : ""}
+                      </span>
+                    </div>
+                    <span className="fine trainer-mode-promise">{m.promise}</span>
+                  </button>
+                );
+              })}
+            </div>
             <span className="persona-cta"><GraduationCap size={13} /> {t("play.trainer.cta", { name: KE_JIE.name })} <span className="fine">&middot; {t("play.trainer.note")}</span></span>
             <p className="fine trainer-about">{KE_JIE.about}</p>
-          </button>
+          </div>
         )}
         {aiMode === "house" && (
           <>

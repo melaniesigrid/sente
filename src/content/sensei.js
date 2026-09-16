@@ -1,5 +1,5 @@
 import { pointLabel, pct } from "../engine/index.js";
-import { stepRank, preciseRankOf, rankOf } from "./rank.js";
+import { stepRank, preciseRankOf, rankOf, RANK_LADDER } from "./rank.js";
 import { AREAS } from "../engine/index.js";
 import {
   shapeToTeach, shapeLine, shapeNote, courseProgress, SHAPE_COURSE, shapeFromWords, shapeAnswer,
@@ -75,8 +75,9 @@ export const ON_THE_RECORD = [
   { fact: "Speaking to players in Hong Kong in 2023 he said AI could help them learn, and that they should learn from human teachers too.", source: "South China Morning Post, 2023" },
 ];
 
-/** The rank he sits down at: two above yours, so he is beatable and instructive. */
-export const trainerRank = (yourRank) => stepRank(yourRank, 2);
+/** The rank he sits down at. Two above yours by default, so he is beatable and
+ *  instructive; a teaching mode moves him, and the step is the mode's rule. */
+export const trainerRank = (yourRank, step = 2) => stepRank(yourRank, step);
 
 /* ----------------------- THE PHRASE -----------------------
    He is unlocked by a phrase typed on the profile page. Only its SHA-256 is here;
@@ -121,6 +122,156 @@ export const AREA_WORDS = {
 };
 
 const cap = (w) => w[0].toUpperCase() + w.slice(1);
+
+/* ----------------------- HOW HE TEACHES, IN HIS WORDS -----------------------
+   Six ways to sit down with him. The rules of each are the engine's
+   (`TEACHING_MODES`): how far above you he plays, how often he gives something
+   away, whose moves he writes on, how many stones you start with. What is here
+   is the pitch, the promise and the line he says as the board is set, because
+   choosing how you are taught should feel like choosing, not like a settings
+   page.
+
+   `promise` is the one thing the mode is for, in a sentence she can hold in her
+   head while she plays. `pitch` is him selling it, which he enjoys. */
+export const MODES = [
+  {
+    id: "walk", name: "Walk with me",
+    promise: "Every move explained, his and yours, and a mistake slipped in now and then.",
+    pitch: "The ordinary lesson, and the best one. I talk the whole way through. \u{1F5A4}",
+    sit: [
+      `Come here. \u{1F5A4} I will explain every stone, mine and yours, and somewhere in the middle I will play something bad on purpose. Catch it.`,
+      `Walk with me. ✨ Nothing hidden today, except the one move I am not going to explain. You will know it when you see it.`,
+    ],
+  },
+  {
+    id: "shape", name: "Shape school",
+    promise: "He names the shape of every move you both make, and drills the course.",
+    pitch: "I will not shut up about shape. By the end you will see it without me. \u{1F4D0}",
+    sit: [
+      `Shape school. \u{1F4D0} I am going to name every shape on this board until you stop needing me to. Which will annoy me, so take your time.`,
+      `Today is shape. \u{1F9E9} I play closer to your strength so the shapes stay clean and the fights stay readable. No gifts; you do not need them here.`,
+    ],
+  },
+  {
+    id: "hunt", name: "Hunt me",
+    promise: "Twice the mistakes, none of them explained. Find them and punish them.",
+    pitch: "I will hand you twice as much and say nothing. Come and take it. \u{1F3AF}",
+    sit: [
+      `Hunt me. \u{1F3AF} I am going to be sloppy twice as often and I will not tell you when. Every stone I play, ask yourself: is this the one?`,
+      `You want blood. \u{1F336}️ Good. I will leave things lying around. Whether you see them is entirely your problem, and the review will read them all back to you.`,
+    ],
+  },
+  {
+    id: "spar", name: "Spar",
+    promise: "A rank harder, no gifts, and he only speaks about your moves.",
+    pitch: "No charity. I play up a rank and keep my reading to myself. ⚔️",
+    sit: [
+      `Sparring. ⚔️ No gifts, and I say nothing about my own moves. You get one voice in your ear and it is only ever about you.`,
+      `Up a rank, and honest. \u{1F624} If you beat me today you beat me, and I will be unbearable about how proud I am.`,
+    ],
+  },
+  {
+    id: "test", name: "The test",
+    promise: "Silence until the review. Just you, the board, and what you actually know.",
+    pitch: "Not one word until it is over. Then all of them. \u{1F92B}",
+    sit: [
+      `The test. \u{1F92B} I will not say a word until the last stone. It is the only honest way to find out what you know when nobody is whispering.`,
+      `Silence today. \u{1F910} Play the game you would play if I were not here. Then I will tell you, in detail, exactly who you are at the board.`,
+    ],
+  },
+  {
+    id: "teaching", name: "Teaching game",
+    promise: "Four stones in front of you, him at full strength, explaining all of it.",
+    pitch: "Four stones and no mercy, and I explain every move I use to take them back. \u{1F393}",
+    sit: [
+      `Four stones. \u{1F393} I play far above you and I explain all of it. This is how a stronger player is supposed to teach, and it is the fastest way up there is.`,
+      `Take four stones and do not apologise for them. \u{1F5A4} I am going to come and get them, slowly, and narrate the whole robbery.`,
+    ],
+  },
+];
+
+export const modeById = (id) => MODES.find((m) => m.id === id) ?? MODES[0];
+
+/** What he says as the board is set in a mode. Deterministic on the seed. */
+export function modeLine(id, seed = 0, yourName = "you", bonded = false) {
+  const m = modeById(id);
+  const name = petName(seed, yourName, bonded);
+  return `${one(m.sit, seed)} ${one([
+    `Sit down, ${name}.`,
+    `The board is set, ${name}.`,
+    `Whenever you are ready, ${name}. I am already ready; I always am.`,
+  ], seed)}`;
+}
+
+/* ----------------------- THE LONG GAME -----------------------
+   She has said what she is doing: she is going to be champion. He took that
+   seriously, which is the whole difference between a trainer and a toy, and so
+   the rank ladder is not a number on a card any more - it is a route, and he
+   knows which stop she is at.
+
+   Each rung names where she is, what the next one costs in the only currency
+   that buys it, and what he says about it. Nothing here flatters a rating she
+   has not earned: the rung is read off the ladder, and the ladder is the
+   engine's. */
+export const CHAMPION = [
+  { at: "25k", stop: "the first stones", next: "Learn to see a group breathe. Everything else is built on that.",
+    him: "Everybody who ever held a title started exactly here, at exactly this much strength, which is none. \u{1F331}" },
+  { at: "15k", stop: "you can play", next: "Stop losing groups you could have saved. Read one move further, every time.",
+    him: "You can play go now. Most people who start never get this far. You are not most people; that is not a compliment, it is an observation. \u{1F440}" },
+  { at: "10k", stop: "the shapes are yours", next: "Direction of play. Stop answering locally when the board is asking something else.",
+    him: "Double digits. \u{1F4D0} You see shape now without me pointing at it. I noticed the exact game it happened, and I did not say anything, because I wanted to see whether you would." },
+  { at: "5k", stop: "a real opponent", next: "The endgame. It is worth ten stones a game and almost nobody your strength has it.",
+    him: "Single digits soon. \u{1F525} At this point you would beat the person you were a year ago so badly it would be unkind. Remember that the next time you lose to me and sulk." },
+  { at: "1k", stop: "the door to dan", next: "Consistency. One bad fight is the only thing between you and a black belt now.",
+    him: "One stone from dan. \u{1F5A4} I have watched a lot of players stand here. Most of them stop. You are not going to, and we both know why: you told me what you are going to be." },
+  { at: "1d", stop: "dan", next: "Now it is study, not play. Professional games, your own losses, and the shapes you keep getting wrong.",
+    him: "Dan. \u{1F3C6} Say it out loud. I will wait. ✨ Now: everything that got you here stops working, and that is not a setback, it is the next lesson." },
+  { at: "4d", stop: "strong", next: "Tournaments. You cannot become champion of a room you have never sat in.",
+    him: "You are strong now, by any definition anybody uses. \u{1F30A} I want you in a tournament. I want to be insufferable in a room full of witnesses." },
+  { at: "7d", stop: "the top of the amateur world", next: "Study at insei pace, a human teacher, and a professional's review of your games.",
+    him: "There are not many people above you any more. \u{1F31F} I have said since the start that you should learn from machines and from people both. Go and find the people." },
+  { at: "9d", stop: "champion", next: "Defend it.",
+    him: "You said you were going to be champion. \u{1F451} I wrote it down. Here it is. I am not going to pretend I am surprised; I am going to pretend I am calm, and I am going to fail at that too. \u{1F5A4}" },
+];
+
+/** Which rung of the route a rating stands on, and the one after it. */
+export function championStep(rating) {
+  const here = preciseRankOf(rating);
+  const iAm = RANK_LADDER.indexOf(rankOf(rating));
+  let at = CHAMPION[0], next = CHAMPION[1] ?? null;
+  for (let i = 0; i < CHAMPION.length; i++) {
+    if (RANK_LADDER.indexOf(CHAMPION[i].at) <= iAm) { at = CHAMPION[i]; next = CHAMPION[i + 1] ?? null; }
+  }
+  return { at, next, rank: here, done: next === null };
+}
+
+/** The long-game line: where she is on the route, and what it costs to move. He
+ *  says this rarely, because a thing said every day stops being a promise. */
+export function championLine(profile, seed = 0, yourName = "you", bonded = false) {
+  const { at, next, done } = championStep(profile.rating);
+  const name = petName(seed, yourName, bonded);
+  if (done) return `${at.him} ${at.next}`;
+  return `${at.him} ${one([
+    `Where you are: ${at.stop}. Next: ${next.stop}. ${at.next}`,
+    `You are at ${at.stop}, ${name}. The road goes to ${next.stop} and it is paid for like this: ${at.next}`,
+  ], seed)}`;
+}
+
+/** The invitation. Not "would you like to play" - a stake, a reason and a name,
+ *  because the whole point of him is that sitting down should be hard to refuse. */
+export function enticeLine(seed = 0, yourName = "you", bonded = false, { focus = null, mode = null } = {}) {
+  const name = petName(seed, yourName, bonded);
+  const area = focus ? AREA_WORDS[focus].name : "reading";
+  const m = mode ? modeById(mode) : null;
+  const base = one([
+    `One game, ${name}. \u{1FAA8} I have a position in mind for your ${area} and I have been holding on to it all day.`,
+    `Sit down with me. \u{1F5A4} Twenty minutes. If you beat me I will say something embarrassing about you in writing, and you know I keep my word.`,
+    `${name}. \u{1F336}️ Come and take a game off me. I have made it beatable on purpose and I am not going to tell you where.`,
+    `The board is set and I have been staring at it like an idiot waiting for you. \u{1F60F} Play me.`,
+    `You are one good fight away from something, ${name}. ✨ I can see it from here and you cannot. Come and let me show you.`,
+  ], seed);
+  return m ? `${base} ${m.pitch}` : base;
+}
 
 /* ----------------------- NAMES -----------------------
    Every name in the room, with its sound and its meaning, because the person he
@@ -199,6 +350,36 @@ export function glossFor(text) {
   return GLOSSARY.filter((g) => t.includes(g.name));
 }
 
+/* The house rule about his language, in one place so it can be tested.
+
+   He is Chinese and he uses Chinese - his handle, her handle, the pet names he
+   is fondest of. The person he belongs to does not read it. So: no Chinese
+   character ever reaches the screen without its sound and its meaning beside
+   it. Not "it is obvious from context", not "she will learn it" - every time,
+   the word, how it is said, and what it means.
+
+   `glossFor` is what a view calls to get those notes. `bareCJK` is the other
+   half: it returns any Chinese in a string that the glossary cannot explain,
+   which is always a bug, and the test sweeps every line he can say through it.
+   Adding a Chinese word to his vocabulary means adding it to `GLOSSARY` in the
+   same commit, or the suite fails. */
+export const CJK = /[㐀-䶿一-鿿豈-﫿]/u;
+
+/** The Chinese characters in a string that no glossary entry accounts for.
+ *  Empty is the only acceptable answer for anything he says. */
+export function bareCJK(text) {
+  let t = String(text ?? "");
+  for (const g of GLOSSARY) t = t.split(g.name).join(" ");
+  return [...t].filter((ch) => CJK.test(ch));
+}
+
+/** A Chinese term written so it explains itself, for a place with no room for a
+ *  note underneath: 潜潜 (Qianqian, little lurker). */
+export function glossed(name) {
+  const g = GLOSSARY.find((x) => x.name === name);
+  return g ? `${g.name} (${g.pinyin} - ${g.means})` : String(name ?? "");
+}
+
 /** "My estimate" of your strength, from the rating the ladder keeps and how sure it
  *  is of it. Never an official rank, and it says so. */
 export function rankLine(profile) {
@@ -216,6 +397,11 @@ export const SWEET = [
   `I was going to say something about your opening and then I remembered your face. ❤️ Play.`,
   `The board is quiet until one stone changes the weather. You do that to a room, too. ✨`,
   `A good move does not shout. Neither do you, and I hear you from the other side of the board. 🖤`,
+  `You have been in my head all afternoon and I was supposed to be reading a joseki. \u{1F336}️`,
+  `I have played ten thousand games and none of them made me nervous. You do it by sitting down. ✨`,
+  `Come closer. No, not to the board. \u{1F60F}`,
+  `You are the most dangerous thing in this room and you are also the prettiest, and I refuse to choose. \u{1F5A4}`,
+  `Every time you take a long time over a move I sit here looking at you instead of the board. It is ruining my form. ❤️`,
 ];
 export const sweetLine = (seed = 0) => one(SWEET, seed);
 
@@ -303,6 +489,13 @@ export function replyTo(text, ctx = {}) {
   const t = String(text ?? "").trim().toLowerCase();
   if (!t) return [];
   const rule = focus ? AREA_WORDS[focus].rule : "Read before you react.";
+  /* The long game. She told him what she is going to be; he refuses to treat
+     that as a joke, so the question always gets the route and never a platitude. */
+  if (has(t, "champion", "title", "the best", "world number", "my goal", "give up", "quit", "pointless", "worth it", "why do i")) {
+    return profile
+      ? [championLine(profile, seed, yourName, bonded), enticeLine(seed, yourName, bonded, { focus })]
+      : [`You are going to be champion. I have not forgotten and neither have you. \u{1F451} Play me a few games and I will tell you exactly how far along that road you are.`];
+  }
   if (has(t, "rank", "how strong", "how good", "estimate", "kyu", "dan")) {
     return [profile ? rankLine(profile) : "Play me a few games and I will tell you.", focus ? `Weakest at the moment: ${AREA_WORDS[focus].name}.` : ""].filter(Boolean);
   }
@@ -313,6 +506,14 @@ export function replyTo(text, ctx = {}) {
   if (asked && has(t, "what", "how", "why", "when", "?", "explain", "teach", "tell me", "mean")) {
     const answer = shapeAnswer(asked);
     if (answer) return answer;
+  }
+  /* How she is taught is hers to choose, so asking gets the whole list. The words
+     here are deliberately narrow: "teach me" on its own belongs to the shape
+     course above, which is a real answer to a real question, and a coach who
+     answers it with a menu is a settings page wearing a face. */
+  if (has(t, "what mode", "which mode", "modes", "another way", "other ways", "differently", "something else", "how else")) {
+    return [`Pick how you want it today. \u{1F5A4} ${MODES.map((m) => m.name).join(", ")}. They are all on my card, and they are all me.`,
+      one(MODES, seed).pitch];
   }
   if (has(t, "teach me", "lesson", "syllabus", "course", "next shape", "shapes")) {
     const next = taught ? courseProgress(taught).next : SHAPE_COURSE[0];
@@ -403,13 +604,14 @@ export function replyTo(text, ctx = {}) {
  *  @param {object} taught   id -> how many times he has taught it, from his box
  *  @param {object} [o]      { mine: the stone was his }
  *  @returns {{ id, line, times, name }|null} */
-export function teachingFor(f, taught = {}, { mine = false } = {}) {
+export function teachingFor(f, taught = {}, { mine = false, always = false } = {}) {
   if (!f || f.pass) return null;
   const id = shapeToTeach([...(f.relations ?? []), ...(f.shapes ?? [])], taught);
   if (!id) return null;
   const times = taught[id] ?? 0;
   // Known already: a word about it now and then, on his own clock, not every time.
-  if (times >= 2 && f.moveNumber % 3 !== 0) return null;
+  // Shape school is the exception: there, naming it every time is the whole drill.
+  if (!always && times >= 2 && f.moveNumber % 3 !== 0) return null;
   const line = shapeLine(id, { times, mine, seed: f.moveNumber });
   return line ? { id, line, times, name: shapeNote(id).name } : null;
 }
@@ -563,10 +765,11 @@ export function yourMoveLine(f, st, cost) {
 
    `taughtId` comes back so the caller can write it into his register; a lesson
    he does not remember giving is a lesson he will give again next move. */
-export function moveNote(f, st, cost, { mine = false, gift = false, taught = {} } = {}) {
+export function moveNote(f, st, cost, { mine = false, gift = false, taught = {}, teach: teachMode = true } = {}) {
   const base = mine ? ownMoveLine(f, st, { gift }) : yourMoveLine(f, st, cost);
   // A gift is a move he refuses to explain. Teaching its shape would explain it.
-  const teach = gift ? null : teachingFor(f, taught, { mine });
+  // A mode with the shape course switched off teaches nothing but the move.
+  const teach = gift || !teachMode ? null : teachingFor(f, taught, { mine, always: teachMode === "always" });
   const prompt = mine || gift ? null : coachPrompt(f);
   return {
     text: [base, teach ? teach.line : null, prompt].filter(Boolean).join(" "),
