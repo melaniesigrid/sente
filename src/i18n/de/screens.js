@@ -313,7 +313,7 @@ export const screens = {
     table: {
       head: "Am Tisch",
       sound: "Steinklang",
-      soundNote: "Ein erzeugtes Klicken bei jedem Stein, ein leiser Ton je Gefangenem und ein kurzes Vibrieren auf dem Telefon. Es wird nichts heruntergeladen.",
+      soundNote: "Ein Stein auf Holz, erzeugt statt aufgenommen: Schiefer klingt dumpfer als Muschel, Gefangene fallen in die Schale, und eine Glocke beendet die Partie. Auf dem Telefon ein kurzes Vibrieren. Es wird nichts heruntergeladen.",
       coords: "Koordinaten",
       coordsNote: "Buchstaben und Zahlen rund um das Brett, so wie ein Buch sie druckt. Der Buchstabe I wird ausgelassen, die Spalte nach H ist also J.",
       lastMove: "Letzter Zug",

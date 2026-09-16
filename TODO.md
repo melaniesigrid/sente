@@ -1505,7 +1505,23 @@ Open:
       so an opponent online never sees the archetype. Carry it on register and `PATCH
       /api/me`, put it in `asSeat` and the hall actors, and draw the mark beside seat names
       in the online game, pair go and the lobby. Until then the mask is local-only.
-- [x] Sound and haptic feedback on stone placement (opt-in, synthesised, no assets).
+- [x] Sound and haptic feedback on stone placement (synthesised, no assets). Shipped
+      opt-in and off, which read to players as a server with no sound at all; it is on by
+      default now and a profile saved under the old default is un-muted once. The synth was
+      also rebuilt to sound like go: an inharmonic wooden body under the contact click,
+      slate duller than clamshell, captures falling into the bowl, a pass, and a struck
+      bell. The AudioContext is unlocked from the first gesture in the document, not from
+      the first sound, because a house player opening a handicap game arrives with no
+      gesture on the stack and Safari will not resume a context created there.
+- [ ] Voice at the table: "Game started", and a spoken 3-2-1 as a byo-yomi period runs out,
+      the way the big servers do it. Deferred behind the Clock UI item - there is no
+      countdown at the table to speak to yet - and behind a decision on where the audio
+      comes from: recorded clips are the only way to sound like a go server, but nine
+      languages ship, so it is nine voice sets, and "nothing is downloaded" stops being
+      true. `playPass` and the clock events (`byoyomi`, `period-lost`) are already there.
+- [ ] A speaker control at the table, so sound can be silenced without walking to the
+      profile. Wants the Clock UI item's header space; until then the profile toggle is
+      the only way.
 - [x] Self-host fonts instead of the Google Fonts `@import` (2026-09-11, branch
       `feat/self-host-fonts`). `tools/fonts/fetch.mjs` (`npm run fonts`) downloads the five
       text families once into `src/fonts/google/` and generates `src/styles/googleFaces.js`;
