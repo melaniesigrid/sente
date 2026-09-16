@@ -94,4 +94,7 @@ const RIM = "#b9a98a";
  *  as one hard, bright disc on the stone's left shoulder, and the big figures
  *  fade from it. */
 export const cutBlack = (core) => [lighten(core, 0.25), core, darken(core, 0.22)];
-export const cutWhite = (core) => [lighten(core, 0.72), core, mix(core, RIM, 0.35)];
+/* The white rim is cut deeper than it was: it is the only thing holding a
+   white stone off the wood now that a stone casts no shadow, and at a third
+   of the way to RIM it measured 1.4:1 on kaya, which is a rumour of an edge. */
+export const cutWhite = (core) => [lighten(core, 0.72), core, mix(core, RIM, 0.55)];

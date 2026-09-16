@@ -9,6 +9,7 @@ import { startLine, playInLine, backInLine, lineLabel, canBranch, reviewLabelTex
 import { refusalText, resultSentence } from "./gameStatus.js";
 import { useT } from "../components/langStore.js";
 import { Board } from "../components/Board.jsx";
+import { legiblePx } from "../components/boardGeometry.js";
 import { WinGraph } from "../components/WinGraph.jsx";
 import { useAnalysis, remainingText } from "./useAnalysis.js";
 import { KE_JIE, reviewLines } from "../content/sensei.js";
@@ -42,13 +43,23 @@ import {
 
 const BOARD_PX = { 9: 460, 13: 560, 19: 680 };
 
+/* Numbers are 16px type in the board's own units, so a 19-line board on a
+   phone would print them at six pixels. They open on when the window can show
+   the board at the width the type floor asks for (legiblePx, less the page
+   gutters and the sheet's padding), and off, still one press away, when it
+   cannot. jsdom reports a wide window, so tests see them on. */
+const GUTTERS = 120;
+const numbersLegible = (size) =>
+  typeof window === "undefined" || window.innerWidth - GUTTERS >= legiblePx(size);
+
 export function Review({ record, onExit, onRematch, profile = {} }) {
   const t = useT();
   const total = reviewLength(record);
   const [n, setN] = useState(total);
-  /* A kifu is printed with its move numbers on, so review opens with them on.
-     The toggle (and the N key) is for hiding them to look at the shape. */
-  const [showNumbers, setShowNumbers] = useState(true);
+  /* A kifu is printed with its move numbers on, so review opens with them on
+     wherever they can be read. The toggle (and the N key) hides them to look
+     at the shape, or shows them on a screen too narrow to open with them. */
+  const [showNumbers, setShowNumbers] = useState(() => numbersLegible(record.size));
   // A line being tried from the position on screen. Scratch: never written to the
   // record, never exported. Null means you are looking at the game itself.
   const [line, setLine] = useState(null);
@@ -165,15 +176,13 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
           <Pill icon={line ? GitBranch : Hash} tone={line ? "win" : ""}>
             {line ? lineLabel(line, t) : reviewLabelText(record, n, t) + (capHere ? ` · ${t("review.captured", { count: capHere.stones })}` : "")}
           </Pill>
-          {/* A printed record carries its coordinates whatever the player shows
-              at the table: a kifu is read, and talked about, by them. */}
           <Board board={(line ? line.record : at).board}
             lastMove={line ? lastMoveIndex(line.record) : marker}
             onPlay={branchable ? onTry : undefined}
             disabled={!branchable}
-            sizePx={BOARD_PX[record.size] ?? 680}
+            sizePx={BOARD_PX[record.size] ?? Math.max(680, legiblePx(record.size))}
             numbers={line ? null : numbers} captured={[]} marks={marks}
-            coordinates mark={profile.lastMoveMark ?? "dot"} />
+            coordinates={profile.coordinates} mark={profile.lastMoveMark ?? "dot"} />
           {refused && <p className="review-refused" role="alert">{refused}</p>}
           {/* A comment on the move, when the record carries one: a trainer's note, or
               whatever the SGF that was opened had to say. The game's own line, never a

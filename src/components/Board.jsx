@@ -120,7 +120,7 @@ export function Board({
         <g key={"cap" + captureKey}>
           {captured.map((p, i) => {
             const c = p[0] ?? p.c, r = p[1] ?? p.r;
-            return <circle key={"c" + i} cx={x(c)} cy={y(r)} r={18.5} className="stone-out"
+            return <circle key={"c" + i} cx={x(c)} cy={y(r)} r={R} className="stone-out"
               style={{ animationDelay: `${i * 40}ms` }} />;
           })}
         </g>
@@ -138,8 +138,16 @@ export function Board({
               )}
               {atariSet.has(i) && !isDead && <circle cx={x(c)} cy={y(r)} r={21} className="atari-ring" />}
               {numbers && numbers.has(i) ? (
-                <text x={x(c)} y={y(r)} className={`stone-num ${v === "b" ? "on-b" : "on-w"}`}
-                  textAnchor="middle" dominantBaseline="central">{numbers.get(i)}</text>
+                <>
+                  <text x={x(c)} y={y(r)} className={`stone-num ${v === "b" ? "on-b" : "on-w"}`}
+                    textAnchor="middle" dominantBaseline="central">{numbers.get(i)}</text>
+                  {/* A numbered stone has no room for the dot, so the move you are
+                      standing on is ringed outside the stone instead: with every
+                      stone numbered, nothing else says which one is now. */}
+                  {isLast && !isDead && mark !== "none" && (
+                    <circle cx={x(c)} cy={y(r)} r={21} className="here-ring" />
+                  )}
+                </>
               ) : (
                 isLast && !isDead && mark !== "none" && (
                   mark === "ring"

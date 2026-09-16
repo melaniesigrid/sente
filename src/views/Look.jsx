@@ -4,7 +4,7 @@ import { boardFromRows } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
 import { Card } from "../components/ui.jsx";
 import { TYPEFACES, typefaceOf } from "../content/typeface.js";
-import { SYSTEM_THEME, themeOf, themeVars, stoneSetOf, auditPalette } from "../theme/index.js";
+import { SYSTEM_THEME, themeOf, themeVars, tokensFor, stoneSetOf, auditPalette } from "../theme/index.js";
 import { STONE_RULE } from "../theme/tokens.js";
 import { roomsFor, setsFor, setName } from "./look.js";
 import { useT } from "../components/langStore.js";
@@ -64,8 +64,12 @@ export function LookView({ profile, setProfile, go, room }) {
     () => rooms.map(t => themeVars(t.drawAs || t.id, dojo, stones)),
     [rooms, dojo, stones],
   );
+  /* A set's plate shows the set, so it is drawn as a table room draws it even
+     when the room in force is the printed one: on the page every set is ink
+     and paper, and nine identical plates would offer nothing to choose
+     between. The plate is the set; the page is where it does not apply. */
   const setVars = useMemo(
-    () => sets.map(s => themeVars(room, dojo, s.id)),
+    () => sets.map(s => tokensFor({ ...themeOf(room, dojo), print: false, stones: s.id })),
     [sets, room, dojo],
   );
   const cut = useMemo(

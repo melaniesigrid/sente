@@ -109,12 +109,13 @@ export const STONE_RULE = {
  *  and still played badly, because both stones were measured against each other
  *  and neither was measured against the board.
  *
- *  There is one board now (BOARD, in palettes.js), so this is one question
- *  asked of a set rather than of a room-and-set pair, and it is one-sided the
- *  way a real board is. The black stone has to be findable on the wood. The
- *  white one is separated from kaya by its rim and its shadow, not by its fill:
- *  shell on wood measures about 1.6:1 on a real board and looking for a floor
- *  there would only produce a board nobody has ever played on.
+ *  There is one board now (BOARD, above), so this is one question asked of a
+ *  set rather than of a room-and-set pair, and it is one-sided the way a real
+ *  board is. The black stone has to be findable on the wood. The white one is
+ *  separated from kaya by its rim, not by its fill: shell on wood measures
+ *  about 1.6:1 on a real board and looking for a floor there would only
+ *  produce a board nobody has ever played on. The printed room asks the same
+ *  question of ink on its page (boardFor, derive.js).
  */
 export const BOARD_RULES = [
   { id: "board-b", label: "Slate on the board", stone: "b", min: 2.5,

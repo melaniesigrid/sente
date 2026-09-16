@@ -51,7 +51,7 @@ ${FONT_FACES}
   --hairline: rgba(var(--sh-ink),.14);
   --belt-edge: rgba(var(--sh-ink),.42);
   --stone-b-1: #78746d; --stone-b-2: #4b463c; --stone-b-3: #3b372f;
-  --stone-w-1: #fbfaf7; --stone-w-2: #f2ede3; --stone-w-3: #ded5c4;
+  --stone-w-1: #fbfaf7; --stone-w-2: #f2ede3; --stone-w-3: #d3c8b2;
   --font-display: 'Fraunces', serif;
   --font-display-italic: 'Fraunces', serif;
   --display-italic-style: italic;
@@ -657,6 +657,10 @@ ${FONT_FACES}
    skipped by colLabel, as every go book does. */
 .coord text { font-size: 16px; font-variant-numeric: tabular-nums; fill: var(--ink-2); pointer-events: none; }
 .last-ring { fill: none; stroke: var(--danger); stroke-width: 2.5; opacity: .85; }
+/* The move you are standing on, when every stone carries its number and the
+   dot has nowhere to go: a ring outside the stone in the mark colour, which on
+   the printed page is the terracotta the room promises. */
+.here-ring { fill: none; stroke: var(--accent); stroke-width: 2.4; opacity: .9; pointer-events: none; }
 /* Welcome. Shown once, so it gets room: a wide hero, one decision per screen, and
    pips that say how much is left rather than leaving a newcomer guessing. */
 .welcome { max-width: 860px; }
@@ -675,6 +679,12 @@ ${FONT_FACES}
    floating on whatever room the player was playing in. The bleed is so the
    sheet reaches past the content column the way paper on a table does. */
 .review-room {
+  /* --accent is written once on the root as rgb(var(--accent-rgb)) and a
+     custom property resolves where it is declared, so the sheet's own
+     --accent-rgb changed nothing until it was declared again here. Without
+     this line the move you are standing on was ringed in the room's
+     eucalyptus on a page that promises terracotta. */
+  --accent: rgb(var(--accent-rgb));
   background: var(--ground); color: var(--ink);
   border-radius: var(--r); box-shadow: var(--raise);
   padding: clamp(18px, 2.6vw, 34px);
@@ -706,7 +716,11 @@ ${FONT_FACES}
 .wingraph svg { display: block; width: 100%; height: 132px; border-radius: calc(var(--r) - 10px); touch-action: none; cursor: pointer; }
 .wingraph-white { fill: var(--stone-w-2); }
 .wingraph-black { fill: var(--stone-b-2); }
-.wingraph-unknown { fill: var(--ground); }
+/* The part of the game the network has not reached is shaded a step below
+   the page rather than left as the page: on the printed sheet the white share
+   IS the page, and an unshaded remainder would read as White winning the rest
+   of a game nobody has counted. */
+.wingraph-unknown { fill: var(--dark); }
 .wingraph-even { stroke: var(--grid); stroke-opacity: .5; stroke-width: 1; stroke-dasharray: 4 6; }
 .wingraph-line { fill: none; stroke: var(--ground); stroke-width: 2; stroke-linejoin: round; }
 .wingraph-turn { stroke: var(--danger); stroke-width: 1.5; stroke-dasharray: 3 4; }
@@ -1201,7 +1215,10 @@ ${FONT_FACES}
    nearly identical near-whites in a dark room, where the ink is light. The
    stones are the only pair guaranteed to be 4.5:1 apart in every room. */
 .terr-b { fill: var(--stone-b-2); }
-.terr-w { fill: var(--stone-w-2); stroke: var(--stone-b-3); stroke-opacity: .35; stroke-width: 1; }
+/* White's mark is outlined in the black stone's rim, and the outline carries
+   it: on the printed page the white stone is the paper, so without an edge
+   White's territory would be invisible while Black's is solid ink. */
+.terr-w { fill: var(--stone-w-2); stroke: var(--stone-b-3); stroke-opacity: .55; stroke-width: 1.2; }
 @keyframes fade-in { from { opacity: 0; } }
 .stone-dead { opacity: .4; }
 .dead-x { fill: none; stroke-width: 2.4; stroke-linecap: round; }
@@ -1508,10 +1525,11 @@ ${FONT_FACES}
    --sh-lite, the same light every raised card is lit by. Nothing is named here
    that is not a token, and a change of set in the look page changes this too.
 
-   The house drop-shadows come off for Decor's reason: a 3px blur under a 300px
-   stone is a smear. What replaces the relief is the shine, which is what a
-   polished stone that size actually has on it -- a highlight where the surface
-   faces the light and a lit rim where it turns away. */
+   No stone casts a shadow any more, on the board or here. What a stone this
+   size has instead of relief is the shine, which is what a polished stone
+   that size actually has on it -- a highlight where the surface faces the
+   light and a lit rim where it turns away; the board's stones carry one hard
+   highlight for the same reason at a fortieth of the size. */
 /* --fig-lead is the beat the lines get to themselves before the first stone
    lands. Every delay on this block is measured from it, so the whole sequence
    -- rules, stones, rings, captures -- moves together if it is ever retimed. */
@@ -2968,8 +2986,7 @@ ${FONT_FACES}
 
 /* ---- the marks, at the size of a section ----
    The brand marks run large and bleed off the band they sit in. They are flat
-   here: the house drop-shadows on a stone are a 3px blur, which at 400px is a
-   smudge, so the raise comes off and what is left is the shape. Kept faint
+   here, as every stone is now: no cast shadow, only the shape. Kept faint
    enough that body text never has to compete with it, and the section clips
    them, so a mark ends at the margin like a stamp rather than trailing off. */
 .lp-decor { position: absolute; z-index: 0; pointer-events: none; opacity: .115; }

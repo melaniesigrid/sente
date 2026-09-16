@@ -82,7 +82,7 @@ export const rooms = {
     derivedEm: "· abgeleitet",
     derivedRole: "Beide werden aus dem Grund errechnet und keines ist eine Wahl: eine erhabene Sache sieht nur so lange beleuchtet statt umrandet aus, wie ihre beiden Lichter in Reichweite des Papiers bleiben, auf dem sie liegt. Verschiebe den Grund und sie verschieben sich mit.",
     stonesHead: "Die Steine",
-    stonesNote: "Jeder Raum nennt den Satz, mit dem er gespielt wird, dieser hier eingeschlossen. Zwei Farben machen einen Satz; die beleuchtete Krone und der Rand, an dem sich die Oberfläche abwendet, werden aus diesen beiden geschnitten, und das Brett darunter ist in jedem Raum dasselbe Holz.",
+    stonesNote: "Jeder Raum nennt den Satz, mit dem er gespielt wird, dieser hier eingeschlossen. Zwei Farben machen einen Satz; die beleuchtete Krone und der Rand, an dem sich die Oberfläche abwendet, werden aus diesen beiden geschnitten, und das Brett darunter ist in jedem Tischraum dasselbe Holz; die gedruckte Seite hat gar kein Brett.",
     auditHead: "Was die Regeln sagen",
     auditMax: "max. {n}",
     auditMin: "min. {n}",

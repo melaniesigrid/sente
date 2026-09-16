@@ -1785,7 +1785,7 @@ with none of that, and the drawing is what was chosen.
       strength (`--grid-alpha`, a new token), and the stones are ink and paper with an ink
       rim whatever set the player carries. A printed stone is not a rock. The set the room
       names is what its plate is drawn from, nothing more.
-- [x] **Review opens the way a kifu is printed:** coordinates on whatever the table shows,
+- [x] **Review opens the way a kifu is printed:** coordinates as the reader shows them (on by default),
       move numbers on (the toggle and the N key hide them to look at the shape). Numbers on
       a stone are written in the other stone's colour, which is the one pair held 4.5:1
       apart in every room; they used to take `--light`, which is dark in a dark room.

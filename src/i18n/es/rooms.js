@@ -82,7 +82,7 @@ export const rooms = {
     derivedEm: "· derivadas",
     derivedRole: "Las dos se calculan a partir del fondo y ninguna es una elección: una cosa realzada parece iluminada en lugar de delineada solo mientras sus dos luces se mantienen cerca del papel sobre el que se apoyan. Mueve el fondo y se mueven con él.",
     stonesHead: "Las piedras",
-    stonesNote: "Cada sala nombra el juego con el que se juega, esta incluida. Dos colores hacen un juego; la corona iluminada y el borde donde la superficie se aparta se recortan de esos dos, y el tablero de debajo es la misma madera en todas las salas.",
+    stonesNote: "Cada sala nombra el juego con el que se juega, esta incluida. Dos colores hacen un juego; la corona iluminada y el borde donde la superficie se aparta se recortan de esos dos, y el tablero de debajo es la misma madera en todas las salas de mesa; la página impresa no tiene tablero.",
     auditHead: "Lo que dicen las reglas",
     auditMax: "máx. {n}",
     auditMin: "mín. {n}",

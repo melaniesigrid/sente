@@ -52,7 +52,9 @@ export const PALETTES = [
     // itself the stones are printed, see `print`.
     stones: "ebony",
     // A diagram, not a table: the board is the paper, the grid a hairline, the
-    // stones ink and paper. derive.js reads this; nothing else needs to.
+    // stones ink and paper. derive.js reads this; nothing else needs to, and
+    // the dojo never carries it: a room built there is a table room, and a
+    // stored palette cannot smuggle it in (sanitizePalette keeps tones only).
     print: true,
     name: "Kifu",
     mood: "Review",

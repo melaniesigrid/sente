@@ -7,8 +7,9 @@ import { sayingBySeed, localizeSaying } from "./content/classic.js";
    Design system: Laska "stone" palette (DESIGN.md)
    The palette is themed from src/theme/; there are three rooms and Tatami is
    the reference: ground #ede6d8 · highlight #fbf7ee · shade #cdc2ae ·
-   armies #f2ede3 / #4b463c · eucalyptus accent #6a8a75. The board is not
-   themed: one wood, #d9b77a, in all three (src/theme/tokens.js).
+   armies ink and ivory · eucalyptus accent #6a8a75. The board is not themed:
+   one wood, #d9b77a, in both table rooms (src/theme/tokens.js); the review
+   room prints its diagram on the page (src/theme/palettes.js, `print`).
    Fraunces display · Hanken Grotesk body (the house pairing; the type is
    themed from src/content/typeface.js) · Lucide icons only
    Neumorphism via two shadows: cream top-left, clay bottom-right.
