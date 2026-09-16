@@ -451,3 +451,115 @@ describe("four humans", () => {
     expect(four().record.players).toEqual({ b: "Ada & Cy", w: "Bea & Dee" });
   });
 });
+
+/* ----------------------- READING IT TOGETHER ----------------------- */
+describe("the review both players are in", () => {
+  /* A short finished game: Black plays one stone, White resigns. One move to
+     stand on, which is all a cursor needs. */
+  const ended = () => {
+    const r = applyMessage(room9(), "b1", { t: "play", c: 2, r: 2 }).room;
+    return applyMessage(r, "w1", { t: "resign" }, 3).room;
+  };
+
+  it("keeps the room open after the result: a game is over, a table is not", () => {
+    const out = applyMessage(ended(), "b1", { t: "reviewAsk" }, 4);
+    expect(out.room.review.in).toEqual(["b1"]);
+    expect(frames(out, "review")[0]).toMatchObject({ status: "asked", by: "b1" });
+    // The other side is the one asked, and asking is not playing on.
+    expect(out.events.find(e => e.frame.t === "review").to).toBe("team:w");
+  });
+
+  it("refuses to open one while the game is still being played", () => {
+    expect(frames(applyMessage(room9(), "b1", { t: "reviewAsk" }), "error")[0].reason).toBe("not-over");
+  });
+
+  it("puts both of them on the same move", () => {
+    let r = step(ended(), "b1", { t: "reviewAsk" });
+    r = step(r, "w1", { t: "reviewJoin" });
+    expect(r.review.in).toEqual(["b1", "w1"]);
+    expect(r.review.asked).toBeNull();
+    r = step(r, "w1", { t: "reviewMove", n: 0 });
+    expect(r.review.move).toBe(0);
+    expect(r.review.base).toBe(0);
+  });
+
+  it("lets either of them play into the one variation, and refuses what the board would", () => {
+    let r = step(ended(), "b1", { t: "reviewAsk" });
+    r = step(r, "w1", { t: "reviewJoin" });
+    r = step(r, "b1", { t: "reviewMove", n: 0 });
+    r = step(r, "w1", { t: "reviewTry", c: 4, r: 4 });
+    expect(r.review.line).toEqual([{ c: 4, r: 4, color: "b" }]);
+    // The point is taken; the other reader cannot put a second stone on it.
+    const refused = applyMessage(r, "b1", { t: "reviewTry", c: 4, r: 4 }, 5);
+    expect(frames(refused, "error")[0]).toMatchObject({ reason: "occupied", c: 4, r: 4 });
+    expect(refused.room.review.line).toHaveLength(1);
+    r = step(r, "b1", { t: "reviewBack" });
+    expect(r.review.line).toEqual([]);
+  });
+
+  it("opens where the game stopped, and will not branch from a counted finish", () => {
+    const r = step(ended(), "b1", { t: "reviewAsk" });
+    expect(r.review.move).toBe(1);
+    // A resignation is not a position, so the last position of a resigned game is
+    // still one somebody is to move in: "what if he had answered here" has an answer.
+    expect(step(r, "b1", { t: "reviewTry", c: 4, r: 4 }).review.line).toHaveLength(1);
+
+    // Two passes and a count leave the last position in scoring, where nobody plays.
+    let counted = applyMessage(room9(), "b1", { t: "pass" }).room;
+    counted = step(counted, "w1", { t: "pass" });
+    counted = step(counted, "b1", { t: "accept" });
+    counted = step(counted, "w1", { t: "accept" });
+    counted = step(counted, "b1", { t: "reviewAsk" });
+    expect(frames(applyMessage(counted, "b1", { t: "reviewTry", c: 4, r: 4 }), "error")[0].reason).toBe("wrong-phase");
+  });
+
+  it("lights a point for both of them, and the same tap puts it out", () => {
+    let r = step(ended(), "b1", { t: "reviewAsk" });
+    r = step(r, "w1", { t: "reviewJoin" });
+    r = step(r, "b1", { t: "reviewMark", c: 3, r: 3 });
+    expect(r.review.marks).toEqual([{ c: 3, r: 3, by: "b1" }]);
+    // Either of them may put out a ring: it is one board they are both pointing at.
+    r = step(r, "w1", { t: "reviewMark", c: 3, r: 3 });
+    expect(r.review.marks).toEqual([]);
+    expect(frames(applyMessage(r, "b1", { t: "reviewMark", c: 99, r: 0 }), "error")[0].reason).toBe("bad-point");
+  });
+
+  it("clears the marks when the board moves, because a ring points at a position", () => {
+    let r = step(ended(), "b1", { t: "reviewAsk" });
+    r = step(r, "b1", { t: "reviewMark", c: 3, r: 3 });
+    r = step(r, "b1", { t: "reviewMove", n: 0 });
+    expect(r.review.marks).toEqual([]);
+  });
+
+  it("keeps no more than a handful of rings at once", () => {
+    let r = step(ended(), "b1", { t: "reviewAsk" });
+    for (let i = 0; i < 8; i++) r = step(r, "b1", { t: "reviewMark", c: i, r: 0 });
+    expect(r.review.marks).toHaveLength(6);
+    expect(r.review.marks[0]).toMatchObject({ c: 2 });
+  });
+
+  it("closes when the last reader leaves, and when the other side says no", () => {
+    let r = step(ended(), "b1", { t: "reviewAsk" });
+    r = step(r, "w1", { t: "reviewJoin" });
+    r = step(r, "b1", { t: "reviewLeave" });
+    expect(r.review.in).toEqual(["w1"]);
+    r = step(r, "w1", { t: "reviewLeave" });
+    expect(r.review).toBeNull();
+
+    const asked = step(ended(), "b1", { t: "reviewAsk" });
+    const out = applyMessage(asked, "w1", { t: "reviewDecline" }, 6);
+    expect(out.room.review).toBeNull();
+    expect(frames(out, "review")[0].status).toBe("declined");
+    expect(out.events.find(e => e.frame.t === "review").to).toBe("team:b");
+  });
+
+  it("does not let somebody who is not reading move what the readers see", () => {
+    const r = step(ended(), "b1", { t: "reviewAsk" });
+    expect(frames(applyMessage(r, "w1", { t: "reviewMove", n: 0 }), "error")[0].reason).toBe("no-review");
+  });
+
+  it("still refuses to play on: the game is over whatever the room is for", () => {
+    const r = step(ended(), "b1", { t: "reviewAsk" });
+    expect(frames(applyMessage(r, "b1", { t: "play", c: 5, r: 5 }), "error")[0].reason).toBe("game-over");
+  });
+});
