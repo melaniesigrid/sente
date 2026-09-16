@@ -126,12 +126,19 @@ describe("every set in every room", () => {
         const t = completeTones({ ...p, stones: s.id });
         const pair = stonesFor(t);
         expect(pair.b, `${p.id} + ${s.id} black`).toEqual([t.ink, t.ink, t.ink]);
-        expect(pair.w, `${p.id} + ${s.id} white`).toEqual([t.ground, t.ground, t.ink]);
+        // Paper, paper, and a line round it. The line is mixed toward the ink
+        // rather than being the ink, because these stops are also the gradient
+        // the drawn stones on Home and the landing are made of: a rim of solid
+        // ink there ramps a three-hundred-pixel white stone to black.
+        expect(pair.w.slice(0, 2), `${p.id} + ${s.id} white`).toEqual([t.ground, t.ground]);
+        expect(pair.w[2], `${p.id} + ${s.id} rim is not the ink itself`).not.toBe(t.ink);
+        expect(contrast(pair.w[2], t.ground), `${p.id} + ${s.id} rim on the page`).toBeGreaterThan(3);
         expect(pair.set.id, "the set is still the player's").toBe(s.id);
       }
       const vars = themeVars(p.id, null, "honey");
       expect(vars["--stone-w-2"], "and the tokens say so").toBe(vars["--ground"]);
-      expect(vars["--stone-w-3"]).toBe(vars["--ink"]);
+      expect(vars["--stone-w-3"], "outlined, not filled with ink").not.toBe(vars["--ink"]);
+      expect(vars["--stone-b-2"]).toBe(vars["--ink"]);
     }
   });
 });

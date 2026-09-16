@@ -144,8 +144,11 @@ export function Board({
                   {/* A numbered stone has no room for the dot, so the move you are
                       standing on is ringed outside the stone instead: with every
                       stone numbered, nothing else says which one is now. */}
+                  {/* Wider than the atari and chat rings, which both sit at 21:
+                      no caller draws this beside either today, and two rings of
+                      the same radius would be one ring if one ever did. */}
                   {isLast && !isDead && mark !== "none" && (
-                    <circle cx={x(c)} cy={y(r)} r={21} className="here-ring" />
+                    <circle cx={x(c)} cy={y(r)} r={23} className="here-ring" />
                   )}
                 </>
               ) : (

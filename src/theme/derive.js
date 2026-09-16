@@ -159,6 +159,13 @@ export function tokensFor(tones) {
     "--danger": t.danger,
 
     "--accent-rgb": accent,
+    // The mark as a colour, not as three numbers. It is emitted rather than
+    // written once in the stylesheet because a custom property resolves where
+    // it is declared: a `--accent: rgb(var(--accent-rgb))` on the root would
+    // be the root's accent everywhere, including on a plate or a sheet that
+    // carries its own tokens, which is how every room's plate on the look page
+    // came to wear the same mark.
+    "--accent": `rgb(${accent})`,
     // The soft fill behind a selected chip, and the focus ring. They are two
     // tokens because 16% of gold on near-black is nothing: a dark room needs a
     // far stronger ring before keyboard focus is visible at all.
@@ -224,7 +231,15 @@ export function tokensFor(tones) {
  *  at three different sets of stones. */
 export function stonesFor(tones) {
   const set = stonesOf(tones.stones);
-  if (tones.print) return { b: [tones.ink, tones.ink, tones.ink], w: [tones.ground, tones.ground, tones.ink], set };
+  /* The printed white stone is the page with a line round it. The line is
+     mixed rather than the ink itself, because these three stops are also the
+     gradient the big drawn stones are made of (components/stoneArt.jsx): a
+     rim of solid ink there would ramp a three-hundred-pixel stone to black
+     over its outer third. Half-way to the ink is a firm printed outline at
+     the size of a game and a shaded edge at the size of a figure. */
+  if (tones.print) {
+    return { b: [tones.ink, tones.ink, tones.ink], w: [tones.ground, tones.ground, mix(tones.ground, tones.ink, 0.55)], set };
+  }
   return { b: cutBlack(set.b), w: cutWhite(set.w), set };
 }
 

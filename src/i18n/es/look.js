@@ -20,7 +20,7 @@ export const look = {
     },
     stones: {
       head: "Tus piedras",
-      note: "Un juego son dos objetos: el núcleo de la piedra negra y el de la blanca. La corona iluminada y el borde donde la superficie se curva salen de esos dos, así que un juego se parece a sí mismo en cualquier sala. La madera de debajo no cambia nunca; en la página impresa son tinta y papel.",
+      note: "Un juego son dos objetos: el núcleo de la piedra negra y el de la blanca. La corona iluminada y el borde donde la superficie se curva salen de esos dos, así que un juego se parece a sí mismo en cualquier sala. La madera de debajo no cambia nunca, y la página impresa no tiene madera: allí son tinta y papel.",
       pick: "Piedras: {name}",
       auto: "Las de la sala",
       autoNote: "Cada sala nombra el juego para el que fue diseñada: {room} se juega con {set}. Cambia de sala y las piedras cambian con ella.",

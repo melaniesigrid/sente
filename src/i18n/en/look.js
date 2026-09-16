@@ -22,7 +22,7 @@ export const look = {
     },
     stones: {
       head: "Your stones",
-      note: "A set is two objects: the core of the black stone and the core of the white one. The lit crown and the rim where the surface curves away are worked out from those two, so a set looks like itself in every room. The wood under them never changes; on the printed page they are ink and paper.",
+      note: "A set is two objects: the core of the black stone and the core of the white one. The lit crown and the rim where the surface curves away are worked out from those two, so a set looks like itself in every room. The wood under them never changes, and the printed page has no wood: there they are ink and paper.",
       pick: "Stones: {name}",
       auto: "The room's own",
       autoNote: "Every room names the set it was designed around: {room} is played with {set}. Change rooms and the stones change with them.",

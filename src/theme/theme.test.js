@@ -86,6 +86,24 @@ describe("the named rooms", () => {
     expect(PALETTES.filter(p => p.print).map(p => p.id), "and it is the only one").toEqual([REVIEW_THEME]);
   });
 
+  /* The mark arrives as a colour, not only as three numbers to build one from.
+     A custom property resolves where it is declared, so a single
+     `--accent: rgb(var(--accent-rgb))` in the stylesheet is the ROOT's accent
+     everywhere it is read, including on a plate or a review sheet carrying its
+     own tokens. That is how every room's plate on the look page came to wear
+     one mark: the plate set --accent-rgb and nothing read it. */
+  it("hands every room its mark as a colour of its own", () => {
+    const seen = new Set();
+    for (const p of PALETTES) {
+      const vars = themeVars(p.id);
+      expect(vars["--accent"], p.id).toBe(`rgb(${vars["--accent-rgb"]})`);
+      seen.add(vars["--accent"]);
+    }
+    expect(seen.size, "and no two rooms are marked the same").toBe(PALETTES.length);
+    expect(themeVars(DOJO_THEME, MINE)["--accent"], "a built room too")
+      .toBe(`rgb(${themeVars(DOJO_THEME, MINE)["--accent-rgb"]})`);
+  });
+
   it("gives a dark room a stronger focus ring than a light one", () => {
     const light = themeVars("tatami")["--accent-ring"];
     const dark = themeVars("night")["--accent-ring"];

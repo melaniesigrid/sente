@@ -18,7 +18,7 @@ export const look = {
     },
     stones: {
       head: "Tes pierres",
-      note: "Un jeu, ce sont deux objets : le cœur de la pierre noire et celui de la blanche. La couronne éclairée et le bord où la surface s'incurve se déduisent de ces deux-là, si bien qu'un jeu se ressemble dans toutes les salles. Le bois en dessous ne change jamais ; sur la page imprimée, ce sont de l'encre et du papier.",
+      note: "Un jeu, ce sont deux objets : le cœur de la pierre noire et celui de la blanche. La couronne éclairée et le bord où la surface s'incurve se déduisent de ces deux-là, si bien qu'un jeu se ressemble dans toutes les salles. Le bois en dessous ne change jamais, et la page imprimée n'en a pas : là, ce sont de l'encre et du papier.",
       pick: "Pierres : {name}",
       auto: "Celles de la salle",
       autoNote: "Chaque salle nomme le jeu autour duquel elle a été dessinée : {room} se joue avec {set}. Change de salle et les pierres changent avec elle.",

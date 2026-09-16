@@ -87,12 +87,17 @@ describe("the room review is read in", () => {
     expect(CSS).toContain(".here-ring { fill: none; stroke: var(--accent)");
   });
 
-  /* The ring is drawn in --accent, and --accent is declared on the root from
-     the root's --accent-rgb. The sheet has to declare it again or the ring is
-     the table room's colour on the printed page. */
-  it("re-resolves the mark colour on the sheet", () => {
-    const rule = CSS.split(".review-room {")[1].split("}")[0];
-    expect(rule).toContain("--accent: rgb(var(--accent-rgb))");
+  /* The ring, the dot and the scrub cursor are drawn in --accent. A custom
+     property resolves where it is declared, so a single
+     `--accent: rgb(var(--accent-rgb))` on the root would paint the room's
+     colour on a sheet carrying its own: the token has to arrive with the rest
+     of them, which is what theme.test.js holds the contract to. */
+  it("carries its own mark colour, not the room's behind it", () => {
+    render(<Review record={record()} onExit={() => {}} profile={{ theme: "night" }} />);
+    expect(sheet().style.getPropertyValue("--accent"))
+      .toBe(themeVars(REVIEW_THEME)["--accent"]);
+    expect(sheet().style.getPropertyValue("--accent"))
+      .not.toBe(themeVars("night")["--accent"]);
   });
 
   /* The tokens are inherited custom properties, which paint nothing on their

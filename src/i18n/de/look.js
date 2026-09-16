@@ -18,7 +18,7 @@ export const look = {
     },
     stones: {
       head: "Deine Steine",
-      note: "Ein Satz sind zwei Objekte: der Kern des schwarzen Steins und der des weißen. Die belichtete Krone und der Rand, an dem sich die Oberfläche wegkrümmt, werden aus diesen beiden berechnet, also sieht ein Satz in jedem Raum wie er selbst aus. Das Holz darunter wechselt nie; auf der gedruckten Seite sind sie Tinte und Papier.",
+      note: "Ein Satz sind zwei Objekte: der Kern des schwarzen Steins und der des weißen. Die belichtete Krone und der Rand, an dem sich die Oberfläche wegkrümmt, werden aus diesen beiden berechnet, also sieht ein Satz in jedem Raum wie er selbst aus. Das Holz darunter wechselt nie, und die gedruckte Seite hat gar keines: dort sind sie Tinte und Papier.",
       pick: "Steine: {name}",
       auto: "Die des Raums",
       autoNote: "Jeder Raum nennt den Satz, um den herum er entworfen wurde: {room} wird mit {set} gespielt. Wechsle den Raum und die Steine wechseln mit.",

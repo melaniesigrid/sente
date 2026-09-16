@@ -51,7 +51,7 @@ ${FONT_FACES}
   --hairline: rgba(var(--sh-ink),.14);
   --belt-edge: rgba(var(--sh-ink),.42);
   --stone-b-1: #78746d; --stone-b-2: #4b463c; --stone-b-3: #3b372f;
-  --stone-w-1: #fbfaf7; --stone-w-2: #f2ede3; --stone-w-3: #d3c8b2;
+  --stone-w-1: #fbfaf7; --stone-w-2: #f2ede3; --stone-w-3: #ded5c4;
   --font-display: 'Fraunces', serif;
   --font-display-italic: 'Fraunces', serif;
   --display-italic-style: italic;
@@ -679,17 +679,18 @@ ${FONT_FACES}
    floating on whatever room the player was playing in. The bleed is so the
    sheet reaches past the content column the way paper on a table does. */
 .review-room {
-  /* --accent is written once on the root as rgb(var(--accent-rgb)) and a
-     custom property resolves where it is declared, so the sheet's own
-     --accent-rgb changed nothing until it was declared again here. Without
-     this line the move you are standing on was ringed in the room's
-     eucalyptus on a page that promises terracotta. */
-  --accent: rgb(var(--accent-rgb));
   background: var(--ground); color: var(--ink);
   border-radius: var(--r); box-shadow: var(--raise);
   padding: clamp(18px, 2.6vw, 34px);
-  margin-inline: clamp(-20px, -1.6vw, 0px);
+  margin-inline: clamp(-60px, -4vw, 0px);
 }
+/* The diagram is the content on this screen, not one column of two, so it
+   takes a larger share of the row than it does at a table. A printed record
+   carries its move numbers, and a move number is 16px in the board's own
+   units: at the table's two-to-one split a nineteen-line board lands around
+   636px, which prints them at 11.8px, under the floor. The basis is a width
+   here because .play-wrap is a row; in a column stack it would be a height. */
+.review-room .board-col { flex: 3 1 560px; }
 .review-refused { margin: 0; font-size: 14px; color: var(--danger-ink); text-align: center; }
 .review-result { color: var(--ink-2); font-family: var(--font-display); font-weight: var(--w-display); font-size: 16px; }
 .review-controls { justify-content: center; gap: 6px; flex-wrap: wrap; }
@@ -703,8 +704,10 @@ ${FONT_FACES}
 
 /* The win rate graph. The curve is the border between Black's share of the box and
    White's, so the two stone colours carry the whole reading and nothing needs a
-   legend. The hairline along it is the room's own ground, which is the one colour
-   that stands out against both stones in every palette. */
+   legend. The hairline along it is the quiet ink, which is the one tone that
+   stands out against both stones in every room -- including the printed one,
+   where White's share is the page itself and the room's ground would paint
+   nothing at all. */
 .review-analysis { width: 100%; }
 /* The same graph at the table, in the side column, once a game is over. Shorter
    than in review, where it is the instrument; here it is the summary beside the
@@ -716,13 +719,15 @@ ${FONT_FACES}
 .wingraph svg { display: block; width: 100%; height: 132px; border-radius: calc(var(--r) - 10px); touch-action: none; cursor: pointer; }
 .wingraph-white { fill: var(--stone-w-2); }
 .wingraph-black { fill: var(--stone-b-2); }
-/* The part of the game the network has not reached is shaded a step below
-   the page rather than left as the page: on the printed sheet the white share
-   IS the page, and an unshaded remainder would read as White winning the rest
-   of a game nobody has counted. */
-.wingraph-unknown { fill: var(--dark); }
+/* The part of the game the network has not reached yet. It has to be neither
+   stone in every room, which is a harder ask than it sounds: the page is
+   White's own colour on the printed sheet, and the shadow tone is within
+   1.12:1 of the black stone in the dark room. The quiet ink is the one tone
+   that clears both stones in all three (measured: 3.1-4.6:1 against white,
+   3.3-4.9:1 against black). */
+.wingraph-unknown { fill: var(--ink-3); }
 .wingraph-even { stroke: var(--grid); stroke-opacity: .5; stroke-width: 1; stroke-dasharray: 4 6; }
-.wingraph-line { fill: none; stroke: var(--ground); stroke-width: 2; stroke-linejoin: round; }
+.wingraph-line { fill: none; stroke: var(--ink-3); stroke-width: 2; stroke-linejoin: round; }
 .wingraph-turn { stroke: var(--danger); stroke-width: 1.5; stroke-dasharray: 3 4; }
 .wingraph-cursor { stroke: var(--accent); stroke-width: 2; }
 .wingraph-ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-2); padding: 4px 2px 0; }
@@ -2510,7 +2515,10 @@ ${FONT_FACES}
 .table-row svg { color: var(--accent-ink); opacity: .8; }
 .dot-live { background: var(--accent); }
 .dot-done { background: var(--dark); }
-.board-placeholder { aspect-ratio: 1; width: 100%; border-radius: 18px; box-shadow: var(--sink); opacity: .5; }
+/* The board before it arrives. Raised and faint, because it is standing in
+   for a raised thing: sunk, it dropped a hole in the page that a card then
+   jumped out of when the game started. */
+.board-placeholder { aspect-ratio: 1; width: 100%; border-radius: 18px; box-shadow: var(--raise); opacity: .5; }
 .bubble-who { color: var(--ink-2); font-weight: 700; font-size: 13px; }
 .chip-btn { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 4px; border: 0; background: transparent; color: var(--accent-ink); font: 700 11.5px var(--font-body); letter-spacing: .1em; text-transform: uppercase; cursor: pointer; padding: 4px 6px; border-radius: 8px; }
 .chip-btn:hover { box-shadow: var(--sink-sm); }
@@ -2581,6 +2589,11 @@ ${FONT_FACES}
 .lp-hero-copy { flex: 1 1 420px; max-width: 620px; min-width: 0; }
 .lp-hero-board { flex: 0 1 420px; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 16px; }
 .lp-board-well { border-radius: var(--r); box-shadow: var(--sink); padding: clamp(14px, 2vw, 24px); width: 100%; background: var(--ground); }
+/* One frame per board. The landing sets its board into a well of its own, and
+   the board's own well is raised, so left alone the front door showed a card
+   lifted out of a recess it was cut into. The outer frame wins here: it is the
+   one that belongs to the page's composition. */
+.lp-board-well .board-well { box-shadow: none; padding: 0; }
 .lp-board-note { color: var(--ink-2); margin: 0; font-family: var(--font-caption); font-style: var(--caption-style); font-size: 13px; text-align: center; }
 
 /* The stat chips are sunken, so they read as facts stamped into the ground

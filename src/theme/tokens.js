@@ -63,7 +63,7 @@ export const REQUIRED_TONES = TONES.filter(t => t.required).map(t => t.key);
  *  the list of things the stylesheet is allowed to ask for. */
 export const TOKEN_NAMES = [
   "--ground", "--board", "--light", "--dark", "--ink", "--ink-2", "--ink-3", "--cream",
-  "--accent-rgb", "--accent-soft", "--accent-ring", "--accent-ink", "--danger", "--danger-ink",
+  "--accent-rgb", "--accent", "--accent-soft", "--accent-ring", "--accent-ink", "--danger", "--danger-ink",
   "--sh-ink", "--sh-lite",
   "--wash-a", "--wash-b", "--scrim",
   "--grid", "--grid-alpha", "--hairline",

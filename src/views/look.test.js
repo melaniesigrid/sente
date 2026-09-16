@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { roomsFor, setsFor, setName } from "./look.js";
+import { roomsFor, setsFor, setName, plateVars, platePalette } from "./look.js";
 import { makeT } from "../i18n/index.js";
-import { PALETTES, STONE_SETS, AUTO_STONES, DOJO_THEME, SYSTEM_THEME, stoneSetOf } from "../theme/index.js";
+import { PALETTES, STONE_SETS, AUTO_STONES, DOJO_THEME, SYSTEM_THEME, stoneSetOf, themeVars } from "../theme/index.js";
 
 const MINE = { ground: "#101014", ink: "#e6e6ea", accent: "#b98cff", cream: "#f2f2f6" };
 
@@ -47,5 +47,36 @@ describe("what the look page offers", () => {
     expect(sets[0].name).toBe("Las de la sala");
     expect(sets[0].note).toContain(setName(sets.find(s => s.id === "ebony"), es).toLowerCase());
     expect(sets[0].note).not.toContain("played with");
+  });
+});
+
+/* A plate is drawn in the material it offers, and a stone plate offers a set.
+   In the printed room no set has a look of its own -- a kifu prints in ink and
+   paper whatever is in the drawer -- so the plates are drawn as a table room
+   draws them or the picker shows nine identical plates and picks between
+   nothing. */
+describe("the stones a plate is drawn in", () => {
+  it("shows a different pair for every set, even in the printed room", () => {
+    const kifu = PALETTES.find(p => p.print);
+    const drawn = STONE_SETS.map(s => plateVars(kifu.id, null, s.id)["--stone-b-2"]);
+    expect(new Set(drawn).size, "eight sets, eight blacks").toBe(STONE_SETS.length);
+    for (const v of drawn) expect(v, "and none of them is the page's ink").not.toBe(kifu.ink);
+  });
+
+  it("draws the room's own plate in the set the room actually names", () => {
+    for (const p of PALETTES) {
+      const own = plateVars(p.id, null, AUTO_STONES);
+      const named = plateVars(p.id, null, p.stones);
+      expect(own, `${p.id} leads with its own set`).toEqual(named);
+      expect(own["--stone-b-2"], `${p.id} is not quietly the house set`)
+        .toBe(plateVars(p.id, null, p.stones)["--stone-b-2"]);
+    }
+  });
+
+  it("leaves the board alone: only the plates stop printing", () => {
+    const kifu = PALETTES.find(p => p.print);
+    expect(platePalette(kifu.id, null).print).toBe(false);
+    expect(themeVars(kifu.id)["--board"], "the page itself still prints")
+      .toBe(themeVars(kifu.id)["--ground"]);
   });
 });

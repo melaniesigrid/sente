@@ -94,7 +94,9 @@ const RIM = "#b9a98a";
  *  as one hard, bright disc on the stone's left shoulder, and the big figures
  *  fade from it. */
 export const cutBlack = (core) => [lighten(core, 0.25), core, darken(core, 0.22)];
-/* The white rim is cut deeper than it was: it is the only thing holding a
-   white stone off the wood now that a stone casts no shadow, and at a third
-   of the way to RIM it measured 1.4:1 on kaya, which is a rumour of an edge. */
-export const cutWhite = (core) => [lighten(core, 0.72), core, mix(core, RIM, 0.55)];
+/* The rim is a turn of the surface, not a separator, and it cannot become one:
+   RIM is within 1.21:1 of the wood, so cutting the rim deeper walks it toward
+   the board rather than away from it (measured, every set: a third of the way
+   gives 1.31-1.40:1 on kaya, half gives 1.15-1.21:1). What holds a white stone
+   off the wood is its body, at 1.6-1.8:1, which is what a real board does. */
+export const cutWhite = (core) => [lighten(core, 0.72), core, mix(core, RIM, 0.35)];
