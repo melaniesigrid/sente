@@ -8,7 +8,19 @@
    `O` white. `answers` are [column, row].
 
    Every board is re-proved from this file by `drills.test.js` on every
-   build, so if a row here is wrong the build says so. */
+   build, so if a row here is wrong the build says so.
+
+   Six life boards were taken out by hand once, which the line above says not
+   to do. They were shapes with a stone already inside the eye space, which
+   the prover could not see until `withDeadInside` was added, so each was
+   graded as a question with one answer when it has several or none. A
+   regeneration drops them for the same reason, by the generator's own rule
+   that one point must settle a board. It was done by hand because this file
+   records nothing about how it was made - not the census parameters, not the
+   inputs - so a regeneration cannot reproduce it, and the run that would have
+   removed those six also retired seven sound boards and added twenty-eight
+   others. Stamping the inputs into this header is the fix; until then a
+   regeneration is a content change and wants its own decision. */
 export const DRILL_DATA = [
   { id: "d05yzzb5", rank: "23k", kind: "capture", goal: "capture",
     where: "edge", libs: 1, stones: 1, decoys: 8, target: [2, 2], depth: 1, placement: 1,
@@ -442,10 +454,6 @@ export const DRILL_DATA = [
     where: "open", shape: "straight-three", space: 3, depth: 7, placement: 1,
     rows: ["OOOOOX...", "O...OX...", "OOOOOX...", "XXXXXX...", ".........", ".........", ".........", ".........", "........."],
     answers: [[2, 1]] },
-  { id: "d10e1k1n", rank: "14k", kind: "life", goal: "live",
-    where: "edge", shape: "bent-four", space: 4, depth: 1, placement: 0,
-    rows: ["XO.XO....", "...XO....", "XXXXO....", "OOOOO....", ".........", ".........", ".........", ".........", "........."],
-    answers: [[0, 1]] },
   { id: "d15l2z1s", rank: "14k", kind: "life", goal: "live",
     where: "corner", shape: "bent-three", space: 3, depth: 1, placement: 1,
     rows: ["..XO.....", ".XXO.....", "XXOO.....", "OOO......", ".........", ".........", ".........", ".........", "........."],
@@ -458,10 +466,6 @@ export const DRILL_DATA = [
     where: "open", shape: "pyramid-four", space: 4, depth: 1, placement: 0,
     rows: ["XXXXXO...", "X...XO...", "XX.XXO...", "OXXXOO...", "OOOOO....", ".........", ".........", ".........", "........."],
     answers: [[2, 1]] },
-  { id: "d1on4rzm", rank: "13k", kind: "life", goal: "live",
-    where: "corner", shape: "bent-four", space: 4, depth: 1, placement: 0,
-    rows: ["...XO....", ".OOXO....", "XXXXO....", "OOOOO....", ".........", ".........", ".........", ".........", "........."],
-    answers: [[0, 1]] },
   { id: "d02yuyno", rank: "13k", kind: "life", goal: "kill",
     where: "corner", shape: "bent-three", space: 3, depth: 7, placement: 1,
     rows: ["..OX.....", ".OOX.....", "OOXX.....", "XXX......", ".........", ".........", ".........", ".........", "........."],
@@ -474,10 +478,6 @@ export const DRILL_DATA = [
     where: "edge", shape: "four-points-bent", space: 4, depth: 7, placement: 1,
     rows: ["O..OX....", "..OOX....", "OOOXX....", "XXXX.....", ".........", ".........", ".........", ".........", "........."],
     answers: [[1, 0]] },
-  { id: "d0vlxzmf", rank: "12k", kind: "life", goal: "kill",
-    where: "edge", shape: "bent-four", space: 4, depth: 7, placement: 1,
-    rows: ["OX.OX....", "...OX....", "OOOOX....", "XXXXX....", ".........", ".........", ".........", ".........", "........."],
-    answers: [[0, 1]] },
   { id: "d0nnstdy", rank: "12k", kind: "life", goal: "live",
     where: "corner", shape: "pyramid-four", space: 4, depth: 1, placement: 1,
     rows: ["...XO....", "X.XXO....", "XXXOO....", "OOOO.....", ".........", ".........", ".........", ".........", "........."],
@@ -494,10 +494,6 @@ export const DRILL_DATA = [
     where: "corner", shape: "square-four", space: 4, depth: 1, placement: 1,
     rows: ["..XOX....", "..OOX....", "XOOXX....", "OOXX.....", "XXX......", ".........", ".........", ".........", "........."],
     answers: [[1, 1]] },
-  { id: "d066ytac", rank: "12k", kind: "life", goal: "kill",
-    where: "edge", shape: "straight-four", space: 4, depth: 7, placement: 1,
-    rows: ["OXOOOX...", "....OX...", "OOOOOX...", "XXXXXX...", ".........", ".........", ".........", ".........", "........."],
-    answers: [[0, 1]] },
   { id: "d1idi4mw", rank: "12k", kind: "tesuji", goal: "tesuji",
     where: "edge", net: 3, stones: 3, decoys: 5, depth: 2, sacrifice: 0,
     rows: ["OO.......", "XOX......", ".........", ".X.......", ".........", ".........", ".........", ".........", "........."],
@@ -506,10 +502,6 @@ export const DRILL_DATA = [
     where: "edge", net: 3, stones: 3, decoys: 5, depth: 2, sacrifice: 0,
     rows: ["OO.......", "XOX......", "..X......", ".........", ".........", ".........", ".........", ".........", "........."],
     answers: [[0, 2]] },
-  { id: "d0j40bqj", rank: "11k", kind: "life", goal: "kill",
-    where: "corner", shape: "four-points-bent", space: 4, depth: 5, placement: 1,
-    rows: ["..OOX....", "X..OX....", "OOOOX....", "XXXXX....", ".........", ".........", ".........", ".........", "........."],
-    answers: [[1, 0]] },
   { id: "d1qvhhdu", rank: "11k", kind: "life", goal: "live",
     where: "edge", shape: "crossed-five", space: 5, depth: 1, placement: 1,
     rows: ["X.XXO....", "...XO....", "X.XXO....", "XXXOO....", "OOOO.....", ".........", ".........", ".........", "........."],
@@ -522,10 +514,6 @@ export const DRILL_DATA = [
     where: "edge", net: 2, stones: 2, decoys: 4, depth: 3, sacrifice: 0,
     rows: ["OOXX.....", ".........", ".........", ".........", ".........", ".........", ".........", ".........", "........."],
     answers: [[1, 1]] },
-  { id: "d1aiv3z4", rank: "10k", kind: "life", goal: "kill",
-    where: "corner", shape: "five-points-bent", space: 5, depth: 5, placement: 0,
-    rows: ["...OX....", ".X.OX....", "OOOOX....", "XXXXX....", ".........", ".........", ".........", ".........", "........."],
-    answers: [[0, 1]] },
   { id: "d1lcgngg", rank: "10k", kind: "life", goal: "kill",
     where: "edge", shape: "five-points-bent", space: 5, depth: 13, placement: 1,
     rows: ["O...OX...", "..OOOX...", "OOOXXX...", "XXXX.....", ".........", ".........", ".........", ".........", "........."],
