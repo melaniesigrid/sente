@@ -81,6 +81,11 @@ export const api = {
   setProfile: (token, patch) => call("/api/me/profile", { method: "PATCH", token, body: patch }),
   setAvatar: (token, blob) => call("/api/me/avatar", { method: "PUT", token, blob }),
   clearAvatar: (token) => call("/api/me/avatar", { method: "DELETE", token }),
+  /* What you have done, kept on the account so another device finds it. PUT
+     answers with the merge of this document and the stored one, never a bare
+     200, because the merge is the answer to "what is my progress now". */
+  progress: (token) => call("/api/me/progress", { token }),
+  putProgress: (token, data, at) => call("/api/me/progress", { method: "PUT", token, body: { data, at } }),
   profile: (id) => call(`/api/players/${encodeURIComponent(id)}`),
   /* Finding somebody by their handle. A session is required: you have to play
      here before you may look anybody up. The answer is capped and carries no
