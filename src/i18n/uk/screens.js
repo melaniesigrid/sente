@@ -6,6 +6,8 @@
    із цифри правилом, яке годиться для англійської, українською не можна. */
 export const screens = {
   home: {
+    boardNotePlayers: "{black} ({blackRank}) проти {white} ({whiteRank}) — обидва через людяну мережу KataGo, кожен на своєму розряді.",
+    boardNote: "Добір ходів Joseki проти себе: та сама евристика з обох боків, а не мережа KataGo, якою грають домашні гравці.",
     trainer: { head: "Лист від {name}", away: "Прибрати", play: "Іди грати", placeholder: "Напиши йому…", send: "Надіслати", yes: "Так", notNow: "Не зараз" },
     greetingBack: "З поверненням",
     greetingNew: "Ласкаво просимо до дошки",

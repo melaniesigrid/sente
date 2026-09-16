@@ -2,6 +2,8 @@
 /* One block per screen, in the order a player meets them. */
 export const screens = {
   home: {
+    boardNotePlayers: "{black} ({blackRank}) contra {white} ({whiteRank}), los dos a través de la red de estilo humano de KataGo, cada uno en su rango.",
+    boardNote: "El selector de jugadas de Joseki contra sí mismo: la misma heurística en los dos lados, no la red de KataGo con la que juegan los jugadores de la casa.",
     trainer: { head: "Una carta de {name}", away: "Guardarla", play: "Ve a jugar", placeholder: "Escríbele…", send: "Enviar", yes: "Sí", notNow: "Ahora no" },
     greetingBack: "De vuelta al tablero",
     greetingNew: "Bienvenida al tablero",

@@ -3,6 +3,8 @@
 export const screens = {
   /* The dashboard. */
   home: {
+    boardNotePlayers: "{black} ({blackRank}) against {white} ({whiteRank}), both through KataGo’s human-style network at their own rank.",
+    boardNote: "Joseki’s move picker against itself: the same heuristic on both sides, not the KataGo network your house players use.",
     trainer: { head: "A letter from {name}", away: "Put it away", play: "Go and play", placeholder: "Write to him…", send: "Send", yes: "Yes", notNow: "Not now" },
     greetingBack: "Welcome back",
     greetingNew: "Welcome to the board",

@@ -489,7 +489,14 @@ ${FONT_FACES}
 /* ---- hero ---- */
 .hero { display: flex; gap: clamp(18px, 3vw, 36px); align-items: center; flex-wrap: wrap; }
 .hero-copy { flex: 1 1 300px; }
-.hero-board { flex: 0 1 300px; margin-inline: auto; }
+/* The dashboard's demo board carries a caption saying what is playing it, so
+   the column holds the board and the line under it. The line is 12px, the
+   floor of the scale, because it is a credit and not a heading. */
+.hero-board { flex: 0 1 300px; margin-inline: auto; display: flex; flex-direction: column; gap: 10px; }
+.board-note {
+  color: var(--ink-2); margin: 0; text-align: center; max-width: 34ch; margin-inline: auto;
+  font-family: var(--font-caption); font-style: var(--caption-style); font-size: 12px; line-height: 1.45;
+}
 .hero .row { margin-top: 18px; }
 
 .tile { text-align: start; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease, box-shadow .15s ease; }

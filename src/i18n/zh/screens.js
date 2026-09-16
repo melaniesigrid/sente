@@ -2,6 +2,8 @@
 /* 每块屏幕一段，顺序就是一位棋手遇到它们的顺序。 */
 export const screens = {
   home: {
+    boardNotePlayers: "{black}（{blackRank}）对 {white}（{whiteRank}），两边都走 KataGo 的人类棋风网络，各自按自己的段位。",
+    boardNote: "Joseki 的选点程序在跟自己下：两边都是同一套启发式算法，不是房间棋手用的 KataGo 网络。",
     trainer: { head: "{name}的来信", away: "收起来", play: "去下棋", placeholder: "给他写点什么…", send: "发送", yes: "好", notNow: "现在不要" },
     greetingBack: "欢迎回来",
     greetingNew: "欢迎来到棋盘前",

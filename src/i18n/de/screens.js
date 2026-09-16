@@ -1,6 +1,8 @@
 // de · screens
 export const screens = {
   home: {
+    boardNotePlayers: "{black} ({blackRank}) gegen {white} ({whiteRank}), beide über KataGos menschlich spielendes Netz auf ihrer eigenen Spielstärke.",
+    boardNote: "Josekis Zugwahl gegen sich selbst: dieselbe Heuristik auf beiden Seiten, nicht das KataGo-Netz, mit dem deine Hausspieler spielen.",
     trainer: { head: "Ein Brief von {name}", away: "Weglegen", play: "Geh spielen", placeholder: "Schreib ihm…", send: "Senden", yes: "Ja", notNow: "Jetzt nicht" },
     greetingBack: "Zurück am Brett",
     greetingNew: "Willkommen am Brett",

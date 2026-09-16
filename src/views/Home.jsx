@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { serverEnabled } from "../net/api.js";
 import { ACCOUNT_KEY, loadAccount } from "../store/account.js";
 import { DashboardCard } from "./DashboardCard.jsx";
@@ -13,6 +13,7 @@ import { PROBLEMS, localizeProblem, localizeSet, currentSet, setProgress } from 
 import { preciseRankOf } from "../content/rank.js";
 import { PERSONAS } from "../content/personas.js";
 import { duelMode } from "../content/duel.js";
+import { demoPair } from "../content/demo.js";
 import { clearGame } from "../store/gameStore.js";
 import { useMokuFacts } from "../components/mokuStore.js";
 import { DuelCard } from "../components/DuelCard.jsx";
@@ -71,6 +72,11 @@ export function Home({ profile, go, onResume }) {
   const [saved, setSaved] = useState(() => loadSession({ today, profile, t }));
   const discard = () => { clearGame(); setSaved(null); };
   const duel = duelMode(PERSONAS, today);
+  // Who is playing the demo board, and which engine is answering for them.
+  // The pair is today's; the source is whatever MiniSelfPlay settled on when
+  // it started, which depends on whether the network is already in memory.
+  const pair = useMemo(() => demoPair(PERSONAS, today), [today]);
+  const [demoSource, setDemoSource] = useState("heuristic");
   const authoredKata = dailyProblem(PROBLEMS, today);
   const kata = authoredKata && localizeProblem(authoredKata, t);
   const kataDone = profile.kataDate === today;
@@ -159,8 +165,22 @@ export function Home({ profile, go, onResume }) {
             <Btn icon={GraduationCap} onClick={() => go("learn")}>{t("home.keepLearning")}</Btn>
           </div>
         </div>
-        <div className="hero-board" aria-hidden="true">
-          <MiniSelfPlay sizePx={300} />
+        <div className="hero-board">
+          {/* The demo names what it is, and the name is not decided here: the
+              board plays the house players through the network when the
+              network is already loaded and the heuristic when it is not, and
+              the line under it says which of those a visitor is watching. */}
+          <div aria-hidden="true">
+            <MiniSelfPlay sizePx={300} players={pair} onSource={setDemoSource} />
+          </div>
+          <p className="board-note">
+            {demoSource === "kata" && pair
+              ? t("home.boardNotePlayers", {
+                black: pair.b.persona.name, blackRank: pair.b.rank,
+                white: pair.w.persona.name, whiteRank: pair.w.rank,
+              })
+              : t("home.boardNote")}
+          </p>
         </div>
       </Card>
 
