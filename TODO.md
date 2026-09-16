@@ -1793,12 +1793,31 @@ with none of that, and the drawing is what was chosen.
       page; the printed room plays on its page and is the only one that does; every set
       prints as ink and paper there.
 
+- [x] What the review passes found on the way, all of it shipped with the above: the move
+      you are standing on is ringed when every stone carries a number (`.here-ring`), the
+      numbers open on only where the drawn board clears the type floor (measured with a
+      ResizeObserver, so a rotation re-answers it), `--accent` is handed out with the rest
+      of a room's tokens so every plate wears its own mark, the look page's plates are
+      drawn as a table room draws them (`plateVars` in `views/look.js`), White's territory
+      and the win graph's unread tail are legible on the printed page, the front door
+      stopped framing its board twice, and the joseki dictionary marks its current move.
+
 Decisions:
 - The gloss is a hard disc, not a fade, because that is the drawing and it is what makes
   the pieces read as polished glass rather than ink. On the printed page the crown is the
   body, so the same disc paints nothing without the board knowing it is in print.
 - The big figures (`stoneArt.jsx`, the landing) keep their gradient: at three hundred
-  pixels a flat disc with a dot is a button, and at forty a gradient is a smear.
+  pixels a flat disc with a dot is a button, and at forty a gradient is a smear. This is
+  also why the printed white stone's rim is mixed half-way to the ink rather than being
+  the ink: those three stops are the figures' gradient too.
+- **The white stone's rim cannot be made to separate it from the wood, and it is not
+  supposed to.** RIM is within 1.21:1 of kaya, so cutting the rim deeper walks it *toward*
+  the board (measured: a half-mix lands every set at 1.11-1.21:1 against 1.31-1.40:1 at a
+  third). What holds a white stone off the wood is its body, at 1.6-1.8:1, which is what a
+  real board does. A review pass proposed the deeper cut and the numbers sent it back.
+- The numbers gate measures the board, not the window. A max-width, the sheet's padding,
+  the well's padding and the side column each take a cut, and guessing at them adds up to
+  more than the margin being guessed about.
 - Kifu as a *game-screen* layout (the typeset players line, clocks as text, chat as
   marginalia) is not built. The room is; the layout of the table in it is still the table.
 

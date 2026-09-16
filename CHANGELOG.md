@@ -6,6 +6,44 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.16.0.0 (2026-09-16)
+
+### Changed
+
+- **The stones are the ones that were drawn.** A stone is a flat disc of its set's own
+  colour now: the black one with a single bright highlight on its left shoulder, the white
+  one held off the wood by a hairline rim. Neither casts a shadow any more. The board is
+  the object on the table, so the board is what is raised, and the stones lie on it.
+- **Both table rooms are played with ink and ivory.** Tatami and Night name the sharpest
+  pair in the drawer. The other seven sets are untouched, and a set you choose yourself
+  still follows you from room to room.
+- **The review room is a printed page, not a table.** Kifu has no board: the diagram is
+  drawn on the paper, the grid is a hairline of ink at full strength, and the stones are
+  ink and paper whatever set you carry, because a printed stone is not a rock. A game is
+  read the way a book prints it.
+- **A record opens with its move numbers on** wherever the board is drawn wide enough to
+  read them, and drops them on a screen too narrow, where they would land under the type
+  floor. The toggle and the N key still hide them to look at the shape, and the board is
+  measured as it is actually drawn, so turning a phone re-answers the question.
+- **The move you are standing on is ringed** when every stone carries a number and the
+  usual dot has nowhere to go. In the review room that ring is the terracotta the room has
+  always promised.
+- The look page's stone plates are drawn as a table room draws them, so the printed room
+  offers nine sets to choose between rather than nine sheets of paper.
+
+### Fixed
+
+- Every room's plate on the look page wore the same mark, whichever room it was offering.
+  The mark is handed out with the rest of a room's colours now.
+- The joseki dictionary marked no move as the current one while stepping through a
+  sequence.
+- White's territory could not be seen while counting on the printed page, where a white
+  stone is the paper itself. It is outlined more firmly.
+- The unread part of the win rate graph was drawn in a tone within 1.12:1 of the black
+  stone in the dark room, so a partial reading looked like Black winning the rest.
+- The front door framed its board twice, and the board a game is waiting for was a hole in
+  the page that a card then jumped out of.
+
 ## v0.15.1.0 (2026-09-15)
 
 ### Fixed
