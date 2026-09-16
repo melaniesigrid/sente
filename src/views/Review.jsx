@@ -82,13 +82,24 @@ function useLegibleNumbers(size) {
   return [ref, legible];
 }
 
-export function Review({ record, onExit, onRematch, profile = {}, shared = null }) {
+/* `aside` is a render function of the move number, drawn in the side column. Review
+   keeps that column for the conversation at a shared table and has nothing else to
+   put in it; a screen that reads a game rather than replays one - the famous games
+   shelf - hands its commentary in here rather than growing a second review room.
+   Review knows nothing about what is in it, and `shared` still wins: a table you are
+   reading with somebody is a conversation first.
+
+   `openAt` is where the cursor starts when nobody has moved it yet. Review opens at
+   the end of a game you played, because you were there; a game you have never seen
+   opens at the beginning. */
+export function Review({ record, onExit, onRematch, profile = {}, shared = null,
+  aside = null, openAt = null, autoAnalyse = null }) {
   const t = useT();
   const total = reviewLength(record);
   /* Where the reader is standing. Alone that is this component's state; together
      it is the room's, and this state is not consulted at all - which is why the
      cursor cannot drift apart from the other person's while they read. */
-  const [ownN, setOwnN] = useState(total);
+  const [ownN, setOwnN] = useState(openAt === null ? total : clampMove(record, openAt));
   const n = shared ? clampMove(record, shared.move) : ownN;
   /* A kifu is printed with its move numbers on, so review opens with them on
      wherever they can be read, and drops them where they would be drawn under
@@ -115,7 +126,12 @@ export function Review({ record, onExit, onRematch, profile = {}, shared = null 
      say to each other about a game, and a tap has to mean one thing at a time. */
   const [pointing, setPointing] = useState(false);
   // The graph, and whether the board is showing what the network would have done.
-  const analysis = useAnalysis(record, { auto: record.phase === "ended" });
+  /* A finished game you played gets its win-rate graph without being asked, because
+     you want to know. A famous game does not: somebody who opened one to read it did
+     not ask to run a network over three hundred positions on their phone, and the
+     button is right there. `autoAnalyse` is how a screen says which it is. */
+  const analysis = useAnalysis(record, {
+    auto: autoAnalyse === null ? record.phase === "ended" : autoAnalyse });
   const [showBest, setShowBest] = useState(false);
   /* The trainer, when he is at the table: once the graph is drawn he will say
      what it means, in his words, for any game at all, opened or played here. */
@@ -392,7 +408,9 @@ export function Review({ record, onExit, onRematch, profile = {}, shared = null 
         {/* Whatever the table sent along - the conversation, in practice. Review
             has a side column for exactly this reason and nothing of its own to
             put in it. */}
-        {shared && shared.talk && <div className="side stack-sm">{shared.talk}</div>}
+        {shared && shared.talk
+          ? <div className="side stack-sm">{shared.talk}</div>
+          : aside ? <div className="side stack-sm">{aside(n)}</div> : null}
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Swords, GraduationCap, Target, LayoutDashboard, Medal, ArrowRight, Palette, CornerDownRight } from "lucide-react";
+import { Swords, GraduationCap, Target, LayoutDashboard, Medal, ArrowRight, Palette, CornerDownRight, History } from "lucide-react";
 import { sayingBySeed, localizeSaying } from "./content/classic.js";
 
 /* ================================================================
@@ -53,6 +53,7 @@ import { MailLinkView } from "./views/MailLink.jsx";
 import { LegalView } from "./views/Legal.jsx";
 import { DOCUMENTS, COPYRIGHT_YEAR, STUDIO, STUDIO_URL } from "./content/legal.js";
 import { JournalView } from "./views/Journal.jsx";
+import { FamousView } from "./views/Famous.jsx";
 import { linkFromQuery, forgetLink } from "./views/letterLink.js";
 
 /* ----------------------- APP SHELL ----------------------- */
@@ -68,6 +69,10 @@ const NAV = [
   { id: "joseki", icon: CornerDownRight },
   { id: "tsumego", icon: Target },
   { id: "ladder", icon: Medal },
+  /* The record room sits in the nav rather than inside Learn: fifteen famous games
+     with a note on every move that carries one is a place you visit, not a lesson
+     you are partway through. */
+  { id: "famous", icon: History },
 ];
 
 export default function JosekiApp() {
@@ -265,6 +270,11 @@ export default function JosekiApp() {
           {view === "dojo" && <DojoView profile={profile} setProfile={setProfile} notify={notify} go={go} room={room} />}
           {view === "legal" && <LegalView docId={params ? params.docId : null} onPick={(id) => go("legal", { docId: id })} />}
           {view === "journal" && <JournalView entryId={params ? params.entryId : null} go={go} />}
+          {/* Shelf or one game, the way the journal and the small print work:
+              no id is the shelf, an id is that game. Keyed on the game so opening
+              a second one from anywhere starts it at move zero. */}
+          {view === "famous" && <FamousView key={(params && params.gameId) || "shelf"}
+            gameId={params ? params.gameId : null} profile={profile} go={go} />}
           </>)}
         </ErrorBoundary>
       </main>
