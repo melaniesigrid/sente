@@ -22,6 +22,11 @@ export const rooms = {
     sgf: "SGF",
     playAgain: "Jugar otra vez",
     tryLine: "Juega sobre el tablero para probar una variante: nunca se guarda en la partida. ",
+    with: "Leyendo la partida con {name}",
+    pointing: "Señalar un punto",
+    playing: "Jugar una piedra",
+    leaveTogether: "Leerla a solas",
+    togetherNote: "Movéis un mismo tablero: la jugada a la que vas, la variante que pruebas y los puntos que señalas están también en su pantalla.",
     keys: "Las flechas recorren una jugada, arriba y abajo saltan diez, Inicio y Fin van a los extremos, y N muestra u oculta los números.",
     turnKeys: " Los corchetes recorren los puntos de inflexión.",
     advice: {

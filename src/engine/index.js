@@ -28,6 +28,7 @@ export {
 export {
   atMove, moveNumbers, captureMoves, nextCapture, prevCapture,
   reviewLength, clampMove, markerAt, reviewLabel, playedMoves,
+  startLine, playInLine, backInLine, lineFrom, canBranch,
 } from "./review.js";
 export {
   winRate, winRateForBlack, swings, turningPoints, nextTurn, prevTurn,

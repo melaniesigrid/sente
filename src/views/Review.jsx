@@ -1,11 +1,11 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import {
   ChevronLeft, ChevronsLeft, ChevronsRight, ChevronRight, SkipBack, SkipForward, Hash, Download, Swords,
-  GitBranch, Undo2, CornerUpLeft, LineChart, Square, Lightbulb, TriangleAlert,
+  GitBranch, Undo2, CornerUpLeft, LineChart, Square, Lightbulb, TriangleAlert, Hand, Users, LogOut,
 } from "lucide-react";
 import { Btn, Pill } from "../components/ui.jsx";
 import { themeVars, REVIEW_THEME } from "../theme/index.js";
-import { startLine, playInLine, backInLine, lineLabel, canBranch, reviewLabelText, winRateLineText } from "./reviewLine.js";
+import { startLine, playInLine, backInLine, lineFrom, lineLabel, canBranch, reviewLabelText, winRateLineText } from "./reviewLine.js";
 import { refusalText, resultSentence } from "./gameStatus.js";
 import { useT } from "../components/langStore.js";
 import { Board } from "../components/Board.jsx";
@@ -36,6 +36,14 @@ import {
    of somebody's battery without being asked would be taking a liberty. Once it is
    drawn it is the fastest way through the game there is: the shape says where the
    game turned, and the turning points below it are buttons straight to those moves.
+
+   It reads one game two ways. Alone, the position on screen is this screen's own
+   business and lives in the state below. Together - `shared`, handed in by a table
+   whose game is over - the position belongs to the room: the cursor, the variation
+   and the lit points all come from the server, every move of them goes back to it,
+   and the other person sees what you see. Nothing else about the screen changes,
+   which is the point: the review two people read together is the review either of
+   them reads alone, with the board answering to both.
 
    Keyboard, because scrubbing with a mouse is miserable: left and right walk a move,
    up and down jump ten, Home and End go to the ends, and N toggles the numbers. The
@@ -74,10 +82,14 @@ function useLegibleNumbers(size) {
   return [ref, legible];
 }
 
-export function Review({ record, onExit, onRematch, profile = {} }) {
+export function Review({ record, onExit, onRematch, profile = {}, shared = null }) {
   const t = useT();
   const total = reviewLength(record);
-  const [n, setN] = useState(total);
+  /* Where the reader is standing. Alone that is this component's state; together
+     it is the room's, and this state is not consulted at all - which is why the
+     cursor cannot drift apart from the other person's while they read. */
+  const [ownN, setOwnN] = useState(total);
+  const n = shared ? clampMove(record, shared.move) : ownN;
   /* A kifu is printed with its move numbers on, so review opens with them on
      wherever they can be read, and drops them where they would be drawn under
      the type floor. Null means nobody has said: the board decides, and keeps
@@ -89,8 +101,19 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
   const toggleNumbers = useCallback(() => setNumbersChoice(!showNumbers), [showNumbers]);
   // A line being tried from the position on screen. Scratch: never written to the
   // record, never exported. Null means you are looking at the game itself.
-  const [line, setLine] = useState(null);
+  const [ownLine, setOwnLine] = useState(null);
   const [refused, setRefused] = useState(null);
+  /* A shared line arrives as a branch point and a list of points, and is rebuilt
+     here with the engine - the same rebuild the server did before it accepted the
+     move, so the two boards cannot show different stones. */
+  const sharedLine = useMemo(
+    () => (shared && shared.line.length ? lineFrom(record, shared.base, shared.line) : null),
+    [shared, record],
+  );
+  const line = shared ? sharedLine : ownLine;
+  /* Pointing rather than playing. A hand over the board is half of what two people
+     say to each other about a game, and a tap has to mean one thing at a time. */
+  const [pointing, setPointing] = useState(false);
   // The graph, and whether the board is showing what the network would have done.
   const analysis = useAnalysis(record, { auto: record.phase === "ended" });
   const [showBest, setShowBest] = useState(false);
@@ -113,10 +136,14 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
      it started from, and carrying it along would show stones from a variation on top
      of a real position, which is exactly the confusion review exists to avoid. */
   const go = useCallback((to) => {
-    setLine(null);
+    setOwnLine(null);
     setRefused(null);
-    setN((cur) => clampMove(record, typeof to === "function" ? to(cur) : to));
-  }, [record]);
+    if (shared) {
+      if (shared.can) shared.onMove(clampMove(record, typeof to === "function" ? to(shared.move) : to));
+      return;
+    }
+    setOwnN((cur) => clampMove(record, typeof to === "function" ? to(cur) : to));
+  }, [record, shared]);
 
   const turns = useMemo(() => turningPoints(analysis.points), [analysis.points]);
   const steady = useMemo(() => steadiness(analysis.points), [analysis.points]);
@@ -163,14 +190,30 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
   const advisePass = showBest && !line && advisedFrom && advisedFrom.best === null;
 
   const branchable = useMemo(() => canBranch(record, n), [record, n]);
+  /* What a tap on the board does here. Pointing works at any position at all,
+     including the last one of a counted game, where there is nothing left to play
+     and plenty still to say. */
+  const tappable = (branchable && (!shared || shared.can)) || !!(shared && shared.can && pointing);
   const onTry = (c, r) => {
+    // Pointing at a point rather than playing it: the other reader sees the ring.
+    if (shared && pointing) { shared.onMark(c, r); return; }
+    if (shared) { shared.onTry(c, r); return; }
     const from = line ?? startLine(record, n);
     const res = playInLine(from, c, r);
     if (res.error) { setRefused(refusalText(res.error, t) ?? t("review.illegal")); return; }
     setRefused(null);
-    setLine(res.line);
+    setOwnLine(res.line);
   };
-  const undoTry = () => { setRefused(null); setLine(backInLine(record, line)); };
+  const undoTry = () => {
+    setRefused(null);
+    if (shared) { shared.onBack(); return; }
+    setOwnLine(backInLine(record, line));
+  };
+  const leaveLine = () => {
+    setRefused(null);
+    if (shared) { shared.onMove(shared.move); return; }
+    setOwnLine(null);
+  };
 
   const back = prevCapture(caps, n);
   const fwd = nextCapture(caps, n);
@@ -198,6 +241,20 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
         <Btn icon={ChevronLeft} small onClick={onExit}>{t("review.back")}</Btn>
         <span className="review-result">{resultSentence(record.result, t) ?? t("review.unfinished")}</span>
       </div>
+      {/* Who else is at this board. The banner is the whole of the difference on
+          screen between reading a game alone and reading it with the person you
+          played it against, which is deliberate: the same review, two people. */}
+      {shared && (
+        <div className="row spread review-together">
+          <Pill icon={Users} tone="win">{t("review.with", { name: shared.with })}</Pill>
+          <div className="row">
+            <Btn icon={Hand} small primary={pointing} onClick={() => setPointing(v => !v)}>
+              {t(pointing ? "review.playing" : "review.pointing")}
+            </Btn>
+            <Btn icon={LogOut} small onClick={shared.onLeave}>{t("review.leaveTogether")}</Btn>
+          </div>
+        </div>
+      )}
       <div className="play-wrap">
         <div className="board-col stack-sm" ref={boardRef}>
           <Pill icon={line ? GitBranch : Hash} tone={line ? "win" : ""}>
@@ -205,10 +262,11 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
           </Pill>
           <Board board={(line ? line.record : at).board}
             lastMove={line ? lastMoveIndex(line.record) : marker}
-            onPlay={branchable ? onTry : undefined}
-            disabled={!branchable}
+            onPlay={tappable ? onTry : undefined}
+            disabled={!tappable}
             sizePx={BOARD_PX[record.size] ?? Math.max(680, legiblePx(record.size))}
             numbers={line ? null : numbers} captured={[]} marks={marks}
+            pointed={shared ? shared.marks : []}
             coordinates={profile.coordinates} mark={profile.lastMoveMark ?? "dot"} />
           {refused && <p className="review-refused" role="alert">{refused}</p>}
           {/* A comment on the move, when the record carries one: a trainer's note, or
@@ -218,7 +276,7 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
           {line ? (
             <div className="row review-controls">
               <Btn icon={Undo2} small onClick={undoTry}>{t("review.takeBack")}</Btn>
-              <Btn icon={CornerUpLeft} small primary onClick={() => { setLine(null); setRefused(null); }}>
+              <Btn icon={CornerUpLeft} small primary onClick={leaveLine}>
                 {t("review.backToGame")}
               </Btn>
             </div>
@@ -328,8 +386,13 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
             {branchable ? t("review.tryLine") : ""}
             {t("review.keys")}{turns.length > 0 ? t("review.turnKeys") : ""}{" "}
             {caps.length === 0 ? t("review.noCaptures") : t("review.captures", { count: caps.length })}
+            {shared ? ` ${t("review.togetherNote")}` : ""}
           </p>
         </div>
+        {/* Whatever the table sent along - the conversation, in practice. Review
+            has a side column for exactly this reason and nothing of its own to
+            put in it. */}
+        {shared && shared.talk && <div className="side stack-sm">{shared.talk}</div>}
       </div>
     </div>
   );

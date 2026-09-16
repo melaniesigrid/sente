@@ -124,3 +124,57 @@ describe("the move numbers", () => {
     expect(count(), "and back").toBe(2);
   });
 });
+
+/* ----------------------- READING IT WITH SOMEBODY -----------------------
+   The same screen, with the position coming off a socket instead of out of
+   local state. What is checked here is that nothing this component does moves
+   the board on its own: every one of those taps has to leave through `shared`,
+   or the two people are looking at two different boards. */
+describe("the review two people are in", () => {
+  const shared = (over = {}) => ({
+    move: 1, base: 1, line: [], marks: [],
+    can: true, with: "Bea",
+    onMove: vi.fn(), onTry: vi.fn(), onBack: vi.fn(), onMark: vi.fn(), onLeave: vi.fn(),
+    ...over,
+  });
+
+  it("stands where the room stands, not where this screen last was", () => {
+    const sh = shared();
+    render(<Review record={record()} onExit={() => {}} profile={{}} shared={sh} />);
+    expect(document.querySelector(".review-scrub").value).toBe("1");
+    expect(screen.getByText("Reading it with Bea")).toBeTruthy();
+  });
+
+  it("sends every step to the room rather than taking it", () => {
+    const sh = shared();
+    render(<Review record={record()} onExit={() => {}} profile={{}} shared={sh} />);
+    fireEvent.keyDown(document, { key: "ArrowLeft" });
+    expect(sh.onMove).toHaveBeenCalledWith(0);
+    // And the screen has not moved by itself: the room answers, or nothing does.
+    expect(document.querySelector(".review-scrub").value).toBe("1");
+  });
+
+  it("draws the line the room is trying, rebuilt from the points on the wire", () => {
+    render(<Review record={record()} onExit={() => {}} profile={{}}
+      shared={shared({ move: 1, base: 1, line: [{ c: 4, r: 4, color: "w" }] })} />);
+    // Two stones of the game, plus the one being tried.
+    expect(document.querySelectorAll(".goban .stone-in").length).toBe(2);
+  });
+
+  it("points at a place instead of playing it, once the hand is up", () => {
+    const sh = shared({ marks: [{ c: 3, r: 3, by: "w1" }] });
+    render(<Review record={record()} onExit={() => {}} profile={{}} shared={sh} />);
+    expect(document.querySelectorAll(".point-ring").length).toBe(1);
+    fireEvent.click(screen.getByText("Point at a place"));
+    fireEvent.click(document.querySelectorAll("[role=gridcell]")[0]);
+    expect(sh.onMark).toHaveBeenCalled();
+    expect(sh.onTry).not.toHaveBeenCalled();
+  });
+
+  it("leaves by telling the room, both from the banner and from Back", () => {
+    const sh = shared();
+    render(<Review record={record()} onExit={sh.onLeave} profile={{}} shared={sh} />);
+    fireEvent.click(screen.getByText("Read it alone"));
+    expect(sh.onLeave).toHaveBeenCalled();
+  });
+});

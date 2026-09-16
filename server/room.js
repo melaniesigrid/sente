@@ -41,10 +41,15 @@ import {
   createRoster, canSeatPlay, seatToPlay, colorOfSeat, rotationOf, isPair, teamSeats,
 } from "../src/engine/rengo.js";
 import { hashBoard } from "../src/engine/zobrist.js";
+import { lineFrom, playInLine, clampMove, reviewLength, canBranch } from "../src/engine/review.js";
 
 export const SIZES = [9, 13, 19];
 export const MAX_CHAT = 240;
 export const CHAT_KEEP = 200;
+/* How many points one side may have lit at once while reading a game together.
+   A pointing hand is a sentence, not a diagram: past a handful of rings nobody
+   can tell which stone is being talked about, and the oldest one falls off. */
+export const MAX_MARKS = 6;
 
 /** Build a room. `black` and `white` are `{ id, name, tint, rating, rd }`; pass
  *  `blackPartner` and `whitePartner` as well for a pair table, and both must be
@@ -69,7 +74,7 @@ export function createRoom({
     version: 1,
     id, size, komi: record.komi, handicap, pair, rated: pair ? false : rated,
     seats,
-    record, chat: [], undo: null,
+    record, chat: [], undo: null, review: null,
     createdAt: now, endedAt: null, settled: null,
   };
 }
@@ -192,6 +197,116 @@ function finish(room, record, now) {
   return { ...room, record, undo: null, endedAt: ended ? now : room.endedAt };
 }
 
+/* ----------------------- READING IT TOGETHER -----------------------
+   What happens after the last stone. A finished game used to end the room: the
+   socket stayed open and there was nothing left to say into it, so both players
+   left and each read the game alone, on their own screen, at their own move.
+   Two people who have just played a game are the two people most likely to have
+   something to say about move 74, and they were being sent to separate rooms to
+   say it.
+
+   So a room keeps going. One side asks, the other joins, and from then on the
+   position on screen is one position: whoever moves the cursor moves it for both
+   of them, either may play a stone into the variation, and either may light a
+   point up to say "here". It is the same shared-state-through-the-server idea the
+   game itself is, and for the same reason - two boards that can disagree will.
+
+     review: { asked, in: [seatId], move, base, line: [{c,r,color}], marks, since }
+
+   `line` is scratch, exactly as it is when one person reads alone: it is never
+   written into the record and never exported. It rides as a branch point and a
+   list of points rather than a record, and both ends rebuild it with the engine,
+   so the server refuses an illegal variation move the same way the board does.
+
+   Marks are the pointing hand. They belong to the position they were made in, so
+   moving the cursor clears them: a ring left behind on a board that has moved on
+   is a ring on the wrong stone. */
+
+const readers = (room) => (room.review ? room.review.in : []);
+const reading = (room, seatId) => readers(room).includes(seatId);
+const reviewEvent = (to, status, extra = {}) => ({ to, frame: { t: "review", status, ...extra } });
+
+/** A fresh shared review, opened at the end of the game, which is where both
+ *  players are already standing when it opens. */
+const openReview = (room, seatId, now) => ({
+  asked: seatId, in: [seatId],
+  move: reviewLength(room.record), base: reviewLength(room.record),
+  line: [], marks: [], since: now,
+});
+
+const samePoint = (a, c, r) => a.c === c && a.r === r;
+
+/** The frames a finished game answers. Returns null for anything that is not one
+ *  of them, so the ordinary switch can refuse it as it always has. */
+function reviewMessage(room, seatId, msg, now) {
+  const t = msg.t;
+  if (!t.startsWith("review")) return null;
+  if (room.record.phase !== "ended") return refuse(room, "not-over");
+  const rv = room.review;
+
+  if (t === "reviewAsk") {
+    // Asking into a review that is already open is just joining it.
+    if (rv && rv.in.length) return ok({ ...room, review: { ...rv, asked: null, in: [...new Set([...rv.in, seatId])] } });
+    return ok(
+      { ...room, review: openReview(room, seatId, now) },
+      reviewEvent(otherTeam(seatId), "asked", { by: seatId }),
+    );
+  }
+  if (t === "reviewJoin") {
+    if (!rv) return refuse(room, "no-review");
+    if (reading(room, seatId)) return ok(room);
+    return ok({ ...room, review: { ...rv, asked: null, in: [...rv.in, seatId] } });
+  }
+  if (t === "reviewDecline") {
+    /* Declining closes the shared room rather than leaving it standing empty
+       around one person. The asker can still read the game alone, which is what
+       every finished game has always offered and what this does not take away. */
+    if (!rv || !rv.asked || sameTeam(rv.asked, seatId)) return refuse(room, "no-review");
+    return ok({ ...room, review: null }, reviewEvent(otherTeam(seatId), "declined"));
+  }
+  if (t === "reviewLeave") {
+    if (!rv) return ok(room);
+    const left = rv.in.filter((id) => id !== seatId);
+    return ok({ ...room, review: left.length ? { ...rv, in: left } : null });
+  }
+
+  // Everything below moves what the other person is looking at.
+  if (!rv || !reading(room, seatId)) return refuse(room, "no-review");
+
+  if (t === "reviewMove") {
+    if (!isInt(msg.n)) return refuse(room, "bad-point");
+    const move = clampMove(room.record, msg.n);
+    return ok({ ...room, review: { ...rv, move, base: move, line: [], marks: [] } });
+  }
+  if (t === "reviewTry") {
+    if (!isInt(msg.c) || !isInt(msg.r)) return refuse(room, "bad-point");
+    if (!canBranch(room.record, rv.base)) return refuse(room, "wrong-phase", { phase: "ended" });
+    const from = lineFrom(room.record, rv.base, rv.line);
+    if (!from) return refuse(room, "bad-line");
+    /* Refused by the engine, and with the engine's own reason, so the board says
+       "that point is taken" rather than "no". It is the same `play` the game
+       itself went through: a variation is not a place where the rules relax. */
+    const res = playInLine(from, msg.c, msg.r);
+    if (res.error) return refuse(room, res.error, { c: msg.c, r: msg.r });
+    return ok({ ...room, review: { ...rv, line: res.line.moves, marks: [] } });
+  }
+  if (t === "reviewBack") {
+    if (!rv.line.length) return ok(room);
+    return ok({ ...room, review: { ...rv, line: rv.line.slice(0, -1) } });
+  }
+  if (t === "reviewMark") {
+    if (!isInt(msg.c) || !isInt(msg.r)) return refuse(room, "bad-point");
+    if (msg.c < 0 || msg.r < 0 || msg.c >= room.size || msg.r >= room.size) return refuse(room, "bad-point");
+    const had = rv.marks.some((m) => samePoint(m, msg.c, msg.r));
+    // Pointing at a lit point puts it out, so the same tap says "here" and "never mind".
+    const marks = had
+      ? rv.marks.filter((m) => !samePoint(m, msg.c, msg.r))
+      : [...rv.marks, { c: msg.c, r: msg.r, by: seatId }].slice(-MAX_MARKS);
+    return ok({ ...room, review: { ...rv, marks } });
+  }
+  return refuse(room, "unknown-type", { type: t });
+}
+
 export function applyMessage(room, seatId, msg, now = Date.now()) {
   if (!msg || typeof msg !== "object" || typeof msg.t !== "string") return refuse(room, "bad-frame");
   const t = msg.t;
@@ -211,7 +326,11 @@ export function applyMessage(room, seatId, msg, now = Date.now()) {
 
   if (!seatId) return refuse(room, "spectator");
   const rec = room.record;
-  if (rec.phase === "ended" && t !== "chat") return refuse(room, "game-over");
+  /* A finished game is not a closed room. Chat stays open, and so does reading
+     the game back together; everything else is over. */
+  const shared = reviewMessage(room, seatId, msg, now);
+  if (shared) return shared;
+  if (rec.phase === "ended") return refuse(room, "game-over");
 
   switch (t) {
     case "play": {

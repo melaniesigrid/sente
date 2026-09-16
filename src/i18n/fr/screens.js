@@ -315,7 +315,7 @@ export const screens = {
     table: {
       head: "À la table",
       sound: "Son des pierres",
-      soundNote: "Un clic synthétisé à chaque pierre, une note douce à chaque capture et une petite vibration sur téléphone. Rien n'est téléchargé.",
+      soundNote: "Une pierre sur le bois, synthétisée : l'ardoise sonne plus sourde que le coquillage, les prises tombent dans le bol et une cloche termine la partie. Sur téléphone, une petite vibration. Rien n'est téléchargé.",
       coords: "Coordonnées",
       coordsNote: "Des lettres et des chiffres autour du goban, comme les imprime un livre. La lettre I est sautée, donc la colonne après H est J.",
       lastMove: "Dernier coup",

@@ -21,7 +21,7 @@ import { Review } from "./Review.jsx";
 import { WinCard } from "./WinCard.jsx";
 import { MokuMark } from "../components/Moku.jsx";
 import { useMokuFacts } from "../components/mokuStore.js";
-import { playStone, playCapture, playBell, haptic } from "../components/sound.js";
+import { playStone, playCapture, playPass, playBell, haptic } from "../components/sound.js";
 import {
   rankOf, preciseRankOf, ratingOfRank, rankWithHandicap, beltOf, beltLabel, hintsFor, hintsForBelt,
   MIN_RATING, MAX_RATING,
@@ -254,10 +254,12 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   });
 
   /* A move landed: sound, haptic, and the moment Moku reacts to. `mover` is the
-     colour that played; in pass-and-play every capture is "yours". */
+     colour that played; in pass-and-play every capture is "yours". The colour is
+     passed to the sound too: slate and clamshell do not land alike, and hearing
+     which bowl was used is how you follow a game from the next room. */
   const afterMove = useCallback((next, mover) => {
     const caps = next.lastCaptured ? next.lastCaptured.length : 0;
-    if (sound) { playStone(); if (caps) playCapture(caps); }
+    if (sound) { playStone(mover); if (caps) playCapture(caps); }
     haptic(caps ? [10, 30, 14] : 8);
     if (caps) {
       setMoment(persona && mover !== "b" ? "captured" : "capture");
@@ -488,6 +490,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
           afterMove(next, "w");
         } else {
           next = pass(r);
+          if (sound) playPass();
         }
         /* This `conclude` is the one the bot closed over when it started thinking, so
            it can hold a stale `coaching`. Harmless only because `settle` can end at
@@ -516,7 +519,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     kataChooseMoveForRecord(r, ask)
       .then((res) => { if (res) settle(res.move); else if (duel || master) unreachable(); else settle(fallback()); })
       .catch(() => { if (duel || master) unreachable(); else settle(fallback()); });
-  }, [persona, duel, master, botRank, profile.rating, say, conclude, afterMove, sensei, senseiTurn]);
+  }, [persona, duel, master, botRank, profile.rating, say, conclude, afterMove, sensei, senseiTurn, sound]);
 
   // A resumed game, or a fresh handicap game, may be waiting on the house player.
   useEffect(() => {
@@ -604,6 +607,9 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     if (over || thinking || scoring) return;
     if (persona && turn !== "b") return;
     if (rec.moves.length === 0) spendAttempt();
+    // Before `conclude`, so that a game ended by two passes is heard in the
+    // order it happened: the pass, and then the bell.
+    if (sound) playPass();
     const next = conclude(pass(rec), rec);
     setRec(next);
     if (persona && next.phase === "playing") botTurn(next);

@@ -60,6 +60,26 @@ lessons), and the middle game everywhere. Life and death below 15k was on this l
 - [x] Finished games now start their win-rate walk at once (2026-09-15). The result card and
       review both mount `useAnalysis` in auto mode once a game is ended, so the graph begins
       filling without a click and keeps its partial cache when you open review mid-walk.
+- [x] The table outlives the game (2026-09-16). A finished online game no longer ends the
+      room: the socket stays open, the result card offers to read the game back together, and
+      once both sides are in, the position is the room's - the move either of them walks to,
+      the variation either of them tries, and the places either of them points at are on the
+      other's screen. The review frames live in `server/room.js` beside the game's own, the
+      rules of a variation moved to `src/engine/review.js` so the server refuses an illegal
+      line exactly as the board does, and the chat log travels into review with the players.
+- [x] A win rate graph is walked once (2026-09-16). The points are kept per game in
+      `src/store/graphs.js` and handed back to the engine's cache when the record is opened,
+      so a game out of the archive draws its curve before anybody asks. Local to the machine
+      that walked it, which is the promise review already prints under the graph.
+- [x] A picture of a person is square and twice the size (2026-09-16). Photographs keep their
+      corners rather than being cropped to a coin, at 168px on a profile and 72px across a
+      finished table, so two people who have just played can see who they played. Uploads are
+      384px square to match, in the same 64KB envelope.
+- [x] Progress lives on the account (2026-09-15). A signed-in player's record of what they have
+      done (`src/store/progress.js` names the fields) is sent to `PUT /api/me/progress` a moment
+      after every save and pulled when the app opens and when somebody signs in. The server
+      merges rather than overwrites, with the same pure function the browser uses, so two devices
+      used apart lose nothing. Preferences stay on the device. The privacy notice says so.
 
 ## Phase 0: Foundation (done)
 
@@ -643,6 +663,12 @@ two Durable Object classes, deployed at https://api.joseki.online.
       and create an account. The handles that already exist keep working, and the lobby's
       add-an-address form starts open for them until they do. `POST /api/register` still
       exists on the server because sign-up is built on it; nothing in the app calls it alone.
+- [x] Folding two handles into one (2026-09-16, branch `feat/admin-merge`). The same member
+      had three: `POST /api/admin/players/:id/merge {from}` moves the games, the archive, the
+      pins and the win/loss record across, re-seats them in every room they played in so the
+      game opens with their own chair, and removes the old handle. The rating is not merged;
+      the survivor keeps its own. `server/merge.js` is the pure part, `tools/server/merge.mjs`
+      the proof against a deployment.
 - [x] Verify the address, and a way back in when the password is forgotten (2026-09-10,
       branch `feat/mail`). Two letters and no others, both asked for, neither carrying an
       unsubscribe link because there is no list to leave (`server/mail.js` holds the copy,
@@ -1479,7 +1505,23 @@ Open:
       so an opponent online never sees the archetype. Carry it on register and `PATCH
       /api/me`, put it in `asSeat` and the hall actors, and draw the mark beside seat names
       in the online game, pair go and the lobby. Until then the mask is local-only.
-- [x] Sound and haptic feedback on stone placement (opt-in, synthesised, no assets).
+- [x] Sound and haptic feedback on stone placement (synthesised, no assets). Shipped
+      opt-in and off, which read to players as a server with no sound at all; it is on by
+      default now and a profile saved under the old default is un-muted once. The synth was
+      also rebuilt to sound like go: an inharmonic wooden body under the contact click,
+      slate duller than clamshell, captures falling into the bowl, a pass, and a struck
+      bell. The AudioContext is unlocked from the first gesture in the document, not from
+      the first sound, because a house player opening a handicap game arrives with no
+      gesture on the stack and Safari will not resume a context created there.
+- [ ] Voice at the table: "Game started", and a spoken 3-2-1 as a byo-yomi period runs out,
+      the way the big servers do it. Deferred behind the Clock UI item - there is no
+      countdown at the table to speak to yet - and behind a decision on where the audio
+      comes from: recorded clips are the only way to sound like a go server, but nine
+      languages ship, so it is nine voice sets, and "nothing is downloaded" stops being
+      true. `playPass` and the clock events (`byoyomi`, `period-lost`) are already there.
+- [ ] A speaker control at the table, so sound can be silenced without walking to the
+      profile. Wants the Clock UI item's header space; until then the profile toggle is
+      the only way.
 - [x] Self-host fonts instead of the Google Fonts `@import` (2026-09-11, branch
       `feat/self-host-fonts`). `tools/fonts/fetch.mjs` (`npm run fonts`) downloads the five
       text families once into `src/fonts/google/` and generates `src/styles/googleFaces.js`;

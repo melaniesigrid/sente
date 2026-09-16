@@ -310,7 +310,7 @@ export const screens = {
     table: {
       head: "En la mesa",
       sound: "Sonido de las piedras",
-      soundNote: "Un clic sintetizado en cada piedra, una nota suave por captura y una peque\u00f1a vibraci\u00f3n en el m\u00f3vil. No se descarga nada.",
+      soundNote: "Una piedra sobre madera, sintetizada: la pizarra suena más apagada que la concha, las capturas caen en el cuenco y una campana cierra la partida. En el móvil, una pequeña vibración. No se descarga nada.",
       coords: "Coordenadas",
       coordsNote: "Letras y n\u00fameros alrededor del tablero, como los imprime un libro. La letra I se salta, as\u00ed que la columna despu\u00e9s de la H es la J.",
       lastMove: "\u00daltima jugada",

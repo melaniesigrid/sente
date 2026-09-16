@@ -49,6 +49,7 @@ import { fillRengoTable, rengoProgress, teamOf } from "./seating.js";
 import { cleanKey, publicPlayer, hasPlayed, reseeded } from "./players.js";
 import { cleanEmail, cleanKey as cleanDerivedKey, privateFields, KDF } from "./accounts.js";
 import { cleanBio, cleanFacts, avatarProblem, profileOf } from "./profile.js";
+import { cleanProgress, mergeProgress, progressBytes, PROGRESS_MAX_BYTES } from "../src/store/progress.js";
 import { readBook, standing, ask, accept, forget, forgetting, everyoneWhoKnows,
   ASK_LIMIT, ASK_WINDOW_MS } from "./friends.js";
 import { cleanShowOnline, whoIsHere } from "./presence.js";
@@ -77,6 +78,7 @@ import { inviteKey, invitePrefix, readInvite, shelf, expired, offer, takeUp, dro
 import { dayOf, dayBefore, emptyDay, counted, raised, isFinish, sealed, stale,
   clampDays, recent, nextSeal, RETAIN_DAYS } from "./rollup.js";
 import { LIVE_PREFIX, liveKey, peopleToAsk, watchable } from "./watch.js";
+import { reseatSummary, mergedGames, mergedRecord, mergedFeatured } from "./merge.js";
 
 const KEEP_GAMES = 24;
 /* Storage lists cap at a thousand keys a page, so anything counting every
@@ -705,6 +707,86 @@ export class Registry extends DurableObject {
     return publicPlayer(next);
   }
 
+  /** Fold one handle into another, for the operator. The games, the archive,
+   *  the pins and the win/loss record of `fromId` become `intoId`'s, every Room
+   *  those games were played in seats `intoId` where `fromId` sat, and then
+   *  `fromId` is removed the way leaving removes anybody. `server/merge.js`
+   *  says what moves and what does not: the rating stays the survivor's.
+   *
+   *  Friends, clubs, letters and invitations of the absorbed handle are not
+   *  carried across; `remove` tells the people in them the way it always has.
+   *  Merge INTO the handle that can sign in. */
+  async merge(fromId, intoId) {
+    if (fromId === intoId) throw new Error("same-player");
+    const from = await this.ctx.storage.get(`player:${fromId}`);
+    const into = await this.ctx.storage.get(`player:${intoId}`);
+    if (!from || !into) throw new Error("no-player");
+    const who = { id: into.id, name: into.name, tint: into.tint, avatarAt: into.avatarAt ?? null };
+
+    /* The lobby lists: theirs folded into the survivor's. */
+    const theirs = (await this.ctx.storage.get(`games:${fromId}`)) || [];
+    const mine = (await this.ctx.storage.get(`games:${intoId}`)) || [];
+    const games = mergedGames(mine, theirs, fromId, who, KEEP_GAMES);
+    const gameIds = new Set(theirs.map((g) => g.id));
+
+    /* The archive: every row under the old prefix re-filed under the new one,
+       rewritten, and the old key remembered for deletion. */
+    const moved = {};
+    const gone = [];
+    for (;;) {
+      const got = await this.ctx.storage.list({ prefix: archivePrefix(fromId), limit: PAGE });
+      if (got.size === 0) break;
+      for (const [key, row] of got) {
+        gone.push(key);
+        if (!row || !row.id) continue;
+        gameIds.add(row.id);
+        moved[archiveKey(intoId, row.endedAt, row.id)] = reseatSummary(row, fromId, who);
+      }
+      if (got.size < PAGE) break;
+      await this.ctx.storage.delete(gone.splice(0));
+    }
+
+    /* The pins: the survivor's page first, the other's after, and the pinned
+       row copied across under the new prefix for each one that stays. */
+    const featured = mergedFeatured(readFeatured(into.featured), readFeatured(from.featured));
+    for (const e of readFeatured(from.featured)) {
+      const key = `pin:${fromId}:${e.id}`;
+      const row = await this.ctx.storage.get(key);
+      gone.push(key);
+      if (row && featured.some((f) => f.id === e.id) && !(await this.ctx.storage.get(`pin:${intoId}:${e.id}`))) {
+        moved[`pin:${intoId}:${e.id}`] = reseatSummary(row, fromId, who);
+      }
+    }
+
+    /* A game still in progress is in the live index by the same summary. */
+    for (const gid of gameIds) {
+      const live = await this.ctx.storage.get(liveKey(gid));
+      if (live) moved[liveKey(gid)] = reseatSummary(live, fromId, who);
+    }
+
+    const next = { ...mergedRecord(into, from), featured, lastSeen: Date.now() };
+    if (!into.avatarAt && from.avatarAt) {
+      const pic = await this.ctx.storage.get(`avatar:${fromId}`);
+      if (pic) moved[`avatar:${intoId}`] = pic;
+    }
+    await this.ctx.storage.put({ [`player:${intoId}`]: next, [`games:${intoId}`]: games, ...moved });
+    while (gone.length) await this.ctx.storage.delete(gone.splice(0, 100));
+
+    /* The chairs. Each game is its own object; a room that has gone answers
+       nothing and is not worth failing the merge over. */
+    let reseated = 0;
+    for (const gid of gameIds) {
+      try {
+        const stub = this.env.ROOM.get(this.env.ROOM.idFromName(gid));
+        if (await stub.reseat(fromId, who)) reseated += 1;
+      } catch { /* a room that no longer answers */ }
+    }
+
+    await this.remove(fromId);
+    this.ladderCache = null;
+    return { player: publicPlayer(next), games: gameIds.size, reseated };
+  }
+
   /** Remove a player and their token. Finished games keep their record; the
    *  ladder simply stops listing them. Used by the player (leave) and by admin. */
   async remove(id) {
@@ -718,7 +800,7 @@ export class Registry extends DurableObject {
     await this.#forgetPost(id);
     const sessions = (p.sessions ?? [p.tokenHash]).filter(Boolean).map(h => `tok:${h}`);
     await this.ctx.storage.delete([
-      `player:${id}`, `tok:${p.tokenHash}`, ...sessions, `games:${id}`, `seek:${id}`, `avatar:${id}`,
+      `player:${id}`, `tok:${p.tokenHash}`, ...sessions, `games:${id}`, `seek:${id}`, `avatar:${id}`, `progress:${id}`,
       `friends:${id}`,
       // Out of the directory in the same breath. Leaving says nothing is left
       // behind, and a row here is a handle that still answers a search.
@@ -802,6 +884,32 @@ export class Registry extends DurableObject {
 
   async avatar(id) {
     return (await this.ctx.storage.get(`avatar:${id}`)) ?? null;
+  }
+
+  /* ----- progress -----
+     What a signed-in player has done, kept under `progress:<id>` so that
+     signing in elsewhere finds it. Apart from the player record for the same
+     reason the picture is: the ladder lists every player, and a recall
+     schedule is not something to drag through that. The document is merged
+     with what is stored, never written over it: two devices that both did
+     things while apart each hand in their own, and the shared merge in
+     src/store/progress.js joins them the same way the browser would. */
+  async progress(id) {
+    return (await this.ctx.storage.get(`progress:${id}`)) ?? { data: {}, at: 0 };
+  }
+
+  async setProgress(id, body) {
+    const p = await this.ctx.storage.get(`player:${id}`);
+    if (!p) throw new Error("no-player");
+    const data = cleanProgress(body?.data);
+    if (!data) throw new Error("bad-progress");
+    // A clock ahead of ours would win every merge for ever; a minute is as far ahead as it may claim.
+    const at = Number.isFinite(body?.at) && body.at >= 0 ? Math.min(body.at, Date.now() + 60_000) : Date.now();
+    const stored = await this.ctx.storage.get(`progress:${id}`);
+    const next = stored ? mergeProgress(stored, { data, at }) : { data, at };
+    if (progressBytes(next) > PROGRESS_MAX_BYTES) throw new Error("progress-too-big");
+    await this.ctx.storage.put(`progress:${id}`, next);
+    return next;
   }
 
   /** A stranger's view of a player: the ladder's row, what they chose to say,

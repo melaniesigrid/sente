@@ -94,7 +94,7 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
       ) : (
         <Card className="player-page online-profile">
           <div className="op-head">
-            <Avatar name={player.name} tint={player.tint} size={84}
+            <Avatar name={player.name} tint={player.tint} size={168}
               src={avatarUrl(SERVER_URL, player.id, player.avatarAt)} />
             <div className="op-id">
               <h3>{player.name}</h3>

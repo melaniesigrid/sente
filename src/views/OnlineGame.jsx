@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import {
   ChevronLeft, Flag, RotateCcw, Trophy, CircleDot, Scale, MessageCircle, Send, Handshake, Check, X,
-  Download, Eye, Link as LinkIcon, WifiOff, History,
+  Download, Eye, Link as LinkIcon, WifiOff, History, Users,
 } from "lucide-react";
 import {
   scoreBoard, chainsInAtari, idx, lastMoveIndex, toSgf, colorOfSeat, canSeatPlay, partnerSeat,
@@ -127,6 +127,13 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
         } else if (f.t === "seat") { setSeat(f.seat); setRuns(f.runs ?? []); setWatching(f.watching); }
         else if (f.t === "chat") setChat((c) => reconcileChat(c, [...c, f.msg].slice(-CHAT_KEEP), nextChatKey));
         else if (f.t === "undo") { if (f.status === "declined") notify({ icon: "info", text: tRef.current("online.game.undoDeclined") }); }
+        /* The other side asked to read the game back together, or said no to
+           being asked. The invitation itself is in the room, so this is only the
+           nudge: a player who has looked away should not have to notice a button
+           appear. */
+        else if (f.t === "review") {
+          notify({ icon: "info", text: tRef.current(f.status === "asked" ? "online.game.reviewAsked" : "online.game.reviewDeclined") });
+        }
         else if (f.t === "error") {
           if (f.reason === "no-room") setGone(true);
           const text = refusalText(f.reason, tRef.current) ?? refusalWords(f.reason, tRef.current);
@@ -204,6 +211,13 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
     () => (rec ? etiquette({ phase: rec.phase, moves: rec.moves.length, seated: !!seat, said }, t) : []),
     [rec, seat, said, t],
   );
+  /* Reading the game back together. It lives in the room rather than on this
+     screen, so both people are on the same move and a reconnect comes back into
+     the review instead of to a table whose game is over. */
+  const review = room ? room.review ?? null : null;
+  const inReview = !!(review && seat && review.in.includes(seat));
+  const askedOfMe = !!(review && review.asked && seat && !inReview && colorOfSeat(review.asked) !== color);
+  const askedByMe = !!(review && review.asked && review.asked === seat);
   const resultKind = over && color ? (over.winner === null ? "jigo" : over.winner === color ? "win" : "loss") : null;
   useMokuFacts({ view: "game", phase: rec ? rec.phase : "playing", thinking: false, myAtari: myAtari.length, oppAtari: 0, ko: !!(rec && rec.koPoint !== null), moment: null, result: resultKind, promoted: null, seed: rec ? rec.moves.length : 0 });
   const blackLead = room ? lead(room, "b") : null;
@@ -349,6 +363,74 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
   const partner = room && seat && room.pair ? seatName(room, partnerSeat(seat)) : "";
   const settled = settledLine(room, seat, t);
 
+  /* The conversation, lifted out of the table because it goes where the players
+     go. Two people who have just finished a game and gone into review together
+     are exactly the two people with something to say, and leaving the log at the
+     table would have shut them up at the moment they had the most to talk about. */
+  const talkCard = (
+      <Card className="chat-card">
+        <div className="chat-head"><MessageCircle size={15} /><span>{t("game.chat.head")}</span>
+          <button className="chip-btn" onClick={shareTable} aria-label={t("online.game.shareLabel")}><LinkIcon size={11} /> {t("online.game.share")}</button>
+        </div>
+        <div className="chat-log" aria-live="polite">
+          {chat.map((m, i) => (
+            <div key={m.chatKey} className={`bubble ${account && m.from === account.player.id ? "mine" : ""}`}>
+              {(!account || m.from !== account.player.id) && <span className="bubble-who">{m.name}{m.seat ? "" : t("online.game.watchingWho")} · </span>}
+              {parsed[i] ? parsed[i].map((part, j) => (
+                part.t === "point" ? (
+                  <button key={j} type="button"
+                    className={`talk-coord ${lit === chatKey(m) ? "on" : ""}`}
+                    onClick={() => setLit(lit === chatKey(m) ? null : chatKey(m))}
+                    aria-pressed={lit === chatKey(m)}
+                  >{part.s}</button>
+                ) : <span key={j}>{part.s}</span>
+              )) : m.text}
+            </div>
+          ))}
+          <div ref={chatEndRef} />
+        </div>
+        {account && openers.length > 0 && (
+          <div className="talk-offer">
+            {openers.map(line => (
+              <button key={line.id} type="button" className="talk-line" onClick={() => say(line.text)}>
+                <span>{line.text}</span>
+                {line.note && <span className="talk-note">{line.note}</span>}
+              </button>
+            ))}
+          </div>
+        )}
+        {account ? (
+          <div className="chat-row">
+            <input className="chat-input" value={draft} placeholder={t("game.chat.placeholder")} maxLength={240}
+              onChange={e => setDraft(e.target.value)} onKeyDown={e => e.key === "Enter" && sendChat()} aria-label={t("game.chat.label")} />
+            <button className="chat-send" onClick={sendChat} aria-label={t("game.chat.send")}><Send size={15} /></button>
+          </div>
+        ) : <p className="fine">{t("online.game.claimToChat")}</p>}
+      </Card>
+  );
+
+  /* The review both of them are in. Same screen as reading a game alone, with
+     the cursor, the variation and the lit points coming off the socket instead
+     of out of local state - and the conversation carried along. Leaving is a
+     frame rather than a screen change: the other person has to be told. */
+  if (inReview && rec && over) {
+    const leave = () => send({ t: "reviewLeave" });
+    return (
+      <Review record={rec} profile={profile} onExit={leave}
+        shared={{
+          move: review.move, base: review.base, line: review.line, marks: review.marks,
+          can: true,
+          with: teamName(room, color === "b" ? "w" : "b", t),
+          onMove: (n) => send({ t: "reviewMove", n }),
+          onTry: (c, r) => send({ t: "reviewTry", c, r }),
+          onBack: () => send({ t: "reviewBack" }),
+          onMark: (c, r) => send({ t: "reviewMark", c, r }),
+          onLeave: leave,
+          talk: talkCard,
+        }} />
+    );
+  }
+
   if (reviewing && rec && over) {
     return <Review record={rec} profile={profile} onExit={() => setReviewing(false)} />;
   }
@@ -421,9 +503,9 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
           {card && (
             <Card className={`result-card ${tone}`}>
               <div className="bow-row" aria-hidden="true">
-                {blackLead && <Avatar name={blackLead.name} tint={blackLead.tint} size={44} className="bow" src={faceOf(blackLead)} />}
+                {blackLead && <Avatar name={blackLead.name} tint={blackLead.tint} size={72} className="bow" src={faceOf(blackLead)} />}
                 <span className="bow-word">rei</span>
-                {whiteLead && <Avatar name={whiteLead.name} tint={whiteLead.tint} size={44} className="bow bow-late" src={faceOf(whiteLead)} />}
+                {whiteLead && <Avatar name={whiteLead.name} tint={whiteLead.tint} size={72} className="bow bow-late" src={faceOf(whiteLead)} />}
               </div>
               <div className="result-head">
                 <h3 className="result-headline">{card.headline}</h3>
@@ -447,7 +529,23 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
                   : room.rated ? "online.game.ratedSettling" : "online.game.unrated")}
                 {over.method === "score" && rec.dead.length > 0 && t("game.deadRemoved", { count: rec.dead.length })}
               </p>
+              {/* Reading it back together is offered before reading it alone: the
+                  person who just played this game is the one worth reading it with,
+                  and they are still here. */}
               <div className="row">
+                {seat && (askedOfMe ? (
+                  <>
+                    <Btn icon={Users} small primary onClick={() => send({ t: "reviewJoin" })}>
+                      {t("online.game.reviewJoin", { name: teamName(room, color === "b" ? "w" : "b", t) })}
+                    </Btn>
+                    <Btn icon={X} small onClick={() => send({ t: "reviewDecline" })}>{t("online.game.decline")}</Btn>
+                  </>
+                ) : (
+                  <Btn icon={Users} small primary={!askedByMe} disabled={askedByMe}
+                    onClick={() => send({ t: "reviewAsk" })}>
+                    {t(askedByMe ? "online.game.reviewWaiting" : "online.game.reviewTogether")}
+                  </Btn>
+                ))}
                 <Btn icon={History} small onClick={() => setReviewing(true)}>{t("game.review")}</Btn>
                 <Btn icon={Download} small onClick={downloadSgf}>{t("game.sgf")}</Btn>
                 <Btn icon={ChevronLeft} small onward onClick={onExit}>{t("online.game.lobby")}</Btn>
@@ -475,45 +573,7 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
               <div className="fine">{onlineCaption(room, watching, t)}{hints ? t("game.hintsOn") : ""}{seat ? "" : t("online.game.watchingNote")}</div>
             </Card>
           )}
-          <Card className="chat-card">
-            <div className="chat-head"><MessageCircle size={15} /><span>{t("game.chat.head")}</span>
-              <button className="chip-btn" onClick={shareTable} aria-label={t("online.game.shareLabel")}><LinkIcon size={11} /> {t("online.game.share")}</button>
-            </div>
-            <div className="chat-log" aria-live="polite">
-              {chat.map((m, i) => (
-                <div key={m.chatKey} className={`bubble ${account && m.from === account.player.id ? "mine" : ""}`}>
-                  {(!account || m.from !== account.player.id) && <span className="bubble-who">{m.name}{m.seat ? "" : t("online.game.watchingWho")} · </span>}
-                  {parsed[i] ? parsed[i].map((part, j) => (
-                    part.t === "point" ? (
-                      <button key={j} type="button"
-                        className={`talk-coord ${lit === chatKey(m) ? "on" : ""}`}
-                        onClick={() => setLit(lit === chatKey(m) ? null : chatKey(m))}
-                        aria-pressed={lit === chatKey(m)}
-                      >{part.s}</button>
-                    ) : <span key={j}>{part.s}</span>
-                  )) : m.text}
-                </div>
-              ))}
-              <div ref={chatEndRef} />
-            </div>
-            {account && openers.length > 0 && (
-              <div className="talk-offer">
-                {openers.map(line => (
-                  <button key={line.id} type="button" className="talk-line" onClick={() => say(line.text)}>
-                    <span>{line.text}</span>
-                    {line.note && <span className="talk-note">{line.note}</span>}
-                  </button>
-                ))}
-              </div>
-            )}
-            {account ? (
-              <div className="chat-row">
-                <input className="chat-input" value={draft} placeholder={t("game.chat.placeholder")} maxLength={240}
-                  onChange={e => setDraft(e.target.value)} onKeyDown={e => e.key === "Enter" && sendChat()} aria-label={t("game.chat.label")} />
-                <button className="chat-send" onClick={sendChat} aria-label={t("game.chat.send")}><Send size={15} /></button>
-              </div>
-            ) : <p className="fine">{t("online.game.claimToChat")}</p>}
-          </Card>
+          {talkCard}
           {mine && theirs && !over && (
             <Card inset>
               <p className="fine">
@@ -551,7 +611,7 @@ const refusalWords = (reason, t) => lineOr(t, `online.error.${reason}`, reason);
  *  A seat with no id is a house player, which has no page and never gets one. */
 function Seat({ seat, name, gameId, go, align }) {
   const t = useT();
-  const face = seat ? <Avatar name={seat.name} tint={seat.tint} size={34} src={faceOf(seat)} /> : null;
+  const face = seat ? <Avatar name={seat.name} tint={seat.tint} size={64} src={faceOf(seat)} /> : null;
   const meta = (
     <div className={`vs-meta ${align === "right" ? "right" : ""}`}>
       <strong>{name}</strong>
@@ -576,7 +636,7 @@ function OnlineTeam({ room, color, up, align }) {
         const s = room.seats[id];
         return (
           <div key={id} className={`pair-seat ${up === id ? "to-move" : ""}`}>
-            <Avatar name={s.name} tint={s.tint} size={30} bot={s.kind === "bot"} src={s.kind === "bot" ? undefined : faceOf(s)} />
+            <Avatar name={s.name} tint={s.tint} size={48} bot={s.kind === "bot"} src={s.kind === "bot" ? undefined : faceOf(s)} />
             <div className="vs-meta">
               <strong>{s.name}</strong>
               {s.rating != null ? <RankBadge rating={s.rating} size="sm" /> : <span className="fine">{s.rank}</span>}
