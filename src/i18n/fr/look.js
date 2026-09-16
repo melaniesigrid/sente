@@ -5,7 +5,7 @@ export const look = {
     sub: "Tout ce qui est ici change l'allure de Joseki et rien ne change sa façon de jouer. Choisis la salle, choisis les pierres avec lesquelles tu veux jouer, choisis la typographie. Chaque échantillon est dessiné dans ce qu'il propose : choisis en regardant. La langue vit dans la barre du haut, où elle se trouve depuis n'importe quel écran.",
     room: {
       head: "La salle",
-      note: "Dix salles pour le même goban, une qui suit ton appareil et une que tu peux construire toi-même. Une palette fixe le fond, les deux lumières dont chaque ombre est découpée et la seule couleur qui veut dire ici ; les formes et les espacements ne bougent jamais.",
+      note: "Trois salles pour le même goban : une pour le jour, une pour le soir, et celle dans laquelle le mode revue lit une partie terminée. L'une d'elles peut suivre ton appareil, et tu peux toujours te construire une salle à toi. Une palette fixe la page, les deux lumières dont chaque ombre est découpée et la seule couleur qui veut dire ici. Le goban n'est pas une palette : c'est le même bois dans les trois.",
       pick: "Palette {name}",
       systemName: "Système",
       systemMood: "Automatique",
@@ -18,7 +18,7 @@ export const look = {
     },
     stones: {
       head: "Tes pierres",
-      note: "Un jeu, ce sont deux objets : le cœur de la pierre noire et celui de la blanche. La couronne éclairée, le bord où la surface s'incurve et l'assise qu'exige un goban sombre se déduisent tous les trois de ces deux-là, si bien qu'un jeu se ressemble dans toutes les salles.",
+      note: "Un jeu, ce sont deux objets : le cœur de la pierre noire et celui de la blanche. La couronne éclairée et le bord où la surface s'incurve se déduisent de ces deux-là, si bien qu'un jeu se ressemble dans toutes les salles. Le bois en dessous ne change jamais.",
       pick: "Pierres : {name}",
       auto: "Celles de la salle",
       autoNote: "Chaque salle nomme le jeu autour duquel elle a été dessinée : {room} se joue avec {set}. Change de salle et les pierres changent avec elle.",

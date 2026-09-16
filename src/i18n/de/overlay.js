@@ -10,16 +10,9 @@
    Dingen im Designsystem, wie der Name auf einer Farbtube. */
 
 export const room = {
-  house: { note: "Warmes Steinpapier und eine Eukalyptusmarke. Das Designsystem, wie es gezeichnet wurde." },
-  kaya: { note: "Das Holz des Bretts selbst: blasser Honig und eine Karamellmarke. Der wärmste der hellen Räume." },
-  porcelain: { note: "Kühler weißer Ton mit einer Indigomarke. Still, modern, ein wenig klinisch." },
-  damson: { note: "Pastellpflaumenpapier unter einer Damaszenermarke. Dämmerung, die Lampe noch aus." },
-  cinnabar: { note: "Rosiges Papier, Ochsenbluttinte und eine lackrote Marke. Der einzige Raum, der von einer warmen Farbe geführt wird und nicht von einem Neutralton." },
-  lacquer: { note: "Schwarzer Lack und Blattgold. Der förmliche Raum: ein Turnierbrett unter einer tiefen Lampe." },
-  graphite: { note: "Dunkles Grau und Champagner. Derselbe Raum wie Lacquer, die Wärme herausgenommen." },
-  sumi: { note: "Tuschlavierung auf fast schwarzem Grund, mit Seladon. House nach Einbruch der Nacht." },
-  yohen: { note: "Ofengewandeltes Indigo und Kupfer. Die Partie am Abend, am Fenster gespielt." },
-  foxfire: { note: "Nasse Rinde und eine Chartreuse-Marke. Das Hellste im Satz gegen den dunkelsten Grund darin." },
+  tatami: { note: "Warmes Steinpapier und eine Eukalyptusmarke, das Brett in der Mitte und sonst nichts, was etwas verlangt. Der Raum, in dem das Designsystem gezeichnet ist." },
+  night: { note: "Derselbe Tisch bei kleiner Lampe: eine kohlefarbene Seite, dasselbe Holz, und die Uhr das Hellste darauf, bis jemandem die Zeit knapp wird." },
+  kifu: { note: "Die Partie als gedrucktes Protokoll: elfenbeinfarbenes Papier, fast schwarze Tinte und Terrakotta für den Zug, auf dem du stehst. Die Nachbetrachtung bringt diesen Raum mit." },
 };
 
 export const stones = {

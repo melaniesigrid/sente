@@ -59,6 +59,7 @@ export const shell = {
   mood: {
     light: "亮",
     dark: "暗",
+    review: "复盘",
   },
   lang: {
     label: "语言",

@@ -36,16 +36,9 @@ export const overlay = {
   /* ----- overlays: the English for these lives in the data file ----- */
 
   room: {
-    house: { note: "Papel de piedra cálido y una marca de eucalipto. El sistema de diseño tal como se dibujó." },
-    kaya: { note: "La madera del propio tablero: miel pálida y una marca de caramelo. La más cálida de las salas claras." },
-    porcelain: { note: "Arcilla blanca y fría con una marca índigo. Serena, moderna, un poco clínica." },
-    damson: { note: "Papel ciruela pastel bajo una marca damascena. El atardecer, con la lámpara todavía apagada." },
-    cinnabar: { note: "Papel rubor, tinta sangre de toro y una marca rojo laca. La única sala guiada por un color cálido y no por un neutro." },
-    lacquer: { note: "Laca negra y pan de oro. La sala formal: un tablero de torneo bajo una lámpara baja." },
-    graphite: { note: "Gris oscuro y champán. La misma sala que Lacquer con la calidez retirada." },
-    sumi: { note: "Aguada de tinta sobre un fondo casi negro, con celadón. House al caer la noche." },
-    yohen: { note: "Índigo y cobre nacidos del horno. La partida nocturna, jugada junto a la ventana." },
-    foxfire: { note: "Corteza mojada y una marca chartreuse. Lo más brillante del conjunto contra el fondo más oscuro de todos." },
+    tatami: { note: "Papel de piedra cálido y una marca eucalipto, con el tablero en medio y nada más pidiendo atención. La sala en la que está dibujado el sistema de diseño." },
+    night: { note: "La misma mesa con la lámpara baja: una página carbón, la misma madera, y el reloj lo más luminoso que hay encima hasta que alguien anda corto de tiempo." },
+    kifu: { note: "La partida como registro impreso: papel marfil, tinta casi negra y terracota para la jugada en la que estás. El modo de revisión trae esta sala consigo." },
   },
   stones: {
     slate: {
