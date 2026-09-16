@@ -643,6 +643,12 @@ two Durable Object classes, deployed at https://api.joseki.online.
       and create an account. The handles that already exist keep working, and the lobby's
       add-an-address form starts open for them until they do. `POST /api/register` still
       exists on the server because sign-up is built on it; nothing in the app calls it alone.
+- [x] Folding two handles into one (2026-09-16, branch `feat/admin-merge`). The same member
+      had three: `POST /api/admin/players/:id/merge {from}` moves the games, the archive, the
+      pins and the win/loss record across, re-seats them in every room they played in so the
+      game opens with their own chair, and removes the old handle. The rating is not merged;
+      the survivor keeps its own. `server/merge.js` is the pure part, `tools/server/merge.mjs`
+      the proof against a deployment.
 - [x] Verify the address, and a way back in when the password is forgotten (2026-09-10,
       branch `feat/mail`). Two letters and no others, both asked for, neither carrying an
       unsubscribe link because there is no list to leave (`server/mail.js` holds the copy,

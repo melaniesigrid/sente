@@ -10,6 +10,7 @@ import {
   createRoom, applyMessage, seatOf, reviveRoom, outcome, isPairRoom, leadSeat, controls, actingSeat,
 } from "./room.js";
 import { teamSeats } from "../src/engine/rengo.js";
+import { reseatRoom } from "./merge.js";
 
 export class Room extends DurableObject {
   constructor(ctx, env) {
@@ -41,6 +42,19 @@ export class Room extends DurableObject {
 
   async get() {
     return this.load();
+  }
+
+  /** Give one person's chair to another, for the operator folding two handles
+   *  into one (`Registry.merge`). Sockets already open under the old id keep
+   *  their tag until they close; the next one opened under the new id finds
+   *  its seat. Answers whether anything here was theirs. */
+  async reseat(fromId, who) {
+    const room = await this.load();
+    if (!room) return false;
+    const next = reseatRoom(room, fromId, who);
+    if (next === room) return false;
+    await this.save(next);
+    return true;
   }
 
   /* ----- sockets ----- */

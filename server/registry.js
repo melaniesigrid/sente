@@ -77,6 +77,7 @@ import { inviteKey, invitePrefix, readInvite, shelf, expired, offer, takeUp, dro
 import { dayOf, dayBefore, emptyDay, counted, raised, isFinish, sealed, stale,
   clampDays, recent, nextSeal, RETAIN_DAYS } from "./rollup.js";
 import { LIVE_PREFIX, liveKey, peopleToAsk, watchable } from "./watch.js";
+import { reseatSummary, mergedGames, mergedRecord, mergedFeatured } from "./merge.js";
 
 const KEEP_GAMES = 24;
 /* Storage lists cap at a thousand keys a page, so anything counting every
@@ -703,6 +704,86 @@ export class Registry extends DurableObject {
     await this.ctx.storage.put(`player:${id}`, next);
     this.ladderCache = null;
     return publicPlayer(next);
+  }
+
+  /** Fold one handle into another, for the operator. The games, the archive,
+   *  the pins and the win/loss record of `fromId` become `intoId`'s, every Room
+   *  those games were played in seats `intoId` where `fromId` sat, and then
+   *  `fromId` is removed the way leaving removes anybody. `server/merge.js`
+   *  says what moves and what does not: the rating stays the survivor's.
+   *
+   *  Friends, clubs, letters and invitations of the absorbed handle are not
+   *  carried across; `remove` tells the people in them the way it always has.
+   *  Merge INTO the handle that can sign in. */
+  async merge(fromId, intoId) {
+    if (fromId === intoId) throw new Error("same-player");
+    const from = await this.ctx.storage.get(`player:${fromId}`);
+    const into = await this.ctx.storage.get(`player:${intoId}`);
+    if (!from || !into) throw new Error("no-player");
+    const who = { id: into.id, name: into.name, tint: into.tint, avatarAt: into.avatarAt ?? null };
+
+    /* The lobby lists: theirs folded into the survivor's. */
+    const theirs = (await this.ctx.storage.get(`games:${fromId}`)) || [];
+    const mine = (await this.ctx.storage.get(`games:${intoId}`)) || [];
+    const games = mergedGames(mine, theirs, fromId, who, KEEP_GAMES);
+    const gameIds = new Set(theirs.map((g) => g.id));
+
+    /* The archive: every row under the old prefix re-filed under the new one,
+       rewritten, and the old key remembered for deletion. */
+    const moved = {};
+    const gone = [];
+    for (;;) {
+      const got = await this.ctx.storage.list({ prefix: archivePrefix(fromId), limit: PAGE });
+      if (got.size === 0) break;
+      for (const [key, row] of got) {
+        gone.push(key);
+        if (!row || !row.id) continue;
+        gameIds.add(row.id);
+        moved[archiveKey(intoId, row.endedAt, row.id)] = reseatSummary(row, fromId, who);
+      }
+      if (got.size < PAGE) break;
+      await this.ctx.storage.delete(gone.splice(0));
+    }
+
+    /* The pins: the survivor's page first, the other's after, and the pinned
+       row copied across under the new prefix for each one that stays. */
+    const featured = mergedFeatured(readFeatured(into.featured), readFeatured(from.featured));
+    for (const e of readFeatured(from.featured)) {
+      const key = `pin:${fromId}:${e.id}`;
+      const row = await this.ctx.storage.get(key);
+      gone.push(key);
+      if (row && featured.some((f) => f.id === e.id) && !(await this.ctx.storage.get(`pin:${intoId}:${e.id}`))) {
+        moved[`pin:${intoId}:${e.id}`] = reseatSummary(row, fromId, who);
+      }
+    }
+
+    /* A game still in progress is in the live index by the same summary. */
+    for (const gid of gameIds) {
+      const live = await this.ctx.storage.get(liveKey(gid));
+      if (live) moved[liveKey(gid)] = reseatSummary(live, fromId, who);
+    }
+
+    const next = { ...mergedRecord(into, from), featured, lastSeen: Date.now() };
+    if (!into.avatarAt && from.avatarAt) {
+      const pic = await this.ctx.storage.get(`avatar:${fromId}`);
+      if (pic) moved[`avatar:${intoId}`] = pic;
+    }
+    await this.ctx.storage.put({ [`player:${intoId}`]: next, [`games:${intoId}`]: games, ...moved });
+    while (gone.length) await this.ctx.storage.delete(gone.splice(0, 100));
+
+    /* The chairs. Each game is its own object; a room that has gone answers
+       nothing and is not worth failing the merge over. */
+    let reseated = 0;
+    for (const gid of gameIds) {
+      try {
+        const stub = this.env.ROOM.get(this.env.ROOM.idFromName(gid));
+        if (await stub.reseat(fromId, who)) reseated += 1;
+      } catch { /* a room that no longer answers */ }
+    }
+
+    await this.remove(fromId);
+    this.ladderCache = null;
+    return { player: publicPlayer(next), games: gameIds.size, reseated };
   }
 
   /** Remove a player and their token. Finished games keep their record; the

@@ -24,6 +24,7 @@
      DELETE /api/admin/players/:id     ADMIN_TOKEN bearer
      POST   /api/admin/players/:id/reseed  ADMIN_TOKEN bearer (:id may be an address)
      POST   /api/admin/players/:id/email   ADMIN_TOKEN bearer {email} -> put an address on a guest handle
+     POST   /api/admin/players/:id/merge   ADMIN_TOKEN bearer {from}  -> fold handle `from` into :id
      GET   /api/admin/players          ADMIN_TOKEN bearer
      DELETE /api/admin/ratelimit/:ip   ADMIN_TOKEN bearer
      GET    /api/admin/waitlist        ADMIN_TOKEN bearer -> who is waiting
@@ -99,7 +100,7 @@ export default {
       const known = {
         "bad-name": 400, "bad-email": 400, "bad-key": 400, "no-email": 400,
         "bad-image": 400, "bad-image-type": 415, "image-too-big": 413,
-        "bad-credentials": 401, "no-player": 404,
+        "bad-credentials": 401, "no-player": 404, "same-player": 400,
         // A link that was never real and one that has been used or has aged
         // out are different answers because the page says different things:
         // one is "check what you pasted", the other "ask for another".
@@ -274,6 +275,16 @@ async function route(req, env) {
        password to type, no address to post a letter to. This puts an address
        on the handle so `mail/reset` below can mint one. Two operator calls and
        the person is back in their own seat, mid-game, with a password now. */
+    /* Two handles, one person: fold `from` into this one. The games, the
+       archive and the record come across; the rating stays this handle's;
+       `from` is removed. Merge into the handle that can sign in. */
+    const merge = /^\/api\/admin\/players\/([^/]+)\/merge$/.exec(path);
+    if (merge) {
+      if (req.method !== "POST") return fail(405, "method");
+      const b = await readJson(req);
+      if (typeof b.from !== "string" || !b.from) return fail(400, "bad-from");
+      return json({ merged: await reg.merge(b.from, decodeURIComponent(merge[1])) });
+    }
     const adopt = /^\/api\/admin\/players\/([^/]+)\/email$/.exec(path);
     if (adopt) {
       if (req.method !== "POST") return fail(405, "method");
