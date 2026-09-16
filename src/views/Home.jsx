@@ -118,6 +118,7 @@ export function Home({ profile, go, onResume }) {
     const reply = replyTo(line, {
       name: profile.name, focus, trend: trend(box.games), profile, games: box.games.length,
       daysAway: daysBetween(box.lastGame, today), bonded: box.bond === "yes", seed: box.thread.length,
+      taught: box.taught,
     });
     let b = tell(box, line, today);
     for (const r of reply) b = say(b, r, today, { read: true });
