@@ -1,3 +1,6 @@
+//go:build js && wasm
+// +build js,wasm
+
 /* ----------------------- THE BRIDGE -----------------------
    What the browser can call. Nothing here decides anything: it hands arguments
    to the package next door and turns Go values into plain JavaScript objects.
