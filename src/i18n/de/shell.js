@@ -57,6 +57,7 @@ export const shell = {
   mood: {
     light: "Hell",
     dark: "Dunkel",
+    review: "Nachbetrachtung",
   },
   lang: {
     label: "Sprache",

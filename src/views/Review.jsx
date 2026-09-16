@@ -4,6 +4,7 @@ import {
   GitBranch, Undo2, CornerUpLeft, LineChart, Square, Lightbulb, TriangleAlert,
 } from "lucide-react";
 import { Btn, Pill } from "../components/ui.jsx";
+import { themeVars, REVIEW_THEME } from "../theme/index.js";
 import { startLine, playInLine, backInLine, lineLabel, canBranch, reviewLabelText, winRateLineText } from "./reviewLine.js";
 import { refusalText, resultSentence } from "./gameStatus.js";
 import { useT } from "../components/langStore.js";
@@ -145,8 +146,14 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
     URL.revokeObjectURL(url);
   };
 
+  /* Review brings its own room. A finished game is a document rather than a
+     table, so it is read on the printed page (Kifu) whichever room the player
+     plays in, and it is drawn as a sheet laid on that table rather than as a
+     repaint of the whole app: the chrome around it stays where the player left
+     it. The custom properties inherit, so setting them here is the whole of it.
+     The stones follow, because a set of stones is the player's, not a room's. */
   return (
-    <div className="stack">
+    <div className="stack review-room" style={themeVars(REVIEW_THEME, null, profile.stones)}>
       <div className="row spread">
         <Btn icon={ChevronLeft} small onClick={onExit}>{t("review.back")}</Btn>
         <span className="review-result">{resultSentence(record.result, t) ?? t("review.unfinished")}</span>

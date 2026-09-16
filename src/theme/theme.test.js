@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
-  PALETTES, HOUSE_THEME, DOJO_THEME, SYSTEM_THEME, SYSTEM_PAIR,
+  PALETTES, BOARD, HOUSE_THEME, REVIEW_THEME, DOJO_THEME, SYSTEM_THEME, SYSTEM_PAIR,
   themeOf, themeVars, isDark, isThemeId, resolveTheme, sanitizePalette, paletteFrom, auditPalette,
+  migrateThemeId,
 } from "./index.js";
 import { TOKEN_NAMES, TONE_KEYS, REQUIRED_TONES, READING } from "./tokens.js";
 import { completeTones, deriveLights, deriveAccentInk } from "./derive.js";
@@ -11,9 +12,11 @@ import { contrast, isHex, luminance } from "./color.js";
 const MINE = { ground: "#101014", ink: "#e6e6ea", accent: "#b98cff", cream: "#f2f2f6" };
 
 describe("the named rooms", () => {
-  it("has house first, as the reference room", () => {
+  it("ships three rooms and no more, with tatami first as the reference", () => {
+    expect(PALETTES.map(p => p.id)).toEqual(["tatami", "night", "kifu"]);
     expect(PALETTES[0].id).toBe(HOUSE_THEME);
-    expect(HOUSE_THEME).toBe("house");
+    expect(HOUSE_THEME).toBe("tatami");
+    expect(REVIEW_THEME).toBe("kifu");
   });
 
   it("gives every room a unique id, a name, a mood and a note", () => {
@@ -24,13 +27,20 @@ describe("the named rooms", () => {
     for (const p of PALETTES) {
       expect(p.name, p.id).toBeTruthy();
       expect(p.note, p.id).toBeTruthy();
-      expect(["Light", "Dark"]).toContain(p.mood);
+      expect(["Light", "Dark", "Review"]).toContain(p.mood);
       for (const key of REQUIRED_TONES) expect(isHex(p[key]), `${p.id}.${key}`).toBe(true);
     }
   });
 
-  it("declares the mood its own ground actually has", () => {
-    for (const p of PALETTES) expect(isDark(p) ? "Dark" : "Light", p.id).toBe(p.mood);
+  /* Two of the three moods are the room's own ground read back. The third is
+     not a brightness at all: Kifu is the room review mode brings with it, and
+     what a reader needs to know about it is when it turns up, not how light it
+     is. It is still held to being a light room, because it is a printed page. */
+  it("declares the mood its own ground actually has, and Review is a light room", () => {
+    for (const p of PALETTES) {
+      if (p.mood === "Review") expect(isDark(p), p.id).toBe(false);
+      else expect(isDark(p) ? "Dark" : "Light", p.id).toBe(p.mood);
+    }
   });
 
   // The dojo shows these live and refuses to save a room that breaks one. If this
@@ -51,45 +61,42 @@ describe("the named rooms", () => {
     }
   });
 
-  // A dark room's board is not its page. The stones stopped being bent toward
-  // the ground to cope with a near-black board; the board is lifted off the
-  // page instead, which is the thing a player was actually missing.
-  it("lifts a dark room's board off its page, and leaves a light room's alone", () => {
-    for (const p of PALETTES.filter(isDark)) {
+  // The board is an object, not a surface of the page: one slab of wood, the
+  // same in all three rooms, and never the ground. A room that drew its own
+  // board out of its own ground moved the goban every time the light changed.
+  it("plays every room on the one board, which is never the page", () => {
+    for (const p of PALETTES) {
       const vars = themeVars(p.id);
-      expect(luminance(vars["--board"]), `${p.id} board above the page`)
-        .toBeGreaterThan(luminance(vars["--ground"]));
+      expect(vars["--board"], `${p.id} board`).toBe(BOARD);
+      expect(vars["--board"], `${p.id} board is not its page`).not.toBe(vars["--ground"]);
     }
-    for (const p of PALETTES.filter(x => !isDark(x))) {
-      const vars = themeVars(p.id);
-      expect(vars["--board"], `${p.id} plays on its own paper`).toBe(vars["--ground"]);
-    }
+    expect(themeVars(DOJO_THEME, MINE)["--board"], "a room built in the dojo plays on it too").toBe(BOARD);
   });
 
   it("gives a dark room a stronger focus ring than a light one", () => {
-    const light = themeVars("house")["--accent-ring"];
-    const dark = themeVars("lacquer")["--accent-ring"];
+    const light = themeVars("tatami")["--accent-ring"];
+    const dark = themeVars("night")["--accent-ring"];
     const alpha = s => Number(s.match(/,([.\d]+)\)$/)[1]);
     expect(alpha(dark)).toBeGreaterThan(alpha(light));
   });
 
   it("gives a dark room a longer raise, because it has less light to spend", () => {
-    expect(themeVars("lacquer")["--raise"]).not.toBe(themeVars("house")["--raise"]);
-    expect(themeVars("lacquer")["--raise"]).toContain("10px");
+    expect(themeVars("night")["--raise"]).not.toBe(themeVars("tatami")["--raise"]);
+    expect(themeVars("night")["--raise"]).toContain("10px");
   });
 });
 
 describe("resolving a theme id", () => {
   it("falls back to house for anything it does not know", () => {
-    for (const bad of ["nope", "", null, undefined, 7, {}]) expect(themeOf(bad).id).toBe("house");
+    for (const bad of ["nope", "", null, undefined, 7, {}]) expect(themeOf(bad).id).toBe(HOUSE_THEME);
   });
 
   it("only answers to dojo when there is a dojo palette to answer with", () => {
-    expect(themeOf(DOJO_THEME).id).toBe("house");
+    expect(themeOf(DOJO_THEME).id).toBe(HOUSE_THEME);
     expect(themeOf(DOJO_THEME, MINE).id).toBe(DOJO_THEME);
     expect(isThemeId(DOJO_THEME, null)).toBe(false);
     expect(isThemeId(DOJO_THEME, MINE)).toBe(true);
-    expect(isThemeId("lacquer")).toBe(true);
+    expect(isThemeId("night")).toBe(true);
     expect(isThemeId("nope")).toBe(false);
   });
 
@@ -103,10 +110,43 @@ describe("resolving a theme id", () => {
   });
 });
 
+/* Ten rooms became three on 2026-09-15. A stored id from before that is a
+   preference somebody set, and it is carried forward rather than dropped: the
+   profile store asks this before it validates, so nobody who chose a dark room
+   is handed a light one for having chosen the wrong dark room. */
+describe("carrying an older room forward", () => {
+  it("sends every retired room to a room that exists", () => {
+    for (const old of ["kaya", "porcelain", "damson", "cinnabar", "gilt",
+      "lacquer", "graphite", "yohen", "prism", "foxfire"]) {
+      expect(isThemeId(migrateThemeId(old)), old).toBe(true);
+    }
+  });
+
+  it("keeps a dark room dark and a light room light", () => {
+    for (const old of ["kaya", "porcelain", "damson", "cinnabar", "gilt"]) {
+      expect(isDark(themeOf(migrateThemeId(old))), old).toBe(false);
+    }
+    for (const old of ["lacquer", "graphite", "yohen", "prism", "foxfire"]) {
+      expect(isDark(themeOf(migrateThemeId(old))), old).toBe(true);
+    }
+  });
+
+  it("sends the two rooms the device used to pick back to following the device", () => {
+    expect(migrateThemeId("house")).toBe(SYSTEM_THEME);
+    expect(migrateThemeId("sumi")).toBe(SYSTEM_THEME);
+  });
+
+  it("leaves a current id, system, dojo and nonsense alone", () => {
+    for (const id of [...PALETTES.map(p => p.id), SYSTEM_THEME, DOJO_THEME, "nonsense", 7, null]) {
+      expect(migrateThemeId(id), String(id)).toBe(id);
+    }
+  });
+});
+
 describe("following the device", () => {
-  it("points at house in the light and sumi in the dark", () => {
-    expect(resolveTheme(SYSTEM_THEME, false)).toBe("house");
-    expect(resolveTheme(SYSTEM_THEME, true)).toBe("sumi");
+  it("points at tatami in the light and night in the dark", () => {
+    expect(resolveTheme(SYSTEM_THEME, false)).toBe("tatami");
+    expect(resolveTheme(SYSTEM_THEME, true)).toBe("night");
     expect(SYSTEM_PAIR.light).toBe(HOUSE_THEME);
   });
 
@@ -132,8 +172,8 @@ describe("following the device", () => {
     expect(isThemeId(SYSTEM_THEME, null)).toBe(true);
   });
 
-  it("draws as house if it somehow reaches themeOf unresolved, rather than throwing", () => {
-    expect(themeOf(SYSTEM_THEME).id).toBe("house");
+  it("draws as tatami if it somehow reaches themeOf unresolved, rather than throwing", () => {
+    expect(themeOf(SYSTEM_THEME).id).toBe(HOUSE_THEME);
     expect(() => themeVars(SYSTEM_THEME)).not.toThrow();
   });
 });

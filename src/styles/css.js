@@ -20,32 +20,32 @@ ${FONT_FACES}
      sign. One rule below flips it, and nothing else in the app tests the
      direction it is being read in. */
   --flip: 1;
-  --ground: #e8e4db;
-  --light: #fbf8f2;
-  --dark: #c4beb1;
-  --ink: #4b463c;
+  --ground: #ede6d8;
+  --light: #fbf7ee;
+  --dark: #cdc2ae;
+  --ink: #2a2620;
   /* The two quiet inks. Secondary text clears 4.5:1 and incidental text 3:1, so
      nothing in this stylesheet dims a word with an opacity: it asks for the step
      down it wants. Both are derived per room in src/theme/derive.js. */
-  --ink-2: #69645b;
-  --ink-3: #848076;
-  --cream: #f2ede3;
-  --accent-rgb: 95,140,126;
+  --ink-2: #6a665d;
+  --ink-3: #878178;
+  --cream: #faf6ee;
+  --accent-rgb: 106,138,117;
   --accent: rgb(var(--accent-rgb));
   --accent-soft: rgba(var(--accent-rgb),.16);
   --accent-ring: rgba(var(--accent-rgb),.32);
   /* the mark at reading contrast: same eucalyptus, deep enough to be read as a
-     word rather than glanced at as a dot. The raw accent is 2.99:1 here. */
-  --accent-ink: #47695f;
-  --danger: #b0715f;
+     word rather than glanced at as a dot. The raw accent is 3.07:1 here. */
+  --accent-ink: #506858;
+  --danger: #a8603e;
   /* The warning walked up to reading contrast, the way --accent-ink is. */
-  --danger-ink: #845547;
-  --sh-ink: 75,70,60;
-  --sh-lite: 251,248,242;
-  --wash-a: rgba(251,248,242,.55);
-  --wash-b: rgba(196,190,177,.40);
-  --scrim: rgba(232,228,219,.72);
-  --board: var(--ground);
+  --danger-ink: #975638;
+  --sh-ink: 42,38,32;
+  --sh-lite: 251,247,238;
+  --wash-a: rgba(251,247,238,.55);
+  --wash-b: rgba(205,194,174,.40);
+  --scrim: rgba(237,230,216,.76);
+  --board: #d9b77a;
   --grid: var(--ink);
   --hairline: rgba(var(--sh-ink),.14);
   --belt-edge: rgba(var(--sh-ink),.42);
@@ -512,9 +512,9 @@ ${FONT_FACES}
    basis floored the well at 520px tall while a phone drew the board 334px wide:
    174px of dead ground under the grid. The basis is only ever written against
    the row. */
-/* The well is the only surface in the app that is not the page. On paper
-   --board IS the ground and this paints nothing; in a dark room it is the wood,
-   lifted off the page so a stone of either colour can be seen on it. */
+/* The well is the only surface in the app that is not the page. --board is the
+   wood: one colour, the same in all three rooms, never the page's own. A goban
+   is an object, and an object does not change colour when the light does. */
 .board-well { border-radius: var(--r); box-shadow: var(--sink); padding: clamp(12px, 1.8vw, 22px); min-width: 0; background: var(--board); }
 .play-wrap > .board-well { flex: 2 1 520px; }
 .side { flex: 1 1 300px; min-width: 260px; max-width: 420px; }
@@ -652,6 +652,17 @@ ${FONT_FACES}
 .welcome-identity { display: flex; align-items: center; gap: 18px; margin-top: 6px; flex-wrap: wrap; }
 .welcome-field { display: flex; flex-direction: column; gap: 5px; flex: 1 1 220px; }
 .welcome .row { margin-top: 16px; flex-wrap: wrap; }
+/* The record, as a sheet laid on the table. Review sets the Kifu room's tokens
+   on this element (src/views/Review.jsx) and this is what makes them visible:
+   without a ground of its own the sheet would be an ivory-coloured set of words
+   floating on whatever room the player was playing in. The bleed is so the
+   sheet reaches past the content column the way paper on a table does. */
+.review-room {
+  background: var(--ground); color: var(--ink);
+  border-radius: var(--r); box-shadow: var(--raise);
+  padding: clamp(18px, 2.6vw, 34px);
+  margin-inline: clamp(-20px, -1.6vw, 0px);
+}
 .review-refused { margin: 0; font-size: 14px; color: var(--danger-ink); text-align: center; }
 .review-result { color: var(--ink-2); font-family: var(--font-display); font-weight: var(--w-display); font-size: 16px; }
 .review-controls { justify-content: center; gap: 6px; flex-wrap: wrap; }

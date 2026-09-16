@@ -82,7 +82,7 @@ export const rooms = {
     derivedEm: "· abgeleitet",
     derivedRole: "Beide werden aus dem Grund errechnet und keines ist eine Wahl: eine erhabene Sache sieht nur so lange beleuchtet statt umrandet aus, wie ihre beiden Lichter in Reichweite des Papiers bleiben, auf dem sie liegt. Verschiebe den Grund und sie verschieben sich mit.",
     stonesHead: "Die Steine",
-    stonesNote: "Jeder Raum nennt den Satz, mit dem er gespielt wird, dieser hier eingeschlossen. Zwei Farben machen einen Satz; die beleuchtete Krone, der Rand, an dem sich die Oberfläche abwendet, und der Sitz, den ein dunkles Brett verlangt, werden aus diesen beiden geschnitten.",
+    stonesNote: "Jeder Raum nennt den Satz, mit dem er gespielt wird, dieser hier eingeschlossen. Zwei Farben machen einen Satz; die beleuchtete Krone und der Rand, an dem sich die Oberfläche abwendet, werden aus diesen beiden geschnitten, und das Brett darunter ist in jedem Raum dasselbe Holz.",
     auditHead: "Was die Regeln sagen",
     auditMax: "max. {n}",
     auditMin: "min. {n}",
@@ -161,10 +161,6 @@ export const rooms = {
     "board-b": {
       label: "Schiefer auf dem Brett",
       why: "Ein schwarzer Stein muss auf dem Holz zu finden sein, auf dem er liegt, nicht nur gegen den weißen.",
-    },
-    "board-w": {
-      label: "Muschel auf dem Brett",
-      why: "Die andere Hälfte derselben Regel, und nur dort, wo der Raum sein Brett erfunden hat: ein weißer Stein, der das Holz überschreit, ermüdet ebenso wie ein schwarzer, der sich darin versteckt. Auf echtem Papier trennt den Muschelstein sein Rand, nicht seine Füllung.",
     },
     "close-light": { label: "Licht nah am Grund" },
     "close-dark": { label: "Schatten nah am Grund" },

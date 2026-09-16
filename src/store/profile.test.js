@@ -171,11 +171,21 @@ describe("the stored palette", () => {
   });
 
   it("keeps a named room, and resets one it does not know", () => {
-    expect(sanitizeProfile({ ...defaultProfile, theme: "lacquer" }).theme).toBe("lacquer");
+    expect(sanitizeProfile({ ...defaultProfile, theme: "night" }).theme).toBe("night");
     expect(sanitizeProfile({ ...defaultProfile, theme: HOUSE_THEME }).theme).toBe(HOUSE_THEME);
     for (const bad of ["nope", "", 7, null, {}]) {
       expect(sanitizeProfile({ ...defaultProfile, theme: bad }).theme, String(bad)).toBe(SYSTEM_THEME);
     }
+  });
+
+  /* Joseki shipped ten rooms before 2026-09-15 and ships three now. A profile
+     stored in one of the seven that went away is not a corrupt profile: it is a
+     preference, and it is carried to the room that replaced it rather than
+     reset to the default. A player who chose a dark room keeps a dark room. */
+  it("carries a room that no longer exists forward instead of resetting it", () => {
+    expect(sanitizeProfile({ ...defaultProfile, theme: "lacquer" }).theme).toBe("night");
+    expect(sanitizeProfile({ ...defaultProfile, theme: "kaya" }).theme).toBe("tatami");
+    expect(sanitizeProfile({ ...defaultProfile, theme: "house" }).theme).toBe(SYSTEM_THEME);
   });
 
   // A set of stones is a preference of its own, kept apart from the room: a

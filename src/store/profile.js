@@ -5,7 +5,7 @@ import { TINTS, ratingOfRank, MIN_RATING, MAX_RATING } from "../content/rank.js"
 import { GLICKO } from "../engine/index.js";
 import { DEFAULT_TYPEFACE, typefaceOf } from "../content/typeface.js";
 import { NO_ARCHETYPE, isArchetypeId } from "../content/archetypes.js";
-import { SYSTEM_THEME, isThemeId, sanitizePalette, AUTO_STONES, isStoneId } from "../theme/index.js";
+import { SYSTEM_THEME, isThemeId, sanitizePalette, AUTO_STONES, isStoneId, migrateThemeId } from "../theme/index.js";
 import { SYSTEM_LOCALE, isLocaleId } from "../i18n/index.js";
 import { parseCardKey, sanitizeEntry } from "../content/recall.js";
 import { sanitizeChain, seedFromKata } from "../content/chain.js";
@@ -118,6 +118,16 @@ export function sanitizeProfile(raw) {
   const bad = [];
   for (const key of Object.keys(defaultProfile)) {
     if (!(key in raw)) continue;
+    /* Joseki used to ship ten rooms and now ships three, so a theme id stored
+       before that is carried forward to the room that replaced it rather than
+       failing validation and resetting somebody's preference to the default.
+       Every other field is checked as it was stored. */
+    if (key === "theme") {
+      const moved = migrateThemeId(raw[key]);
+      if (validField(key, moved, raw)) { out[key] = moved; continue; }
+      bad.push(key);
+      continue;
+    }
     if (!validField(key, raw[key], raw)) { bad.push(key); continue; }
     if (key === "dojo") out[key] = raw[key] === null ? null : sanitizePalette(raw[key]);
     else if (key === "bookProgress") out[key] = sanitizeBookProgress(raw[key]);

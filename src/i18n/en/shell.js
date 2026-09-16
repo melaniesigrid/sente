@@ -55,6 +55,9 @@ export const shell = {
   mood: {
     light: "Light",
     dark: "Dark",
+    /* Not a brightness: the third room is the one review mode brings with it,
+       and what a reader needs from the word is when it turns up. */
+    review: "Review",
   },
   /* The language picker, in the top bar. Never translated into the language
      you are trying to leave: every entry names itself in its own words. */

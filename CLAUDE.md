@@ -37,25 +37,36 @@ in `server/` (Durable Objects), deployed separately.
   icon that points at a fact, and a mask is a costume, not a fact.
 - Palette is themed the way type is, and lives in `src/theme/` with `index.js` as the only
   import surface, like the engine. `tokens.js` is the contract (every custom property, every
-  contrast rule); `palettes.js` is the named rooms as data; `derive.js` turns four authored
-  colours into the whole token set; `color.js` is the only place that knows how a colour is
-  spelled. The stylesheet names no colour outside its house-default block, only tokens, which
-  the shell sets from `profile.theme` (and `profile.dojo` for a palette the player built).
-- A new palette is four colours (ground, ink, mark, shell) in `palettes.js`. Everything
-  else derives. `npm test` holds it to the same rules `auditPalette` shows live in the dojo;
-  there is one implementation of those rules so the panel and CI cannot disagree.
-- `house` is the reference room and the fallback; `system` is what a profile ships set to,
-  and `resolveTheme(id, prefersDark)` turns it into a real room. The theme package is pure:
-  `usePrefersDark` in `src/components/` is the only thing that reads the media query.
-- **The board is not the page.** `--board` is its own token: on paper it is the ground, and
-  in a dark room `deriveBoard` lifts it toward the room's shell until it sits at the
-  geometric mean of the two stones, where both read against it equally. Stones are cut once
-  and never bent to suit a room — a stone is the same rock everywhere. Anything drawn *on*
-  the board takes its colour from the board, not the page (the grid, the star points, the
-  territory marks), because in a dark room the ink is light and the ground is dark.
+  contrast rule, and `BOARD`, the wood); `palettes.js` is the three rooms as data;
+  `derive.js` turns four authored colours into the whole token set; `color.js` is the only
+  place that knows how a colour is spelled. The stylesheet names no colour outside its
+  default block, only tokens, which the shell sets from `profile.theme` (and `profile.dojo`
+  for a palette the player built).
+- **There are three rooms and no more** (2026-09-15, design shotgun on the game screen):
+  `tatami` for daylight, `night` for the evening, `kifu` for reading a finished game.
+  Adding a fourth is a design decision, not a colour: say so out loud before you do it.
+  A palette is still four colours (ground, ink, mark, shell) and everything else derives;
+  `npm test` holds it to the same rules `auditPalette` shows live in the dojo, and there is
+  one implementation of those rules so the panel and CI cannot disagree.
+- `tatami` is the reference room and the fallback; `system` is what a profile ships set to,
+  and `resolveTheme(id, prefersDark)` turns it into a real room. `migrateThemeId` carries a
+  theme id stored before the three rooms forward to the room that replaced it, so nobody's
+  preference is reset by the change. The theme package is pure: `usePrefersDark` in
+  `src/components/` is the only thing that reads the media query.
+- **The board is not the page, and it is not themed either.** `--board` is one wood
+  (`BOARD` in `tokens.js`) in all three rooms and in a room built in the dojo: a goban is an
+  object, and an object does not change colour when the light does. Stones are cut once and
+  never bent to suit a room. Anything drawn *on* the board takes its colour from the board,
+  not the page (the grid, the star points, the territory marks), because in a dark room the
+  ink is light and the ground is dark.
 - Two stones being far apart from *each other* is not the same question as either stone
   being readable on the wood. `STONE_RULE` asks the first and `BOARD_RULES` the second;
-  a year of dark rooms passed the first at 10:1 while failing the second at 1.2:1.
+  a year of dark rooms passed the first at 10:1 while failing the second at 1.2:1. With one
+  board the second is asked of the set rather than of the room, and only of the black stone:
+  shell on kaya is about 1.6:1 on a real board, and the rim is what separates it.
+- **Review mode brings its own room.** `Review.jsx` sets the Kifu tokens on its own root and
+  `.review-room` paints the ground they need, so a finished game is read on the printed page
+  whichever room it was played in, and the chrome around it does not move.
 - The type scale floor is 12px. Nothing below that carries meaning at arm's length, and the
   wordmark is display-sized: it is the brand, not a card heading.
 - Type is the one themed part. A pairing (display face, italic voice, body face) is data in

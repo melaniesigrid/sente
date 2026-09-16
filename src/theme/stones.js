@@ -7,9 +7,10 @@
 
    So the stones are data now, like a palette or a pairing. A set is two
    colours: the core of the black stone and the core of the white one.
-   Everything else (the lit crown, the rim that turns as the surface curves
-   away, and the seating a dark board asks for) is arithmetic, in the same
-   spirit as derive.js: author two colours, get a stone.
+   Everything else (the lit crown, and the rim that turns as the surface curves
+   away) is arithmetic, in the same spirit as derive.js: author two colours, get
+   a stone. Nothing here asks what room it is in, and since 2026-09-15 nothing
+   asks what board either: there is one wood and a stone is cut for it.
 
    Every named room names the set it is played with, and a player may override
    that from the look page. `auto` is not a set: it means the room decides. */

@@ -7,22 +7,22 @@ const MINE = { ground: "#101014", ink: "#e6e6ea", accent: "#b98cff", cream: "#f2
 
 describe("what the look page offers", () => {
   it("leads with the device, then the named rooms", () => {
-    const rooms = roomsFor(null, "house");
+    const rooms = roomsFor(null, "tatami");
     expect(rooms[0].id).toBe(SYSTEM_THEME);
-    expect(rooms[0].drawAs, "the System plate is drawn in the room it resolves to").toBe("house");
+    expect(rooms[0].drawAs, "the System plate is drawn in the room it resolves to").toBe("tatami");
     expect(rooms).toHaveLength(PALETTES.length + 1);
     expect(rooms.some(r => r.id === DOJO_THEME), "no dojo built, no dojo plate").toBe(false);
   });
 
   it("offers the built room last, named or not", () => {
-    expect(roomsFor(MINE, "sumi").at(-1)).toMatchObject({ id: DOJO_THEME, name: "Your dojo", mood: "Yours" });
-    expect(roomsFor({ ...MINE, name: "Dusk" }, "sumi").at(-1).name).toBe("Dusk");
+    expect(roomsFor(MINE, "night").at(-1)).toMatchObject({ id: DOJO_THEME, name: "Your dojo", mood: "Yours" });
+    expect(roomsFor({ ...MINE, name: "Dusk" }, "night").at(-1).name).toBe("Dusk");
   });
 
   it("leads the drawer with the room's own set, and names it", () => {
-    const sets = setsFor("sumi", null);
+    const sets = setsFor("kifu", null);
     expect(sets[0].id).toBe(AUTO_STONES);
-    expect(sets[0].note).toContain(stoneSetOf("sumi").name.toLowerCase());
+    expect(sets[0].note).toContain(stoneSetOf("kifu").name.toLowerCase());
     expect(sets.slice(1).map(s => s.id)).toEqual(STONE_SETS.map(s => s.id));
   });
 
@@ -39,13 +39,13 @@ describe("what the look page offers", () => {
      what the room is played with. */
   it("offers the same lists in the language it is handed", () => {
     const es = makeT("es");
-    expect(roomsFor(null, "house", es)[0].name).toBe("Sistema");
-    expect(roomsFor(MINE, "sumi", es).at(-1).mood).toBe("Tuya");
-    expect(roomsFor(null, "house", es).find(r => r.id === "sumi").mood).toBe("Oscura");
-    expect(roomsFor(null, "house", es).find(r => r.id === "sumi").name, "a room keeps its name").toBe("Sumi");
-    const sets = setsFor("sumi", null, es);
+    expect(roomsFor(null, "tatami", es)[0].name).toBe("Sistema");
+    expect(roomsFor(MINE, "night", es).at(-1).mood).toBe("Tuya");
+    expect(roomsFor(null, "tatami", es).find(r => r.id === "night").mood).toBe("Oscura");
+    expect(roomsFor(null, "tatami", es).find(r => r.id === "night").name, "a room keeps its name").toBe("Night");
+    const sets = setsFor("kifu", null, es);
     expect(sets[0].name).toBe("Las de la sala");
-    expect(sets[0].note).toContain(setName(sets.find(s => s.id === "jade"), es).toLowerCase());
+    expect(sets[0].note).toContain(setName(sets.find(s => s.id === "ebony"), es).toLowerCase());
     expect(sets[0].note).not.toContain("played with");
   });
 });
