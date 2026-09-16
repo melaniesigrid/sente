@@ -12,7 +12,17 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      # The key agreement in talk/ compiles to WebAssembly during prebuild, so
+      # Go has to be here before `npm run build`. The version comes from
+      # talk/go.mod rather than a number typed twice.
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: talk/go.mod
       - run: npm ci
       - run: npm run lint
       - run: npm test
+      # The protocol's own suite. Two of its tests are attacks that must
+      # succeed; see talk/sas_test.go.
+      - run: go test ./...
+        working-directory: talk
       - run: npm run build
