@@ -323,7 +323,7 @@ export const screens = {
     table: {
       head: "At the table",
       sound: "Stone sound",
-      soundNote: "A synthesised click on every stone, a soft note per capture, and a small haptic on phones. Nothing is downloaded.",
+      soundNote: "A stone on a wooden board, synthesised: slate lands duller than clamshell, captures fall into the bowl, and a bell ends the game. A small haptic on phones. Nothing is downloaded.",
       coords: "Coordinates",
       coordsNote: "Letters and numbers around the board, the way a book prints them. The letter I is skipped, so the column after H is J.",
       lastMove: "Last move",

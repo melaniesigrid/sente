@@ -15,6 +15,12 @@ export const STORE_KEY = "sente-profile-v3";
 /** v2 held ratings on the old 100-points-per-rank scale. v3 is OGS's scale, so
  *  the number means something different and cannot simply be read across. */
 export const LEGACY_KEY = "sente-profile-v2";
+/** Sound shipped opt-in and off, and hardly anyone ever found the toggle: the
+ *  complaint was not that the board was quiet but that the server was broken.
+ *  It is on by default now, and this marker un-mutes the profiles that were
+ *  saved under the old default, exactly once. A player who mutes the table
+ *  after this has run keeps their silence, because the marker is already set. */
+export const UNMUTE_KEY = "sente-sound-on-by-default";
 
 export const defaultProfile = {
   name: "Player", tint: "eucalyptus",
@@ -25,7 +31,7 @@ export const defaultProfile = {
   wins: 0, losses: 0, streak: 0, bestStreak: 0,
   lessonsDone: [], problemsDone: [], drillsDone: [],
   tierPassed: [],                            // library tier ids whose exit test was passed
-  sound: false,                              // stone click + haptic, opt-in
+  sound: true,                               // stone, capture and bell, plus a small haptic on phones
   onboarded: false,                          // the welcome flow has been seen or skipped
   coordinates: true,                         // letters and numbers around the board; on, because a lesson that says "D4" needs a board that says D4
   dejaVu: true,                              // the board says when you have stood here before, src/store/deja.js
@@ -177,10 +183,27 @@ export function migrateLegacy(raw) {
   });
 }
 
+/** Carry a profile across the day sound stopped being opt-in. Runs once per
+ *  device: the marker is written whether or not anything changed, so a
+ *  deliberate mute made afterwards is never overwritten. Returns the profile to
+ *  use, and whether it needs saving. */
+export function restoreSound(p) {
+  try {
+    if (localStorage.getItem(UNMUTE_KEY)) return { profile: p, changed: false };
+    localStorage.setItem(UNMUTE_KEY, "1");
+    if (p.sound) return { profile: p, changed: false };
+    return { profile: { ...p, sound: true }, changed: true };
+  } catch { return { profile: p, changed: false }; }
+}
+
 export async function loadProfile() {
   try {
     const raw = localStorage.getItem(STORE_KEY);
-    if (raw) return sanitizeProfile(JSON.parse(raw));
+    if (raw) {
+      const { profile, changed } = restoreSound(sanitizeProfile(JSON.parse(raw)));
+      if (changed) await saveProfile(profile);
+      return profile;
+    }
     const legacy = localStorage.getItem(LEGACY_KEY);
     if (legacy) {
       const moved = migrateLegacy(JSON.parse(legacy));

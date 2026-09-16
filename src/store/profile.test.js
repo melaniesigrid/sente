@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { sanitizeProfile, defaultProfile } from "./profile.js";
+import { sanitizeProfile, defaultProfile, restoreSound, UNMUTE_KEY } from "./profile.js";
 import { DEFAULT_TYPEFACE } from "../content/typeface.js";
 import { rankOf } from "../content/rank.js";
 import { GLICKO, isProvisional } from "../engine/index.js";
@@ -120,8 +120,9 @@ describe("sanitizeProfile", () => {
   it("rejects arrays holding non-strings", () => {
     expect(sanitizeProfile({ ...defaultProfile, problemsDone: ["p1", 7] }).problemsDone).toEqual([]);
   });
-  it("resets a non-boolean sound flag", () => {
-    expect(sanitizeProfile({ ...defaultProfile, sound: "yes" }).sound).toBe(false);
+  it("resets a non-boolean sound flag to the default, which is on", () => {
+    expect(defaultProfile.sound).toBe(true);
+    expect(sanitizeProfile({ ...defaultProfile, sound: "yes" }).sound).toBe(true);
     expect(warn.mock.calls[0][0]).toMatch(/sound/);
   });
   it("tierPassed must be an array of integer tier ids", () => {
@@ -220,5 +221,50 @@ describe("the stored palette", () => {
     const out = sanitizeProfile(stored);
     expect(out.dojo).not.toBe(stored.dojo);
     expect(out.dojo).not.toHaveProperty("evil");
+  });
+});
+
+/* Sound was opt-in and off, and the toggle was three cards deep in the profile,
+   so the common report was that the server had no sound at all. It is on by
+   default now, and a profile saved under the old default is un-muted once. */
+describe("restoreSound", () => {
+  // These tests run in node, which has no localStorage; the real thing would be
+  // there in a browser, and `restoreSound` already treats its absence as "leave
+  // the profile alone", so the stub is what puts the behaviour under test.
+  let store;
+  beforeEach(() => {
+    store = new Map();
+    globalThis.localStorage = {
+      getItem: k => (store.has(k) ? store.get(k) : null),
+      setItem: (k, v) => store.set(k, String(v)),
+      removeItem: k => store.delete(k),
+    };
+  });
+  afterEach(() => { delete globalThis.localStorage; });
+
+  it("turns sound on for a profile saved while it was opt-in", () => {
+    const r = restoreSound({ ...defaultProfile, sound: false });
+    expect(r.changed).toBe(true);
+    expect(r.profile.sound).toBe(true);
+  });
+
+  it("leaves a profile that already had sound alone, and saves nothing", () => {
+    const p = { ...defaultProfile, sound: true };
+    const r = restoreSound(p);
+    expect(r.changed).toBe(false);
+    expect(r.profile).toBe(p);
+  });
+
+  it("runs once: a mute chosen after it has run is kept", () => {
+    restoreSound({ ...defaultProfile, sound: false });
+    const muted = { ...defaultProfile, sound: false };
+    const r = restoreSound(muted);
+    expect(r.changed).toBe(false);
+    expect(r.profile.sound).toBe(false);
+  });
+
+  it("marks the device even when there was nothing to change", () => {
+    restoreSound({ ...defaultProfile, sound: true });
+    expect(localStorage.getItem(UNMUTE_KEY)).toBe("1");
   });
 });
