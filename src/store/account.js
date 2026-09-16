@@ -28,14 +28,24 @@ export function loadAccount(storage = defaultStorage()) {
   return { token: blob.token, player: blob.player };
 }
 
+/** Said on the window whenever the account here changes, so the shell can
+ *  pull the account's progress the moment somebody signs in. */
+export const ACCOUNT_EVENT = "sente-account";
+const announce = () => {
+  try { if (typeof Event !== "undefined") globalThis.dispatchEvent?.(new Event(ACCOUNT_EVENT)); } catch { /* nothing to do */ }
+};
+
 export function saveAccount(account, storage = defaultStorage()) {
   if (!storage) return false;
   if (!account || !validToken(account.token) || !account.player) return false;
-  try { storage.setItem(ACCOUNT_KEY, JSON.stringify({ token: account.token, player: account.player })); return true; }
+  try { storage.setItem(ACCOUNT_KEY, JSON.stringify({ token: account.token, player: account.player })); }
   catch (e) { console.warn("sente: could not save the account", e); return false; }
+  announce();
+  return true;
 }
 
 export function clearAccount(storage = defaultStorage()) {
   if (!storage) return;
   try { storage.removeItem(ACCOUNT_KEY); } catch { /* nothing to do */ }
+  announce();
 }

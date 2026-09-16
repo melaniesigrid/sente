@@ -8,6 +8,7 @@ import { SYSTEM_THEME, isThemeId, sanitizePalette, AUTO_STONES, isStoneId } from
 import { SYSTEM_LOCALE, isLocaleId } from "../i18n/index.js";
 import { parseCardKey, sanitizeEntry } from "../content/recall.js";
 import { sanitizeChain, seedFromKata } from "../content/chain.js";
+import { queuePush } from "./sync.js";
 
 export const STORE_KEY = "sente-profile-v3";
 /** v2 held ratings on the old 100-points-per-rank scale. v3 is OGS's scale, so
@@ -176,8 +177,11 @@ export async function loadProfile() {
   } catch { return defaultProfile; }
 }
 
+/** Write the profile to this browser, and, when the player is signed in, send
+ *  its progress to the account a moment later (src/store/sync.js). */
 export async function saveProfile(p) {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(p)); } catch (e) { console.error("save failed", e); }
+  queuePush(p);
 }
 
 /* ----------------------- FIRST VISIT -----------------------

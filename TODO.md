@@ -57,6 +57,11 @@ lessons), and the middle game everywhere. Life and death below 15k was on this l
       the answer is dropped. The authored data keeps its step indices, because translations and
       recall cards are keyed by them. A lesson is recorded as done the moment its last step is
       solved, not only when the button is pressed, and the finished card shows a filled check.
+- [x] Progress lives on the account (2026-09-15). A signed-in player's record of what they have
+      done (`src/store/progress.js` names the fields) is sent to `PUT /api/me/progress` a moment
+      after every save and pulled when the app opens and when somebody signs in. The server
+      merges rather than overwrites, with the same pure function the browser uses, so two devices
+      used apart lose nothing. Preferences stay on the device. The privacy notice says so.
 
 ## Phase 0: Foundation (done)
 

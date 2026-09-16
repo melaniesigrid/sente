@@ -31,6 +31,8 @@
      PATCH /api/me/profile      bearer {bio, facts}
      PUT   /api/me/avatar       bearer, image body  -> the picture, at most 64 KB
      DELETE /api/me/avatar      bearer
+     GET   /api/me/progress     bearer         -> {data, at}: what you have done, kept on the account
+     PUT   /api/me/progress     bearer {data, at} -> merged with what is stored, and returned
      GET   /api/players?q=      bearer         -> who is here by that name
      GET   /api/players/:id                     -> a public profile
      GET   /api/players/:id/avatar              -> the picture, cached by its stamp
@@ -98,6 +100,7 @@ export default {
       const known = {
         "bad-name": 400, "bad-email": 400, "bad-key": 400, "no-email": 400,
         "bad-image": 400, "bad-image-type": 415, "image-too-big": 413,
+        "bad-progress": 400, "progress-too-big": 413,
         "bad-credentials": 401, "no-player": 404,
         // A link that was never real and one that has been used or has aged
         // out are different answers because the page says different things:
@@ -318,6 +321,15 @@ async function route(req, env) {
   if (path === "/api/me/profile" && req.method === "PATCH") {
     const player = await requirePlayer(req, reg);
     return json(await reg.setProfile(player.id, await readJson(req)));
+  }
+
+  /* Progress. PUT is a merge, not a write: what comes back is the union of
+     what this device knows and what the account already held. */
+  if (path === "/api/me/progress") {
+    const player = await requirePlayer(req, reg);
+    if (req.method === "GET") return json(await reg.progress(player.id));
+    if (req.method === "PUT") return json(await reg.setProgress(player.id, await readJson(req)));
+    return fail(405, "method");
   }
 
   if (path === "/api/me/avatar") {

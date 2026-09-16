@@ -27,7 +27,7 @@ export const legalDoc = {
       1: {
         heading: "Ohne Konto spielen",
         paras: {
-          0: "Die Lektionen, die Tsumego, die Hausspieler und dein Rang laufen alle in deinem Browser und brauchen überhaupt kein Konto. Nichts davon wird irgendwohin gesendet. Alles Folgende über Konten gilt erst, wenn du dich entscheidest, online gegen Menschen zu spielen.",
+          0: "Die Lektionen, die Tsumego, die Hausspieler und dein Rang laufen alle in deinem Browser und brauchen überhaupt kein Konto. Nichts davon wird irgendwohin gesendet. Alles Folgende über Konten gilt erst, wenn du dich entscheidest, online gegen Menschen zu spielen. Eine Ausnahme wählst du selbst: meldest du dich mit einem Konto an, wird dein Fortschritt (der letzte Punkt unter dem Server, unten) auch dort aufbewahrt, damit ein anderes Gerät, auf dem du dich anmeldest, ihn vorfindet.",
         },
       },
       2: {
@@ -138,6 +138,7 @@ export const legalDoc = {
           9: "Die Partien, die du auf deiner Seite zeigen wolltest, höchstens drei, jede mit einer Zeile von höchstens 140 Zeichen, die du geschrieben hast. Beides ist öffentlich, weil die Seite es ist. Eine Partie von deiner Seite zu nehmen nimmt die Zeile mit.",
           10: "Welche der drei Antworten du darauf gegeben hast, wer sehen darf, dass du da bist: niemand, deine Freunde oder alle. Ein Wort auf deinem Eintrag, und nicht auf der Rangliste, damit das Lesen der Rangliste nicht verraten kann, wer sich für unsichtbar entschieden hat.",
           11: "Die Adresse, von der aus du dich angemeldet hast, aufbewahrt, damit das Weggehen den Platz zurückgibt, den es gekostet hat, niemandem gezeigt, und mit dem Konto gelöscht.",
+          17: "Deinen Fortschritt, sobald du dich mit einer Adresse anmeldest: welche Lektionen, Aufgaben und Übungen du erledigt hast, deinen Wiederholungsplan, die Tage, an denen du geübt hast, und die Serien, die sie bilden, deine Kata- und Duell-Bilanz und deine Wertung auf der Hausleiter. Er wird gesendet, wenn er sich ändert, und gelesen, wenn du dich auf einem anderen Gerät anmeldest; beides wird zusammengeführt, nie das eine über das andere geschrieben. Ein Name ohne Adresse sendet nichts davon. Gehen löscht ihn.",
         },
       },
       3: {

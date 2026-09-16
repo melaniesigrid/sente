@@ -29,7 +29,9 @@ import { usePrefersDark } from "./components/prefersDark.js";
 import { LangProvider } from "./components/lang.jsx";
 import { LangPill } from "./components/LangPill.jsx";
 import { useLang } from "./components/langStore.js";
-import { defaultProfile, loadProfile, needsOnboarding } from "./store/profile.js";
+import { defaultProfile, loadProfile, saveProfile, needsOnboarding } from "./store/profile.js";
+import { pullProgress, withProgress } from "./store/sync.js";
+import { ACCOUNT_EVENT } from "./store/account.js";
 import { Home } from "./views/Home.jsx";
 import { Welcome } from "./views/Welcome.jsx";
 import { Landing } from "./views/Landing.jsx";
@@ -97,12 +99,29 @@ export default function JosekiApp() {
      playing" before their own name loaded, which is a worse first impression than
      the one onboarding is there to make. */
   const [profileRead, setProfileRead] = useState(false);
+  const pull = () => pullProgress().then((doc) => {
+    if (!doc) return;
+    setProfile((cur) => {
+      const np = withProgress(cur, doc);
+      saveProfile(np);
+      return np;
+    });
+  });
   useEffect(() => {
     loadProfile().then((p) => {
       setProfile(p);
       setProfileRead(true);
       setView(v => v ?? (needsOnboarding(p) ? "landing" : "home"));
+      pull();
     });
+    /* A signed-in player's progress lives on the account as well as here. It
+       is pulled once the stored profile is in, and again whenever the account
+       changes hands (signing in on this device), and merged rather than
+       copied over, so nothing done here while signed out is lost. */
+    const onAccount = () => pull();
+    window.addEventListener(ACCOUNT_EVENT, onAccount);
+    return () => window.removeEventListener(ACCOUNT_EVENT, onAccount);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   // Derived, not stored: finishing the flow sets `onboarded` on the profile, which
   // flips this on its own. One source of truth, and no effect to keep in step. The
