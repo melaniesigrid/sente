@@ -46,8 +46,10 @@ export const TONES = [
  *  in the morning, at midnight, and in the book the game is printed in. Rooms
  *  used to each derive their own board out of their own ground, which gave the
  *  dark rooms a plank nobody had chosen and moved the board every time the page
- *  moved. Now the page is themed and the board is not: it is this colour in all
- *  three rooms, and both stones are cut to read on it.
+ *  moved. Now the page is themed and the board is not: it is this colour in
+ *  every room that has a board, and both stones are cut to read on it. (The
+ *  printed room, Kifu, has no board: a diagram is drawn on the page, and
+ *  derive.js answers with the page there.)
  *
  *  Measured, not asserted: BOARD_RULES in tokens.js holds each stone against
  *  this wood, over every room and every set in the drawer. */
@@ -64,7 +66,7 @@ export const TOKEN_NAMES = [
   "--accent-rgb", "--accent-soft", "--accent-ring", "--accent-ink", "--danger", "--danger-ink",
   "--sh-ink", "--sh-lite",
   "--wash-a", "--wash-b", "--scrim",
-  "--grid", "--hairline",
+  "--grid", "--grid-alpha", "--hairline",
   "--stone-b-1", "--stone-b-2", "--stone-b-3",
   "--stone-w-1", "--stone-w-2", "--stone-w-3",
   "--belt-edge",

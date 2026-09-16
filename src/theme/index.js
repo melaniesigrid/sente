@@ -30,7 +30,7 @@ export {
 export { contrast, luminance, grade, isHex, isDarkColor, toTriple } from "./color.js";
 export { RULES, CLOSENESS, TOKEN_NAMES, BOARD_RULES, BOARD } from "./tokens.js";
 export { stoneSetOf } from "./theme.js";
-export { completeTones, tokensFor, deriveLights, deriveBoard, stonesFor } from "./derive.js";
+export { completeTones, tokensFor, deriveLights, deriveBoard, boardFor, stonesFor } from "./derive.js";
 export {
   STONE_SETS, AUTO_STONES, HOUSE_STONES, stonesOf, isStoneId, cutBlack, cutWhite,
 } from "./stones.js";

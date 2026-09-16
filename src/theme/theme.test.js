@@ -62,15 +62,28 @@ describe("the named rooms", () => {
   });
 
   // The board is an object, not a surface of the page: one slab of wood, the
-  // same in all three rooms, and never the ground. A room that drew its own
-  // board out of its own ground moved the goban every time the light changed.
-  it("plays every room on the one board, which is never the page", () => {
-    for (const p of PALETTES) {
+  // same in every room that has a board, and never the ground. A room that drew
+  // its own board out of its own ground moved the goban every time the light
+  // changed. The printed room is the exception that proves it: a kifu has no
+  // board, so its diagram is drawn on its own page.
+  it("plays every table room on the one board, which is never the page", () => {
+    for (const p of PALETTES.filter(p => !p.print)) {
       const vars = themeVars(p.id);
       expect(vars["--board"], `${p.id} board`).toBe(BOARD);
       expect(vars["--board"], `${p.id} board is not its page`).not.toBe(vars["--ground"]);
+      expect(vars["--grid-alpha"], `${p.id} draws its grid quiet on the wood`).not.toBe("1");
     }
     expect(themeVars(DOJO_THEME, MINE)["--board"], "a room built in the dojo plays on it too").toBe(BOARD);
+  });
+
+  it("prints the review room on its page, in a hairline of its ink", () => {
+    const kifu = PALETTES.find(p => p.id === REVIEW_THEME);
+    expect(kifu.print, "review is the printed room").toBe(true);
+    const vars = themeVars(REVIEW_THEME);
+    expect(vars["--board"]).toBe(vars["--ground"]);
+    expect(vars["--grid"]).toBe(vars["--ink"]);
+    expect(vars["--grid-alpha"]).toBe("1");
+    expect(PALETTES.filter(p => p.print).map(p => p.id), "and it is the only one").toEqual([REVIEW_THEME]);
   });
 
   it("gives a dark room a stronger focus ring than a light one", () => {
@@ -244,8 +257,10 @@ describe("derivation", () => {
   // subject of stones.test.js: there is a drawer of sets to hold to it now
   // rather than one pair. What belongs here is that every room hands the board
   // a set to be played with.
-  it("draws every room with the set that room names", () => {
-    for (const p of PALETTES) {
+  it("draws every table room with the set that room names", () => {
+    // The printed room names a set for its plate and prints in ink regardless;
+    // stones.test.js holds that side.
+    for (const p of PALETTES.filter(p => !p.print)) {
       const set = stonesOf(p.stones);
       expect(themeVars(p.id)["--stone-b-2"], p.id).toBe(cutBlack(set.b)[1]);
       expect(themeVars(p.id)["--stone-w-2"], p.id).toBe(cutWhite(set.w)[1]);

@@ -112,6 +112,11 @@ export function completeTones(tones) {
     // itself is data in stones.js, and a player may override it for every room
     // at once from the look page.
     stones: tones.stones || HOUSE_STONES,
+    // A printed room: a diagram on the page rather than a table with a board
+    // on it (palettes.js, Kifu). Carried as a flag, not a colour, because it
+    // changes what the board, the grid and the stones are, not what they are
+    // filled with.
+    print: !!tones.print,
   };
   for (const tone of TONES) if (!out[tone.key]) throw new Error(`sente: palette is missing ${tone.key}`);
   return out;
@@ -134,7 +139,7 @@ export function tokensFor(tones) {
   // from the top left, so it is still raised, but it has nowhere left to go.
   const [dp, blurp] = dark ? [3, 9] : [2, 6];
   const { b, w } = stonesFor(t);
-  const board = deriveBoard();
+  const board = boardFor(t);
 
   return {
     "--ground": t.ground,
@@ -182,6 +187,10 @@ export function tokensFor(tones) {
     // is exactly the dark it wants, which keeps the grid in the room's hue
     // rather than introducing a colour nothing else uses.
     "--grid": t.grid || (dark ? t.ground : t.ink),
+    // How much of the grid shows. On wood the lines are drawn quiet, under the
+    // stones; on a printed diagram they are the ink itself, at full strength,
+    // because a hairline on paper is what a kifu is made of.
+    "--grid-alpha": t.print ? "1" : ".38",
     // Every belt, seal and rank colour in rank.js is an absolute value chosen
     // against paper: the white belt vanishes on a pale ground and the black one
     // on a dark ground. A contour in the room's own ink gives each band an edge
@@ -199,17 +208,30 @@ export function tokensFor(tones) {
   };
 }
 
-/** Both stones a completed tone set is played with, ready for the gradient: the
- *  set's two cores, cut into three stops each. A stone is the same object in
- *  every room — it is a rock, it does not know what it is lying on — so nothing
- *  here depends on the ground. What changes from room to room is the board
- *  (`deriveBoard`), which is the thing that was actually wrong.
+/** Both stones a completed tone set is played with: the set's two cores, cut
+ *  into three stops each (the crown the shine is drawn from, the body, and the
+ *  rim). A stone is the same object in every room — it is a rock, it does not
+ *  know what it is lying on — so nothing here depends on the ground.
+ *
+ *  Except in a printed room, where there is no rock. A kifu draws its stones
+ *  in ink and paper: the black stone is the ink, the white one is the page
+ *  with an ink rim, and neither has a shine (the crown is the body, so the
+ *  shine paints nothing). The set the player carries is still the set, and it
+ *  is what the look page's plate shows; it is simply not what a diagram is
+ *  printed with.
  *
  *  One function, so the board, the swatches and the audit can never be looking
  *  at three different sets of stones. */
 export function stonesFor(tones) {
   const set = stonesOf(tones.stones);
+  if (tones.print) return { b: [tones.ink, tones.ink, tones.ink], w: [tones.ground, tones.ground, tones.ink], set };
   return { b: cutBlack(set.b), w: cutWhite(set.w), set };
+}
+
+/** What the stones lie on in this room: the one wood, or, in a printed room,
+ *  the page itself. The only way to ask, so the tokens and the audit agree. */
+export function boardFor(tones) {
+  return tones.print ? tones.ground : deriveBoard();
 }
 
 /** The surface the stones are played on, which is not the page.
@@ -222,13 +244,15 @@ export function stonesFor(tones) {
  *  which is what the design pass on 2026-09-15 said out loud: the page is
  *  themed, the board is not.
  *
- *  So the board is a constant (BOARD, in palettes.js) and what still varies is
- *  only what a room writes on it: the grid, the star points, the marks. Both
- *  stones are held against this one wood by BOARD_RULES, over every room and
- *  every set at once.
+ *  So the board is a constant (BOARD, in tokens.js) and what still varies is
+ *  only what a room writes on it: the grid, the star points, the marks. The
+ *  black stone is held against this one wood by BOARD_RULES, over every room
+ *  and every set at once.
  *
- *  It stays a function, and it stays the only way to ask, so that a palette
- *  built in the dojo plays on the same board as a named room. */
+ *  It stays a function so that a palette built in the dojo plays on the same
+ *  board as a named room. A printed room has no board at all; `boardFor` is
+ *  what answers for a room, and this is what it answers with when there is a
+ *  wood to answer with. */
 export function deriveBoard() {
   return BOARD;
 }
