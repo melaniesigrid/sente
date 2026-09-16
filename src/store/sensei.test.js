@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   SENSEI_KEY, THREAD_CAP, GAMES_CAP, loadBox, saveBox, postLetter, say, tell, unread, letters, markRead, rememberGame,
   daysBetween, shouldWriteAbout, playedWithoutHim, shouldAsk, digestOf, phraseOpens, accountOpens,
+  teachShape, timesTaught, TAUGHT_CAP,
 } from "./sensei.js";
 
 const memory = () => {
@@ -12,7 +13,7 @@ const memory = () => {
 describe("the box", () => {
   it("starts empty and reads back what it saved", () => {
     const s = memory();
-    expect(loadBox(s)).toEqual({ thread: [], games: [], lastGame: "", wrote: "", greeted: "", seen: 0, bond: "" });
+    expect(loadBox(s)).toEqual({ thread: [], games: [], lastGame: "", wrote: "", greeted: "", seen: 0, bond: "", taught: {} });
     let box = postLetter(loadBox(s), "Come back.", "2026-09-13");
     box = tell(box, "Hi.", "2026-09-13");
     box = say(box, "Hello.", "2026-09-13", { read: true });
@@ -115,5 +116,35 @@ describe("the doors", () => {
     expect(await accountOpens({ player: { email: "other@example.com" } }, allowed)).toBe(false);
     expect(await accountOpens(null, allowed)).toBe(false);
     expect(await accountOpens({ player: {} }, allowed)).toBe(false);
+  });
+});
+
+describe("the register of what he has taught", () => {
+  it("counts a shape up and stops at the cap", () => {
+    let box = loadBox(memory());
+    expect(timesTaught(box, "keima")).toBe(0);
+    box = teachShape(box, "keima");
+    box = teachShape(box, "keima");
+    expect(timesTaught(box, "keima")).toBe(2);
+    for (let i = 0; i < 40; i++) box = teachShape(box, "keima");
+    expect(timesTaught(box, "keima")).toBe(TAUGHT_CAP);
+  });
+
+  it("ignores being told about nothing, and does not mutate the box it was given", () => {
+    const box = teachShape(loadBox(memory()), "cut");
+    expect(teachShape(box, null)).toBe(box);
+    const next = teachShape(box, "hane");
+    expect(timesTaught(box, "hane")).toBe(0);
+    expect(timesTaught(next, "hane")).toBe(1);
+  });
+
+  it("survives the round trip and drops counts that are not counts", () => {
+    const s = memory();
+    saveBox(teachShape(loadBox(s), "ponnuki"), s);
+    expect(loadBox(s).taught).toEqual({ ponnuki: 1 });
+    s.setItem(SENSEI_KEY, JSON.stringify({ taught: { cut: 3, hane: "many", ko: -1, keima: 2.5, tobi: 99 } }));
+    expect(loadBox(s).taught).toEqual({ cut: 3, tobi: TAUGHT_CAP });
+    s.setItem(SENSEI_KEY, JSON.stringify({ taught: "no" }));
+    expect(loadBox(s).taught).toEqual({});
   });
 });

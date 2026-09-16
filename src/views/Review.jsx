@@ -13,6 +13,7 @@ import { legiblePx } from "../components/boardGeometry.js";
 import { WinGraph } from "../components/WinGraph.jsx";
 import { useAnalysis, remainingText } from "./useAnalysis.js";
 import { KE_JIE, reviewLines } from "../content/sensei.js";
+import { loadBox } from "../store/sensei.js";
 import { useTrainerAccess } from "./useTrainer.js";
 import { loadAccount } from "../store/account.js";
 import { serverEnabled } from "../net/api.js";
@@ -82,7 +83,7 @@ function useLegibleNumbers(size) {
   return [ref, legible];
 }
 
-export function Review({ record, onExit, onRematch, profile = {}, shared = null }) {
+export function Review({ record, onExit, onRematch, profile = {}, shared = null, seat = null }) {
   const t = useT();
   const total = reviewLength(record);
   /* Where the reader is standing. Alone that is this component's state; together
@@ -118,12 +119,26 @@ export function Review({ record, onExit, onRematch, profile = {}, shared = null 
   const analysis = useAnalysis(record, { auto: record.phase === "ended" });
   const [showBest, setShowBest] = useState(false);
   /* The trainer, when he is at the table: once the graph is drawn he will say
-     what it means, in his words, for any game at all, opened or played here. */
+     what it means, in his words, for any game at all, opened or played here.
+
+     Whose game it was decides how he talks about it, and it is told to him
+     rather than guessed. `seat` is handed in by the screen that knows: the
+     colour you sat in, who you played, and whether that was him. Without it he
+     is reading somebody else's record, and then he names both players and
+     claims neither - see the review section of src/content/sensei.js. */
   const trainerOn = useTrainerAccess(profile, serverEnabled() ? loadAccount() : null);
   const [asked, setAsked] = useState(false);
   const askHim = () => setAsked(true);
+  const voice = seat ? (seat.trainer ? "his" : "yours") : "watching";
+  const reviewSide = seat && seat.side === "w" ? "w" : "b";
   const hisWords = asked && analysis.complete
-    ? reviewLines(trainerReport(analysis.points, [], "b"), { won: record.result ? record.result.winner === "b" : null, size: record.size, points: analysis.points })
+    ? reviewLines(trainerReport(analysis.points, [], reviewSide), {
+      won: record.result ? record.result.winner === reviewSide : null,
+      size: record.size, points: analysis.points,
+      voice, side: reviewSide, names: record.players ?? null,
+      opponent: seat ? seat.opponent ?? null : null,
+      taught: voice === "watching" ? null : loadBox().taught,
+    })
     : null;
 
   const at = useMemo(() => atMove(record, n), [record, n]);
