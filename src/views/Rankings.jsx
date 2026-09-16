@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { Crown, Flame, Globe, Bot, ChevronRight } from "lucide-react";
-import { Card, Avatar, RankBadge, Statement } from "../components/ui.jsx";
+import { Card, Avatar, CountryFlag, RankBadge, Statement } from "../components/ui.jsx";
 import { ScreenHeader } from "../components/ScreenHeader.jsx";
 import { avatarUrl } from "../net/avatar.js";
 import { SERVER_URL } from "../net/api.js";
@@ -11,7 +11,7 @@ import { preciseRankOf } from "../content/rank.js";
 import { provisionalText } from "../content/online.js";
 import { api, serverEnabled } from "../net/api.js";
 import { loadAccount } from "../store/account.js";
-import { useT } from "../components/langStore.js";
+import { useT, useLocale } from "../components/langStore.js";
 
 /* ----------------------- RANKINGS -----------------------
    Three things, in the order somebody arriving here wants them, and each one
@@ -33,6 +33,7 @@ import { useT } from "../components/langStore.js";
    order the range starts, and a row opens the player's page. */
 export function RankingsView({ profile, go }) {
   const t = useT();
+  const { tag } = useLocale();
   const account = useMemo(() => loadAccount(), []);
   const [global, setGlobal] = useState(() => (serverEnabled() ? null : false));   // null loading, [] empty, false unavailable
   useEffect(() => {
@@ -58,7 +59,7 @@ export function RankingsView({ profile, go }) {
       <Card className="ladder-you">
         <Avatar name={profile.name} tint={profile.tint} size={52} />
         <div className="ladder-name">
-          <strong>{profile.name}</strong>
+          <strong>{profile.name}</strong><CountryFlag code={profile.country} tag={tag} size={14} />
           <span className="fine">{t("ladder.wl", { wins: profile.wins, losses: profile.losses })}</span>
         </div>
         <div className="ladder-rating">{preciseRankOf(profile.rating)}</div>
@@ -87,7 +88,7 @@ export function RankingsView({ profile, go }) {
                 <span className={`ladder-pos ${i === 0 ? "gold" : ""}`}>{i === 0 ? <Crown size={16} /> : i + 1}</span>
                 <Avatar name={r.name} tint={r.tint} size={38} src={avatarUrl(SERVER_URL, r.id, r.avatarAt)} />
                 <div className="ladder-name">
-                  <strong>{r.name}</strong>
+                  <strong>{r.name}</strong><CountryFlag code={r.country} tag={tag} size={14} />
                   <span className="fine">{t("ladder.rowMeta", { provisional: provisionalText(r), wins: r.wins, losses: r.losses })}{account && r.id === account.player.id ? t("ladder.thatsYou") : ""}</span>
                 </div>
                 <div className="ladder-rating">{preciseRankOf(r.rating)}</div>

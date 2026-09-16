@@ -1807,6 +1807,43 @@ were kept, so the ten named rooms became three: the ones somebody picked by look
 Still open here: nothing. The coordinates and the printed move numbers landed with the
 stones, below.
 
+## The flag beside the name (done 2026-09-16, branch `feat/flags`)
+
+A player could say what they were called, what colour their seal was and which mask they
+wore, and nothing at all about where they were playing from. The bio's "where you play"
+was a free line, so it could say a club, a city or a joke, and nothing could be drawn from
+it. This is the structured half of that question: one country, picked from a list, drawn
+beside the name everywhere the name is drawn.
+
+- [x] `content/countries.js` is the list: every officially assigned ISO 3166-1 alpha-2
+      code (250 of them) with its CLDR English name, `isCountryCode`, `flagOf`,
+      `countryName`, `countriesIn` and `findCountries`.
+- [x] The names in the other eight languages come from the reader's own `Intl.DisplayNames`
+      rather than from a catalogue: 250 names times nine is a translation nobody would keep
+      current, and every browser already ships CLDR. The English table is the floor.
+- [x] The flag is computed from the code as two regional indicators. No images, no sprite
+      sheet, nothing in the stylesheet naming a colour.
+- [x] `country` on the local profile, sanitised like the mask; `cleanCountry` on the
+      server, on `publicPlayer` and on the seat, so it reaches the ladder, a player's page,
+      the lobby and the table.
+- [x] One picker, on the profile screen, which writes the device's profile and sends the
+      same code to the account when there is one. Signing in on a fresh device adopts the
+      account's country into an empty local field and never over a full one.
+- [x] The privacy notice says the field is picked and never detected, and lists it among
+      what the server holds.
+
+Decisions:
+- The list is the standard's, unedited. A curated list of places reads as a position on
+  which places count, and the only defensible position for a go server is ISO's.
+- Windows ships no flag faces, so a Windows reader sees the two letters. That is the
+  fallback the standard designed and it is what the picker was laid out for: the name is
+  the label everywhere and the glyph is never load-bearing.
+- There is no second picker on the account card. Two pickers for one flag is how the two
+  copies end up disagreeing, and the disagreement would show up in a room rather than on
+  the screen where it could be fixed.
+- Nothing reads an address to guess a country. A guess is wrong for everybody who travels,
+  and it would turn a thing somebody said into a thing we worked out about them.
+
 ## One drawing of a stone (done 2026-09-16, branch `feat/big-stones`)
 
 The stones on the board were redrawn the day before and everything drawn larger was left

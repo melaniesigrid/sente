@@ -5,6 +5,7 @@ import { TINTS, ratingOfRank, MIN_RATING, MAX_RATING } from "../content/rank.js"
 import { GLICKO } from "../engine/index.js";
 import { DEFAULT_TYPEFACE, typefaceOf } from "../content/typeface.js";
 import { NO_ARCHETYPE, isArchetypeId } from "../content/archetypes.js";
+import { NO_COUNTRY, isCountryCode } from "../content/countries.js";
 import { SYSTEM_THEME, isThemeId, sanitizePalette, AUTO_STONES, isStoneId, migrateThemeId } from "../theme/index.js";
 import { SYSTEM_LOCALE, isLocaleId } from "../i18n/index.js";
 import { parseCardKey, sanitizeEntry } from "../content/recall.js";
@@ -25,6 +26,7 @@ export const UNMUTE_KEY = "sente-sound-on-by-default";
 export const defaultProfile = {
   name: "Player", tint: "eucalyptus",
   archetype: NO_ARCHETYPE,                   // the mask beside the name, src/content/archetypes.js; "" is the plain player
+  country: NO_COUNTRY,                       // the flag beside the name, src/content/countries.js; "" is saying nothing
   rating: Math.round(ratingOfRank("10k")),   // 10k, the seat OGS gives a new account; RD 350 finds the truth fast
   rd: GLICKO.rd,                             // rating deviation: 350 until games say otherwise
   vol: GLICKO.vol,                           // Glicko-2 volatility
@@ -106,6 +108,7 @@ const validField = (key, value, raw) => {
   if (key === "locale") return typeof value === "string" && isLocaleId(value);
   if (key === "typeface") return typeof value === "string" && typefaceOf(value).id === value;
   if (key === "archetype") return typeof value === "string" && isArchetypeId(value);
+  if (key === "country") return typeof value === "string" && isCountryCode(value);
   if (key === "theme") return typeof value === "string" && isThemeId(value, raw && raw.dojo ? sanitizePalette(raw.dojo) : null);
   if (key === "stones") return typeof value === "string" && isStoneId(value);
   if (typeof def === "string") return typeof value === "string";

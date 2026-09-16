@@ -247,6 +247,19 @@ export const screens = {
     openProblem: "{set}，第 {n} 题，{rank}",
   },
   profile: {
+    country: {
+      head: "你的国旗",
+      note: "你从哪里下棋，愿意说就说。它就在你名字旁边，取下也只需一下。",
+      noteAccount: "你从哪里下棋，愿意说就说。它在这里站在你名字旁边，也跟着你的帐号走，对面的人一样看得见。",
+      search: "搜索国家地区",
+      none: "不放国旗",
+      noneLine: "没有国旗。这里不说你在哪里。",
+      chosenLine: "就在你名字旁边。",
+      noMatch: "没有这个名字的国家地区。",
+      more: {
+        other: "还有 {count} 个。输入可以缩小范围。",
+      },
+    },
     trainer: {
       head: "私人教练",
       games: "与他的对局：{count}",

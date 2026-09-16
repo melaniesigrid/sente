@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Pencil, Check, X, Camera, Trash2, Loader } from "lucide-react";
-import { Card, Btn, Avatar, RankBadge, Badges } from "../components/ui.jsx";
+import { Card, Btn, Avatar, CountryFlag, RankBadge, Badges } from "../components/ui.jsx";
 import { api, SERVER_URL } from "../net/api.js";
 import { saveAccount } from "../store/account.js";
 import { prepareAvatar, avatarUrl, AVATAR_ERRORS } from "../net/avatar.js";
@@ -8,7 +8,7 @@ import { BIO_MAX, FACTS } from "../../server/profile.js";
 import { SHOW_ONLINE, cleanShowOnline } from "../../server/presence.js";
 import { errorText } from "./accountForm.js";
 import { badgesShown } from "../content/badges.js";
-import { useT } from "../components/langStore.js";
+import { useT, useLocale } from "../components/langStore.js";
 
 /* ----------------------- THE PLAYER'S OWN CARD -----------------------
    What other people see when they meet you at a table: a picture, a paragraph,
@@ -22,6 +22,7 @@ import { useT } from "../components/langStore.js";
    notices two names for the same idea. */
 export function OnlineProfileCard({ account, setAccount, notify }) {
   const t = useT();
+  const { tag } = useLocale();
   const { token } = account;
   const [player, setPlayer] = useState(account.player);
   const [editing, setEditing] = useState(false);
@@ -38,7 +39,7 @@ export function OnlineProfileCard({ account, setAccount, notify }) {
       <div className="op-head">
         <PictureWell player={player} src={src} token={token} onSaved={keep} notify={notify} />
         <div className="op-id">
-          <h3>{player.name}</h3>
+          <h3>{player.name}<CountryFlag code={player.country} tag={tag} size={16} /></h3>
           <div className="row">
             <RankBadge rating={player.rating} rd={player.rd} precise />
             <span className="fine">{t("account.card.wl", { wins: player.wins, losses: player.losses })}</span>
