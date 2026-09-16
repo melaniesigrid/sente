@@ -211,7 +211,7 @@ function PictureWell({ player, src, token, onSaved, notify }) {
 
   return (
     <div className="op-picture">
-      <Avatar name={player.name} tint={player.tint} size={84} src={preview ?? src} />
+      <Avatar name={player.name} tint={player.tint} size={168} src={preview ?? src} />
       <div className="op-picture-acts">
         <input ref={input} type="file" accept="image/*" className="visually-hidden" id="op-picture"
           onChange={e => choose(e.target.files?.[0])} />

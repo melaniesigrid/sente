@@ -425,7 +425,15 @@ ${FONT_FACES}
    gets the same sunken edge the initial does. The initial stays in the markup
    as the fallback and is simply not shown while a picture covers it. */
 .avatar:has(.avatar-img) > span { visibility: hidden; }
-.avatar-img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; z-index: 0; }
+.avatar-img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: inherit; object-fit: cover; z-index: 0; }
+/* A photograph is square. A disc crops a face to a coin and throws away the
+   corners of a picture somebody chose; the initial keeps its disc, because a
+   letter in a square is a tile and reads as a button. The radius is a share of
+   the size rather than a number of pixels, so one rule holds at 30px in a list
+   and at 168px on a profile. Both the ring and the picture inherit it, so there
+   is one shape here and not three that have to be kept in step. */
+.avatar:has(.avatar-img) { border-radius: 22%; }
+.avatar:has(.avatar-img)::after { border-radius: 18%; }
 .avatar-bot {
   position: absolute; inset-inline-end: -3px; bottom: -3px; width: 17px; height: 17px;
   border-radius: 50%; background: var(--ground); box-shadow: var(--raise-sm);
@@ -2092,7 +2100,10 @@ ${FONT_FACES}
 .result-card { display: flex; flex-direction: column; gap: 12px; animation: rise .4s ease; }
 .result-card.win .result-headline { color: var(--accent-ink); }
 .result-card.loss .result-headline { color: var(--danger-ink); }
-.bow-row { display: flex; align-items: center; justify-content: center; gap: 18px; padding: 6px 0 2px; }
+/* The two faces bowing over the result. They are the size they are so that the
+   people can actually see each other, which on the narrowest card is wider than
+   the card: it wraps rather than squashing a face. */
+.bow-row { display: flex; align-items: center; justify-content: center; gap: 18px; padding: 6px 0 2px; flex-wrap: wrap; }
 .bow-word { color: var(--ink-2); font-family: var(--font-caption); font-style: var(--caption-style); font-size: 15px; letter-spacing: .04em; }
 .bow { animation: bow 1.6s ease .3s 1; transform-origin: bottom center; }
 .bow-late { animation-delay: .55s; }
