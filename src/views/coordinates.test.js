@@ -19,13 +19,15 @@ const HONOURS = [
   "Dojo.jsx", "Game.jsx", "Learn.jsx", "OnlineGame.jsx", "PairGame.jsx",
   "Problems.jsx", "Recall.jsx", "Review.jsx",
 ];
-/* Boards that are pictures of boards. Joseki crops to a corner, so the margin
-   is outside the viewBox anyway; Look and MiniSelfPlay are a colour swatch and
-   a thumbnail, where sixteen-pixel text would be noise at any setting. */
-const EXEMPT = ["Joseki.jsx", "Look.jsx", "MiniSelfPlay.jsx"];
+/* Boards that are pictures of boards. Joseki and RankDial crop to a corner, so
+   the margin is outside the viewBox anyway; Look and MiniSelfPlay are a colour
+   swatch and a thumbnail, where sixteen-pixel text would be noise at any
+   setting. RankDial names its two points on the board itself, with letters,
+   which is the job the margin would have been doing. */
+const EXEMPT = ["Joseki.jsx", "Look.jsx", "MiniSelfPlay.jsx", "RankDial.jsx"];
 
 const read = (name) => {
-  const dir = name === "MiniSelfPlay.jsx" ? "../components/" : "./";
+  const dir = ["MiniSelfPlay.jsx", "RankDial.jsx"].includes(name) ? "../components/" : "./";
   return readFileSync(new URL(dir + name, import.meta.url), "utf8");
 };
 

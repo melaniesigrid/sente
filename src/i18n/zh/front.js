@@ -20,7 +20,7 @@ export const front = {
     sitDown: "在棋盘前坐下",
     backToBoard: "回到你的棋盘",
     neverPlayed: "没下过？",
-    boardNote: "Joseki 自己的引擎，正在跟自己下。",
+    boardNote: "Joseki 自己的选点程序在下双方：这是 KataGo 的人类棋风网络未加载时，房间棋手退回去用的启发式算法。页面背后那盘十九路棋也是同一个引擎。",
 
     primerLabel: "这个游戏",
     primerH2a: "两个人。一副棋盘。",
@@ -41,6 +41,14 @@ export const front = {
       },
     },
 
+    dial: {
+      head: "一张网络，一个旋钮。",
+      body: "每位房间棋手都是同一张 KataGo 的人类棋风网络，只是被要求按某个段位下。这里白刚刚点三三入角，黑必须挡住其中一边。在这份名单的每一个段位上，这两手都是网络的前两选择。随段位改变的不是这一手，而是它有多少把握。",
+      side: "挡在黑已经有子的那一边",
+      top: "改为沿上边挡",
+      row: "{rank} 时：A {a}%，B {b}%。",
+      source: "在本站实际下发的网络（{model}）上测得，{date}。不是估算。",
+    },
     insideLabel: "这里有什么",
     insideH2a: "一个棋手需要的都在，",
     insideH2b: "没有一样是大声的。",

@@ -549,6 +549,9 @@ ${FONT_FACES}
 .star-pt { fill: var(--grid); fill-opacity: calc(var(--grid-alpha) * 1.45); }
 .ghost { fill: var(--accent); opacity: .28; }
 .mark-ring { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 4 4; opacity: .85; }
+/* A named empty point in a figure. It sits inside the mark ring, so it is
+   the accent's ink rather than the board's. */
+.point-label { font-size: 17px; font-weight: 700; fill: var(--accent-ink); pointer-events: none; }
 /* The ring a chat line puts on a point. Wider than a stone rather than inside
    it, so it reads the same whether the point is empty or has been played on;
    the atari ring above it is drawn the same way for the same reason. */
@@ -2604,6 +2607,35 @@ ${FONT_FACES}
    one that belongs to the page's composition. */
 .lp-board-well .board-well { box-shadow: none; padding: 0; }
 .lp-board-note { color: var(--ink-2); margin: 0; font-family: var(--font-caption); font-style: var(--caption-style); font-size: 13px; text-align: center; }
+
+/* ---- the rank dial ----
+   One figure, two columns: the corner on the left and the reading of it on the
+   right. The bars are the only place on the site where a colour carries a
+   meaning rather than a mood, so both of them are the accent -- the answer at
+   full strength, the alternative at a quarter of it -- and neither is a hue a
+   reader has to learn. The track is sunken and the bars sit in it, which is
+   the same two shadows as everything else, turned the way a groove is. */
+.dial { display: flex; flex-wrap: wrap; align-items: center; gap: clamp(20px, 3.5vw, 44px); margin: clamp(26px, 4vw, 44px) 0 0; }
+.dial-board { flex: 0 1 300px; min-width: 240px; margin-inline: auto; }
+.dial-read { flex: 1 1 340px; min-width: 260px; }
+.dial-keys { list-style: none; padding: 0; margin: 0 0 18px; display: flex; flex-direction: column; gap: 7px; font-size: 14px; color: var(--ink-2); }
+.dial-keys li { display: flex; align-items: baseline; gap: 9px; line-height: 1.45; }
+.dial-keys b { color: var(--accent-ink); font-family: var(--font-display); font-weight: var(--w-display-strong); }
+.dial-swatch { width: 11px; height: 11px; border-radius: 3px; flex: none; transform: translateY(1px); }
+.dial-swatch.s0 { background: var(--accent); }
+.dial-swatch.s1 { background: rgba(var(--accent-rgb), .28); }
+.dial-rows { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 9px; }
+.dial-row { display: flex; align-items: center; gap: 11px; }
+.dial-rank { flex: none; width: 3.4ch; text-align: end; font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.dial-track { flex: 1; display: flex; gap: 3px; height: 16px; padding: 3px; border-radius: 999px; box-shadow: var(--sink-sm); }
+.dial-bar { border-radius: 999px; min-width: 2px; }
+.dial-bar.s0 { background: var(--accent); }
+.dial-bar.s1 { background: rgba(var(--accent-rgb), .28); }
+.dial-pct { flex: none; width: 4.2ch; font-size: 13px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.dial-source { margin: 16px 0 0; color: var(--ink-2); font-family: var(--font-caption); font-style: var(--caption-style); font-size: 12px; }
+@media (max-width: 620px) {
+  .dial-board { flex-basis: 100%; }
+}
 
 /* The stat chips are sunken, so they read as facts stamped into the ground
    rather than as a second row of buttons competing with the call to action. */
