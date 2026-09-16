@@ -1765,6 +1765,39 @@ were kept, so the ten named rooms became three: the ones somebody picked by look
 Still open here: nothing. The coordinates and the printed move numbers landed with the
 stones, below.
 
+## One drawing of a stone (done 2026-09-16, branch `feat/big-stones`)
+
+The stones on the board were redrawn the day before and everything drawn larger was left
+on the old picture: a three-stop radial gradient with a soft specular ellipse, on the
+argument that a hard highlight at twenty pixels is a white pixel in the corner of a disc
+while a gradient at three hundred is the difference between a stone and a circle. That
+argument was about the old drawing. The new one reads at both sizes, and two answers to
+what a stone looks like is one too many for a design system whose whole claim is that the
+pieces are the same pieces wherever you meet them.
+
+- [x] `StoneFace` in `components/stoneArt.jsx` is the only drawing of a stone in the app.
+      The board, the figure beside a statement and the field behind a band all call it.
+- [x] The geometry is ratios of the radius (`STONE` in `boardGeometry.js`: a highlight a
+      third of the radius across, three tenths up and to the left, and a rim of 1.1px at the
+      board's own `STONE_R`), so a figure is the goban's stone seen closer.
+- [x] The fills are the board's three classes, stated once in the stylesheet. The white
+      rim's width is the one part that has to scale, so it arrives as an attribute and
+      `.stone-w` may not pin `stroke-width` -- a fixed width there would print a hairline
+      on a stone the size of a fist.
+- [x] What went with the gradient: `.fig-rim`, `.fig-shine`, `.fs-rim`, the `fig-gleam`
+      loop and its `--sheen` per-stone delay, and the three gradient `<defs>` each caller
+      built off its own `useId`.
+
+Decisions:
+- The gleam is gone rather than reimplemented. It was a wave of light crossing a row of
+  soft speculars; a hard highlight is a fact about the stone's surface, and pulsing it
+  would be a row of blinking dots. What is left moving on a figure is the playing of it,
+  which is the part worth watching.
+- Moku keeps its own gradient and its soft top shine. It is a character with a face, not a
+  piece in a position, and the shine is composed with the eyes rather than with the stone.
+- The rim scales with the radius rather than holding at a hairline. A figure is a stone
+  seen closer, and on a stone seen closer the edge is thicker too.
+
 ## The stones as drawn, and the record as printed (done 2026-09-15, branch `feat/room-stones`)
 
 The three rooms landed with the old stones on them: grey-brown slate, gradient-shaded, each
@@ -1810,6 +1843,9 @@ Decisions:
   pixels a flat disc with a dot is a button, and at forty a gradient is a smear. This is
   also why the printed white stone's rim is mixed half-way to the ink rather than being
   the ink: those three stops are the figures' gradient too.
+  **Reversed the next day** (see the phase below): the argument was about the old drawing,
+  and the new one reads at both sizes. The rim's mix is kept, for the same reason stated
+  the other way round: the three stops are still what a large stone is drawn from.
 - **The white stone's rim cannot be made to separate it from the wood, and it is not
   supposed to.** RIM is within 1.21:1 of kaya, so cutting the rim deeper walks it *toward*
   the board (measured: a half-mix lands every set at 1.11-1.21:1 against 1.31-1.40:1 at a
