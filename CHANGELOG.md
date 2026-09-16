@@ -6,6 +6,25 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.15.1.0 (2026-09-15)
+
+### Fixed
+
+- **The coordinate margin reaches every board.** The letters and numbers are a preference
+  on the profile, and they were being read by three of the eleven screens that draw a
+  board. A reader who turned them on found a lettered board in a game and a bare one in the
+  lesson that had just told them to play at D4. Pair go, the lessons, the problems, recall
+  and the dojo all honour the setting now. Pair go had also dropped the last-move marker,
+  the other half of the same row in settings.
+- **The margin is on to begin with.** It was off by default, so most readers never saw it
+  at all and never went looking for the switch. A lesson that names a point in words is
+  worth very little beside a board that will not name it back. It is still one tap away for
+  anybody who wants the board quiet.
+- **A nineteen line lesson is drawn wide enough to read.** The margin is drawn inside the
+  board and scales with it, so nineteen lines at the lesson width printed letters at eleven
+  pixels, under the floor the rest of the app keeps to. Lesson and recall boards now widen
+  until the labels clear it. Games were already wide enough.
+
 ## v0.15.0.0 (2026-09-15)
 
 ### Changed
