@@ -53,9 +53,23 @@ describe("the room review is read in", () => {
       .toBe(themeVars(REVIEW_THEME, null, "honey")["--stone-w-2"]);
   });
 
-  it("plays the record on the same board as every other room", () => {
+  /* A kifu is a diagram printed on the page, not a game on a goban: the board
+     is the paper, the grid is a hairline of ink, and the record is printed the
+     way a book prints it, with its coordinates and its move numbers on. The
+     numbers can be hidden to look at the shape; the coordinates cannot, because
+     they are how the record is talked about. */
+  it("prints the record on its own page, not on the wood", () => {
     render(<Review record={record()} onExit={() => {}} profile={{}} />);
-    expect(sheet().style.getPropertyValue("--board")).toBe(themeVars("night")["--board"]);
+    const board = sheet().style.getPropertyValue("--board");
+    expect(board).toBe(sheet().style.getPropertyValue("--ground"));
+    expect(board).not.toBe(themeVars("night")["--board"]);
+    expect(sheet().style.getPropertyValue("--grid-alpha")).toBe("1");
+  });
+
+  it("opens with the move numbers and the coordinates on, whatever the table shows", () => {
+    render(<Review record={record()} onExit={() => {}} profile={{ coordinates: false }} />);
+    expect(document.querySelectorAll(".stone-num").length, "every stone carries its number").toBe(2);
+    expect(document.querySelectorAll(".coord").length, "the margin is lettered").toBeGreaterThan(0);
   });
 
   /* The tokens are inherited custom properties, which paint nothing on their

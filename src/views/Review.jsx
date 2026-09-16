@@ -46,7 +46,9 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
   const t = useT();
   const total = reviewLength(record);
   const [n, setN] = useState(total);
-  const [showNumbers, setShowNumbers] = useState(false);
+  /* A kifu is printed with its move numbers on, so review opens with them on.
+     The toggle (and the N key) is for hiding them to look at the shape. */
+  const [showNumbers, setShowNumbers] = useState(true);
   // A line being tried from the position on screen. Scratch: never written to the
   // record, never exported. Null means you are looking at the game itself.
   const [line, setLine] = useState(null);
@@ -163,13 +165,15 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
           <Pill icon={line ? GitBranch : Hash} tone={line ? "win" : ""}>
             {line ? lineLabel(line, t) : reviewLabelText(record, n, t) + (capHere ? ` · ${t("review.captured", { count: capHere.stones })}` : "")}
           </Pill>
+          {/* A printed record carries its coordinates whatever the player shows
+              at the table: a kifu is read, and talked about, by them. */}
           <Board board={(line ? line.record : at).board}
             lastMove={line ? lastMoveIndex(line.record) : marker}
             onPlay={branchable ? onTry : undefined}
             disabled={!branchable}
             sizePx={BOARD_PX[record.size] ?? 680}
             numbers={line ? null : numbers} captured={[]} marks={marks}
-            coordinates={profile.coordinates} mark={profile.lastMoveMark ?? "dot"} />
+            coordinates mark={profile.lastMoveMark ?? "dot"} />
           {refused && <p className="review-refused" role="alert">{refused}</p>}
           {/* A comment on the move, when the record carries one: a trainer's note, or
               whatever the SGF that was opened had to say. The game's own line, never a
