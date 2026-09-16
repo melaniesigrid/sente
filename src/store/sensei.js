@@ -19,6 +19,7 @@
    Unlocking him is a phrase compared by digest, or an account whose address
    compares by digest. Neither the phrase nor the address is in the code. */
 import { SENSEI_DIGEST } from "../content/sensei.js";
+import { RANK_LADDER } from "../content/rank.js";
 
 export const SENSEI_KEY = "sente-sensei-v1";
 export const THREAD_CAP = 200;
@@ -28,9 +29,13 @@ export const TAUGHT_CAP = 9;
 /** SHA-256 of the lowercased addresses that open the door without the phrase. */
 export const SENSEI_ACCOUNT_DIGESTS = ["953e6e6703c0242c0c1bce472bd076bce64afe4f23f81931d1df044a61cdaeff"];
 
-const empty = () => ({ thread: [], games: [], lastGame: "", wrote: "", greeted: "", seen: 0, bond: "", taught: {}, rung: "" });
+const empty = () => ({ thread: [], games: [], lastGame: "", wrote: "", greeted: "", enticed: "", seen: 0, bond: "", taught: {}, rung: "" });
 
-const defaultStorage = () => (typeof localStorage !== "undefined" ? localStorage : null);
+/* Reading the `localStorage` property itself throws, not returns undefined, when
+   site data is blocked (a private window, an embedded context, an enterprise
+   policy). The app shell reads the box on every render now, so an unguarded
+   access here would blank the whole page rather than degrade one card. */
+const defaultStorage = () => { try { return globalThis.localStorage || null; } catch { return null; } };
 
 const isMsg = (m) => m && typeof m === "object" && typeof m.at === "string" && typeof m.text === "string"
   && (m.who === "him" || m.who === "you") && typeof m.read === "boolean";
@@ -58,6 +63,7 @@ export function loadBox(storage = defaultStorage()) {
       lastGame: typeof blob.lastGame === "string" ? blob.lastGame : "",
       wrote: typeof blob.wrote === "string" ? blob.wrote : "",
       greeted: typeof blob.greeted === "string" ? blob.greeted : "",
+      enticed: typeof blob.enticed === "string" ? blob.enticed : "",
       seen: Number.isInteger(blob.seen) && blob.seen >= 0 ? blob.seen : 0,
       bond: BONDS.includes(blob.bond) ? blob.bond : "",
       taught: readTaught(blob.taught),
@@ -156,7 +162,13 @@ export const shouldAsk = (box, after) => box.bond === "" && box.games.length >= 
    new one. Which rung she is on is arithmetic on her rating (`championStep`);
    what is kept here is only the last one he has already spoken about, so a
    milestone is marked once and never becomes a thing he says every morning. */
-export const rungPassed = (box, rung) => !!rung && box.rung !== rung;
+export const rungPassed = (box, rung, ladder = RANK_LADDER) => {
+  if (!rung) return false;
+  if (!box.rung) return true;
+  // Only upward. A rating that slips back a rank must not re-announce a stop she
+  // passed months ago, and must not oscillate between two of them for ever.
+  return ladder.indexOf(rung) > ladder.indexOf(box.rung);
+};
 export const markRung = (box, rung) => ({ ...box, rung });
 
 /* ----------------------- THE DOORS ----------------------- */

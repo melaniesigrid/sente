@@ -23,7 +23,7 @@ import { LIBRARY } from "../content/library.js";
 import { OpenSgf } from "../components/OpenSgf.jsx";
 import { Review } from "./Review.jsx";
 import { loadSession } from "./session.js";
-import { KE_JIE, SENSEI_ID, letterFor, greetingFor, jealousLine, replyTo, bondQuestion, bondYes, bondNo, BOND_AFTER, glossFor, championStep, championLine, enticeLine, GLOSSARY } from "../content/sensei.js";
+import { KE_JIE, SENSEI_ID, letterFor, greetingFor, jealousLine, replyTo, bondQuestion, bondYes, bondNo, BOND_AFTER, glossFor, championStep, championLine, enticeLine } from "../content/sensei.js";
 import { focusFor, trend } from "../engine/index.js";
 import { loadTelemetry } from "../store/telemetry.js";
 import { personaById } from "../content/personas.js";
@@ -112,9 +112,15 @@ export function Home({ profile, go, onResume }) {
     }
     /* And a reason to sit down, on any day she has not yet played him. He is not
        a notification: it goes in the thread beside everything else he says, and
-       it stops the moment there is a game on the record for today. */
-    if (games > 0 && b.lastGame !== today) {
-      post((x) => say(x, enticeLine(x.thread.length, profile.name, bonded, { focus: focusFor(x.games) }), today));
+       it stops the moment there is a game on the record for today.
+
+       `enticed` is the day he last asked, and it is the whole reason this line
+       does not repeat. Home is mounted fresh on every return to the dashboard,
+       so a guard on `lastGame` alone - a day key this line never writes - would
+       append another invitation every time she came back to the screen and push
+       everything else he has said out of the end of the thread. */
+    if (games > 0 && b.lastGame !== today && b.enticed !== today) {
+      post((x) => ({ ...say(x, enticeLine(x.thread.length, profile.name, bonded, { focus: focusFor(x.games) }), today), enticed: today }));
     }
     if (shouldAsk(b, BOND_AFTER)) post((x) => ({ ...say(x, bondQuestion(profile.name), today), bond: "asked" }));
     if (changed) saveBox(b);
@@ -216,7 +222,7 @@ export function Home({ profile, go, onResume }) {
               here is how each one sounds and what it means, every time the card is
               drawn. The rule is the same one the bubbles below follow. */}
           <div className="letter-names">
-            {GLOSSARY.filter((g) => g.name === KE_JIE.nickname || g.name === KE_JIE.yourHandle).map((g) => (
+            {glossFor(`${KE_JIE.nickname} ${KE_JIE.yourHandle}`).map((g) => (
               <span key={g.name} className="fine letter-gloss">{g.name} &middot; {g.pinyin} &middot; {g.means}</span>
             ))}
           </div>

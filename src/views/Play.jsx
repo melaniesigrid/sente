@@ -61,7 +61,7 @@ function routeSession({ profile, trainerOn, resume, openGame, withBot, t }) {
     const lobby = loadLobby();
     // Asked for by name from a letter: the ordinary lesson, which is the mode
     // he would pick himself. The other five are chosen on his card.
-    return { mode: { kind: "bot", persona: KE_JIE, rank: trainerRank(lobby.rank ?? rankOf(profile.rating)), senseiMode: DEFAULT_MODE } };
+    return { mode: { kind: "bot", persona: KE_JIE, rank: trainerRank(lobby.rank ?? rankOf(profile.rating), modeRules(DEFAULT_MODE).rankStep), senseiMode: DEFAULT_MODE } };
   }
   const persona = withBot ? personaById(withBot) : null;
   if (!persona) return null;
@@ -203,9 +203,19 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
     const showLevel = choice === "house" || choice === "kejie";
     const showTable = !!choice && choice !== "duel";
     const showBoardOnly = choice === "team";
-    const sit = (mode) => setSession({
-      mode: { ...mode, size: table.size, handicap: table.handicap, rules: table.rules, komi, clock },
-    });
+    /* The table decides the handicap, except where the seat itself is the lesson:
+       a teaching game is four stones in front of you by definition, so a mode that
+       names its own handicap keeps it, and the komi owed follows the stones that
+       are actually on the board rather than the ones the picker last showed. */
+    const sit = (mode) => {
+      const stones = mode.handicap ?? table.handicap;
+      setSession({
+        mode: {
+          ...mode, size: table.size, handicap: stones, rules: table.rules, clock,
+          komi: table.komi ?? defaultKomi(stones, table.size, table.rules),
+        },
+      });
+    };
     const chooseOpponent = (next) => {
       setOpponent(next);
       setHumanMode(null);
@@ -418,7 +428,7 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
               <RankBadge rating={ratingOfRank(trainerRank(rank))} />
             </div>
             <p className="persona-bio">{KE_JIE.bio}</p>
-            <div className="trainer-modes" role="group" aria-label={t("play.trainer.how", {}, "How he teaches")}>
+            <div className="trainer-modes" role="group" aria-label={t("play.trainer.how")}>
               {MODES.map((m) => {
                 const rules = modeRules(m.id);
                 const at = trainerRank(rank, rules.rankStep);
@@ -432,7 +442,7 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
                       <strong>{m.name}</strong>
                       <span className="fine">
                         {at}
-                        {rules.handicap ? ` · ${t("play.trainer.stones", { count: rules.handicap }, `${rules.handicap} stones`)}` : ""}
+                        {rules.handicap ? ` · ${t("play.stones", { count: rules.handicap })}` : ""}
                       </span>
                     </div>
                     <span className="fine trainer-mode-promise">{m.promise}</span>

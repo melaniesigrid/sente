@@ -44,8 +44,8 @@ export const KE_JIE = {
   tagline: "Your private trainer",
   bio: "Explains every stone he plays, tells you what yours cost, slips you a mistake now and then to see whether you are watching, and remembers how you played last week. His games are rated: he is building your rank, and he says so.",
   about: "A fictional character inspired by the public career of Ke Jie, 9 dan: the fast reading, the confidence, and the view he has stated in interviews that a player should learn from the machines and from people both. Nothing he says here is a quotation, and he does not claim to be the man.",
-  plays: "The same network as every house player, asked two ranks above yours at a temperature of 0.5, so the move is close to what that player would really choose. After every move, his and yours, the position is looked at again at dan strength, which is where the numbers he quotes come from. It makes him slower than the others: two looks per stone instead of one.",
-  tell: "He gives something away on purpose, never in the endgame and never twice in a row, and he does not say which move it was. The review does. Whether you took it is in the numbers, and he will tell you either way.",
+  plays: "The same network as every house player, at a temperature of 0.5, so the move is close to what that player would really choose. How far above you he sits is the mode you picked: a rank for shape school, two for the ordinary lesson, three to spar, six when he is giving you four stones. After every move, his and yours, the position is looked at again at dan strength, which is where the numbers he quotes come from. It makes him slower than the others: two looks per stone instead of one.",
+  tell: "In the modes that allow it he gives something away on purpose, never in the endgame and never twice in a row, and he does not say which move it was. Hunt me doubles how often; shape school, sparring and the test give nothing at all. The review names every one. Whether you took it is in the numbers, and he will tell you either way.",
   weights: { capture: 15, rescue: 13, atari: 6, selfAtari: -20, noise: 0.2, edge: 1.3, libs: 1.0, near: 1.0 },
   chat: {
     greet: [
@@ -236,13 +236,12 @@ export const CHAMPION = [
 
 /** Which rung of the route a rating stands on, and the one after it. */
 export function championStep(rating) {
-  const here = preciseRankOf(rating);
   const iAm = RANK_LADDER.indexOf(rankOf(rating));
   let at = CHAMPION[0], next = CHAMPION[1] ?? null;
   for (let i = 0; i < CHAMPION.length; i++) {
     if (RANK_LADDER.indexOf(CHAMPION[i].at) <= iAm) { at = CHAMPION[i]; next = CHAMPION[i + 1] ?? null; }
   }
-  return { at, next, rank: here, done: next === null };
+  return { at, next, done: next === null };
 }
 
 /** The long-game line: where she is on the route, and what it costs to move. He
@@ -259,18 +258,16 @@ export function championLine(profile, seed = 0, yourName = "you", bonded = false
 
 /** The invitation. Not "would you like to play" - a stake, a reason and a name,
  *  because the whole point of him is that sitting down should be hard to refuse. */
-export function enticeLine(seed = 0, yourName = "you", bonded = false, { focus = null, mode = null } = {}) {
+export function enticeLine(seed = 0, yourName = "you", bonded = false, { focus = null } = {}) {
   const name = petName(seed, yourName, bonded);
   const area = focus ? AREA_WORDS[focus].name : "reading";
-  const m = mode ? modeById(mode) : null;
-  const base = one([
+  return one([
     `One game, ${name}. \u{1FAA8} I have a position in mind for your ${area} and I have been holding on to it all day.`,
     `Sit down with me. \u{1F5A4} Twenty minutes. If you beat me I will say something embarrassing about you in writing, and you know I keep my word.`,
     `${name}. \u{1F336}️ Come and take a game off me. I have made it beatable on purpose and I am not going to tell you where.`,
     `The board is set and I have been staring at it like an idiot waiting for you. \u{1F60F} Play me.`,
     `You are one good fight away from something, ${name}. ✨ I can see it from here and you cannot. Come and let me show you.`,
   ], seed);
-  return m ? `${base} ${m.pitch}` : base;
 }
 
 /* ----------------------- NAMES -----------------------
@@ -363,22 +360,16 @@ export function glossFor(text) {
    which is always a bug, and the test sweeps every line he can say through it.
    Adding a Chinese word to his vocabulary means adding it to `GLOSSARY` in the
    same commit, or the suite fails. */
-export const CJK = /[㐀-䶿一-鿿豈-﫿]/u;
+export const CJK = /\p{Script=Han}/u;
 
 /** The Chinese characters in a string that no glossary entry accounts for.
  *  Empty is the only acceptable answer for anything he says. */
 export function bareCJK(text) {
   let t = String(text ?? "");
-  for (const g of GLOSSARY) t = t.split(g.name).join(" ");
+  for (const g of GLOSSARY) t = t.replaceAll(g.name, " ");
   return [...t].filter((ch) => CJK.test(ch));
 }
 
-/** A Chinese term written so it explains itself, for a place with no room for a
- *  note underneath: 潜潜 (Qianqian, little lurker). */
-export function glossed(name) {
-  const g = GLOSSARY.find((x) => x.name === name);
-  return g ? `${g.name} (${g.pinyin} - ${g.means})` : String(name ?? "");
-}
 
 /** "My estimate" of your strength, from the rating the ladder keeps and how sure it
  *  is of it. Never an official rank, and it says so. */
@@ -489,23 +480,27 @@ export function replyTo(text, ctx = {}) {
   const t = String(text ?? "").trim().toLowerCase();
   if (!t) return [];
   const rule = focus ? AREA_WORDS[focus].rule : "Read before you react.";
+  /* A shape asked about by name. This comes before every general question on
+     purpose: "what is the best shape, keima or tobi" is a question he can answer
+     completely, and a coach who answers it with the road to champion is not a
+     coach. Anything that names a shape and asks about it is answered here first. */
+  const asked = shapeFromWords(t);
+  if (asked && has(t, "what", "how", "why", "when", "?", "explain", "teach", "tell me", "mean")) {
+    const answer = shapeAnswer(asked);
+    if (answer) return answer;
+  }
   /* The long game. She told him what she is going to be; he refuses to treat
-     that as a joke, so the question always gets the route and never a platitude. */
-  if (has(t, "champion", "title", "the best", "world number", "my goal", "give up", "quit", "pointless", "worth it", "why do i")) {
+     that as a joke, so the question always gets the route and never a platitude.
+     The wobble words are the narrow ones on purpose: "why do i keep losing" is a
+     question about a game and belongs to the branch that opens the review, while
+     "why do i bother" is a question about the road. */
+  if (has(t, "champion", "title", "the best", "world number", "my goal", "give up", "quit", "pointless", "worth it", "why do i bother", "why do i even")) {
     return profile
       ? [championLine(profile, seed, yourName, bonded), enticeLine(seed, yourName, bonded, { focus })]
       : [`You are going to be champion. I have not forgotten and neither have you. \u{1F451} Play me a few games and I will tell you exactly how far along that road you are.`];
   }
   if (has(t, "rank", "how strong", "how good", "estimate", "kyu", "dan")) {
     return [profile ? rankLine(profile) : "Play me a few games and I will tell you.", focus ? `Weakest at the moment: ${AREA_WORDS[focus].name}.` : ""].filter(Boolean);
-  }
-  /* A shape asked about by name. This comes before the general questions on
-     purpose: "what is a keima" is a question he can answer completely, and a
-     coach who answers it with "play more games" is not a coach. */
-  const asked = shapeFromWords(t);
-  if (asked && has(t, "what", "how", "why", "when", "?", "explain", "teach", "tell me", "mean")) {
-    const answer = shapeAnswer(asked);
-    if (answer) return answer;
   }
   /* How she is taught is hers to choose, so asking gets the whole list. The words
      here are deliberately narrow: "teach me" on its own belongs to the shape

@@ -93,7 +93,7 @@ export const screens = {
     unreadable: "{name} не вдалося прочитати з диска.",
   },
   play: {
-    trainer: { cta: "Тренуйся з {name}", note: "Лише на цьому пристрої. У залік." },
+    trainer: { cta: "Тренуйся з {name}", note: "Лише на цьому пристрої. У залік.", how: "Як він учить" },
     label: "Сідай",
     titleBefore: "Знайди ",
     titleEm: "партію",

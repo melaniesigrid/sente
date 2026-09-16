@@ -138,7 +138,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       const box = loadBox();
       // What this mode is, in his words, before the syllabus: she chose how she
       // wants to be taught and he acknowledges the choice out loud.
-      opening.push({ who: "bot", text: modeLine(mode.senseiMode ?? DEFAULT_MODE, box.games.length, profile.name, box.bond === "yes") });
+      opening.push({ who: "bot", text: modeLine(senseiMode, box.games.length, profile.name, box.bond === "yes") });
       opening.push({ who: "bot", text: openingLesson(box.taught, box.games.length) });
     }
     return opening;
@@ -375,14 +375,24 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
         notify({ icon: won ? "trophy" : "flag", text: t("game.toast.coached", { outcome: t(won ? "game.toast.victory" : "game.toast.defeat") }) });
+        /* A trainer game cannot be armed with the coach any more, but one can
+           still arrive here already coached (a resumed session carries the flag).
+           He owes her the review and the letter either way: the branch decides
+           the rating, never whether he speaks. */
+        if (sensei) endTraining(next, next.result.winner === "b" ? true : next.result.winner === "w" ? false : null);
       } else if (persona) {
         remember("rated");
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
         /* The trainer's games are rated, by the owner's decision: his purpose is to
            build the rank, and a game he explained still counts. That is the one
-           exception to "a game with advice in it moves no rating", and it is his. */
-        if (sensei) endTraining(next, won);
+           exception to "a game with advice in it moves no rating", and it is his.
+
+           His review gets the result as three states, not two. `won` is a boolean
+           because the rating and the table talk only ever need "did she win", but
+           a drawn game is not a loss, and `reviewLines` has a sentence for it that
+           would otherwise never be reached. */
+        if (sensei) endTraining(next, next.result.winner === "b" ? true : next.result.winner === "w" ? false : null);
         const oldRank = rankOf(profile.rating), oldBelt = beltOf(profile.rating);
         // One rank per handicap stone: the opponent is rated as the weaker player it gave stones to be.
         const oppRating = ratingOfRank(rankWithHandicap(botRank, next.handicap));
@@ -682,7 +692,11 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
      twice, exactly as resigning does. One click is never enough for a one-way door.
      Refused once the game has stopped being playable: after the last stone there is
      nothing left to coach, and a stray click would only throw away a rating. */
-  const canCoach = persona && !duel && !master && !coaching && !over && !scoring;
+  /* The trainer is already the coach: he names the shape of every move by
+     design. Offering the generic coach on top of him adds nothing, and taking it
+     would drop his game into the coached branch below, which is unrated - the one
+     thing his card promises it is not. So the switch is not his. */
+  const canCoach = persona && !duel && !master && !sensei && !coaching && !over && !scoring;
   const askCoaching = () => {
     if (!canCoach) return;
     if (!confirmCoach) {

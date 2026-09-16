@@ -74,7 +74,7 @@ export const screens = {
   },
 
   play: {
-    trainer: { cta: "Entraîne-toi avec {name}", note: "Privé, sur cet appareil. Classé." },
+    trainer: { cta: "Entraîne-toi avec {name}", note: "Privé, sur cet appareil. Classé.", how: "Sa façon d’enseigner" },
     label: "Assieds-toi",
     titleBefore: "Trouve une ",
     titleEm: "partie",

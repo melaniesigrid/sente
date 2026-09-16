@@ -55,13 +55,14 @@ import { DOCUMENTS, COPYRIGHT_YEAR, STUDIO, STUDIO_URL } from "./content/legal.j
 import { JournalView } from "./views/Journal.jsx";
 import { linkFromQuery, forgetLink } from "./views/letterLink.js";
 
-/* ----------------------- APP SHELL ----------------------- */
-/* The nav names its sections by key, not by word: the chrome is read in the
-   player's own language, and a language is added by adding a catalogue. */
 import { loadBox, unread } from "./store/sensei.js";
 import { useTrainerAccess } from "./views/useTrainer.js";
 import { loadAccount as loadStoredAccount } from "./store/account.js";
 import { serverEnabled as serverIsOn } from "./net/api.js";
+
+/* ----------------------- APP SHELL ----------------------- */
+/* The nav names its sections by key, not by word: the chrome is read in the
+   player's own language, and a language is added by adding a catalogue. */
 
 const NAV = [
   { id: "home", icon: LayoutDashboard },
@@ -145,11 +146,22 @@ export default function JosekiApp() {
   }, []);
 
   const go = useCallback((v, p = null) => { setResume(null); setParams(p); setView(v); }, []);
-  /* The trainer's ping: how many lines of his are waiting, read each render from the
-     box on this device. It marks the home button and the tab title, and nothing else:
-     no notification permission is asked for, because the app never contacts anything. */
-  const trainerOn = useTrainerAccess(profile, serverIsOn() ? loadStoredAccount() : null);
-  const pings = trainerOn ? unread(loadBox()).length : 0;
+  /* The account is read once, not rebuilt on every render: it is a dependency of
+     the trainer-access effect, and a fresh object each render would tear that
+     effect down and re-run a SHA-256 every time the shell drew. */
+  const [account] = useState(() => (serverIsOn() ? loadStoredAccount() : null));
+  const trainerOn = useTrainerAccess(profile, account);
+  /* The trainer's ping: how many lines of his are waiting, from the box on this
+     device. It marks the home button and the tab title, and nothing else: no
+     notification permission is asked for, because the app never contacts anything.
+
+     It is state read on a screen change rather than arithmetic in the render body.
+     Reading it inline parsed localStorage on every draw of the shell and was stale
+     anyway, because nothing re-renders the shell when he writes. */
+  const [pings, setPings] = useState(0);
+  useEffect(() => {
+    setPings(trainerOn ? unread(loadBox()).length : 0);
+  }, [trainerOn, view]);
   useEffect(() => {
     const base = document.title.replace(/^\(\d+\) /, "");
     document.title = pings > 0 ? `(${pings}) ${base}` : base;

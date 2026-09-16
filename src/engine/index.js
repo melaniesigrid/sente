@@ -48,7 +48,7 @@ export { ANALYSIS_RANK, analyseGame, analysisCacheKey, cachedAnalysis, positions
 export { PHASE_AT, phaseOf, lineOf, regionOf, distance, describeMove, policyStanding } from "./explain.js";
 export {
   TRAINER, AREAS, giftDue, pickGift, giftOutcome, trainerReport, areasOf, gameSummary, areaMeans, focusFor, trend,
-  TEACHING_MODES, MODE_IDS, DEFAULT_MODE, modeRules,
+  DEFAULT_MODE, modeRules,
 } from "./sensei.js";
 export { createRng, hashString, positionSeed } from "./rng.js";
 export {
