@@ -11,6 +11,8 @@ import {
 } from "./room.js";
 import { teamSeats } from "../src/engine/rengo.js";
 import { reseatRoom } from "./merge.js";
+import { isTalkFrame, checkTalk, canTalk, talkTarget, mayRelay, TALK_LIMIT, TALK_WINDOW_MS } from "./talk.js";
+import { hit } from "./ratelimit.js";
 
 export class Room extends DurableObject {
   constructor(ctx, env) {
@@ -85,6 +87,10 @@ export class Room extends DurableObject {
     const { seat, player } = ws.deserializeAttachment();
     const room = await this.load();
     if (!room) return send(ws, { t: "error", reason: "no-room" });
+    /* Signalling for a voice call is relayed and forgotten: it never reaches
+       `applyMessage`, so it is never in the room record and never in storage.
+       See server/talk.js for why none of that is a security measure. */
+    if (isTalkFrame(msg.t)) return this.relayTalk(ws, msg, raw, room, seat);
     if (!seat) {
       if (!player) return send(ws, { t: "error", reason: "sign-in-to-chat" });
       msg = { ...msg, from: player };
@@ -109,6 +115,47 @@ export class Room extends DurableObject {
       this.ctx.waitUntil(this.registry().noteGame(summary(next)));
     }
     await this.maybeSettle(next);
+  }
+
+  /* ----- talk: relay one signalling frame, write nothing -----
+
+     Everything refused here is refused for hygiene, not for safety. A player
+     whose peer never asked for a call, a frame the wrong shape, a socket going
+     too fast: those make the relay useless as a general-purpose channel between
+     arbitrary clients. They do nothing about a hostile relay, which is what the
+     committed key agreement in talk/ is for. */
+  async relayTalk(ws, msg, raw, room, seat) {
+    const att = ws.deserializeAttachment() || {};
+    if (!seat) return send(ws, { t: "talk/error", reason: "not-seated" });
+    if (!canTalk(room)) return send(ws, { t: "talk/error", reason: "no-call-here" });
+    const bad = checkTalk(msg, typeof raw === "string" ? raw.length : undefined);
+    if (bad) return send(ws, { t: "talk/error", reason: bad });
+
+    /* The opt-in flag rides on the socket, which is the only place it can live
+       and still vanish when the call does. It is not in the room and not under
+       a key that outlives the connection. */
+    let mine = att.talk;
+    if (msg.t === "talk/hello") mine = { open: true, role: msg.role };
+    else if (msg.t === "talk/bye") mine = { open: false };
+    const { bucket, allowed } = hit(att.talkRate, Date.now(), TALK_LIMIT, TALK_WINDOW_MS);
+    ws.serializeAttachment({ ...att, talk: mine, talkRate: bucket });
+    if (!allowed) return send(ws, { t: "talk/error", reason: "too-fast" });
+
+    const targetId = talkTarget(room, seat);
+    if (!targetId) return send(ws, { t: "talk/error", reason: "no-peer" });
+
+    const frame = JSON.stringify({ ...msg, from: seat });
+    let delivered = 0;
+    let refusal = null;
+    for (const peer of this.ctx.getWebSockets(targetId)) {
+      const theirs = (peer.deserializeAttachment() || {}).talk;
+      const no = mayRelay(msg, mine, theirs);
+      if (no) { refusal = no; continue; }
+      sendRaw(peer, frame);
+      delivered++;
+    }
+    if (!delivered && refusal) return send(ws, { t: "talk/error", reason: refusal });
+    if (!delivered && msg.t !== "talk/bye") return send(ws, { t: "talk/error", reason: "peer-away" });
   }
 
   async webSocketClose() {}
