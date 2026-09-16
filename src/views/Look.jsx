@@ -6,7 +6,7 @@ import { Card } from "../components/ui.jsx";
 import { TYPEFACES, typefaceOf } from "../content/typeface.js";
 import { SYSTEM_THEME, themeOf, themeVars, stoneSetOf, auditPalette } from "../theme/index.js";
 import { STONE_RULE } from "../theme/tokens.js";
-import { roomsFor, setsFor, setName } from "./look.js";
+import { roomsFor, setsFor, setName, plateVars, platePalette } from "./look.js";
 import { useT } from "../components/langStore.js";
 import { saveProfile } from "../store/profile.js";
 
@@ -64,12 +64,16 @@ export function LookView({ profile, setProfile, go, room }) {
     () => rooms.map(t => themeVars(t.drawAs || t.id, dojo, stones)),
     [rooms, dojo, stones],
   );
+  /* A set's plate shows the set, so it is drawn as a table room draws it even
+     when the room in force is the printed one (look.js explains why), and the
+     sentence under the plates is measured on the same tones so the number it
+     prints is about the set the reader picked. */
   const setVars = useMemo(
-    () => sets.map(s => themeVars(room, dojo, s.id)),
+    () => sets.map(s => plateVars(room, dojo, s.id)),
     [sets, room, dojo],
   );
   const cut = useMemo(
-    () => auditPalette(themeOf(room, dojo), stones).find(r => r.id === STONE_RULE.id),
+    () => auditPalette(platePalette(room, dojo), stones).find(r => r.id === STONE_RULE.id),
     [room, dojo, stones],
   );
 

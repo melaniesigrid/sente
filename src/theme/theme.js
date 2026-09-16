@@ -3,7 +3,7 @@
    stored data to a palette that cannot break the app. Nothing here knows about
    React; the shell spreads what `themeVars` returns onto one element. */
 import { PALETTES, HOUSE_THEME, REVIEW_THEME, DOJO_THEME, SYSTEM_THEME, SYSTEM_PAIR, migrateThemeId } from "./palettes.js";
-import { tokensFor, completeTones, stonesFor, deriveBoard } from "./derive.js";
+import { tokensFor, completeTones, stonesFor, boardFor } from "./derive.js";
 import { AUTO_STONES, isStoneId, stonesOf } from "./stones.js";
 import { TONES, TONE_KEYS, REQUIRED_TONES, RULES, CLOSENESS, STONE_RULE, BOARD_RULES } from "./tokens.js";
 import { isHex, contrast, grade, isDarkColor } from "./color.js";
@@ -110,8 +110,8 @@ export function auditPalette(palette, stones = AUTO_STONES) {
   // And the black one against the wood, which is the question the rule above
   // cannot answer: two stones can be 12:1 apart and still both be wrong on the
   // board they are played on. There is one board, so this asks about the set
-  // rather than about the room.
-  const board = deriveBoard();
+  // rather than about the room; a printed room asks it of ink on its page.
+  const board = boardFor(t);
   for (const r of BOARD_RULES) {
     const ratio = contrast(pair[r.stone][1], board);
     rows.push({ ...r, ratio, pass: ratio >= r.min, grade: grade(ratio) });

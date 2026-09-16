@@ -29,8 +29,8 @@ import { StoneArt, Shine } from "./stoneArt.jsx";
      polished thing that size has a highlight on it and a lit rim where the
      surface turns. Both are drawn in --sh-lite, the light the whole design
      system is lit from, so they stay the same light as every raised card.
-   - The house drop-shadows come off, for Decor's reason: two shadows at three
-     hundred pixels is a smear, not a relief.
+   - No cast shadow, as on the board: two shadows at three hundred pixels is
+     a smear, not a relief, and the board's stones lie flat too.
    - It is never in front of anything. z-index 0 in a positioned block, no
      pointer events, aria-hidden, and the words are lifted one layer clear.
    - It plays once, when it is reached, and then holds. A reader who asked for

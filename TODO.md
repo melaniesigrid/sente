@@ -1762,9 +1762,64 @@ were kept, so the ten named rooms became three: the ones somebody picked by look
       blurb rewritten. The retired rooms' notes and the retired rule's lines are gone,
       which `i18n.test.js` holds against the data on every run.
 
-Still open here: the coordinates and the printed move numbers that the Kifu direction was
-drawn with are still a preference and a toggle rather than something review turns on. The
-board is in the right room; what is written on it has not moved yet.
+Still open here: nothing. The coordinates and the printed move numbers landed with the
+stones, below.
+
+## The stones as drawn, and the record as printed (done 2026-09-15, branch `feat/room-stones`)
+
+The three rooms landed with the old stones on them: grey-brown slate, gradient-shaded, each
+casting the house pair of shadows, in a well sunk into the page. The game screen was drawn
+with none of that, and the drawing is what was chosen.
+
+- [x] **The stones are the drawing's.** A flat disc of the set's body, the black one with
+      one hard, bright highlight on its left shoulder (the crown, cut a quarter of the way
+      to white), the white one held off the wood by a hairline rim. No cast shadow on a
+      stone. `Board.jsx` draws them in one `Stone`; the look page's plates draw the same.
+- [x] **The board is the raised thing.** `.board-well` is a card of the page's colour lifted
+      by the house pair, with the wood set into it as the board's own `rect`. Every drawn
+      direction had the board raised on the table, and a goban is an object on a table.
+- [x] **Both table rooms play ink and ivory.** Tatami and Night name `ebony`; the drawer is
+      untouched and a player's own choice still overrides both.
+- [x] **Kifu is printed, not played.** The palette carries `print: true` and `derive.js`
+      reads it: the board is the page (`boardFor`), the grid is a hairline of ink at full
+      strength (`--grid-alpha`, a new token), and the stones are ink and paper with an ink
+      rim whatever set the player carries. A printed stone is not a rock. The set the room
+      names is what its plate is drawn from, nothing more.
+- [x] **Review opens the way a kifu is printed:** coordinates as the reader shows them (on by default),
+      move numbers on (the toggle and the N key hide them to look at the shape). Numbers on
+      a stone are written in the other stone's colour, which is the one pair held 4.5:1
+      apart in every room; they used to take `--light`, which is dark in a dark room.
+- [x] Tests moved with the rule: every *table* room plays on the one wood and never on its
+      page; the printed room plays on its page and is the only one that does; every set
+      prints as ink and paper there.
+
+- [x] What the review passes found on the way, all of it shipped with the above: the move
+      you are standing on is ringed when every stone carries a number (`.here-ring`), the
+      numbers open on only where the drawn board clears the type floor (measured with a
+      ResizeObserver, so a rotation re-answers it), `--accent` is handed out with the rest
+      of a room's tokens so every plate wears its own mark, the look page's plates are
+      drawn as a table room draws them (`plateVars` in `views/look.js`), White's territory
+      and the win graph's unread tail are legible on the printed page, the front door
+      stopped framing its board twice, and the joseki dictionary marks its current move.
+
+Decisions:
+- The gloss is a hard disc, not a fade, because that is the drawing and it is what makes
+  the pieces read as polished glass rather than ink. On the printed page the crown is the
+  body, so the same disc paints nothing without the board knowing it is in print.
+- The big figures (`stoneArt.jsx`, the landing) keep their gradient: at three hundred
+  pixels a flat disc with a dot is a button, and at forty a gradient is a smear. This is
+  also why the printed white stone's rim is mixed half-way to the ink rather than being
+  the ink: those three stops are the figures' gradient too.
+- **The white stone's rim cannot be made to separate it from the wood, and it is not
+  supposed to.** RIM is within 1.21:1 of kaya, so cutting the rim deeper walks it *toward*
+  the board (measured: a half-mix lands every set at 1.11-1.21:1 against 1.31-1.40:1 at a
+  third). What holds a white stone off the wood is its body, at 1.6-1.8:1, which is what a
+  real board does. A review pass proposed the deeper cut and the numbers sent it back.
+- The numbers gate measures the board, not the window. A max-width, the sheet's padding,
+  the well's padding and the side column each take a cut, and guessing at them adds up to
+  more than the margin being guessed about.
+- Kifu as a *game-screen* layout (the typeset players line, clocks as text, chat as
+  marginalia) is not built. The room is; the layout of the table in it is still the table.
 
 ## Palettes and the dojo (done 2026-09-10, branches `feat/palette-damson`, `feat/palette-dojo`)
 

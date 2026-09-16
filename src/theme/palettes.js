@@ -17,15 +17,20 @@
    Every room also names the set it is played with (`stones`, from
    src/theme/stones.js). The set is a default, not a lock: a player who prefers
    one pair everywhere says so on the look page and it follows them from room to
-   room.
+   room. Both table rooms are played with ink and ivory, because that is the
+   pair the design pass was drawn with: a black stone that is black, a white one
+   with a rim, and nothing grey-brown lying between them.
 
-   What no room decides any more is the board: there is one wood, BOARD in
-   tokens.js, and every room plays on it. */
+   What no table room decides any more is the board: there is one wood, BOARD
+   in tokens.js, and every room with a board plays on it. The one room without
+   a board is Kifu. A kifu is a diagram printed on the page (`print`), so its
+   board is its paper, its grid is a hairline in ink, and its stones are ink and
+   paper whatever set the player carries: a printed stone is not a rock. */
 
 export const PALETTES = [
   {
     id: "tatami",
-    stones: "slate",
+    stones: "ebony",
     name: "Tatami",
     mood: "Light",
     note: "Warm stone paper and a eucalyptus mark, with the board in the middle of it and nothing else asking for anything. The room the design system is drawn in.",
@@ -34,7 +39,7 @@ export const PALETTES = [
   },
   {
     id: "night",
-    stones: "slate",
+    stones: "ebony",
     name: "Night",
     mood: "Dark",
     note: "The same table with the lamp low: a charcoal page, the same wood, and the clock the brightest thing on it until somebody is short of time.",
@@ -43,7 +48,14 @@ export const PALETTES = [
   },
   {
     id: "kifu",
+    // The set names what the look page's plate is drawn from; on the page
+    // itself the stones are printed, see `print`.
     stones: "ebony",
+    // A diagram, not a table: the board is the paper, the grid a hairline, the
+    // stones ink and paper. derive.js reads this; nothing else needs to, and
+    // the dojo never carries it: a room built there is a table room, and a
+    // stored palette cannot smuggle it in (sanitizePalette keeps tones only).
+    print: true,
     name: "Kifu",
     mood: "Review",
     note: "The game as a printed record: ivory paper, near-black ink, and terracotta for the move you are standing on. Review mode brings this room with it.",

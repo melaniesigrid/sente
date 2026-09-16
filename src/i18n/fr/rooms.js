@@ -82,7 +82,7 @@ export const rooms = {
     derivedEm: "· déduites",
     derivedRole: "Les deux se calculent à partir du fond et aucune n'est un choix : une chose en relief a l'air éclairée plutôt que détourée seulement tant que ses deux lumières restent à portée du papier sur lequel elle repose. Déplace le fond et elles se déplacent avec lui.",
     stonesHead: "Les pierres",
-    stonesNote: "Chaque salle nomme le jeu avec lequel elle se joue, celle-ci comprise. Deux couleurs font un jeu ; la couronne éclairée et le bord où la surface se dérobe se découpent dans ces deux-là, et le goban en dessous est le même bois dans toutes les salles.",
+    stonesNote: "Chaque salle nomme le jeu avec lequel elle se joue, celle-ci comprise. Deux couleurs font un jeu ; la couronne éclairée et le bord où la surface se dérobe se découpent dans ces deux-là, et le goban en dessous est le même bois dans toutes les salles de jeu ; la page imprimée n'a pas de goban.",
     auditHead: "Ce que disent les règles",
     auditMax: "max. {n}",
     auditMin: "min. {n}",

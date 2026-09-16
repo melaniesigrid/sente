@@ -5,10 +5,11 @@
    and they now agree about what a stone looks like because they take the
    drawing from here rather than each keeping a copy.
 
-   The stops are the board's (components/Board.jsx), which keeps its own set
-   because a board is drawn at the size of a game and has no shine on it: at
-   20 pixels a highlight is a white pixel in the corner of a disc. Above about
-   forty it is the difference between a stone and a circle.
+   The stops are cut from the same --stone-* tokens the board uses, but the
+   board (components/Board.jsx) draws its stones flat, with one small shine on
+   the black and a rim on the white, because a board is drawn at the size of a
+   game: at 20 pixels a lit crown and a turning rim are a smear. Above about
+   forty the gradient here is the difference between a stone and a circle.
 
    Every colour is a token. --stone-* is the room's set, cut in theme/stones.js
    and seated for the ground in theme/derive.js, and --sh-lite is the light the

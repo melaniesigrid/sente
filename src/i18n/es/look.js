@@ -7,7 +7,7 @@ export const look = {
     sub: "Todo lo que hay aquí cambia cómo se ve Joseki y nada cambia cómo se juega. Elige la sala, elige las piedras con las que quieres jugar, elige la tipografía. Cada muestra está dibujada con aquello que ofrece, así que elige mirando. El idioma vive en la barra superior, donde se encuentra desde cualquier pantalla.",
     room: {
       head: "La sala",
-      note: "Tres salas para el mismo tablero: una para la luz del día, otra para la noche y la que el modo de revisión usa para leer una partida terminada. Una de ellas puede seguir a tu dispositivo, y todavía puedes construirte una sala propia. Una paleta fija la página, las dos luces de las que se recorta cada sombra y el único color que quiere decir aquí. El tablero no es una paleta: es la misma madera en las tres.",
+      note: "Tres salas para el mismo tablero: una para la luz del día, otra para la noche y la que el modo de revisión usa para leer una partida terminada. Una de ellas puede seguir a tu dispositivo, y todavía puedes construirte una sala propia. Una paleta fija la página, las dos luces de las que se recorta cada sombra y el único color que quiere decir aquí. El tablero no es una paleta: las dos salas de mesa juegan sobre la misma madera, y la sala de revisión imprime la partida en su página.",
       pick: "Paleta {name}",
       systemName: "Sistema",
       systemMood: "Automática",
@@ -20,7 +20,7 @@ export const look = {
     },
     stones: {
       head: "Tus piedras",
-      note: "Un juego son dos objetos: el núcleo de la piedra negra y el de la blanca. La corona iluminada y el borde donde la superficie se curva salen de esos dos, así que un juego se parece a sí mismo en cualquier sala. La madera de debajo no cambia nunca.",
+      note: "Un juego son dos objetos: el núcleo de la piedra negra y el de la blanca. La corona iluminada y el borde donde la superficie se curva salen de esos dos, así que un juego se parece a sí mismo en cualquier sala. La madera de debajo no cambia nunca, y la página impresa no tiene madera: allí son tinta y papel.",
       pick: "Piedras: {name}",
       auto: "Las de la sala",
       autoNote: "Cada sala nombra el juego para el que fue diseñada: {room} se juega con {set}. Cambia de sala y las piedras cambian con ella.",

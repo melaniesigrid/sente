@@ -89,8 +89,8 @@ describe("every set in every room", () => {
   });
 
   // One wood, and every set has to be playable on it. The black stone is the
-  // half that binds: the white one is separated from kaya by its rim and its
-  // shadow, at about 1.6:1, which is what a real board does and not a failure.
+  // half that binds: the white one is separated from kaya by its rim, at
+  // about 1.6:1 for the body, which is what a real board does and not a failure.
   it("plays every set on the one board, black findable and white not shouting", () => {
     for (const s of STONE_SETS) {
       const black = contrast(cutBlack(s.b)[1], BOARD);
@@ -100,20 +100,45 @@ describe("every set in every room", () => {
     }
   });
 
-  it("hands every room the same board, whatever its ground", () => {
+  it("hands every table room the same board, whatever its ground", () => {
     expect(deriveBoard()).toBe(BOARD);
-    for (const p of PALETTES) expect(themeVars(p.id)["--board"], p.id).toBe(BOARD);
+    for (const p of PALETTES.filter(p => !p.print)) expect(themeVars(p.id)["--board"], p.id).toBe(BOARD);
   });
 
   // A stone is a rock. It is the same rock in every room, and the room is what
   // moves around it.
-  it("cuts the same stone in every room", () => {
+  it("cuts the same stone in every table room", () => {
     for (const s of STONE_SETS) {
       const cut = [cutBlack(s.b), cutWhite(s.w)];
-      for (const p of PALETTES) {
+      for (const p of PALETTES.filter(p => !p.print)) {
         const pair = stonesFor(completeTones({ ...p, stones: s.id }));
         expect([pair.b, pair.w], `${p.id} + ${s.id}`).toEqual(cut);
       }
+    }
+  });
+
+  // Except on paper, where there is no rock: a kifu prints its stones in ink
+  // and paper whatever set the player carries, and neither has a shine, so the
+  // crown is the body and the gloss the board draws from it paints nothing.
+  it("prints ink and paper in the printed room, whatever the set", () => {
+    for (const p of PALETTES.filter(p => p.print)) {
+      for (const s of STONE_SETS) {
+        const t = completeTones({ ...p, stones: s.id });
+        const pair = stonesFor(t);
+        expect(pair.b, `${p.id} + ${s.id} black`).toEqual([t.ink, t.ink, t.ink]);
+        // Paper, paper, and a line round it. The line is mixed toward the ink
+        // rather than being the ink, because these stops are also the gradient
+        // the drawn stones on Home and the landing are made of: a rim of solid
+        // ink there ramps a three-hundred-pixel white stone to black.
+        expect(pair.w.slice(0, 2), `${p.id} + ${s.id} white`).toEqual([t.ground, t.ground]);
+        expect(pair.w[2], `${p.id} + ${s.id} rim is not the ink itself`).not.toBe(t.ink);
+        expect(contrast(pair.w[2], t.ground), `${p.id} + ${s.id} rim on the page`).toBeGreaterThan(3);
+        expect(pair.set.id, "the set is still the player's").toBe(s.id);
+      }
+      const vars = themeVars(p.id, null, "honey");
+      expect(vars["--stone-w-2"], "and the tokens say so").toBe(vars["--ground"]);
+      expect(vars["--stone-w-3"], "outlined, not filled with ink").not.toBe(vars["--ink"]);
+      expect(vars["--stone-b-2"]).toBe(vars["--ink"]);
     }
   });
 });

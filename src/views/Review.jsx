@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import {
   ChevronLeft, ChevronsLeft, ChevronsRight, ChevronRight, SkipBack, SkipForward, Hash, Download, Swords,
   GitBranch, Undo2, CornerUpLeft, LineChart, Square, Lightbulb, TriangleAlert,
@@ -9,6 +9,7 @@ import { startLine, playInLine, backInLine, lineLabel, canBranch, reviewLabelTex
 import { refusalText, resultSentence } from "./gameStatus.js";
 import { useT } from "../components/langStore.js";
 import { Board } from "../components/Board.jsx";
+import { legiblePx } from "../components/boardGeometry.js";
 import { WinGraph } from "../components/WinGraph.jsx";
 import { useAnalysis, remainingText } from "./useAnalysis.js";
 import { KE_JIE, reviewLines } from "../content/sensei.js";
@@ -40,13 +41,52 @@ import {
    up and down jump ten, Home and End go to the ends, and N toggles the numbers. The
    handler is on the document, and only while review is open. */
 
-const BOARD_PX = { 9: 460, 13: 560, 19: 680 };
+const BOARD_PX = { 9: 460, 13: 560, 19: 730 };
+
+/* A move number is 16px in the board's own units, so what it measures on
+   screen depends on how wide the board was actually drawn: 19 lines at 680px
+   prints 12.6px type, the same board on a phone prints six. The window is not
+   the answer, because the board is not the window: a max-width, the sheet's
+   padding, the well's padding and the side column all take their cut, and the
+   guesses add up to more than the margin they are guessing about.
+
+   So measure the board that got drawn. `legiblePx(size)` is the width below
+   which the type floor is broken, and the observer re-answers on a rotation or
+   a drag without anyone having to predict either. */
+function useLegibleNumbers(size) {
+  const ref = useRef(null);
+  const [legible, setLegible] = useState(true);
+  useEffect(() => {
+    const el = ref.current;
+    // No ResizeObserver (jsdom, an old browser) means no measurement to go on,
+    // and a printed record's numbers are the thing being defended: leave them.
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const floor = legiblePx(size);
+    const read = () => {
+      const svg = el.querySelector(".goban");
+      if (svg) setLegible(svg.getBoundingClientRect().width >= floor);
+    };
+    const obs = new ResizeObserver(read);
+    obs.observe(el);
+    read();
+    return () => obs.disconnect();
+  }, [size]);
+  return [ref, legible];
+}
 
 export function Review({ record, onExit, onRematch, profile = {} }) {
   const t = useT();
   const total = reviewLength(record);
   const [n, setN] = useState(total);
-  const [showNumbers, setShowNumbers] = useState(false);
+  /* A kifu is printed with its move numbers on, so review opens with them on
+     wherever they can be read, and drops them where they would be drawn under
+     the type floor. Null means nobody has said: the board decides, and keeps
+     deciding as the window turns. The first press takes it over for good,
+     which is why the toggle reads the answer rather than the choice. */
+  const [boardRef, numbersLegible] = useLegibleNumbers(record.size);
+  const [numbersChoice, setNumbersChoice] = useState(null);
+  const showNumbers = numbersChoice ?? numbersLegible;
+  const toggleNumbers = useCallback(() => setNumbersChoice(!showNumbers), [showNumbers]);
   // A line being tried from the position on screen. Scratch: never written to the
   // record, never exported. Null means you are looking at the game itself.
   const [line, setLine] = useState(null);
@@ -96,14 +136,14 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
         "[": () => { const t = prevTurn(turns, n); if (t) go(t.move); },
         "]": () => { const t = nextTurn(turns, n); if (t) go(t.move); },
       };
-      const act = keys[e.key] || (e.key.toLowerCase() === "n" ? () => setShowNumbers((s) => !s) : null);
+      const act = keys[e.key] || (e.key.toLowerCase() === "n" ? toggleNumbers : null);
       if (!act) return;
       e.preventDefault();
       act();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [go, total, n, turns]);
+  }, [go, total, n, turns, toggleNumbers]);
 
   /* The move the network would have made. Standing after move n, the question a
      reader is asking is about the position move n was played into, which is the
@@ -159,7 +199,7 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
         <span className="review-result">{resultSentence(record.result, t) ?? t("review.unfinished")}</span>
       </div>
       <div className="play-wrap">
-        <div className="board-col stack-sm">
+        <div className="board-col stack-sm" ref={boardRef}>
           <Pill icon={line ? GitBranch : Hash} tone={line ? "win" : ""}>
             {line ? lineLabel(line, t) : reviewLabelText(record, n, t) + (capHere ? ` · ${t("review.captured", { count: capHere.stones })}` : "")}
           </Pill>
@@ -167,7 +207,7 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
             lastMove={line ? lastMoveIndex(line.record) : marker}
             onPlay={branchable ? onTry : undefined}
             disabled={!branchable}
-            sizePx={BOARD_PX[record.size] ?? 680}
+            sizePx={BOARD_PX[record.size] ?? Math.max(680, legiblePx(record.size))}
             numbers={line ? null : numbers} captured={[]} marks={marks}
             coordinates={profile.coordinates} mark={profile.lastMoveMark ?? "dot"} />
           {refused && <p className="review-refused" role="alert">{refused}</p>}
@@ -262,7 +302,7 @@ export function Review({ record, onExit, onRematch, profile = {} }) {
             <Btn icon={ChevronsRight} small label={t("review.end")} onClick={() => go(total)} disabled={n === total} />
           </div>
           <div className="row review-controls">
-            <Btn icon={Hash} small onClick={() => setShowNumbers((s) => !s)}>
+            <Btn icon={Hash} small onClick={toggleNumbers}>
               {t(showNumbers ? "review.hideNumbers" : "review.moveNumbers")}
             </Btn>
             <Btn icon={Download} small onClick={downloadSgf}>{t("review.sgf")}</Btn>

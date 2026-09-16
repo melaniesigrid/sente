@@ -46,8 +46,10 @@ export const TONES = [
  *  in the morning, at midnight, and in the book the game is printed in. Rooms
  *  used to each derive their own board out of their own ground, which gave the
  *  dark rooms a plank nobody had chosen and moved the board every time the page
- *  moved. Now the page is themed and the board is not: it is this colour in all
- *  three rooms, and both stones are cut to read on it.
+ *  moved. Now the page is themed and the board is not: it is this colour in
+ *  every room that has a board, and both stones are cut to read on it. (The
+ *  printed room, Kifu, has no board: a diagram is drawn on the page, and
+ *  derive.js answers with the page there.)
  *
  *  Measured, not asserted: BOARD_RULES in tokens.js holds each stone against
  *  this wood, over every room and every set in the drawer. */
@@ -61,10 +63,10 @@ export const REQUIRED_TONES = TONES.filter(t => t.required).map(t => t.key);
  *  the list of things the stylesheet is allowed to ask for. */
 export const TOKEN_NAMES = [
   "--ground", "--board", "--light", "--dark", "--ink", "--ink-2", "--ink-3", "--cream",
-  "--accent-rgb", "--accent-soft", "--accent-ring", "--accent-ink", "--danger", "--danger-ink",
+  "--accent-rgb", "--accent", "--accent-soft", "--accent-ring", "--accent-ink", "--danger", "--danger-ink",
   "--sh-ink", "--sh-lite",
   "--wash-a", "--wash-b", "--scrim",
-  "--grid", "--hairline",
+  "--grid", "--grid-alpha", "--hairline",
   "--stone-b-1", "--stone-b-2", "--stone-b-3",
   "--stone-w-1", "--stone-w-2", "--stone-w-3",
   "--belt-edge",
@@ -107,12 +109,13 @@ export const STONE_RULE = {
  *  and still played badly, because both stones were measured against each other
  *  and neither was measured against the board.
  *
- *  There is one board now (BOARD, in palettes.js), so this is one question
- *  asked of a set rather than of a room-and-set pair, and it is one-sided the
- *  way a real board is. The black stone has to be findable on the wood. The
- *  white one is separated from kaya by its rim and its shadow, not by its fill:
- *  shell on wood measures about 1.6:1 on a real board and looking for a floor
- *  there would only produce a board nobody has ever played on.
+ *  There is one board now (BOARD, above), so this is one question asked of a
+ *  set rather than of a room-and-set pair, and it is one-sided the way a real
+ *  board is. The black stone has to be findable on the wood. The white one is
+ *  separated from kaya by its rim, not by its fill: shell on wood measures
+ *  about 1.6:1 on a real board and looking for a floor there would only
+ *  produce a board nobody has ever played on. The printed room asks the same
+ *  question of ink on its page (boardFor, derive.js).
  */
 export const BOARD_RULES = [
   { id: "board-b", label: "Slate on the board", stone: "b", min: 2.5,

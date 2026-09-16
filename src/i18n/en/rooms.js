@@ -94,7 +94,7 @@ export const rooms = {
     derivedEm: "· derived",
     derivedRole: "Both are worked out from the ground, and neither is a choice: a raised thing looks lit rather than outlined only while its two lights stay within reach of the paper they sit on. Move the ground and they move with it.",
     stonesHead: "The stones",
-    stonesNote: "Every room names the set it is played with, this one included. Two colours make a set; the lit crown and the rim where the surface turns away are cut from those two, and the board under them is the same wood in every room.",
+    stonesNote: "Every room names the set it is played with, this one included. Two colours make a set; the lit crown and the rim where the surface turns away are cut from those two, and the board under them is the same wood in every table room; the printed page has no board at all.",
     auditHead: "What the rules say",
     auditMax: "max {n}",
     auditMin: "min {n}",

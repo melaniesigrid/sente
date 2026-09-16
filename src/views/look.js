@@ -8,7 +8,10 @@
    stay pure: the words come in, nothing here reaches for a language. A stone
    set's name is the catalogue's when the catalogue has one and the data file's
    when it does not, which is the same bargain every overlaid line makes. */
-import { PALETTES, STONE_SETS, AUTO_STONES, DOJO_THEME, SYSTEM_THEME, themeOf, stoneSetOf } from "../theme/index.js";
+import {
+  PALETTES, STONE_SETS, AUTO_STONES, DOJO_THEME, SYSTEM_THEME,
+  themeOf, stoneSetOf, withStones, tokensFor,
+} from "../theme/index.js";
 import { BASE_LOCALE, makeT } from "../i18n/index.js";
 
 const EN = makeT(BASE_LOCALE);
@@ -43,3 +46,25 @@ export const setsFor = (room, dojo, t = EN) => [
   },
   ...STONE_SETS,
 ];
+
+/** The room a stone plate is drawn in: the one in force, with the printing
+ *  turned off.
+ *
+ *  A plate's whole job is to show a set, and in the printed room no set has a
+ *  look of its own: a kifu prints in ink and paper whatever is in the drawer,
+ *  so nine plates drawn in the room in force would be nine identical plates
+ *  and a picker with nothing to pick between. The board beside them still
+ *  shows the room as it really is; these are the stones, not the page.
+ *
+ *  It is also what the contrast sentence under the picker is measured on, so
+ *  the number it prints is about the set the reader just chose rather than
+ *  about ink on paper. */
+export const platePalette = (room, dojo) => ({ ...themeOf(room, dojo), print: false });
+
+/** The tokens one stone plate wears: the plate palette, played with that set.
+ *  Through `withStones`, because the first entry in the picker is not a set —
+ *  `auto` means "the room's own", and only withStones knows to leave the
+ *  room's own choice standing rather than writing "auto" in as an id nothing
+ *  recognises, which resolves to the house set and drew the plate labelled
+ *  "the room's own" in a set the room does not play with. */
+export const plateVars = (room, dojo, setId) => tokensFor(withStones(platePalette(room, dojo), setId));

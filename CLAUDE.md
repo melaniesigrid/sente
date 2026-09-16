@@ -54,19 +54,39 @@ in `server/` (Durable Objects), deployed separately.
   preference is reset by the change. The theme package is pure: `usePrefersDark` in
   `src/components/` is the only thing that reads the media query.
 - **The board is not the page, and it is not themed either.** `--board` is one wood
-  (`BOARD` in `tokens.js`) in all three rooms and in a room built in the dojo: a goban is an
+  (`BOARD` in `tokens.js`) in both table rooms and in a room built in the dojo: a goban is an
   object, and an object does not change colour when the light does. Stones are cut once and
-  never bent to suit a room. Anything drawn *on* the board takes its colour from the board,
-  not the page (the grid, the star points, the territory marks), because in a dark room the
-  ink is light and the ground is dark.
+  never bent to suit a table room. Anything drawn *on* the board takes its colour from the
+  board, not the page (the grid, the star points, the territory marks), because in a dark
+  room the ink is light and the ground is dark. The board is also the raised thing on the
+  page: `.board-well` is a card lifted by the house pair of shadows and the wood is the
+  board's own `rect` inside the SVG, so a cropped view still shows wood. A stone is flat on
+  it and casts nothing (`Stone` in `Board.jsx`): one bright disc high on the black stone's
+  left shoulder, a hairline rim on the white one. The big figures (`stoneArt.jsx`, the
+  landing) keep the gradient, because at three hundred pixels a flat disc with a dot is a
+  button.
+- **Kifu is printed, not played** (`print: true` in `palettes.js`, read only by `derive.js`).
+  A printed room has no board: `boardFor` answers with the page, `--grid-alpha` takes the
+  grid to full strength so the lines are the ink itself, and `stonesFor` prints ink and
+  paper whatever set the player carries, because a printed stone is not a rock. The set a
+  printed room names is what its plate on the look page is drawn from, nothing more; the
+  dojo never carries the flag, and a stored palette cannot smuggle it in. Both table rooms
+  play `ebony`, the pair the game screen was drawn with; the drawer is untouched and a
+  player's own choice still overrides both.
 - Two stones being far apart from *each other* is not the same question as either stone
   being readable on the wood. `STONE_RULE` asks the first and `BOARD_RULES` the second;
   a year of dark rooms passed the first at 10:1 while failing the second at 1.2:1. With one
-  board the second is asked of the set rather than of the room, and only of the black stone:
-  shell on kaya is about 1.6:1 on a real board, and the rim is what separates it.
+  board the second is asked of the set rather than of the room, and only of the black stone
+  (in a printed room, of ink on the page). What holds the white stone off kaya is its body,
+  at 1.6-1.8:1, which is what a real board does. The rim is a turn of the surface, not a
+  separator, and cutting it deeper walks it *toward* the wood: `RIM` is within 1.21:1 of
+  kaya, measured over every set.
 - **Review mode brings its own room.** `Review.jsx` sets the Kifu tokens on its own root and
   `.review-room` paints the ground they need, so a finished game is read on the printed page
-  whichever room it was played in, and the chrome around it does not move.
+  whichever room it was played in, and the chrome around it does not move. It opens the way
+  a kifu is printed: move numbers on wherever the board actually drawn clears the 12px type
+  floor (measured with a `ResizeObserver`, so a rotation re-answers it), and `.here-ring`
+  marks the move you are standing on, because a numbered stone has no room for the dot.
 - The type scale floor is 12px. Nothing below that carries meaning at arm's length, and the
   wordmark is display-sized: it is the brand, not a card heading.
 - Type is the one themed part. A pairing (display face, italic voice, body face) is data in

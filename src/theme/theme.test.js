@@ -5,7 +5,7 @@ import {
   migrateThemeId,
 } from "./index.js";
 import { TOKEN_NAMES, TONE_KEYS, REQUIRED_TONES, READING } from "./tokens.js";
-import { completeTones, deriveLights, deriveAccentInk } from "./derive.js";
+import { completeTones, deriveLights, deriveAccentInk, boardFor } from "./derive.js";
 import { stonesOf, cutBlack, cutWhite } from "./stones.js";
 import { contrast, isHex, luminance } from "./color.js";
 
@@ -62,15 +62,46 @@ describe("the named rooms", () => {
   });
 
   // The board is an object, not a surface of the page: one slab of wood, the
-  // same in all three rooms, and never the ground. A room that drew its own
-  // board out of its own ground moved the goban every time the light changed.
-  it("plays every room on the one board, which is never the page", () => {
-    for (const p of PALETTES) {
+  // same in every room that has a board, and never the ground. A room that drew
+  // its own board out of its own ground moved the goban every time the light
+  // changed. The printed room is the exception that proves it: a kifu has no
+  // board, so its diagram is drawn on its own page.
+  it("plays every table room on the one board, which is never the page", () => {
+    for (const p of PALETTES.filter(p => !p.print)) {
       const vars = themeVars(p.id);
       expect(vars["--board"], `${p.id} board`).toBe(BOARD);
       expect(vars["--board"], `${p.id} board is not its page`).not.toBe(vars["--ground"]);
+      expect(vars["--grid-alpha"], `${p.id} draws its grid quiet on the wood`).not.toBe("1");
     }
     expect(themeVars(DOJO_THEME, MINE)["--board"], "a room built in the dojo plays on it too").toBe(BOARD);
+  });
+
+  it("prints the review room on its page, in a hairline of its ink", () => {
+    const kifu = PALETTES.find(p => p.id === REVIEW_THEME);
+    expect(kifu.print, "review is the printed room").toBe(true);
+    const vars = themeVars(REVIEW_THEME);
+    expect(vars["--board"]).toBe(vars["--ground"]);
+    expect(vars["--grid"]).toBe(vars["--ink"]);
+    expect(vars["--grid-alpha"]).toBe("1");
+    expect(PALETTES.filter(p => p.print).map(p => p.id), "and it is the only one").toEqual([REVIEW_THEME]);
+  });
+
+  /* The mark arrives as a colour, not only as three numbers to build one from.
+     A custom property resolves where it is declared, so a single
+     `--accent: rgb(var(--accent-rgb))` in the stylesheet is the ROOT's accent
+     everywhere it is read, including on a plate or a review sheet carrying its
+     own tokens. That is how every room's plate on the look page came to wear
+     one mark: the plate set --accent-rgb and nothing read it. */
+  it("hands every room its mark as a colour of its own", () => {
+    const seen = new Set();
+    for (const p of PALETTES) {
+      const vars = themeVars(p.id);
+      expect(vars["--accent"], p.id).toBe(`rgb(${vars["--accent-rgb"]})`);
+      seen.add(vars["--accent"]);
+    }
+    expect(seen.size, "and no two rooms are marked the same").toBe(PALETTES.length);
+    expect(themeVars(DOJO_THEME, MINE)["--accent"], "a built room too")
+      .toBe(`rgb(${themeVars(DOJO_THEME, MINE)["--accent-rgb"]})`);
   });
 
   it("gives a dark room a stronger focus ring than a light one", () => {
@@ -244,8 +275,10 @@ describe("derivation", () => {
   // subject of stones.test.js: there is a drawer of sets to hold to it now
   // rather than one pair. What belongs here is that every room hands the board
   // a set to be played with.
-  it("draws every room with the set that room names", () => {
-    for (const p of PALETTES) {
+  it("draws every table room with the set that room names", () => {
+    // The printed room names a set for its plate and prints in ink regardless;
+    // stones.test.js holds that side.
+    for (const p of PALETTES.filter(p => !p.print)) {
       const set = stonesOf(p.stones);
       expect(themeVars(p.id)["--stone-b-2"], p.id).toBe(cutBlack(set.b)[1]);
       expect(themeVars(p.id)["--stone-w-2"], p.id).toBe(cutWhite(set.w)[1]);
@@ -330,5 +363,40 @@ describe("the mark, taken to reading contrast", () => {
   it("is a real colour, and one the stylesheet is allowed to ask for", () => {
     expect(TOKEN_NAMES).toContain("--accent-ink");
     for (const p of PALETTES) expect(isHex(themeVars(p.id)["--accent-ink"]), p.id).toBe(true);
+  });
+});
+
+/* ----------------------- THE PRINTED ROOM -----------------------
+   Kifu is the one room without a board. The flag is `print`; derive.js reads
+   it and answers with the page wherever a table room would answer with the
+   wood, and the audit measures the black stone against that page. */
+describe("the printed room", () => {
+  const named = (id) => PALETTES.find(p => p.id === id);
+
+  it("carries print as a flag, false unless a room says so", () => {
+    expect(completeTones(named("tatami")).print).toBe(false);
+    expect(completeTones(named(REVIEW_THEME)).print).toBe(true);
+    expect(completeTones({ ...MINE, print: "yes" }).print, "a flag, not whatever was stored").toBe(true);
+  });
+
+  it("answers the wood for a table and the page for a print, from one place", () => {
+    expect(boardFor(completeTones(named("tatami")))).toBe(BOARD);
+    const print = completeTones(named(REVIEW_THEME));
+    expect(boardFor(print)).toBe(print.ground);
+    expect(boardFor(completeTones({ ...MINE, print: true })), "a room built in the dojo may be printed too").toBe(MINE.ground);
+  });
+
+  it("measures the black stone against the page there, and the stone is the ink", () => {
+    const kifu = named(REVIEW_THEME);
+    const row = auditPalette(kifu).find(r => r.id === "board-b");
+    expect(row.ratio).toBeCloseTo(contrast(kifu.ink, kifu.ground), 6);
+    expect(row.pass).toBe(true);
+  });
+
+  it("plays both table rooms with the one pair the game screen was drawn with", () => {
+    const table = PALETTES.filter(p => !p.print).map(p => p.stones);
+    expect(table.length, "a morning table and a night one").toBe(2);
+    expect(new Set(table).size, "the same set on both").toBe(1);
+    expect(table[0]).toBe("ebony");
   });
 });

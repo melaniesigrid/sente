@@ -86,8 +86,17 @@ export function isStoneId(id) {
  *  is what keeps a white stone from going grey at its edge. */
 const RIM = "#b9a98a";
 
-/** One core colour -> the three stops the board's gradient wants: the lit
- *  crown, the body, the rim. The constants are read off the drawn house stones
- *  and then applied to every set, so a new set is two colours and nothing else. */
-export const cutBlack = (core) => [lighten(core, 0.17), core, darken(core, 0.22)];
+/** One core colour -> the three stops a stone is drawn from: the lit crown,
+ *  the body, the rim. The constants are read off the drawn stones and then
+ *  applied to every set, so a new set is two colours and nothing else. The
+ *  black crown is the body a quarter of the way to white, which is the exact
+ *  highlight the game screen was drawn with (2026-09-15): the board paints it
+ *  as one hard, bright disc on the stone's left shoulder, and the big figures
+ *  fade from it. */
+export const cutBlack = (core) => [lighten(core, 0.25), core, darken(core, 0.22)];
+/* The rim is a turn of the surface, not a separator, and it cannot become one:
+   RIM is within 1.21:1 of the wood, so cutting the rim deeper walks it toward
+   the board rather than away from it (measured, every set: a third of the way
+   gives 1.31-1.40:1 on kaya, half gives 1.15-1.21:1). What holds a white stone
+   off the wood is its body, at 1.6-1.8:1, which is what a real board does. */
 export const cutWhite = (core) => [lighten(core, 0.72), core, mix(core, RIM, 0.35)];

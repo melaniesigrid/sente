@@ -47,9 +47,10 @@ ${FONT_FACES}
   --scrim: rgba(237,230,216,.76);
   --board: #d9b77a;
   --grid: var(--ink);
+  --grid-alpha: .38;
   --hairline: rgba(var(--sh-ink),.14);
   --belt-edge: rgba(var(--sh-ink),.42);
-  --stone-b-1: #6a655d; --stone-b-2: #4b463c; --stone-b-3: #3b372f;
+  --stone-b-1: #78746d; --stone-b-2: #4b463c; --stone-b-3: #3b372f;
   --stone-w-1: #fbfaf7; --stone-w-2: #f2ede3; --stone-w-3: #ded5c4;
   --font-display: 'Fraunces', serif;
   --font-display-italic: 'Fraunces', serif;
@@ -512,10 +513,15 @@ ${FONT_FACES}
    basis floored the well at 520px tall while a phone drew the board 334px wide:
    174px of dead ground under the grid. The basis is only ever written against
    the row. */
-/* The well is the only surface in the app that is not the page. --board is the
-   wood: one colour, the same in all three rooms, never the page's own. A goban
-   is an object, and an object does not change colour when the light does. */
-.board-well { border-radius: var(--r); box-shadow: var(--sink); padding: clamp(12px, 1.8vw, 22px); min-width: 0; background: var(--board); }
+/* The board is an object on the table, so it is raised, the way every drawn
+   direction of the game screen had it: a card of the page's own colour lifted
+   by the house pair, with the wood set into it. --board is the wood, one
+   colour in every room that has a board and never the page's own; in the
+   printed room it is the page, and the card is simply the sheet the diagram is
+   on. A goban is an object, and an object does not change colour when the light
+   does. */
+.board-well { border-radius: var(--r); box-shadow: var(--raise); padding: clamp(12px, 1.8vw, 22px); min-width: 0; background: var(--ground); }
+.wood { fill: var(--board); }
 .play-wrap > .board-well { flex: 2 1 520px; }
 .side { flex: 1 1 300px; min-width: 260px; max-width: 420px; }
 /* The board is a diagram, not a paragraph, and it does not mirror. Its geometry
@@ -525,11 +531,15 @@ ${FONT_FACES}
    Tel Aviv as in Tokyo, so the board says ltr once, here, and the rest of the
    app is free to turn around it. */
 .goban { width: 100%; height: auto; display: block; direction: ltr; }
-.grid-line { stroke: var(--grid); stroke-opacity: .38; stroke-width: 1.1; }
+/* The grid is drawn quiet on wood and at full strength on a printed page, and
+   the room says which (--grid-alpha, derive.js): a hairline in ink is what a
+   kifu is made of, and the same line on kaya would shout under the stones. */
+.grid-line { stroke: var(--grid); stroke-opacity: var(--grid-alpha); stroke-width: 1.1; }
 /* A star point is a fat full stop on the grid and is drawn in the grid's own
    colour. It used to take the ink, which is the same thing on paper and the
-   opposite of it in a dark room, where the ink is near white. */
-.star-pt { fill: var(--grid); fill-opacity: .55; }
+   opposite of it in a dark room, where the ink is near white. A step above the
+   lines, and clamped to solid on the printed page. */
+.star-pt { fill: var(--grid); fill-opacity: calc(var(--grid-alpha) * 1.45); }
 .ghost { fill: var(--accent); opacity: .28; }
 .mark-ring { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 4 4; opacity: .85; }
 /* The ring a chat line puts on a point. Wider than a stone rather than inside
@@ -544,8 +554,15 @@ ${FONT_FACES}
 .staged-ring { fill: none; stroke: var(--accent); stroke-width: 2.6; stroke-dasharray: 5 5; opacity: .95;
   animation: staged-breathe 1.8s ease-in-out infinite; }
 @keyframes staged-breathe { 50% { opacity: .4; } }
-.stone-b { filter: drop-shadow(2.5px 2.5px 3px rgba(var(--sh-ink),.45)) drop-shadow(-1.5px -1.5px 2px rgba(var(--sh-lite),.5)); }
-.stone-w { filter: drop-shadow(2.5px 2.5px 3px rgba(var(--sh-ink),.35)) drop-shadow(-1.5px -1.5px 2px rgba(var(--sh-lite),.9)); }
+/* The stones, as the game screen was drawn: flat discs of the set's body, the
+   black one with one shine (components/Board.jsx draws it off --stone-b-1),
+   the white one held off the wood by its rim rather than by a shadow. Nothing
+   casts a shadow here: the board is the raised thing, and the stones lie on
+   it. On a printed page the rim is the ink, which is what an outlined white
+   stone in a book is. */
+.stone-b { fill: var(--stone-b-2); }
+.stone-w { fill: var(--stone-w-2); stroke: var(--stone-w-3); stroke-width: 1.1; }
+.stone-gloss { fill: var(--stone-b-1); pointer-events: none; }
 .stone-in { animation: pop .22s ease; transform-origin: center; transform-box: fill-box; }
 @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
@@ -640,6 +657,10 @@ ${FONT_FACES}
    skipped by colLabel, as every go book does. */
 .coord text { font-size: 16px; font-variant-numeric: tabular-nums; fill: var(--ink-2); pointer-events: none; }
 .last-ring { fill: none; stroke: var(--danger); stroke-width: 2.5; opacity: .85; }
+/* The move you are standing on, when every stone carries its number and the
+   dot has nowhere to go: a ring outside the stone in the mark colour, which on
+   the printed page is the terracotta the room promises. */
+.here-ring { fill: none; stroke: var(--accent); stroke-width: 2.4; opacity: .9; pointer-events: none; }
 /* Welcome. Shown once, so it gets room: a wide hero, one decision per screen, and
    pips that say how much is left rather than leaving a newcomer guessing. */
 .welcome { max-width: 860px; }
@@ -661,8 +682,15 @@ ${FONT_FACES}
   background: var(--ground); color: var(--ink);
   border-radius: var(--r); box-shadow: var(--raise);
   padding: clamp(18px, 2.6vw, 34px);
-  margin-inline: clamp(-20px, -1.6vw, 0px);
+  margin-inline: clamp(-60px, -4vw, 0px);
 }
+/* The diagram is the content on this screen, not one column of two, so it
+   takes a larger share of the row than it does at a table. A printed record
+   carries its move numbers, and a move number is 16px in the board's own
+   units: at the table's two-to-one split a nineteen-line board lands around
+   636px, which prints them at 11.8px, under the floor. The basis is a width
+   here because .play-wrap is a row; in a column stack it would be a height. */
+.review-room .board-col { flex: 3 1 560px; }
 .review-refused { margin: 0; font-size: 14px; color: var(--danger-ink); text-align: center; }
 .review-result { color: var(--ink-2); font-family: var(--font-display); font-weight: var(--w-display); font-size: 16px; }
 .review-controls { justify-content: center; gap: 6px; flex-wrap: wrap; }
@@ -676,8 +704,10 @@ ${FONT_FACES}
 
 /* The win rate graph. The curve is the border between Black's share of the box and
    White's, so the two stone colours carry the whole reading and nothing needs a
-   legend. The hairline along it is the room's own ground, which is the one colour
-   that stands out against both stones in every palette. */
+   legend. The hairline along it is the quiet ink, which is the one tone that
+   stands out against both stones in every room -- including the printed one,
+   where White's share is the page itself and the room's ground would paint
+   nothing at all. */
 .review-analysis { width: 100%; }
 /* The same graph at the table, in the side column, once a game is over. Shorter
    than in review, where it is the instrument; here it is the summary beside the
@@ -689,9 +719,15 @@ ${FONT_FACES}
 .wingraph svg { display: block; width: 100%; height: 132px; border-radius: calc(var(--r) - 10px); touch-action: none; cursor: pointer; }
 .wingraph-white { fill: var(--stone-w-2); }
 .wingraph-black { fill: var(--stone-b-2); }
-.wingraph-unknown { fill: var(--ground); }
+/* The part of the game the network has not reached yet. It has to be neither
+   stone in every room, which is a harder ask than it sounds: the page is
+   White's own colour on the printed sheet, and the shadow tone is within
+   1.12:1 of the black stone in the dark room. The quiet ink is the one tone
+   that clears both stones in all three (measured: 3.1-4.6:1 against white,
+   3.3-4.9:1 against black). */
+.wingraph-unknown { fill: var(--ink-3); }
 .wingraph-even { stroke: var(--grid); stroke-opacity: .5; stroke-width: 1; stroke-dasharray: 4 6; }
-.wingraph-line { fill: none; stroke: var(--ground); stroke-width: 2; stroke-linejoin: round; }
+.wingraph-line { fill: none; stroke: var(--ink-3); stroke-width: 2; stroke-linejoin: round; }
 .wingraph-turn { stroke: var(--danger); stroke-width: 1.5; stroke-dasharray: 3 4; }
 .wingraph-cursor { stroke: var(--accent); stroke-width: 2; }
 .wingraph-ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-2); padding: 4px 2px 0; }
@@ -706,8 +742,11 @@ ${FONT_FACES}
 .turn-chip.on { box-shadow: var(--sink-sm); }
 .turn-cost { color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .stone-num { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; pointer-events: none; }
-.stone-num.on-b { fill: var(--light); }
-.stone-num.on-w { fill: var(--ink); }
+/* A number on a black stone is written in the white stone's colour and the
+   other way round: the two stones are the one pair held 4.5:1 apart in every
+   room, and on the printed page that is ink on paper and paper on ink. */
+.stone-num.on-b { fill: var(--stone-w-2); }
+.stone-num.on-w { fill: var(--stone-b-2); }
 .masters-head { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
 .masters-title { display: flex; align-items: center; gap: 7px; margin: 0; font-family: var(--font-display); font-weight: var(--w-display); font-size: 18px; }
 .masters-head .fine { max-width: 70ch; }
@@ -1181,7 +1220,10 @@ ${FONT_FACES}
    nearly identical near-whites in a dark room, where the ink is light. The
    stones are the only pair guaranteed to be 4.5:1 apart in every room. */
 .terr-b { fill: var(--stone-b-2); }
-.terr-w { fill: var(--stone-w-2); stroke: var(--stone-b-3); stroke-opacity: .35; stroke-width: 1; }
+/* White's mark is outlined in the black stone's rim, and the outline carries
+   it: on the printed page the white stone is the paper, so without an edge
+   White's territory would be invisible while Black's is solid ink. */
+.terr-w { fill: var(--stone-w-2); stroke: var(--stone-b-3); stroke-opacity: .55; stroke-width: 1.2; }
 @keyframes fade-in { from { opacity: 0; } }
 .stone-dead { opacity: .4; }
 .dead-x { fill: none; stroke-width: 2.4; stroke-linecap: round; }
@@ -1488,10 +1530,11 @@ ${FONT_FACES}
    --sh-lite, the same light every raised card is lit by. Nothing is named here
    that is not a token, and a change of set in the look page changes this too.
 
-   The house drop-shadows come off for Decor's reason: a 3px blur under a 300px
-   stone is a smear. What replaces the relief is the shine, which is what a
-   polished stone that size actually has on it -- a highlight where the surface
-   faces the light and a lit rim where it turns away. */
+   No stone casts a shadow any more, on the board or here. What a stone this
+   size has instead of relief is the shine, which is what a polished stone
+   that size actually has on it -- a highlight where the surface faces the
+   light and a lit rim where it turns away; the board's stones carry one hard
+   highlight for the same reason at a fortieth of the size. */
 /* --fig-lead is the beat the lines get to themselves before the first stone
    lands. Every delay on this block is measured from it, so the whole sequence
    -- rules, stones, rings, captures -- moves together if it is ever retimed. */
@@ -1728,8 +1771,10 @@ ${FONT_FACES}
 .theme-btn.active { box-shadow: var(--sink-sm), 0 0 0 2px var(--accent-ring); transform: none; }
 .theme-plate { width: 100%; height: 50px; border-radius: 12px; box-shadow: var(--sink-sm); display: flex; align-items: center; gap: 8px; padding: 0 12px; }
 .theme-stone { width: 17px; height: 17px; border-radius: 50%; flex: none; }
-.theme-stone.b { background: radial-gradient(circle at 36% 34%, var(--stone-b-1), var(--stone-b-2) 55%, var(--stone-b-3)); box-shadow: 2px 2px 4px rgba(var(--sh-ink),.45), -1px -1px 2px rgba(var(--sh-lite),.5); }
-.theme-stone.w { background: radial-gradient(circle at 36% 34%, var(--stone-w-1), var(--stone-w-2) 60%, var(--stone-w-3)); box-shadow: 2px 2px 4px rgba(var(--sh-ink),.35), -1px -1px 2px rgba(var(--sh-lite),.9); }
+/* The plates draw the stone the board draws: a flat body, one shine on the
+   black, a rim on the white, no cast shadow. */
+.theme-stone.b { background: radial-gradient(circle at 35% 35%, var(--stone-b-1) 30%, transparent 31%), var(--stone-b-2); }
+.theme-stone.w { background: var(--stone-w-2); box-shadow: inset 0 0 0 1px var(--stone-w-3); }
 .theme-mark { width: 11px; height: 11px; border-radius: 50%; background: var(--accent); margin-inline-start: auto; flex: none; }
 .theme-meta { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding-inline-start: 2px; }
 .theme-title { font-family: var(--font-display); font-weight: var(--w-display-strong); font-size: 16px; line-height: 1.1; }
@@ -2470,7 +2515,10 @@ ${FONT_FACES}
 .table-row svg { color: var(--accent-ink); opacity: .8; }
 .dot-live { background: var(--accent); }
 .dot-done { background: var(--dark); }
-.board-placeholder { aspect-ratio: 1; width: 100%; border-radius: 18px; box-shadow: var(--sink); opacity: .5; }
+/* The board before it arrives. Raised and faint, because it is standing in
+   for a raised thing: sunk, it dropped a hole in the page that a card then
+   jumped out of when the game started. */
+.board-placeholder { aspect-ratio: 1; width: 100%; border-radius: 18px; box-shadow: var(--raise); opacity: .5; }
 .bubble-who { color: var(--ink-2); font-weight: 700; font-size: 13px; }
 .chip-btn { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 4px; border: 0; background: transparent; color: var(--accent-ink); font: 700 11.5px var(--font-body); letter-spacing: .1em; text-transform: uppercase; cursor: pointer; padding: 4px 6px; border-radius: 8px; }
 .chip-btn:hover { box-shadow: var(--sink-sm); }
@@ -2541,6 +2589,11 @@ ${FONT_FACES}
 .lp-hero-copy { flex: 1 1 420px; max-width: 620px; min-width: 0; }
 .lp-hero-board { flex: 0 1 420px; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 16px; }
 .lp-board-well { border-radius: var(--r); box-shadow: var(--sink); padding: clamp(14px, 2vw, 24px); width: 100%; background: var(--ground); }
+/* One frame per board. The landing sets its board into a well of its own, and
+   the board's own well is raised, so left alone the front door showed a card
+   lifted out of a recess it was cut into. The outer frame wins here: it is the
+   one that belongs to the page's composition. */
+.lp-board-well .board-well { box-shadow: none; padding: 0; }
 .lp-board-note { color: var(--ink-2); margin: 0; font-family: var(--font-caption); font-style: var(--caption-style); font-size: 13px; text-align: center; }
 
 /* The stat chips are sunken, so they read as facts stamped into the ground
@@ -2946,8 +2999,7 @@ ${FONT_FACES}
 
 /* ---- the marks, at the size of a section ----
    The brand marks run large and bleed off the band they sit in. They are flat
-   here: the house drop-shadows on a stone are a 3px blur, which at 400px is a
-   smudge, so the raise comes off and what is left is the shape. Kept faint
+   here, as every stone is now: no cast shadow, only the shape. Kept faint
    enough that body text never has to compete with it, and the section clips
    them, so a mark ends at the margin like a stamp rather than trailing off. */
 .lp-decor { position: absolute; z-index: 0; pointer-events: none; opacity: .115; }
