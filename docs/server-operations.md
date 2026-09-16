@@ -303,6 +303,8 @@ does.
 PATCH  /api/me/profile      bearer {bio, facts}   what the card says
 PUT    /api/me/avatar       bearer, image body    the picture, at most 64 KB
 DELETE /api/me/avatar       bearer
+GET    /api/me/progress     bearer                what you have done, kept on the account: {data, at}
+PUT    /api/me/progress     bearer {data, at}     merged with what is stored (never written over), and returned
 GET    /api/players/:id                           a public profile
 GET    /api/players/:id/avatar                    the picture
 ```

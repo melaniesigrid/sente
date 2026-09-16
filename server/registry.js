@@ -49,6 +49,7 @@ import { fillRengoTable, rengoProgress, teamOf } from "./seating.js";
 import { cleanKey, publicPlayer, hasPlayed, reseeded } from "./players.js";
 import { cleanEmail, cleanKey as cleanDerivedKey, privateFields, KDF } from "./accounts.js";
 import { cleanBio, cleanFacts, avatarProblem, profileOf } from "./profile.js";
+import { cleanProgress, mergeProgress, progressBytes, PROGRESS_MAX_BYTES } from "../src/store/progress.js";
 import { readBook, standing, ask, accept, forget, forgetting, everyoneWhoKnows,
   ASK_LIMIT, ASK_WINDOW_MS } from "./friends.js";
 import { cleanShowOnline, whoIsHere } from "./presence.js";
@@ -799,7 +800,7 @@ export class Registry extends DurableObject {
     await this.#forgetPost(id);
     const sessions = (p.sessions ?? [p.tokenHash]).filter(Boolean).map(h => `tok:${h}`);
     await this.ctx.storage.delete([
-      `player:${id}`, `tok:${p.tokenHash}`, ...sessions, `games:${id}`, `seek:${id}`, `avatar:${id}`,
+      `player:${id}`, `tok:${p.tokenHash}`, ...sessions, `games:${id}`, `seek:${id}`, `avatar:${id}`, `progress:${id}`,
       `friends:${id}`,
       // Out of the directory in the same breath. Leaving says nothing is left
       // behind, and a row here is a handle that still answers a search.
@@ -883,6 +884,32 @@ export class Registry extends DurableObject {
 
   async avatar(id) {
     return (await this.ctx.storage.get(`avatar:${id}`)) ?? null;
+  }
+
+  /* ----- progress -----
+     What a signed-in player has done, kept under `progress:<id>` so that
+     signing in elsewhere finds it. Apart from the player record for the same
+     reason the picture is: the ladder lists every player, and a recall
+     schedule is not something to drag through that. The document is merged
+     with what is stored, never written over it: two devices that both did
+     things while apart each hand in their own, and the shared merge in
+     src/store/progress.js joins them the same way the browser would. */
+  async progress(id) {
+    return (await this.ctx.storage.get(`progress:${id}`)) ?? { data: {}, at: 0 };
+  }
+
+  async setProgress(id, body) {
+    const p = await this.ctx.storage.get(`player:${id}`);
+    if (!p) throw new Error("no-player");
+    const data = cleanProgress(body?.data);
+    if (!data) throw new Error("bad-progress");
+    // A clock ahead of ours would win every merge for ever; a minute is as far ahead as it may claim.
+    const at = Number.isFinite(body?.at) && body.at >= 0 ? Math.min(body.at, Date.now() + 60_000) : Date.now();
+    const stored = await this.ctx.storage.get(`progress:${id}`);
+    const next = stored ? mergeProgress(stored, { data, at }) : { data, at };
+    if (progressBytes(next) > PROGRESS_MAX_BYTES) throw new Error("progress-too-big");
+    await this.ctx.storage.put(`progress:${id}`, next);
+    return next;
   }
 
   /** A stranger's view of a player: the ladder's row, what they chose to say,

@@ -60,6 +60,11 @@ lessons), and the middle game everywhere. Life and death below 15k was on this l
 - [x] Finished games now start their win-rate walk at once (2026-09-15). The result card and
       review both mount `useAnalysis` in auto mode once a game is ended, so the graph begins
       filling without a click and keeps its partial cache when you open review mid-walk.
+- [x] Progress lives on the account (2026-09-15). A signed-in player's record of what they have
+      done (`src/store/progress.js` names the fields) is sent to `PUT /api/me/progress` a moment
+      after every save and pulled when the app opens and when somebody signs in. The server
+      merges rather than overwrites, with the same pure function the browser uses, so two devices
+      used apart lose nothing. Preferences stay on the device. The privacy notice says so.
 
 ## Phase 0: Foundation (done)
 

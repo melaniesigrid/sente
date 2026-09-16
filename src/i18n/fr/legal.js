@@ -27,7 +27,7 @@ export const legalDoc = {
       1: {
         heading: "Jouer sans compte",
         paras: {
-          0: "Les leçons, les tsumego, les joueurs de la maison et ton rang fonctionnent tous dans ton navigateur et n'ont besoin d'aucun compte. Rien de ce que tu y fais n'est envoyé nulle part. Tout ce qui suit au sujet des comptes ne s'applique qu'à partir du moment où tu choisis de jouer contre des personnes en ligne.",
+          0: "Les leçons, les tsumego, les joueurs de la maison et ton rang fonctionnent tous dans ton navigateur et n'ont besoin d'aucun compte. Rien de ce que tu y fais n'est envoyé nulle part. Tout ce qui suit au sujet des comptes ne s'applique qu'à partir du moment où tu choisis de jouer contre des personnes en ligne. Une exception, que tu choisis : si tu te connectes à un compte, ta progression (le dernier point sous le serveur, plus bas) y est gardée aussi, pour qu'un autre appareil où tu te connectes la retrouve.",
         },
       },
       2: {
@@ -138,6 +138,7 @@ export const legalDoc = {
           9: "Les parties que tu as choisi de montrer sur ta page, trois au plus, chacune avec une ligne de 140 caractères au plus que tu as écrite. Les deux sont publiques, parce que la page l'est. Retirer une partie de ta page emporte la ligne avec elle.",
           10: "Laquelle des trois réponses tu as donnée à la question de qui peut voir que tu es là : personne, tes amis, ou n'importe qui. Un mot sur ton dossier, et pas sur le classement, pour que lire le classement ne puisse pas te dire qui a choisi d'être invisible.",
           11: "L'adresse depuis laquelle tu t'es inscrit, gardée pour que partir rende le compte que cela a dépensé, montrée à personne, et supprimée avec le compte.",
+          17: "Ta progression, dès que tu te connectes avec une adresse : les leçons, problèmes et exercices que tu as terminés, ton calendrier de révision, les jours où tu as pratiqué et les séries qu'ils forment, tes bilans de kata et de duel, et ton classement sur l'échelle de la maison. Elle est envoyée quand elle change et lue quand tu te connectes sur un autre appareil, et les deux sont fusionnées, jamais l'une écrite par-dessus l'autre. Un pseudonyme sans adresse n'en envoie rien. Partir l'efface.",
         },
       },
       3: {
