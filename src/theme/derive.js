@@ -16,8 +16,8 @@
    happens to a stone once a room has one is here, because it depends on the
    room: a black stone has to be seated further into a dark board or it reads as
    grey slate lying on top of the wood. */
-import { mix, lighten, darken, toTriple, isDarkColor, luminance, contrast } from "./color.js";
-import { TONES, READING, LARGE } from "./tokens.js";
+import { mix, lighten, darken, toTriple, isDarkColor, contrast } from "./color.js";
+import { TONES, READING, LARGE, BOARD } from "./tokens.js";
 import { stonesOf, cutBlack, cutWhite, HOUSE_STONES } from "./stones.js";
 
 /** The two lights, from the ground alone.
@@ -134,7 +134,7 @@ export function tokensFor(tones) {
   // from the top left, so it is still raised, but it has nowhere left to go.
   const [dp, blurp] = dark ? [3, 9] : [2, 6];
   const { b, w } = stonesFor(t);
-  const board = deriveBoard(t.ground, t.cream, b[1], w[1]);
+  const board = deriveBoard();
 
   return {
     "--ground": t.ground,
@@ -212,36 +212,23 @@ export function stonesFor(tones) {
   return { b: cutBlack(set.b), w: cutWhite(set.w), set };
 }
 
-/** The surface the stones are played on, which is not always the page.
+/** The surface the stones are played on, which is not the page.
  *
- *  On paper the board is the paper: a pale ground already is a goban, a black
- *  stone reads on it at 7:1 or better, and the shell stone is separated by its
- *  rim the way it is on real kaya. Nothing to invent, so nothing is: this
- *  returns the ground untouched and every light room is exactly as drawn.
+ *  This used to be a derivation and the derivation is gone. A light room played
+ *  on its own paper; a dark room had a board computed out of its ground so that
+ *  both stones could be found on it; and the result was a board that changed
+ *  colour every time the page did. A goban does not do that. It is one slab of
+ *  kaya in the morning, at midnight, and in the book the game is printed in,
+ *  which is what the design pass on 2026-09-15 said out loud: the page is
+ *  themed, the board is not.
  *
- *  A dark room has no board at all, and that was the bug. The page is near
- *  black because a dark room should be; a board that is also near black leaves
- *  the black stone at about 1.2:1 on it while the white one sits at 14:1, so
- *  one colour hides and the other shouts. Both complaints have the same cause
- *  and the same cure: give the dark room an actual board, lifted off its page.
+ *  So the board is a constant (BOARD, in palettes.js) and what still varies is
+ *  only what a room writes on it: the grid, the star points, the marks. Both
+ *  stones are held against this one wood by BOARD_RULES, over every room and
+ *  every set at once.
  *
- *  Where to stop lifting is not a taste call. The board is carried toward the
- *  room's own shell until it sits at the geometric mean of the two stones,
- *  which is the one point where both read against it equally — each at the
- *  square root of the contrast between them, so the stone rule is what pays for
- *  this one. It comes out near 3:1 a side for every set in the drawer, and the
- *  page stays as dark as it was: only the board moved. */
-export function deriveBoard(ground, cream, b, w) {
-  if (!isDarkColor(ground)) return ground;
-  const want = Math.sqrt((luminance(w) + 0.05) * (luminance(b) + 0.05)) - 0.05;
-  let lo = 0, hi = 1;
-  for (let i = 0; i < 20; i++) {
-    const mid = (lo + hi) / 2;
-    if (luminance(mix(ground, cream, mid)) < want) lo = mid; else hi = mid;
-  }
-  return mix(ground, cream, lo);
+ *  It stays a function, and it stays the only way to ask, so that a palette
+ *  built in the dojo plays on the same board as a named room. */
+export function deriveBoard() {
+  return BOARD;
 }
-
-/** True where the room had to invent a board rather than play on its own paper.
- *  The two-sided board rule only binds here; see BOARD_RULES. */
-export const boardIsDerived = (ground) => isDarkColor(ground);

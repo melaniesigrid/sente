@@ -191,8 +191,8 @@ each fixed in its own commit:
       landing's heading are one rule; card padding, stack gaps and the type scale all
       moved up a step; a screen arrives a beat at a time (`.arrives`). At the table the
       board takes two thirds of the width instead of splitting it with a panel that is
-      mostly empty. All ten rooms and eight pairings still hold: nothing names a colour
-      or a family.
+      mostly empty. Every room and every pairing still holds: nothing names a colour
+      or a family. (Ten rooms at the time; three since 2026-09-15, below.)
 - [x] A front door (2026-09-10, branch `feat/landing-page`): the landing is its own
       screen (`views/Landing.jsx`) and Home is the dashboard behind it. A visitor who
       has not been onboarded opens on the front door; Enter hands them to the welcome
@@ -1735,6 +1735,36 @@ Open:
 - [ ] Six of the ten marks sit in the amber band and `deriveDanger` puts every unauthored
       warning at hue ~12°. Cinnabar pushed the set warmer still. A cool light room would
       even it out.
+
+## Three rooms (done 2026-09-15, branch `feat/three-themes`)
+
+A design shotgun on the game screen drew four directions side by side and three of them
+were kept, so the ten named rooms became three: the ones somebody picked by looking.
+
+- [x] `tatami` (light), `night` (dark) and `kifu` (review) are the whole of `palettes.js`.
+      Tatami is the reference room and the fallback, `system` points at tatami and night,
+      and the seven rooms that went away are carried forward by `migrateThemeId` rather
+      than reset: a player who chose a dark room keeps a dark room, and the two rooms the
+      device used to pick (house, sumi) go back to meaning "follow the device".
+- [x] **The board stopped being themed.** `deriveBoard` was a derivation that gave a dark
+      room a plank computed out of its own ground, which meant the goban changed colour
+      every time the page did. There is one wood now, `BOARD` in `tokens.js`, in all three
+      rooms and in a room built in the dojo. A goban is an object; an object does not
+      change colour when the light does.
+- [x] The half of `BOARD_RULES` that only bound on an invented board is gone with it. One
+      board means the question is asked of a set rather than of a room, and only of the
+      black stone: shell on kaya measures about 1.6:1 and its rim is what separates it, so
+      a floor there would only describe a board nobody has played on.
+- [x] Review mode brings its own room: `Review.jsx` sets the Kifu tokens on its own root
+      and `.review-room` paints them, so a finished game is read on the printed page
+      whichever room it was played in, and the chrome around it stays where it was.
+- [x] Nine languages: three room notes each, the mood word `review`, and the picker's
+      blurb rewritten. The retired rooms' notes and the retired rule's lines are gone,
+      which `i18n.test.js` holds against the data on every run.
+
+Still open here: the coordinates and the printed move numbers that the Kifu direction was
+drawn with are still a preference and a toggle rather than something review turns on. The
+board is in the right room; what is written on it has not moved yet.
 
 ## Palettes and the dojo (done 2026-09-10, branches `feat/palette-damson`, `feat/palette-dojo`)
 

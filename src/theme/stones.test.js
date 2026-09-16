@@ -14,8 +14,8 @@ import {
 import { PALETTES, HOUSE_THEME } from "./palettes.js";
 import { auditPalette, themeVars, stoneSetOf, withStones } from "./theme.js";
 import { deriveBoard, stonesFor, completeTones } from "./derive.js";
-import { isHex, luminance, isDarkColor } from "./color.js";
-import { TOKEN_NAMES } from "./tokens.js";
+import { isHex, luminance, contrast } from "./color.js";
+import { TOKEN_NAMES, BOARD } from "./tokens.js";
 
 describe("the sets in the drawer", () => {
   it("gives every set a unique id, a name, a note and two well-formed cores", () => {
@@ -88,23 +88,21 @@ describe("every set in every room", () => {
     }
   });
 
-  // The lift is not a taste call: it stops at the geometric mean of the two
-  // stones, the one point where each reads against the wood as well as the
-  // other does. So the two sides of the rule come out equal, not merely passing.
-  it("sits a derived board evenly between the two stones", () => {
-    for (const p of PALETTES.filter(x => isDarkColor(x.ground))) {
-      for (const s of STONE_SETS) {
-        const rows = auditPalette(p, s.id);
-        const b = rows.find(r => r.id === "board-b").ratio;
-        const w = rows.find(r => r.id === "board-w").ratio;
-        expect(Math.abs(b - w), `${p.id} + ${s.id}: ${b.toFixed(2)} vs ${w.toFixed(2)}`).toBeLessThan(0.12);
-      }
+  // One wood, and every set has to be playable on it. The black stone is the
+  // half that binds: the white one is separated from kaya by its rim and its
+  // shadow, at about 1.6:1, which is what a real board does and not a failure.
+  it("plays every set on the one board, black findable and white not shouting", () => {
+    for (const s of STONE_SETS) {
+      const black = contrast(cutBlack(s.b)[1], BOARD);
+      const white = contrast(cutWhite(s.w)[1], BOARD);
+      expect(black, `${s.id}: slate on the wood`).toBeGreaterThanOrEqual(2.5);
+      expect(white, `${s.id}: shell on the wood`).toBeLessThan(black);
     }
   });
 
-  it("plays a light room on its own paper, stones exactly as cut", () => {
-    const slate = stonesOf(HOUSE_STONES);
-    expect(deriveBoard("#e8e4db", "#f2ede3", cutBlack(slate.b)[1], cutWhite(slate.w)[1])).toBe("#e8e4db");
+  it("hands every room the same board, whatever its ground", () => {
+    expect(deriveBoard()).toBe(BOARD);
+    for (const p of PALETTES) expect(themeVars(p.id)["--board"], p.id).toBe(BOARD);
   });
 
   // A stone is a rock. It is the same rock in every room, and the room is what
@@ -135,12 +133,12 @@ describe("choosing a set", () => {
   });
 
   it("lets a player's choice override the room, and auto leave it alone", () => {
-    expect(stoneSetOf("sumi").id).toBe("jade");
-    expect(stoneSetOf("sumi", null, AUTO_STONES).id).toBe("jade");
-    expect(stoneSetOf("sumi", null, "honey").id).toBe("honey");
+    expect(stoneSetOf("kifu").id).toBe("ebony");
+    expect(stoneSetOf("kifu", null, AUTO_STONES).id).toBe("ebony");
+    expect(stoneSetOf("kifu", null, "honey").id).toBe("honey");
     // Stored data is untrusted: an id nobody recognises is not a set, so the
     // room keeps its own rather than the board losing its stones.
-    expect(stoneSetOf("sumi", null, "gravel").id).toBe("jade");
+    expect(stoneSetOf("kifu", null, "gravel").id).toBe("ebony");
     expect(withStones({ ground: "#000000", stones: "jade" }, AUTO_STONES).stones).toBe("jade");
   });
 

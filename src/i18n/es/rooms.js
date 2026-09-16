@@ -82,7 +82,7 @@ export const rooms = {
     derivedEm: "· derivadas",
     derivedRole: "Las dos se calculan a partir del fondo y ninguna es una elección: una cosa realzada parece iluminada en lugar de delineada solo mientras sus dos luces se mantienen cerca del papel sobre el que se apoyan. Mueve el fondo y se mueven con él.",
     stonesHead: "Las piedras",
-    stonesNote: "Cada sala nombra el juego con el que se juega, esta incluida. Dos colores hacen un juego; la corona iluminada, el borde donde la superficie se aparta y el asiento que pide un tablero oscuro se recortan de esos dos.",
+    stonesNote: "Cada sala nombra el juego con el que se juega, esta incluida. Dos colores hacen un juego; la corona iluminada y el borde donde la superficie se aparta se recortan de esos dos, y el tablero de debajo es la misma madera en todas las salas.",
     auditHead: "Lo que dicen las reglas",
     auditMax: "máx. {n}",
     auditMin: "mín. {n}",
@@ -161,10 +161,6 @@ export const rooms = {
     "board-b": {
       label: "Pizarra sobre el tablero",
       why: "Una piedra negra tiene que poder encontrarse sobre la madera en la que se juega, no solo frente a la blanca.",
-    },
-    "board-w": {
-      label: "Concha sobre el tablero",
-      why: "La otra mitad de la misma regla, y solo donde la sala tuvo que inventarse el tablero: una piedra blanca que grita más que la madera cansa tanto como una negra que se esconde en ella. Sobre papel de verdad, a la piedra de concha la separa su borde, no su relleno.",
     },
     "close-light": { label: "Luz cerca del fondo" },
     "close-dark": { label: "Sombra cerca del fondo" },

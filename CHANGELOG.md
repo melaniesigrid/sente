@@ -6,6 +6,26 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.15.0.0 (2026-09-15)
+
+### Changed
+
+- **Three rooms, and no more.** Four directions for the game screen were drawn side by
+  side and three were kept, so the ten named rooms are now Tatami for daylight, Night for
+  the evening, and Kifu for reading a finished game. A theme you had chosen before this is
+  carried forward to the room that replaced it rather than reset: a dark room stays a dark
+  room, and the two rooms the device used to pick go back to meaning "follow the device".
+  The look page, the dojo and the stone drawer all work exactly as they did.
+- **The board is not themed any more.** It used to be computed out of each room's own
+  ground, which meant the goban changed colour every time the page did, and a dark room
+  played on a plank nobody had chosen. There is one wood now, in all three rooms and in a
+  room you build yourself. A goban is an object, and an object does not change colour when
+  the light does.
+- **Review mode brings its own room.** A finished game is read on the printed page,
+  whichever room you play in: ivory paper, near-black ink, and terracotta on the move you
+  are standing on. The record is drawn as a sheet laid on the table, so the chrome around
+  it stays where you left it.
+
 ## v0.14.0.0 (2026-09-15)
 
 ### Added
