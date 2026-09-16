@@ -239,3 +239,20 @@ export const persona = {
     },
   },
 };
+
+/* The masks a player may wear beside their name: the name and the one line,
+   overlaid on `src/content/archetypes.js` by id. The hanzi is the mask's own name
+   and stays as written. */
+export const arche = {
+  ambusher: { name: "L'embusqué", line: "Reste tapi cinquante coups, et puis tout le côté était un piège." },
+  silent: { name: "Le tueur silencieux", line: "L'épée passe sans un bruit. Tu t'en aperçois en comptant." },
+  invisible: { name: "L'invisible", line: "Ne laisse aucune trace. Chaque pierre a l'air inoffensive jusqu'à ce qu'aucune ne le soit." },
+  riddle: { name: "L'illisible", line: "Personne ne sait quel est le plan, parfois pas même le joueur." },
+  autumn: { name: "Le prédateur", line: "Le tigre en automne : patient, affamé, et déjà derrière toi." },
+  tiger: { name: "Le tigre", line: "Ni embuscade ni énigme. Droit sur le plus gros groupe du goban." },
+  roar: { name: "Le combattant", line: "Coupe tout. Croit que la paix est ce qui vient après la capture." },
+  champion: { name: "Le champion", line: "La gloire des dieux. Joue chaque partie comme si c'était la finale du titre." },
+  philosopher: { name: "Le philosophe", line: "Un ciel de pensées. Perd au temps, gagne à l'analyse." },
+  ancient: { name: "Le vieux maître", line: "Vieux comme les étoiles. Joue un coup tiré d'un livre que personne d'autre n'a lu." },
+  doomsday: { name: "Le destructeur", line: "La fin du monde. Répond aussi à Terminator et Sans Remords. N'abandonne jamais." },
+};

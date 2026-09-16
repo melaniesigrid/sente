@@ -5,20 +5,13 @@
    TYPEFACES and BELTS, because a half-translated design system is not
    something anyone should be able to ship.
 
-   The rooms keep their names. House, Kaya, Sumi and Yohen are names of things
-   in the design system, like the name on a tube of paint. */
+   The rooms keep their names. Tatami, Night and Kifu are names of things in
+   the design system, like the name on a tube of paint. */
 
 export const room = {
-  house: { note: "Papier de pierre chaud et une marque eucalyptus. Le système de design tel qu'il a été dessiné." },
-  kaya: { note: "Le bois du goban lui-même : miel pâle et une marque caramel. La plus chaude des salles claires." },
-  porcelain: { note: "Argile blanche et froide avec une marque indigo. Calme, moderne, un peu clinique." },
-  damson: { note: "Papier prune pastel sous une marque quetsche. Le crépuscule, la lampe pas encore allumée." },
-  cinnabar: { note: "Papier rosé, encre sang de bœuf et une marque rouge laque. La seule salle menée par une couleur chaude et non par un neutre." },
-  lacquer: { note: "Laque noire et feuille d'or. La salle solennelle : un goban de tournoi sous une lampe basse." },
-  graphite: { note: "Gris sombre et champagne. La même salle que Lacquer, la chaleur en moins." },
-  sumi: { note: "Lavis d'encre sur un fond presque noir, avec du céladon. House à la nuit tombée." },
-  yohen: { note: "Indigo et cuivre nés du four. La partie du soir, jouée près de la fenêtre." },
-  foxfire: { note: "Écorce mouillée et une marque chartreuse. La chose la plus vive du lot contre le fond le plus sombre." },
+  tatami: { note: "Papier de pierre chaud et une marque eucalyptus, le goban au milieu et rien d'autre qui réclame quoi que ce soit. La salle dans laquelle le système de design est dessiné." },
+  night: { note: "La même table, la lampe baissée : une page charbon, le même bois, et la pendule la chose la plus claire dessus jusqu'à ce que quelqu'un manque de temps." },
+  kifu: { note: "La partie comme registre imprimé : papier ivoire, encre presque noire, et terre cuite pour le coup où vous vous tenez. Le mode revue amène cette salle avec lui." },
 };
 
 export const stones = {

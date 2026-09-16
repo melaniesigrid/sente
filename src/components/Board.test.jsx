@@ -3,6 +3,7 @@ import { describe, it, expect, afterEach } from "vitest";
 import { render, cleanup, fireEvent, screen } from "@testing-library/react";
 import { Board } from "./Board.jsx";
 import { createBoard, withStone, pointLabel } from "../engine/index.js";
+import { boardSpan } from "./boardGeometry.js";
 
 /* ----------------------- THE STAGED STONE -----------------------
    A staged move is the one thing on this board that is drawn but has not
@@ -53,5 +54,75 @@ describe("a move staged but not yet played", () => {
     const { container } = render(<Board board={empty} />);
     expect(container.querySelector(".stone-staged")).toBeNull();
     expect(screen.getByLabelText(pointLabel(9, 2, 6))).toBeTruthy();
+  });
+});
+
+/* ----------------------- HOW A STONE IS DRAWN -----------------------
+   The board draws its stones flat (design pass, 2026-09-15): a disc of the
+   set's body, one hard shine on the black, a rim on the white, and no cast
+   shadow. The stylesheet fills them; what the DOM has to say is which discs
+   exist, where the shine sits, and that no gradient survived the change. A
+   screenshot would show all of this, and a screenshot is not run on every
+   commit. */
+describe("how a stone is drawn", () => {
+  const both = withStone(withStone(empty, 2, 2, "b"), 6, 6, "w");
+  const n = (el, a) => Number(el.getAttribute(a));
+
+  it("gives the black stone one shine and the white stone none", () => {
+    const { container } = render(<Board board={both} />);
+    expect(container.querySelectorAll(".stone-b").length).toBe(1);
+    expect(container.querySelectorAll(".stone-w").length).toBe(1);
+    expect(container.querySelectorAll(".stone-gloss").length, "one shine, on the black").toBe(1);
+    const white = container.querySelector(".stone-w").parentElement;
+    expect(white.querySelector(".stone-gloss"), "the white stone is held off the wood by its rim").toBeNull();
+  });
+
+  it("sets the shine high on the left shoulder, inside the disc", () => {
+    const { container } = render(<Board board={both} />);
+    const body = container.querySelector(".stone-b");
+    const gloss = container.querySelector(".stone-gloss");
+    expect(n(gloss, "cx")).toBeLessThan(n(body, "cx"));
+    expect(n(gloss, "cy")).toBeLessThan(n(body, "cy"));
+    const off = Math.hypot(n(body, "cx") - n(gloss, "cx"), n(body, "cy") - n(gloss, "cy"));
+    expect(off + n(gloss, "r"), "a shine that spills past the rim is a second stone").toBeLessThan(n(body, "r"));
+  });
+
+  it("paints no gradient and names no fill of its own", () => {
+    const { container } = render(<Board board={both} pending={staged} />);
+    expect(container.querySelector("defs, radialGradient"), "the gradients left with the shadows").toBeNull();
+    for (const c of container.querySelectorAll(".stone-b, .stone-w, .stone-gloss")) {
+      expect(c.getAttribute("fill"), "the colour is the room's, from the stylesheet").toBeNull();
+    }
+  });
+
+  it("draws the staged stone the same way, in either colour", () => {
+    const { container } = render(<Board board={empty} pending={staged} />);
+    expect(container.querySelectorAll(".stone-staged .stone-gloss").length).toBe(1);
+    cleanup();
+    const { container: w } = render(<Board board={empty} pending={{ ...staged, color: "w" }} />);
+    expect(w.querySelectorAll(".stone-staged .stone-w").length).toBe(1);
+    expect(w.querySelector(".stone-staged .stone-gloss")).toBeNull();
+  });
+});
+
+/* The wood is the board's, not the well's: the well is the page the board is
+   set on. So the rect is drawn first, under everything, and it is the whole
+   board even when the viewBox shows a corner of it. */
+describe("the wood", () => {
+  it("is the first thing drawn, and is the whole board", () => {
+    const { container } = render(<Board board={empty} />);
+    const svg = container.querySelector("svg.goban");
+    const wood = svg.firstElementChild;
+    expect(wood.classList.contains("wood"), "under everything").toBe(true);
+    expect(Number(wood.getAttribute("width"))).toBe(boardSpan(9));
+    expect(Number(wood.getAttribute("height"))).toBe(boardSpan(9));
+  });
+
+  it("stays the whole board when the view is cropped to a corner", () => {
+    const { container } = render(<Board board={empty} crop={{ c0: 0, r0: 0, c1: 4, r1: 4 }} />);
+    const svg = container.querySelector("svg.goban");
+    const [, , vw] = svg.getAttribute("viewBox").split(" ").map(Number);
+    expect(vw, "the view is a corner").toBeLessThan(boardSpan(9));
+    expect(Number(svg.querySelector(".wood").getAttribute("width")), "the rect is the board, not the view").toBe(boardSpan(9));
   });
 });

@@ -22,9 +22,9 @@ import { Mark } from "./Brand.jsx";
      ground and stop reading over texture. Cards carry their own --ground, so
      a mark passing behind one is simply occluded, which is the intended
      picture: the section's shape, with the content standing on top of it.
-   - It is quiet. At this scale the house drop-shadows on a stone become a
-     smear the width of a finger, so they come off, and what is left is a
-     flat shape at a low opacity. A mark this big at full strength would be a
+   - It is quiet. No stone casts a shadow anywhere now, and at this scale one
+     would be a smear the width of a finger; what is left is a flat shape at
+     a low opacity. A mark this big at full strength would be a
      logo splashed across the page, which is a different and worse design. */
 
 /** One mark, placed against a corner of its section and allowed to run off it.

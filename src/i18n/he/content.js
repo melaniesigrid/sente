@@ -255,3 +255,20 @@ export const persona = {
     },
   },
 };
+
+/* The masks a player may wear beside their name: the name and the one line,
+   overlaid on `src/content/archetypes.js` by id. The hanzi is the mask's own name
+   and stays as written. */
+export const arche = {
+  ambusher: { name: "האורב", line: "שוכב בשקט חמישים מהלכים, ואז כל הצד היה מלכודת." },
+  silent: { name: "הרוצח השקט", line: "החרב עוברת בלי קול. מבחינים בזה בספירה." },
+  invisible: { name: "הבלתי נראה", line: "לא משאיר עקבות. כל אבן נראית תמימה עד שאף אחת כבר לא." },
+  riddle: { name: "החידה", line: "איש לא יודע מה התוכנית, לפעמים גם לא השחקן." },
+  autumn: { name: "הטורף", line: "הנמר בסתיו: סבלני, רעב, וכבר מאחוריך." },
+  tiger: { name: "הנמר", line: "בלי מארב, בלי חידה. ישר אל הקבוצה הגדולה ביותר על הלוח." },
+  roar: { name: "הלוחם", line: "חותך הכול. מאמין שהשלום הוא מה שקורה אחרי הלכידה." },
+  champion: { name: "האלוף", line: "תהילת האלים. משחק כל משחק כאילו היה משחק האליפות." },
+  philosopher: { name: "הפילוסוף", line: "שמי מחשבות. מפסיד בזמן, מנצח בניתוח שאחרי." },
+  ancient: { name: "המאסטר הקדמון", line: "עתיק כמו הכוכבים. משחק מהלך מספר שאיש מלבדו לא קרא." },
+  doomsday: { name: "המשמיד", line: "יום הדין. עונה גם לטרמינייטור ולבלי חרטה. לא נכנע לעולם." },
+};

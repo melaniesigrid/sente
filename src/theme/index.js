@@ -2,8 +2,11 @@
    Views and the shell import from here and nowhere else inside src/theme, the
    same way they import the engine from src/engine/index.js.
 
-     PALETTES        the named rooms, as data
-     HOUSE_THEME     "house": the design system as drawn, and the fallback
+     PALETTES        the three rooms, as data
+     BOARD           the wood, one colour, the same in every room
+     HOUSE_THEME     "tatami": the design system as drawn, and the fallback
+     REVIEW_THEME    "kifu": the room a finished game is read in
+     migrateThemeId  a stored id from an older set of rooms -> a room that exists
      SYSTEM_THEME    "system": follow the device; a pointer, not a palette
      DOJO_THEME      "dojo": the one a player built themselves
      resolveTheme    a stored id + prefers-dark -> the id to actually draw
@@ -20,13 +23,14 @@
      stoneSetOf      an id + the player's choice -> the set the board is played with
 */
 export {
-  PALETTES, HOUSE_THEME, SYSTEM_THEME, SYSTEM_PAIR, DOJO_THEME, TONES, TONE_KEYS, REQUIRED_TONES,
+  PALETTES, HOUSE_THEME, REVIEW_THEME, SYSTEM_THEME, SYSTEM_PAIR, DOJO_THEME,
+  TONES, TONE_KEYS, REQUIRED_TONES, migrateThemeId,
   themeOf, themeVars, isDark, isThemeId, resolveTheme, sanitizePalette, paletteFrom, auditPalette,
 } from "./theme.js";
 export { contrast, luminance, grade, isHex, isDarkColor, toTriple } from "./color.js";
-export { RULES, CLOSENESS, TOKEN_NAMES, BOARD_RULES } from "./tokens.js";
-export { stoneSetOf } from "./theme.js";
-export { completeTones, tokensFor, deriveLights, deriveBoard, boardIsDerived, stonesFor } from "./derive.js";
+export { RULES, CLOSENESS, TOKEN_NAMES, BOARD_RULES, BOARD } from "./tokens.js";
+export { stoneSetOf, withStones } from "./theme.js";
+export { completeTones, tokensFor, deriveLights, deriveBoard, boardFor, stonesFor } from "./derive.js";
 export {
   STONE_SETS, AUTO_STONES, HOUSE_STONES, stonesOf, isStoneId, cutBlack, cutWhite,
 } from "./stones.js";

@@ -22,6 +22,11 @@ export const rooms = {
     sgf: "SGF",
     playAgain: "Rejouer",
     tryLine: "Joue sur le goban pour essayer une variante : elle n'est jamais enregistrée dans la partie. ",
+    with: "Vous la relisez avec {name}",
+    pointing: "Montrer un point",
+    playing: "Jouer une pierre",
+    leaveTogether: "La relire seul",
+    togetherNote: "Vous déplacez un seul goban : le coup où tu vas, la variante que tu essaies et les points que tu montres sont aussi sur son écran.",
     keys: "Les flèches avancent d'un coup, haut et bas sautent de dix, Début et Fin vont aux extrémités, et N affiche ou cache les numéros.",
     turnKeys: " Les crochets parcourent les tournants.",
     advice: {
@@ -82,7 +87,7 @@ export const rooms = {
     derivedEm: "· déduites",
     derivedRole: "Les deux se calculent à partir du fond et aucune n'est un choix : une chose en relief a l'air éclairée plutôt que détourée seulement tant que ses deux lumières restent à portée du papier sur lequel elle repose. Déplace le fond et elles se déplacent avec lui.",
     stonesHead: "Les pierres",
-    stonesNote: "Chaque salle nomme le jeu avec lequel elle se joue, celle-ci comprise. Deux couleurs font un jeu ; la couronne éclairée, le bord où la surface se dérobe et l'assise qu'exige un goban sombre se découpent dans ces deux-là.",
+    stonesNote: "Chaque salle nomme le jeu avec lequel elle se joue, celle-ci comprise. Deux couleurs font un jeu ; la couronne éclairée et le bord où la surface se dérobe se découpent dans ces deux-là, et le goban en dessous est le même bois dans toutes les salles de jeu ; la page imprimée n'a pas de goban.",
     auditHead: "Ce que disent les règles",
     auditMax: "max. {n}",
     auditMin: "min. {n}",
@@ -161,10 +166,6 @@ export const rooms = {
     "board-b": {
       label: "L'ardoise sur le goban",
       why: "Une pierre noire doit se trouver sur le bois où elle est posée, et pas seulement face à la blanche.",
-    },
-    "board-w": {
-      label: "La coquille sur le goban",
-      why: "L'autre moitié de la même règle, et seulement là où la salle a dû inventer son goban : une pierre blanche qui crie plus fort que le bois fatigue autant qu'une noire qui s'y cache. Sur du vrai papier, c'est son bord qui détache la pierre de coquille, pas son remplissage.",
     },
     "close-light": { label: "Lumière près du fond" },
     "close-dark": { label: "Ombre près du fond" },

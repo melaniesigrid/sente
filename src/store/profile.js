@@ -4,27 +4,36 @@
 import { TINTS, ratingOfRank, MIN_RATING, MAX_RATING } from "../content/rank.js";
 import { GLICKO } from "../engine/index.js";
 import { DEFAULT_TYPEFACE, typefaceOf } from "../content/typeface.js";
-import { SYSTEM_THEME, isThemeId, sanitizePalette, AUTO_STONES, isStoneId } from "../theme/index.js";
+import { NO_ARCHETYPE, isArchetypeId } from "../content/archetypes.js";
+import { SYSTEM_THEME, isThemeId, sanitizePalette, AUTO_STONES, isStoneId, migrateThemeId } from "../theme/index.js";
 import { SYSTEM_LOCALE, isLocaleId } from "../i18n/index.js";
 import { parseCardKey, sanitizeEntry } from "../content/recall.js";
 import { sanitizeChain, seedFromKata } from "../content/chain.js";
+import { queuePush } from "./sync.js";
 
 export const STORE_KEY = "sente-profile-v3";
 /** v2 held ratings on the old 100-points-per-rank scale. v3 is OGS's scale, so
  *  the number means something different and cannot simply be read across. */
 export const LEGACY_KEY = "sente-profile-v2";
+/** Sound shipped opt-in and off, and hardly anyone ever found the toggle: the
+ *  complaint was not that the board was quiet but that the server was broken.
+ *  It is on by default now, and this marker un-mutes the profiles that were
+ *  saved under the old default, exactly once. A player who mutes the table
+ *  after this has run keeps their silence, because the marker is already set. */
+export const UNMUTE_KEY = "sente-sound-on-by-default";
 
 export const defaultProfile = {
   name: "Player", tint: "eucalyptus",
+  archetype: NO_ARCHETYPE,                   // the mask beside the name, src/content/archetypes.js; "" is the plain player
   rating: Math.round(ratingOfRank("10k")),   // 10k, the seat OGS gives a new account; RD 350 finds the truth fast
   rd: GLICKO.rd,                             // rating deviation: 350 until games say otherwise
   vol: GLICKO.vol,                           // Glicko-2 volatility
   wins: 0, losses: 0, streak: 0, bestStreak: 0,
   lessonsDone: [], problemsDone: [], drillsDone: [],
   tierPassed: [],                            // library tier ids whose exit test was passed
-  sound: false,                              // stone click + haptic, opt-in
+  sound: true,                               // stone, capture and bell, plus a small haptic on phones
   onboarded: false,                          // the welcome flow has been seen or skipped
-  coordinates: false,                        // letters and numbers around the board
+  coordinates: true,                         // letters and numbers around the board; on, because a lesson that says "D4" needs a board that says D4
   dejaVu: true,                              // the board says when you have stood here before, src/store/deja.js
   sensei: false,                             // the private trainer is unlocked on this device, src/content/sensei.js
   lastMoveMark: "dot",                       // how the last stone played is marked
@@ -96,6 +105,7 @@ const validField = (key, value, raw) => {
   if (key === "lastMoveMark") return MARKS.includes(value);
   if (key === "locale") return typeof value === "string" && isLocaleId(value);
   if (key === "typeface") return typeof value === "string" && typefaceOf(value).id === value;
+  if (key === "archetype") return typeof value === "string" && isArchetypeId(value);
   if (key === "theme") return typeof value === "string" && isThemeId(value, raw && raw.dojo ? sanitizePalette(raw.dojo) : null);
   if (key === "stones") return typeof value === "string" && isStoneId(value);
   if (typeof def === "string") return typeof value === "string";
@@ -115,6 +125,16 @@ export function sanitizeProfile(raw) {
   const bad = [];
   for (const key of Object.keys(defaultProfile)) {
     if (!(key in raw)) continue;
+    /* Joseki used to ship ten rooms and now ships three, so a theme id stored
+       before that is carried forward to the room that replaced it rather than
+       failing validation and resetting somebody's preference to the default.
+       Every other field is checked as it was stored. */
+    if (key === "theme") {
+      const moved = migrateThemeId(raw[key]);
+      if (validField(key, moved, raw)) { out[key] = moved; continue; }
+      bad.push(key);
+      continue;
+    }
     if (!validField(key, raw[key], raw)) { bad.push(key); continue; }
     if (key === "dojo") out[key] = raw[key] === null ? null : sanitizePalette(raw[key]);
     else if (key === "bookProgress") out[key] = sanitizeBookProgress(raw[key]);
@@ -163,10 +183,27 @@ export function migrateLegacy(raw) {
   });
 }
 
+/** Carry a profile across the day sound stopped being opt-in. Runs once per
+ *  device: the marker is written whether or not anything changed, so a
+ *  deliberate mute made afterwards is never overwritten. Returns the profile to
+ *  use, and whether it needs saving. */
+export function restoreSound(p) {
+  try {
+    if (localStorage.getItem(UNMUTE_KEY)) return { profile: p, changed: false };
+    localStorage.setItem(UNMUTE_KEY, "1");
+    if (p.sound) return { profile: p, changed: false };
+    return { profile: { ...p, sound: true }, changed: true };
+  } catch { return { profile: p, changed: false }; }
+}
+
 export async function loadProfile() {
   try {
     const raw = localStorage.getItem(STORE_KEY);
-    if (raw) return sanitizeProfile(JSON.parse(raw));
+    if (raw) {
+      const { profile, changed } = restoreSound(sanitizeProfile(JSON.parse(raw)));
+      if (changed) await saveProfile(profile);
+      return profile;
+    }
     const legacy = localStorage.getItem(LEGACY_KEY);
     if (legacy) {
       const moved = migrateLegacy(JSON.parse(legacy));
@@ -176,8 +213,11 @@ export async function loadProfile() {
   } catch { return defaultProfile; }
 }
 
+/** Write the profile to this browser, and, when the player is signed in, send
+ *  its progress to the account a moment later (src/store/sync.js). */
 export async function saveProfile(p) {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(p)); } catch (e) { console.error("save failed", e); }
+  queuePush(p);
 }
 
 /* ----------------------- FIRST VISIT -----------------------

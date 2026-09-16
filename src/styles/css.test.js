@@ -531,3 +531,83 @@ describe("the sheet runs in both directions", () => {
     }
   });
 });
+
+/* The archetype picker and the mark are drawn with eight classes between them;
+   a class the view names and the sheet does not is a silently unstyled button.
+   The mask's name is the smallest type on the card, and the card carries the
+   whole picker in a grid that is spaced by gap, never by a side. */
+describe("the archetype picker", () => {
+  const drawn = ["arche-mark", "arche-row", "arche-btn", "arche-glyph", "arche-none", "arche-hanzi", "arche-name", "arche-way"];
+  const mine = rules(CSS).filter(r => /\.arche-/.test(r.selector));
+
+  it("styles every class the picker and the mark are drawn with", () => {
+    const named = new Set(mine.flatMap(r => [...r.selector.matchAll(/\.(arche-[a-z]+)/g)].map(m => m[1])));
+    for (const cls of drawn) expect(named.has(cls), cls).toBe(true);
+  });
+
+  it("sets no word on the card below the twelve-pixel floor", () => {
+    let sized = 0;
+    for (const r of mine) {
+      const size = smallestSize(r.body);
+      if (!size) continue;
+      sized++;
+      expect(size, r.selector).toBeGreaterThanOrEqual(12);
+    }
+    expect(sized).toBeGreaterThan(0);
+  });
+
+  it("lifts the chosen mask and sinks the rest, with the two shadows and nothing else", () => {
+    const active = mine.find(r => r.selector === ".arche-btn.active");
+    const rest = mine.find(r => r.selector === ".arche-btn");
+    expect(active.body).toMatch(/var\(--raise-sm\)/);
+    expect(rest.body).toMatch(/var\(--sink-sm\)/);
+    for (const r of mine) expect(r.body, r.selector).not.toMatch(/#[0-9a-f]{3,8}\b|rgb\(|hsl\(/i);
+  });
+});
+
+/* ----------------------- THE BOARD AND ITS STONES -----------------------
+   The game screen was drawn with the board as the raised object and the stones
+   lying flat on it: no stone casts a shadow, the wood is a rect the board owns,
+   and the grid takes its strength from the room. Each of those is one line of
+   the sheet, and each was the other way round once, so each is pinned. */
+describe("the board and its stones", () => {
+  const rule = (sel) => rules(CSS).find(r => r.selector === sel);
+
+  it("raises the well as a card of the page, with the wood set into it", () => {
+    const well = rule(".board-well");
+    expect(well.body).toMatch(/box-shadow: var\(--raise\)/);
+    expect(well.body).toMatch(/background: var\(--ground\)/);
+    expect(well.body, "the wood is the board's, not the well's").not.toMatch(/--board/);
+    expect(rule(".wood").body).toMatch(/fill: var\(--board\)/);
+  });
+
+  it("lets the room say how strong the grid is", () => {
+    expect(rule(".grid-line").body).toMatch(/stroke-opacity: var\(--grid-alpha\)/);
+    expect(rule(".star-pt").body).toMatch(/fill-opacity: calc\(var\(--grid-alpha\)/);
+    const root = CSS.split(".sente-root {")[1].split("\n}")[0];
+    expect(root, "a default before the shell has spread a room").toMatch(/--grid-alpha: \.\d+;/);
+  });
+
+  it("lets no stone cast a shadow", () => {
+    for (const sel of [".stone-b", ".stone-w", ".stone-gloss", ".theme-stone.b", ".theme-stone.w"]) {
+      const r = rule(sel);
+      expect(r, sel).toBeDefined();
+      expect(r.body, `${sel} casts a shadow`).not.toMatch(/drop-shadow|--sh-ink|--sh-lite/);
+    }
+  });
+
+  it("fills every stone from the set's tokens: body, shine, rim", () => {
+    expect(rule(".stone-b").body).toMatch(/fill: var\(--stone-b-2\)/);
+    expect(rule(".stone-gloss").body).toMatch(/fill: var\(--stone-b-1\)/);
+    expect(rule(".stone-w").body).toMatch(/fill: var\(--stone-w-2\)/);
+    expect(rule(".stone-w").body).toMatch(/stroke: var\(--stone-w-3\)/);
+    expect(rule(".theme-stone.b").body, "the plate draws the stone the board draws").toMatch(/--stone-b-1[^;]*--stone-b-2/);
+    expect(rule(".theme-stone.w").body).toMatch(/--stone-w-2/);
+    expect(rule(".theme-stone.w").body).toMatch(/--stone-w-3/);
+  });
+
+  it("writes a move number in the other stone's colour", () => {
+    expect(rule(".stone-num.on-b").body).toMatch(/fill: var\(--stone-w-2\)/);
+    expect(rule(".stone-num.on-w").body).toMatch(/fill: var\(--stone-b-2\)/);
+  });
+});

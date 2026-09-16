@@ -278,6 +278,13 @@ export const online = {
     accepted: "Accepted",
     acceptScore: "Accept score",
     undoAsk: "{name} asks to take back a move.",
+    /* After the last stone. The table stays open, and so does the game: the
+       person who just played it is the one worth reading it with. */
+    reviewTogether: "Read it back together",
+    reviewJoin: "Read it back with {name}",
+    reviewWaiting: "Asked to read it together…",
+    reviewAsked: "They would like to read the game back with you",
+    reviewDeclined: "They would rather not read it back",
     allow: "Allow",
     decline: "Decline",
     askUndo: "Ask undo",
@@ -308,5 +315,8 @@ export const online = {
     "undo-pending": "An undo is already asked",
     "not-your-move": "You can only ask while they think",
     "wrong-phase": "Not now",
+    "no-review": "Nobody is reading this game back",
+    "not-over": "The game is still being played",
+    "bad-line": "That variation no longer fits the game",
   },
 };

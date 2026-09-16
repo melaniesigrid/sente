@@ -33,7 +33,7 @@ export default {
       type: "info",
       setup: board,
       marks: [pt(3, 3)],
-      text: "The marked point is a ko. The white stone beside it has one liberty, Black can take it, and White cannot take it straight back; that is the rule, and it is the only rule in go that makes the rest of the board part of a local fight. Everything that follows is about what to do with that fact.",
+      text: "This position holds a ko. A white stone in it has one liberty, Black can take it, and White cannot take it straight back; that is the rule, and it is the only rule in go that makes the rest of the board part of a local fight. Everything that follows is about what to do with that fact.",
     },
     {
       type: "sequence",

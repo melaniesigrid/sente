@@ -5,7 +5,7 @@ export const look = {
     sub: "Alles hier ändert, wie Joseki aussieht, und nichts ändert, wie es spielt. Wähle den Raum, wähle die Steine, mit denen du spielen willst, wähle die Schrift. Jede Probe ist in dem gezeichnet, was sie anbietet: wähle also mit den Augen. Die Sprache wohnt in der oberen Leiste, wo sie von jedem Bildschirm aus zu finden ist.",
     room: {
       head: "Der Raum",
-      note: "Zehn Räume für dasselbe Brett, einer, der deinem Gerät folgt, und einer, den du selbst bauen kannst. Eine Palette setzt den Grund, die beiden Lichter, aus denen jeder Schatten geschnitten ist, und die eine Farbe, die hier bedeutet; die Formen und die Abstände bewegen sich nie.",
+      note: "Drei Räume für dasselbe Brett: einer für Tageslicht, einer für den Abend und der, in dem die Nachbetrachtung eine beendete Partie liest. Einer davon kann deinem Gerät folgen, und du kannst dir weiterhin einen eigenen Raum bauen. Eine Palette setzt die Seite, die beiden Lichter, aus denen jeder Schatten geschnitten ist, und die eine Farbe, die hier bedeutet. Das Brett ist keine Palette: Die beiden Tischräume spielen auf demselben Holz, und der Raum der Nachbetrachtung druckt die Partie auf seine Seite.",
       pick: "Palette {name}",
       systemName: "System",
       systemMood: "Automatisch",
@@ -18,7 +18,7 @@ export const look = {
     },
     stones: {
       head: "Deine Steine",
-      note: "Ein Satz sind zwei Dinge: der Kern des schwarzen Steins und der des weißen. Die beleuchtete Krone, der Rand, an dem sich die Oberfläche wegkrümmt, und der Sitz, den ein dunkles Brett verlangt, werden alle drei aus diesen beiden errechnet, und so sieht ein Satz in jedem Raum nach sich selbst aus.",
+      note: "Ein Satz sind zwei Objekte: der Kern des schwarzen Steins und der des weißen. Die belichtete Krone und der Rand, an dem sich die Oberfläche wegkrümmt, werden aus diesen beiden berechnet, also sieht ein Satz in jedem Raum wie er selbst aus. Das Holz darunter wechselt nie, und die gedruckte Seite hat gar keines: dort sind sie Tinte und Papier.",
       pick: "Steine: {name}",
       auto: "Die des Raums",
       autoNote: "Jeder Raum nennt den Satz, um den herum er entworfen wurde: {room} wird mit {set} gespielt. Wechsle den Raum und die Steine wechseln mit.",

@@ -24,6 +24,13 @@ export const rooms = {
     sgf: "SGF",
     playAgain: "Play again",
     tryLine: "Play on the board to try a line; it is never saved into the game. ",
+    /* Reading a game back with the person you just played it against. One
+       board, two people, and a hand you can put on it. */
+    with: "Reading it with {name}",
+    pointing: "Point at a place",
+    playing: "Play a stone",
+    leaveTogether: "Read it alone",
+    togetherNote: "You are both moving one board: the move you walk to, the line you try and the places you point at are on their screen too.",
     keys: "Arrows walk a move, up and down jump ten, Home and End go to the ends, N toggles numbers.",
     turnKeys: " Square brackets walk the turning points.",
     /* What the network would play from here, in the five cases the board can
@@ -94,7 +101,7 @@ export const rooms = {
     derivedEm: "· derived",
     derivedRole: "Both are worked out from the ground, and neither is a choice: a raised thing looks lit rather than outlined only while its two lights stay within reach of the paper they sit on. Move the ground and they move with it.",
     stonesHead: "The stones",
-    stonesNote: "Every room names the set it is played with, this one included. Two colours make a set; the lit crown, the rim where the surface turns away and the seating a dark board asks for are cut from those two.",
+    stonesNote: "Every room names the set it is played with, this one included. Two colours make a set; the lit crown and the rim where the surface turns away are cut from those two, and the board under them is the same wood in every table room; the printed page has no board at all.",
     auditHead: "What the rules say",
     auditMax: "max {n}",
     auditMin: "min {n}",

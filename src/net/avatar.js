@@ -1,22 +1,28 @@
 /* ----------------------- THE PICTURE -----------------------
-   A profile picture is shown at 52 px in the lobby and 96 px on a profile, so
-   what gets uploaded is 192 px square: enough for a retina screen and nothing
-   more. A phone camera hands over four megabytes; the server takes 64 kilo-
-   bytes. This is where those meet, and it happens before anything leaves the
-   machine, so a photo nobody ends up saving was never sent anywhere.
+   A profile picture is shown at 52 px in the lobby, 88 px across the table and
+   168 px on a profile, so what gets uploaded is 384 px square: enough for the
+   biggest of those on a retina screen and nothing more. A phone camera hands
+   over four megabytes; the server takes 64 kilobytes. This is where those meet,
+   and it happens before anything leaves the machine, so a photo nobody ends up
+   saving was never sent anywhere.
 
-   The crop is centre-square, which is what a round frame wants and what every
-   person cropping their own face does anyway. */
+   The byte limit did not move with the size, so the quality ladder has one more
+   rung: four times the pixels into the same envelope. A picture that will not
+   go small enough is still refused rather than quietly uploaded and rejected.
+
+   The crop is centre-square, which is the frame a picture is now shown in, and
+   what every person cropping their own face does anyway. Pictures uploaded
+   before this are 192 px and simply draw a little softer at the new size. */
 
 import { AVATAR_MAX_BYTES } from "../../server/profile.js";
 
-export const AVATAR_SIZE = 192;
+export const AVATAR_SIZE = 384;
 /** What a browser is asked to try, best first. WebP is half the bytes of JPEG
  *  at the same quality; a browser that cannot make one falls back, and every
  *  browser can make a JPEG. */
 const TRY = [
-  { type: "image/webp", quality: [0.85, 0.7, 0.55] },
-  { type: "image/jpeg", quality: [0.85, 0.7, 0.55] },
+  { type: "image/webp", quality: [0.85, 0.7, 0.55, 0.4] },
+  { type: "image/jpeg", quality: [0.85, 0.7, 0.55, 0.4] },
 ];
 
 /** Decode a file the person chose. Rejects with a reason, never a raw error. */
@@ -74,7 +80,7 @@ export async function prepareAvatar(file) {
     }
   }
   // Every format at every quality was still too big, which takes a picture of
-  // pure noise at 192 px. Say so rather than uploading something that fails.
+  // pure noise at 384 px. Say so rather than uploading something that fails.
   throw new Error("image-too-big");
 }
 

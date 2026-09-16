@@ -49,6 +49,7 @@ export const shell = {
   mood: {
     light: "Clara",
     dark: "Oscura",
+    review: "Repaso",
   },
   lang: {
     label: "Idioma",

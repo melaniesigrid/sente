@@ -22,6 +22,11 @@ export const rooms = {
     sgf: "SGF",
     playAgain: "Noch einmal spielen",
     tryLine: "Spiel auf dem Brett, um eine Variante auszuprobieren; sie wird nie in die Partie gespeichert. ",
+    with: "Du liest sie mit {name}",
+    pointing: "Auf eine Stelle zeigen",
+    playing: "Einen Stein spielen",
+    leaveTogether: "Allein lesen",
+    togetherNote: "Ihr bewegt ein einziges Brett: der Zug, zu dem du gehst, die Variante, die du versuchst, und die Stellen, auf die du zeigst, stehen auch auf ihrem Bildschirm.",
     keys: "Die Pfeile gehen einen Zug, hoch und runter springen zehn, Pos1 und Ende gehen an die Enden, und N schaltet die Nummern um.",
     turnKeys: " Die eckigen Klammern gehen die Wendepunkte ab.",
     advice: {
@@ -82,7 +87,7 @@ export const rooms = {
     derivedEm: "· abgeleitet",
     derivedRole: "Beide werden aus dem Grund errechnet und keines ist eine Wahl: eine erhabene Sache sieht nur so lange beleuchtet statt umrandet aus, wie ihre beiden Lichter in Reichweite des Papiers bleiben, auf dem sie liegt. Verschiebe den Grund und sie verschieben sich mit.",
     stonesHead: "Die Steine",
-    stonesNote: "Jeder Raum nennt den Satz, mit dem er gespielt wird, dieser hier eingeschlossen. Zwei Farben machen einen Satz; die beleuchtete Krone, der Rand, an dem sich die Oberfläche abwendet, und der Sitz, den ein dunkles Brett verlangt, werden aus diesen beiden geschnitten.",
+    stonesNote: "Jeder Raum nennt den Satz, mit dem er gespielt wird, dieser hier eingeschlossen. Zwei Farben machen einen Satz; die beleuchtete Krone und der Rand, an dem sich die Oberfläche abwendet, werden aus diesen beiden geschnitten, und das Brett darunter ist in jedem Tischraum dasselbe Holz; die gedruckte Seite hat gar kein Brett.",
     auditHead: "Was die Regeln sagen",
     auditMax: "max. {n}",
     auditMin: "min. {n}",
@@ -161,10 +166,6 @@ export const rooms = {
     "board-b": {
       label: "Schiefer auf dem Brett",
       why: "Ein schwarzer Stein muss auf dem Holz zu finden sein, auf dem er liegt, nicht nur gegen den weißen.",
-    },
-    "board-w": {
-      label: "Muschel auf dem Brett",
-      why: "Die andere Hälfte derselben Regel, und nur dort, wo der Raum sein Brett erfunden hat: ein weißer Stein, der das Holz überschreit, ermüdet ebenso wie ein schwarzer, der sich darin versteckt. Auf echtem Papier trennt den Muschelstein sein Rand, nicht seine Füllung.",
     },
     "close-light": { label: "Licht nah am Grund" },
     "close-dark": { label: "Schatten nah am Grund" },

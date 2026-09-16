@@ -20,36 +20,37 @@ ${FONT_FACES}
      sign. One rule below flips it, and nothing else in the app tests the
      direction it is being read in. */
   --flip: 1;
-  --ground: #e8e4db;
-  --light: #fbf8f2;
-  --dark: #c4beb1;
-  --ink: #4b463c;
+  --ground: #ede6d8;
+  --light: #fbf7ee;
+  --dark: #cdc2ae;
+  --ink: #2a2620;
   /* The two quiet inks. Secondary text clears 4.5:1 and incidental text 3:1, so
      nothing in this stylesheet dims a word with an opacity: it asks for the step
      down it wants. Both are derived per room in src/theme/derive.js. */
-  --ink-2: #69645b;
-  --ink-3: #848076;
-  --cream: #f2ede3;
-  --accent-rgb: 95,140,126;
+  --ink-2: #6a665d;
+  --ink-3: #878178;
+  --cream: #faf6ee;
+  --accent-rgb: 106,138,117;
   --accent: rgb(var(--accent-rgb));
   --accent-soft: rgba(var(--accent-rgb),.16);
   --accent-ring: rgba(var(--accent-rgb),.32);
   /* the mark at reading contrast: same eucalyptus, deep enough to be read as a
-     word rather than glanced at as a dot. The raw accent is 2.99:1 here. */
-  --accent-ink: #47695f;
-  --danger: #b0715f;
+     word rather than glanced at as a dot. The raw accent is 3.07:1 here. */
+  --accent-ink: #506858;
+  --danger: #a8603e;
   /* The warning walked up to reading contrast, the way --accent-ink is. */
-  --danger-ink: #845547;
-  --sh-ink: 75,70,60;
-  --sh-lite: 251,248,242;
-  --wash-a: rgba(251,248,242,.55);
-  --wash-b: rgba(196,190,177,.40);
-  --scrim: rgba(232,228,219,.72);
-  --board: var(--ground);
+  --danger-ink: #975638;
+  --sh-ink: 42,38,32;
+  --sh-lite: 251,247,238;
+  --wash-a: rgba(251,247,238,.55);
+  --wash-b: rgba(205,194,174,.40);
+  --scrim: rgba(237,230,216,.76);
+  --board: #d9b77a;
   --grid: var(--ink);
+  --grid-alpha: .38;
   --hairline: rgba(var(--sh-ink),.14);
   --belt-edge: rgba(var(--sh-ink),.42);
-  --stone-b-1: #6a655d; --stone-b-2: #4b463c; --stone-b-3: #3b372f;
+  --stone-b-1: #78746d; --stone-b-2: #4b463c; --stone-b-3: #3b372f;
   --stone-w-1: #fbfaf7; --stone-w-2: #f2ede3; --stone-w-3: #ded5c4;
   --font-display: 'Fraunces', serif;
   --font-display-italic: 'Fraunces', serif;
@@ -323,7 +324,7 @@ ${FONT_FACES}
    left standing proud of a tray. A card keeps its two shadows and spends them:
    two pixels of offset is a card with a thumb on it. It travels the one pixel
    that offset gives up, so the card goes down rather than only going quiet. */
-.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active { box-shadow: var(--press); transform: translateY(1px); }
+.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .play-choice:active { box-shadow: var(--press); transform: translateY(1px); }
 
 /* A control is small enough to invert, which is what the nine already do. */
 .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn.active:active { box-shadow: var(--sink-sm); transform: none; }
@@ -341,7 +342,7 @@ ${FONT_FACES}
    sinks while still held two pixels up is being pressed and lifted at once. */
 .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active { transform: none; }
 
-.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn:active, .swatch:active, .look-btn:active, .lang-pill:active, .btn:active:not(:disabled), .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active, .lp-btn:active, .lp-card-btn:active, .lp-enter:active { transition-duration: .06s; }
+.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .play-choice:active, .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn:active, .swatch:active, .look-btn:active, .lang-pill:active, .btn:active:not(:disabled), .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active, .lp-btn:active, .lp-card-btn:active, .lp-enter:active, .arche-btn:active { transition-duration: .06s; }
 
 /* A screen arrives a beat at a time rather than all at once. It is the front
    door's entrance, applied where a whole screen is swapped in by the nav: the
@@ -424,7 +425,15 @@ ${FONT_FACES}
    gets the same sunken edge the initial does. The initial stays in the markup
    as the fallback and is simply not shown while a picture covers it. */
 .avatar:has(.avatar-img) > span { visibility: hidden; }
-.avatar-img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; z-index: 0; }
+.avatar-img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: inherit; object-fit: cover; z-index: 0; }
+/* A photograph is square. A disc crops a face to a coin and throws away the
+   corners of a picture somebody chose; the initial keeps its disc, because a
+   letter in a square is a tile and reads as a button. The radius is a share of
+   the size rather than a number of pixels, so one rule holds at 30px in a list
+   and at 168px on a profile. Both the ring and the picture inherit it, so there
+   is one shape here and not three that have to be kept in step. */
+.avatar:has(.avatar-img) { border-radius: 22%; }
+.avatar:has(.avatar-img)::after { border-radius: 18%; }
 .avatar-bot {
   position: absolute; inset-inline-end: -3px; bottom: -3px; width: 17px; height: 17px;
   border-radius: 50%; background: var(--ground); box-shadow: var(--raise-sm);
@@ -512,10 +521,15 @@ ${FONT_FACES}
    basis floored the well at 520px tall while a phone drew the board 334px wide:
    174px of dead ground under the grid. The basis is only ever written against
    the row. */
-/* The well is the only surface in the app that is not the page. On paper
-   --board IS the ground and this paints nothing; in a dark room it is the wood,
-   lifted off the page so a stone of either colour can be seen on it. */
-.board-well { border-radius: var(--r); box-shadow: var(--sink); padding: clamp(12px, 1.8vw, 22px); min-width: 0; background: var(--board); }
+/* The board is an object on the table, so it is raised, the way every drawn
+   direction of the game screen had it: a card of the page's own colour lifted
+   by the house pair, with the wood set into it. --board is the wood, one
+   colour in every room that has a board and never the page's own; in the
+   printed room it is the page, and the card is simply the sheet the diagram is
+   on. A goban is an object, and an object does not change colour when the light
+   does. */
+.board-well { border-radius: var(--r); box-shadow: var(--raise); padding: clamp(12px, 1.8vw, 22px); min-width: 0; background: var(--ground); }
+.wood { fill: var(--board); }
 .play-wrap > .board-well { flex: 2 1 520px; }
 .side { flex: 1 1 300px; min-width: 260px; max-width: 420px; }
 /* The board is a diagram, not a paragraph, and it does not mirror. Its geometry
@@ -525,11 +539,15 @@ ${FONT_FACES}
    Tel Aviv as in Tokyo, so the board says ltr once, here, and the rest of the
    app is free to turn around it. */
 .goban { width: 100%; height: auto; display: block; direction: ltr; }
-.grid-line { stroke: var(--grid); stroke-opacity: .38; stroke-width: 1.1; }
+/* The grid is drawn quiet on wood and at full strength on a printed page, and
+   the room says which (--grid-alpha, derive.js): a hairline in ink is what a
+   kifu is made of, and the same line on kaya would shout under the stones. */
+.grid-line { stroke: var(--grid); stroke-opacity: var(--grid-alpha); stroke-width: 1.1; }
 /* A star point is a fat full stop on the grid and is drawn in the grid's own
    colour. It used to take the ink, which is the same thing on paper and the
-   opposite of it in a dark room, where the ink is near white. */
-.star-pt { fill: var(--grid); fill-opacity: .55; }
+   opposite of it in a dark room, where the ink is near white. A step above the
+   lines, and clamped to solid on the printed page. */
+.star-pt { fill: var(--grid); fill-opacity: calc(var(--grid-alpha) * 1.45); }
 .ghost { fill: var(--accent); opacity: .28; }
 .mark-ring { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 4 4; opacity: .85; }
 /* The ring a chat line puts on a point. Wider than a stone rather than inside
@@ -544,8 +562,22 @@ ${FONT_FACES}
 .staged-ring { fill: none; stroke: var(--accent); stroke-width: 2.6; stroke-dasharray: 5 5; opacity: .95;
   animation: staged-breathe 1.8s ease-in-out infinite; }
 @keyframes staged-breathe { 50% { opacity: .4; } }
-.stone-b { filter: drop-shadow(2.5px 2.5px 3px rgba(var(--sh-ink),.45)) drop-shadow(-1.5px -1.5px 2px rgba(var(--sh-lite),.5)); }
-.stone-w { filter: drop-shadow(2.5px 2.5px 3px rgba(var(--sh-ink),.35)) drop-shadow(-1.5px -1.5px 2px rgba(var(--sh-lite),.9)); }
+/* The stones, as the game screen was drawn: flat discs of the set's body, the
+   black one with one shine, the white one held off the wood by its rim rather
+   than by a shadow. Nothing casts a shadow here: the board is the raised
+   thing, and the stones lie on it. On a printed page the rim is the ink, which
+   is what an outlined white stone in a book is.
+
+   These three rules dress every stone in the app. components/stoneArt.jsx
+   draws them at the size of a game on the board and at the size of a plum
+   beside a statement or behind a band, so the fills are stated once here and
+   the geometry is ratios of the radius there. The rim's width is the one part
+   that has to scale with the stone, so it arrives as an attribute and is
+   deliberately not set here: a fixed width in this rule would override it and
+   print a hairline on a stone the size of a fist. */
+.stone-b { fill: var(--stone-b-2); }
+.stone-w { fill: var(--stone-w-2); stroke: var(--stone-w-3); }
+.stone-gloss { fill: var(--stone-b-1); pointer-events: none; }
 .stone-in { animation: pop .22s ease; transform-origin: center; transform-box: fill-box; }
 @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
@@ -573,6 +605,31 @@ ${FONT_FACES}
 .persona-bio { color: var(--ink-2); font-size: 15.5px; line-height: 1.55; margin: 0; }
 .persona-cta { display: inline-flex; align-items: center; gap: 6px; font: 700 12px var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--accent-ink); }
 .local-card { max-width: 560px; }
+.play-step { display: flex; flex-direction: column; gap: 18px; }
+.play-step-head { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap; }
+.play-step-icon, .play-choice-icon {
+  width: 54px; height: 54px; border-radius: 18px; display: inline-flex; align-items: center; justify-content: center;
+  box-shadow: var(--sink-sm); color: var(--accent-ink); flex: none;
+}
+.play-step-copy { display: flex; flex-direction: column; gap: 4px; flex: 1 1 260px; }
+.play-step-copy strong { font-family: var(--font-display); font-weight: var(--w-display); font-size: 24px; line-height: 1.1; }
+.play-step-copy .fine { margin: 0; max-width: 62ch; }
+.play-step-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-inline-start: auto; }
+.play-choice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.play-choice {
+  text-align: start; border: 0; cursor: pointer; color: var(--ink); display: flex; flex-direction: column; gap: 14px;
+  min-height: 220px; transition: transform .15s ease, box-shadow .15s ease;
+}
+.play-choice:hover { transform: translateY(-2px); }
+.play-choice-copy { display: flex; flex-direction: column; gap: 9px; }
+.play-choice-copy h3 { margin: 0; font-family: var(--font-display); font-weight: var(--w-display); font-size: 24px; line-height: 1.08; }
+.play-choice-copy p { margin: 0; color: var(--ink-2); font-size: 15.5px; line-height: 1.6; }
+.play-choice-meta { margin-top: auto; color: var(--accent-ink); font: 700 12px var(--font-body); letter-spacing: .12em; text-transform: uppercase; }
+.play-choice-special { border-inline-start: 3px solid var(--accent-ink); }
+@media (max-width: 640px) {
+  .play-choice { min-height: 0; }
+  .play-step-copy strong, .play-choice-copy h3 { font-size: 21px; }
+}
 
 /* The pair table's lobby card. Four faces before you commit to any of it: a format
    whose whole point is who is sitting with you has to show you who is sitting with
@@ -615,6 +672,10 @@ ${FONT_FACES}
    skipped by colLabel, as every go book does. */
 .coord text { font-size: 16px; font-variant-numeric: tabular-nums; fill: var(--ink-2); pointer-events: none; }
 .last-ring { fill: none; stroke: var(--danger); stroke-width: 2.5; opacity: .85; }
+/* The move you are standing on, when every stone carries its number and the
+   dot has nowhere to go: a ring outside the stone in the mark colour, which on
+   the printed page is the terracotta the room promises. */
+.here-ring { fill: none; stroke: var(--accent); stroke-width: 2.4; opacity: .9; pointer-events: none; }
 /* Welcome. Shown once, so it gets room: a wide hero, one decision per screen, and
    pips that say how much is left rather than leaving a newcomer guessing. */
 .welcome { max-width: 860px; }
@@ -627,6 +688,24 @@ ${FONT_FACES}
 .welcome-identity { display: flex; align-items: center; gap: 18px; margin-top: 6px; flex-wrap: wrap; }
 .welcome-field { display: flex; flex-direction: column; gap: 5px; flex: 1 1 220px; }
 .welcome .row { margin-top: 16px; flex-wrap: wrap; }
+/* The record, as a sheet laid on the table. Review sets the Kifu room's tokens
+   on this element (src/views/Review.jsx) and this is what makes them visible:
+   without a ground of its own the sheet would be an ivory-coloured set of words
+   floating on whatever room the player was playing in. The bleed is so the
+   sheet reaches past the content column the way paper on a table does. */
+.review-room {
+  background: var(--ground); color: var(--ink);
+  border-radius: var(--r); box-shadow: var(--raise);
+  padding: clamp(18px, 2.6vw, 34px);
+  margin-inline: clamp(-60px, -4vw, 0px);
+}
+/* The diagram is the content on this screen, not one column of two, so it
+   takes a larger share of the row than it does at a table. A printed record
+   carries its move numbers, and a move number is 16px in the board's own
+   units: at the table's two-to-one split a nineteen-line board lands around
+   636px, which prints them at 11.8px, under the floor. The basis is a width
+   here because .play-wrap is a row; in a column stack it would be a height. */
+.review-room .board-col { flex: 3 1 560px; }
 .review-refused { margin: 0; font-size: 14px; color: var(--danger-ink); text-align: center; }
 .review-result { color: var(--ink-2); font-family: var(--font-display); font-weight: var(--w-display); font-size: 16px; }
 .review-controls { justify-content: center; gap: 6px; flex-wrap: wrap; }
@@ -640,8 +719,10 @@ ${FONT_FACES}
 
 /* The win rate graph. The curve is the border between Black's share of the box and
    White's, so the two stone colours carry the whole reading and nothing needs a
-   legend. The hairline along it is the room's own ground, which is the one colour
-   that stands out against both stones in every palette. */
+   legend. The hairline along it is the quiet ink, which is the one tone that
+   stands out against both stones in every room -- including the printed one,
+   where White's share is the page itself and the room's ground would paint
+   nothing at all. */
 .review-analysis { width: 100%; }
 /* The same graph at the table, in the side column, once a game is over. Shorter
    than in review, where it is the instrument; here it is the summary beside the
@@ -653,9 +734,15 @@ ${FONT_FACES}
 .wingraph svg { display: block; width: 100%; height: 132px; border-radius: calc(var(--r) - 10px); touch-action: none; cursor: pointer; }
 .wingraph-white { fill: var(--stone-w-2); }
 .wingraph-black { fill: var(--stone-b-2); }
-.wingraph-unknown { fill: var(--ground); }
+/* The part of the game the network has not reached yet. It has to be neither
+   stone in every room, which is a harder ask than it sounds: the page is
+   White's own colour on the printed sheet, and the shadow tone is within
+   1.12:1 of the black stone in the dark room. The quiet ink is the one tone
+   that clears both stones in all three (measured: 3.1-4.6:1 against white,
+   3.3-4.9:1 against black). */
+.wingraph-unknown { fill: var(--ink-3); }
 .wingraph-even { stroke: var(--grid); stroke-opacity: .5; stroke-width: 1; stroke-dasharray: 4 6; }
-.wingraph-line { fill: none; stroke: var(--ground); stroke-width: 2; stroke-linejoin: round; }
+.wingraph-line { fill: none; stroke: var(--ink-3); stroke-width: 2; stroke-linejoin: round; }
 .wingraph-turn { stroke: var(--danger); stroke-width: 1.5; stroke-dasharray: 3 4; }
 .wingraph-cursor { stroke: var(--accent); stroke-width: 2; }
 .wingraph-ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-2); padding: 4px 2px 0; }
@@ -670,8 +757,11 @@ ${FONT_FACES}
 .turn-chip.on { box-shadow: var(--sink-sm); }
 .turn-cost { color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .stone-num { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; pointer-events: none; }
-.stone-num.on-b { fill: var(--light); }
-.stone-num.on-w { fill: var(--ink); }
+/* A number on a black stone is written in the white stone's colour and the
+   other way round: the two stones are the one pair held 4.5:1 apart in every
+   room, and on the printed page that is ink on paper and paper on ink. */
+.stone-num.on-b { fill: var(--stone-w-2); }
+.stone-num.on-w { fill: var(--stone-b-2); }
 .masters-head { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
 .masters-title { display: flex; align-items: center; gap: 7px; margin: 0; font-family: var(--font-display); font-weight: var(--w-display); font-size: 18px; }
 .masters-head .fine { max-width: 70ch; }
@@ -882,14 +972,26 @@ ${FONT_FACES}
 .tint-dot.active { box-shadow: var(--sink-sm), 0 0 0 2px var(--accent-ring); transform: none; }
 
 /* ---- lessons ---- */
-.lesson-card { display: flex; align-items: center; gap: 16px; text-align: start; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease, box-shadow .15s ease; }
+.lesson-card { display: flex; align-items: center; gap: 16px; text-align: start; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease, box-shadow .15s ease, background .2s ease; }
 .lesson-card:hover { transform: translateY(-2px); }
 .lesson-num { color: var(--ink-3); font-family: var(--font-display-italic); font-style: var(--display-italic-style); font-size: 26px; flex: none; }
 .lesson-meta { flex: 1; }
 .lesson-meta h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 18px; margin: 0 0 3px; }
 .lesson-meta p { color: var(--ink-2); font-size: 15.5px; margin: 0; }
 .lesson-state { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; box-shadow: var(--sink-sm); }
-.lesson-state.done { color: var(--accent-ink); }
+.lesson-state.done { color: var(--accent-ink); background: color-mix(in oklab, var(--accent) 14%, var(--ground)); box-shadow: var(--raise-sm), inset 0 0 0 2px color-mix(in oklab, var(--accent) 75%, var(--ground)); }
+.lesson-card.current { position: relative; overflow: hidden; box-shadow: var(--raise-sm), 0 0 0 1px color-mix(in oklab, var(--accent) 35%, transparent); }
+.lesson-card.current::after {
+  content: ""; position: absolute; inset-block: 0; inset-inline-end: -44%; width: 64%;
+  background: linear-gradient(120deg, transparent, color-mix(in oklab, var(--accent) 18%, transparent), transparent);
+  transform: skewX(-20deg); pointer-events: none; animation: lesson-sheen 3.8s ease-in-out infinite;
+}
+@keyframes lesson-sheen {
+  0%, 20% { opacity: 0; transform: translateX(0) skewX(-20deg); }
+  45% { opacity: .8; }
+  70%, 100% { opacity: 0; transform: translateX(-170%) skewX(-20deg); }
+}
+.lesson-lead { margin-bottom: 10px !important; }
 /* ---- the lesson player ----
    One response block for every tone, a stepper that shows the shape of the
    lesson, and a footer inside the card so the controls belong to it. */
@@ -1085,7 +1187,14 @@ ${FONT_FACES}
 @keyframes rise { from { transform: translate(-50%, 14px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
 
 /* ---- learn: library ---- */
-.library { display: flex; gap: clamp(16px, 2.5vw, 26px); align-items: flex-start; flex-wrap: wrap; }
+.library {
+  display: flex; gap: clamp(16px, 2.5vw, 26px); align-items: flex-start; flex-wrap: wrap;
+  border-radius: 22px; padding: clamp(10px, 1.7vw, 16px);
+  background:
+    radial-gradient(120% 120% at 4% 2%, color-mix(in oklab, var(--accent) 11%, transparent), transparent 62%),
+    linear-gradient(155deg, color-mix(in oklab, var(--ground) 87%, var(--board)), var(--ground));
+  box-shadow: var(--sink-sm);
+}
 .tier-rail { display: flex; flex-direction: column; gap: 8px; flex: 0 0 200px; padding: 8px; border-radius: 18px; box-shadow: var(--sink-sm); }
 .tier-btn { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; border: 0; background: transparent; color: var(--ink); cursor: pointer; text-align: start; padding: 10px 12px; border-radius: 13px; transition: box-shadow .18s ease, color .18s ease; }
 .tier-btn .tier-name { font: 700 13px var(--font-body); letter-spacing: .08em; text-transform: uppercase; }
@@ -1132,7 +1241,10 @@ ${FONT_FACES}
    nearly identical near-whites in a dark room, where the ink is light. The
    stones are the only pair guaranteed to be 4.5:1 apart in every room. */
 .terr-b { fill: var(--stone-b-2); }
-.terr-w { fill: var(--stone-w-2); stroke: var(--stone-b-3); stroke-opacity: .35; stroke-width: 1; }
+/* White's mark is outlined in the black stone's rim, and the outline carries
+   it: on the printed page the white stone is the paper, so without an edge
+   White's territory would be invisible while Black's is solid ink. */
+.terr-w { fill: var(--stone-w-2); stroke: var(--stone-b-3); stroke-opacity: .55; stroke-width: 1.2; }
 @keyframes fade-in { from { opacity: 0; } }
 .stone-dead { opacity: .4; }
 .dead-x { fill: none; stroke-width: 2.4; stroke-linecap: round; }
@@ -1435,14 +1547,16 @@ ${FONT_FACES}
    figure is at full strength where it leaves the page and gone to nothing by
    the time it reaches the words, so the reader never has type over texture.
 
-   The stones are the room's stones, off --stone-*, and the light on them is
-   --sh-lite, the same light every raised card is lit by. Nothing is named here
-   that is not a token, and a change of set in the look page changes this too.
+   The stones are the room's stones and they are the board's drawing, by the
+   one component that draws a stone anywhere (components/stoneArt.jsx): the
+   same flat body, the same hard highlight on the shoulder, the same rim on the
+   white one, at five times the radius. Nothing about a stone is named here --
+   the fills are the board's three rules further up the sheet -- so a change of
+   room or of set on the look page moves the figures with the board.
 
-   The house drop-shadows come off for Decor's reason: a 3px blur under a 300px
-   stone is a smear. What replaces the relief is the shine, which is what a
-   polished stone that size actually has on it -- a highlight where the surface
-   faces the light and a lit rim where it turns away. */
+   No stone casts a shadow, on the board or here, and none of them is lit by
+   --sh-lite any more: a figure used to carry a soft specular and a rim catching
+   that light, which was a second drawing of a stone and is gone. */
 /* --fig-lead is the beat the lines get to themselves before the first stone
    lands. Every delay on this block is measured from it, so the whole sequence
    -- rules, stones, rings, captures -- moves together if it is ever retimed. */
@@ -1467,7 +1581,6 @@ ${FONT_FACES}
   from { stroke-dashoffset: 100%; opacity: 0; }
   to { stroke-dashoffset: 0; opacity: .5; }
 }
-.fig-rim { stroke: rgba(var(--sh-lite),.5); vector-effect: non-scaling-stroke; }
 
 /* A figure dissolves into the ground on every side and is cut only by the page
    on the one it leaves by. The mask is centred on the shape -- --fig-cx and
@@ -1563,14 +1676,13 @@ ${FONT_FACES}
   100% { opacity: 0; transform: scale(2.3); }
 }
 
-/* The light drifts across the figure rather than sitting still on it. Every
-   stone runs the same slow loop, started earlier the further down the diagonal
-   it sits (--sheen, set per stone), which is one wave of light crossing the
-   shape and not a row of pulsing dots. */
-/* Gated on playing with everything else. An ungated infinite loop is a hundred
-   elements animating on a page nobody has scrolled to yet. */
-.fig.playing .fig-shine { animation: fig-gleam 9s ease-in-out infinite; animation-delay: var(--sheen, 0ms); }
-@keyframes fig-gleam { 0%, 100% { opacity: .5; } 45% { opacity: 1; } }
+/* The light used to drift across the figure: every stone ran a slow opacity
+   loop on its soft specular, started earlier the further down the diagonal it
+   sat, so that one wave crossed the shape. It went with the gradient. A hard
+   highlight is a fact about the stone's surface, not a gleam passing over it,
+   and pulsing it would be a row of blinking dots rather than light moving.
+   What is left moving on a figure is the playing of it, which is the part
+   worth watching. */
 
 /* A statement with a figure holds it: the block is the positioned thing, its
    own contents are lifted a layer clear of it, and the bleed is clipped at the
@@ -1619,10 +1731,6 @@ ${FONT_FACES}
 @media (prefers-reduced-motion: reduce) {
   .fig.playing .fig-stone { animation: none; opacity: 1; }
   .fig.playing .fig-stone.taken { animation: none; opacity: 0; }
-  /* Named in full, because gating the gleam on .playing made the rule that
-     draws it heavier than a bare .fig-shine could ever be. The same trap, one
-     rule further down the sheet, caught this time by the test. */
-  .fig.playing .fig-shine, .fig-shine { animation: none; }
   /* A ring is a thing that happened. With the motion off nothing happens, so
      there is nothing for it to be, and the board is simply already ruled.
      The capture ring is named in full: .fig.playing .fig-ring is a class
@@ -1679,8 +1787,10 @@ ${FONT_FACES}
 .theme-btn.active { box-shadow: var(--sink-sm), 0 0 0 2px var(--accent-ring); transform: none; }
 .theme-plate { width: 100%; height: 50px; border-radius: 12px; box-shadow: var(--sink-sm); display: flex; align-items: center; gap: 8px; padding: 0 12px; }
 .theme-stone { width: 17px; height: 17px; border-radius: 50%; flex: none; }
-.theme-stone.b { background: radial-gradient(circle at 36% 34%, var(--stone-b-1), var(--stone-b-2) 55%, var(--stone-b-3)); box-shadow: 2px 2px 4px rgba(var(--sh-ink),.45), -1px -1px 2px rgba(var(--sh-lite),.5); }
-.theme-stone.w { background: radial-gradient(circle at 36% 34%, var(--stone-w-1), var(--stone-w-2) 60%, var(--stone-w-3)); box-shadow: 2px 2px 4px rgba(var(--sh-ink),.35), -1px -1px 2px rgba(var(--sh-lite),.9); }
+/* The plates draw the stone the board draws: a flat body, one shine on the
+   black, a rim on the white, no cast shadow. */
+.theme-stone.b { background: radial-gradient(circle at 35% 35%, var(--stone-b-1) 30%, transparent 31%), var(--stone-b-2); }
+.theme-stone.w { background: var(--stone-w-2); box-shadow: inset 0 0 0 1px var(--stone-w-3); }
 .theme-mark { width: 11px; height: 11px; border-radius: 50%; background: var(--accent); margin-inline-start: auto; flex: none; }
 .theme-meta { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding-inline-start: 2px; }
 .theme-title { font-family: var(--font-display); font-weight: var(--w-display-strong); font-size: 16px; line-height: 1.1; }
@@ -1904,6 +2014,32 @@ ${FONT_FACES}
 .type-btn.active .type-name { opacity: 1; }
 .type-note { margin-top: 14px; }
 .type-credit { color: var(--ink-2); display: block; margin-top: 5px; }
+/* ---- archetype picker ---- */
+/* The mask sits beside the name as inline text: it is an emoji, drawn by the
+   device, so it takes the line's colour and needs no chrome of its own. */
+.arche-mark { line-height: 1; vertical-align: -0.08em; margin-inline-start: .3em; }
+.profile-name .arche-mark { margin-inline-start: 0; }
+/* The track is wide enough for the longest single word a mask's name becomes
+   in caps, and a single word never wraps: Latin PHILOSOPHER, UNSICHTBARE and
+   DESTRUCTEUR run to about 100px, and Cyrillic РАЗРУШИТЕЛЬ, set in the
+   device's own bold, to 107. */
+.arche-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 10px; margin-top: 14px; }
+.arche-btn {
+  border: 0; background: var(--ground); color: var(--ink); cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 12px 8px 10px; border-radius: 16px; box-shadow: var(--sink-sm);
+  transition: box-shadow .18s ease, transform .18s ease, color .18s ease;
+}
+.arche-btn:hover { transform: translateY(-1px); }
+.arche-btn.active { box-shadow: var(--raise-sm), 0 0 0 2px var(--accent-ring); color: var(--accent-ink); transform: none; }
+.arche-btn:active { box-shadow: var(--sink); transform: none; }
+.arche-btn.active:active { box-shadow: var(--sink), 0 0 0 2px var(--accent-ring); }
+.arche-glyph { font-size: 30px; line-height: 1.2; }
+.arche-none { color: var(--ink-3); font-family: var(--font-display); }
+.arche-hanzi { font-size: 13px; color: var(--ink-2); letter-spacing: .08em; }
+.arche-name { font: 700 12px var(--font-body); letter-spacing: .11em; text-transform: uppercase; color: var(--ink-2); text-align: center; }
+.arche-btn.active .arche-name { color: inherit; }
+.arche-way { margin-top: 14px; }
 
 /* ---- kata of the day ---- */
 .kata-card { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
@@ -1970,7 +2106,10 @@ ${FONT_FACES}
 .result-card { display: flex; flex-direction: column; gap: 12px; animation: rise .4s ease; }
 .result-card.win .result-headline { color: var(--accent-ink); }
 .result-card.loss .result-headline { color: var(--danger-ink); }
-.bow-row { display: flex; align-items: center; justify-content: center; gap: 18px; padding: 6px 0 2px; }
+/* The two faces bowing over the result. They are the size they are so that the
+   people can actually see each other, which on the narrowest card is wider than
+   the card: it wraps rather than squashing a face. */
+.bow-row { display: flex; align-items: center; justify-content: center; gap: 18px; padding: 6px 0 2px; flex-wrap: wrap; }
 .bow-word { color: var(--ink-2); font-family: var(--font-caption); font-style: var(--caption-style); font-size: 15px; letter-spacing: .04em; }
 .bow { animation: bow 1.6s ease .3s 1; transform-origin: bottom center; }
 .bow-late { animation-delay: .55s; }
@@ -2395,7 +2534,10 @@ ${FONT_FACES}
 .table-row svg { color: var(--accent-ink); opacity: .8; }
 .dot-live { background: var(--accent); }
 .dot-done { background: var(--dark); }
-.board-placeholder { aspect-ratio: 1; width: 100%; border-radius: 18px; box-shadow: var(--sink); opacity: .5; }
+/* The board before it arrives. Raised and faint, because it is standing in
+   for a raised thing: sunk, it dropped a hole in the page that a card then
+   jumped out of when the game started. */
+.board-placeholder { aspect-ratio: 1; width: 100%; border-radius: 18px; box-shadow: var(--raise); opacity: .5; }
 .bubble-who { color: var(--ink-2); font-weight: 700; font-size: 13px; }
 .chip-btn { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 4px; border: 0; background: transparent; color: var(--accent-ink); font: 700 11.5px var(--font-body); letter-spacing: .1em; text-transform: uppercase; cursor: pointer; padding: 4px 6px; border-radius: 8px; }
 .chip-btn:hover { box-shadow: var(--sink-sm); }
@@ -2466,6 +2608,11 @@ ${FONT_FACES}
 .lp-hero-copy { flex: 1 1 420px; max-width: 620px; min-width: 0; }
 .lp-hero-board { flex: 0 1 420px; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 16px; }
 .lp-board-well { border-radius: var(--r); box-shadow: var(--sink); padding: clamp(14px, 2vw, 24px); width: 100%; background: var(--ground); }
+/* One frame per board. The landing sets its board into a well of its own, and
+   the board's own well is raised, so left alone the front door showed a card
+   lifted out of a recess it was cut into. The outer frame wins here: it is the
+   one that belongs to the page's composition. */
+.lp-board-well .board-well { box-shadow: none; padding: 0; }
 .lp-board-note { color: var(--ink-2); margin: 0; font-family: var(--font-caption); font-style: var(--caption-style); font-size: 13px; text-align: center; }
 
 /* The stat chips are sunken, so they read as facts stamped into the ground
@@ -2743,7 +2890,16 @@ ${FONT_FACES}
    fade up from small is a thing appearing, and a thing appearing is not a move
    being played. The overshoot is seven per cent and lasts a fifth of a second,
    which nobody will consciously see and everybody would miss. */
-.stone-field .fs-rim { fill: none; stroke: rgba(var(--sh-ink),.16); stroke-width: 2px; }
+/* The one place a stone is dressed differently from the board's drawing, and
+   it is about this ground rather than about the stone. The field is blurred
+   and has no lines under it, so a white stone's own rim -- a hairline in the
+   set's own shell tone -- comes out at about three parts in 237 against the
+   page once the band's opacity is through with it, and under half a device
+   pixel on a phone: the white half of the position stops arriving and the
+   board looks played by one colour. An ink hairline at twice the width is
+   what the field had before the drawings were merged, and it is what a blurred
+   texture needs. The board keeps its own rim, because a board has lines. */
+.stone-field .stone-w { stroke: rgba(var(--sh-ink),.16); stroke-width: 2; }
 .stone-field .fs-stone {
   transform-box: fill-box; transform-origin: center;
   animation: fs-land .62s cubic-bezier(.2, .9, .3, 1) both;
@@ -2871,8 +3027,7 @@ ${FONT_FACES}
 
 /* ---- the marks, at the size of a section ----
    The brand marks run large and bleed off the band they sit in. They are flat
-   here: the house drop-shadows on a stone are a 3px blur, which at 400px is a
-   smudge, so the raise comes off and what is left is the shape. Kept faint
+   here, as every stone is now: no cast shadow, only the shape. Kept faint
    enough that body text never has to compete with it, and the section clips
    them, so a mark ends at the margin like a stamp rather than trailing off. */
 .lp-decor { position: absolute; z-index: 0; pointer-events: none; opacity: .115; }

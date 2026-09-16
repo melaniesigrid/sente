@@ -150,8 +150,11 @@ export function JosekiView() {
         {/* Cropped to the quadrant the sequence is played in. The board is
             still nineteen lines and the edge is still the edge; only the
             window on to it has moved. */}
+        {/* `lastMove` is an index, which is what the board compares against. It
+            was a {c, r} object here, so the comparison was never true and the
+            move the dictionary is standing on carried no mark at all. */}
         <Board board={board} numbers={numbers} disabled sizePx={760} crop={CROP}
-          lastMove={here ? { c: here.c, r: here.r } : null} />
+          lastMove={here ? idx(BOARD, here.c, here.r) : null} />
         <div className="side stack-sm">
           {j ? (
             <>

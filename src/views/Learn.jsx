@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo, useRef, Fragment } from "react";
 import {
-  ChevronLeft, ChevronRight, Check, X, Lightbulb, BookOpen, RotateCcw, Play, Search, Clock, Lock, Quote, FastForward,
+  ChevronLeft, ChevronRight, Check, CheckCheck, X, Lightbulb, BookOpen, RotateCcw, Play, Search, Clock, Lock, Quote, FastForward,
   CornerDownRight, Eye, BrainCircuit,
 } from "lucide-react";
 import { Board } from "../components/Board.jsx";
+import { legiblePx } from "../components/boardGeometry.js";
 import { Card, Btn, Pill, PullQuote, Statement } from "../components/ui.jsx";
 import { ScreenHeader } from "../components/ScreenHeader.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
@@ -25,7 +26,7 @@ import { dayKey } from "../content/kata.js";
 import { rankOf } from "../content/rank.js";
 import { attendDay } from "../content/chain.js";
 import { modelReady, kataChooseMoveForRecord, profileForRank } from "../engine/index.js";
-import { initStep, stepReducer, marksFor, boardLocked, canReveal, recordAtStop, coordLabel, verdictLabel, withHouseWords } from "./lessonStep.js";
+import { initStep, stepReducer, marksFor, boardLocked, canReveal, recordAtStop, coordLabel, verdictLabel, withHouseWords, foldLesson } from "./lessonStep.js";
 import { useT, useDir } from "../components/langStore.js";
 import { localizeLesson, lessonField } from "../content/translate.js";
 import { localizeTrack, localizeTier, localizeBook, localizeSeries } from "../content/library.js";
@@ -79,13 +80,17 @@ function crossingNote(lesson, next, t) {
    uses: same step behaviour, same timings, same board. `exitLabel` is the only thing
    it needs to say differently: a first-time visitor has never seen a library. */
 
-export function LessonPlayer({ lesson: authored, nextLesson, onDone, onExit, onOpenNext, rank, onProgress, exitLabel = null }) {
+/* `coordinates` is the reader's own preference, threaded in rather than read off the
+   profile here: the welcome flow runs this same player before there is a profile to
+   read, and a first lesson about capturing a stone does not need a lettered margin. */
+export function LessonPlayer({ lesson: authored, nextLesson, onDone, onSolved, onExit, onOpenNext, rank, onProgress, exitLabel = null, coordinates = false }) {
   const t = useT();
   const dir = useDir();
   const exitWord = exitLabel ?? t("learn.library");
-  /* The lesson in the reader's language. Memoised on the pair, so a lesson
+  /* The lesson in the reader's language, with every "look, then play" pair
+     folded into one step (see foldLesson). Memoised on the pair, so a lesson
      nobody has translated costs one identity check and no copying. */
-  const lesson = useMemo(() => withHouseWords(localizeLesson(authored, t), t), [authored, t]);
+  const lesson = useMemo(() => foldLesson(withHouseWords(localizeLesson(authored, t), t)), [authored, t]);
   const saved = SESSIONS.get(lesson.id);
   const [stepIdx, setStepIdx] = useState(saved?.stepIdx ?? 0);
   const [maxIdx, setMaxIdx] = useState(saved?.maxIdx ?? 0);
@@ -159,6 +164,18 @@ export function LessonPlayer({ lesson: authored, nextLesson, onDone, onExit, onO
   const back = () => { if (stepIdx > 0) goto(stepIdx - 1); };
   const next = () => { if (isLast) { setFinished(true); onDone(); } else goto(stepIdx + 1); };
 
+  /* The lesson counts as finished the moment its last step is solved, not when
+     the button under it is pressed. A learner who solves the last position and
+     goes straight back to the library has still done the lesson; the record
+     should say so. Said once per mounted player. */
+  const solvedOnce = useRef(false);
+  useEffect(() => {
+    if (!isLast || !solved || solvedOnce.current) return;
+    solvedOnce.current = true;
+    onSolved?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLast, solved]);
+
   /* Arrows walk the lesson; Enter fires the primary when nothing else is focused,
      so it never steals the board's own Enter-to-play or the count field.
 
@@ -193,7 +210,8 @@ export function LessonPlayer({ lesson: authored, nextLesson, onDone, onExit, onO
           <Pill icon={Check} tone="win">{t("learn.complete")}</Pill>
         </div>
         <div className="play-wrap">
-          <Board board={state.board} sizePx={600} marks={marksFor(step, state)} lastMove={state.lastMove} disabled />
+          <Board board={state.board} sizePx={Math.max(600, legiblePx(state.board.size))} marks={marksFor(step, state)} lastMove={state.lastMove} disabled
+            coordinates={coordinates} />
           <div className="side stack-sm">
             <MokuCard title={t("profile.table.moku")} size={64} />
             <Card className="lesson-card-body">
@@ -269,7 +287,8 @@ export function LessonPlayer({ lesson: authored, nextLesson, onDone, onExit, onO
       <div className="play-wrap">
         <Board
           board={state.board}
-          sizePx={600}
+          sizePx={Math.max(600, legiblePx(state.board.size))}
+          coordinates={coordinates}
           onPlay={(c, r) => dispatch({ type: "play", c, r })}
           marks={[...marksFor(step, state), ...levelMark]}
           wrong={state.wrong}
@@ -292,6 +311,7 @@ export function LessonPlayer({ lesson: authored, nextLesson, onDone, onExit, onO
                 <p className="fine maxim-analogy">{step.analogy}</p>
               </>
             )}
+            {step.lead && <p className="lesson-text lesson-lead">{step.lead}</p>}
             <p className="lesson-text">{prompt}</p>
 
             {showHint && (
@@ -357,11 +377,12 @@ export function LessonPlayer({ lesson: authored, nextLesson, onDone, onExit, onO
    there rather than at the head of the view because a learner reading chapter
    eight is two thousand pixels down the page and would see the press do
    nothing at all. `slot` says where the press happened. */
-function LessonCard({ lesson, done, onOpen, slot = null, gate = null }) {
+function LessonCard({ lesson, done, focus = false, onOpen, slot = null, gate = null }) {
   const t = useT();
+  const status = done ? "done" : "open";
   return (
     <div className="lesson-slot">
-      <button className={`neu-card lesson-card ${gate ? "gated" : ""}`}
+      <button id={slot || undefined} className={`neu-card lesson-card ${gate ? "gated" : ""} ${focus ? "current" : ""}`}
         onClick={() => onOpen(lesson, slot)} aria-expanded={gate ? true : undefined}>
         <div className="lesson-num">{lesson.rank}</div>
         <div className="lesson-meta">
@@ -369,14 +390,22 @@ function LessonCard({ lesson, done, onOpen, slot = null, gate = null }) {
           <p>{lessonField(lesson, "subtitle", t)}</p>
           <p className="lesson-chips"><Clock size={12} /> {t("learn.minutes", { min: lesson.minutes, track: localizeTrack(trackByKey(lesson.track), t)?.name })}</p>
         </div>
-        <div className={`lesson-state ${done ? "done" : ""}`}>
-          {done ? <Check size={16} /> : <Play size={15} />}
+        <div className={`lesson-state ${status}`}>
+          {done ? <CheckCheck size={16} /> : <Play size={15} />}
         </div>
       </button>
       {gate}
     </div>
   );
 }
+
+export const tierWindow = (lessons, profile, lead = 2, span = 10) => {
+  const first = lessons.findIndex((lesson) => !isDone(profile, lesson.id));
+  const at = first < 0
+    ? Math.max(0, lessons.length - span)
+    : Math.max(0, first - lead);
+  return lessons.slice(at, at + span);
+};
 
 /* What a lesson that builds on unfinished ones says before it opens. Nothing
    in the library is locked: "open anyway" is a real door, and the gate can be
@@ -432,7 +461,7 @@ function Shelf({ profile, onOpen, gateFor, excludeIds = [] }) {
               <div className="grid2">
                 {lessons.map(l => (
                   <LessonCard key={l.id} lesson={l} done={isDone(profile, l.id)} onOpen={onOpen}
-                    slot={`shelf-${book.id}`} gate={gateFor(l, `shelf-${book.id}`)} />
+                    slot={`shelf-${book.id}-${l.id}`} gate={gateFor(l, `shelf-${book.id}-${l.id}`)} />
                 ))}
               </div>
             )}
@@ -514,7 +543,7 @@ function ChapterRow({ chapter: authored, lessons, done, onOpen, open, onToggle, 
           {chapter.n === 11 && <NamesTable />}
           {lessons.map(l => (
             <LessonCard key={l.id} lesson={l} done={done(l.id)} onOpen={onOpen}
-              slot={slot} gate={gateFor(l, slot)} />
+              slot={`${slot}-${l.id}`} gate={gateFor(l, `${slot}-${l.id}`)} />
           ))}
         </div>
       )}
@@ -647,7 +676,10 @@ export function LearnView({ profile, setProfile, go }) {
   const searching = query.trim().length > 0;
   const currentTier = currentTierFor(profile);
   const tierInfo = TIERS.find(x => x.id === tier);
-  const tierLessons = lessonsInTier(tier);
+  const allTierLessons = lessonsInTier(tier);
+  const tierLessons = useMemo(() => (
+    searching || tier !== currentTier ? allTierLessons : tierWindow(allTierLessons, profile)
+  ), [searching, tier, currentTier, allTierLessons, profile]);
   const continueLesson = nextLessonFor(profile);
   const stretch = useMemo(() => stretchLessonsFor(profile, {
     exclude: lessonsInTier(currentTier).map((lesson) => lesson.id),
@@ -668,8 +700,8 @@ export function LearnView({ profile, setProfile, go }) {
       /* Every lesson leads to another one, across track, tier and rank; only the very
          last lesson in the library ends. The prerequisite gate still applies to the jump. */
       <LessonPlayer key={active} lesson={lesson} nextLesson={lessonAfter(lesson, profile)}
-        rank={rankOf(profile.rating)} onProgress={progress}
-        onExit={() => setActive(null)} onDone={() => finish(lesson)}
+        rank={rankOf(profile.rating)} onProgress={progress} coordinates={profile.coordinates}
+        onExit={() => setActive(null)} onDone={() => finish(lesson)} onSolved={() => finish(lesson)}
         onOpenNext={(l) => { setActive(null); open(l); }} />
     );
   }
@@ -713,7 +745,7 @@ export function LearnView({ profile, setProfile, go }) {
               <strong>{lessonField(continueLesson, "title", t)}</strong>
               <span className="fine">{t("learn.continueMeta", { rank: continueLesson.rank, min: continueLesson.minutes, track: localizeTrack(trackByKey(continueLesson.track), t)?.name })}</span>
             </div>
-            <Btn icon={Play} primary small onClick={() => open(continueLesson, "continue")}>{t("learn.recall.start")}</Btn>
+            <Btn icon={Play} primary small onClick={() => open(continueLesson, "continue")}>{t("learn.continue")}</Btn>
           </Card>
           {gateFor(continueLesson, "continue")}
         </div>
@@ -730,7 +762,8 @@ export function LearnView({ profile, setProfile, go }) {
           </div>
           <div className="grid2">
             {stretch.map((lesson) => (
-              <LessonCard key={lesson.id} lesson={lesson} done={done(lesson.id)} onOpen={open} gate={gateFor(lesson)} />
+              <LessonCard key={lesson.id} lesson={lesson} done={done(lesson.id)} onOpen={open}
+                slot={`stretch-${lesson.id}`} gate={gateFor(lesson, `stretch-${lesson.id}`)} />
             ))}
           </div>
         </div>
@@ -781,7 +814,9 @@ export function LearnView({ profile, setProfile, go }) {
               <div className="stat-head track-head"><span>{localizeTrack(g.track, t).name}</span><span className="fine track-trains">{localizeTrack(g.track, t).trains}</span></div>
               <div className="grid2">
                 {g.lessons.map(l => (
-                  <LessonCard key={l.id} lesson={l} done={done(l.id)} onOpen={open} gate={gateFor(l)} />
+                  <LessonCard key={l.id} lesson={l} done={done(l.id)} onOpen={open}
+                    focus={continueLesson?.id === l.id}
+                    slot={`tier-${tier}-${l.id}`} gate={gateFor(l, `tier-${tier}-${l.id}`)} />
                 ))}
               </div>
             </div>

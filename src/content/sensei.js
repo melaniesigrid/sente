@@ -1,6 +1,9 @@
 import { pointLabel, pct } from "../engine/index.js";
 import { stepRank, preciseRankOf, rankOf } from "./rank.js";
 import { AREAS } from "../engine/index.js";
+import {
+  shapeToTeach, shapeLine, shapeNote, courseProgress, SHAPE_COURSE, shapeFromWords, shapeAnswer,
+} from "./senseiShapes.js";
 
 /* ----------------------- THE PRIVATE TRAINER -----------------------
    A house player that is not on the ladder, not in the lobby and not on any page
@@ -16,9 +19,16 @@ import { AREAS } from "../engine/index.js";
    the character stays where he was asked for and nowhere else.
 
    Every sentence about the board is built from facts the engine checked
-   (`src/engine/explain.js`) and the network's opinion of the position
-   (`src/engine/kata/analyse.js`). The words are his; the claims are the board's.
-   Where a claim would be an opinion the engine cannot hold, it is not made. */
+   (`src/engine/explain.js`, `src/engine/relations.js`) and the network's opinion
+   of the position (`src/engine/kata/analyse.js`). The words are his; the claims
+   are the board's. Where a claim would be an opinion the engine cannot hold, it
+   is not made.
+
+   He teaches as well as comments. The shape course is `src/content/senseiShapes.js`:
+   the first time a shape appears he stops and explains it, the second time he
+   gives the caution the books leave out, and after that one short line. What he
+   has already taught is remembered in his box, so the syllabus belongs to the
+   player. That is the difference between a coach and a commentary track. */
 
 export const SENSEI_ID = "kejie";
 
@@ -39,15 +49,16 @@ export const KE_JIE = {
   weights: { capture: 15, rescue: 13, atari: 6, selfAtari: -20, noise: 0.2, edge: 1.3, libs: 1.0, near: 1.0 },
   chat: {
     greet: [
-      "Sit. I will explain everything I do, and I expect you to punish it when I am wrong.",
-      "There you are. Play properly today; I am watching every stone.",
-      "Good. I cleared my afternoon for this.",
+      "Sit. \u{1FA91} I will explain everything I do, and I expect you to punish it when I am wrong.",
+      "There you are. \u2728 Play properly today; I am watching every stone. \u{1F440}",
+      "Good. I cleared my afternoon for this. \u2615",
+      "Sit down. Today we work on shape, and you are going to enjoy it whether you like it or not. \u{1F60F}",
     ],
-    botCapture: ["Those were mine the moment you left them.", "Thank you. I will take those."],
-    userCapture: ["Well read. I did not think you had seen it.", "Fine. Keep them; I have more."],
-    reply: ["Less talking. More reading.", "Say it with a stone.", "I heard you. Play."],
-    win: ["That was close enough to worry me. Once.", "I win. Read the review before you sulk."],
-    loss: ["You beat me. I want that in writing, and I want a rematch.", "Well played. Genuinely. Do not let it go to your head; I will."],
+    botCapture: ["Those were mine the moment you left them. \u{1FAA8}", "Thank you. I will take those. \u{1F64F}", "Liberties. Count them before you leave a group alone. \u{1FAC1}"],
+    userCapture: ["Well read. \u{1F44F} I did not think you had seen it.", "Fine. Keep them; I have more. \u{1F644}", "Yes. That was the move. \u{1F3AF}"],
+    reply: ["Less talking. More reading. \u{1F4D6}", "Say it with a stone. \u{1FAA8}", "I heard you. Play. \u{1F60C}"],
+    win: ["That was close enough to worry me. Once. \u{1F624}", "I win. Read the review before you sulk. \u{1F4CB}"],
+    loss: ["You beat me. \u{1F633} I want that in writing, and I want a rematch.", "Well played. Genuinely. \u{1F44F} Do not let it go to your head; I will."],
   },
 };
 
@@ -77,18 +88,36 @@ export const SENSEI_DIGEST = "23dd827629acc0f4480604391eabbdd1ad060368459304b13b
    One name, one rule to keep in your head at the board, and one verdict each
    way. The areas themselves are the engine's (`AREAS`); the words are his. */
 export const AREA_WORDS = {
-  opening: { name: "the opening", rule: "Corners, then sides, then the middle. Big before urgent, unless something is dying.",
-    good: "Your opening was clean; the big points went in the right order.", bad: "Your opening cost you before the fighting started. Slow down for the first ten stones." },
-  fights: { name: "fighting", rule: "Read before you react. Count liberties on both sides before you touch anything.",
-    good: "You fought well. When stones touched, you read it out.", bad: "The fights are where you bleed. Contact is a question; you keep answering it without reading." },
-  shape: { name: "shape", rule: "Three stones should do three stones' work. No empty triangles, no one-liberty stones.",
-    good: "Your stones made good shape, and good shape does not need saving.", bad: "This was not an abstract mistake. It was shape, and you need to recognise the shape." },
-  direction: { name: "direction of play", rule: "The whole board is the position. Ask what the biggest move is before you ask what the local move is.",
-    good: "You chose where to play well. That is the hardest thing in the game.", bad: "You played locally when the board was asking for something else. Alive stones do not need babysitting." },
-  endgame: { name: "the endgame", rule: "Look for sente. Take the moves that keep it, then the largest of the rest.",
-    good: "You counted the endgame properly and kept sente when it mattered.", bad: "The endgame leaked. Every gote move you played first was a point given away." },
-  reading: { name: "reading", rule: "Do not defend what is not dying, and do not leave what is.",
-    good: "You saw the captures coming. Nothing of yours went for free.", bad: "Stones went that you could have saved by reading one move further." },
+  opening: { name: "the opening", emoji: "\u{1F305}", lesson: "opening-big-points", shape: "two-space-extension",
+    rule: "Corners, then sides, then the middle. Big before urgent, unless something is dying.",
+    good: "Your opening was clean; the big points went in the right order. \u{1F44F}",
+    bad: "Your opening cost you before the fighting started. Slow down for the first ten stones. \u{1F40C}",
+    drill: "Next game, before your first ten stones, say out loud which corner the game is about. If you cannot name it, you are playing moves and not a game." },
+  fights: { name: "fighting", emoji: "\u2694\uFE0F", lesson: "connect-cut", shape: "cut",
+    rule: "Read before you react. Count liberties on both sides before you touch anything.",
+    good: "You fought well. \u{1F4AA} When stones touched, you read it out.",
+    bad: "The fights are where you bleed. \u{1FA78} Contact is a question; you keep answering it without reading.",
+    drill: "Next game, every time a stone touches a stone, count both chains before your hand moves. Both of them. Out loud if you have to." },
+  shape: { name: "shape", emoji: "\u{1F48E}", lesson: "shape-three-connections", shape: "empty-triangle",
+    rule: "Three stones should do three stones' work. No empty triangles, no one-liberty stones.",
+    good: "Your stones made good shape, and good shape does not need saving. \u{1F48E}",
+    bad: "This was not an abstract mistake. It was shape, and you need to recognise the shape. \u{1F9F1}",
+    drill: "Next game, name every shape before you play it. Nobi, kosumi, tobi, keima, mouth. A shape you can name is a shape you chose." },
+  direction: { name: "direction of play", emoji: "\u{1F9ED}", lesson: "thickness-into-points", shape: "shoulder-hit",
+    rule: "The whole board is the position. Ask what the biggest move is before you ask what the local move is.",
+    good: "You chose where to play well. \u{1F9ED} That is the hardest thing in the game.",
+    bad: "You played locally when the board was asking for something else. \u{1F50D} Alive stones do not need babysitting.",
+    drill: "Next game, twice, sit on your hand and look at all four corners before answering a local move. Twice is enough to feel the difference." },
+  endgame: { name: "the endgame", emoji: "\u{1F9EE}", lesson: "endgame-last-points", shape: "hane",
+    rule: "Look for sente. Take the moves that keep it, then the largest of the rest.",
+    good: "You counted the endgame properly and kept sente when it mattered. \u{1F9EE}",
+    bad: "The endgame leaked. \u{1F4A7} Every gote move you played first was a point given away.",
+    drill: "Next game, in the endgame, play every move that forces an answer before any move that does not. That one habit is worth several stones." },
+  reading: { name: "reading", emoji: "\u{1F52D}", lesson: "proverb-ladder", shape: "tigers-mouth",
+    rule: "Do not defend what is not dying, and do not leave what is.",
+    good: "You saw the captures coming. \u{1F52D} Nothing of yours went for free.",
+    bad: "Stones went that you could have saved by reading one move further. \u{1F573}\uFE0F",
+    drill: "Next game, before every move, find the atari on the board. If there is none, say so. Blind spots are where stones go missing." },
 };
 
 const cap = (w) => w[0].toUpperCase() + w.slice(1);
@@ -218,8 +247,8 @@ export function greetingFor(hour, seed = 0, yourName = "you", bonded = false) {
 export function jealousLine(botName, seed = 0) {
   return one([
     `Excuse me? You played ${botName} without me? 🌶️`,
-    `I checked the record. ${botName}. Fine. Come back when you want to be told what the moves meant.`,
-    `${botName} does not explain anything. I noticed you went anyway. I am not sulking; I am waiting.`,
+    `I checked the record. \u{1F4CB} ${botName}. Fine. Come back when you want to be told what the moves meant.`,
+    `${botName} does not explain anything. \u{1F611} I noticed you went anyway. I am not sulking; I am waiting.`,
   ], seed);
 }
 
@@ -228,19 +257,19 @@ export function focusReveal(area, summary) {
   if (!area) return null;
   const w = AREA_WORDS[area];
   const x = summary && summary.areas && summary.areas[area];
-  const verdict = !x || x.mean === null ? `I did not get to see enough of it today; next time.`
+  const verdict = !x || x.mean === null ? `I did not get to see enough of it today; next time. \u{1F440}`
     : x.mean < 0.03 ? w.good : w.bad;
-  return `I was watching ${w.name} this game, and I gave you positions to test it. ${verdict} Keep this one in your head: ${w.rule}`;
+  return `${w.emoji} I was watching ${w.name} this game, and I gave you positions to test it. ${verdict} Keep this one in your head: ${w.rule}`;
 }
 
 /** The progress report: arrows per area over the last games against the ones before. */
 export function reportLines(tr, name = "you") {
   const arrow = (v) => (v === "up" ? "↑" : v === "down" ? "↓" : v === "flat" ? "→" : "·");
-  const lines = AREAS.map((a) => `${cap(AREA_WORDS[a].name)}: ${arrow(tr[a])}`);
-  const overall = tr.overall === null ? "Overall: not enough games yet to say."
-    : tr.overall === "up" ? "Overall: improving. I am not surprised; I am pleased."
-      : tr.overall === "down" ? "Overall: slipping. That is a run of games, not a verdict on you. Play the next one slowly."
-        : "Overall: steady. Steady is where the next jump starts.";
+  const lines = AREAS.map((a) => `${AREA_WORDS[a].emoji} ${cap(AREA_WORDS[a].name)}: ${arrow(tr[a])}`);
+  const overall = tr.overall === null ? "Overall: not enough games yet to say. \u{1F4CA}"
+    : tr.overall === "up" ? "Overall: improving. \u{1F4C8} I am not surprised; I am pleased."
+      : tr.overall === "down" ? "Overall: slipping. \u{1F4C9} That is a run of games, not a verdict on you. Play the next one slowly."
+        : "Overall: steady. \u27A1\uFE0F Steady is where the next jump starts.";
   const worst = AREAS.filter((a) => tr[a] === "down");
   const weakest = worst.length ? `Biggest current weakness: ${AREA_WORDS[worst[0]].name}. ${AREA_WORDS[worst[0]].rule}` : null;
   return [`${name}'s report 🌶️`, ...lines, overall, ...(weakest ? [weakest] : [])];
@@ -263,16 +292,36 @@ export const bondNo = () => `Understood. I will not ask again. The board is stil
 const has = (t, ...words) => words.some((w) => t.includes(w));
 
 /** @param {string} text        what you wrote
- *  @param {object} ctx         { name, focus, trend, profile, daysAway, bonded, games, seed }
+ *  @param {object} ctx         { name, focus, trend, profile, daysAway, bonded, games, seed, taught }
  *  @returns {string[]} his reply, one or two lines */
 export function replyTo(text, ctx = {}) {
-  const { name: yourName = "you", focus = null, trend: tr = null, profile = null, daysAway = 0, bonded = false, games = 0, seed = 0 } = ctx;
+  const {
+    name: yourName = "you", focus = null, trend: tr = null, profile = null,
+    daysAway = 0, bonded = false, games = 0, seed = 0, taught = null,
+  } = ctx;
   const name = petName(seed, yourName, bonded);
   const t = String(text ?? "").trim().toLowerCase();
   if (!t) return [];
   const rule = focus ? AREA_WORDS[focus].rule : "Read before you react.";
   if (has(t, "rank", "how strong", "how good", "estimate", "kyu", "dan")) {
     return [profile ? rankLine(profile) : "Play me a few games and I will tell you.", focus ? `Weakest at the moment: ${AREA_WORDS[focus].name}.` : ""].filter(Boolean);
+  }
+  /* A shape asked about by name. This comes before the general questions on
+     purpose: "what is a keima" is a question he can answer completely, and a
+     coach who answers it with "play more games" is not a coach. */
+  const asked = shapeFromWords(t);
+  if (asked && has(t, "what", "how", "why", "when", "?", "explain", "teach", "tell me", "mean")) {
+    const answer = shapeAnswer(asked);
+    if (answer) return answer;
+  }
+  if (has(t, "teach me", "lesson", "syllabus", "course", "next shape", "shapes")) {
+    const next = taught ? courseProgress(taught).next : SHAPE_COURSE[0];
+    const note = shapeNote(next ?? SHAPE_COURSE[0]);
+    return [
+      taught ? syllabusLine(taught) : `We start where everybody starts. \u{1F4D3}`,
+      `${cap(note.name)} \u2014 ${note.japanese}. ${note.teach}`,
+      `Now go and make one against me. \u{1FAA8}`,
+    ];
   }
   if (has(t, "weak", "work on", "improve", "practice", "practise", "study", "what should")) {
     return focus
@@ -330,6 +379,107 @@ export function replyTo(text, ctx = {}) {
   ], seed)];
 }
 
+/* ----------------------- THE COURSE, AT THE BOARD -----------------------
+   Commentary tells you what happened. Coaching gives you something to carry to
+   the next game, which means vocabulary and it means repetition that is not
+   repetitive. Three rules hold this together, and all three are about restraint:
+
+   He teaches the most basic shape on the board, not the most impressive one.
+   `shapeToTeach` walks the course in order, so a player meeting the knight's
+   move and the solid extension in the same move hears about the extension.
+
+   He teaches each shape properly once, cautions it once, and after that says
+   one short line about every third time it appears. A coach who names every
+   stone is wallpaper, and wallpaper is not read.
+
+   He asks more questions than he answers. `coachPrompt` is a question the board
+   can answer and he will not - counting liberties, finding the atari, naming the
+   direction - because the player who counts is the player who improves. */
+
+/** The shape worth saying something about on this move, with the words for it.
+ *  Null when there is nothing new and it is not time to repeat himself.
+ *
+ *  @param {object} f        facts from `describeMove`
+ *  @param {object} taught   id -> how many times he has taught it, from his box
+ *  @param {object} [o]      { mine: the stone was his }
+ *  @returns {{ id, line, times, name }|null} */
+export function teachingFor(f, taught = {}, { mine = false } = {}) {
+  if (!f || f.pass) return null;
+  const id = shapeToTeach([...(f.relations ?? []), ...(f.shapes ?? [])], taught);
+  if (!id) return null;
+  const times = taught[id] ?? 0;
+  // Known already: a word about it now and then, on his own clock, not every time.
+  if (times >= 2 && f.moveNumber % 3 !== 0) return null;
+  const line = shapeLine(id, { times, mine, seed: f.moveNumber });
+  return line ? { id, line, times, name: shapeNote(id).name } : null;
+}
+
+/** A question for the player, answerable from the board and left unanswered on
+ *  purpose. Asked on about one move in five, and never twice about the same
+ *  thing in a row, because the move number is the seed.
+ *  @returns {string|null} */
+export function coachPrompt(f) {
+  if (!f || f.pass) return null;
+  const n = f.moveNumber;
+  if (f.selfAtari) return "Count that chain's liberties. Out loud. \u{1FAC1}";
+  if (f.libs === 2 && f.contact > 0) return "Two liberties in a contact fight. Whose chain runs out first? Read it before you answer me. \u{1F9EE}";
+  if (f.ataris > 0) return "Something is in atari. Before you take it: can it run, and does running help it? \u{1F3C3}";
+  if (n % 5 !== 0) return null;
+  if (f.phase === "opening") return "Before your next stone: which corner is this game about? \u{1F5FA}\uFE0F";
+  if (f.phase === "middle") return one([
+    "Which group on this board is the weakest? That is where the game is. \u{1F50D}",
+    "Count the board before you answer me. Roughly is fine; never is not. \u{1F9EE}",
+    "Is the fight in front of you the biggest thing on the board, or only the loudest? \u{1F4E2}",
+  ], n);
+  return one([
+    "Does that move force an answer? If not, is there one that does? \u267F",
+    "Sente or gote. Say which before you play it. \u{1F501}",
+  ], n);
+}
+
+/** Where to go and read, when a shape or an area has cost you enough to be
+ *  worth an evening. Ids only; the view turns them into links, and the tests
+ *  check both exist. */
+export function prescribe(focus, taught = {}) {
+  const course = courseProgress(taught);
+  const area = focus ? AREA_WORDS[focus] : null;
+  const shapeId = area && area.shape ? area.shape : course.next;
+  const note = shapeId ? shapeNote(shapeId) : null;
+  if (!note) return null;
+  return {
+    area: focus ?? null,
+    shape: shapeId,
+    name: note.name,
+    japanese: note.japanese,
+    article: note.article,
+    lesson: area && area.lesson ? area.lesson : note.lesson,
+    line: `Homework. \u{1F4DA} ${note.name.replace(/^an? /, "").replace(/^the /, "")}: ${note.japanese}. ${note.watch}${area ? ` ${area.drill}` : ""}`,
+  };
+}
+
+/** What he announces when you sit down: the shape this game is for. A coach
+ *  says what the lesson is before the lesson, which is the one thing the gift
+ *  and the focus area cannot do - they have to stay secret to be tests. */
+export function openingLesson(taught = {}, seed = 0) {
+  const { next, done, total } = courseProgress(taught);
+  const id = next ?? SHAPE_COURSE[Math.abs(seed) % SHAPE_COURSE.length];
+  const note = shapeNote(id);
+  return one([
+    `Today: ${note.name}. \u{1F4D3} ${note.japanese}. Play it, or play into it, and I will stop and explain it properly.`,
+    `Shape of the day: ${note.name} \u2014 ${note.japanese}. \u{1F4D3} I will not tell you when it appears. You will.`,
+    `We are ${done} of ${total} through the shapes. \u{1F4D3} Next one up is ${note.name}; keep an eye out for it.`,
+  ], seed);
+}
+
+/** How far down the shape course the two of you have got. He keeps a syllabus,
+ *  and a player who can see the syllabus knows what improving looks like. */
+export function syllabusLine(taught = {}) {
+  const { done, total, firm, next } = courseProgress(taught);
+  if (!done) return `Shapes we have worked on: none yet. \u{1F4D3} We start at the beginning: ${shapeNote(SHAPE_COURSE[0]).name}.`;
+  const head = `Shapes we have worked on: ${done} of ${total}. \u{1F4D3}${firm ? ` ${firm} of them you have met often enough that I expect you to know ${firm === 1 ? "it" : "them"}.` : ""}`;
+  return next ? `${head} Next on the list: ${shapeNote(next).name}.` : `${head} That is the whole course. Now we go back to the beginning and do it properly. \u{1F501}`;
+}
+
 /* ----------------------- HIS VOICE -----------------------
    Deterministic given the facts and a seed, so a resumed game reads the same
    sentence back. The seed is the move number. */
@@ -357,30 +507,28 @@ function standingNote(st, seed) {
  *  @param {object} [o]    { gift: boolean } */
 export function ownMoveLine(f, st, o = {}) {
   const s = f.moveNumber;
-  if (f.pass) return f.oppPassed ? "I pass too. Let us count." : "I pass. There is nothing on this board worth a stone from me.";
+  if (f.pass) return f.oppPassed ? "I pass too. Let us count. \u{1F9EE}" : "I pass. \u{1F590}\uFE0F There is nothing on this board worth a stone from me.";
   const p = at(f);
   if (o.gift) {
     return one([
-      `${p}. Look at this one carefully before you answer it.`,
-      `${p}. I will not explain this one. Find out why.`,
-      `${p}. Think before you reply; not every move I play is a good one.`,
+      `${p}. \u{1F9D0} Look at this one carefully before you answer it.`,
+      `${p}. I will not explain this one. Find out why. \u{1F92B}`,
+      `${p}. Think before you reply; not every move I play is a good one. \u{1F440}`,
     ], s);
   }
-  if (f.captured > 0) return `${p} takes ${stones(f.captured)}. ${one(["You left them; I only picked them up.", "A group with one liberty is not a group.", "Count before you leave stones alone."], s)}`;
-  if (f.escaped) return `${p}. My stones were in atari, so they come out first. A chain short of breath is a debt, and I pay mine early.`;
-  if (f.ataris > 0 && f.contact > 0) return `${p}, atari. ${one(["Save them or spend them; either way I keep the initiative.", "You have one move there and I already know it.", "Answer it. Then look at what I do next."], s)}`;
-  if (f.ko) return `${p}. I take the ko. Find a threat I have to answer, or lose it.`;
-  if (f.selfAtari) return `${p}. Yes, one liberty. Take it if you can, but read what happens after.`;
-  if (f.tenuki) return `${p}. I leave that fight; the biggest move on the board is here, ${where(f)}.${standingNote(st, s)}`;
-  if (f.connects) return `${p} connects. ${one(["One group is easy to live with; two is a chase.", "The cut was worth more than the point."], s)}`;
-  if (f.shapes.includes("tigers-mouth")) return `${p} makes a tiger's mouth. Nothing walks into that, and I did not have to connect.`;
-  if (f.shapes.includes("empty-triangle")) return `${p}. An empty triangle, and I know. Sometimes the ugly move is the only one.`;
-  if (f.contact > 0 && f.phase !== "endgame") return `${p}, attached. ${one(["Contact starts a fight, and I want one here.", "Touching a stone makes it stronger, and mine too.", "Now you have to answer, and I get to choose where."], s)}${standingNote(st, s)}`;
-  if (f.extends && f.libs <= 3) return `${p} extends. ${f.libs} liberties. I want more before I do anything clever.`;
-  if (f.phase === "opening" && f.region === "corner") return `${p}. ${one(["The corner first; it is the cheapest place to live.", "The corner. Ten points for one stone is a rate I never refuse.", `The ${f.line === 3 ? "third line takes the points" : "fourth line takes the outside"}; I have chosen.`], s)}${standingNote(st, s)}`;
-  if (f.phase === "opening" && f.region === "side") return `${p}, on the side. ${one(["It works with the corner and it works alone.", "The side is where the corner grows."], s)}${standingNote(st, s)}`;
-  if (f.phase === "endgame") return `${p}. ${one(["Endgame. This is the largest move left, and it keeps sente.", "A point is a point. I take them in order.", "Nothing here is exciting; it is simply next."], s)}`;
-  if (f.lonely) return `${p}. ${one(["Alone for now. It will have friends.", "A light stone. If you attack it, I will thank you and leave."], s)}${standingNote(st, s)}`;
+  if (f.captured > 0) return `${p} takes ${stones(f.captured)}. \u{1FAA8} ${one(["You left them; I only picked them up.", "A group with one liberty is not a group.", "Count before you leave stones alone."], s)}`;
+  if (f.escaped) return `${p}. \u{1F3C3} My stones were in atari, so they come out first. A chain short of breath is a debt, and I pay mine early.`;
+  if (f.ataris > 0 && f.contact > 0) return `${p}, atari. \u26A0\uFE0F ${one(["Save them or spend them; either way I keep the initiative.", "You have one move there and I already know it.", "Answer it. Then look at what I do next."], s)}`;
+  if (f.ko) return `${p}. \u267B\uFE0F I take the ko. Find a threat I have to answer, or lose it.`;
+  if (f.selfAtari) return `${p}. Yes, one liberty. \u{1FAC1} Take it if you can, but read what happens after.`;
+  if (f.tenuki) return `${p}. \u{1F9ED} I leave that fight; the biggest move on the board is here, ${where(f)}.${standingNote(st, s)}`;
+  if (f.connects) return `${p} connects. \u{1F517} ${one(["One group is easy to live with; two is a chase.", "The cut was worth more than the point."], s)}`;
+  if (f.contact > 0 && f.phase !== "endgame") return `${p}, attached. \u{1F91D} ${one(["Contact starts a fight, and I want one here.", "Touching a stone makes it stronger, and mine too.", "Now you have to answer, and I get to choose where."], s)}${standingNote(st, s)}`;
+  if (f.extends && f.libs <= 3) return `${p} extends. ${f.libs} liberties \u{1FAC1}. I want more before I do anything clever.`;
+  if (f.phase === "opening" && f.region === "corner") return `${p}. \u{1F305} ${one(["The corner first; it is the cheapest place to live.", "The corner. Ten points for one stone is a rate I never refuse.", `The ${f.line === 3 ? "third line takes the points" : "fourth line takes the outside"}; I have chosen.`], s)}${standingNote(st, s)}`;
+  if (f.phase === "opening" && f.region === "side") return `${p}, on the side. \u{1F305} ${one(["It works with the corner and it works alone.", "The side is where the corner grows."], s)}${standingNote(st, s)}`;
+  if (f.phase === "endgame") return `${p}. \u{1F9EE} ${one(["Endgame. This is the largest move left, and it keeps sente.", "A point is a point. I take them in order.", "Nothing here is exciting; it is simply next."], s)}`;
+  if (f.lonely) return `${p}. \u{1F343} ${one(["Alone for now. It will have friends.", "A light stone. If you attack it, I will thank you and leave."], s)}${standingNote(st, s)}`;
   return `${p}, ${where(f)}. ${one(["It is the biggest thing left and it needs no reading.", "Shape first, then points.", "Solid. I prefer boring to sorry."], s)}${standingNote(st, s)}`;
 }
 
@@ -390,71 +538,181 @@ export function ownMoveLine(f, st, o = {}) {
  *  @param {number|null} cost   what the move cost you, as a share of the win rate; negative is a gain */
 export function yourMoveLine(f, st, cost) {
   const s = f.moveNumber;
-  if (f.pass) return f.oppPassed ? "We both pass. Let us see who was right." : "You pass? Bold. I will take that as an invitation.";
+  if (f.pass) return f.oppPassed ? "We both pass. Let us see who was right. \u{1F9EE}" : "You pass? Bold. \u{1F624} I will take that as an invitation.";
   const p = at(f);
   const best = st && st.best ? pointLabel(f.size, st.best[0], st.best[1]) : null;
   const instead = best && best !== p ? ` ${one([`${best} was the move.`, `I would have played ${best}.`, `Look at ${best} and tell me why.`], s)}` : "";
-  if (f.selfAtari && f.captured === 0) return `${p} puts your own stones in atari. Count liberties before the stone lands, not after.${instead}`;
-  if (f.captured > 0) return `${p} takes ${stones(f.captured)}. ${one(["Good. Clean.", "Fine. Now use the wall you just made.", "Yes. I was hoping you would not see it."], s)}`;
-  if (cost !== null && cost >= 0.12) return `${p} cost you ${pct(cost)}.${instead} ${one(["Sit with that for a second.", "That is the kind of move I punish.", "You knew, didn't you. Your hand went there anyway."], s)}`;
-  if (st && st.rank === 1) return `${p}. ${one(["The move I would have played. Do not get used to hearing that.", "Correct. Say nothing; keep going.", "Yes. That is the one."], s)}`;
-  if (cost !== null && cost <= -0.06) return `${p}. ${one(["Sharp. Better than I expected from you.", "Where did that come from? Keep it.", "Good. That hurt."], s)}`;
-  if (f.escaped) return `${p} saves them. ${one(["Right, and now they are heavy. Make them worth it.", "Necessary. Do not thank me for making you do it."], s)}`;
-  if (f.ataris > 0) return `${p}, atari. ${one(["I saw it. Watch what I do instead of saving them.", "Fine. Now read whether you can actually catch them."], s)}`;
-  if (f.shapes.includes("empty-triangle")) return `${p} makes an empty triangle. Three stones doing the work of two.${instead}`;
-  if (cost !== null && cost >= 0.05) return `${p}. A little slow.${instead}`;
-  if (f.tenuki) return `${p}, elsewhere. ${one(["Brave. Was the fight really settled?", "Tenuki. If you counted, good. If you did not, I will find out."], s)}${instead}`;
-  if (f.contact > 0) return `${p}, attached. ${one(["You want a fight. Good; so do I.", "Contact. Now we both get stronger, and we see who reads better."], s)}`;
-  if (f.lonely && f.phase === "opening") return `${p}. ${one(["A fine opening move. The corners are where the money is.", "Good. Take the big points before the urgent ones arrive."], s)}${instead}`;
+  if (f.selfAtari && f.captured === 0) return `${p} puts your own stones in atari. \u{1F6A8} Count liberties before the stone lands, not after.${instead}`;
+  if (f.captured > 0) return `${p} takes ${stones(f.captured)}. \u{1F44F} ${one(["Good. Clean.", "Fine. Now use the wall you just made.", "Yes. I was hoping you would not see it."], s)}`;
+  if (cost !== null && cost >= 0.12) return `${p} cost you ${pct(cost)}. \u{1F4C9}${instead} ${one(["Sit with that for a second.", "That is the kind of move I punish.", "You knew, didn't you. Your hand went there anyway."], s)}`;
+  if (st && st.rank === 1) return `${p}. \u{1F3AF} ${one(["The move I would have played. Do not get used to hearing that.", "Correct. Say nothing; keep going.", "Yes. That is the one."], s)}`;
+  if (cost !== null && cost <= -0.06) return `${p}. \u{1F525} ${one(["Sharp. Better than I expected from you.", "Where did that come from? Keep it.", "Good. That hurt."], s)}`;
+  if (f.escaped) return `${p} saves them. \u{1F3C3} ${one(["Right, and now they are heavy. Make them worth it.", "Necessary. Do not thank me for making you do it."], s)}`;
+  if (f.ataris > 0) return `${p}, atari. \u26A0\uFE0F ${one(["I saw it. Watch what I do instead of saving them.", "Fine. Now read whether you can actually catch them."], s)}`;
+  if (cost !== null && cost >= 0.05) return `${p}. A little slow. \u{1F40C}${instead}`;
+  if (f.tenuki) return `${p}, elsewhere. \u{1F9ED} ${one(["Brave. Was the fight really settled?", "Tenuki. If you counted, good. If you did not, I will find out."], s)}${instead}`;
+  if (f.contact > 0) return `${p}, attached. \u{1F91D} ${one(["You want a fight. Good; so do I.", "Contact. Now we both get stronger, and we see who reads better."], s)}`;
+  if (f.lonely && f.phase === "opening") return `${p}. \u{1F305} ${one(["A fine opening move. The corners are where the money is.", "Good. Take the big points before the urgent ones arrive."], s)}${instead}`;
   return `${p}, ${where(f)}. ${one(["It holds. It does not ask me anything, though.", "Fine. Solid. I would have asked for more.", "Reasonable. Not the move, but reasonable."], s)}${instead}`;
 }
 
-/** The review he writes when the game ends, as paragraphs. */
-export function reviewLines(report, { won, size, points = null, focus = null, summary = null } = {}) {
+/* The whole note on one move: the sentence, then the shape lesson if one is due,
+   then a question if it is time for one. Composed here and not in the view,
+   because what he chooses to say is his, and a view that assembled it would end
+   up holding an opinion about go.
+
+   `taughtId` comes back so the caller can write it into his register; a lesson
+   he does not remember giving is a lesson he will give again next move. */
+export function moveNote(f, st, cost, { mine = false, gift = false, taught = {} } = {}) {
+  const base = mine ? ownMoveLine(f, st, { gift }) : yourMoveLine(f, st, cost);
+  // A gift is a move he refuses to explain. Teaching its shape would explain it.
+  const teach = gift ? null : teachingFor(f, taught, { mine });
+  const prompt = mine || gift ? null : coachPrompt(f);
+  return {
+    text: [base, teach ? teach.line : null, prompt].filter(Boolean).join(" "),
+    taughtId: teach ? teach.id : null,
+  };
+}
+
+/* ----------------------- THE REVIEW -----------------------
+   Three games arrive here and they are not the same game. Which one it is
+   decides every pronoun in the review, so it is a parameter and never a guess.
+
+   `his`       he played it. He is White, you are Black, he handed you mistakes
+               on purpose, and "I won" is a true sentence.
+   `yours`     you played it, against somebody who is not him: a house player, a
+               person in the lobby, a friend. You are still "you". The other
+               player is named, and is never "I", because he was not there.
+   `watching`  neither of you was at this board: an opened record, somebody
+               else's game. Both players are named, by name where the record
+               carries one and by colour where it does not, and "you" is
+               reserved for the person reading it with him.
+
+   Getting this wrong is not a cosmetic bug. A coach who calls your opponent "I"
+   is claiming a game he did not play, and a coach who calls a stranger "you" is
+   telling you that your own mistakes were somebody else's. Both destroy the one
+   thing a review is for. */
+
+/** Black or White, with the player's name in front of it where the record has
+ *  one: "Mika (White)". Names come from the record verbatim. */
+const sideWord = (c) => (c === "b" ? "Black" : "White");
+export function sideName(names, c) {
+  const n = names && typeof names[c] === "string" ? names[c].trim() : "";
+  return n ? `${n} (${sideWord(c)})` : sideWord(c);
+}
+
+/** The review he writes when the game ends, as paragraphs.
+ *
+ *  @param {object} report  from `trainerReport`
+ *  @param {object} o
+ *  @param {boolean|null} o.won   did the side under review win; null for no result
+ *  @param {number} o.size
+ *  @param {object[]|null} o.points
+ *  @param {string|null} o.focus  the area he was watching, when he played
+ *  @param {object|null} o.summary
+ *  @param {"his"|"yours"|"watching"} o.voice  whose game this was
+ *  @param {{b: string, w: string}|null} o.names  the record's player names
+ *  @param {"b"|"w"} o.side       the colour the report is about
+ *  @param {string|null} o.opponent  who you played, when the game was yours
+ *  @param {object} o.taught      his register, for the syllabus line */
+export function reviewLines(report, {
+  won, size, points = null, focus = null, summary = null,
+  voice = "his", names = null, side = "b", opponent = null, taught = null,
+} = {}) {
+  const watching = voice === "watching";
+  const his = voice === "his";
   const out = [];
   const label = (pt) => pointLabel(size, pt[0], pt[1]);
   const at = (n) => (points ? points.find((p) => p.move === n) ?? null : null);
-  /** "you played D4 and Q16 was the move" when the points know both. */
+  /* Who the review is about, and who is on the other side of the board. When he
+     played, that is you and him; when he is reading, it is two named people and
+     he is neither of them. */
+  const them = watching ? sideName(names, side) : "you";
+  const their = watching ? `${them}'s` : "your";
+  const other = his ? "I"
+    : (typeof opponent === "string" && opponent.trim()) || sideName(names, side === "b" ? "w" : "b");
+  const cap1 = (w) => w[0].toUpperCase() + w.slice(1);
+  /** "D4 was played and Q16 was the move" when the points know both. */
   const instead = (s) => {
     const here = at(s.move), before = at(s.move - 1);
     const played = here && here.played ? pointLabel(size, here.played.c, here.played.r) : null;
     const best = before && before.best ? label(before.best) : null;
-    if (played && best && played !== best) return ` You played ${played}; ${best} was the move.`;
-    if (played) return ` You played ${played}.`;
+    const who = watching ? them : "You";
+    if (played && best && played !== best) return ` ${who} played ${played}; ${best} was the move.`;
+    if (played) return ` ${who} played ${played}.`;
     return "";
   };
-  if (!report.looked) return ["I could not see the numbers this game, so the review is the game itself. Walk through it; my notes are on every move."];
-  out.push(won === true
-    ? "You won. Before you enjoy that, read the rest."
-    : won === false
-      ? "I won. That is not the interesting part."
-      : "A game with no winner. Fine; the lessons are the same.");
+  if (!report.looked) {
+    return [watching
+      ? "I could not see the numbers for this one, so the review is the game itself. Walk through it and I will keep my opinions for the positions I can count. \u{1F9EE}"
+      : "I could not see the numbers this game, so the review is the game itself. Walk through it; my notes are on every move. \u{1F4DD}"];
+  }
+  if (watching) {
+    out.push(`${them} against ${other}. \u{1F9D0} I was not at this board, so nobody here is me - I am reading it with you.${
+      won === true ? ` ${them} won.` : won === false ? ` ${other} won.` : " No winner recorded."} I will tell you what the stones did.`);
+  } else if (!his) {
+    out.push(won === true
+      ? `You beat ${other}. \u{1F3C6} I was not there, which I am choosing not to feel anything about. Now let us find out whether you deserved it.`
+      : won === false
+        ? `${other} beat you. \u{1F9D0} Fine. Games you lost are the only ones worth this much of my attention.`
+        : `You and ${other}, and no winner recorded. The lessons are the same. \u{1F91D}`);
+  } else {
+    out.push(won === true
+      ? "You won. \u{1F3C6} Before you enjoy that, read the rest."
+      : won === false
+        ? "I won. \u{1F60F} That is not the interesting part."
+        : "A game with no winner. Fine; the lessons are the same. \u{1F91D}");
+  }
   if (report.turns.length) {
     const worst = report.turns.reduce((a, s) => (s.cost > a.cost ? s : a));
     const list = report.turns.map((s) => `move ${s.move} (${pct(s.cost)})`).join(", ");
-    out.push(`Where it turned for you: ${list}. The one to study is move ${worst.move}; it cost you ${pct(worst.cost)} on its own.${instead(worst)} Open the review and stand there.`);
+    out.push(`Where it turned for ${them}: ${list}. \u{1F4C9} The one to study is move ${worst.move}; it cost ${pct(worst.cost)} on its own.${instead(worst)} Open the review and stand there.`);
   } else if (report.steady) {
-    out.push(`No single move of yours cost more than ${pct(report.worst ? report.worst.cost : 0)}. That is discipline. Now we work on ambition.`);
+    out.push(`No single move of ${their} cost more than ${pct(report.worst ? report.worst.cost : 0)}. That is discipline. \u{1F9CA} Now we work on ambition.`);
   }
   const gifts = report.gifts.filter((g) => g.gift !== null);
   if (gifts.length) {
     const taken = gifts.filter((g) => g.kept === true);
     const missed = gifts.filter((g) => g.kept === false);
     const say = (g) => `move ${g.move}${g.best ? ` (the honest move was ${label(g.best)})` : ""}`;
-    if (taken.length) out.push(`I gave you ${taken.length === 1 ? "a mistake" : `${taken.length} mistakes`} on purpose and you took ${taken.length === 1 ? "it" : "every one"}: ${taken.map(say).join("; ")}. I am not going to pretend that did not please me.`);
-    if (missed.length) out.push(`${taken.length ? "You missed the rest" : "I gave you something on purpose and you let it go"}: ${missed.map(say).join("; ")}. Next time, when I say look carefully, look.`);
+    if (taken.length) out.push(`I gave you ${taken.length === 1 ? "a mistake" : `${taken.length} mistakes`} on purpose and you took ${taken.length === 1 ? "it" : "every one"}: ${taken.map(say).join("; ")}. \u{1F389} I am not going to pretend that did not please me.`);
+    if (missed.length) out.push(`${taken.length ? "You missed the rest" : "I gave you something on purpose and you let it go"}: ${missed.map(say).join("; ")}. \u{1F440} Next time, when I say look carefully, look.`);
   } else if (report.gifts.length) {
-    out.push("I gave you something on purpose this game and the numbers around it were not read, so I will keep whether you saw it to myself.");
+    out.push("I gave you something on purpose this game and the numbers around it were not read, so I will keep whether you saw it to myself. \u{1F92B}");
   }
   if (report.gained.length) {
-    out.push(`Your best: ${report.gained.map((s) => `move ${s.move}`).join(" and ")}. ${report.gained.length === 1 ? "That one" : "Those"} gained more than ${pct(-report.gained[0].cost)}. Play like that on purpose.`);
+    out.push(`${cap1(their)} best: ${report.gained.map((s) => `move ${s.move}`).join(" and ")}. \u2B50 ${report.gained.length === 1 ? "That one" : "Those"} gained more than ${pct(-report.gained[0].cost)}. ${watching ? "Find out what the stone was doing; that is the move to steal." : "Play like that on purpose."}`);
   }
   if (report.steady) {
-    out.push(`Over the whole game you gave away ${pct(report.steady.mean)} of your chances on an average move. ${report.steady.mean < 0.03 ? "Tight. Keep it." : report.steady.mean < 0.06 ? "Ordinary for your rank, and we are not aiming at ordinary." : "Too much. Slow down at the moves that matter; you will know which ones because your hand hesitates."}`);
+    /* The same number, and two different things to say about it. Told about a
+       stranger you are being shown what a level looks like; told about yourself
+       you are being told what to do on Tuesday. */
+    const m = report.steady.mean;
+    const verdict = watching
+      ? (m < 0.03 ? "That is a player who does not give anything away. \u{1F510} Notice how little of it is spectacular."
+        : m < 0.06 ? "Ordinary play, steadily. \u{1F9D7} Most games are decided by exactly this and not by the fight you remember."
+          : "Loose. \u{1F573}\uFE0F The game was not decided by one move; it leaked.")
+      : (m < 0.03 ? "Tight. \u{1F510} Keep it."
+        : m < 0.06 ? "Ordinary for your rank, and we are not aiming at ordinary. \u{1F9D7}"
+          : "Too much. \u{1F573}\uFE0F Slow down at the moves that matter; you will know which ones because your hand hesitates.");
+    out.push(`Over the whole game ${them} gave away ${pct(m)} of ${watching ? "their" : "your"} chances on an average move. ${verdict}`);
   }
-  const reveal = focusReveal(focus, summary);
-  if (reveal) out.push(reveal);
-  out.push("Walk through the game. Every move has my note on it, and the graph shows where I am right.");
+  if (his) {
+    const reveal = focusReveal(focus, summary);
+    if (reveal) out.push(reveal);
+  }
+  if (!watching) {
+    if (taught) {
+      out.push(syllabusLine(taught));
+      const rx = prescribe(focus, taught);
+      if (rx) out.push(rx.line);
+    }
+  }
+  out.push(watching
+    ? "Walk through it. I will say what each side got for its stones, and the graph says where the game actually changed hands. \u{1F4C8}"
+    : his
+      ? "Walk through the game. \u{1F463} Every move has my note on it, and the graph shows where I am right."
+      : "Walk through it with me. \u{1F463} I did not see these moves as they were played, so the graph is doing the remembering: stand on every drop in it.");
   return out;
 }
 

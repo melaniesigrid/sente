@@ -16,6 +16,7 @@ export {
   replay, withMoveComment, lastMoveIndex, resultText,
 } from "./record.js";
 export { SHAPES, SEVERITY_RANK, detectShapes } from "./shape.js";
+export { RELATIONS, relationsAt } from "./relations.js";
 export { CLOCK_TYPES, createClock, tick, onMove, remainingMs } from "./clock.js";
 export { GLICKO, updateGlicko, rateAgainst, isProvisional } from "./glicko.js";
 export {
@@ -28,6 +29,7 @@ export {
 export {
   atMove, moveNumbers, captureMoves, nextCapture, prevCapture,
   reviewLength, clampMove, markerAt, reviewLabel, playedMoves,
+  startLine, playInLine, backInLine, lineFrom, canBranch,
 } from "./review.js";
 export {
   winRate, winRateForBlack, swings, turningPoints, nextTurn, prevTurn,
@@ -42,7 +44,7 @@ export { RANKS, inverseRank, encodeInputs } from "./kata/features.js";
 export { choosePolicyMove, keepSet } from "./kata/policy.js";
 export { loadModel, onModelProgress, modelReady, loadMaster, loadEval, MODEL_BYTES, MODEL_FILE } from "./kata/net.js";
 export { kataChooseMoveForRecord, clampRank, profileForRank, masterYear } from "./kata/bot.js";
-export { ANALYSIS_RANK, analyseGame, cachedAnalysis, positions, evaluatePosition, seedAnalysis } from "./kata/analyse.js";
+export { ANALYSIS_RANK, analyseGame, analysisCacheKey, cachedAnalysis, positions, evaluatePosition, seedAnalysis } from "./kata/analyse.js";
 export { PHASE_AT, phaseOf, lineOf, regionOf, distance, describeMove, policyStanding } from "./explain.js";
 export {
   TRAINER, AREAS, giftDue, pickGift, giftOutcome, trainerReport, areasOf, gameSummary, areaMeans, focusFor, trend,

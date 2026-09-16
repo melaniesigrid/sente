@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { analyseGame, cachedAnalysis, reviewLength } from "../engine/index.js";
+import { analyseGame, analysisCacheKey, cachedAnalysis, reviewLength } from "../engine/index.js";
+import { recallGraph, saveGraph } from "../store/graphs.js";
 
 /* ----------------------- ASKING FOR THE GRAPH -----------------------
    The React side of analysis: it holds the points as they arrive, and it holds the
@@ -21,7 +22,7 @@ import { useT } from "../components/langStore.js";
 
 const EN = makeT(BASE_LOCALE);
 
-export function useAnalysis(record) {
+export function useAnalysis(record, { auto = false } = {}) {
   const t = useT();
   const [points, setPoints] = useState([]);
   const [running, setRunning] = useState(false);
@@ -34,19 +35,26 @@ export function useAnalysis(record) {
   const [base, setBase] = useState(0);
   const [now, setNow] = useState(0);
   const stop = useRef(false);
+  const autoAttempted = useRef("");
   // The same list as `points`, readable without making `start` depend on it: the
   // callback would otherwise be rebuilt once per position of a long walk.
   const got = useRef([]);
   const total = reviewLength(record);
 
-  // A different game is a different graph. Anything in flight is abandoned.
+  /* A different game is a different graph. Anything in flight is abandoned, and
+     the new game is asked for twice: the engine's cache first, which answers for
+     anything walked while this page has been open, and then the store, which
+     answers for a game walked yesterday. A graph that was drawn once is never
+     drawn again, which is the difference between opening an old game and
+     spending four minutes of a phone on it. */
   useEffect(() => {
     stop.current = true;
-    got.current = cachedAnalysis(record) ?? [];
+    autoAttempted.current = null;
+    got.current = cachedAnalysis(record) ?? recallGraph(record) ?? [];
     setPoints(got.current);
     setRunning(false);
     setError(null);
-  }, [record, t]);
+  }, [record]);
 
   // A clock only while the walk is running, so the estimate moves between points.
   useEffect(() => {
@@ -73,6 +81,9 @@ export function useAnalysis(record) {
       }),
     }).then((res) => {
       setRunning(false);
+      /* Kept whether the walk finished or was stopped half way: half a graph is
+         worth something, and walking those positions again tomorrow is not. */
+      saveGraph(record, got.current);
       if (!res.complete && res.reason === "unavailable") {
         setError(t("review.networkUnreachable"));
       }
@@ -86,6 +97,14 @@ export function useAnalysis(record) {
 
   // Leaving review stops the walk; nothing should keep running behind a closed screen.
   useEffect(() => () => { stop.current = true; }, []);
+
+  useEffect(() => {
+    if (!auto || running || points.length === total + 1) return;
+    const key = analysisCacheKey(record);
+    if (autoAttempted.current === key) return;
+    autoAttempted.current = key;
+    start();
+  }, [auto, record, running, points.length, total, start]);
 
   const doneCount = points.length;
   const measured = doneCount - base;              // positions this run actually asked about

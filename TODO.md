@@ -51,6 +51,35 @@ lessons), and the middle game everywhere. Life and death below 15k was on this l
       reading is gradual instead of a cliff, and keep every new answer engine-proved.
 - [ ] Audit the lesson catalogue for repeated concepts that now surface in multiple places, then
       keep one canonical route and let the secondary shelves point at it rather than repeat it.
+- [x] Lessons no longer split a look from the move it sets up (2026-09-15). An info step followed
+      by a question on the same board is folded at play time (`foldLesson` in `lessonStep.js`):
+      the explanation leads the question and the board is live at once, and a mark that sat on
+      the answer is dropped. The authored data keeps its step indices, because translations and
+      recall cards are keyed by them. A lesson is recorded as done the moment its last step is
+      solved, not only when the button is pressed, and the finished card shows a filled check.
+- [x] Finished games now start their win-rate walk at once (2026-09-15). The result card and
+      review both mount `useAnalysis` in auto mode once a game is ended, so the graph begins
+      filling without a click and keeps its partial cache when you open review mid-walk.
+- [x] The table outlives the game (2026-09-16). A finished online game no longer ends the
+      room: the socket stays open, the result card offers to read the game back together, and
+      once both sides are in, the position is the room's - the move either of them walks to,
+      the variation either of them tries, and the places either of them points at are on the
+      other's screen. The review frames live in `server/room.js` beside the game's own, the
+      rules of a variation moved to `src/engine/review.js` so the server refuses an illegal
+      line exactly as the board does, and the chat log travels into review with the players.
+- [x] A win rate graph is walked once (2026-09-16). The points are kept per game in
+      `src/store/graphs.js` and handed back to the engine's cache when the record is opened,
+      so a game out of the archive draws its curve before anybody asks. Local to the machine
+      that walked it, which is the promise review already prints under the graph.
+- [x] A picture of a person is square and twice the size (2026-09-16). Photographs keep their
+      corners rather than being cropped to a coin, at 168px on a profile and 72px across a
+      finished table, so two people who have just played can see who they played. Uploads are
+      384px square to match, in the same 64KB envelope.
+- [x] Progress lives on the account (2026-09-15). A signed-in player's record of what they have
+      done (`src/store/progress.js` names the fields) is sent to `PUT /api/me/progress` a moment
+      after every save and pulled when the app opens and when somebody signs in. The server
+      merges rather than overwrites, with the same pure function the browser uses, so two devices
+      used apart lose nothing. Preferences stay on the device. The privacy notice says so.
 
 ## Phase 0: Foundation (done)
 
@@ -182,8 +211,8 @@ each fixed in its own commit:
       landing's heading are one rule; card padding, stack gaps and the type scale all
       moved up a step; a screen arrives a beat at a time (`.arrives`). At the table the
       board takes two thirds of the width instead of splitting it with a panel that is
-      mostly empty. All ten rooms and eight pairings still hold: nothing names a colour
-      or a family.
+      mostly empty. Every room and every pairing still holds: nothing names a colour
+      or a family. (Ten rooms at the time; three since 2026-09-15, below.)
 - [x] A front door (2026-09-10, branch `feat/landing-page`): the landing is its own
       screen (`views/Landing.jsx`) and Home is the dashboard behind it. A visitor who
       has not been onboarded opens on the front door; Enter hands them to the welcome
@@ -622,6 +651,24 @@ two Durable Object classes, deployed at https://api.joseki.online.
       so signing in on a phone does not sign out the laptop, and `POST /api/signout`
       ends one or (with `{everywhere: true}`) all of them.
       `tools/server/accounts.mjs <url>` proves the whole flow against a deployment.
+- [x] A way back for a guest who lost their browser (2026-09-14, branch `feat/admin-adopt`).
+      A handle with no address had no way back at all: no password to type, no letter to
+      post, and nothing the operator could do but delete it. `POST /api/admin/players/:id/email`
+      puts an address on the handle; `POST /api/admin/mail/reset/:id` then mints the way in,
+      and following it leaves the person in their own seat with a password. Found when a
+      club member could not get back to a game in progress. `tools/server/mail.mjs` proves it.
+- [x] Everybody signs in (2026-09-15, branch `feat/sign-in-only`). The third door, a handle
+      with nothing behind it, is gone from `AccountGate`: people claimed one, lost the browser
+      it lived in, had nothing to sign in with, and claimed another. Two doors now, sign in
+      and create an account. The handles that already exist keep working, and the lobby's
+      add-an-address form starts open for them until they do. `POST /api/register` still
+      exists on the server because sign-up is built on it; nothing in the app calls it alone.
+- [x] Folding two handles into one (2026-09-16, branch `feat/admin-merge`). The same member
+      had three: `POST /api/admin/players/:id/merge {from}` moves the games, the archive, the
+      pins and the win/loss record across, re-seats them in every room they played in so the
+      game opens with their own chair, and removes the old handle. The rating is not merged;
+      the survivor keeps its own. `server/merge.js` is the pure part, `tools/server/merge.mjs`
+      the proof against a deployment.
 - [x] Verify the address, and a way back in when the password is forgotten (2026-09-10,
       branch `feat/mail`). Two letters and no others, both asked for, neither carrying an
       unsubscribe link because there is no list to leave (`server/mail.js` holds the copy,
@@ -1448,7 +1495,33 @@ Open:
       sorted light to dark. The two lights are always derived, and the panel picks the room's
       own stones beside the tones rather than inheriting whatever it was started from.
 - [ ] Dark variant of the stone palette.
-- [x] Sound and haptic feedback on stone placement (opt-in, synthesised, no assets).
+- [x] Archetypes (`src/content/archetypes.js`, 2026-09-14): eleven masks, each an emoji
+      glyph, a name in Chinese and English, and one line about the way. Chosen on the
+      profile, kept as `archetype` on the profile (`""` is the plain player), drawn beside
+      the name in the header and the game strip. It is play, not a rank: the copy says it
+      is allowed to be untrue. The glyph is text, so the Lucide-only rule holds for every
+      icon that points at a fact. Name and line are overlaid per language under `arche.`.
+- [ ] The mask across the network: the server's player record is a name and a seal colour,
+      so an opponent online never sees the archetype. Carry it on register and `PATCH
+      /api/me`, put it in `asSeat` and the hall actors, and draw the mark beside seat names
+      in the online game, pair go and the lobby. Until then the mask is local-only.
+- [x] Sound and haptic feedback on stone placement (synthesised, no assets). Shipped
+      opt-in and off, which read to players as a server with no sound at all; it is on by
+      default now and a profile saved under the old default is un-muted once. The synth was
+      also rebuilt to sound like go: an inharmonic wooden body under the contact click,
+      slate duller than clamshell, captures falling into the bowl, a pass, and a struck
+      bell. The AudioContext is unlocked from the first gesture in the document, not from
+      the first sound, because a house player opening a handicap game arrives with no
+      gesture on the stack and Safari will not resume a context created there.
+- [ ] Voice at the table: "Game started", and a spoken 3-2-1 as a byo-yomi period runs out,
+      the way the big servers do it. Deferred behind the Clock UI item - there is no
+      countdown at the table to speak to yet - and behind a decision on where the audio
+      comes from: recorded clips are the only way to sound like a go server, but nine
+      languages ship, so it is nine voice sets, and "nothing is downloaded" stops being
+      true. `playPass` and the clock events (`byoyomi`, `period-lost`) are already there.
+- [ ] A speaker control at the table, so sound can be silenced without walking to the
+      profile. Wants the Clock UI item's header space; until then the profile toggle is
+      the only way.
 - [x] Self-host fonts instead of the Google Fonts `@import` (2026-09-11, branch
       `feat/self-host-fonts`). `tools/fonts/fetch.mjs` (`npm run fonts`) downloads the five
       text families once into `src/fonts/google/` and generates `src/styles/googleFaces.js`;
@@ -1563,6 +1636,11 @@ Free, because the engine already does the hard part:
       the table is set to, and which invited the belief the lobby spends a paragraph denying.
       `PlayView` takes `withBot`, so the page's button sits you down rather than returning
       you to the lobby beside the card you just left.
+- [x] The play chooser became a staged flow (2026-09-15): `src/views/Play.jsx` now asks one
+      decision at a time — first human or AI, with a Melanie-only Ke Jie shortcut, then the
+      branch-specific next choice, and only then the board and table settings. The screen
+      keeps the large neumorphic cards, moves team play behind the human branch, and leaves
+      the existing online, local, duel and house-player destinations intact.
 - [ ] The tells are written, not measured. Hoshi really does forget ladders and Tetsu really
       does answer contact with contact, but nothing in the suite proves either, and the
       telemetry ring buffer is the thing that could: it keeps enough per-bot to check whether
@@ -1699,6 +1777,127 @@ Open:
 - [ ] Six of the ten marks sit in the amber band and `deriveDanger` puts every unauthored
       warning at hue ~12°. Cinnabar pushed the set warmer still. A cool light room would
       even it out.
+
+## Three rooms (done 2026-09-15, branch `feat/three-themes`)
+
+A design shotgun on the game screen drew four directions side by side and three of them
+were kept, so the ten named rooms became three: the ones somebody picked by looking.
+
+- [x] `tatami` (light), `night` (dark) and `kifu` (review) are the whole of `palettes.js`.
+      Tatami is the reference room and the fallback, `system` points at tatami and night,
+      and the seven rooms that went away are carried forward by `migrateThemeId` rather
+      than reset: a player who chose a dark room keeps a dark room, and the two rooms the
+      device used to pick (house, sumi) go back to meaning "follow the device".
+- [x] **The board stopped being themed.** `deriveBoard` was a derivation that gave a dark
+      room a plank computed out of its own ground, which meant the goban changed colour
+      every time the page did. There is one wood now, `BOARD` in `tokens.js`, in all three
+      rooms and in a room built in the dojo. A goban is an object; an object does not
+      change colour when the light does.
+- [x] The half of `BOARD_RULES` that only bound on an invented board is gone with it. One
+      board means the question is asked of a set rather than of a room, and only of the
+      black stone: shell on kaya measures about 1.6:1 and its rim is what separates it, so
+      a floor there would only describe a board nobody has played on.
+- [x] Review mode brings its own room: `Review.jsx` sets the Kifu tokens on its own root
+      and `.review-room` paints them, so a finished game is read on the printed page
+      whichever room it was played in, and the chrome around it stays where it was.
+- [x] Nine languages: three room notes each, the mood word `review`, and the picker's
+      blurb rewritten. The retired rooms' notes and the retired rule's lines are gone,
+      which `i18n.test.js` holds against the data on every run.
+
+Still open here: nothing. The coordinates and the printed move numbers landed with the
+stones, below.
+
+## One drawing of a stone (done 2026-09-16, branch `feat/big-stones`)
+
+The stones on the board were redrawn the day before and everything drawn larger was left
+on the old picture: a three-stop radial gradient with a soft specular ellipse, on the
+argument that a hard highlight at twenty pixels is a white pixel in the corner of a disc
+while a gradient at three hundred is the difference between a stone and a circle. That
+argument was about the old drawing. The new one reads at both sizes, and two answers to
+what a stone looks like is one too many for a design system whose whole claim is that the
+pieces are the same pieces wherever you meet them.
+
+- [x] `StoneFace` in `components/stoneArt.jsx` is the only drawing of a stone in the app.
+      The board, the figure beside a statement and the field behind a band all call it.
+- [x] The geometry is ratios of the radius (`STONE` in `boardGeometry.js`: a highlight a
+      third of the radius across, three tenths up and to the left, and a rim of 1.1px at the
+      board's own `STONE_R`), so a figure is the goban's stone seen closer.
+- [x] The fills are the board's three classes, stated once in the stylesheet. The white
+      rim's width is the one part that has to scale, so it arrives as an attribute and
+      `.stone-w` may not pin `stroke-width` -- a fixed width there would print a hairline
+      on a stone the size of a fist.
+- [x] What went with the gradient: `.fig-rim`, `.fig-shine`, `.fs-rim`, the `fig-gleam`
+      loop and its `--sheen` per-stone delay, and the three gradient `<defs>` each caller
+      built off its own `useId`.
+
+Decisions:
+- The gleam is gone rather than reimplemented. It was a wave of light crossing a row of
+  soft speculars; a hard highlight is a fact about the stone's surface, and pulsing it
+  would be a row of blinking dots. What is left moving on a figure is the playing of it,
+  which is the part worth watching.
+- Moku keeps its own gradient and its soft top shine. It is a character with a face, not a
+  piece in a position, and the shine is composed with the eyes rather than with the stone.
+- The rim scales with the radius rather than holding at a hairline. A figure is a stone
+  seen closer, and on a stone seen closer the edge is thicker too.
+
+## The stones as drawn, and the record as printed (done 2026-09-15, branch `feat/room-stones`)
+
+The three rooms landed with the old stones on them: grey-brown slate, gradient-shaded, each
+casting the house pair of shadows, in a well sunk into the page. The game screen was drawn
+with none of that, and the drawing is what was chosen.
+
+- [x] **The stones are the drawing's.** A flat disc of the set's body, the black one with
+      one hard, bright highlight on its left shoulder (the crown, cut a quarter of the way
+      to white), the white one held off the wood by a hairline rim. No cast shadow on a
+      stone. `Board.jsx` draws them in one `Stone`; the look page's plates draw the same.
+- [x] **The board is the raised thing.** `.board-well` is a card of the page's colour lifted
+      by the house pair, with the wood set into it as the board's own `rect`. Every drawn
+      direction had the board raised on the table, and a goban is an object on a table.
+- [x] **Both table rooms play ink and ivory.** Tatami and Night name `ebony`; the drawer is
+      untouched and a player's own choice still overrides both.
+- [x] **Kifu is printed, not played.** The palette carries `print: true` and `derive.js`
+      reads it: the board is the page (`boardFor`), the grid is a hairline of ink at full
+      strength (`--grid-alpha`, a new token), and the stones are ink and paper with an ink
+      rim whatever set the player carries. A printed stone is not a rock. The set the room
+      names is what its plate is drawn from, nothing more.
+- [x] **Review opens the way a kifu is printed:** coordinates as the reader shows them (on by default),
+      move numbers on (the toggle and the N key hide them to look at the shape). Numbers on
+      a stone are written in the other stone's colour, which is the one pair held 4.5:1
+      apart in every room; they used to take `--light`, which is dark in a dark room.
+- [x] Tests moved with the rule: every *table* room plays on the one wood and never on its
+      page; the printed room plays on its page and is the only one that does; every set
+      prints as ink and paper there.
+
+- [x] What the review passes found on the way, all of it shipped with the above: the move
+      you are standing on is ringed when every stone carries a number (`.here-ring`), the
+      numbers open on only where the drawn board clears the type floor (measured with a
+      ResizeObserver, so a rotation re-answers it), `--accent` is handed out with the rest
+      of a room's tokens so every plate wears its own mark, the look page's plates are
+      drawn as a table room draws them (`plateVars` in `views/look.js`), White's territory
+      and the win graph's unread tail are legible on the printed page, the front door
+      stopped framing its board twice, and the joseki dictionary marks its current move.
+
+Decisions:
+- The gloss is a hard disc, not a fade, because that is the drawing and it is what makes
+  the pieces read as polished glass rather than ink. On the printed page the crown is the
+  body, so the same disc paints nothing without the board knowing it is in print.
+- The big figures (`stoneArt.jsx`, the landing) keep their gradient: at three hundred
+  pixels a flat disc with a dot is a button, and at forty a gradient is a smear. This is
+  also why the printed white stone's rim is mixed half-way to the ink rather than being
+  the ink: those three stops are the figures' gradient too.
+  **Reversed the next day** (see the phase below): the argument was about the old drawing,
+  and the new one reads at both sizes. The rim's mix is kept, for the same reason stated
+  the other way round: the three stops are still what a large stone is drawn from.
+- **The white stone's rim cannot be made to separate it from the wood, and it is not
+  supposed to.** RIM is within 1.21:1 of kaya, so cutting the rim deeper walks it *toward*
+  the board (measured: a half-mix lands every set at 1.11-1.21:1 against 1.31-1.40:1 at a
+  third). What holds a white stone off the wood is its body, at 1.6-1.8:1, which is what a
+  real board does. A review pass proposed the deeper cut and the numbers sent it back.
+- The numbers gate measures the board, not the window. A max-width, the sheet's padding,
+  the well's padding and the side column each take a cut, and guessing at them adds up to
+  more than the margin being guessed about.
+- Kifu as a *game-screen* layout (the typeset players line, clocks as text, chat as
+  marginalia) is not built. The room is; the layout of the table in it is still the table.
 
 ## Palettes and the dojo (done 2026-09-10, branches `feat/palette-damson`, `feat/palette-dojo`)
 
@@ -1877,6 +2076,28 @@ that person, nothing he says is a quotation, and the bot chip stays on every lin
       for, because the app contacts nothing.
 - [x] Copilot's account door (`copilot/fix-ke-jie-feature-visibility`) merged, and the
       address it listed in plain text replaced by its digest.
+- [x] He coaches (2026-09-16, branch `feat/kejie-coach`). Commentary became a course.
+      `src/engine/relations.js` names twelve more shapes off the board - the jump, the
+      knight's move and the large one, the bamboo joint, the two-space extension, nobi and
+      kosumi, the attachment, the hane, the cut, the shoulder hit, the ponnuki - all local
+      to the stone just played, all with the connecting points checked empty, and they ride
+      on `describeMove` as `relations` so the house players are untouched.
+      `src/content/senseiShapes.js` is the syllabus: fifteen shapes in teaching order from
+      the solid extension to the large knight's move, each with the teaching, the caution
+      the books leave out, short lines for later, his own words for his own stones, and the
+      Book of Shapes article and lesson that drill it. He teaches the most basic shape on
+      the board rather than the cleverest, once properly, once with the caution, and then
+      about every third sighting; `taught` in his box remembers, so the syllabus is the
+      player's. He announces the shape of the day when you sit down, asks a question the
+      board can answer on about one move in five, and ends the review with the syllabus
+      count and homework. Ask him "what is a keima" in the thread and he answers in full.
+- [x] Whose game is whose (2026-09-16). `reviewLines` takes a voice: `his` when he played
+      it, `yours` when you played somebody else - your opponent is named and he never calls
+      himself "I" - and `watching` for a record neither of you was in, where both players
+      are named from the record and "you" is reserved for the reader. Review is told which
+      by the screen that knows (`seat`), never by a guess. Before this, opening somebody
+      else's SGF and asking him about it produced "I won", which was a claim about a board
+      he was never at.
 
 Open:
 - [ ] Not yet played in a browser against the network. The turn is three network calls
@@ -3140,3 +3361,41 @@ Decisions:
 - Plain beats literary here and nowhere else. The Record is the only writing on this site
   addressed to somebody who has not decided to care yet. The lessons, the journal and the
   Classic are all read by somebody who already sat down.
+
+## The coordinate margin reaches the rest of the app (done, branch `feat/coords-everywhere`)
+
+The toggle shipped in `feat/coordinates` and worked. It was only wired to three of the
+eleven boards, and it was off by default, so most readers never saw a lettered board at
+all and the ones who turned it on saw the margin come and go by screen.
+
+- [x] `coordinates` threaded into the five boards that dropped it: `PairGame` (which also
+      dropped `lastMoveMark`, the other half of the same settings row), `Learn`, `Problems`,
+      `Recall` and `Dojo`. `Game`, `OnlineGame` and `Review` already honoured it.
+- [x] `LessonPlayer` takes `coordinates` as a prop rather than reading the profile: the
+      welcome flow runs the same player before there is a profile, and a first lesson about
+      capturing one stone does not want a lettered margin. Defaults to false for that reason.
+- [x] `defaultProfile.coordinates` is now true. A lesson that says "a 5k would play D4"
+      (`learn.levelNote`, drawn from `coordLabel`) was being read beside a board with no D4
+      on it. The margin is the cheaper half of that sentence.
+- [x] New `src/components/boardGeometry.js`: `CELL`, `MARGIN`, `boardSpan`, `legiblePx`.
+      Board.jsx had the grid measurements as locals, so a caller picking a width could not
+      check its own work. Kept out of Board.jsx so that file still exports only a component.
+- [x] `Learn` and `Recall` ask for `max(600, legiblePx(size))` instead of a flat 600. The
+      margin is SVG text inside the board's viewBox, so it scales with the board: nineteen
+      lines at 600px printed 16px labels at eleven, under the 12px floor. Ten lessons in the
+      library are nineteen lines. Games were already fine; 680 for nineteen lines was chosen
+      in `feat/coordinates` for exactly this reason, and `legiblePx(19)` is 645.
+- [x] `src/views/coordinates.test.js`: every file rendering a `<Board>` is in the honours
+      list or the exempt list, and the test fails if a twelfth appears in neither. The floor
+      check reads `BOARD_PX` out of the game views rather than restating it, so a width
+      edited there is checked here.
+
+Decisions:
+- Joseki, Look and MiniSelfPlay stay exempt. They are pictures of boards, not boards you
+  read a point off: Joseki crops to a corner and the margin is outside the viewBox anyway,
+  and the other two are a colour swatch and a thumbnail where the labels would be noise at
+  any setting. The exemption is written down in the test rather than left to whoever reads
+  the diff next.
+- On by default, against the instinct that a clean board is the better first impression. A
+  beginner is the reader who most needs to find D4 and least able to guess where it is, and
+  the toggle is one tap away for anybody who wants the board quiet.

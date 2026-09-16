@@ -1,5 +1,11 @@
 import { useState, useMemo } from "react";
 import { idx, starPoints, colLabel, rowLabel, pointLabel } from "../engine/index.js";
+import { CELL, MARGIN, STONE_R as R, boardSpan } from "./boardGeometry.js";
+import { StoneFace } from "./stoneArt.jsx";
+
+/* A stone is drawn in one place for the whole app (components/stoneArt.jsx),
+   at the size of a game here and at the size of a plum beside a statement, and
+   its radius on a board is STONE_R in boardGeometry.js. */
 
 /* ----------------------- BOARD (SVG) -----------------------
    Renders any board size; reads it from the board object. Presentational
@@ -31,8 +37,8 @@ export function Board({
   crop = null,
 }) {
   const N = board.size;
-  const cell = 44, m = 34;
-  const S = (N - 1) * cell + m * 2;
+  const cell = CELL, m = MARGIN;
+  const S = boardSpan(N);
   const [hover, setHover] = useState(null);
   const flashSet = useMemo(() => new Set(flash.map(p => idx(N, p[0] ?? p.c, p[1] ?? p.r))), [flash, N]);
   const atariSet = useMemo(() => new Set(atari), [atari]);
@@ -56,18 +62,10 @@ export function Board({
         role="grid"
         aria-label={`Go board, ${N} by ${N}`}
       >
-        <defs>
-          <radialGradient id="stB" cx="0.36" cy="0.34" r="0.85">
-            <stop offset="0%" stopColor="var(--stone-b-1)" />
-            <stop offset="55%" stopColor="var(--stone-b-2)" />
-            <stop offset="100%" stopColor="var(--stone-b-3)" />
-          </radialGradient>
-          <radialGradient id="stW" cx="0.36" cy="0.34" r="0.85">
-            <stop offset="0%" stopColor="var(--stone-w-1)" />
-            <stop offset="60%" stopColor="var(--stone-w-2)" />
-            <stop offset="100%" stopColor="var(--stone-w-3)" />
-          </radialGradient>
-        </defs>
+        {/* The wood, under everything. It is the board's, not the well's: the
+            well is the page the board is set on, and a cropped view still
+            shows the wood because the rect is the whole board, not the view. */}
+        <rect x={0} y={0} width={S} height={S} rx={10} className="wood" />
         {Array.from({ length: N }).map((_, i) => (
           <g key={i}>
             <line x1={m} y1={y(i)} x2={x(N - 1)} y2={y(i)} className="grid-line" />
@@ -107,7 +105,7 @@ export function Board({
         <g key={"cap" + captureKey}>
           {captured.map((p, i) => {
             const c = p[0] ?? p.c, r = p[1] ?? p.r;
-            return <circle key={"c" + i} cx={x(c)} cy={y(r)} r={18.5} className="stone-out"
+            return <circle key={"c" + i} cx={x(c)} cy={y(r)} r={R} className="stone-out"
               style={{ animationDelay: `${i * 40}ms` }} />;
           })}
         </g>
@@ -118,17 +116,26 @@ export function Board({
           const isDead = deadSet.has(i);
           return (
             <g key={i} className={`${flashSet.has(i) ? "stone-pop" : "stone-in"} ${isDead ? "stone-dead" : ""}`}>
-              <circle cx={x(c)} cy={y(r)} r={18.5}
-                fill={v === "b" ? "url(#stB)" : "url(#stW)"}
-                className={v === "b" ? "stone-b" : "stone-w"} />
+              <StoneFace cx={x(c)} cy={y(r)} r={R} colour={v} />
               {isDead && (
                 <path className={`dead-x ${v === "b" ? "on-b" : "on-w"}`}
                   d={`M${x(c) - 7} ${y(r) - 7} L${x(c) + 7} ${y(r) + 7} M${x(c) + 7} ${y(r) - 7} L${x(c) - 7} ${y(r) + 7}`} />
               )}
               {atariSet.has(i) && !isDead && <circle cx={x(c)} cy={y(r)} r={21} className="atari-ring" />}
               {numbers && numbers.has(i) ? (
-                <text x={x(c)} y={y(r)} className={`stone-num ${v === "b" ? "on-b" : "on-w"}`}
-                  textAnchor="middle" dominantBaseline="central">{numbers.get(i)}</text>
+                <>
+                  <text x={x(c)} y={y(r)} className={`stone-num ${v === "b" ? "on-b" : "on-w"}`}
+                    textAnchor="middle" dominantBaseline="central">{numbers.get(i)}</text>
+                  {/* A numbered stone has no room for the dot, so the move you are
+                      standing on is ringed outside the stone instead: with every
+                      stone numbered, nothing else says which one is now. */}
+                  {/* Wider than the atari and chat rings, which both sit at 21:
+                      no caller draws this beside either today, and two rings of
+                      the same radius would be one ring if one ever did. */}
+                  {isLast && !isDead && mark !== "none" && (
+                    <circle cx={x(c)} cy={y(r)} r={23} className="here-ring" />
+                  )}
+                </>
               ) : (
                 isLast && !isDead && mark !== "none" && (
                   mark === "ring"
@@ -141,9 +148,7 @@ export function Board({
         })}
         {pending && (
           <g className="stone-staged">
-            <circle cx={x(pending.c)} cy={y(pending.r)} r={18.5}
-              fill={pending.color === "b" ? "url(#stB)" : "url(#stW)"}
-              className={pending.color === "b" ? "stone-b" : "stone-w"} />
+            <StoneFace cx={x(pending.c)} cy={y(pending.r)} r={R} colour={pending.color} />
             <circle cx={x(pending.c)} cy={y(pending.r)} r={21.5} className="staged-ring" />
           </g>
         )}

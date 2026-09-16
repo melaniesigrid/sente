@@ -7,9 +7,10 @@
 
    So the stones are data now, like a palette or a pairing. A set is two
    colours: the core of the black stone and the core of the white one.
-   Everything else (the lit crown, the rim that turns as the surface curves
-   away, and the seating a dark board asks for) is arithmetic, in the same
-   spirit as derive.js: author two colours, get a stone.
+   Everything else (the lit crown, and the rim that turns as the surface curves
+   away) is arithmetic, in the same spirit as derive.js: author two colours, get
+   a stone. Nothing here asks what room it is in, and since 2026-09-15 nothing
+   asks what board either: there is one wood and a stone is cut for it.
 
    Every named room names the set it is played with, and a player may override
    that from the look page. `auto` is not a set: it means the room decides. */
@@ -85,8 +86,22 @@ export function isStoneId(id) {
  *  is what keeps a white stone from going grey at its edge. */
 const RIM = "#b9a98a";
 
-/** One core colour -> the three stops the board's gradient wants: the lit
- *  crown, the body, the rim. The constants are read off the drawn house stones
- *  and then applied to every set, so a new set is two colours and nothing else. */
-export const cutBlack = (core) => [lighten(core, 0.17), core, darken(core, 0.22)];
+/** One core colour -> the three stops a stone is drawn from: the lit crown,
+ *  the body, the rim. The constants are read off the drawn stones and then
+ *  applied to every set, so a new set is two colours and nothing else. The
+ *  black crown is the body a quarter of the way to white, which is the exact
+ *  highlight the game screen was drawn with (2026-09-15): every stone in the
+ *  app paints it as one hard, bright disc on the left shoulder, at the size of
+ *  a game and at the size of a plum alike.
+ *
+ *  The white crown is the one stop nothing draws today: a white stone is a
+ *  body and a rim, because a highlight on a stone that is already the lightest
+ *  thing in the room says nothing. It is cut anyway, so that a set stays two
+ *  colours in and a full stone out, and so the pair of cuts stay symmetrical. */
+export const cutBlack = (core) => [lighten(core, 0.25), core, darken(core, 0.22)];
+/* The rim is a turn of the surface, not a separator, and it cannot become one:
+   RIM is within 1.21:1 of the wood, so cutting the rim deeper walks it toward
+   the board rather than away from it (measured, every set: a third of the way
+   gives 1.31-1.40:1 on kaya, half gives 1.15-1.21:1). What holds a white stone
+   off the wood is its body, at 1.6-1.8:1, which is what a real board does. */
 export const cutWhite = (core) => [lighten(core, 0.72), core, mix(core, RIM, 0.35)];

@@ -40,6 +40,21 @@ export const TONES = [
   },
 ];
 
+/** The wood, and there is only one of it.
+ *
+ *  A goban is an object, not a surface of the page: it is the same slab of kaya
+ *  in the morning, at midnight, and in the book the game is printed in. Rooms
+ *  used to each derive their own board out of their own ground, which gave the
+ *  dark rooms a plank nobody had chosen and moved the board every time the page
+ *  moved. Now the page is themed and the board is not: it is this colour in
+ *  every room that has a board, and both stones are cut to read on it. (The
+ *  printed room, Kifu, has no board: a diagram is drawn on the page, and
+ *  derive.js answers with the page there.)
+ *
+ *  Measured, not asserted: BOARD_RULES in tokens.js holds each stone against
+ *  this wood, over every room and every set in the drawer. */
+export const BOARD = "#d9b77a";
+
 export const TONE_KEYS = TONES.map(t => t.key);
 export const REQUIRED_TONES = TONES.filter(t => t.required).map(t => t.key);
 
@@ -48,10 +63,10 @@ export const REQUIRED_TONES = TONES.filter(t => t.required).map(t => t.key);
  *  the list of things the stylesheet is allowed to ask for. */
 export const TOKEN_NAMES = [
   "--ground", "--board", "--light", "--dark", "--ink", "--ink-2", "--ink-3", "--cream",
-  "--accent-rgb", "--accent-soft", "--accent-ring", "--accent-ink", "--danger", "--danger-ink",
+  "--accent-rgb", "--accent", "--accent-soft", "--accent-ring", "--accent-ink", "--danger", "--danger-ink",
   "--sh-ink", "--sh-lite",
   "--wash-a", "--wash-b", "--scrim",
-  "--grid", "--hairline",
+  "--grid", "--grid-alpha", "--hairline",
   "--stone-b-1", "--stone-b-2", "--stone-b-3",
   "--stone-w-1", "--stone-w-2", "--stone-w-3",
   "--belt-edge",
@@ -88,24 +103,23 @@ export const STONE_RULE = {
   why: "Black and white have to be unmistakable at a glance, across a board, at speed.",
 };
 
-/** Each stone against the board it is lying on, which is a different question
+/** Each stone against the wood it is lying on, which is a different question
  *  from the two stones against each other and the one this design system got
  *  wrong for a year. Every dark room passed the rule above at 10:1 or better
  *  and still played badly, because both stones were measured against each other
- *  and neither was measured against the wood: a black stone on a near-black
- *  board sat at 1.2:1 while the white one shouted at 14:1. A player reported it
- *  as getting lost, which is exactly what those two numbers describe.
+ *  and neither was measured against the board.
  *
- *  On paper this rule is deliberately one-sided and stays that way: a white
- *  stone on kaya really is about 1.1:1, and what separates it there is its rim
- *  and its drop shadow, not its fill. That is a real board, so the floor only
- *  binds where the room had to invent a board (`deriveBoard`), and there it
- *  binds on both stones at once. */
+ *  There is one board now (BOARD, above), so this is one question asked of a
+ *  set rather than of a room-and-set pair, and it is one-sided the way a real
+ *  board is. The black stone has to be findable on the wood. The white one is
+ *  separated from kaya by its rim, not by its fill: shell on wood measures
+ *  about 1.6:1 on a real board and looking for a floor there would only
+ *  produce a board nobody has ever played on. The printed room asks the same
+ *  question of ink on its page (boardFor, derive.js).
+ */
 export const BOARD_RULES = [
   { id: "board-b", label: "Slate on the board", stone: "b", min: 2.5,
     why: "A black stone has to be findable on the wood it is played on, not only against the white one." },
-  { id: "board-w", label: "Shell on the board", stone: "w", min: 2.5, derivedOnly: true,
-    why: "The other half of the same rule, and only where the room invented its board: a white stone that outshouts the wood is as tiring as a black one that hides in it. On real paper a shell stone is separated by its rim, not by its fill." },
 ];
 
 /** The two shadow tones are the illusion, and they fail in the other

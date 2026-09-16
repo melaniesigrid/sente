@@ -44,7 +44,6 @@ export const account = {
     tabs: "Wie du hereinkommst",
     signin: "Anmelden",
     signup: "Konto anlegen",
-    guest: "Nur ein Name",
     signupBio: "Eine Adresse und ein Passwort, hier verwahrt und nirgendwo sonst. Keine Anmeldung über Google, kein Dritter erfährt, was du spielst. Die Adresse ist der Weg, deinen Namen auf einem anderen Gerät zurückzubekommen.",
     signinBio: "Melde dich an, und dein Name, deine Wertung und deine Partien folgen dir auf dieses Gerät.",
     handlePlaceholder: "Dein Name",
@@ -79,13 +78,6 @@ export const account = {
     address: "Die Adresse des Kontos",
     post: "Schick mir einen Weg zurück",
     nevermind: "Lass gut sein",
-  },
-
-  guest: {
-    bio: "Setz dich jetzt hin und entscheide später. Ein Name ohne Adresse dahinter lebt in diesem Browser: er spielt gewertete Partien wie jeder andere, und du kannst ihm jederzeit eine Adresse hinzufügen, ohne die Wertung zu verlieren, die du erspielt hast.",
-    claim: "Namen sichern",
-    fine: "Die Websitedaten in diesem Browser zu löschen lässt einen Namen ohne Adresse endgültig verschwinden.",
-    welcome: "Willkommen auf der Rangliste, {name}",
   },
 
   mail: {

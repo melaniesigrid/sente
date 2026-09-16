@@ -6,6 +6,151 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.17.0.0 (2026-09-16)
+
+### Added
+
+- **The table outlives the game.** A finished online game used to end the room: everything
+  but chat was refused, both players left, and each read the game back alone on their own
+  screen. The two people most likely to have something to say about move 74 were being sent
+  to separate rooms to say it. Now the result card offers to read it back together. One side
+  asks, the other joins, and the position becomes the room's: the move either of them walks
+  to, the variation either of them tries and the places either of them points at are on the
+  other's screen. The chat log travels into review with them.
+- **A hand on the board.** In a shared review a tap can light a place up instead of playing
+  a stone, which is half of what two people say to each other about a game. It works at the
+  last position of a counted game, where there is nothing left to play and plenty still to
+  say. A ring belongs to the position it was made in and goes when the board moves.
+- **Win rate graphs are kept.** A graph is one network run per position, and the engine only
+  remembered it while the page was open, so opening an old game spent the whole walk again.
+  The points are now kept per game and handed back when the record is opened: a game out of
+  the archive draws its curve before anybody asks. Kept whether the walk finished or was
+  stopped half way, on this machine only, which is the promise review already prints under
+  the graph.
+
+### Changed
+
+- **A picture of a person is square.** A disc cropped a face to a coin and threw away the
+  corners of a picture somebody chose. A photograph keeps its corners now, wherever it is
+  drawn; a letter initial keeps its disc. The profile picture is twice the size (168px), the
+  faces at a finished table are 72px so that two people who have just played can see each
+  other, and uploads are 384px square to match, in the same 64KB envelope.
+- The rules of a variation moved from `src/views` into `src/engine/review.js`. The server
+  refuses an illegal move in a shared line exactly the way the board does, with the engine's
+  own reason, because a variation is not a place where the rules relax.
+
+## v0.16.1.0 (2026-09-16)
+
+### Changed
+
+- **The big stones are the board's stones.** The shapes beside a statement and the game
+  playing behind the front door's bands were still drawn the old way, with a soft graded
+  sphere and a highlight that drifted across it. They are the same flat stone the board
+  plays with now, at five times the size: one bright disc high on the black stone's
+  shoulder, a clean rim on the white one. A stone is one object in this app, and now it
+  looks like one object wherever you meet it.
+- The slow gleam that used to cross a figure is gone with the gradient it was drawn on. A
+  highlight belongs to the stone rather than passing over it, and what is left moving on a
+  figure is the playing of it, which is the part worth watching.
+
+## v0.16.0.0 (2026-09-16)
+
+### Changed
+
+- **The stones are the ones that were drawn.** A stone is a flat disc of its set's own
+  colour now: the black one with a single bright highlight on its left shoulder, the white
+  one held off the wood by a hairline rim. Neither casts a shadow any more. The board is
+  the object on the table, so the board is what is raised, and the stones lie on it.
+- **Both table rooms are played with ink and ivory.** Tatami and Night name the sharpest
+  pair in the drawer. The other seven sets are untouched, and a set you choose yourself
+  still follows you from room to room.
+- **The review room is a printed page, not a table.** Kifu has no board: the diagram is
+  drawn on the paper, the grid is a hairline of ink at full strength, and the stones are
+  ink and paper whatever set you carry, because a printed stone is not a rock. A game is
+  read the way a book prints it.
+- **A record opens with its move numbers on** wherever the board is drawn wide enough to
+  read them, and drops them on a screen too narrow, where they would land under the type
+  floor. The toggle and the N key still hide them to look at the shape, and the board is
+  measured as it is actually drawn, so turning a phone re-answers the question.
+- **The move you are standing on is ringed** when every stone carries a number and the
+  usual dot has nowhere to go. In the review room that ring is the terracotta the room has
+  always promised.
+- The look page's stone plates are drawn as a table room draws them, so the printed room
+  offers nine sets to choose between rather than nine sheets of paper.
+
+### Fixed
+
+- Every room's plate on the look page wore the same mark, whichever room it was offering.
+  The mark is handed out with the rest of a room's colours now.
+- The joseki dictionary marked no move as the current one while stepping through a
+  sequence.
+- White's territory could not be seen while counting on the printed page, where a white
+  stone is the paper itself. It is outlined more firmly.
+- The unread part of the win rate graph was drawn in a tone within 1.12:1 of the black
+  stone in the dark room, so a partial reading looked like Black winning the rest.
+- The front door framed its board twice, and the board a game is waiting for was a hole in
+  the page that a card then jumped out of.
+
+## v0.15.1.0 (2026-09-15)
+
+### Fixed
+
+- **The coordinate margin reaches every board.** The letters and numbers are a preference
+  on the profile, and they were being read by three of the eleven screens that draw a
+  board. A reader who turned them on found a lettered board in a game and a bare one in the
+  lesson that had just told them to play at D4. Pair go, the lessons, the problems, recall
+  and the dojo all honour the setting now. Pair go had also dropped the last-move marker,
+  the other half of the same row in settings.
+- **The margin is on to begin with.** It was off by default, so most readers never saw it
+  at all and never went looking for the switch. A lesson that names a point in words is
+  worth very little beside a board that will not name it back. It is still one tap away for
+  anybody who wants the board quiet.
+- **A nineteen line lesson is drawn wide enough to read.** The margin is drawn inside the
+  board and scales with it, so nineteen lines at the lesson width printed letters at eleven
+  pixels, under the floor the rest of the app keeps to. Lesson and recall boards now widen
+  until the labels clear it. Games were already wide enough.
+
+## v0.15.0.0 (2026-09-15)
+
+### Changed
+
+- **Three rooms, and no more.** Four directions for the game screen were drawn side by
+  side and three were kept, so the ten named rooms are now Tatami for daylight, Night for
+  the evening, and Kifu for reading a finished game. A theme you had chosen before this is
+  carried forward to the room that replaced it rather than reset: a dark room stays a dark
+  room, and the two rooms the device used to pick go back to meaning "follow the device".
+  The look page, the dojo and the stone drawer all work exactly as they did.
+- **The board is not themed any more.** It used to be computed out of each room's own
+  ground, which meant the goban changed colour every time the page did, and a dark room
+  played on a plank nobody had chosen. There is one wood now, in all three rooms and in a
+  room you build yourself. A goban is an object, and an object does not change colour when
+  the light does.
+- **Review mode brings its own room.** A finished game is read on the printed page,
+  whichever room you play in: ivory paper, near-black ink, and terracotta on the move you
+  are standing on. The record is drawn as a sheet laid on the table, so the chrome around
+  it stays where you left it.
+
+## v0.14.0.0 (2026-09-15)
+
+### Added
+
+- **A mask to wear beside your name.** The profile has a new card, Your archetype, with
+  eleven masks to choose from: the ambusher, the silent killer, the invisible player, the
+  unreadable, the predator, the tiger, the fighter, the champion, the philosopher, the
+  ancient master and the destroyer. Each is an emoji, a name in Chinese and in your own
+  language, and one line about the way that player takes a board. The one you choose is
+  drawn beside your name on the profile, in the top bar, and at the table against a house
+  player. It changes nothing about your rank, and it is allowed to be untrue: pick the
+  player you would like people to think you are. No mask is the default, so nothing moves
+  for a player who never opens the card, and a saved profile from before today loads as it
+  did.
+- The card and every mask read in all nine languages.
+
+### Changed
+
+- The mask is kept on this device for now. An opponent online does not see it yet; that is
+  on the roadmap.
+
 ## v0.13.1.0 (2026-09-13)
 
 ### Fixed

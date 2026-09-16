@@ -16,8 +16,8 @@
    happens to a stone once a room has one is here, because it depends on the
    room: a black stone has to be seated further into a dark board or it reads as
    grey slate lying on top of the wood. */
-import { mix, lighten, darken, toTriple, isDarkColor, luminance, contrast } from "./color.js";
-import { TONES, READING, LARGE } from "./tokens.js";
+import { mix, lighten, darken, toTriple, isDarkColor, contrast } from "./color.js";
+import { TONES, READING, LARGE, BOARD } from "./tokens.js";
 import { stonesOf, cutBlack, cutWhite, HOUSE_STONES } from "./stones.js";
 
 /** The two lights, from the ground alone.
@@ -112,6 +112,11 @@ export function completeTones(tones) {
     // itself is data in stones.js, and a player may override it for every room
     // at once from the look page.
     stones: tones.stones || HOUSE_STONES,
+    // A printed room: a diagram on the page rather than a table with a board
+    // on it (palettes.js, Kifu). Carried as a flag, not a colour, because it
+    // changes what the board, the grid and the stones are, not what they are
+    // filled with.
+    print: !!tones.print,
   };
   for (const tone of TONES) if (!out[tone.key]) throw new Error(`sente: palette is missing ${tone.key}`);
   return out;
@@ -134,7 +139,7 @@ export function tokensFor(tones) {
   // from the top left, so it is still raised, but it has nowhere left to go.
   const [dp, blurp] = dark ? [3, 9] : [2, 6];
   const { b, w } = stonesFor(t);
-  const board = deriveBoard(t.ground, t.cream, b[1], w[1]);
+  const board = boardFor(t);
 
   return {
     "--ground": t.ground,
@@ -154,6 +159,13 @@ export function tokensFor(tones) {
     "--danger": t.danger,
 
     "--accent-rgb": accent,
+    // The mark as a colour, not as three numbers. It is emitted rather than
+    // written once in the stylesheet because a custom property resolves where
+    // it is declared: a `--accent: rgb(var(--accent-rgb))` on the root would
+    // be the root's accent everywhere, including on a plate or a sheet that
+    // carries its own tokens, which is how every room's plate on the look page
+    // came to wear the same mark.
+    "--accent": `rgb(${accent})`,
     // The soft fill behind a selected chip, and the focus ring. They are two
     // tokens because 16% of gold on near-black is nothing: a dark room needs a
     // far stronger ring before keyboard focus is visible at all.
@@ -182,6 +194,10 @@ export function tokensFor(tones) {
     // is exactly the dark it wants, which keeps the grid in the room's hue
     // rather than introducing a colour nothing else uses.
     "--grid": t.grid || (dark ? t.ground : t.ink),
+    // How much of the grid shows. On wood the lines are drawn quiet, under the
+    // stones; on a printed diagram they are the ink itself, at full strength,
+    // because a hairline on paper is what a kifu is made of.
+    "--grid-alpha": t.print ? "1" : ".38",
     // Every belt, seal and rank colour in rank.js is an absolute value chosen
     // against paper: the white belt vanishes on a pale ground and the black one
     // on a dark ground. A contour in the room's own ink gives each band an edge
@@ -199,49 +215,59 @@ export function tokensFor(tones) {
   };
 }
 
-/** Both stones a completed tone set is played with, ready for the gradient: the
- *  set's two cores, cut into three stops each. A stone is the same object in
- *  every room — it is a rock, it does not know what it is lying on — so nothing
- *  here depends on the ground. What changes from room to room is the board
- *  (`deriveBoard`), which is the thing that was actually wrong.
+/** Both stones a completed tone set is played with: the set's two cores, cut
+ *  into three stops each (the crown the shine is drawn from, the body, and the
+ *  rim). A stone is the same object in every room — it is a rock, it does not
+ *  know what it is lying on — so nothing here depends on the ground.
+ *
+ *  Except in a printed room, where there is no rock. A kifu draws its stones
+ *  in ink and paper: the black stone is the ink, the white one is the page
+ *  with an ink rim, and neither has a shine (the crown is the body, so the
+ *  shine paints nothing). The set the player carries is still the set, and it
+ *  is what the look page's plate shows; it is simply not what a diagram is
+ *  printed with.
  *
  *  One function, so the board, the swatches and the audit can never be looking
  *  at three different sets of stones. */
 export function stonesFor(tones) {
   const set = stonesOf(tones.stones);
+  /* The printed white stone is the page with a line round it. The line is
+     mixed rather than being the ink itself, because one drawing serves every
+     size (components/stoneArt.jsx) and the rim thickens with the stone: at the
+     size of a game solid ink would be right, and at the size of a figure it
+     would be a heavy black ring round a sheet of paper. Half-way to the ink is
+     a firm printed outline at both. */
+  if (tones.print) {
+    return { b: [tones.ink, tones.ink, tones.ink], w: [tones.ground, tones.ground, mix(tones.ground, tones.ink, 0.55)], set };
+  }
   return { b: cutBlack(set.b), w: cutWhite(set.w), set };
 }
 
-/** The surface the stones are played on, which is not always the page.
- *
- *  On paper the board is the paper: a pale ground already is a goban, a black
- *  stone reads on it at 7:1 or better, and the shell stone is separated by its
- *  rim the way it is on real kaya. Nothing to invent, so nothing is: this
- *  returns the ground untouched and every light room is exactly as drawn.
- *
- *  A dark room has no board at all, and that was the bug. The page is near
- *  black because a dark room should be; a board that is also near black leaves
- *  the black stone at about 1.2:1 on it while the white one sits at 14:1, so
- *  one colour hides and the other shouts. Both complaints have the same cause
- *  and the same cure: give the dark room an actual board, lifted off its page.
- *
- *  Where to stop lifting is not a taste call. The board is carried toward the
- *  room's own shell until it sits at the geometric mean of the two stones,
- *  which is the one point where both read against it equally — each at the
- *  square root of the contrast between them, so the stone rule is what pays for
- *  this one. It comes out near 3:1 a side for every set in the drawer, and the
- *  page stays as dark as it was: only the board moved. */
-export function deriveBoard(ground, cream, b, w) {
-  if (!isDarkColor(ground)) return ground;
-  const want = Math.sqrt((luminance(w) + 0.05) * (luminance(b) + 0.05)) - 0.05;
-  let lo = 0, hi = 1;
-  for (let i = 0; i < 20; i++) {
-    const mid = (lo + hi) / 2;
-    if (luminance(mix(ground, cream, mid)) < want) lo = mid; else hi = mid;
-  }
-  return mix(ground, cream, lo);
+/** What the stones lie on in this room: the one wood, or, in a printed room,
+ *  the page itself. The only way to ask, so the tokens and the audit agree. */
+export function boardFor(tones) {
+  return tones.print ? tones.ground : deriveBoard();
 }
 
-/** True where the room had to invent a board rather than play on its own paper.
- *  The two-sided board rule only binds here; see BOARD_RULES. */
-export const boardIsDerived = (ground) => isDarkColor(ground);
+/** The surface the stones are played on, which is not the page.
+ *
+ *  This used to be a derivation and the derivation is gone. A light room played
+ *  on its own paper; a dark room had a board computed out of its ground so that
+ *  both stones could be found on it; and the result was a board that changed
+ *  colour every time the page did. A goban does not do that. It is one slab of
+ *  kaya in the morning, at midnight, and in the book the game is printed in,
+ *  which is what the design pass on 2026-09-15 said out loud: the page is
+ *  themed, the board is not.
+ *
+ *  So the board is a constant (BOARD, in tokens.js) and what still varies is
+ *  only what a room writes on it: the grid, the star points, the marks. The
+ *  black stone is held against this one wood by BOARD_RULES, over every room
+ *  and every set at once.
+ *
+ *  It stays a function so that a palette built in the dojo plays on the same
+ *  board as a named room. A printed room has no board at all; `boardFor` is
+ *  what answers for a room, and this is what it answers with when there is a
+ *  wood to answer with. */
+export function deriveBoard() {
+  return BOARD;
+}

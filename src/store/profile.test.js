@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { sanitizeProfile, defaultProfile } from "./profile.js";
+import { sanitizeProfile, defaultProfile, restoreSound, UNMUTE_KEY } from "./profile.js";
 import { DEFAULT_TYPEFACE } from "../content/typeface.js";
 import { rankOf } from "../content/rank.js";
 import { GLICKO, isProvisional } from "../engine/index.js";
@@ -82,6 +82,27 @@ describe("sanitizeProfile", () => {
     expect(warn).toHaveBeenCalledTimes(1);
     expect(warn.mock.calls[0][0]).toMatch(/lessonsDone/);
   });
+  it("keeps a known archetype and resets an unknown one to the plain player", () => {
+    expect(sanitizeProfile({ ...defaultProfile, archetype: "tiger" }).archetype).toBe("tiger");
+    expect(warn).not.toHaveBeenCalled();
+    const out = sanitizeProfile({ ...defaultProfile, archetype: "dragon" });
+    expect(out.archetype).toBe("");
+    expect(warn.mock.calls[0][0]).toMatch(/archetype/);
+    expect(sanitizeProfile({ ...defaultProfile, archetype: 7 }).archetype).toBe("");
+  });
+  it("gives a profile saved before the masks existed the plain player, without a word", () => {
+    const { archetype, ...old } = defaultProfile;
+    expect(archetype).toBe("");
+    expect(sanitizeProfile(old).archetype).toBe("");
+    expect(warn).not.toHaveBeenCalled();
+  });
+  it("keeps the plain player when it was chosen on purpose, and resets a null mask", () => {
+    expect(sanitizeProfile({ ...defaultProfile, archetype: "" }).archetype).toBe("");
+    expect(warn).not.toHaveBeenCalled();
+    expect(sanitizeProfile({ ...defaultProfile, archetype: null }).archetype).toBe("");
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0][0]).toMatch(/archetype/);
+  });
   it("resets non-finite or non-numeric numbers", () => {
     const out = sanitizeProfile({ ...defaultProfile, rating: "1200", wins: NaN, losses: Infinity });
     expect(out.rating).toBe(defaultProfile.rating);
@@ -99,8 +120,9 @@ describe("sanitizeProfile", () => {
   it("rejects arrays holding non-strings", () => {
     expect(sanitizeProfile({ ...defaultProfile, problemsDone: ["p1", 7] }).problemsDone).toEqual([]);
   });
-  it("resets a non-boolean sound flag", () => {
-    expect(sanitizeProfile({ ...defaultProfile, sound: "yes" }).sound).toBe(false);
+  it("resets a non-boolean sound flag to the default, which is on", () => {
+    expect(defaultProfile.sound).toBe(true);
+    expect(sanitizeProfile({ ...defaultProfile, sound: "yes" }).sound).toBe(true);
     expect(warn.mock.calls[0][0]).toMatch(/sound/);
   });
   it("tierPassed must be an array of integer tier ids", () => {
@@ -150,11 +172,21 @@ describe("the stored palette", () => {
   });
 
   it("keeps a named room, and resets one it does not know", () => {
-    expect(sanitizeProfile({ ...defaultProfile, theme: "lacquer" }).theme).toBe("lacquer");
+    expect(sanitizeProfile({ ...defaultProfile, theme: "night" }).theme).toBe("night");
     expect(sanitizeProfile({ ...defaultProfile, theme: HOUSE_THEME }).theme).toBe(HOUSE_THEME);
     for (const bad of ["nope", "", 7, null, {}]) {
       expect(sanitizeProfile({ ...defaultProfile, theme: bad }).theme, String(bad)).toBe(SYSTEM_THEME);
     }
+  });
+
+  /* Joseki shipped ten rooms before 2026-09-15 and ships three now. A profile
+     stored in one of the seven that went away is not a corrupt profile: it is a
+     preference, and it is carried to the room that replaced it rather than
+     reset to the default. A player who chose a dark room keeps a dark room. */
+  it("carries a room that no longer exists forward instead of resetting it", () => {
+    expect(sanitizeProfile({ ...defaultProfile, theme: "lacquer" }).theme).toBe("night");
+    expect(sanitizeProfile({ ...defaultProfile, theme: "kaya" }).theme).toBe("tatami");
+    expect(sanitizeProfile({ ...defaultProfile, theme: "house" }).theme).toBe(SYSTEM_THEME);
   });
 
   // A set of stones is a preference of its own, kept apart from the room: a
@@ -189,5 +221,50 @@ describe("the stored palette", () => {
     const out = sanitizeProfile(stored);
     expect(out.dojo).not.toBe(stored.dojo);
     expect(out.dojo).not.toHaveProperty("evil");
+  });
+});
+
+/* Sound was opt-in and off, and the toggle was three cards deep in the profile,
+   so the common report was that the server had no sound at all. It is on by
+   default now, and a profile saved under the old default is un-muted once. */
+describe("restoreSound", () => {
+  // These tests run in node, which has no localStorage; the real thing would be
+  // there in a browser, and `restoreSound` already treats its absence as "leave
+  // the profile alone", so the stub is what puts the behaviour under test.
+  let store;
+  beforeEach(() => {
+    store = new Map();
+    globalThis.localStorage = {
+      getItem: k => (store.has(k) ? store.get(k) : null),
+      setItem: (k, v) => store.set(k, String(v)),
+      removeItem: k => store.delete(k),
+    };
+  });
+  afterEach(() => { delete globalThis.localStorage; });
+
+  it("turns sound on for a profile saved while it was opt-in", () => {
+    const r = restoreSound({ ...defaultProfile, sound: false });
+    expect(r.changed).toBe(true);
+    expect(r.profile.sound).toBe(true);
+  });
+
+  it("leaves a profile that already had sound alone, and saves nothing", () => {
+    const p = { ...defaultProfile, sound: true };
+    const r = restoreSound(p);
+    expect(r.changed).toBe(false);
+    expect(r.profile).toBe(p);
+  });
+
+  it("runs once: a mute chosen after it has run is kept", () => {
+    restoreSound({ ...defaultProfile, sound: false });
+    const muted = { ...defaultProfile, sound: false };
+    const r = restoreSound(muted);
+    expect(r.changed).toBe(false);
+    expect(r.profile.sound).toBe(false);
+  });
+
+  it("marks the device even when there was nothing to change", () => {
+    restoreSound({ ...defaultProfile, sound: true });
+    expect(localStorage.getItem(UNMUTE_KEY)).toBe("1");
   });
 });

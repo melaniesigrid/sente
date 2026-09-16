@@ -93,6 +93,60 @@ export function withHouseWords(lesson, t = EN) {
   };
 }
 
+/* ----------------------- LOOK, THEN PLAY -----------------------
+   Many lessons open with an info step that shows a position and then a step
+   on the very same position that asks for the move. Played as two steps that
+   is a press for nothing: the learner reads, presses Continue, and is handed
+   the board they were already looking at. So the player folds the pair: the
+   explanation becomes the `lead` of the question and the board is live as soon
+   as the words are read. Marks carry over unless they point at the answer,
+   which would turn a question into a tap.
+
+   Pure, and applied to the played copy only. Translations and recall cards are
+   keyed by authored step index, so the authored lesson is never reshaped. */
+export const FOLDS_INTO = ["quiz", "choice", "sequence", "count"];
+
+const pointKey = (p) => `${p.c},${p.r}`;
+const setupKey = (setup) => ["b", "w"].map(k => (setup?.[k] || []).map(pointKey).sort().join(" ")).join("|");
+
+/** The points a step asks for: the ones a mark must not give away. */
+const answerPoints = (step) =>
+  step.type === "quiz" ? step.answers : step.type === "sequence" ? step.moves.slice(0, 1) : [];
+
+/** Marks for a folded step: its own if it has any, else the explanation's,
+ *  unless every one of those is an answer. A region that happens to contain
+ *  the answer stays; a lone ring on the answer goes. */
+function foldedMarks(info, step) {
+  if (step.marks) return step.marks;
+  const marks = info.marks || [];
+  if (!marks.length) return undefined;
+  const answers = new Set(answerPoints(step).map(pointKey));
+  return marks.every(m => answers.has(pointKey(m))) ? undefined : marks;
+}
+
+export function foldSteps(steps) {
+  const out = [];
+  for (let i = 0; i < steps.length; i++) {
+    const info = steps[i], next = steps[i + 1];
+    if (info.type === "info" && next && FOLDS_INTO.includes(next.type) && setupKey(info.setup) === setupKey(next.setup)) {
+      const marks = foldedMarks(info, next);
+      const { marks: _own, ...rest } = next;
+      out.push(marks ? { ...rest, lead: info.text, marks } : { ...rest, lead: info.text });
+      i++;
+    } else {
+      out.push(info);
+    }
+  }
+  return out;
+}
+
+/** The lesson as it is played: same words, one step fewer wherever a look and a
+ *  move were split. Returns the lesson itself when nothing folds. */
+export function foldLesson(lesson) {
+  const steps = foldSteps(lesson.steps);
+  return steps.length === lesson.steps.length ? lesson : { ...lesson, steps };
+}
+
 export function initStep(lesson, step) {
   const base = {
     board: setupToBoard(step.setup, lesson.size),

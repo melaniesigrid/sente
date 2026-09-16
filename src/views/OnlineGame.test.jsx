@@ -30,6 +30,8 @@ const loadAccount = vi.fn(() => null);
 vi.mock("../net/api.js", () => ({
   gameSocket: (...a) => gameSocket(...a),
   SERVER_URL: "https://server.test",
+  // Review asks whether there is a server, to decide whether the trainer is here.
+  serverEnabled: () => false,
 }));
 vi.mock("../store/account.js", () => ({ loadAccount: () => loadAccount() }));
 /* The table makes a noise on every move the server confirms. That is not what
@@ -267,5 +269,59 @@ describe("a greeting the socket would not take", () => {
     fireEvent.change(box, { target: { value: "good shape" } });
     fireEvent.keyDown(box, { key: "Enter" });
     expect(box.value, "the words are still there to try again").toBe("good shape");
+  });
+});
+
+/* ----------------------- AFTER THE LAST STONE -----------------------
+   The table used to end with the game. What is checked here is that it does
+   not: the socket stays open, the invitation is on the result card, and once
+   both of them are in the review it is the room that says where the board is
+   standing - this screen never moves it on its own. */
+describe("the table a finished game leaves behind", () => {
+  const finished = (over = {}) => {
+    let rec = createGame({ size: 9 });
+    rec = play(rec, 2, 2);
+    rec = { ...rec, phase: "ended", result: { winner: "b", method: "resign" } };
+    return room({ record: rec, ...over });
+  };
+  const seated = (roomState) => {
+    const r = show();
+    open();
+    push({ t: "state", room: roomState });
+    push({ t: "seat", seat: "b1", runs: [], watching: 0 });
+    return r;
+  };
+  const sent = (type) => sock().send.mock.calls.map(([f]) => f).filter(f => f.t === type);
+
+  it("keeps the socket open and offers to read the game back together", () => {
+    seated(finished());
+    expect(sock().close).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByText("Read it back together"));
+    expect(sent("reviewAsk")).toHaveLength(1);
+  });
+
+  it("asks the other side, and takes their answer", () => {
+    seated(finished({ review: { asked: "w1", in: ["w1"], move: 1, base: 1, line: [], marks: [] } }));
+    fireEvent.click(screen.getByText("Read it back with Ixchel"));
+    expect(sent("reviewJoin")).toHaveLength(1);
+    fireEvent.click(screen.getByText("Decline"));
+    expect(sent("reviewDecline")).toHaveLength(1);
+  });
+
+  it("opens the shared review once this player is in it, and moves nothing itself", () => {
+    seated(finished({ review: { asked: null, in: ["b1", "w1"], move: 1, base: 1, line: [], marks: [] } }));
+    expect(screen.getByText("Reading it with Ixchel")).toBeTruthy();
+    // The conversation came along: this is the table's chat box, in review.
+    expect(document.querySelector(".chat-card")).not.toBeNull();
+    fireEvent.keyDown(document, { key: "ArrowLeft" });
+    expect(sent("reviewMove")).toEqual([{ t: "reviewMove", n: 0 }]);
+    expect(document.querySelector(".review-scrub").value, "until the room says so").toBe("1");
+  });
+
+  it("leaves by telling the room rather than by closing the screen", () => {
+    seated(finished({ review: { asked: null, in: ["b1"], move: 1, base: 1, line: [], marks: [] } }));
+    fireEvent.click(screen.getByText("Read it alone"));
+    expect(sent("reviewLeave")).toHaveLength(1);
+    expect(sock().close).not.toHaveBeenCalled();
   });
 });

@@ -5,9 +5,11 @@ import { sayingBySeed, localizeSaying } from "./content/classic.js";
 /* ================================================================
    SENTE · play go, beautifully
    Design system: Laska "stone" palette (DESIGN.md)
-   The palette is themed from src/content/theme.js; the house room is the
-   reference: ground #e8e4db · highlight #fbf8f2 · shade #c4beb1 ·
-   armies #f2ede3 / #4b463c · eucalyptus accent #5f8c7e
+   The palette is themed from src/theme/; there are three rooms and Tatami is
+   the reference: ground #ede6d8 · highlight #fbf7ee · shade #cdc2ae ·
+   armies ink and ivory · eucalyptus accent #6a8a75. The board is not themed:
+   one wood, #d9b77a, in both table rooms (src/theme/tokens.js); the review
+   room prints its diagram on the page (src/theme/palettes.js, `print`).
    Fraunces display · Hanken Grotesk body (the house pairing; the type is
    themed from src/content/typeface.js) · Lucide icons only
    Neumorphism via two shadows: cream top-left, clay bottom-right.
@@ -17,7 +19,7 @@ import { sayingBySeed, localizeSaying } from "./content/classic.js";
    src/views, the stylesheet in src/styles, rules in src/engine.
    ================================================================ */
 import { CSS } from "./styles/css.js";
-import { Avatar } from "./components/ui.jsx";
+import { Avatar, ArchetypeMark } from "./components/ui.jsx";
 import { Toast } from "./components/Toast.jsx";
 import { Wordmark } from "./components/Brand.jsx";
 import { ErrorBoundary } from "./components/ErrorBoundary.jsx";
@@ -29,7 +31,9 @@ import { usePrefersDark } from "./components/prefersDark.js";
 import { LangProvider } from "./components/lang.jsx";
 import { LangPill } from "./components/LangPill.jsx";
 import { useLang } from "./components/langStore.js";
-import { defaultProfile, loadProfile, needsOnboarding } from "./store/profile.js";
+import { defaultProfile, loadProfile, saveProfile, needsOnboarding } from "./store/profile.js";
+import { pullProgress, withProgress } from "./store/sync.js";
+import { ACCOUNT_EVENT } from "./store/account.js";
 import { Home } from "./views/Home.jsx";
 import { Welcome } from "./views/Welcome.jsx";
 import { Landing } from "./views/Landing.jsx";
@@ -102,12 +106,29 @@ export default function JosekiApp() {
      playing" before their own name loaded, which is a worse first impression than
      the one onboarding is there to make. */
   const [profileRead, setProfileRead] = useState(false);
+  const pull = () => pullProgress().then((doc) => {
+    if (!doc) return;
+    setProfile((cur) => {
+      const np = withProgress(cur, doc);
+      saveProfile(np);
+      return np;
+    });
+  });
   useEffect(() => {
     loadProfile().then((p) => {
       setProfile(p);
       setProfileRead(true);
       setView(v => v ?? (needsOnboarding(p) ? "landing" : "home"));
+      pull();
     });
+    /* A signed-in player's progress lives on the account as well as here. It
+       is pulled once the stored profile is in, and again whenever the account
+       changes hands (signing in on this device), and merged rather than
+       copied over, so nothing done here while signed out is lost. */
+    const onAccount = () => pull();
+    window.addEventListener(ACCOUNT_EVENT, onAccount);
+    return () => window.removeEventListener(ACCOUNT_EVENT, onAccount);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   // Derived, not stored: finishing the flow sets `onboarded` on the profile, which
   // flips this on its own. One source of truth, and no effect to keep in step. The
@@ -206,7 +227,7 @@ export default function JosekiApp() {
           <button className="profile-chip" onClick={() => go("profile")} aria-label={t("topbar.profile")}>
             <Avatar name={profile.name} tint={profile.tint} size={34} />
             <div className="chip-meta">
-              <strong>{profile.name}</strong>
+              <strong>{profile.name}<ArchetypeMark id={profile.archetype} size={14} /></strong>
               <span>{preciseRankOf(profile.rating)}</span>
             </div>
           </button>

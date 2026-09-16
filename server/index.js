@@ -23,6 +23,8 @@
    is not told it.
      DELETE /api/admin/players/:id     ADMIN_TOKEN bearer
      POST   /api/admin/players/:id/reseed  ADMIN_TOKEN bearer (:id may be an address)
+     POST   /api/admin/players/:id/email   ADMIN_TOKEN bearer {email} -> put an address on a guest handle
+     POST   /api/admin/players/:id/merge   ADMIN_TOKEN bearer {from}  -> fold handle `from` into :id
      GET   /api/admin/players          ADMIN_TOKEN bearer
      DELETE /api/admin/ratelimit/:ip   ADMIN_TOKEN bearer
      GET    /api/admin/waitlist        ADMIN_TOKEN bearer -> who is waiting
@@ -31,6 +33,8 @@
      PATCH /api/me/profile      bearer {bio, facts}
      PUT   /api/me/avatar       bearer, image body  -> the picture, at most 64 KB
      DELETE /api/me/avatar      bearer
+     GET   /api/me/progress     bearer         -> {data, at}: what you have done, kept on the account
+     PUT   /api/me/progress     bearer {data, at} -> merged with what is stored, and returned
      GET   /api/players?q=      bearer         -> who is here by that name
      GET   /api/players/:id                     -> a public profile
      GET   /api/players/:id/avatar              -> the picture, cached by its stamp
@@ -98,7 +102,8 @@ export default {
       const known = {
         "bad-name": 400, "bad-email": 400, "bad-key": 400, "no-email": 400,
         "bad-image": 400, "bad-image-type": 415, "image-too-big": 413,
-        "bad-credentials": 401, "no-player": 404,
+        "bad-progress": 400, "progress-too-big": 413,
+        "bad-credentials": 401, "no-player": 404, "same-player": 400,
         // A link that was never real and one that has been used or has aged
         // out are different answers because the page says different things:
         // one is "check what you pasted", the other "ask for another".
@@ -269,6 +274,26 @@ async function route(req, env) {
       const player = await reg.reseed(decodeURIComponent(reseed[1]));
       return player ? json({ reseeded: player }) : fail(404, "no-player");
     }
+    /* A guest who lost the browser their handle lived in has no way back: no
+       password to type, no address to post a letter to. This puts an address
+       on the handle so `mail/reset` below can mint one. Two operator calls and
+       the person is back in their own seat, mid-game, with a password now. */
+    /* Two handles, one person: fold `from` into this one. The games, the
+       archive and the record come across; the rating stays this handle's;
+       `from` is removed. Merge into the handle that can sign in. */
+    const merge = /^\/api\/admin\/players\/([^/]+)\/merge$/.exec(path);
+    if (merge) {
+      if (req.method !== "POST") return fail(405, "method");
+      const b = await readJson(req);
+      if (typeof b.from !== "string" || !b.from) return fail(400, "bad-from");
+      return json({ merged: await reg.merge(b.from, decodeURIComponent(merge[1])) });
+    }
+    const adopt = /^\/api\/admin\/players\/([^/]+)\/email$/.exec(path);
+    if (adopt) {
+      if (req.method !== "POST") return fail(405, "method");
+      const b = await readJson(req);
+      return json({ player: await reg.adopt(decodeURIComponent(adopt[1]), b.email) });
+    }
     const players = /^\/api\/admin\/players(?:\/([^/]+))?$/.exec(path);
     if (players) {
       if (!players[1] && req.method === "GET") return json(await reg.everyone());
@@ -318,6 +343,15 @@ async function route(req, env) {
   if (path === "/api/me/profile" && req.method === "PATCH") {
     const player = await requirePlayer(req, reg);
     return json(await reg.setProfile(player.id, await readJson(req)));
+  }
+
+  /* Progress. PUT is a merge, not a write: what comes back is the union of
+     what this device knows and what the account already held. */
+  if (path === "/api/me/progress") {
+    const player = await requirePlayer(req, reg);
+    if (req.method === "GET") return json(await reg.progress(player.id));
+    if (req.method === "PUT") return json(await reg.setProgress(player.id, await readJson(req)));
+    return fail(405, "method");
   }
 
   if (path === "/api/me/avatar") {
