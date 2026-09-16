@@ -23,6 +23,7 @@ import { online } from "./online.js";
 import { club } from "./club.js";
 import { account } from "./account.js";
 import { voice } from "./voice.js";
+import { call } from "./call.js";
 
 /** One catalogue, assembled from its parts. The parts never share a top-level
  *  key, so the spread is a join and never an override. */
@@ -41,4 +42,5 @@ export const en = {
   club,
   account,
   voice,
+  call,
 };

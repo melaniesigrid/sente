@@ -32,6 +32,7 @@ import { lessons2 } from "./lessons2.js";
 import { lessons3 } from "./lessons3.js";
 import { lessons4 } from "./lessons4.js";
 import { lessons5 } from "./lessons5.js";
+import { call } from "./call.js";
 
 export const ja = {
   ...shell,
@@ -85,4 +86,5 @@ export const ja = {
   /* The lessons arrive a tier at a time, so this one key is assembled rather
      than spread. */
   lesson: { ...lessons1, ...lessons2, ...lessons3, ...lessons4, ...lessons5 },
+  call,
 };

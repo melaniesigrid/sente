@@ -83,6 +83,7 @@ import { toSgf } from "../src/engine/sgf.js";
 import { callerIp } from "./ratelimit.js";
 import { may } from "./clubs.js";
 import { mailConfig, mailLink, verifyMessage, resetMessage } from "./mail.js";
+import { mintIceServers, talkMode } from "./ice.js";
 export { Registry } from "./registry.js";
 export { Room } from "./roomObject.js";
 export { Club } from "./clubObject.js";
@@ -167,7 +168,21 @@ async function route(req, env) {
   // The mail mode is here so a deployment that cannot send is visible at a
   // glance, rather than being discovered by somebody whose letter never came.
   if (path === "/" || path === "/api/health") {
-    return json({ name: "sente-server", ok: true, mail: mailConfig(env).mode });
+    return json({ name: "sente-server", ok: true, mail: mailConfig(env).mode, talk: talkMode(env) });
+  }
+
+  /* Credentials for the one relay a voice call is allowed to use.
+     Signed in only, because minting spends a key, and never cached: the
+     credentials expire and a stale set is a call that cannot connect.
+     The host is NOT in this answer's gift - the browser refuses any server
+     that is not the one compiled into its own bundle - so what this route
+     really hands over is a username and a password with a clock on them. */
+  if (path === "/api/talk/ice" && req.method === "GET") {
+    const me = await reg.auth(bearer(req));
+    if (!me) return json({ error: "sign-in" }, 401);
+    const out = await mintIceServers(env);
+    if (!out.ok) return json({ error: out.reason }, 503, { "cache-control": "no-store" });
+    return json({ iceServers: out.iceServers }, 200, { "cache-control": "no-store" });
   }
 
   if (path === "/api/register" && req.method === "POST") {

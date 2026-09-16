@@ -30,8 +30,14 @@
    relay, and the privacy notice says so rather than implying nobody is there. */
 
 /** The only host a call will use. Changing this is a deliberate act, reviewed
- *  in a diff, and shipped in the bundle rather than handed out at runtime. */
-export const TURN_HOST = "turn.joseki.online";
+ *  in a diff, and shipped in the bundle rather than handed out at runtime.
+ *
+ *  It names Cloudflare directly because that is who relays: the privacy notice
+ *  says so, and a vanity name on our own domain pointing at their service would
+ *  read like a third party the notice does not mention. The server imports this
+ *  same constant rather than declaring its own, so the host the credentials are
+ *  minted for and the host the browser will accept cannot drift apart. */
+export const TURN_HOST = "turn.cloudflare.com";
 
 /** Pull the host out of a `turn:`/`turns:`/`stun:` URL. These are not URLs the
  *  URL constructor parses, so it is done by hand: `turn:host:3478?transport=udp`

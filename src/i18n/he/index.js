@@ -32,6 +32,7 @@ import { account } from "./account.js";
 import { voice } from "./voice.js";
 import { room, stones, type, belt, badge, fact, seen } from "./overlay.js";
 import { plain, statement, moku, ruleset, preset, persona, arche } from "./content.js";
+import { call } from "./call.js";
 
 export const he = {
   ...shell,
@@ -62,4 +63,5 @@ export const he = {
   preset,
   persona,
   arche,
+  call,
 };

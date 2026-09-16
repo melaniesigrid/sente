@@ -3344,4 +3344,46 @@ ${FONT_FACES}
   }
   .moku-off > * { position: relative; }
 }
+
+/* ---- a call ----
+   Voice at the board. The lid is the microphone: raised is muted, sunken is
+   live, which is the two-shadow rule doing the one job it was made for rather
+   than a new idiom for a new feature.
+
+   The check card is not decorated as a warning. It is an ordinary card with an
+   ordinary heading, because it is an ordinary part of opening a call and
+   dressing it in alarm colours would teach people to click past it. The three
+   words are set large and in the reading face, and they stay left to right in
+   every language including Hebrew: the order of the words is the check, so
+   reversing them would be a security bug wearing a layout bug's coat.
+
+   The 5x5 draws with the board's own grid and stone classes, so the shape in
+   the card and the stones on the goban beside it are the same object, and a
+   change of room or of stone set moves both. */
+.call { display: flex; flex-direction: column; gap: 12px; }
+.call-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.call-status { font-size: 13px; color: var(--ink-2); margin: 0; display: flex; align-items: center; gap: 6px; }
+.call-status.ok { color: var(--accent-ink); }
+.call-status.bad { color: var(--ink); }
+
+.call-lid {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding-block: 9px; padding-inline: 14px;
+  border: 0; border-radius: 16px; cursor: pointer;
+  background: var(--ground); color: var(--ink); font: inherit; font-size: 13px;
+  box-shadow: var(--raise-sm);
+  touch-action: none;
+}
+.call-lid:active { box-shadow: var(--sink-sm); color: var(--accent-ink); }
+
+.call-check { padding: clamp(16px, 2.2vw, 24px); display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+.call-lede { margin: 0; font-size: 14px; line-height: 1.55; max-width: 56ch; }
+.call-say {
+  margin: 0; font-family: var(--font-quote); font-size: clamp(22px, 3.4vw, 30px);
+  letter-spacing: .01em; line-height: 1.25; color: var(--ink);
+  padding-block: 10px; padding-inline: 16px; border-radius: 16px;
+  box-shadow: var(--sink-sm); align-self: stretch; text-align: center;
+}
+.call-shape { display: block; align-self: center; }
+.call-shape .call-grid { stroke: var(--grid); stroke-opacity: var(--grid-alpha); stroke-width: 1; }
 `;

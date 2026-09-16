@@ -42,6 +42,36 @@ point), the tactics tsumego set (four boards, none of them a tesuji), the endgam
 lessons), and the middle game everywhere. Life and death below 15k was on this list until
 2026-09-13 and is the one thing on it that moved.
 
+## Open on talk (voice at the board)
+
+Shipped in five PRs: the committed key agreement (Go, compiled to WebAssembly), the
+relay that is not allowed to remember anything, the browser transport, the legal
+clauses, and the interface. Two people at an ordinary table can open a call, and they
+check it by reading three go terms to each other. See `docs/designs/voice-at-the-board.md`.
+
+- [ ] **Two real browsers have never done this.** Everything is proved by `go test`,
+      vitest and `tools/server/talk.mjs` against a live Worker; none of that is two
+      machines hearing each other. This is the next thing, before anything below.
+- [ ] Cloudflare TURN pricing and quota at forced-relay volume: every call is relayed
+      for address privacy, so it is six connections in six, not one in six. Needs a
+      real number before talk is offered to the whole beta. `TURN_KEY_ID` and
+      `TURN_API_TOKEN` are unset, so `/api/health` reports `"talk": "off"` today.
+- [ ] Echo against the synthesised stone sounds in `src/components/sound.js`. Browser
+      cancellation should handle the WebAudio path; confirm rather than assume, because
+      the failure mode is your opponent hearing their own stones back.
+- [ ] Mobile Safari and the `getUserMedia` gesture requirement, same family as the
+      AudioContext unlock footgun.
+- [ ] Where "verified" lives across a socket reconnect within one call, without writing
+      anything down. This gates the retry rule: the adversary controls reconnects, so
+      repeated failures with the same person must read as suspicion, not as a bad line.
+- [ ] Rooms above two, and halls. Out on purpose: pairwise verification is N(N-1)/2
+      rituals, and shipping a room whose calls are unverified would make the claim on
+      the tin false for that room.
+- [ ] Spectator broadcast. Mesh cannot fan one speaker out to forty; that needs an SFU,
+      which needs a third host and a rewritten "nobody else" clause.
+- [ ] The seven translated legal sections want a native reader. The structure is
+      machine-checked, the wording is not.
+
 ## Open on study depth
 
 - [ ] Replace the shallow early tsumego arc with larger-board reading tutorials: authored 13x13
