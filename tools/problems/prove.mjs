@@ -113,7 +113,7 @@ const replies = (b, region, toPlay, ko) => {
  *  every move confined to `region`? Both sides may pass, which is what a ko
  *  threat played somewhere else amounts to, and a position seen before counts
  *  as survival: generous to the defender on purpose, so "dead" means dead. */
-export function survives(b, target, owner, region, toPlay, ko = null, seen = new Set(), depth = 0, cap = 24) {
+export function survives(b, target, owner, region, toPlay, ko = null, seen = new Set(), depth = 0, cap = 40) {
   const k = key(b, toPlay, ko);
   if (seen.has(k) || depth > cap) return true;
   if (at(b, target) !== owner) return false;
@@ -171,7 +171,7 @@ export function koOnlyKillers(b, target, region, attacker) {
 
 /** `survives` with the ko ban lifted, so a position can only be held by a
  *  repetition the defender is actually allowed to make. */
-function survivesKoBlind(b, target, owner, region, toPlay, seen = new Set(), depth = 0, cap = 24) {
+function survivesKoBlind(b, target, owner, region, toPlay, seen = new Set(), depth = 0, cap = 40) {
   const k = key(b, toPlay, null);
   if (seen.has(k) || depth > cap) return true;
   if (at(b, target) !== owner) return false;
