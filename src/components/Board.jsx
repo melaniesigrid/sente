@@ -1,26 +1,11 @@
 import { useState, useMemo } from "react";
 import { idx, starPoints, colLabel, rowLabel, pointLabel } from "../engine/index.js";
-import { CELL, MARGIN, boardSpan } from "./boardGeometry.js";
+import { CELL, MARGIN, STONE_R as R, boardSpan } from "./boardGeometry.js";
+import { StoneFace } from "./stoneArt.jsx";
 
-/* A stone as the game screen was drawn (design pass, 2026-09-15): a flat disc
-   of the set's body colour, the black one with a single bright highlight high
-   on its left shoulder, the white one with a hairline rim. The highlight is a
-   hard disc, not a fade: that is the drawing, and it is what makes the pieces
-   read as polished glass rather than as ink. No cast shadow: the board is the
-   object on the table, and the stones lie on it rather than floating above it.
-   The colours are the room's --stone-* tokens; nothing here names one, and in
-   a printed room the crown is the body, so the highlight paints nothing. */
-const R = 18.5;
-function Stone({ cx, cy, color }) {
-  return color === "b" ? (
-    <>
-      <circle cx={cx} cy={cy} r={R} className="stone-b" />
-      <circle cx={cx - R * 0.3} cy={cy - R * 0.3} r={R * 0.35} className="stone-gloss" />
-    </>
-  ) : (
-    <circle cx={cx} cy={cy} r={R} className="stone-w" />
-  );
-}
+/* A stone is drawn in one place for the whole app (components/stoneArt.jsx),
+   at the size of a game here and at the size of a plum beside a statement, and
+   its radius on a board is STONE_R in boardGeometry.js. */
 
 /* ----------------------- BOARD (SVG) -----------------------
    Renders any board size; reads it from the board object. Presentational
@@ -131,7 +116,7 @@ export function Board({
           const isDead = deadSet.has(i);
           return (
             <g key={i} className={`${flashSet.has(i) ? "stone-pop" : "stone-in"} ${isDead ? "stone-dead" : ""}`}>
-              <Stone cx={x(c)} cy={y(r)} color={v} />
+              <StoneFace cx={x(c)} cy={y(r)} r={R} colour={v} />
               {isDead && (
                 <path className={`dead-x ${v === "b" ? "on-b" : "on-w"}`}
                   d={`M${x(c) - 7} ${y(r) - 7} L${x(c) + 7} ${y(r) + 7} M${x(c) + 7} ${y(r) - 7} L${x(c) - 7} ${y(r) + 7}`} />
@@ -163,7 +148,7 @@ export function Board({
         })}
         {pending && (
           <g className="stone-staged">
-            <Stone cx={x(pending.c)} cy={y(pending.r)} color={pending.color} />
+            <StoneFace cx={x(pending.c)} cy={y(pending.r)} r={R} colour={pending.color} />
             <circle cx={x(pending.c)} cy={y(pending.r)} r={21.5} className="staged-ring" />
           </g>
         )}

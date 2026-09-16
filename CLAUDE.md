@@ -61,10 +61,16 @@ in `server/` (Durable Objects), deployed separately.
   room the ink is light and the ground is dark. The board is also the raised thing on the
   page: `.board-well` is a card lifted by the house pair of shadows and the wood is the
   board's own `rect` inside the SVG, so a cropped view still shows wood. A stone is flat on
-  it and casts nothing (`Stone` in `Board.jsx`): one bright disc high on the black stone's
-  left shoulder, a hairline rim on the white one. The big figures (`stoneArt.jsx`, the
-  landing) keep the gradient, because at three hundred pixels a flat disc with a dot is a
-  button.
+  it and casts nothing: one bright disc high on the black stone's left shoulder, a hairline
+  rim on the white one.
+- **A stone is drawn in exactly one place**, `StoneFace` in `components/stoneArt.jsx`, at
+  every size the app draws one: the board, the figure beside a statement, the field behind
+  a band. The geometry is ratios of the radius (`STONE` in `boardGeometry.js`), so a figure
+  is the goban's stone seen closer and not a second idea of what a stone looks like. The
+  fills are `.stone-b` / `.stone-w` / `.stone-gloss`, stated once in the stylesheet, and the
+  white rim's width arrives as an attribute because it is the one part that has to scale
+  with the stone: never pin `stroke-width` on `.stone-w` in CSS. Moku is the one stone-shaped
+  thing that is not this drawing; it is a character with a face, not a piece in a position.
 - **Kifu is printed, not played** (`print: true` in `palettes.js`, read only by `derive.js`).
   A printed room has no board: `boardFor` answers with the page, `--grid-alpha` takes the
   grid to full strength so the lines are the ink itself, and `stonesFor` prints ink and

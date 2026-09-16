@@ -555,13 +555,20 @@ ${FONT_FACES}
   animation: staged-breathe 1.8s ease-in-out infinite; }
 @keyframes staged-breathe { 50% { opacity: .4; } }
 /* The stones, as the game screen was drawn: flat discs of the set's body, the
-   black one with one shine (components/Board.jsx draws it off --stone-b-1),
-   the white one held off the wood by its rim rather than by a shadow. Nothing
-   casts a shadow here: the board is the raised thing, and the stones lie on
-   it. On a printed page the rim is the ink, which is what an outlined white
-   stone in a book is. */
+   black one with one shine, the white one held off the wood by its rim rather
+   than by a shadow. Nothing casts a shadow here: the board is the raised
+   thing, and the stones lie on it. On a printed page the rim is the ink, which
+   is what an outlined white stone in a book is.
+
+   These three rules dress every stone in the app. components/stoneArt.jsx
+   draws them at the size of a game on the board and at the size of a plum
+   beside a statement or behind a band, so the fills are stated once here and
+   the geometry is ratios of the radius there. The rim's width is the one part
+   that has to scale with the stone, so it arrives as an attribute and is
+   deliberately not set here: a fixed width in this rule would override it and
+   print a hairline on a stone the size of a fist. */
 .stone-b { fill: var(--stone-b-2); }
-.stone-w { fill: var(--stone-w-2); stroke: var(--stone-w-3); stroke-width: 1.1; }
+.stone-w { fill: var(--stone-w-2); stroke: var(--stone-w-3); }
 .stone-gloss { fill: var(--stone-b-1); pointer-events: none; }
 .stone-in { animation: pop .22s ease; transform-origin: center; transform-box: fill-box; }
 @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -1526,15 +1533,16 @@ ${FONT_FACES}
    figure is at full strength where it leaves the page and gone to nothing by
    the time it reaches the words, so the reader never has type over texture.
 
-   The stones are the room's stones, off --stone-*, and the light on them is
-   --sh-lite, the same light every raised card is lit by. Nothing is named here
-   that is not a token, and a change of set in the look page changes this too.
+   The stones are the room's stones and they are the board's drawing, by the
+   one component that draws a stone anywhere (components/stoneArt.jsx): the
+   same flat body, the same hard highlight on the shoulder, the same rim on the
+   white one, at five times the radius. Nothing about a stone is named here --
+   the fills are the board's three rules further up the sheet -- so a change of
+   room or of set on the look page moves the figures with the board.
 
-   No stone casts a shadow any more, on the board or here. What a stone this
-   size has instead of relief is the shine, which is what a polished stone
-   that size actually has on it -- a highlight where the surface faces the
-   light and a lit rim where it turns away; the board's stones carry one hard
-   highlight for the same reason at a fortieth of the size. */
+   No stone casts a shadow, on the board or here, and none of them is lit by
+   --sh-lite any more: a figure used to carry a soft specular and a rim catching
+   that light, which was a second drawing of a stone and is gone. */
 /* --fig-lead is the beat the lines get to themselves before the first stone
    lands. Every delay on this block is measured from it, so the whole sequence
    -- rules, stones, rings, captures -- moves together if it is ever retimed. */
@@ -1559,7 +1567,6 @@ ${FONT_FACES}
   from { stroke-dashoffset: 100%; opacity: 0; }
   to { stroke-dashoffset: 0; opacity: .5; }
 }
-.fig-rim { stroke: rgba(var(--sh-lite),.5); vector-effect: non-scaling-stroke; }
 
 /* A figure dissolves into the ground on every side and is cut only by the page
    on the one it leaves by. The mask is centred on the shape -- --fig-cx and
@@ -1655,14 +1662,13 @@ ${FONT_FACES}
   100% { opacity: 0; transform: scale(2.3); }
 }
 
-/* The light drifts across the figure rather than sitting still on it. Every
-   stone runs the same slow loop, started earlier the further down the diagonal
-   it sits (--sheen, set per stone), which is one wave of light crossing the
-   shape and not a row of pulsing dots. */
-/* Gated on playing with everything else. An ungated infinite loop is a hundred
-   elements animating on a page nobody has scrolled to yet. */
-.fig.playing .fig-shine { animation: fig-gleam 9s ease-in-out infinite; animation-delay: var(--sheen, 0ms); }
-@keyframes fig-gleam { 0%, 100% { opacity: .5; } 45% { opacity: 1; } }
+/* The light used to drift across the figure: every stone ran a slow opacity
+   loop on its soft specular, started earlier the further down the diagonal it
+   sat, so that one wave crossed the shape. It went with the gradient. A hard
+   highlight is a fact about the stone's surface, not a gleam passing over it,
+   and pulsing it would be a row of blinking dots rather than light moving.
+   What is left moving on a figure is the playing of it, which is the part
+   worth watching. */
 
 /* A statement with a figure holds it: the block is the positioned thing, its
    own contents are lifted a layer clear of it, and the bleed is clipped at the
@@ -1711,10 +1717,6 @@ ${FONT_FACES}
 @media (prefers-reduced-motion: reduce) {
   .fig.playing .fig-stone { animation: none; opacity: 1; }
   .fig.playing .fig-stone.taken { animation: none; opacity: 0; }
-  /* Named in full, because gating the gleam on .playing made the rule that
-     draws it heavier than a bare .fig-shine could ever be. The same trap, one
-     rule further down the sheet, caught this time by the test. */
-  .fig.playing .fig-shine, .fig-shine { animation: none; }
   /* A ring is a thing that happened. With the motion off nothing happens, so
      there is nothing for it to be, and the board is simply already ruled.
      The capture ring is named in full: .fig.playing .fig-ring is a class
@@ -2871,7 +2873,16 @@ ${FONT_FACES}
    fade up from small is a thing appearing, and a thing appearing is not a move
    being played. The overshoot is seven per cent and lasts a fifth of a second,
    which nobody will consciously see and everybody would miss. */
-.stone-field .fs-rim { fill: none; stroke: rgba(var(--sh-ink),.16); stroke-width: 2px; }
+/* The one place a stone is dressed differently from the board's drawing, and
+   it is about this ground rather than about the stone. The field is blurred
+   and has no lines under it, so a white stone's own rim -- a hairline in the
+   set's own shell tone -- comes out at about three parts in 237 against the
+   page once the band's opacity is through with it, and under half a device
+   pixel on a phone: the white half of the position stops arriving and the
+   board looks played by one colour. An ink hairline at twice the width is
+   what the field had before the drawings were merged, and it is what a blurred
+   texture needs. The board keeps its own rim, because a board has lines. */
+.stone-field .stone-w { stroke: rgba(var(--sh-ink),.16); stroke-width: 2; }
 .stone-field .fs-stone {
   transform-box: fill-box; transform-origin: center;
   animation: fs-land .62s cubic-bezier(.2, .9, .3, 1) both;

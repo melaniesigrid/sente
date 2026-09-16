@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, act, cleanup } from "@testing-library/react";
 import { createBoard, withStone } from "../engine/index.js";
 import { FIELD_N, SETTLED } from "./fieldGame.js";
+import { STONE } from "./boardGeometry.js";
 import { observers, fakeObserver, noObserver, setMotion, setHidden } from "./domStubs.js";
 
 /* ----------------------- THE FIELD, DRAWN -----------------------
@@ -260,14 +261,22 @@ describe("the field, on the page", () => {
     expect(asked.length, "the position, and not the game").toBe(atStart);
   });
 
-  it("draws every stone with its rim and its light", async () => {
+  /* The field draws the board's stones, by the one drawing the whole app uses,
+     rather than a softer copy of its own. A white stone on a pale ground is
+     the same value as the ground, so its rim is not decoration here: without
+     it half the position is a hole in the field rather than a stone in it. */
+  it("draws the board's own stone, rim and all", async () => {
     queue.push(state(boardOf([3, 3, "b"], [4, 3, "w"]), SETTLED));
     const { container } = await mount();
 
-    /* A white stone on a pale ground is the same value as the ground, so the
-       rim is not decoration here: without it half the position is a hole in
-       the field rather than a stone in it. */
-    expect(container.querySelectorAll(".fs-rim").length).toBe(2);
-    expect(container.querySelectorAll(".fs-shine").length).toBe(2);
+    const white = container.querySelector(".stone-w");
+    expect(white, "the white stone is the board's white stone").not.toBeNull();
+    expect(Number(white.getAttribute("stroke-width")), "and carries a rim that scales with it")
+      .toBeCloseTo(Number(white.getAttribute("r")) * STONE.rim, 5);
+
+    expect(container.querySelectorAll(".stone-b").length, "one black stone").toBe(1);
+    expect(container.querySelectorAll(".stone-gloss").length, "with one shine on it").toBe(1);
+    expect(container.querySelector(".stone-gloss").getAttribute("fill"), "named by class, never here")
+      .toBeNull();
   });
 });
