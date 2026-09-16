@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { idx, starPoints, colLabel, rowLabel, pointLabel } from "../engine/index.js";
+import { CELL, MARGIN, boardSpan } from "./boardGeometry.js";
 
 /* ----------------------- BOARD (SVG) -----------------------
    Renders any board size; reads it from the board object. Presentational
@@ -31,8 +32,8 @@ export function Board({
   crop = null,
 }) {
   const N = board.size;
-  const cell = 44, m = 34;
-  const S = (N - 1) * cell + m * 2;
+  const cell = CELL, m = MARGIN;
+  const S = boardSpan(N);
   const [hover, setHover] = useState(null);
   const flashSet = useMemo(() => new Set(flash.map(p => idx(N, p[0] ?? p.c, p[1] ?? p.r))), [flash, N]);
   const atariSet = useMemo(() => new Set(atari), [atari]);

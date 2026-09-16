@@ -26,7 +26,7 @@ export const defaultProfile = {
   tierPassed: [],                            // library tier ids whose exit test was passed
   sound: false,                              // stone click + haptic, opt-in
   onboarded: false,                          // the welcome flow has been seen or skipped
-  coordinates: false,                        // letters and numbers around the board
+  coordinates: true,                         // letters and numbers around the board; on, because a lesson that says "D4" needs a board that says D4
   dejaVu: true,                              // the board says when you have stood here before, src/store/deja.js
   sensei: false,                             // the private trainer is unlocked on this device, src/content/sensei.js
   lastMoveMark: "dot",                       // how the last stone played is marked

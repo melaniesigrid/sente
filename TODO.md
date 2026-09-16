@@ -3194,3 +3194,41 @@ Decisions:
 - Plain beats literary here and nowhere else. The Record is the only writing on this site
   addressed to somebody who has not decided to care yet. The lessons, the journal and the
   Classic are all read by somebody who already sat down.
+
+## The coordinate margin reaches the rest of the app (done, branch `feat/coords-everywhere`)
+
+The toggle shipped in `feat/coordinates` and worked. It was only wired to three of the
+eleven boards, and it was off by default, so most readers never saw a lettered board at
+all and the ones who turned it on saw the margin come and go by screen.
+
+- [x] `coordinates` threaded into the five boards that dropped it: `PairGame` (which also
+      dropped `lastMoveMark`, the other half of the same settings row), `Learn`, `Problems`,
+      `Recall` and `Dojo`. `Game`, `OnlineGame` and `Review` already honoured it.
+- [x] `LessonPlayer` takes `coordinates` as a prop rather than reading the profile: the
+      welcome flow runs the same player before there is a profile, and a first lesson about
+      capturing one stone does not want a lettered margin. Defaults to false for that reason.
+- [x] `defaultProfile.coordinates` is now true. A lesson that says "a 5k would play D4"
+      (`learn.levelNote`, drawn from `coordLabel`) was being read beside a board with no D4
+      on it. The margin is the cheaper half of that sentence.
+- [x] New `src/components/boardGeometry.js`: `CELL`, `MARGIN`, `boardSpan`, `legiblePx`.
+      Board.jsx had the grid measurements as locals, so a caller picking a width could not
+      check its own work. Kept out of Board.jsx so that file still exports only a component.
+- [x] `Learn` and `Recall` ask for `max(600, legiblePx(size))` instead of a flat 600. The
+      margin is SVG text inside the board's viewBox, so it scales with the board: nineteen
+      lines at 600px printed 16px labels at eleven, under the 12px floor. Ten lessons in the
+      library are nineteen lines. Games were already fine; 680 for nineteen lines was chosen
+      in `feat/coordinates` for exactly this reason, and `legiblePx(19)` is 645.
+- [x] `src/views/coordinates.test.js`: every file rendering a `<Board>` is in the honours
+      list or the exempt list, and the test fails if a twelfth appears in neither. The floor
+      check reads `BOARD_PX` out of the game views rather than restating it, so a width
+      edited there is checked here.
+
+Decisions:
+- Joseki, Look and MiniSelfPlay stay exempt. They are pictures of boards, not boards you
+  read a point off: Joseki crops to a corner and the margin is outside the viewBox anyway,
+  and the other two are a colour swatch and a thumbnail where the labels would be noise at
+  any setting. The exemption is written down in the test rather than left to whoever reads
+  the diff next.
+- On by default, against the instinct that a clean board is the better first impression. A
+  beginner is the reader who most needs to find D4 and least able to guess where it is, and
+  the toggle is one tap away for anybody who wants the board quiet.

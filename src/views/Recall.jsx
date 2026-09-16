@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Check, X, Lightbulb, RotateCcw, ChevronRight, Eye, BrainCircuit, GraduationCap, CalendarClock } from "lucide-react";
 import { Board } from "../components/Board.jsx";
+import { legiblePx } from "../components/boardGeometry.js";
 import { Card, Btn, Pill, Statement } from "../components/ui.jsx";
 import { ScreenHeader } from "../components/ScreenHeader.jsx";
 import { Passage } from "../components/Passage.jsx";
@@ -51,7 +52,7 @@ const comesBack = (box, t) => {
 };
 
 /** One card, played through the library's own step reducer. */
-function CardPlayer({ card, n, of, onGraded, t }) {
+function CardPlayer({ card, n, of, onGraded, t, coordinates }) {
   const lesson = useMemo(() => withHouseWords(localizeLesson(card.lesson, t), t), [card.lesson, t]);
   const step = lesson.steps[card.stepIndex];
   const [state, setState] = useState(() => initStep(lesson, step));
@@ -86,7 +87,8 @@ function CardPlayer({ card, n, of, onGraded, t }) {
     <div className="play-wrap">
       <Board
         board={state.board}
-        sizePx={600}
+        sizePx={Math.max(600, legiblePx(state.board.size))}
+        coordinates={coordinates}
         onPlay={(c, r) => dispatch({ type: "play", c, r })}
         marks={marksFor(step, state)}
         wrong={state.wrong}
@@ -238,7 +240,8 @@ export function RecallView({ profile, setProfile, go }) {
   return (
     <div className="stack arrives">
       {header}
-      <CardPlayer key={card.key} card={card} n={i + 1} of={cards.length} onGraded={onGraded} t={t} />
+      <CardPlayer key={card.key} card={card} n={i + 1} of={cards.length} onGraded={onGraded} t={t}
+        coordinates={profile.coordinates} />
       <div className="row spread">
         <span className="fine">{t("recall.counts", { due: summary.due, known: summary.known, total: summary.total })}</span>
         <Btn icon={ChevronRight} small primary onward
