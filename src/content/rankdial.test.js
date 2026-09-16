@@ -59,10 +59,19 @@ describe("the rank dial numbers", () => {
         expect(p).toBeGreaterThan(0);
         expect(p).toBeLessThan(1);
       }
-      // The two blocks are the network's top two here; a third move taking more
-      // than what is left would mean the figure is hiding the real answer.
       expect(row.p[0] + row.p[1]).toBeLessThanOrEqual(1);
       expect(row.p[0]).toBeGreaterThan(row.p[1]);
+    }
+  });
+
+  /* The page says "both blocks are the network's top two answers at every rank".
+     That is a statement about the moves NOT drawn, so it needs the best of them
+     to be checkable: p[1] > next, or the figure has quietly promoted the third
+     answer into second place. */
+  it("is the claim the copy makes: the two blocks really are the top two", () => {
+    for (const row of DIAL_ROWS) {
+      expect(row.next, `no third move recorded for ${row.rank}`).toBeGreaterThan(0);
+      expect(row.p[1], `${row.rank}: B is not the runner-up`).toBeGreaterThan(row.next);
     }
   });
 

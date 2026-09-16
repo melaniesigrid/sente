@@ -2656,7 +2656,11 @@ ${FONT_FACES}
 .dial-row { display: flex; align-items: center; gap: 11px; }
 .dial-rank { flex: none; width: 3.4ch; text-align: end; font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .dial-track { flex: 1; display: flex; gap: 3px; height: 16px; padding: 3px; border-radius: 999px; box-shadow: var(--sink-sm); }
-.dial-bar { border-radius: 999px; min-width: 2px; }
+/* flex: none, and not for tidiness: a shrinkable bar is a bar whose drawn
+   length stops being the number it stands for. At 9d the two of them ask
+   for 98% of the track, and on a narrow reading column the gap between
+   them would take the difference out of both. */
+.dial-bar { flex: none; border-radius: 999px; min-width: 2px; }
 .dial-bar.s0 { background: var(--accent); }
 .dial-bar.s1 { background: rgba(var(--accent-rgb), .28); }
 .dial-pct { flex: none; width: 4.2ch; font-size: 13px; color: var(--ink); font-variant-numeric: tabular-nums; }

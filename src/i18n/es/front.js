@@ -17,7 +17,7 @@ export const front = {
     sitDown: "Siéntate al tablero",
     backToBoard: "Vuelve a tu tablero",
     neverPlayed: "¿No has jugado nunca?",
-    boardNote: "El selector de jugadas de Joseki juega los dos lados: la heurística a la que recurren los jugadores de la casa cuando la red de estilo humano de KataGo no está cargada. La partida de 19 líneas del fondo es el mismo motor.",
+    boardNote: "El selector de jugadas de Joseki juega los dos lados: la heurística que hay debajo de los jugadores de la casa, no la red con la que juegan. La partida de 19 líneas del fondo es el mismo motor.",
 
     primerLabel: "El juego",
     primerH2a: "Dos jugadores. Un tablero.",
@@ -40,7 +40,7 @@ export const front = {
 
     dial: {
       head: "Una red, un dial.",
-      body: "Cada jugador de la casa es la misma red de estilo humano de KataGo, a la que se le pide jugar a un rango. Aquí Blanco acaba de invadir la esquina y Negro tiene que bloquear por un lado o por el otro. Los dos bloqueos son las dos mejores respuestas de la red en todos los rangos de esta lista. Con el rango no cambia la jugada: cambia lo segura que está.",
+      body: "Cada jugador de la casa es la misma red de estilo humano de KataGo, a la que se le pide jugar a un rango. Aquí Blanco acaba de invadir la esquina y Negro tiene que bloquear por un lado o por el otro. Los dos bloqueos son las dos mejores respuestas de la red en todos los rangos de esta lista. Con el rango no cambia la jugada: cambia lo segura que está. Las barras son la política de la propia red, antes del azar con el que un jugador de la casa elige.",
       side: "bloquear del lado donde Negro ya tiene una piedra",
       top: "bloquear por arriba en su lugar",
       row: "En {rank}: A {a} por ciento, B {b} por ciento.",

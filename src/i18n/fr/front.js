@@ -17,7 +17,7 @@ export const front = {
     sitDown: "Assieds-toi au goban",
     backToBoard: "Retourne à ton goban",
     neverPlayed: "Jamais joué ?",
-    boardNote: "Le sélecteur de coups de Joseki joue les deux couleurs : l’heuristique sur laquelle les joueurs de la maison se rabattent quand le réseau de style humain de KataGo n’est pas chargé. La partie en 19 lignes derrière la page, c’est le même moteur.",
+    boardNote: "Le sélecteur de coups de Joseki joue les deux couleurs : l’heuristique sous les joueurs de la maison, pas le réseau avec lequel ils jouent. La partie en 19 lignes derrière la page, c’est le même moteur.",
 
     primerLabel: "Le jeu",
     primerH2a: "Deux joueurs. Un goban.",
@@ -40,7 +40,7 @@ export const front = {
 
     dial: {
       head: "Un réseau, un curseur.",
-      body: "Chaque joueur de la maison est le même réseau de style humain de KataGo, à qui l’on demande de jouer à un niveau. Ici Blanc vient d’envahir le coin et Noir doit bloquer d’un côté ou de l’autre. Les deux blocages sont les deux meilleures réponses du réseau à chaque niveau de cette liste. Ce qui change avec le niveau, ce n’est pas le coup, c’est sa certitude.",
+      body: "Chaque joueur de la maison est le même réseau de style humain de KataGo, à qui l’on demande de jouer à un niveau. Ici Blanc vient d’envahir le coin et Noir doit bloquer d’un côté ou de l’autre. Les deux blocages sont les deux meilleures réponses du réseau à chaque niveau de cette liste. Ce qui change avec le niveau, ce n’est pas le coup, c’est sa certitude. Les barres sont la politique du réseau lui-même, avant le hasard avec lequel un joueur de la maison y pioche.",
       side: "bloquer du côté où Noir a déjà une pierre",
       top: "bloquer plutôt le long du haut",
       row: "À {rank} : A {a} pour cent, B {b} pour cent.",

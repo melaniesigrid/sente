@@ -100,6 +100,45 @@ describe("the demo board and the network", () => {
     expect(stones(container)).toBe(2);
   });
 
+  /* The credit is the point of the whole feature: it may not go on naming two
+     house players and a network once the heuristic has taken over the game. */
+  it("takes the network's name off the board when the network stops answering", async () => {
+    choose.mockRejectedValue(new Error("the worker died"));
+    const onSource = vi.fn();
+    render(<MiniSelfPlay size={SIZE} players={PAIR} onSource={onSource} />);
+    expect(onSource).toHaveBeenLastCalledWith("kata");
+    await tick();
+    expect(onSource, "the line under the board has to stop saying KataGo").toHaveBeenLastCalledWith("heuristic");
+  });
+
+  it("does the same when the network declines rather than fails", async () => {
+    choose.mockResolvedValue(null);
+    const onSource = vi.fn();
+    render(<MiniSelfPlay size={SIZE} players={PAIR} onSource={onSource} />);
+    await tick();
+    expect(onSource).toHaveBeenLastCalledWith("heuristic");
+  });
+
+  it("says it once, not once a move", async () => {
+    choose.mockResolvedValue(null);
+    const onSource = vi.fn();
+    render(<MiniSelfPlay size={SIZE} players={PAIR} onSource={onSource} />);
+    await tick(4);
+    expect(onSource.mock.calls.map(c => c[0])).toEqual(["kata", "heuristic"]);
+  });
+
+  it("gives up on a question that never comes back, and says so", async () => {
+    choose.mockReturnValue(new Promise(() => {}));   // never answers
+    const onSource = vi.fn();
+    const { container } = render(<MiniSelfPlay size={SIZE} players={PAIR} onSource={onSource} />);
+    await tick(2);
+    expect(stones(container), "still waiting, patiently").toBe(0);
+    // Past PATIENCE_MS the board stops waiting: the heuristic plays on.
+    await tick(6);
+    expect(onSource).toHaveBeenLastCalledWith("heuristic");
+    expect(stones(container), "a dead worker may not freeze the board").toBeGreaterThan(0);
+  });
+
   it("never touches the network when the model is not in memory", async () => {
     ready.mockReturnValue(false);
     const onSource = vi.fn();

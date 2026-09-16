@@ -19,7 +19,7 @@ export const front = {
     sitDown: "Sit down at the board",
     backToBoard: "Back to your board",
     neverPlayed: "Never played?",
-    boardNote: "Joseki’s own move picker, playing both sides: the heuristic the house players fall back on when KataGo’s human-style network is not loaded. The 19-line game behind the page is the same engine.",
+    boardNote: "Joseki’s own move picker, playing both sides: the heuristic underneath the house players, not the network they use. The 19-line game behind the page is the same engine.",
 
     primerLabel: "The game",
     primerH2a: "Two players. One board.",
@@ -42,7 +42,7 @@ export const front = {
 
     dial: {
       head: "One network, one dial.",
-      body: "Every house player is the same KataGo human-style network, asked to play at a rank. Here White has just invaded the corner and Black must block on one side or the other. Both blocks are the network’s top two answers at every rank on this list. What changes with the rank is not the move. It is how sure it is.",
+      body: "Every house player is the same KataGo human-style network, asked to play at a rank. Here White has just invaded the corner and Black must block on one side or the other. Both blocks are the network’s top two answers at every rank on this list. What changes with the rank is not the move. It is how sure it is. The bars are the network’s own policy, before the bit of chance a house player samples with.",
       side: "block on the side where Black already has a stone",
       top: "block along the top instead",
       row: "At {rank}: A {a} per cent, B {b} per cent.",

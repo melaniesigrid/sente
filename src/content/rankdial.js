@@ -52,13 +52,21 @@ export const DIAL_CANDIDATES = [
 ];
 
 /** Measured 2026-09-16, strongest last, one row per rank: the probability the
- *  network gives each candidate in DIAL_CANDIDATES order. */
+ *  network gives each candidate in DIAL_CANDIDATES order, and `next`, the best
+ *  move that is neither of them.
+ *
+ *  `next` is here to be checked rather than shown. The page says the two blocks
+ *  are the network's top two answers at every rank, and without the third
+ *  number that sentence is a claim about 42% of the policy nobody can see: at
+ *  20k the two blocks hold 58% between them, and a third move above 27% would
+ *  quietly make B the runner-up rather than the answer. The test asserts the
+ *  sentence instead of assuming it. */
 export const DIAL_ROWS = [
-  { rank: "20k", p: [0.3052, 0.2710] },
-  { rank: "10k", p: [0.5518, 0.2663] },
-  { rank: "3k", p: [0.6737, 0.2226] },
-  { rank: "1d", p: [0.7225, 0.1886] },
-  { rank: "9d", p: [0.9171, 0.0656] },
+  { rank: "20k", p: [0.3052, 0.2710], next: 0.0662 },
+  { rank: "10k", p: [0.5518, 0.2663], next: 0.0403 },
+  { rank: "3k", p: [0.6737, 0.2226], next: 0.0167 },
+  { rank: "1d", p: [0.7225, 0.1886], next: 0.0214 },
+  { rank: "9d", p: [0.9171, 0.0656], next: 0.0068 },
 ];
 
 /** What the measurement rests on. The model and the date are printed under

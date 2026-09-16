@@ -78,3 +78,13 @@ describe("the rank dial", () => {
     expect(caption.textContent).not.toMatch(/\{\w+\}/);
   });
 });
+
+/* The bars are a measurement, so the drawing has to be one too: a flex item
+   that may shrink draws a different number than the one it was given. jsdom
+   lays nothing out, so the guard is on the rule itself. */
+describe("the bars are not allowed to shrink", () => {
+  it("keeps every bar at the width its number asked for", async () => {
+    const { CSS } = await import("../styles/css.js");
+    expect(CSS.match(/\.dial-bar \{[^}]*\}/)[0]).toMatch(/flex: none/);
+  });
+});
