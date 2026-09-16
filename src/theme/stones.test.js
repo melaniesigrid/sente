@@ -89,8 +89,8 @@ describe("every set in every room", () => {
   });
 
   // One wood, and every set has to be playable on it. The black stone is the
-  // half that binds: the white one is separated from kaya by its rim and its
-  // shadow, at about 1.6:1, which is what a real board does and not a failure.
+  // half that binds: the white one is separated from kaya by its rim, at
+  // about 1.6:1 for the body, which is what a real board does and not a failure.
   it("plays every set on the one board, black findable and white not shouting", () => {
     for (const s of STONE_SETS) {
       const black = contrast(cutBlack(s.b)[1], BOARD);

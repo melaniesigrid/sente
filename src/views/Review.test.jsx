@@ -6,7 +6,7 @@
    because neither is visible to any other test: the tokens are inline, and the
    ground they need is one line of the stylesheet. */
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, cleanup } from "@testing-library/react";
+import { render, cleanup, fireEvent, screen } from "@testing-library/react";
 import { themeVars, REVIEW_THEME } from "../theme/index.js";
 import { CSS } from "../styles/css.js";
 import { createGame, play, pass } from "../engine/index.js";
@@ -55,9 +55,9 @@ describe("the room review is read in", () => {
 
   /* A kifu is a diagram printed on the page, not a game on a goban: the board
      is the paper, the grid is a hairline of ink, and the record is printed the
-     way a book prints it, with its coordinates and its move numbers on. The
-     numbers can be hidden to look at the shape; the coordinates cannot, because
-     they are how the record is talked about. */
+     way a book prints it, with its move numbers on. The numbers can be hidden
+     to look at the shape; the coordinates follow the reader's preference, as
+     they do on every other board, and that preference ships on. */
   it("prints the record on its own page, not on the wood", () => {
     render(<Review record={record()} onExit={() => {}} profile={{}} />);
     const board = sheet().style.getPropertyValue("--board");
@@ -66,10 +66,33 @@ describe("the room review is read in", () => {
     expect(sheet().style.getPropertyValue("--grid-alpha")).toBe("1");
   });
 
-  it("opens with the move numbers and the coordinates on, whatever the table shows", () => {
-    render(<Review record={record()} onExit={() => {}} profile={{ coordinates: false }} />);
+  it("opens with the move numbers on, and the margin follows the reader", () => {
+    render(<Review record={record()} onExit={() => {}} profile={{ coordinates: true }} />);
     expect(document.querySelectorAll(".stone-num").length, "every stone carries its number").toBe(2);
-    expect(document.querySelectorAll(".coord").length, "the margin is lettered").toBeGreaterThan(0);
+    expect(document.querySelectorAll(".coord").length, "the margin follows the preference").toBeGreaterThan(0);
+  });
+
+  /* With every stone numbered there is no room for the last-move dot, so the
+     move you are standing on is ringed outside the stone instead. Without it a
+     numbered board says where every stone is and not which one is now. This
+     record ends on two passes, so the ring appears once you walk back onto a
+     stone, which is also the proof that it follows the scrub. */
+  it("rings the move you are standing on, once you are standing on a stone", () => {
+    render(<Review record={record()} onExit={() => {}} profile={{}} />);
+    expect(document.querySelectorAll(".here-ring").length, "a pass rings nothing").toBe(0);
+    fireEvent.keyDown(document, { key: "ArrowLeft" });
+    fireEvent.keyDown(document, { key: "ArrowLeft" });
+    const ring = document.querySelectorAll(".here-ring");
+    expect(ring.length, "and White's stone is now").toBe(1);
+    expect(CSS).toContain(".here-ring { fill: none; stroke: var(--accent)");
+  });
+
+  /* The ring is drawn in --accent, and --accent is declared on the root from
+     the root's --accent-rgb. The sheet has to declare it again or the ring is
+     the table room's colour on the printed page. */
+  it("re-resolves the mark colour on the sheet", () => {
+    const rule = CSS.split(".review-room {")[1].split("}")[0];
+    expect(rule).toContain("--accent: rgb(var(--accent-rgb))");
   });
 
   /* The tokens are inherited custom properties, which paint nothing on their
@@ -79,5 +102,20 @@ describe("the room review is read in", () => {
     const rule = CSS.split(".review-room {")[1].split("}")[0];
     expect(rule).toContain("background: var(--ground)");
     expect(rule).toContain("color: var(--ink)");
+  });
+});
+
+/* Opening with the numbers on flipped the switch: the button and the N key
+   now hide first and show second, and the numbers come back exactly as they
+   went. */
+describe("the move numbers", () => {
+  it("hide on the toggle, and the N key is the same switch", () => {
+    render(<Review record={record()} onExit={() => {}} profile={{}} />);
+    const count = () => document.querySelectorAll(".stone-num").length;
+    expect(count()).toBe(2);
+    fireEvent.click(screen.getByText("Hide numbers"));
+    expect(count(), "the shape, on its own").toBe(0);
+    fireEvent.keyDown(document, { key: "n" });
+    expect(count(), "and back").toBe(2);
   });
 });

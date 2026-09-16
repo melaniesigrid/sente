@@ -5,7 +5,7 @@ import {
   migrateThemeId,
 } from "./index.js";
 import { TOKEN_NAMES, TONE_KEYS, REQUIRED_TONES, READING } from "./tokens.js";
-import { completeTones, deriveLights, deriveAccentInk } from "./derive.js";
+import { completeTones, deriveLights, deriveAccentInk, boardFor } from "./derive.js";
 import { stonesOf, cutBlack, cutWhite } from "./stones.js";
 import { contrast, isHex, luminance } from "./color.js";
 
@@ -345,5 +345,40 @@ describe("the mark, taken to reading contrast", () => {
   it("is a real colour, and one the stylesheet is allowed to ask for", () => {
     expect(TOKEN_NAMES).toContain("--accent-ink");
     for (const p of PALETTES) expect(isHex(themeVars(p.id)["--accent-ink"]), p.id).toBe(true);
+  });
+});
+
+/* ----------------------- THE PRINTED ROOM -----------------------
+   Kifu is the one room without a board. The flag is `print`; derive.js reads
+   it and answers with the page wherever a table room would answer with the
+   wood, and the audit measures the black stone against that page. */
+describe("the printed room", () => {
+  const named = (id) => PALETTES.find(p => p.id === id);
+
+  it("carries print as a flag, false unless a room says so", () => {
+    expect(completeTones(named("tatami")).print).toBe(false);
+    expect(completeTones(named(REVIEW_THEME)).print).toBe(true);
+    expect(completeTones({ ...MINE, print: "yes" }).print, "a flag, not whatever was stored").toBe(true);
+  });
+
+  it("answers the wood for a table and the page for a print, from one place", () => {
+    expect(boardFor(completeTones(named("tatami")))).toBe(BOARD);
+    const print = completeTones(named(REVIEW_THEME));
+    expect(boardFor(print)).toBe(print.ground);
+    expect(boardFor(completeTones({ ...MINE, print: true })), "a room built in the dojo may be printed too").toBe(MINE.ground);
+  });
+
+  it("measures the black stone against the page there, and the stone is the ink", () => {
+    const kifu = named(REVIEW_THEME);
+    const row = auditPalette(kifu).find(r => r.id === "board-b");
+    expect(row.ratio).toBeCloseTo(contrast(kifu.ink, kifu.ground), 6);
+    expect(row.pass).toBe(true);
+  });
+
+  it("plays both table rooms with the one pair the game screen was drawn with", () => {
+    const table = PALETTES.filter(p => !p.print).map(p => p.stones);
+    expect(table.length, "a morning table and a night one").toBe(2);
+    expect(new Set(table).size, "the same set on both").toBe(1);
+    expect(table[0]).toBe("ebony");
   });
 });
