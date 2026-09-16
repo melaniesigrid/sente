@@ -6,6 +6,20 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.16.1.0 (2026-09-16)
+
+### Changed
+
+- **The big stones are the board's stones.** The shapes beside a statement and the game
+  playing behind the front door's bands were still drawn the old way, with a soft graded
+  sphere and a highlight that drifted across it. They are the same flat stone the board
+  plays with now, at five times the size: one bright disc high on the black stone's
+  shoulder, a clean rim on the white one. A stone is one object in this app, and now it
+  looks like one object wherever you meet it.
+- The slow gleam that used to cross a figure is gone with the gradient it was drawn on. A
+  highlight belongs to the stone rather than passing over it, and what is left moving on a
+  figure is the playing of it, which is the part worth watching.
+
 ## v0.16.0.0 (2026-09-16)
 
 ### Changed
