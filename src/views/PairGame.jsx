@@ -397,6 +397,7 @@ export function PairGame({ mode, onExit, profile, notify, initial }) {
           </Pill>
           <Board board={rec.board} onPlay={onPlay} lastMove={lastMoveIndex(rec)}
             sizePx={BOARD_PX[rec.size]}
+            coordinates={profile.coordinates} mark={profile.lastMoveMark}
             disabled={boardDisabled}
             atari={atariIdx}
             captured={rec.lastCaptured || []} captureKey={rec.moves.length}

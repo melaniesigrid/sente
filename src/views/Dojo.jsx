@@ -147,7 +147,8 @@ export function DojoView({ profile, setProfile, notify, go, room }) {
               <span className="dojo-nav-btn">{t("nav.ladder")}</span>
             </span>
           </div>
-          <Board board={board} onPlay={play} lastMove={last} sizePx={420} />
+          <Board board={board} onPlay={play} lastMove={last} sizePx={420}
+            coordinates={profile.coordinates} />
           <div className="dojo-controls">
             <span className="status-pill">
               <span className={`dot dot-${turn}`} />
