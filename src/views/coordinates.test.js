@@ -17,8 +17,12 @@ import { boardSpan, legiblePx, COORD_PX, TYPE_FLOOR } from "../components/boardG
    lessons that name points in words, the room they are building. */
 const HONOURS = [
   "Dojo.jsx", "Game.jsx", "Learn.jsx", "OnlineGame.jsx", "PairGame.jsx",
-  "Problems.jsx", "Recall.jsx", "Review.jsx",
+  "Problems.jsx", "Recall.jsx",
 ];
+/* The one board that is a document rather than a table. A kifu is printed
+   with its coordinates whatever the reader shows at the table, because they
+   are how the record is talked about; review passes the prop bare. */
+const ALWAYS = ["Review.jsx"];
 /* Boards that are pictures of boards. Joseki crops to a corner, so the margin
    is outside the viewBox anyway; Look and MiniSelfPlay are a colour swatch and
    a thumbnail, where sixteen-pixel text would be noise at any setting. */
@@ -47,12 +51,18 @@ describe("the coordinate preference", () => {
     expect(read(name)).toMatch(/coordinates=\{/);
   });
 
+  it.each(ALWAYS)("is always on in %s, which prints a record", (name) => {
+    const src = read(name);
+    expect(src).toMatch(/\scoordinates(\s|\/>)/);
+    expect(src, "a printed record does not consult the preference").not.toMatch(/coordinates=\{/);
+  });
+
   it("is deliberately absent from the views that draw a picture of a board", () => {
     for (const name of EXEMPT) expect(read(name)).not.toMatch(/coordinates=\{/);
   });
 
   it("has an opinion about every view that renders a board", () => {
-    expect(boardFiles()).toEqual([...HONOURS, ...EXEMPT].sort());
+    expect(boardFiles()).toEqual([...HONOURS, ...ALWAYS, ...EXEMPT].sort());
   });
 });
 
