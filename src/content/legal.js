@@ -50,8 +50,8 @@ export const COPYRIGHT = `© ${COPYRIGHT_YEAR} ${STUDIO}`;
    its own; what it can do is make it impossible to change a word without
    being stopped and handed the line where the date lives. */
 export const REVISION = {
-  updated: "15 September 2026",
-  stamp: "5286d7e8",
+  updated: "16 September 2026",
+  stamp: "947cb12b",
 };
 
 /** The day the documents last changed. */
@@ -59,7 +59,7 @@ export const UPDATED = REVISION.updated;
 /** The same day, machine-readable, so each language can set it its own way:
  *  "12 September 2026" in English, "12 de septiembre de 2026" in Spanish. The
  *  two are held in step by `legal.test.js`. */
-export const UPDATED_ISO = "2026-09-15";
+export const UPDATED_ISO = "2026-09-16";
 
 /* ---------------------------------------------------------------- credits */
 /* Everything in the build that somebody else made, with the terms it comes
@@ -143,6 +143,7 @@ const TERMS = {
         "Keep chat civil. Harassment, slurs and abuse of an opponent or a spectator are grounds for removal the first time.",
         "Do not script the API, make accounts in bulk, or go looking for parts of the server that are not yours.",
         "Do not upload a picture you have no right to use, or one nobody sat down expecting to see.",
+        "Talk is a microphone in somebody's room. The same civility applies out loud, and leaving a call is always allowed and never rude.",
       ],
     },
     {
@@ -156,6 +157,7 @@ const TERMS = {
       heading: "What the Studio may do",
       paras: [
         "An account that breaks the rules above can be suspended or removed, and the Studio does not owe a hearing before doing it. If something you built up honestly was taken by mistake, write, and a person will look at it.",
+        "One limit on that, said plainly rather than discovered: nothing spoken over talk is recorded, so a report about something said out loud cannot be investigated. There is nothing to look at. What it can be answered with is blocking, which is immediate, needs nobody's permission, and holds until you lift it.",
       ],
     },
     {
@@ -269,6 +271,19 @@ const PRIVACY = {
         "Who may be told is yours to set, and the setting starts at your friends rather than at everybody. Somebody who has asked to be your friend and is waiting for an answer is not yet a friend and is told nothing: a request is not a way to watch when you are at your desk while you decide.",
         "When somebody asks which of a list of people are here, the answer names only the ones who are here and who let them know. Nobody is ever reported as being away, so somebody who is out and somebody who chose not to say look exactly alike.",
         "The lobby lists games being played right now, so that somebody can sit beside one and watch. A game is on that list for a person only while every player at that board lets that person see they are here, under the same setting as above, and it leaves the list the moment the game ends. Nothing is written for it that was not written already: the list is read off the rooms that exist. A game is not listed to you for one of three reasons that look exactly alike: it is over, it has gone quiet, or somebody at the board chose not to be seen.",
+      ],
+    },
+    /* src: src/talk/, server/talk.js, server/roomObject.js relayTalk.
+       Every sentence here is a claim about those three. The relay carries a
+       frame and forgets it; the audio never touches the game server at all;
+       the words are the three go terms the two players read to each other. */
+    {
+      heading: "Talking at the board",
+      paras: [
+        "Two people at the same board can turn on a microphone and talk. It is off until you ask for it, every time, and nothing is ever recorded: not by the other player, not by the Studio, not anywhere. When the call ends there is nothing left of it, which is why there is no way to ask for a copy of one.",
+        "The sound goes from your browser to theirs, encrypted the whole way, and the game server never carries it. What the game server carries is the handful of messages the two browsers need to find each other. Those are read, passed to the other chair and forgotten: they are not in the game, not in the record, and not in anything kept afterwards. A game you play with the microphone on and a game you play without it leave exactly the same trace.",
+        "Every call is relayed rather than made directly, and that is a choice about addresses. Two browsers talking directly can see each other's network address, which is roughly where you are; relaying means the person you are playing never sees yours and you never see theirs. The relay is Cloudflare, who already run the game server. They pass the sound along without being able to hear it, and what they can see is that two connections exchanged encrypted audio and when. That is a real thing to know about somebody, and it is the honest cost of not handing your address to a stranger.",
+        "Before a call is trusted, both people are shown the same three go terms and one says them out loud. That is not decoration. It is how the two browsers check they are talking to each other and not to something in between, and if the terms do not match, the answer is to hang up.",
       ],
     },
     {

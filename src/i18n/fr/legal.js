@@ -159,15 +159,24 @@ export const legalDoc = {
         },
       },
       5: {
+        heading: "Parler au goban",
+        paras: {
+          0: "Deux personnes au même goban peuvent allumer un microphone et se parler. Il est éteint jusqu'à ce que vous le demandiez, à chaque fois, et rien n'est jamais enregistré : ni par l'autre personne, ni par le Studio, nulle part. Quand l'appel se termine, il n'en reste rien, et c'est pourquoi il n'existe aucun moyen d'en demander une copie.",
+          1: "Le son va de votre navigateur au sien, chiffré sur tout le trajet, et le serveur de jeu ne le transporte jamais. Ce que le serveur transporte, ce sont les quelques messages dont les deux navigateurs ont besoin pour se trouver. Ils sont lus, transmis à l'autre chaise et oubliés : ils ne sont pas dans la partie, pas dans l'enregistrement, et dans rien de ce qui est conservé ensuite. Une partie jouée avec le microphone allumé et une partie jouée sans laissent exactement la même trace.",
+          2: "Chaque appel passe par un relais plutôt qu'en direct, et c'est un choix qui concerne les adresses. Deux navigateurs qui se parlent directement voient l'adresse réseau l'un de l'autre, c'est-à-dire à peu près où vous êtes ; le relais fait que la personne contre qui vous jouez ne voit jamais la vôtre et que vous ne voyez jamais la sienne. Le relais est Cloudflare, qui fait déjà tourner le serveur de jeu. Ils font passer le son sans pouvoir l'entendre, et ce qu'ils peuvent voir, c'est que deux connexions ont échangé de l'audio chiffré, et quand. C'est une vraie chose à savoir de quelqu'un, et c'est le prix honnête de ne pas donner votre adresse à un inconnu.",
+          3: "Avant qu'un appel soit tenu pour sûr, les deux personnes voient les trois mêmes termes de go et l'une d'elles les dit à voix haute. Ce n'est pas un ornement. C'est ainsi que les deux navigateurs vérifient qu'ils se parlent l'un à l'autre et non à quelque chose placé entre eux, et si les termes ne correspondent pas, la réponse est de raccrocher.",
+        },
+      },
+      6: {
         heading: "À quoi sert ton adresse de courriel",
         paras: {
           0: "Deux lettres à un compte, et rien d'autre : l'une confirmant que l'adresse est bien la tienne, l'autre te laissant fixer un nouveau mot de passe. Il n'y a pas d'infolettre ni d'annonce de produit. La seule liste sur laquelle quelqu'un puisse figurer est la liste d'attente ci-dessus, sur laquelle tu t'inscris toi-même et qui sert une fois puis c'est tout. L'adresse n'est jamais vendue, louée ni remise à qui que ce soit pour son propre usage.",
         },
       },
-      6: {
+      7: {
         heading: "Qui d'autre en voit quoi que ce soit",
         paras: {
-          0: "Trois entreprises, toutes sur le chemin de la page plutôt qu'intéressées par elle.",
+          0: "Deux entreprises, toutes deux sur le chemin de la page plutôt qu'intéressées par elle.",
         },
         list: {
           0: "Cloudflare fait tourner le serveur de jeu et poste les deux lettres. Tout ce que le serveur garde se trouve sur leur réseau, qui s'étend à des pays hors du Canada.",
@@ -175,7 +184,7 @@ export const legalDoc = {
           2: "Personne d'autre. Chaque police est servie par Joseki lui-même plutôt que par un CDN de polices, donc ouvrir une page ici ne dit à aucun tiers que tu l'as fait. Il n'y a pas de tiers, ni d'accord avec un.",
         },
       },
-      7: {
+      8: {
         heading: "Partir",
         paras: {
           0: "Il existe une sortie qui n'a besoin de la permission de personne. Partir supprime ton compte, tes sessions, ton adresse, ton image, ta place au classement et la trace de l'adresse depuis laquelle tu t'es inscrit.",
@@ -183,19 +192,19 @@ export const legalDoc = {
           2: "Pour demander une copie de ce qui est conservé sur toi, pour le corriger, ou pour faire retirer quelque chose que partir n'atteint pas, écris à {contact} et une personne le fera à la main. Il n'y a pas de bouton d'export, et dire le contraire serait la phrase facile à écrire et la phrase fausse.",
         },
       },
-      8: {
+      9: {
         heading: "Les enfants",
         paras: {
           0: "Joseki ne vise pas les enfants de moins de 13 ans, et aucun compte ne devrait être créé pour l'un d'eux. Si cela a été fait, écris, et il sera supprimé sans qu'on demande quoi que ce soit d'autre au préalable.",
         },
       },
-      9: {
+      10: {
         heading: "Modifications",
         paras: {
           0: "Cet avis change en étant réécrit ici, la date en haut étant déplacée. S'il change un jour parce que Joseki s'est mis à collecter quelque chose de nouveau, le changement le dira dans une phrase à lui plutôt que d'être plié dans un paragraphe.",
         },
       },
-      10: {
+      11: {
         heading: "Comment prendre contact",
         paras: {
           0: "Toute question sur tout cela : {contact}.",
