@@ -6,6 +6,39 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.17.0.0 (2026-09-16)
+
+### Added
+
+- **The table outlives the game.** A finished online game used to end the room: everything
+  but chat was refused, both players left, and each read the game back alone on their own
+  screen. The two people most likely to have something to say about move 74 were being sent
+  to separate rooms to say it. Now the result card offers to read it back together. One side
+  asks, the other joins, and the position becomes the room's: the move either of them walks
+  to, the variation either of them tries and the places either of them points at are on the
+  other's screen. The chat log travels into review with them.
+- **A hand on the board.** In a shared review a tap can light a place up instead of playing
+  a stone, which is half of what two people say to each other about a game. It works at the
+  last position of a counted game, where there is nothing left to play and plenty still to
+  say. A ring belongs to the position it was made in and goes when the board moves.
+- **Win rate graphs are kept.** A graph is one network run per position, and the engine only
+  remembered it while the page was open, so opening an old game spent the whole walk again.
+  The points are now kept per game and handed back when the record is opened: a game out of
+  the archive draws its curve before anybody asks. Kept whether the walk finished or was
+  stopped half way, on this machine only, which is the promise review already prints under
+  the graph.
+
+### Changed
+
+- **A picture of a person is square.** A disc cropped a face to a coin and threw away the
+  corners of a picture somebody chose. A photograph keeps its corners now, wherever it is
+  drawn; a letter initial keeps its disc. The profile picture is twice the size (168px), the
+  faces at a finished table are 72px so that two people who have just played can see each
+  other, and uploads are 384px square to match, in the same 64KB envelope.
+- The rules of a variation moved from `src/views` into `src/engine/review.js`. The server
+  refuses an illegal move in a shared line exactly the way the board does, with the engine's
+  own reason, because a variation is not a place where the rules relax.
+
 ## v0.16.1.0 (2026-09-16)
 
 ### Changed

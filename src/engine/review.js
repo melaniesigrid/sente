@@ -10,7 +10,7 @@
    None of this belongs in a view. A move number is a fact about the record, and so is
    which move captured something. */
 
-import { replay, lastMoveIndex } from "./record.js";
+import { replay, lastMoveIndex, play, IllegalMoveError } from "./record.js";
 import { idx } from "./board.js";
 
 /** Moves that actually sit on the board, ignoring a resignation or a flag, which end
@@ -81,4 +81,61 @@ export function reviewLabel(rec, n) {
   const mv = playedMoves(rec)[at - 1];
   const who = mv.color === "b" ? "Black" : "White";
   return mv.type === "pass" ? `Move ${at} · ${who} passes` : `Move ${at} · ${who}`;
+}
+
+/* ----------------------- TRYING A LINE -----------------------
+   "What if he had answered here instead?" A line is scratch: it is never written
+   into the record, never saved with it and never exported, because the game that
+   was played is the game that was played. It lives here rather than in a view for
+   the ordinary reason - the rules are the engine's - and for one new one: two
+   people reading a game together try the same line, and the server that keeps
+   them in step has to be able to refuse a move the way the board does. */
+
+/** Begin exploring from move `n` of `rec`. */
+export function startLine(rec, n) {
+  return { base: clampMove(rec, n), record: atMove(rec, n), moves: [] };
+}
+
+/** Play one move into the line. Returns `{ line }` or `{ error }` with the engine's
+ *  own reason, never a thrown exception, because a misclick is not exceptional. */
+export function playInLine(line, c, r) {
+  try {
+    const record = play(line.record, c, r);
+    return { line: { ...line, record, moves: [...line.moves, { c, r, color: line.record.toPlay }] } };
+  } catch (e) {
+    if (e instanceof IllegalMoveError) return { error: e.reason };
+    throw e;
+  }
+}
+
+/** Take back the last move of the line. At the branch point this returns null, which
+ *  the caller reads as "the line is over, go back to the game". */
+export function backInLine(rec, line) {
+  if (line.moves.length === 0) return null;
+  return lineFrom(rec, line.base, line.moves.slice(0, -1));
+}
+
+/** Rebuild a line from the moves it is made of. The wire carries a branch point and
+ *  a list of points, never a record, so this is what both ends turn that back into a
+ *  position: the server to decide whether the next move is legal, the browser to draw
+ *  it. Returns null when a move in the list will not play, which is a tampered or a
+ *  stale line rather than a position to show.
+ *
+ *  A line of no moves is a line: it is the branch point itself, which is where the
+ *  first stone of a variation is about to go. */
+export function lineFrom(rec, base, moves) {
+  let line = startLine(rec, base);
+  for (const m of moves) {
+    const res = playInLine(line, m.c, m.r);
+    if (res.error) return null;
+    line = res.line;
+  }
+  return line;
+}
+
+/** Whether a position can be explored at all: a line needs somebody to move, and a
+ *  game that has ended is over - you branch from a position inside it, not from the
+ *  result. `n` past the last move is clamped by `atMove`, so only the phase matters. */
+export function canBranch(rec, n) {
+  return atMove(rec, n).phase === "playing" && reviewLength(rec) > 0;
 }

@@ -60,6 +60,21 @@ lessons), and the middle game everywhere. Life and death below 15k was on this l
 - [x] Finished games now start their win-rate walk at once (2026-09-15). The result card and
       review both mount `useAnalysis` in auto mode once a game is ended, so the graph begins
       filling without a click and keeps its partial cache when you open review mid-walk.
+- [x] The table outlives the game (2026-09-16). A finished online game no longer ends the
+      room: the socket stays open, the result card offers to read the game back together, and
+      once both sides are in, the position is the room's - the move either of them walks to,
+      the variation either of them tries, and the places either of them points at are on the
+      other's screen. The review frames live in `server/room.js` beside the game's own, the
+      rules of a variation moved to `src/engine/review.js` so the server refuses an illegal
+      line exactly as the board does, and the chat log travels into review with the players.
+- [x] A win rate graph is walked once (2026-09-16). The points are kept per game in
+      `src/store/graphs.js` and handed back to the engine's cache when the record is opened,
+      so a game out of the archive draws its curve before anybody asks. Local to the machine
+      that walked it, which is the promise review already prints under the graph.
+- [x] A picture of a person is square and twice the size (2026-09-16). Photographs keep their
+      corners rather than being cropped to a coin, at 168px on a profile and 72px across a
+      finished table, so two people who have just played can see who they played. Uploads are
+      384px square to match, in the same 64KB envelope.
 - [x] Progress lives on the account (2026-09-15). A signed-in player's record of what they have
       done (`src/store/progress.js` names the fields) is sent to `PUT /api/me/progress` a moment
       after every save and pulled when the app opens and when somebody signs in. The server

@@ -24,6 +24,13 @@ export const rooms = {
     sgf: "SGF",
     playAgain: "Play again",
     tryLine: "Play on the board to try a line; it is never saved into the game. ",
+    /* Reading a game back with the person you just played it against. One
+       board, two people, and a hand you can put on it. */
+    with: "Reading it with {name}",
+    pointing: "Point at a place",
+    playing: "Play a stone",
+    leaveTogether: "Read it alone",
+    togetherNote: "You are both moving one board: the move you walk to, the line you try and the places you point at are on their screen too.",
     keys: "Arrows walk a move, up and down jump ten, Home and End go to the ends, N toggles numbers.",
     turnKeys: " Square brackets walk the turning points.",
     /* What the network would play from here, in the five cases the board can
