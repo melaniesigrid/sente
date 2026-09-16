@@ -4,6 +4,7 @@ import {
   CornerDownRight, Eye, BrainCircuit,
 } from "lucide-react";
 import { Board } from "../components/Board.jsx";
+import { legiblePx } from "../components/boardGeometry.js";
 import { Card, Btn, Pill, PullQuote, Statement } from "../components/ui.jsx";
 import { ScreenHeader } from "../components/ScreenHeader.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
@@ -79,7 +80,10 @@ function crossingNote(lesson, next, t) {
    uses: same step behaviour, same timings, same board. `exitLabel` is the only thing
    it needs to say differently: a first-time visitor has never seen a library. */
 
-export function LessonPlayer({ lesson: authored, nextLesson, onDone, onSolved, onExit, onOpenNext, rank, onProgress, exitLabel = null }) {
+/* `coordinates` is the reader's own preference, threaded in rather than read off the
+   profile here: the welcome flow runs this same player before there is a profile to
+   read, and a first lesson about capturing a stone does not need a lettered margin. */
+export function LessonPlayer({ lesson: authored, nextLesson, onDone, onSolved, onExit, onOpenNext, rank, onProgress, exitLabel = null, coordinates = false }) {
   const t = useT();
   const dir = useDir();
   const exitWord = exitLabel ?? t("learn.library");
@@ -206,7 +210,8 @@ export function LessonPlayer({ lesson: authored, nextLesson, onDone, onSolved, o
           <Pill icon={Check} tone="win">{t("learn.complete")}</Pill>
         </div>
         <div className="play-wrap">
-          <Board board={state.board} sizePx={600} marks={marksFor(step, state)} lastMove={state.lastMove} disabled />
+          <Board board={state.board} sizePx={Math.max(600, legiblePx(state.board.size))} marks={marksFor(step, state)} lastMove={state.lastMove} disabled
+            coordinates={coordinates} />
           <div className="side stack-sm">
             <MokuCard title={t("profile.table.moku")} size={64} />
             <Card className="lesson-card-body">
@@ -282,7 +287,8 @@ export function LessonPlayer({ lesson: authored, nextLesson, onDone, onSolved, o
       <div className="play-wrap">
         <Board
           board={state.board}
-          sizePx={600}
+          sizePx={Math.max(600, legiblePx(state.board.size))}
+          coordinates={coordinates}
           onPlay={(c, r) => dispatch({ type: "play", c, r })}
           marks={[...marksFor(step, state), ...levelMark]}
           wrong={state.wrong}
@@ -694,7 +700,7 @@ export function LearnView({ profile, setProfile, go }) {
       /* Every lesson leads to another one, across track, tier and rank; only the very
          last lesson in the library ends. The prerequisite gate still applies to the jump. */
       <LessonPlayer key={active} lesson={lesson} nextLesson={lessonAfter(lesson, profile)}
-        rank={rankOf(profile.rating)} onProgress={progress}
+        rank={rankOf(profile.rating)} onProgress={progress} coordinates={profile.coordinates}
         onExit={() => setActive(null)} onDone={() => finish(lesson)} onSolved={() => finish(lesson)}
         onOpenNext={(l) => { setActive(null); open(l); }} />
     );

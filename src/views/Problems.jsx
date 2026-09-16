@@ -306,7 +306,7 @@ export function ProblemsView({ profile, setProfile, initialId }) {
       )}
 
       <div className="play-wrap">
-        <Board board={state.board} onPlay={onPlay} disabled={state.status === "solved"} flash={state.flash} captured={state.flash} captureKey={state.status} />
+        <Board board={state.board} onPlay={onPlay} disabled={state.status === "solved"} flash={state.flash} captured={state.flash} captureKey={state.status} coordinates={profile.coordinates} />
         <div className="side stack-sm">
           <Card>
             <div className="prob-head">
