@@ -22,6 +22,11 @@ export const rooms = {
     sgf: "SGF",
     playAgain: "Noch einmal spielen",
     tryLine: "Spiel auf dem Brett, um eine Variante auszuprobieren; sie wird nie in die Partie gespeichert. ",
+    with: "Du liest sie mit {name}",
+    pointing: "Auf eine Stelle zeigen",
+    playing: "Einen Stein spielen",
+    leaveTogether: "Allein lesen",
+    togetherNote: "Ihr bewegt ein einziges Brett: der Zug, zu dem du gehst, die Variante, die du versuchst, und die Stellen, auf die du zeigst, stehen auch auf ihrem Bildschirm.",
     keys: "Die Pfeile gehen einen Zug, hoch und runter springen zehn, Pos1 und Ende gehen an die Enden, und N schaltet die Nummern um.",
     turnKeys: " Die eckigen Klammern gehen die Wendepunkte ab.",
     advice: {

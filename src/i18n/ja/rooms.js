@@ -22,6 +22,11 @@ export const rooms = {
     sgf: "SGF",
     playAgain: "もう一局",
     tryLine: "盤に打てばそのまま変化を試せます。棋譜には決して残りません。",
+    with: "{name}さんと並べています",
+    pointing: "場所を指す",
+    playing: "石を打つ",
+    leaveTogether: "ひとりで並べる",
+    togetherNote: "盤はひとつです。進めた手も、試した変化も、指した場所も、相手の画面にそのまま映ります。",
     keys: "左右で一手、上下で十手、Home と End で両端へ、N で手数の表示を切り替えます。",
     turnKeys: "角かっこで、流れの変わった手をたどれます。",
     advice: {

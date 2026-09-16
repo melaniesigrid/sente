@@ -22,6 +22,11 @@ export const rooms = {
     sgf: "SGF",
     playAgain: "再下一盘",
     tryLine: "直接在棋盘上落子就能试变化图；它永远不会存进这局棋里。",
+    with: "正和{name}一起看这局棋",
+    pointing: "指一个地方",
+    playing: "下一手",
+    leaveTogether: "自己看",
+    togetherNote: "你们看的是同一块棋盘：你走到的那一手、你试的变化、你指的地方，都会出现在对方屏幕上。",
     keys: "左右箭头走一手，上下跳十手，Home 和 End 到两头，N 开关手数。",
     turnKeys: "方括号在转折点之间走。",
     advice: {

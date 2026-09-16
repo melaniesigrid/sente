@@ -22,6 +22,11 @@ export const rooms = {
     sgf: "SGF",
     playAgain: "Rejouer",
     tryLine: "Joue sur le goban pour essayer une variante : elle n'est jamais enregistrée dans la partie. ",
+    with: "Vous la relisez avec {name}",
+    pointing: "Montrer un point",
+    playing: "Jouer une pierre",
+    leaveTogether: "La relire seul",
+    togetherNote: "Vous déplacez un seul goban : le coup où tu vas, la variante que tu essaies et les points que tu montres sont aussi sur son écran.",
     keys: "Les flèches avancent d'un coup, haut et bas sautent de dix, Début et Fin vont aux extrémités, et N affiche ou cache les numéros.",
     turnKeys: " Les crochets parcourent les tournants.",
     advice: {
