@@ -27,7 +27,7 @@ export const legalDoc = {
       1: {
         heading: "Jugar sin cuenta",
         paras: {
-          0: "Las lecciones, los tsumego, los jugadores de la casa y tu rango funcionan todos en tu navegador y no necesitan ninguna cuenta. Nada de lo que haces en ellos se envía a ningún sitio. Todo lo que sigue sobre cuentas se aplica solo cuando eliges jugar contra personas por la red.",
+          0: "Las lecciones, los tsumego, los jugadores de la casa y tu rango funcionan todos en tu navegador y no necesitan ninguna cuenta. Nada de lo que haces en ellos se envía a ningún sitio. Todo lo que sigue sobre cuentas se aplica solo cuando eliges jugar contra personas por la red. Hay una excepción que eliges tú: si inicias sesión con una cuenta, tu progreso (el último punto bajo el servidor, más abajo) se guarda también allí, para que otro dispositivo en el que inicies sesión lo encuentre.",
         },
       },
       2: {
@@ -138,6 +138,7 @@ export const legalDoc = {
           9: "Las partidas que elegiste mostrar en tu página, tres como mucho, cada una con una línea de hasta 140 caracteres que escribiste tú. Las dos cosas son públicas, porque la página lo es. Quitar una partida de tu página se lleva la línea con ella.",
           10: "Cuál de las tres respuestas diste a quién puede ver que estás aquí: nadie, tus amigos o cualquiera. Una palabra en tu registro, y no en la clasificación, para que leer la clasificación no pueda decirte quién ha elegido ser invisible.",
           11: "La dirección desde la que te registraste, guardada para que marcharte devuelva la cuenta que gastó, no mostrada a nadie y borrada con la cuenta.",
+          17: "Tu progreso, en cuanto inicias sesión con una dirección: qué lecciones, problemas y ejercicios has terminado, tu calendario de repaso, los días en que practicaste y las rachas que forman, tus registros de kata y de duelo y tu puntuación en la escalera de la casa. Se envía cuando cambia y se lee cuando inicias sesión en otro dispositivo, y los dos se combinan; nunca se escribe uno encima del otro. Un nombre sin dirección detrás no envía nada de esto. Marcharse lo borra.",
         },
       },
       3: {

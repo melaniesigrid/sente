@@ -3,7 +3,7 @@
 
 export const CORS = {
   "access-control-allow-origin": "*",
-  "access-control-allow-methods": "GET,POST,PATCH,DELETE,OPTIONS",
+  "access-control-allow-methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
   "access-control-allow-headers": "authorization,content-type",
   "access-control-max-age": "86400",
 };
@@ -50,7 +50,7 @@ export async function sha256(text) {
   for (const b of new Uint8Array(digest)) s += HEX[b >> 4] + HEX[b & 15];
   return s;
 }
-
+
 /** Compare two hex digests without letting the time taken say how much of the
  *  first one an attacker has guessed right. */
 export function sameDigest(a, b) {
