@@ -193,11 +193,14 @@ export function FamousView({ gameId = null, profile = {}, go = null }) {
      opened and kept while the reader is in it - including while they step back out to
      the page and walk it again, which is why `walking` is not a dependency. */
   const record = useMemo(() => (game ? recordFor(game.id) : null), [game]);
-  /* Opening something moves the reader to the top of it; coming back does not. The
-     shelf is fifteen cards deep, so throwing a reader who pressed "All games" back to
-     the first one would lose the place they were reading from. This is the journal's
-     rule and its reason: only the page scrolls, never the index. */
-  useEffect(() => { if (openId) window.scrollTo({ top: 0, behavior: "auto" }); }, [openId, walking]);
+  /* Opening something moves the reader to the top of it; coming back out of it does
+     not. The shelf is fifteen cards deep and a game page is long, so a reader who
+     pressed "All games", or who closed the board, should land where they were rather
+     than at the first card or the first paragraph. That leaves two moments worth a
+     scroll - a different game, and stepping into the board - and this is the journal's
+     rule and its reason: only the thing you opened scrolls. */
+  useEffect(() => { if (openId) window.scrollTo({ top: 0, behavior: "auto" }); }, [openId]);
+  useEffect(() => { if (walking) window.scrollTo({ top: 0, behavior: "auto" }); }, [walking]);
 
   const open = (id) => { if (go) go("famous", { gameId: id }); else setLocal(id); };
   const shelf = () => { setWalking(false); if (go) go("famous"); else setLocal(null); };

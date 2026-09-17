@@ -75,7 +75,7 @@ describe("the records", () => {
   });
 
   /* The facts card advertises a ruleset and a komi; the board has to be the one it
-     names. Three of the Wuzhen files say RU[AGA] where the summit was played under
+     names. Five of the Wuzhen files say RU[AGA] where the summit was played under
      Chinese rules, so the study is the source of truth and this is what holds the
      record to it. Without this the screen could say one thing and play another. */
   it("plays every game under the terms its own page advertises", () => {
