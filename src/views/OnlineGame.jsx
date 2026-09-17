@@ -9,7 +9,7 @@ import {
   play, IllegalMoveError,
 } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
-import { Card, Btn, Pill, Avatar, RankBadge } from "../components/ui.jsx";
+import { Card, Btn, Pill, Avatar, CountryFlag, RankBadge } from "../components/ui.jsx";
 import { avatarUrl } from "../net/avatar.js";
 import { useMokuFacts } from "../components/mokuStore.js";
 import { playStone, playCapture, playBell, haptic } from "../components/sound.js";
@@ -20,7 +20,7 @@ import { refusalText, resignLabel, confirmMoveLabel, resultCard, RESIGN_CONFIRM_
 import { tapAction } from "./stagedMove.js";
 import { onlineStatus, settledLine, onlineCaption, teamName } from "./onlineStatus.js";
 import { talkParts, pointsNamed, etiquette } from "./tableTalk.js";
-import { useT } from "../components/langStore.js";
+import { useT, useLocale } from "../components/langStore.js";
 import { lineOr } from "../i18n/index.js";
 import { Review } from "./Review.jsx";
 import { WinCard } from "./WinCard.jsx";
@@ -368,44 +368,82 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
      are exactly the two people with something to say, and leaving the log at the
      table would have shut them up at the moment they had the most to talk about. */
   const talkCard = (
-      <Card className="chat-card">
-        <div className="chat-head"><MessageCircle size={15} /><span>{t("game.chat.head")}</span>
-          <button className="chip-btn" onClick={shareTable} aria-label={t("online.game.shareLabel")}><LinkIcon size={11} /> {t("online.game.share")}</button>
-        </div>
-        <div className="chat-log" aria-live="polite">
-          {chat.map((m, i) => (
-            <div key={m.chatKey} className={`bubble ${account && m.from === account.player.id ? "mine" : ""}`}>
-              {(!account || m.from !== account.player.id) && <span className="bubble-who">{m.name}{m.seat ? "" : t("online.game.watchingWho")} · </span>}
-              {parsed[i] ? parsed[i].map((part, j) => (
-                part.t === "point" ? (
-                  <button key={j} type="button"
-                    className={`talk-coord ${lit === chatKey(m) ? "on" : ""}`}
-                    onClick={() => setLit(lit === chatKey(m) ? null : chatKey(m))}
-                    aria-pressed={lit === chatKey(m)}
-                  >{part.s}</button>
-                ) : <span key={j}>{part.s}</span>
-              )) : m.text}
-            </div>
-          ))}
-          <div ref={chatEndRef} />
-        </div>
-        {account && openers.length > 0 && (
-          <div className="talk-offer">
-            {openers.map(line => (
-              <button key={line.id} type="button" className="talk-line" onClick={() => say(line.text)}>
-                <span>{line.text}</span>
-                {line.note && <span className="talk-note">{line.note}</span>}
-              </button>
-            ))}
-          </div>
-        )}
-        {account ? (
-          <div className="chat-row">
-            <input className="chat-input" value={draft} placeholder={t("game.chat.placeholder")} maxLength={240}
-              onChange={e => setDraft(e.target.value)} onKeyDown={e => e.key === "Enter" && sendChat()} aria-label={t("game.chat.label")} />
-            <button className="chat-send" onClick={sendChat} aria-label={t("game.chat.send")}><Send size={15} /></button>
-          </div>
-        ) : <p className="fine">{t("online.game.claimToChat")}</p>}
+      <Card className="chat-card">
+
+        <div className="chat-head"><MessageCircle size={15} /><span>{t("game.chat.head")}</span>
+
+          <button className="chip-btn" onClick={shareTable} aria-label={t("online.game.shareLabel")}><LinkIcon size={11} /> {t("online.game.share")}</button>
+
+        </div>
+
+        <div className="chat-log" aria-live="polite">
+
+          {chat.map((m, i) => (
+
+            <div key={m.chatKey} className={`bubble ${account && m.from === account.player.id ? "mine" : ""}`}>
+
+              {(!account || m.from !== account.player.id) && <span className="bubble-who">{m.name}{m.seat ? "" : t("online.game.watchingWho")} · </span>}
+
+              {parsed[i] ? parsed[i].map((part, j) => (
+
+                part.t === "point" ? (
+
+                  <button key={j} type="button"
+
+                    className={`talk-coord ${lit === chatKey(m) ? "on" : ""}`}
+
+                    onClick={() => setLit(lit === chatKey(m) ? null : chatKey(m))}
+
+                    aria-pressed={lit === chatKey(m)}
+
+                  >{part.s}</button>
+
+                ) : <span key={j}>{part.s}</span>
+
+              )) : m.text}
+
+            </div>
+
+          ))}
+
+          <div ref={chatEndRef} />
+
+        </div>
+
+        {account && openers.length > 0 && (
+
+          <div className="talk-offer">
+
+            {openers.map(line => (
+
+              <button key={line.id} type="button" className="talk-line" onClick={() => say(line.text)}>
+
+                <span>{line.text}</span>
+
+                {line.note && <span className="talk-note">{line.note}</span>}
+
+              </button>
+
+            ))}
+
+          </div>
+
+        )}
+
+        {account ? (
+
+          <div className="chat-row">
+
+            <input className="chat-input" value={draft} placeholder={t("game.chat.placeholder")} maxLength={240}
+
+              onChange={e => setDraft(e.target.value)} onKeyDown={e => e.key === "Enter" && sendChat()} aria-label={t("game.chat.label")} />
+
+            <button className="chat-send" onClick={sendChat} aria-label={t("game.chat.send")}><Send size={15} /></button>
+
+          </div>
+
+        ) : <p className="fine">{t("online.game.claimToChat")}</p>}
+
       </Card>
   );
 
@@ -615,10 +653,11 @@ const refusalWords = (reason, t) => lineOr(t, `online.error.${reason}`, reason);
  *  A seat with no id is a house player, which has no page and never gets one. */
 function Seat({ seat, name, gameId, go, align }) {
   const t = useT();
+  const { tag } = useLocale();
   const face = seat ? <Avatar name={seat.name} tint={seat.tint} size={64} src={faceOf(seat)} /> : null;
   const meta = (
     <div className={`vs-meta ${align === "right" ? "right" : ""}`}>
-      <strong>{name}</strong>
+      <strong>{name}{seat && <CountryFlag code={seat.country} tag={tag} size={13} />}</strong>
       {seat && <RankBadge rating={seat.rating} size="sm" />}
     </div>
   );
@@ -634,6 +673,7 @@ function Seat({ seat, name, gameId, go, align }) {
 }
 
 function OnlineTeam({ room, color, up, align }) {
+  const { tag } = useLocale();
   return (
     <div className={`vs-side pair-side ${align === "right" ? "right" : ""}`}>
       {["1", "2"].map((n) => color + n).filter((id) => room.seats[id]).map((id) => {
@@ -642,7 +682,7 @@ function OnlineTeam({ room, color, up, align }) {
           <div key={id} className={`pair-seat ${up === id ? "to-move" : ""}`}>
             <Avatar name={s.name} tint={s.tint} size={48} bot={s.kind === "bot"} src={s.kind === "bot" ? undefined : faceOf(s)} />
             <div className="vs-meta">
-              <strong>{s.name}</strong>
+              <strong>{s.name}<CountryFlag code={s.country} tag={tag} size={13} /></strong>
               {s.rating != null ? <RankBadge rating={s.rating} size="sm" /> : <span className="fine">{s.rank}</span>}
             </div>
           </div>

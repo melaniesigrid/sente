@@ -2,6 +2,8 @@
 /* 每块屏幕一段，顺序就是一位棋手遇到它们的顺序。 */
 export const screens = {
   home: {
+    boardNotePlayers: "{black}（{blackRank}）对 {white}（{whiteRank}），两边都走 KataGo 的人类棋风网络，各自按自己的段位。",
+    boardNote: "Joseki 的选点程序在跟自己下：两边都是同一套启发式算法，不是房间棋手用的 KataGo 网络。",
     trainer: { head: "{name}的来信", away: "收起来", play: "去下棋", placeholder: "给他写点什么…", send: "发送", yes: "好", here: "一直都在", pings: "教练有 {count} 条未读", notNow: "现在不要" },
     greetingBack: "欢迎回来",
     greetingNew: "欢迎来到棋盘前",
@@ -247,6 +249,19 @@ export const screens = {
     openProblem: "{set}，第 {n} 题，{rank}",
   },
   profile: {
+    country: {
+      head: "你的国旗",
+      note: "你从哪里下棋，愿意说就说。它就在你名字旁边，取下也只需一下。",
+      noteAccount: "你从哪里下棋，愿意说就说。它在这里站在你名字旁边，也跟着你的帐号走，对面的人一样看得见。",
+      search: "搜索国家地区",
+      none: "不放国旗",
+      noneLine: "没有国旗。这里不说你在哪里。",
+      chosenLine: "就在你名字旁边。",
+      noMatch: "没有这个名字的国家地区。",
+      more: {
+        other: "还有 {count} 个。输入可以缩小范围。",
+      },
+    },
     trainer: {
       head: "私人教练",
       games: "与他的对局：{count}",

@@ -347,6 +347,10 @@ export function applyMessage(room, seatId, msg, now = Date.now()) {
       return ok(finish(room, record, now));
     }
     case "pass": {
+      /* The engine allows a pass while scoring, because SGFs from other servers
+         record one; at a live table it would say nothing and only move the turn,
+         so the room refuses it and the two sides mark and accept instead. */
+      if (rec.phase !== "playing") return refuse(room, "wrong-phase");
       if (!canSeatPlay(room.seats, rec, seatId)) {
         return refuse(room, "wrong-turn", { expected: seatToPlay(room.seats, rec) });
       }

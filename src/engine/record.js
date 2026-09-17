@@ -15,7 +15,7 @@
                 ▲   │                          │   ▲  │                         ▲
          undo   │   │ resign                   │   │  │ resign                  │
         (>0 mv) └───┼──────────────────────────┼───┼──┴─────────────────────────┘
-                    │                    undo  │   │ markDead (toggle)
+                    │                    undo  │   │ markDead (toggle), pass
                     └──────────────────────────┘   └──┘
 
    Anything not drawn is illegal and throws `IllegalTransitionError`. A play that the
@@ -147,8 +147,12 @@ export function play(rec, c, r, color = rec.toPlay) {
   };
 }
 
+/** A pass. The second consecutive one opens scoring; further passes are legal and
+ *  change nothing but whose turn it is. Servers record them: under AGA rules White
+ *  must pass last, so a game Black ends carries a third pass, and IGS writes one as
+ *  the agreement to count. Refusing them would refuse those files. */
 export function pass(rec, color = rec.toPlay) {
-  assertPhase(rec, "pass", "playing");
+  assertPhase(rec, "pass", "playing", "scoring");
   if (color !== rec.toPlay) throw new IllegalMoveError("wrong-turn", { expected: rec.toPlay });
   const passes = rec.passes + 1;
   return {

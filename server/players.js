@@ -33,6 +33,9 @@ export const toDay = (at) =>
 export function publicPlayer(p) {
   return {
     id: p.id, name: p.name, tint: p.tint,
+    // What they said they are from, or "". Two letters, chosen from a list and
+    // never worked out from an address: see `cleanCountry` in profile.js.
+    country: p.country ?? "",
     rating: Math.round(p.rating), rd: Math.round(p.rd),
     wins: p.wins, losses: p.losses, draws: p.draws ?? 0,
     // When their picture last changed, or null. One number, so every place a

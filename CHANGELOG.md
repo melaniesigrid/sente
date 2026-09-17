@@ -32,6 +32,50 @@ They are left as they were written rather than rewritten after the fact.
   even game could follow you into a game that starts with stones on the board, where a
   different komi is owed, and quietly decide a close one. A komi you set survives a change
   of opponent; it does not survive a change in the number of stones.
+## v0.18.0.0 (2026-09-16)
+
+### Added
+
+- **Every board that plays itself says who is playing it.** Three boards on this site play
+  a real game rather than a recording, and none of them said with what. The front door's
+  now names the move picker under the house players, and says the nineteen-line game
+  drifting behind the page is the same engine.
+- **Two house players on the dashboard board.** When the human network is already in memory,
+  the board on your dashboard is played by two of them at their own ranks, through the same
+  network you play a real game against, and the line under it names them: "Kaede (3d)
+  against Ren (6k)". It never fetches the network to do it -- 54MB of weights for a
+  decoration is not a trade anybody asked for -- so on a cold visit it is the picker,
+  and the line says that instead. Fixed for the day and never the same player twice.
+- **One network, one dial.** A figure on the front door asks the shipped network the same
+  question at 20k, 10k, 3k, 1d and 9d: White has invaded the corner, and Black must block
+  on one side or the other. The answer never changes. The certainty climbs from 31% to 92%.
+  It is a measurement, not an illustration: `tools/kata/rankdial.mjs` runs the file this
+  site ships through the browser's own encoder and runtime, the numbers are bound to that
+  file by content hash, and the test refuses a figure whose claims have drifted from them.
+
+### Changed
+
+- The demo boards keep a real game record rather than a bare position, so the network can be
+  asked what it would play and the superko rule holds while it answers.
+- The clock behind the dashboard's board stops while the tab is in the background or the
+  board is scrolled away. It is a third of a second of the network per move now, in the
+  worker a real game is using, and a decoration may not spend that on nobody.
+- A rank inside a persona's range is picked in one place, shared by the daily duel and the
+  demo board.
+
+### Fixed
+
+- **A board that stops being played by who it says.** The network can stop answering
+  mid-game: it declines when it cannot load and its worker can die. The line under the
+  board now takes the network's name off when that happens, once, and the picker finishes
+  the game under its own name. A question that never comes back is given six seconds before
+  the board goes on without it, so a dead worker cannot leave a still board under a line
+  about two players.
+- A demo game that ends the way games end -- both sides passing -- is no longer read as the
+  network giving up.
+- The letters naming the two points in the new figure are drawn in an ink the board carries
+  rather than one derived against the page, so they do not vanish into the wood in Night,
+  and they are sized to clear the twelve-pixel floor at the width the figure is drawn.
 
 ## v0.17.0.0 (2026-09-16)
 

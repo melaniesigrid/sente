@@ -16,7 +16,7 @@ import { moveNote, reviewLines, letterFor, openingLesson, modeLine } from "../co
 import { loadBox, saveBox, postLetter, teachShape, rememberGame as trainerRemember } from "../store/sensei.js";
 import { Board } from "../components/Board.jsx";
 import { ClockFace } from "../components/Clock.jsx";
-import { Card, Btn, Pill, Avatar, ArchetypeMark, RankBadge, BeltRibbon } from "../components/ui.jsx";
+import { Card, Btn, Pill, Avatar, ArchetypeMark, CountryFlag, RankBadge, BeltRibbon } from "../components/ui.jsx";
 import { Passage } from "../components/Passage.jsx";
 import { Review } from "./Review.jsx";
 import { WinCard } from "./WinCard.jsx";
@@ -41,7 +41,7 @@ import {
   RESIGN_CONFIRM_MS,
 } from "./gameStatus.js";
 import { tapAction } from "./stagedMove.js";
-import { useT } from "../components/langStore.js";
+import { useT, useLocale } from "../components/langStore.js";
 import { localizePersona } from "../content/personas.js";
 import { useClock } from "./useClock.js";
 
@@ -85,6 +85,7 @@ const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
 export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   const t = useT();
+  const { tag } = useLocale();
   const duel = mode.kind === "duel" ? mode : null;
   /* The house player, in the reader's language: its table talk is its own
      writing and is translated like a lesson, by id. Memoised so a line is not
@@ -832,7 +833,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         <div className="vs-strip">
           <div className="vs-side">
             <Avatar name={profile.name} tint={profile.tint} size={34} />
-            <div className="vs-meta"><strong>{persona ? profile.name : t("game.side.b")}{persona && <ArchetypeMark id={profile.archetype} size={13} />}</strong>{persona && <RankBadge rating={profile.rating} rd={profile.rd} precise size="sm" />}<ClockFace clock={clock} color="b" active={!over && rec.phase === "playing" && turn === "b"} /></div>
+            <div className="vs-meta"><strong>{persona ? profile.name : t("game.side.b")}{persona && <><ArchetypeMark id={profile.archetype} size={13} /><CountryFlag code={profile.country} tag={tag} size={12} /></>}</strong>{persona && <RankBadge rating={profile.rating} rd={profile.rd} precise size="sm" />}<ClockFace clock={clock} color="b" active={!over && rec.phase === "playing" && turn === "b"} /></div>
           </div>
           <span className="vs-x">vs</span>
           <div className="vs-side">

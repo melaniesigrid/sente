@@ -1,7 +1,9 @@
-import { useState, useCallback } from "react";
-import { Check, Pencil, Trophy, Flame, Sparkles, Sparkle, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Mountain, Palette, Grid3x3, Dot, Hammer, History, Trash2, KeyRound, VenetianMask } from "lucide-react";
-import { Card, Btn, Pill, Avatar, ArchetypeMark, RankBadge, BeltRibbon, Toggle, PullQuote, Statement } from "../components/ui.jsx";
+import { useState, useCallback, useEffect } from "react";
+import { Check, Pencil, Trophy, Flame, Sparkles, Sparkle, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Mountain, Palette, Grid3x3, Dot, Hammer, History, Trash2, KeyRound, VenetianMask, Flag } from "lucide-react";
+import { Card, Btn, Pill, Avatar, ArchetypeMark, CountryFlag, RankBadge, BeltRibbon, Toggle, PullQuote, Statement } from "../components/ui.jsx";
 import { ARCHETYPES, NO_ARCHETYPE, archetypeOf, localizeArchetype } from "../content/archetypes.js";
+import { NO_COUNTRY } from "../content/countries.js";
+import { CountryPicker, ChosenCountry } from "../components/CountryPicker.jsx";
 import { plainFor, statementFor } from "../content/plain.js";
 import { Passage } from "../components/Passage.jsx";
 import { MokuMark } from "../components/Moku.jsx";
@@ -21,7 +23,7 @@ import { dayKey } from "../content/kata.js";
 import { chainRun, chainNote } from "../content/chain.js";
 import { ChainYear } from "../components/Chain.jsx";
 import { saveProfile } from "../store/profile.js";
-import { loadAccount } from "../store/account.js";
+import { loadAccount, saveAccount } from "../store/account.js";
 import { loadTelemetry, clearTelemetry, byBot, summarize, CAP } from "../store/telemetry.js";
 import { loadMemory, clearMemory, summarize as summarizeDeja, CAP as DEJA_CAP } from "../store/deja.js";
 import { PERSONAS } from "../content/personas.js";
@@ -29,9 +31,10 @@ import { KE_JIE, reportLines, rankLine, AREA_WORDS, GLOSSARY, ON_THE_RECORD } fr
 import { phraseOpens, loadBox, saveBox, letters } from "../store/sensei.js";
 import { useTrainerAccess } from "./useTrainer.js";
 import { focusFor, trend } from "../engine/index.js";
-import { serverEnabled } from "../net/api.js";
+import { api, serverEnabled } from "../net/api.js";
 import { OnlineProfileCard } from "./OnlineProfile.jsx";
-import { useT } from "../components/langStore.js";
+import { errorText } from "./accountForm.js";
+import { useT, useLocale } from "../components/langStore.js";
 import { FriendsCard } from "./FriendsCard.jsx";
 import { FindCard } from "./FindCard.jsx";
 import { ClubsCard } from "./ClubsCard.jsx";
@@ -237,10 +240,67 @@ function LevelsCard({ rank }) {
 
 const l0 = (s) => s.charAt(0).toLowerCase() + s.slice(1);
 
+/* ----------------------- WHERE YOU PLAY FROM -----------------------
+   One flag, picked once, in the one place a player looks for it.
+
+   It is written twice and chosen once. The device's profile holds it, because
+   a player with no account still has a name and a mask and should have a flag
+   too; and when there is an account it is sent on, because the whole point of
+   a flag is the person on the other side of the board seeing it. There is no
+   second picker on the account's card: two pickers for one flag is how the
+   two copies end up disagreeing, and the disagreement always shows up in the
+   room rather than on this screen.
+
+   The traffic goes one way with one exception. Signing in on a new device
+   finds a profile with no country and an account with one, and adopts it:
+   what the server holds is what this player already chose, and asking them to
+   choose it again on every machine would be asking them to maintain it. */
+function CountryCard({ profile, commit, account, setAccount, notify }) {
+  const t = useT();
+  const [busy, setBusy] = useState(false);
+  const theirs = account?.player?.country ?? NO_COUNTRY;
+
+  /* Adopted once, and only into an empty field: a device that has said
+     nothing about where its player is takes the account's answer, and a
+     device that has said something keeps it. */
+  useEffect(() => {
+    if (!profile.country && theirs) commit({ country: theirs });
+  }, [theirs]);   // eslint-disable-line react-hooks/exhaustive-deps
+
+  const pick = async (code) => {
+    if (code === profile.country) return;
+    commit({ country: code });
+    if (!account) return;
+    setBusy(true);
+    try {
+      const player = await api.setProfile(account.token, { country: code });
+      saveAccount({ token: account.token, player });
+      setAccount({ token: account.token, player });
+    } catch (e) {
+      /* The device keeps the flag either way. A failed send is a flag that
+         has not travelled yet, not a choice that was refused, and the next
+         pick sends again. */
+      notify({ icon: "info", text: errorText(e.reason, t) });
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <Card>
+      <div className="stat-head"><Flag size={16} /><span>{t("profile.country.head")}</span></div>
+      <p className="fine" style={{ marginTop: 6 }}>
+        {t(account ? "profile.country.noteAccount" : "profile.country.note")}
+      </p>
+      <ChosenCountry code={profile.country} />
+      <CountryPicker value={profile.country} onPick={pick} busy={busy} />
+    </Card>
+  );
+}
+
 /* ----------------------- PROFILE ----------------------- */
 
 export function ProfileView({ profile, setProfile, go, room, notify, writeTo = null }) {
   const t = useT();
+  const { tag } = useLocale();
   // The account's card, when there is an account. Two profiles sound like one
   // too many, so each says what it is: this device's, and the server's.
   const [account, setAccount] = useState(() => (serverEnabled() ? loadAccount() : null));
@@ -301,6 +361,7 @@ export function ProfileView({ profile, setProfile, go, room, notify, writeTo = n
             <h2 className="profile-name">
               {profile.name}
               <ArchetypeMark id={profile.archetype} size={24} />
+              <CountryFlag code={profile.country} tag={tag} size={22} />
               <button className="icon-btn" onClick={() => { setNameDraft(profile.name); setEditing(true); }} aria-label={t("profile.editName")}>
                 <Pencil size={14} />
               </button>
@@ -398,6 +459,8 @@ export function ProfileView({ profile, setProfile, go, room, notify, writeTo = n
             : t("profile.arche.noneLine")}
         </p>
       </Card>
+
+      <CountryCard profile={profile} commit={commit} account={account} setAccount={setAccount} notify={notify} />
 
       <LevelsCard rank={rankOf(profile.rating)} />
       <TrainerCard profile={profile} account={account} commit={commit} />

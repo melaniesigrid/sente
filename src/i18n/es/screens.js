@@ -2,6 +2,8 @@
 /* One block per screen, in the order a player meets them. */
 export const screens = {
   home: {
+    boardNotePlayers: "{black} ({blackRank}) contra {white} ({whiteRank}), los dos a través de la red de estilo humano de KataGo, cada uno en su rango.",
+    boardNote: "El selector de jugadas de Joseki contra sí mismo: la misma heurística en los dos lados, no la red de KataGo con la que juegan los jugadores de la casa.",
     trainer: { head: "Una carta de {name}", away: "Guardarla", play: "Ve a jugar", placeholder: "Escríbele…", send: "Enviar", yes: "Sí", here: "Siempre aquí", pings: "{count} sin leer de tu entrenador", notNow: "Ahora no" },
     greetingBack: "De vuelta al tablero",
     greetingNew: "Bienvenida al tablero",
@@ -250,6 +252,20 @@ export const screens = {
     openProblem: "{set}, número {n}, {rank}",
   },
   profile: {
+    country: {
+      head: "Tu bandera",
+      note: "De dónde juegas, si quieres decirlo. Va junto a tu nombre, y quitarla es una pulsación.",
+      noteAccount: "De dónde juegas, si quieres decirlo. Va junto a tu nombre aquí y viaja con tu apodo, así que quien esté al otro lado del tablero también la ve.",
+      search: "Buscar países",
+      none: "Sin bandera",
+      noneLine: "Sin bandera. Aquí nada dice dónde estás.",
+      chosenLine: "junto a tu nombre.",
+      noMatch: "Ningún país con ese nombre.",
+      more: {
+        one: "{count} más. Escribe para acotar la lista.",
+        other: "{count} más. Escribe para acotar la lista.",
+      },
+    },
     trainer: {
       head: "Entrenador privado",
       games: "Partidas con él: {count}",

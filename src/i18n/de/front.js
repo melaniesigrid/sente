@@ -17,7 +17,7 @@ export const front = {
     sitDown: "Setz dich ans Brett",
     backToBoard: "Zurück an dein Brett",
     neverPlayed: "Noch nie gespielt?",
-    boardNote: "Josekis eigener Motor, der gerade gegen sich selbst spielt.",
+    boardNote: "Josekis eigene Zugwahl spielt beide Seiten: die Heuristik unter den Hausspielern, nicht das Netz, mit dem sie spielen. Die 19-Linien-Partie hinter der Seite ist derselbe Motor.",
 
     primerLabel: "Das Spiel",
     primerH2a: "Zwei Spieler. Ein Brett.",
@@ -38,6 +38,14 @@ export const front = {
       },
     },
 
+    dial: {
+      head: "Ein Netz, ein Regler.",
+      body: "Jeder Hausspieler ist dasselbe menschlich spielende Netz von KataGo, gefragt auf einer Spielstärke. Hier ist Weiß gerade in die Ecke eingedrungen, und Schwarz muss auf einer der beiden Seiten sperren. Beide Sperren sind auf jeder Stufe dieser Liste die beiden besten Antworten des Netzes. Mit der Stärke ändert sich nicht der Zug, sondern wie sicher es sich ist. Die Balken sind die Politik des Netzes selbst, vor dem Zufall, mit dem ein Hausspieler daraus zieht.",
+      side: "auf der Seite sperren, wo Schwarz schon einen Stein hat",
+      top: "stattdessen oben entlang sperren",
+      row: "Bei {rank}: A {a} Prozent, B {b} Prozent.",
+      source: "Gemessen an dem Netz, das diese Seite ausliefert ({model}), {date}. Keine Schätzung.",
+    },
     insideLabel: "Was es hier gibt",
     insideH2a: "Alles, was ein Spieler braucht,",
     insideH2b: "und nichts, was schreit.",

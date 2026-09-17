@@ -1807,6 +1807,43 @@ were kept, so the ten named rooms became three: the ones somebody picked by look
 Still open here: nothing. The coordinates and the printed move numbers landed with the
 stones, below.
 
+## The flag beside the name (done 2026-09-16, branch `feat/flags`)
+
+A player could say what they were called, what colour their seal was and which mask they
+wore, and nothing at all about where they were playing from. The bio's "where you play"
+was a free line, so it could say a club, a city or a joke, and nothing could be drawn from
+it. This is the structured half of that question: one country, picked from a list, drawn
+beside the name everywhere the name is drawn.
+
+- [x] `content/countries.js` is the list: every officially assigned ISO 3166-1 alpha-2
+      code (250 of them) with its CLDR English name, `isCountryCode`, `flagOf`,
+      `countryName`, `countriesIn` and `findCountries`.
+- [x] The names in the other eight languages come from the reader's own `Intl.DisplayNames`
+      rather than from a catalogue: 250 names times nine is a translation nobody would keep
+      current, and every browser already ships CLDR. The English table is the floor.
+- [x] The flag is computed from the code as two regional indicators. No images, no sprite
+      sheet, nothing in the stylesheet naming a colour.
+- [x] `country` on the local profile, sanitised like the mask; `cleanCountry` on the
+      server, on `publicPlayer` and on the seat, so it reaches the ladder, a player's page,
+      the lobby and the table.
+- [x] One picker, on the profile screen, which writes the device's profile and sends the
+      same code to the account when there is one. Signing in on a fresh device adopts the
+      account's country into an empty local field and never over a full one.
+- [x] The privacy notice says the field is picked and never detected, and lists it among
+      what the server holds.
+
+Decisions:
+- The list is the standard's, unedited. A curated list of places reads as a position on
+  which places count, and the only defensible position for a go server is ISO's.
+- Windows ships no flag faces, so a Windows reader sees the two letters. That is the
+  fallback the standard designed and it is what the picker was laid out for: the name is
+  the label everywhere and the glyph is never load-bearing.
+- There is no second picker on the account card. Two pickers for one flag is how the two
+  copies end up disagreeing, and the disagreement would show up in a room rather than on
+  the screen where it could be fixed.
+- Nothing reads an address to guess a country. A guess is wrong for everybody who travels,
+  and it would turn a thing somebody said into a thing we worked out about them.
+
 ## One drawing of a stone (done 2026-09-16, branch `feat/big-stones`)
 
 The stones on the board were redrawn the day before and everything drawn larger was left
@@ -1839,6 +1876,66 @@ Decisions:
   piece in a position, and the shine is composed with the eyes rather than with the stone.
 - The rim scales with the radius rather than holding at a hairline. A figure is a stone
   seen closer, and on a stone seen closer the edge is thicker too.
+
+## Saying which engine (done 2026-09-16, branch `feat/selfplay-credits`)
+
+Three boards on this site play themselves and none of them said what was playing. The
+front door's line ("Joseki's own engine, playing itself") said *that* it was self-play and
+left a visitor who had met the house players to assume it was KataGo, which it was not: it
+is the heuristic picker on default weights, both colours. A page that is proud of labelling
+its bots honestly should not be vague about its own demo.
+
+- [x] Every self-playing board names its engine in a line under it. The front door's note
+      names the picker and covers the 19-line game behind the page (`StoneField`), which is
+      the same loop on a bigger board.
+- [x] The dashboard's board plays two house players at their own ranks, through the same
+      network a real game uses -- but only when that network is already in memory
+      (`modelReady()`), and it never starts the download itself. The caption is live: it
+      says the heuristic when that is what is moving and names the pair when the network is.
+- [x] `demoPair` (`content/demo.js`) picks the two, fixed for the day and never the same
+      persona twice. The rank each plays at comes from its own range, through
+      `rankFromRange` in `content/rank.js`, which the daily duel now shares.
+- [x] The caption is demoted when the network stops answering, once, and the picker
+      finishes that game under its own name. A question that never comes back is given six
+      seconds. A game ending in two passes is not read as a failure, which it was for one
+      commit: the network answers null on a scoring record exactly as it does when it
+      cannot load, and the first version retired the house players for good the first time
+      a demo game finished properly.
+- [x] The clock stops while the tab is hidden or the board is off screen, the way
+      StoneField's does. Every tick is a third of a second of wasm now.
+- [x] The demo loop (`components/selfPlay.js`) steps a real `GameRecord` instead of a bare
+      board, which is what lets the network be asked at all -- a record carries the move
+      history and the hashes -- and gets the demo superko for free.
+- [x] The front door has one figure about the model: the same position asked at 20k, 10k,
+      3k, 1d and 9d. Both answers are the network's top two at every rank; what climbs is
+      the certainty, 31% to 92%. Data and provenance in `content/rankdial.js`, drawn by
+      `components/RankDial.jsx`, measured by `tools/kata/rankdial.mjs`.
+- [x] `tools/kata/rankdial.mjs` runs the shipped ONNX through the browser's own encoder and
+      runtime under Node, so a percentage on the page is one a player's machine produces.
+      `rankdial.test.js` replays the position through the engine and holds the copy's claims
+      to the numbers: that certainty rises with rank, and that the two blocks really are the
+      network's top two (the third probability is in the data to be checked against, not
+      shown). The numbers are bound to the model by content hash, so a retrain shipped under
+      the same filename fails the build rather than quietly making the front door wrong.
+
+Decisions:
+- The network is not touched on the landing page, at any cost in ambition. It is 54MB of
+  weights and 14MB of runtime, and the front door's rule is that nothing heavy runs before
+  the words paint. The dial is a measurement taken offline and shipped as a few hundred
+  bytes, which is the version of "show the model" the page can afford.
+- The dashboard board decides which engine once, when the loop starts, and is never
+  promoted back mid-game. It can be demoted, though: a network that stops answering takes
+  its name off the board and the picker finishes the game. The alternative was a caption
+  that went on naming two house players while the picker played, which is the one thing
+  this feature exists to prevent.
+- Ranks are not clamped to what the network can imitate on its own. Below 20k there is no
+  profile and `profileForRank` softens a 20k one instead; clamping printed 20k beside
+  Hoshi, whose range starts at 25k, and made the demo board the only place in the app where
+  Hoshi plays stronger than Hoshi. A rank means here what it means at every other table.
+- The dial lives beside the house players in "What is here", not in the Record. The Record
+  is sourced to other people's published work and `press.test.js` enforces that; this is our
+  own measurement of our own file, and it would have been the one row in that rail citing
+  us.
 
 ## The stones as drawn, and the record as printed (done 2026-09-15, branch `feat/room-stones`)
 

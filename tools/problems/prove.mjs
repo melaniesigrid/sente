@@ -60,6 +60,46 @@ export function enclosed(b, seed) {
   return out;
 }
 
+/** The enemy stones already standing inside `region`, added to it.
+ *
+ *  `enclosed` stops at stones, so a throw-in, a nakade left in place or any
+ *  dead stone sitting in the eye space is a hole the search can never play
+ *  in — not because the point is illegal but because it was never offered.
+ *  That makes a whole class of kill invisible: Black throws in, White captures,
+ *  and the points that just came free are outside the region, so `replies`
+ *  will not generate them and the group is scored as living.
+ *
+ *  A chain counts as inside when every liberty it has lies in the region.
+ *  `replies` already skips occupied points, so adding these costs nothing
+ *  until a capture actually frees them.
+ *
+ *          . X X X X .          region as enclosed sees it:  a b
+ *          X O O O O X                    the two O-eyes only
+ *          X O a b O X          with the dead x inside:      a b x
+ *          X O x O O X                    so the recapture is reachable
+ *          . X X X X .
+ */
+function withDeadInside(b, region, owner) {
+  if (!region.length) return region;
+  const inRegion = new Set(region.map(p => `${p.c},${p.r}`));
+  const extra = [], counted = new Set();
+  for (const p of region) {
+    for (const [dc, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const q = P(p.c + dc, p.r + dr);
+      if (q.c < 0 || q.r < 0 || q.c >= b.size || q.r >= b.size) continue;
+      if (at(b, q) !== opponent(owner)) continue;
+      const ch = chainAt(b, q.c, q.r);
+      const key = ch.stones.map(([x, y]) => `${x},${y}`).sort().join(" ");
+      if (counted.has(key)) continue;
+      counted.add(key);
+      const libs = [...ch.libs].map(i => P(i % b.size, Math.floor(i / b.size)));
+      if (!libs.every(l => inRegion.has(`${l.c},${l.r}`))) continue;
+      for (const [x, y] of ch.stones) extra.push(P(x, y));
+    }
+  }
+  return extra.length ? [...region, ...extra] : region;
+}
+
 /** The one chain on the board whose every liberty lies inside one enclosed
  *  region, with the region beside it: the group a life-and-death problem is
  *  about, found rather than declared. Returns null if there is no such group,
@@ -131,24 +171,26 @@ export function survives(b, target, owner, region, toPlay, ko = null, seen = new
 export function killers(b, target, region, attacker) {
   const owner = at(b, target);
   const other = opponent(attacker);
+  const search = withDeadInside(b, region, owner);
   return region.filter(m => {
     if (at(b, m) !== null) return false;
     const res = tryPlay(b, m.c, m.r, attacker);
     if (!res.ok) return false;
     if (at(res.board, target) !== owner) return true;
-    return !survives(res.board, target, owner, region, other, res.ko);
+    return !survives(res.board, target, owner, search, other, res.ko);
   });
 }
 
 /** Every point in `region` that, played by the group's owner, saves it. */
 export function savers(b, target, region, owner) {
   const other = opponent(owner);
+  const search = withDeadInside(b, region, owner);
   return region.filter(m => {
     if (at(b, m) !== null) return false;
     const res = tryPlay(b, m.c, m.r, owner);
     if (!res.ok) return false;
     if (at(res.board, target) !== owner) return false;
-    return survives(res.board, target, owner, region, other, res.ko);
+    return survives(res.board, target, owner, search, other, res.ko);
   });
 }
 
@@ -158,12 +200,13 @@ export function savers(b, target, region, owner) {
 export function koOnlyKillers(b, target, region, attacker) {
   const owner = at(b, target);
   const other = opponent(attacker);
+  const search = withDeadInside(b, region, owner);
   const blind = region.filter(m => {
     if (at(b, m) !== null) return false;
     const res = tryPlay(b, m.c, m.r, attacker);
     if (!res.ok) return false;
     if (at(res.board, target) !== owner) return true;
-    return !survivesKoBlind(res.board, target, owner, region, other);
+    return !survivesKoBlind(res.board, target, owner, search, other);
   });
   return killers(b, target, region, attacker)
     .filter(m => !blind.some(q => samePoint(q, m)));

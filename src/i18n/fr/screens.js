@@ -1,6 +1,8 @@
 // fr · screens
 export const screens = {
   home: {
+    boardNotePlayers: "{black} ({blackRank}) contre {white} ({whiteRank}), tous deux à travers le réseau de style humain de KataGo, chacun à son niveau.",
+    boardNote: "Le sélecteur de coups de Joseki contre lui-même : la même heuristique des deux côtés, pas le réseau KataGo avec lequel jouent les joueurs de la maison.",
     trainer: { head: "Une lettre de {name}", away: "La ranger", play: "Va jouer", placeholder: "Écris-lui…", send: "Envoyer", yes: "Oui", here: "Toujours là", pings: "{count} en attente de ton entraîneur", notNow: "Pas maintenant" },
     greetingBack: "De retour au goban",
     greetingNew: "Bienvenue au goban",
@@ -255,6 +257,20 @@ export const screens = {
   },
 
   profile: {
+    country: {
+      head: "Ton drapeau",
+      note: "D’où tu joues, si tu veux le dire. Il se pose à côté de ton nom, et l’enlever tient en une pression.",
+      noteAccount: "D’où tu joues, si tu veux le dire. Il se pose à côté de ton nom ici et voyage avec ton pseudo, donc la personne en face le voit aussi.",
+      search: "Chercher un pays",
+      none: "Pas de drapeau",
+      noneLine: "Pas de drapeau. Rien ici ne dit où tu es.",
+      chosenLine: "à côté de ton nom.",
+      noMatch: "Aucun pays de ce nom.",
+      more: {
+        one: "{count} de plus. Tape pour réduire la liste.",
+        other: "{count} de plus. Tape pour réduire la liste.",
+      },
+    },
     trainer: {
       head: "Entraîneur privé",
       games: "Parties avec lui : {count}",

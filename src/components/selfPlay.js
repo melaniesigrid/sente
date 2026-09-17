@@ -1,46 +1,56 @@
-import { createBoard, tryPlay, aiChooseMove, idx } from "../engine/index.js";
+import { createGame, play, pass, aiChooseMoveForRecord, lastMoveIndex } from "../engine/index.js";
 
 /* ----------------------- THE DEMO, ONE TICK AT A TIME -----------------------
    The self-playing board on the front door and the dashboard. The engine plays
    both sides; this is only the loop around it, kept out of the component so it
    can be tested without a browser.
 
-   A frame is the whole of it: the game being played (board, ko, whose turn,
-   move number, passes in a row) and the three facts the Board is handed to
-   draw it: `last`, the point just played; `took`, the stones that move lifted;
-   and `n`, which doubles as the capture key, so a capture on move 13 replays
-   rather than sitting on screen from move 12.
+   A frame is the game being played and the two facts the Board needs that the
+   game itself does not carry: `last`, the point just played, and `took`, the
+   stones that move lifted. The game is a real GameRecord, which is what makes
+   the second player possible: a record carries its own move history and its
+   own hashes, so the human network can be asked what it would play here
+   (MiniSelfPlay does the asking) and superko is honoured while it answers.
+   The move count doubles as the Board's capture key, so a capture on move 13
+   replays rather than sitting on screen from move 12.
+
+   The chooser is the caller's: `demoMove` is the heuristic house player and is
+   what the front door plays, and the dashboard hands in the network's move
+   instead when the model is already in memory. Both go through nextFrameWith,
+   so there is one stepping and the tests walk the same one the board does.
 
    Pure, and it never mutates the frame it is given. */
 
-const other = (color) => (color === "b" ? "w" : "b");
-
 /** A fresh game: empty board, black to play, nothing said yet. */
-export function openingFrame(size) {
-  return { board: createBoard(size), ko: null, turn: "b", n: 0, passes: 0, last: null, took: [] };
-}
+export const openingFrame = (size) => ({ rec: createGame({ size }), last: null, took: [] });
 
 /** How long a demo game runs before it starts over. Long enough to build a
  *  shape worth looking at, short enough that nobody watches a seki. */
 export const DEMO_MOVES = 60;
 
-/** The next frame. Starts over when both sides pass or the game runs long, so
- *  the board never sits on a finished position. A move the chooser declines or
- *  the rules refuse counts as a pass and leaves the position alone: two of
+/** Has this game run its course? Both sides passed, or it has gone long. */
+export const demoSpent = (frame) =>
+  frame.rec.passes >= 2 || frame.rec.moves.length > DEMO_MOVES || frame.rec.phase !== "playing";
+
+/** The move the heuristic house player would make here, or null to pass. */
+export const demoMove = (frame) => aiChooseMoveForRecord(frame.rec);
+
+/** How many moves are on the board: the Board's capture key. */
+export const demoCount = (frame) => frame.rec.moves.length;
+
+/** The next frame, playing `move` ([c, r], or null to pass). Starts over when
+ *  the game is spent, so the board never sits on a finished position. A move
+ *  the rules refuse is treated as a pass and leaves the position alone: two of
  *  those in a row and the game is over, which is how a demo ends by agreement
  *  rather than by running out of moves. */
-export function nextFrame(frame, size) {
-  if (frame.passes >= 2 || frame.n > DEMO_MOVES) return openingFrame(size);
-
-  const mv = aiChooseMove(frame.board, frame.turn, frame.ko, frame.n);
-  if (!mv) return { ...frame, passes: frame.passes + 1, turn: other(frame.turn) };
-
-  const res = tryPlay(frame.board, mv[0], mv[1], frame.turn, { koPoint: frame.ko });
-  if (!res.ok) return { ...frame, passes: frame.passes + 1 };
-
-  return {
-    board: res.board, ko: res.ko, turn: other(frame.turn),
-    n: frame.n + 1, passes: 0,
-    last: idx(size, mv[0], mv[1]), took: res.captured,
-  };
+export function nextFrameWith(frame, move, size = frame.rec.size) {
+  if (demoSpent(frame)) return openingFrame(size);
+  if (!move) return { rec: pass(frame.rec), last: frame.last, took: [] };
+  let rec;
+  try {
+    rec = play(frame.rec, move[0], move[1]);
+  } catch {
+    return { rec: pass(frame.rec), last: frame.last, took: [] };
+  }
+  return { rec, last: lastMoveIndex(rec), took: rec.lastCaptured ?? [] };
 }

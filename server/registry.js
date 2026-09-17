@@ -48,7 +48,7 @@ import { DEFAULT_PARTNER_RANK } from "../src/engine/rengo.js";
 import { fillRengoTable, rengoProgress, teamOf } from "./seating.js";
 import { cleanKey, publicPlayer, hasPlayed, reseeded } from "./players.js";
 import { cleanEmail, cleanKey as cleanDerivedKey, privateFields, KDF } from "./accounts.js";
-import { cleanBio, cleanFacts, avatarProblem, profileOf } from "./profile.js";
+import { cleanBio, cleanFacts, cleanCountry, avatarProblem, profileOf } from "./profile.js";
 import { cleanProgress, mergeProgress, progressBytes, PROGRESS_MAX_BYTES } from "../src/store/progress.js";
 import { readBook, standing, ask, accept, forget, forgetting, everyoneWhoKnows,
   ASK_LIMIT, ASK_WINDOW_MS } from "./friends.js";
@@ -846,6 +846,11 @@ export class Registry extends DurableObject {
       ...p,
       bio: patch.bio !== undefined ? cleanBio(patch.bio) : (p.bio ?? ""),
       facts: patch.facts !== undefined ? cleanFacts(patch.facts) : (p.facts ?? {}),
+      /* The flag. It is on `publicPlayer` rather than only on the profile,
+         because a flag nobody sees until they open your page is not a flag:
+         it belongs beside the handle in the lobby, in the room and on the
+         ladder, which is everywhere that function is drawn from. */
+      country: patch.country !== undefined ? cleanCountry(patch.country) : (p.country ?? ""),
       /* Who may see you are here. It lives on the profile because it is the
          same kind of thing as the paragraph: a choice about what other people
          are shown. It is never on `publicPlayer`, so nobody learns from the
@@ -2225,7 +2230,7 @@ export class Registry extends DurableObject {
       people.push(p);
     }
     const gameId = "g_" + randomHex(6);
-    const asSeat = (p) => ({ id: p.id, name: p.name, tint: p.tint, rating: Math.round(p.rating), rd: Math.round(p.rd), avatarAt: p.avatarAt ?? null });
+    const asSeat = (p) => ({ id: p.id, name: p.name, tint: p.tint, country: p.country ?? "", rating: Math.round(p.rating), rd: Math.round(p.rd), avatarAt: p.avatarAt ?? null });
     const stub = this.env.ROOM.get(this.env.ROOM.idFromName(gameId));
     const [b1, w1, b2, w2] = people;
     await stub.create({
@@ -2271,6 +2276,9 @@ export class Registry extends DurableObject {
 function seatOf(p) {
   return {
     id: p.id, name: p.name, tint: p.tint,
+    // The flag travels with the seat: a table is the one place two strangers
+    // meet, and it is the whole reason anybody picks one.
+    country: p.country ?? "",
     rating: Math.round(p.rating), rd: Math.round(p.rd),
     avatarAt: p.avatarAt ?? null,
   };
