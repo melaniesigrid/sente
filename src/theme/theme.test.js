@@ -167,10 +167,24 @@ describe("carrying an older room forward", () => {
     expect(migrateThemeId("sumi")).toBe(SYSTEM_THEME);
   });
 
-  it("leaves a current id, system, dojo and nonsense alone", () => {
-    for (const id of [...PALETTES.map(p => p.id), SYSTEM_THEME, DOJO_THEME, "nonsense", 7, null]) {
+  it("leaves a choosable room, system, dojo and nonsense alone", () => {
+    const choosable = PALETTES.map(p => p.id).filter(id => id !== REVIEW_THEME);
+    for (const id of [...choosable, SYSTEM_THEME, DOJO_THEME, "nonsense", 7, null]) {
       expect(migrateThemeId(id), String(id)).toBe(id);
     }
+  });
+
+  /* The review room left the look page's picker on 2026-09-16. It is not
+     retired -- review mode still draws itself in it -- but it is no longer
+     somewhere a profile can be parked, because sitting in a printed room put
+     the whole place on the page and took the player's stone set away without
+     saying so. Somebody who chose it chose a light page, so they land in the
+     light table room, with their stones back. */
+  it("carries a stored review room into the light table room", () => {
+    expect(migrateThemeId(REVIEW_THEME)).toBe("tatami");
+    expect(isThemeId(migrateThemeId(REVIEW_THEME))).toBe(true);
+    expect(isDark(themeOf(migrateThemeId(REVIEW_THEME))), "a light page stays light").toBe(false);
+    expect(themeOf(migrateThemeId(REVIEW_THEME)).print, "and it is a table, not a page").toBeFalsy();
   });
 });
 

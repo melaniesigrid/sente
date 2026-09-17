@@ -335,7 +335,11 @@ ${FONT_FACES}
    Each keeps the ring it wears, because the ring is what says chosen. */
 .type-btn:active { box-shadow: var(--sink); }
 .legal-tab.active:active, .look-btn[aria-current]:active, .lang-pill.on:active { box-shadow: var(--sink); }
-.tint-dot.active:active, .theme-btn.active:active, .stone-btn.active:active { box-shadow: var(--sink), 0 0 0 2px var(--accent-ring); }
+.tint-dot.active:active { box-shadow: var(--sink), 0 0 0 2px var(--accent-ring); }
+/* The picker plates keep the page's ring under the finger too, for the reason
+   given where --pick-ring is declared: the ring belongs to the page, and a
+   press is no time for the chosen plate to stop looking chosen. */
+.theme-btn.active:active, .stone-btn.active:active { box-shadow: var(--sink), 0 0 0 2px var(--pick-gap), 0 0 0 5px var(--pick-ring); }
 .swatch.on:active { box-shadow: var(--sink), inset 0 0 0 1px var(--belt-edge), 0 0 0 2px var(--accent-ring); }
 
 /* The nine that already sank now land flat with everything else: a control that
@@ -1771,6 +1775,20 @@ ${FONT_FACES}
    the little plate is drawn in that material (same two shadows, different
    room) and you choose by looking rather than by reading a name. */
 .theme-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(136px, 1fr)); gap: 12px; margin-top: 16px; }
+/* Which plate is chosen has to be said by the page, not by the plate.
+   Every plate on these two rows wears a different room's tokens, so a ring cut
+   from var(--accent-ring) is cut from whatever room that plate happens to be:
+   in Night the selected dark plate drew a faint charcoal ring at .32 alpha and
+   vanished, while the unselected Tatami and Kifu plates beside it glowed like
+   lamps, because a light plate in a dark room simply is the brightest thing on
+   the screen. Selection read as the wrong plate.
+   --pick-* are declared here, on the row, which is the last element on the way
+   down still wearing the page's own tokens; children inherit the computed
+   colour, so a plate's inline --accent-rgb cannot reach it. The ring is the
+   page's accent at full strength rather than at .32, with a gap of the page's
+   ground inside it, so it reads as a frame the page drew around one plate
+   however bright or dark that plate is. */
+.theme-row, .stone-row { --pick-ring: var(--accent); --pick-gap: var(--ground); }
 .theme-btn {
   border: 0; cursor: pointer; background: var(--ground); color: var(--ink);
   display: flex; flex-direction: column; align-items: flex-start; gap: 9px;
@@ -1778,7 +1796,7 @@ ${FONT_FACES}
   transition: box-shadow .18s ease, transform .18s ease;
 }
 .theme-btn:hover { transform: translateY(-2px); }
-.theme-btn.active { box-shadow: var(--sink-sm), 0 0 0 2px var(--accent-ring); transform: none; }
+.theme-btn.active { box-shadow: var(--sink-sm), 0 0 0 2px var(--pick-gap), 0 0 0 5px var(--pick-ring); transform: none; }
 .theme-plate { width: 100%; height: 50px; border-radius: 12px; box-shadow: var(--sink-sm); display: flex; align-items: center; gap: 8px; padding: 0 12px; }
 .theme-stone { width: 17px; height: 17px; border-radius: 50%; flex: none; }
 /* The plates draw the stone the board draws: a flat body, one shine on the
@@ -1854,14 +1872,28 @@ ${FONT_FACES}
 @media (max-width: 760px) { .look-btn span { display: none; } .look-btn { width: 48px; padding: 0; } }
 .look-btn[aria-current] { box-shadow: var(--sink-sm); color: var(--accent-ink); transform: none; }
 /* The board and the drawer, side by side: a set is chosen by watching the
-   stones on the board change, not by reading the name of a rock. */
-.look-stones { display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr); gap: clamp(16px, 2.4vw, 26px); margin-top: 16px; align-items: start; }
+   stones on the board change, not by reading the name of a rock.
+
+   The first track is the board's width and nothing else. It used to be
+   minmax(0, auto), which sounds like "as wide as the board" and means "as wide
+   as the widest thing in the column" -- and the widest thing in the column is
+   not the board, it is the contrast sentence under it, a paragraph whose
+   max-content is one long unwrapped line. At 1280px the tracks resolved to
+   802px and 119px: four hundred pixels of nothing under a 340px board, and a
+   drawer squeezed into 119px while its own plates still drew themselves 150px
+   wide and hung 30px out over the edge of the card. --look-board is written on
+   the element by the view, from the same constant it hands the Board, so the
+   track and the board cannot drift apart. The sentence wraps under the board
+   where it belongs. */
+.look-stones { display: grid; grid-template-columns: minmax(0, var(--look-board, 340px)) minmax(0, 1fr); gap: clamp(16px, 2.4vw, 26px); margin-top: 16px; align-items: start; }
 @media (max-width: 820px) { .look-stones { grid-template-columns: 1fr; } }
 .look-preview { display: flex; flex-direction: column; gap: 12px; }
 .look-cut { display: flex; gap: 8px; align-items: flex-start; }
 .look-cut > svg { flex: none; margin-top: 2px; color: var(--accent-ink); }
 .look-cut.warn > svg { color: var(--danger-ink); }
-.stone-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+/* 12px, the room row's gap, because the selected plate's ring stands 5px proud
+   of it on every side and two neighbours would otherwise touch rings. */
+.stone-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
 /* Cut exactly like a room plate, because they are two rows of the same object
    on one page: same padding, same gap, same corner, same shadow. */
 .stone-btn {
@@ -1871,8 +1903,15 @@ ${FONT_FACES}
   transition: box-shadow .18s ease, transform .18s ease;
 }
 .stone-btn:hover { transform: translateY(-2px); }
-.stone-btn.active { box-shadow: var(--sink-sm), 0 0 0 2px var(--accent-ring); transform: none; }
-.stone-plate { width: 100%; height: 46px; border-radius: 12px; box-shadow: var(--sink-sm); display: flex; align-items: center; justify-content: center; gap: 10px; }
+.stone-btn.active { box-shadow: var(--sink-sm), 0 0 0 2px var(--pick-gap), 0 0 0 5px var(--pick-ring); transform: none; }
+/* A stone plate is a well with the wood in it, because the wood is what these
+   two objects are actually going to lie on and the pair is only legible against
+   it. Drawn on var(--ground) -- which is what a plate with no background of its
+   own falls back to, the button's -- the black stone of every set disappeared in
+   Night: slate, plum, cinnabar and moss all came out as a single white dot on
+   charcoal, and the drawer stopped being a picker. --board is one wood in both
+   table rooms, so this also makes the plate say the same thing in both. */
+.stone-plate { width: 100%; height: 46px; border-radius: 12px; background: var(--board); box-shadow: var(--sink-sm); display: flex; align-items: center; justify-content: center; gap: 10px; }
 /* The set's name is the plate's title, so it is set like one: a room's name and
    a set's name have the same rank on this page. */
 .stone-name { font-family: var(--font-display); font-weight: var(--w-display-strong); font-size: 16px; line-height: 1.1; padding-inline-start: 2px; text-align: start; }

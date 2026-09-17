@@ -9,6 +9,11 @@
      night    the same table after dark. Charcoal page, the same wood.
      kifu     the printed record. Ivory page, terracotta mark, review mode's own.
 
+   Two of those are rooms you choose. Kifu is the one you are put in, by review
+   mode, for as long as you are reading a finished game; the look page does not
+   offer it (REVIEW_THEME, below, says why). So the picker holds two rooms, the
+   device, and whatever the dojo built.
+
    A palette is still data, and it is still authored as four colours
    (ground, ink, mark, shell) with the rest derived (derive.js) unless a
    hand-mixed tone beat the computed one, which is what the `light`/`dark`
@@ -72,9 +77,18 @@ export const PALETTES = [
  *  back to. */
 export const HOUSE_THEME = "tatami";
 
-/** The room a finished game is read in. Not a preference: review mode draws
- *  itself in Kifu whichever room the player plays in, the way a book is a book
- *  whatever the light in the room is. */
+/** The room a finished game is read in. Not a preference, and since 2026-09-16
+ *  not offered as one: review mode draws itself in Kifu whichever room the
+ *  player plays in, the way a book is a book whatever the light in the room is.
+ *
+ *  It stayed in the look page's picker for a day longer than it should have,
+ *  and choosing it there put the whole place on the printed page: the Play
+ *  screen became a diagram, and the stone picker went on offering eight sets
+ *  that a printed room cannot draw, because `print` answers with ink and paper
+ *  whatever is in the drawer. `roomsFor` leaves it out now, and a stored `kifu`
+ *  migrates to the light table room below. Kifu is still a palette, still in
+ *  PALETTES, and still every bit of Review.jsx's room; it is simply not
+ *  somewhere you can sit down. */
 export const REVIEW_THEME = "kifu";
 
 /** The id a palette built in the dojo answers to. It is not in PALETTES: it
@@ -96,11 +110,17 @@ export const SYSTEM_PAIR = { light: HOUSE_THEME, dark: "night" };
  *  A stored theme id is a preference somebody set, so it is carried forward
  *  rather than thrown away with a warning: a player who chose a dark room keeps
  *  a dark room. The two rooms `system` used to point at go back to `system`,
- *  which is what following the device is called. */
+ *  which is what following the device is called.
+ *
+ *  `kifu` is the odd one: it is not retired, it is un-offered. Somebody who
+ *  picked it picked a light page, so the light table room is where they land —
+ *  and they get their stones back, which the printed room was quietly taking
+ *  from them. */
 const RETIRED = {
   house: SYSTEM_THEME, sumi: SYSTEM_THEME,
   kaya: "tatami", porcelain: "tatami", damson: "tatami", cinnabar: "tatami", gilt: "tatami",
   lacquer: "night", graphite: "night", yohen: "night", prism: "night", foxfire: "night",
+  kifu: "tatami",
 };
 
 /** A stored theme id, carried forward. Anything current, `system` or `dojo`

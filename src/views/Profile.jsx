@@ -10,7 +10,7 @@ import { TINTS, rankOf, preciseRankOf, beltOf, beltLabel, nextBelt, hintsFor, hi
 import { MARKS } from "../store/profile.js";
 import { typefaceOf } from "../content/typeface.js";
 import { setName } from "./look.js";
-import { PALETTES, themeOf, themeVars, SYSTEM_THEME, stoneSetOf } from "../theme/index.js";
+import { PALETTES, themeOf, themeVars, SYSTEM_THEME, REVIEW_THEME, stoneSetOf } from "../theme/index.js";
 import {
   LEVELS, levelForRank, chapterByNumber,
   localizeLevel, localizeChapter, localizeClassic, belowTheLevels,
@@ -398,8 +398,13 @@ export function ProfileView({ profile, setProfile, go, room, notify, writeTo = n
           })}
           {profile.theme === SYSTEM_THEME ? t("profile.look.following") : ""}
         </p>
+        {/* The same rooms the look page offers and no others: this strip is
+            decoration, but it is decoration that says "there are rooms, and
+            this many", and the button under it goes straight to the picker.
+            The review room is not in the picker (roomsFor, look.js), so it is
+            not here either. */}
         <div className="look-strip" aria-hidden="true">
-          {PALETTES.map(t => (
+          {PALETTES.filter(p => p.id !== REVIEW_THEME).map(t => (
             <span key={t.id} className="theme-plate look-chip"
               style={themeVars(t.id, null, profile.stones)}>
               <span className="theme-stone b" />

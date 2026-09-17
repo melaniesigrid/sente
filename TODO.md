@@ -1807,6 +1807,53 @@ were kept, so the ten named rooms became three: the ones somebody picked by look
 Still open here: nothing. The coordinates and the printed move numbers landed with the
 stones, below.
 
+## The look page tells the truth (done 2026-09-16, branch `feat/look-pass`)
+
+Four things wrong on one screen, three of them visible only in a browser and one of them
+only in the dark room.
+
+- [x] **The printed room left the picker.** Offering Kifu as a preference let somebody sit
+      down in it, and a printed room is not a table: the Play screen became a diagram, and
+      the stone picker beside it went on offering eight sets while `print` drew ink and
+      paper whatever was in the drawer. `roomsFor` filters `REVIEW_THEME`; the picker is
+      the two table rooms, the device, and the dojo. Kifu is untouched as a palette and is
+      still every bit of `Review.jsx`'s room.
+- [x] A stored `kifu` migrates to `tatami` through the same `RETIRED` map the ten old rooms
+      use. A light page stays a light page, and the player's own stone set comes back.
+- [x] **The drawer was squeezed into 119px.** `.look-stones`' first track was
+      `minmax(0, auto)`, which means "as wide as the widest thing in this column" — and
+      that was not the board, it was the contrast sentence under it, whose max-content is
+      one long unwrapped line. Measured at 1280px: tracks of 802px and 119px, four hundred
+      pixels of nothing under a 340px board, and plates that still drew themselves 150px
+      wide and hung 30px out over the card. The track is `--look-board` now, written on the
+      element from the same `PREVIEW_PX` the view hands the Board, so the two cannot drift.
+- [x] **A stone plate is a well with the wood in it.** Drawn on the button's `--ground`,
+      every set's black stone vanished in Night: slate, plum, cinnabar and moss all came
+      out as one white dot on charcoal and the drawer stopped being a picker. The wood is
+      what the pair is going to lie on and the only ground they are both legible against.
+- [x] **The page says which plate is chosen, not the plate.** Every plate wears a different
+      room's tokens, so a ring cut from `--accent-ring` was cut from whatever room that
+      plate is: in Night the selected dark plate drew a faint charcoal ring at .32 alpha
+      while the unselected light plates blazed beside it, and selection read as the wrong
+      plate. `--pick-ring`/`--pick-gap` are declared on the row — the last element still
+      wearing the page's own tokens — so children inherit a computed colour no inline
+      `--accent-rgb` can reach.
+- [x] Nine languages: the room note said "three rooms" and now says two, and says why the
+      third is not on the page.
+- [x] The profile's decorative strip shows the same rooms the picker offers.
+
+Decisions:
+- The contrast sentence's number is right and was left alone. `STONE_RULE` measures black
+  against white, which is a question about the set and not about the room, so 15.3:1 in
+  every room is the truth. `BOARD_RULES` asks the question that does change — the black
+  stone against the wood — and the look page still does not print it. The dojo does.
+- The dojo's "start from a room" strip still offers Kifu, and should: copying a palette's
+  tones into the editor is not sitting down in it, and `sanitizePalette` keeps tones only,
+  so a room built from it is a table room.
+- `platePalette`'s `print: false` is kept as a guard rather than deleted. Nobody can be
+  standing in a printed room while reading this page any more, so it corrects nothing
+  today; it is what would quietly break if a printed room were ever made choosable again.
+
 ## One drawing of a stone (done 2026-09-16, branch `feat/big-stones`)
 
 The stones on the board were redrawn the day before and everything drawn larger was left

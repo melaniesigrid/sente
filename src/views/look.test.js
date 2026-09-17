@@ -1,17 +1,39 @@
 import { describe, it, expect } from "vitest";
 import { roomsFor, setsFor, setName, plateVars, platePalette } from "./look.js";
 import { makeT } from "../i18n/index.js";
-import { PALETTES, STONE_SETS, AUTO_STONES, DOJO_THEME, SYSTEM_THEME, stoneSetOf, themeVars } from "../theme/index.js";
+import { PALETTES, STONE_SETS, AUTO_STONES, DOJO_THEME, SYSTEM_THEME, REVIEW_THEME, stoneSetOf, themeVars } from "../theme/index.js";
 
 const MINE = { ground: "#101014", ink: "#e6e6ea", accent: "#b98cff", cream: "#f2f2f6" };
 
+/** The rooms somebody is allowed to choose: every palette but the one review
+ *  mode puts them in. */
+const CHOOSABLE = PALETTES.filter(p => p.id !== REVIEW_THEME);
+
 describe("what the look page offers", () => {
-  it("leads with the device, then the named rooms", () => {
+  it("leads with the device, then the rooms you can sit in", () => {
     const rooms = roomsFor(null, "tatami");
     expect(rooms[0].id).toBe(SYSTEM_THEME);
     expect(rooms[0].drawAs, "the System plate is drawn in the room it resolves to").toBe("tatami");
-    expect(rooms).toHaveLength(PALETTES.length + 1);
+    expect(rooms).toHaveLength(CHOOSABLE.length + 1);
     expect(rooms.some(r => r.id === DOJO_THEME), "no dojo built, no dojo plate").toBe(false);
+  });
+
+  /* The printed room is somewhere review mode puts you, not a preference.
+     Offered as one it put the whole place on the page -- the Play screen
+     included -- and silently overrode the stone picker beside it, since a
+     printed room draws ink and paper whatever set is in the drawer. */
+  it("does not offer the room review mode brings with it", () => {
+    for (const dojo of [null, MINE]) {
+      for (const room of ["tatami", "night"]) {
+        expect(roomsFor(dojo, room).some(r => r.id === REVIEW_THEME),
+          `${room}, dojo: ${!!dojo}`).toBe(false);
+      }
+    }
+  });
+
+  it("still keeps the review room a real palette, for review mode to use", () => {
+    expect(PALETTES.some(p => p.id === REVIEW_THEME)).toBe(true);
+    expect(PALETTES.find(p => p.id === REVIEW_THEME).print).toBe(true);
   });
 
   it("offers the built room last, named or not", () => {
