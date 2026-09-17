@@ -12,7 +12,7 @@
    honest English one. */
 
 import { BASE_LOCALE, makeT } from "../i18n/index.js";
-import { seatAt, hasSeats, phaseAt, noteAt, notedMoves } from "../content/famous/index.js";
+import { seatAt, seatSideAt, hasSeats, phaseAt, noteAt, notedMoves } from "../content/famous/index.js";
 
 const EN = makeT(BASE_LOCALE);
 
@@ -61,7 +61,12 @@ export function seatLine(game, n, t = EN) {
   if (!game || !hasSeats(game.id) || n < 1) return null;
   const who = seatAt(game.id, n);
   if (!who) return null;
-  return t("famous.playedBy", { who }, `Placed by ${who}`);
+  /* Both machines answer to one name, so the colour is what tells them apart, and in
+     a pair go that is the thing worth saying: a human hand and a machine hand take
+     turns inside the same colour. */
+  const side = seatSideAt(game.id, n);
+  const colour = t(`famous.side.${side}`, null, side === "b" ? "black" : "white");
+  return t("famous.playedBy", { who, colour }, `${who} played this, for ${colour}`);
 }
 
 /** What the side panel shows at move `n`: the chapter it falls in, the note written

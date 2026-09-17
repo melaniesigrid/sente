@@ -208,7 +208,7 @@ export function FamousView({ gameId = null, profile = {}, go = null }) {
   if (game && walking && record) {
     return (
       <Review record={record} profile={profile} openAt={0} autoAnalyse={false}
-        sgfCredit={exportCredit(game)}
+        sgfCredit={exportCredit(game)} sgfName={game.id}
         onExit={() => setWalking(false)}
         aside={(n) => <Aside game={game} n={n} t={t} />} />
     );

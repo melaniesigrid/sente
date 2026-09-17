@@ -116,7 +116,8 @@ export const shell = {
     seats: "{black} (чорні) проти {white} (білі)",
     notesCount: { one: "{count} хід із заміткою", few: "{count} ходи із замітками", many: "{count} ходів із замітками", other: "{count} ходу із замітками" },
     matchLine: "{where}, {when} · {score}",
-    playedBy: "Хід зробив {who}",
+    playedBy: "Цей хід зробив {who}, за {colour}",
+    side: { b: "чорних", w: "білих" },
     chapter: "{title} ({n} з {of})",
   },
 };

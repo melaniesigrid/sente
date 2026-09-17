@@ -108,7 +108,8 @@ export const shell = {
     seats: "{black} (black) against {white} (white)",
     notesCount: { one: "{count} move annotated", other: "{count} moves annotated" },
     matchLine: "{where}, {when} · {score}",
-    playedBy: "Placed by {who}",
+    playedBy: "{who} played this, for {colour}",
+    side: { b: "black", w: "white" },
     chapter: "{title} ({n} of {of})",
   },
 };

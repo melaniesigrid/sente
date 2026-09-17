@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import { Btn, Pill } from "../components/ui.jsx";
 import { themeVars, REVIEW_THEME } from "../theme/index.js";
-import { startLine, playInLine, backInLine, lineFrom, lineLabel, canBranch, reviewLabelText, winRateLineText } from "./reviewLine.js";
+import { startLine, playInLine, backInLine, lineFrom, lineLabel, reviewLabelText, winRateLineText } from "./reviewLine.js";
 import { refusalText, resultSentence } from "./gameStatus.js";
 import { useT } from "../components/langStore.js";
 import { Board } from "../components/Board.jsx";
@@ -19,7 +19,7 @@ import { loadAccount } from "../store/account.js";
 import { serverEnabled } from "../net/api.js";
 import {
   atMove, moveNumbers, captureMoves, nextCapture, prevCapture,
-  reviewLength, clampMove, markerAt, toSgf, lastMoveIndex,
+  reviewLength, clampMove, toSgf, lastMoveIndex,
   turningPoints, pointAt, pct, steadiness, nextTurn, prevTurn, ANALYSIS_RANK, trainerReport,
 } from "../engine/index.js";
 
@@ -94,7 +94,7 @@ function useLegibleNumbers(size) {
    the end of a game you played, because you were there; a game you have never seen
    opens at the beginning. */
 export function Review({ record, onExit, onRematch, profile = {}, shared = null, seat = null,
-  aside = null, openAt = null, autoAnalyse = null, sgfCredit = null }) {
+  aside = null, openAt = null, autoAnalyse = null, sgfCredit = null, sgfName = null }) {
   const t = useT();
   const total = reviewLength(record);
   /* Where the reader is standing. Alone that is this component's state; together
@@ -160,7 +160,10 @@ export function Review({ record, onExit, onRematch, profile = {}, shared = null,
   const at = useMemo(() => atMove(record, n), [record, n]);
   const numbers = useMemo(() => (showNumbers ? moveNumbers(record, n) : null), [showNumbers, record, n]);
   const caps = useMemo(() => captureMoves(record), [record]);
-  const marker = useMemo(() => markerAt(record, n), [record, n]);
+  /* Off the position already in hand. `markerAt` and `canBranch` each replay the whole
+     prefix again, which on a 289-move record is two more full replays on every arrow
+     key for answers `at` already holds. */
+  const marker = useMemo(() => lastMoveIndex(at), [at]);
   const note = at.moves.length ? (at.moves[at.moves.length - 1].comment ?? null) : (at.comment ?? null);
 
   /* Moving to another position leaves the line behind. A line belongs to the position
@@ -220,7 +223,9 @@ export function Review({ record, onExit, onRematch, profile = {}, shared = null,
   // point to ring. Saying so beats a toggle that looks broken.
   const advisePass = showBest && !line && advisedFrom && advisedFrom.best === null;
 
-  const branchable = useMemo(() => canBranch(record, n), [record, n]);
+  /* `canBranch(record, n)` is `atMove(record, n).phase === "playing" && total > 0`,
+     and `at` is that same position: the same answer without the third replay. */
+  const branchable = at.phase === "playing" && total > 0;
   /* What a tap on the board does here. Pointing works at any position at all,
      including the last one of a counted game, where there is nothing left to play
      and plenty still to say. */
@@ -262,7 +267,7 @@ export function Review({ record, onExit, onRematch, profile = {}, shared = null,
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "sente-game.sgf";
+    a.download = sgfName ? `${sgfName}.sgf` : "sente-game.sgf";
     a.click();
     URL.revokeObjectURL(url);
   };

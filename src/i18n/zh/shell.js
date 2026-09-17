@@ -106,7 +106,8 @@ export const shell = {
     seats: "{black}（执黑）对{white}（执白）",
     notesCount: { other: "{count} 手有注解" },
     matchLine: "{where}，{when} · {score}",
-    playedBy: "由{who}落子",
+    playedBy: "此手由{who}所下，执{colour}",
+    side: { b: "黑", w: "白" },
     chapter: "{title}（{of} 章之 {n}）",
   },
 };

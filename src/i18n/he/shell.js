@@ -113,7 +113,8 @@ export const shell = {
     seats: "{black} (שחור) נגד {white} (לבן)",
     notesCount: { one: "מהלך אחד עם הערה", two: "{count} מהלכים עם הערות", other: "{count} מהלכים עם הערות" },
     matchLine: "{where}, {when} · {score}",
-    playedBy: "הונח בידי {who}",
+    playedBy: "{who} שיחק את המהלך הזה, עבור {colour}",
+    side: { b: "השחור", w: "הלבן" },
     chapter: "{title} ({n} מתוך {of})",
   },
 };

@@ -57,7 +57,21 @@ import { JournalView } from "./views/Journal.jsx";
    about 47 KB gzipped of English prose nobody reads unless they open it - and it sits
    behind a nav tab rather than on the way to anything. Everything else in src/content
    is small enough, or on the path often enough, to belong in the first download. */
-const FamousView = lazy(() => import("./views/Famous.jsx").then(m => ({ default: m.FamousView })));
+const FamousView = lazy(() => loadFamous());
+/* React.lazy calls its factory once and keeps whatever it returns, a rejection
+   included, so a chunk that failed to arrive the first time fails for the rest of the
+   session. The retry lives inside the factory, before the promise React is holding
+   settles: one more attempt after a beat, which covers a moment offline and a deploy
+   landing mid-session. The specifier stays a literal so the bundler can still see it
+   and give this screen its own chunk. */
+function loadFamous(retry = false) {
+  return import("./views/Famous.jsx")
+    .then(m => ({ default: m.FamousView }))
+    .catch((e) => {
+      if (retry) throw e;
+      return new Promise(r => setTimeout(r, 400)).then(() => loadFamous(true));
+    });
+}
 import { linkFromQuery, forgetLink } from "./views/letterLink.js";
 
 /* ----------------------- APP SHELL ----------------------- */

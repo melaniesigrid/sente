@@ -11,7 +11,7 @@
 
 export const RECORDS = {
   "fan-hui-1": {
-    komi: 7.5, rules: "chinese", count: 271,
+    komi: 7.5, count: 271,
     moves:
       "pdddppdqcodldnfpbqjqcfchfddfdgcgdccecchcfbncqfpbbfbeefdeqckcqncmcrmqoqqmpmql" +
       "rnplomqihqhpgqgpiqipjrkqerrgqgrfreqhkrlnsfrhqbfeelekfkejfldmfjilfieifhgddhci" +
@@ -23,7 +23,7 @@ export const RECORDS = {
       "picnpkokon",
   },
   "fan-hui-2": {
-    komi: 7.5, rules: "chinese", count: 183,
+    komi: 7.5, count: 183,
     moves:
       "pdddppdqdocodpcpeqcndndmcqdrbqcrcmclbrerbmbnblbpfqdlckdkcjfraoapfodjchdibgam" +
       "bkgnhqipiqjpkqkplqjqjrirhrkrismplplomonplnkolrponoopoopqqpqqropnrqmnnnmmnmnl" +
@@ -32,7 +32,7 @@ export const RECORDS = {
       "hhhdidhejfihgfffhikgfjeiiikhglgkhkikfkhjgienflfneoemhmgmilhkgo",
   },
   "fan-hui-3": {
-    komi: 7.5, rules: "chinese", count: 166,
+    komi: 7.5, count: 166,
     moves:
       "pdddqpdpfqcnkqqjqkpkqlpjplqfokncoeqcqhphqirjpiojpgnkolnhohngpfpcninjminlnmmm" +
       "mnlmnnlnlokokpjoipqqrqiohppnqnqmpornqorlpmrrrosqrpoiljlhlkjjjkikjiijmhmglgme" +
@@ -41,7 +41,7 @@ export const RECORDS = {
       "hiejfigifjgjfkgkflfngngmenfo",
   },
   "fan-hui-4": {
-    komi: 7.5, rules: "chinese", count: 165,
+    komi: 7.5, count: 165,
     moves:
       "pdddppdqdococncpdmfqcicgeiecpjncpfnqpnkdoqnpkplokolmlnmnknmmjlplomkljkolnlnk" +
       "nmojmkmjljpiminjlkkrqjqmqiroqqrqrrqpsqrpprpoooqnopjqlqmrlrlsnrmqphrkqkrlcedh" +
@@ -50,7 +50,7 @@ export const RECORDS = {
       "eddcdeeebeaccbdabbabbgbhch",
   },
   "fan-hui-5": {
-    komi: 7.5, rules: "chinese", count: 214,
+    komi: 7.5, count: 214,
     moves:
       "pdddqpdpfqcnkqqjqkpkqlpjplqfokncoeqcqhphqdpcpgqgohpirhripfrgmdmcldkcdrcqhpoq" +
       "pqpropqqpprrornqnrrppsqrrosqoirkrlnpmrkpjplqlrjqkrgpjogqgofphrhqiqhoskrehnip" +
@@ -60,7 +60,7 @@ export const RECORDS = {
       "debicrbrbsbqeqlcmqpolnmlrnkmjmknkoodpenfkdjciefe",
   },
   "ke-jie-1": {
-    komi: 7.5, rules: "aga", count: 289,
+    komi: 7.5, count: 289,
     moves:
       "qdppcccpncfpqqpqqpqnqopornqrrrrmprorpnqmqsondjnkphchcfehcidedfdccdddefdieidh" +
       "cjcebebfbgbdafbcficmhqekfhgqhpejeqgrcqdpdqepbpbhahbobqfgggkpkojojninjpiolpkq" +
@@ -72,7 +72,7 @@ export const RECORDS = {
       "eemlmkpjbfnmonheigkijhfljjfohjgilljmlhmhljifhd",
   },
   "ke-jie-2": {
-    komi: 7.5, rules: "aga", count: 155,
+    komi: 7.5, count: 155,
     moves:
       "qppdcqcdecoqpndfncqfpcqcqbocpbodobrcndmblclbqdrdjcmcpeoeldkpiqfpdniochclehcg" +
       "bgbffnemenekkqlqlpjqkrjpjrmqiphogpdqgocploknlnkmdphphqgqgrfqhnjofrdocoepbpmd" +
@@ -81,7 +81,7 @@ export const RECORDS = {
       "cfdgbe",
   },
   "ke-jie-3": {
-    komi: 7.5, rules: "aga", count: 209,
+    komi: 7.5, count: 209,
     moves:
       "ppdppcddfqcnqhqnqopnnppkqjeqfpjqlqhqfmnrdmdnenelemblckqqpqprnqpdocoirqpgqdqg" +
       "frgocqcldldkcjdjdifjchcpdqbicieperbqbrhmgigjhjfiejrrrplrkrmrkqjrjsorkojnknjm" +
@@ -91,7 +91,7 @@ export const RECORDS = {
       "niojikfgjiiijjhiilehekmhmiijjknhlihkhl",
   },
   "lee-sedol-1": {
-    komi: 7.5, rules: "chinese", count: 186,
+    komi: 7.5, count: 186,
     moves:
       "qddppqddfccfqlodldqcrcpcreofpgogphidlfohpilhkhkelelgkgkfneoejcicjdiejejfifjg" +
       "limihfihmbgdkimjkkibobmllmncnbkblcmmlnkllllkjjjlhjhigjgfiijhijmnlomolpmplqmq" +
@@ -100,7 +100,7 @@ export const RECORDS = {
       "drdjbqcqcrbpdqbrcpapekfibjbipbqbsfrdaiahajbhgifjfkocmcnmpmcjalaqghfh",
   },
   "lee-sedol-2": {
-    komi: 7.5, rules: "chinese", count: 211,
+    komi: 7.5, count: 211,
     moves:
       "pddpcdqpopoqnqpqcnfqmpqnicdjpoqocpcqbqcobpbodobndqepdrcmjpcgedqfqepfndpiojoi" +
       "njmhgpgqdndmfohphoeoenfnemelfmgnflgoekdkdlclehdipjqirfrgkdhnomrerdsffigkhmin" +
@@ -110,7 +110,7 @@ export const RECORDS = {
       "mobeaeafadmalaoaddbglbpnonercrfpiqhqqjrjks",
   },
   "lee-sedol-3": {
-    komi: 7.5, rules: "chinese", count: 176,
+    komi: 7.5, count: 176,
     moves:
       "pdppcddpcnfqidqfncqmdjeddcegefdedfceecfdfffcbdheiehdichgifggjhcidgdieibgbhbe" +
       "bicjdhdkejckchgifhdmdnfgehfmekelgkiicmfoenflbkbjajhmhjhigjjiiljncpcqdqdrbqeq" +
@@ -119,7 +119,7 @@ export const RECORDS = {
       "dscqfpeodoeperhsqhphgsdqbrhspiohgsbphscobobncpcs",
   },
   "lee-sedol-4": {
-    komi: 7.5, rules: "chinese", count: 180,
+    komi: 7.5, count: 180,
     moves:
       "pddpcdqpopoqnqpqcnfqmppoiqechdcgedcjdcbpncqiepeodkfpckdjejeifiehfhbjfkfgggff" +
       "gfmcmdlcnbidhcjgpjpiojoininhmhngmgminjmflinendmjlfmkmenflhqjkkikjighhjgehefd" +
@@ -128,7 +128,7 @@ export const RECORDS = {
       "clhninhpfreresdsahaikdiekckbgkibqhrhqsrsohslofsjninjoojp",
   },
   "lee-sedol-5": {
-    komi: 7.5, rules: "chinese", count: 280,
+    komi: 7.5, count: 280,
     moves:
       "qdddpqdpocpoqoqnqppmnqqepeqfrdpfqloeplolomoknmqjrngqcffcbdchdhdidgcccicjbidj" +
       "bhmlmmlmnlnklnllknmnmormrlrosnpnooopnosmppncnbobpbodpcmboamcgdgfgcfdgeffhfhg" +
@@ -140,7 +140,7 @@ export const RECORDS = {
       "pdpgngskrnfkklgmbmlkckdkqkrj",
   },
   "wuzhen-pair": {
-    komi: 7.5, rules: "aga", count: 220,
+    komi: 7.5, count: 220,
     moves:
       "pdccqpdqcooqpqoppnkpepfqeqerdpcqdrcrfrdsgqpfhnncndmdneocpeqjmrmqlqprmpmolppp" +
       "qqqopoqnqmrmpmrprqroqrorrlqssrrssmrrrnsqloqbqhdidddcfddeqfljkdjjlblckcmbmjli" +
@@ -152,7 +152,7 @@ export const RECORDS = {
     seats: [1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0,1,2,0,0],
   },
   "wuzhen-team": {
-    komi: 7.5, rules: "aga", count: 254,
+    komi: 7.5, count: 254,
     moves:
       "pdddqpdpfqoqcndndmencpcqcodqgppoqopnqmiqipjpjqkqjrhqiokrgndodlfmciejdihlilhk" +
       "imkpjjqcpcqdqfqeperffchcfedbjchhebcehfifieidigjdjflcrgqgpfrhcbdadcccecbbeaca" +

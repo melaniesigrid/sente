@@ -1,7 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   MATCHES, GAMES, ALL_GAMES, gameById, matchById, gamesOf,
-  movesOf, recordFor, phaseAt, noteAt, seatAt, hasSeats, notedMoves, exportCredit,
+  movesOf, recordFor, phaseAt, noteAt, seatAt, seatSideAt, hasSeats, notedMoves, exportCredit,
 } from "./index.js";
 import { RECORDS } from "./records.js";
 import { RULESET_IDS } from "../../engine/index.js";
@@ -124,6 +124,25 @@ describe("the records", () => {
     }
   });
 
+  /* A study is hand-written and the record beside it is generated, so the ways this
+     fails are typos. None of them should replace the screen with an error card. */
+  it("answers with nothing rather than throwing when a record will not replay", () => {
+    const keep = RECORDS["fan-hui-1"];
+    const quiet = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      RECORDS["fan-hui-1"] = { ...keep, moves: keep.moves.slice(0, 20) };
+      expect(recordFor("fan-hui-1"), "a truncated move string").toBe(null);
+      RECORDS["fan-hui-1"] = { ...keep, moves: keep.moves.slice(0, -1) };
+      expect(recordFor("fan-hui-1"), "an odd-length move string").toBe(null);
+      RECORDS["fan-hui-1"] = { ...keep, moves: "zz" + keep.moves.slice(2) };
+      expect(recordFor("fan-hui-1"), "a point off the board").toBe(null);
+    } finally {
+      RECORDS["fan-hui-1"] = keep;
+      quiet.mockRestore();
+    }
+    expect(recordFor("fan-hui-1").moves.length, "and recovers").toBeGreaterThan(200);
+  });
+
   it("carries the two counted games as counts and the rest as resignations", () => {
     const counted = ALL_GAMES.filter(g => g.result.method === "score").map(g => g.id);
     expect(counted).toEqual(["fan-hui-1", "ke-jie-1"]);
@@ -181,6 +200,11 @@ describe("the notes", () => {
   it("covers every move with a chapter, from the first to the last", () => {
     for (const g of ALL_GAMES) {
       expect(g.phases[0].from).toBe(1);
+      /* Ascending, and `phaseAt` takes the largest `from` rather than the last in
+         array order, so a list written out of sequence fails here rather than putting
+         the wrong words under the board. */
+      const froms2 = g.phases.map(p => p.from);
+      expect(froms2, g.id).toEqual([...froms2].sort((a, b) => a - b));
       for (let n = 0; n <= g.moves; n++) expect(phaseAt(g, n)).toBeTruthy();
       const froms = g.phases.map(p => p.from);
       expect([...froms].sort((a, b) => a - b)).toEqual(froms); // in order
@@ -202,6 +226,19 @@ describe("who placed the stone", () => {
     for (const g of ALL_GAMES) {
       if (g.id !== "wuzhen-pair") expect(hasSeats(g.id)).toBe(false);
     }
+  });
+
+  /* Both machines carry one name in the record, because the file gives one name.
+     Which of the two it was is the move's own parity, and saying so is the whole
+     point of the seat line in a pair go. */
+  it("tells the two machines apart by the side they were sitting on", () => {
+    expect(seatAt("wuzhen-pair", 3)).toBe("AlphaGo");
+    expect(seatAt("wuzhen-pair", 4)).toBe("AlphaGo");
+    expect(seatSideAt("wuzhen-pair", 3)).toBe("b");
+    expect(seatSideAt("wuzhen-pair", 4)).toBe("w");
+    expect(seatSideAt("wuzhen-pair", 1)).toBe("b");
+    expect(seatSideAt("ke-jie-1", 3), "and says nothing where nobody is seated").toBe(null);
+    expect(seatSideAt("wuzhen-pair", 0)).toBe(null);
   });
 
   it("rotates the four seats without exception for two hundred and twenty moves", () => {
@@ -229,7 +266,7 @@ describe("whose words these are", () => {
   it("keeps no comment of any kind in the generated records", () => {
     for (const r of Object.values(RECORDS)) {
       expect(Object.keys(r).sort()).toEqual(
-        r.seats ? ["count", "komi", "moves", "roster", "rules", "seats"] : ["count", "komi", "moves", "rules"]);
+        r.seats ? ["count", "komi", "moves", "roster", "seats"] : ["count", "komi", "moves"]);
       expect(r.moves).toMatch(/^[a-s.]+$/);
     }
   });

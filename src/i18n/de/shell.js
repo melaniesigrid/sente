@@ -104,7 +104,8 @@ export const shell = {
     seats: "{black} (Schwarz) gegen {white} (Weiß)",
     notesCount: { one: "{count} Zug kommentiert", other: "{count} Züge kommentiert" },
     matchLine: "{where}, {when} · {score}",
-    playedBy: "Gesetzt von {who}",
+    playedBy: "{who} hat diesen Stein gesetzt, für {colour}",
+    side: { b: "Schwarz", w: "Weiß" },
     chapter: "{title} ({n} von {of})",
   },
 };

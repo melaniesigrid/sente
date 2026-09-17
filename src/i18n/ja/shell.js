@@ -109,7 +109,8 @@ export const shell = {
     seats: "{black}（黒）対{white}（白）",
     notesCount: { other: "{count} 手に注" },
     matchLine: "{where}、{when} · {score}",
-    playedBy: "{who}の一手",
+    playedBy: "この一手は{who}、{colour}番",
+    side: { b: "黒", w: "白" },
     chapter: "{title}（全 {of} 章の {n}）",
   },
 };

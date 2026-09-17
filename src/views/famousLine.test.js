@@ -41,11 +41,17 @@ describe("the lines on a card", () => {
 });
 
 describe("whose hand it was", () => {
-  it("answers in the pair go, in rotation", () => {
-    expect(seatLine(pair(), 1)).toBe("Placed by Gu Li");
-    expect(seatLine(pair(), 2)).toBe("Placed by Lian Xiao");
-    expect(seatLine(pair(), 3)).toBe("Placed by AlphaGo");
-    expect(seatLine(pair(), 5)).toBe("Placed by Gu Li");
+  it("answers in the pair go, in rotation, and says which side", () => {
+    expect(seatLine(pair(), 1)).toBe("Gu Li played this, for black");
+    expect(seatLine(pair(), 2)).toBe("Lian Xiao played this, for white");
+    expect(seatLine(pair(), 5)).toBe("Gu Li played this, for black");
+  });
+
+  /* The two machines carry one name, so without the colour the line cannot tell them
+     apart - and telling them apart is the reason the line exists. */
+  it("separates the two machines by the side they sat on", () => {
+    expect(seatLine(pair(), 3)).toBe("AlphaGo played this, for black");
+    expect(seatLine(pair(), 4)).toBe("AlphaGo played this, for white");
   });
 
   it("says nothing at all where the record does not know", () => {

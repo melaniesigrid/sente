@@ -51,9 +51,13 @@ export function repairRoot(text) {
   return text.replace(/^﻿?\s*\(\s*(?!;)/, "(;");
 }
 
-/** A move's colour is its position in the list. Refuse anything that is not. */
+/** A move's colour is its position in the list, counting from black. Refuse anything
+    that is not: go is symmetric apart from the komi, so a white-first record replays
+    through the rules perfectly happily and puts the wrong name on every stone, swaps
+    the two players on the card, and hands the win to the loser. */
 export function alternates(moves) {
   if (!moves.length) return false;
+  if (moves[0].color !== "b") return false;
   let expect = moves[0].color;
   for (const m of moves) {
     if (m.color !== expect) return false;
@@ -97,9 +101,12 @@ export function readGame(text, id, { seats = false } = {}) {
   const g = parseSgf(sgf);
   if (g.size !== 19) throw new Error(`${id}: board is ${g.size}x${g.size}, not 19x19`);
   if (g.handicap || g.setup.b.length || g.setup.w.length) throw new Error(`${id}: record has setup stones`);
-  if (!alternates(g.moves)) throw new Error(`${id}: colours do not alternate`);
+  if (!alternates(g.moves)) throw new Error(`${id}: moves must start with black and alternate`);
   recordFromSgf(sgf); // every move through the rules, or this throws
-  const out = { id, komi: g.komi, rules: g.rules, moves: packMoves(g.moves), count: g.moves.length };
+  /* No ruleset here. RU is what one publisher typed - five of the Wuzhen files say
+     AGA for a summit played under Chinese rules - and the study beside the moves says
+     what the match actually used, and cites it. One place to be wrong is enough. */
+  const out = { id, komi: g.komi, moves: packMoves(g.moves), count: g.moves.length };
   if (seats) {
     const s = seatsOf(g.moves, id);
     if (!s) throw new Error(`${id}: --seats asked for, but the comments are not seats`);
@@ -134,7 +141,7 @@ export const RECORDS = {\n`;
     const seats = g.seats
       ? `,\n    roster: ${JSON.stringify(g.roster)},\n    seats: ${JSON.stringify(g.seats)}`
       : "";
-    return `  "${g.id}": {\n    komi: ${g.komi}, rules: ${JSON.stringify(g.rules)}, count: ${g.count},\n` +
+    return `  ${JSON.stringify(g.id)}: {\n    komi: ${g.komi}, count: ${g.count},\n` +
       `    moves:\n${wrap(g.moves, 76, "      ")}${seats},\n  },`;
   }).join("\n");
   return `${head}${body}\n};\n`;
@@ -147,7 +154,10 @@ function gather(dir) {
   const out = [];
   for (const entry of readdirSync(dir).sort()) {
     const p = join(dir, entry);
-    if (statSync(p).isDirectory()) { out.push(...gather(p)); continue; }
+    // A broken symlink or an unreadable entry skips itself, not the rest of the run.
+    let st;
+    try { st = statSync(p); } catch { console.warn(`skipping ${p}: cannot be read`); continue; }
+    if (st.isDirectory()) { out.push(...gather(p)); continue; }
     if (entry.toLowerCase().endsWith(".sgf")) out.push(p);
   }
   return out;

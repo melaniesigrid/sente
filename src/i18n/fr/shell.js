@@ -105,7 +105,8 @@ export const shell = {
     seats: "{black} (noir) contre {white} (blanc)",
     notesCount: { one: "{count} coup commenté", other: "{count} coups commentés" },
     matchLine: "{where}, {when} · {score}",
-    playedBy: "Posée par {who}",
+    playedBy: "{who} a joué ce coup, pour {colour}",
+    side: { b: "les noirs", w: "les blancs" },
     chapter: "{title} ({n} sur {of})",
   },
 };

@@ -33,9 +33,18 @@ describe("the root node repair", () => {
 });
 
 describe("the colour of a move", () => {
-  it("is its position, when the record alternates from the first move", () => {
+  it("is its position, when the record alternates from black", () => {
     expect(alternates([{ color: "b" }, { color: "w" }, { color: "b" }])).toBe(true);
-    expect(alternates([{ color: "w" }, { color: "b" }])).toBe(true);
+    expect(alternates([{ color: "b" }])).toBe(true);
+  });
+
+  /* Go is symmetric apart from the komi, so a white-first record replays through the
+     rules without complaint and puts the wrong name on every stone: the two players
+     swap on the card and the winner of a resignation comes out backwards. The only
+     place to catch it is here, before it is written down. */
+  it("refuses a record that starts with white, however well it alternates", () => {
+    expect(alternates([{ color: "w" }, { color: "b" }])).toBe(false);
+    expect(alternates([{ color: "w" }, { color: "b" }, { color: "w" }])).toBe(false);
   });
 
   it("cannot be, when it does not", () => {
@@ -92,10 +101,10 @@ describe("whose hand placed the stone", () => {
 });
 
 describe("reading one game", () => {
-  it("keeps the moves, the komi and the ruleset, and counts what it kept", () => {
+  it("keeps the moves and the komi, and counts what it kept", () => {
     const g = readGame(sgf(moves("pd", "dd", "pp"), "SZ[19]KM[7.5]RU[Chinese]"), "fan-hui-1");
     expect(g).toEqual({
-      id: "fan-hui-1", komi: 7.5, rules: "chinese", moves: "pdddpp", count: 3,
+      id: "fan-hui-1", komi: 7.5, moves: "pdddpp", count: 3,
     });
   });
 
@@ -104,7 +113,9 @@ describe("reading one game", () => {
     const g = readGame(withProse, "lee-sedol-2");
     expect(g.moves).toBe("pddd");
     expect(JSON.stringify(g)).not.toMatch(/professional/i);
-    expect(Object.keys(g).sort()).toEqual(["komi", "count", "id", "moves", "rules"].sort());
+    /* No ruleset: RU is what one publisher typed, and the study beside the moves says
+       what the match was played under. */
+    expect(Object.keys(g).sort()).toEqual(["komi", "count", "id", "moves"].sort());
   });
 
   it("repairs a missing root semicolon on the way in", () => {
@@ -148,13 +159,13 @@ describe("reading one game", () => {
 });
 
 describe("what gets written out", () => {
-  const one = { id: "fan-hui-1", komi: 7.5, rules: "chinese", moves: "pdddpp", count: 3 };
+  const one = { id: "fan-hui-1", komi: 7.5, moves: "pdddpp", count: 3 };
 
   it("writes a module the shelf can import, keyed by id", async () => {
     const text = render([one]);
     expect(text).toContain("export const RECORDS = {");
     expect(text).toContain(`"fan-hui-1": {`);
-    expect(text).toContain("komi: 7.5, rules: \"chinese\", count: 3");
+    expect(text).toContain("komi: 7.5, count: 3");
     expect(text.trimEnd().endsWith("};")).toBe(true);
     /* And it is real JavaScript, not a string that looks like some. */
     const mod = await import(`data:text/javascript,${encodeURIComponent(text)}`);

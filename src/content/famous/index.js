@@ -145,6 +145,16 @@ export function seatAt(id, n) {
   return names[raw] ?? raw;
 }
 
+/** Which of the two machines it was, where the same name sits on both sides of the
+    board. The record keeps one roster entry for AlphaGo because the file gives one
+    name; the colour is the move's own parity, and in a pair go that is the whole
+    point of the seat line - a human move and a machine move alternate inside one
+    colour, and a reader cannot see which is which unless it is said. */
+export function seatSideAt(id, n) {
+  if (!hasSeats(id) || n < 1) return null;
+  return n % 2 === 1 ? "b" : "w";
+}
+
 /** Does this game know who placed each stone? Pair go does; nothing else does. */
 export const hasSeats = (id) => Boolean(RECORDS[id] && RECORDS[id].seats);
 
@@ -166,6 +176,20 @@ export function exportCredit(game) {
     attached to the move it belongs to. The moves are replayed through the rules,
     so anything wrong here throws at the first bad move rather than drawing it. */
 export function recordFor(id) {
+  try {
+    return buildRecord(id);
+  } catch (e) {
+    /* A study is hand-written data and the record beside it is generated, so the ways
+       this fails are typos: a truncated move string, a point off the board, a field
+       nobody filled in. The suite catches every one of them on the way in. If one ever
+       reaches a reader, the screen says the game cannot be walked rather than replacing
+       itself with an error card. */
+    if (typeof console !== "undefined") console.error(`famous: ${id} cannot be replayed`, e);
+    return null;
+  }
+}
+
+function buildRecord(id) {
   const game = gameById(id);
   const packed = RECORDS[id];
   if (!game || !packed) return null;
@@ -183,6 +207,12 @@ export function recordFor(id) {
      Review's sgfCredit, so the screen is never made to carry a licence notice. */
   if (game.opening) rec = { ...rec, comment: game.opening };
   const moves = movesOf(id);
+  /* The packed string and the count are written by the same tool in the same pass, so
+     they disagree only if the file has been edited by hand - and a dropped line leaves
+     a shorter game that is still perfectly legal and renders without a murmur. */
+  if (moves.length !== packed.count) {
+    throw new RangeError(`${id}: ${moves.length} moves decoded, ${packed.count} expected`);
+  }
   moves.forEach((pt, i) => {
     /* `null` is a pass, which the packed format writes as "..". None of these fifteen
        games has one - they were all fought to a resignation or a count - but the format
@@ -210,8 +240,12 @@ export function recordFor(id) {
     the empty board, which belongs to the first chapter the way a title page does. */
 export function phaseAt(game, n) {
   if (!game || !game.phases.length) return null;
+  const at = Math.max(n, 1);
+  /* The largest `from` at or before the move, not the last one in array order: a
+     chapter list written out of sequence would otherwise put the wrong words under
+     the board and the wrong number beside them, with nothing to show for it. */
   let found = game.phases[0];
-  for (const p of game.phases) { if (p.from <= Math.max(n, 1)) found = p; }
+  for (const p of game.phases) { if (p.from <= at && p.from >= found.from) found = p; }
   return found;
 }
 

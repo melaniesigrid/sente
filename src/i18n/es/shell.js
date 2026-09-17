@@ -96,7 +96,8 @@ export const shell = {
     seats: "{black} (negras) contra {white} (blancas)",
     notesCount: { one: "{count} jugada comentada", other: "{count} jugadas comentadas" },
     matchLine: "{where}, {when} · {score}",
-    playedBy: "Colocada por {who}",
+    playedBy: "{who} jugó esta, con {colour}",
+    side: { b: "negras", w: "blancas" },
     chapter: "{title} ({n} de {of})",
   },
 };
