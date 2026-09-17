@@ -12,6 +12,7 @@ export const game = {
     by: "{winner} {how}",
     howResign: "בפרישה",
     howTime: "בזמן",
+    howForfeit: "בפסילה",
     howMargin: "ב{margin}",
     score: "{winner} · {a} : {b}",
     jigo: "ג'יגו · {b} : {w}",
