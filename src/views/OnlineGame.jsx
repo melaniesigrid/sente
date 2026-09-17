@@ -16,6 +16,8 @@ import { playStone, playCapture, playBell, haptic } from "../components/sound.js
 import { beltOf, hintsForBelt } from "../content/rank.js";
 import { gameSocket, SERVER_URL } from "../net/api.js";
 import { loadAccount } from "../store/account.js";
+import { Call } from "../components/Call.jsx";
+import { useCall } from "../components/useCall.js";
 import { refusalText, resignLabel, confirmMoveLabel, resultCard, RESIGN_CONFIRM_MS } from "./gameStatus.js";
 import { tapAction } from "./stagedMove.js";
 import { onlineStatus, settledLine, onlineCaption, teamName } from "./onlineStatus.js";
@@ -121,6 +123,10 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
     sock.current = gameSocket(gameId, account ? account.token : null, {
       onStatus: setConn,
       onFrame: (f) => {
+        /* Signalling for a call is not a room frame and never becomes one.
+           Handed over through a ref so that opening a call does not tear down
+           and rebuild the socket the game is being played on. */
+        if (typeof f.t === "string" && f.t.startsWith("talk/")) { callRef.current?.onFrame(f); return; }
         if (f.t === "state") {
           setRoom(f.room);
           setChat((c) => reconcileChat(c, f.room.chat, nextChatKey));
@@ -230,6 +236,13 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
     if (!gone) notify({ icon: "info", text: t("online.game.notConnected") });
     return gone;
   };
+
+  /* Voice. The hook holds the call; this view holds neither a certificate nor a
+     key and does not know what one looks like. `send` is the same socket the
+     moves go down, because both players are already on it. */
+  const call = useCall({ room, seat, token: account ? account.token : null, send });
+  const callRef = useRef(null);
+  callRef.current = call;
 
   /* The partner's turn. Asked of the same human-style network the offline table
      uses, at the rank the seat says, and answered over this socket. The guard is
@@ -367,11 +380,12 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
      go. Two people who have just finished a game and gone into review together
      are exactly the two people with something to say, and leaving the log at the
      table would have shut them up at the moment they had the most to talk about. */
-  const talkCard = (
+  const chatCard = (
       <Card className="chat-card">
         <div className="chat-head"><MessageCircle size={15} /><span>{t("game.chat.head")}</span>
           <button className="chip-btn" onClick={shareTable} aria-label={t("online.game.shareLabel")}><LinkIcon size={11} /> {t("online.game.share")}</button>
         </div>
+        <Call call={call} />
         <div className="chat-log" aria-live="polite">
           {chat.map((m, i) => (
             <div key={m.chatKey} className={`bubble ${account && m.from === account.player.id ? "mine" : ""}`}>
@@ -426,7 +440,7 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
           onBack: () => send({ t: "reviewBack" }),
           onMark: (c, r) => send({ t: "reviewMark", c, r }),
           onLeave: leave,
-          talk: talkCard,
+          talk: chatCard,
         }} />
     );
   }
@@ -573,7 +587,7 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
               <div className="fine">{onlineCaption(room, watching, t)}{hints ? t("game.hintsOn") : ""}{seat ? "" : t("online.game.watchingNote")}</div>
             </Card>
           )}
-          {talkCard}
+          {chatCard}
           {mine && theirs && !over && (
             <Card inset>
               <p className="fine">

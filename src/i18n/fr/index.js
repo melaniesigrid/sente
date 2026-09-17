@@ -28,6 +28,7 @@ import { lessons4 } from "./lessons4.js";
 import { lessons5 } from "./lessons5.js";
 import { josekiCorner, josekiSource, josekiEntry } from "./joseki.js";
 import { classicBook, preface, kind, level, belowTheLevels, chapter, name, passage } from "./classic.js";
+import { call } from "./call.js";
 
 export const fr = {
   ...shell,
@@ -81,4 +82,5 @@ export const fr = {
   /* The lessons arrive a tier at a time, so this one key is assembled rather
      than spread. */
   lesson: { ...lessons1, ...lessons2, ...lessons3, ...lessons4, ...lessons5 },
+  call,
 };

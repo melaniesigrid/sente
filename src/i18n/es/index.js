@@ -34,6 +34,7 @@ import { josekiCorner, josekiSource, josekiEntry } from "./joseki.js";
 import { classicBook, preface, kind, level, belowTheLevels, chapter, name, passage } from "./classic.js";
 import { content } from "./content.js";
 import { overlay } from "./overlay.js";
+import { call } from "./call.js";
 
 /** One catalogue, assembled from its parts. The parts never share a top-level
  *  key, so the spread is a join and never an override, except `lesson`, which
@@ -84,4 +85,5 @@ export const es = {
   /* The lessons arrive a file at a time, so this one key is assembled rather
      than spread: `content.js` holds the welcome demo, and each tier its own. */
   lesson: { ...content.lesson, ...lessons1, ...lessons2, ...lessons3, ...lessons4, ...lessons5 },
+  call,
 };
