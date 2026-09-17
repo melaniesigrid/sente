@@ -250,6 +250,20 @@ export const screens = {
     openProblem: "{set}, número {n}, {rank}",
   },
   profile: {
+    country: {
+      head: "Tu bandera",
+      note: "De dónde juegas, si quieres decirlo. Va junto a tu nombre, y quitarla es una pulsación.",
+      noteAccount: "De dónde juegas, si quieres decirlo. Va junto a tu nombre aquí y viaja con tu apodo, así que quien esté al otro lado del tablero también la ve.",
+      search: "Buscar países",
+      none: "Sin bandera",
+      noneLine: "Sin bandera. Aquí nada dice dónde estás.",
+      chosenLine: "junto a tu nombre.",
+      noMatch: "Ningún país con ese nombre.",
+      more: {
+        one: "{count} más. Escribe para acotar la lista.",
+        other: "{count} más. Escribe para acotar la lista.",
+      },
+    },
     trainer: {
       head: "Entrenador privado",
       games: "Partidas con él: {count}",

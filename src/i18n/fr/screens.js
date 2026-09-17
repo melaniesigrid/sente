@@ -255,6 +255,20 @@ export const screens = {
   },
 
   profile: {
+    country: {
+      head: "Ton drapeau",
+      note: "D’où tu joues, si tu veux le dire. Il se pose à côté de ton nom, et l’enlever tient en une pression.",
+      noteAccount: "D’où tu joues, si tu veux le dire. Il se pose à côté de ton nom ici et voyage avec ton pseudo, donc la personne en face le voit aussi.",
+      search: "Chercher un pays",
+      none: "Pas de drapeau",
+      noneLine: "Pas de drapeau. Rien ici ne dit où tu es.",
+      chosenLine: "à côté de ton nom.",
+      noMatch: "Aucun pays de ce nom.",
+      more: {
+        one: "{count} de plus. Tape pour réduire la liste.",
+        other: "{count} de plus. Tape pour réduire la liste.",
+      },
+    },
     trainer: {
       head: "Entraîneur privé",
       games: "Parties avec lui : {count}",

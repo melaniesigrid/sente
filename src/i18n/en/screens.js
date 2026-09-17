@@ -263,6 +263,22 @@ export const screens = {
   },
   /* The profile: who you are on this device, and what it has watched you do. */
   profile: {
+    /* Where you play from, said and never detected. The list is ISO 3166-1
+       unedited and the names come from the device: see content/countries.js. */
+    country: {
+      head: "Your flag",
+      note: "Where you play from, if you want it said. It sits beside your name, and taking it off is one press.",
+      noteAccount: "Where you play from, if you want it said. It sits beside your name here and travels with your handle, so the player across the board sees it too.",
+      search: "Search countries",
+      none: "No flag",
+      noneLine: "No flag. Nothing here says where you are.",
+      chosenLine: "beside your name.",
+      noMatch: "No country by that name.",
+      more: {
+        one: "{count} more. Type to narrow the list.",
+        other: "{count} more. Type to narrow the list.",
+      },
+    },
     trainer: {
       head: "Private trainer",
       games: "Games with him: {count}",
