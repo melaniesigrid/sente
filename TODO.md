@@ -2128,15 +2128,6 @@ that person, nothing he says is a quotation, and the bot chip stays on every lin
       (`rung` in his box), answers a question about the goal - or a wobble about quitting -
       with the route rather than a platitude, and on any day she has not played him he writes
       an invitation with a stake in it instead of waiting to be opened.
-
-Open:
-- [ ] Not yet played in a browser against the network. The turn is three network calls
-      instead of one, so 19x19 will feel slow; measure before deciding whether the grading
-      look should move off the turn.
-- [ ] A resumed trainer game loses the points gathered before the reload (the comments
-      survive in the record; the numbers do not). Persisting them through `gameStore`
-      would need a new field and its sanitiser.
-- [ ] Daily go news is not possible: the privacy contract forbids the app fetching anything.
 - [x] Only the modes where he plays straight are rated (2026-09-16). His games were
       moved into the rated branch, and Hunt me hands over a deliberately inferior move
       on nearly half his eligible turns; a rank built out of wins against a move he
@@ -2146,8 +2137,17 @@ Open:
       with me, Hunt me and the teaching game settle unrated beside the coached games,
       and the row says which it is before she picks it.
 
-- [ ] Found by the adversarial pass while shipping those modes (2026-09-16). All of
-      these are older than that branch and none were introduced by it:
+Open:
+- [ ] Not yet played in a browser against the network. The turn is three network calls
+      instead of one, so 19x19 will feel slow; measure before deciding whether the grading
+      look should move off the turn.
+- [ ] A resumed trainer game loses the points gathered before the reload (the comments
+      survive in the record; the numbers do not). Persisting them through `gameStore`
+      would need a new field and its sanitiser.
+- [ ] Daily go news is not possible: the privacy contract forbids the app fetching anything.
+
+Found by the adversarial pass while shipping those modes (2026-09-16). All of
+these are older than that branch and none were introduced by it:
 - [ ] **P1** A hung network call wedges his board with no way out. `trainerAsk`
       (`src/views/Game.jsx`) chains every call onto one promise queue and catches
       rejection, but not a promise that never settles - which is exactly the shape
