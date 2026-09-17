@@ -3365,10 +3365,15 @@ ${FONT_FACES}
    carries a whole sentence of subtitle, so three across would set it too narrow
    to read. */
 .fm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 6px; }
+/* The opacity leg is named because this block sits after .reveal in the sheet and
+   the two selectors weigh the same: a bare transition of transform and box-shadow here
+   drops .reveal's opacity fade, and the card snaps in instead of arriving. The
+   journal's card is identical code that happens to sit earlier, which is why it
+   never showed the fault. */
 .fm-card {
   display: flex; flex-direction: column; gap: 8px; align-items: flex-start;
   text-align: start; width: 100%; cursor: pointer; padding: 20px 22px;
-  transition: transform .18s ease, box-shadow .18s ease;
+  transition: opacity .7s cubic-bezier(.2,.8,.2,1), transform .18s ease, box-shadow .18s ease;
 }
 .fm-card:hover { transform: translateY(-2px); }
 .fm-kicker {
@@ -3377,7 +3382,7 @@ ${FONT_FACES}
 }
 .fm-title {
   margin: 0; font-family: var(--font-display); font-weight: var(--w-display-strong);
-  font-size: clamp(19px, 2.3vw, 24px); line-height: 1.2; color: var(--ink);
+  font-size: clamp(17px, 2vw, 21px); line-height: 1.22; color: var(--ink);
 }
 .fm-dek { margin: 0; max-width: 46ch; font-size: 15px; line-height: 1.58; color: var(--ink-2); }
 .fm-meta { margin: 0; }
@@ -3443,7 +3448,11 @@ ${FONT_FACES}
   font-family: var(--font-caption); font-size: 13px; color: var(--ink-3);
 }
 .fm-chapters strong { font-size: 15.5px; color: var(--ink); }
-.fm-chapters span { font-size: 14.5px; line-height: 1.58; color: var(--ink-2); }
+/* Scoped to the body line rather than every span: a bare .fm-chapters span is
+   (0,1,1) and silently outranks .fm-chapter-at at (0,1,0), which flattened the
+   kicker to the body's size and colour wherever the two met. A plain override is a
+   no-op a text test still passes, so the narrower selector is the fix. */
+.fm-chapters li > span:last-child { font-size: 14.5px; line-height: 1.58; color: var(--ink-2); }
 .fm-chapter-at {
   font-family: var(--font-body); font-size: 12px; font-weight: 700;
   letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3);

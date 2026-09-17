@@ -95,6 +95,8 @@ export const shell = {
     whenLabel: "対局日",
     clockLabel: "持ち時間",
     rulesLabel: "ルール",
+    rulesValue: "{rules}ルール、コミ {komi}",
+    loading: "棋譜の部屋を開いています…",
     resultLabel: "結果",
     saidLabel: "本人の言葉",
     chaptersLabel: "章で見るこの一局",

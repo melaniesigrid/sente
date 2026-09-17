@@ -102,6 +102,8 @@ export const shell = {
     whenLabel: "Зіграна",
     clockLabel: "Контроль",
     rulesLabel: "Правила",
+    rulesValue: "{rules}, комі {komi}",
+    loading: "Відкриваємо залу партій…",
     resultLabel: "Результат",
     saidLabel: "Що вони сказали",
     chaptersLabel: "Партія за главами",

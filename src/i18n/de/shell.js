@@ -90,6 +90,8 @@ export const shell = {
     whenLabel: "Gespielt",
     clockLabel: "Bedenkzeit",
     rulesLabel: "Regeln",
+    rulesValue: "{rules}, Komi {komi}",
+    loading: "Der Partienraum wird geöffnet…",
     resultLabel: "Ergebnis",
     saidLabel: "Was sie gesagt haben",
     chaptersLabel: "Die Partie, in Kapiteln",

@@ -4,6 +4,7 @@ import {
   movesOf, recordFor, phaseAt, noteAt, seatAt, hasSeats, notedMoves,
 } from "./index.js";
 import { RECORDS } from "./records.js";
+import { rulesFromSgf, RULESET_IDS } from "../../engine/index.js";
 
 /* ----------------------- THE FAMOUS GAMES -----------------------
    What this suite is for: the shelf makes claims about real games played by real
@@ -73,6 +74,19 @@ describe("the records", () => {
     }
   });
 
+  /* The facts card advertises a ruleset and a komi; the board has to be the one it
+     names. Three of the Wuzhen files say RU[AGA] where the summit was played under
+     Chinese rules, so the study is the source of truth and this is what holds the
+     record to it. Without this the screen could say one thing and play another. */
+  it("plays every game under the terms its own page advertises", () => {
+    for (const g of ALL_GAMES) {
+      const rec = recordFor(g.id);
+      expect(rec.komi, g.id).toBe(g.komi);
+      expect(rec.rules, g.id).toBe(rulesFromSgf(g.rulesText));
+      expect(RULESET_IDS, g.id).toContain(rec.rules);
+    }
+  });
+
   it("puts every point on the board", () => {
     for (const g of ALL_GAMES) {
       for (const pt of movesOf(g.id)) {
@@ -88,10 +102,22 @@ describe("the records", () => {
   it("ends every game the way the match ended it", () => {
     for (const g of ALL_GAMES) {
       const rec = recordFor(g.id);
-      expect(rec.phase).toBe("ended");
-      expect(rec.result.winner).toBe(g.result.winner);
-      expect(rec.result.method).toBe(g.result.method);
-      if (g.result.method === "score") expect(rec.result.margin).toBe(g.result.margin);
+      expect(rec.phase, g.id).toBe("ended");
+      expect(rec.result.winner, g.id).toBe(g.result.winner);
+      expect(rec.result.method, g.id).toBe(g.result.method);
+    }
+  });
+
+  /* A resignation is played, so the record derives the winner from the moves rather
+     than copying the study. That is the half of the result worth asserting: the
+     counted games carry a margin nothing on the board can check, and comparing a
+     copied field with the field it was copied from proves nothing. */
+  it("derives the winner of a resignation from the record itself", () => {
+    for (const g of ALL_GAMES.filter(x => x.result.method === "resign")) {
+      const rec = recordFor(g.id);
+      const last = rec.moves[rec.moves.length - 1];
+      expect(last.type, g.id).toBe("resign");
+      expect(last.color, g.id).toBe(g.result.winner === "b" ? "w" : "b");
     }
   });
 
@@ -228,6 +254,15 @@ describe("whose words these are", () => {
 
   it("writes the prose this shelf needs for every game", () => {
     for (const g of ALL_GAMES) {
+      /* Every field the facts card renders. A study that omits `clock` shipped an
+         empty row with a green suite, and a missing `komi` built a record with an
+         undefined one. */
+      for (const key of ["title", "subtitle", "where", "clock", "rulesText", "black", "white"]) {
+        expect(typeof g[key], `${g.id}.${key}`).toBe("string");
+        expect(g[key].length, `${g.id}.${key}`).toBeGreaterThan(1);
+      }
+      expect(typeof g.komi, g.id).toBe("number");
+      expect(typeof g.moves, g.id).toBe("number");
       expect(g.lede.length).toBeGreaterThan(40);
       expect(g.subtitle.length).toBeGreaterThan(10);
       expect(g.opening.length).toBeGreaterThan(40);
@@ -246,4 +281,24 @@ describe("whose words these are", () => {
       expect(m.story.length).toBeGreaterThanOrEqual(3);
     }
   });
+});
+
+/* ---------------------------------------------------------------- nothing there */
+
+describe("a game that is not on the shelf", () => {
+  /* Every one of these is reachable from a link somebody typed or a link that once
+     worked, so each answers with nothing rather than throwing. */
+  it("answers with nothing rather than throwing, whatever is asked of it", () => {
+    expect(gameById("no-such-game")).toBe(null);
+    expect(matchById("no-such-match")).toBe(null);
+    expect(movesOf("no-such-game")).toEqual([]);
+    expect(recordFor("no-such-game")).toBe(null);
+    expect(hasSeats("no-such-game")).toBe(false);
+    expect(seatAt("no-such-game", 1)).toBe(null);
+    expect(gamesOf(null)).toEqual([]);
+    expect(notedMoves(null)).toBe(0);
+    expect(phaseAt(null, 3)).toBe(null);
+    expect(noteAt(null, 3)).toBe(null);
+  });
+
 });

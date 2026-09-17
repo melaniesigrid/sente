@@ -82,6 +82,8 @@ export const shell = {
     whenLabel: "Jugada el",
     clockLabel: "Reloj",
     rulesLabel: "Reglas",
+    rulesValue: "{rules}, komi {komi}",
+    loading: "Abriendo la sala de partidas…",
     resultLabel: "Resultado",
     saidLabel: "Lo que dijeron",
     chaptersLabel: "La partida, por capítulos",

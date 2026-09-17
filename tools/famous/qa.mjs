@@ -16,8 +16,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const PORT = process.argv[2] || "4178";
-const DEBUG = 9333;
-const CHROME = "C:/Program Files/Google/Chrome/Application/chrome.exe";
+const DEBUG = Number(process.env.CDP_PORT || 9333);
+const CHROME = process.env.CHROME || "C:/Program Files/Google/Chrome/Application/chrome.exe";
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 

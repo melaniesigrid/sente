@@ -99,6 +99,8 @@ export const shell = {
     whenLabel: "שוחק",
     clockLabel: "שעון",
     rulesLabel: "חוקים",
+    rulesValue: "{rules}, קומי {komi}",
+    loading: "פותחים את חדר המשחקים…",
     resultLabel: "תוצאה",
     saidLabel: "מה הם אמרו",
     chaptersLabel: "המשחק, בפרקים",

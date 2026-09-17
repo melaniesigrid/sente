@@ -91,6 +91,8 @@ export const shell = {
     whenLabel: "Jouée le",
     clockLabel: "Pendule",
     rulesLabel: "Règles",
+    rulesValue: "{rules}, komi {komi}",
+    loading: "Ouverture de la salle des parties…",
     resultLabel: "Résultat",
     saidLabel: "Ce qu'ils ont dit",
     chaptersLabel: "La partie, en chapitres",

@@ -92,6 +92,8 @@ export const shell = {
     whenLabel: "对局日期",
     clockLabel: "用时",
     rulesLabel: "规则",
+    rulesValue: "{rules}规则，贴目 {komi}",
+    loading: "正在打开棋谱室…",
     resultLabel: "结果",
     saidLabel: "他们说过的话",
     chaptersLabel: "分章的这一局",

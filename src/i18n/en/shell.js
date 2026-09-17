@@ -94,6 +94,8 @@ export const shell = {
     whenLabel: "Played",
     clockLabel: "Clock",
     rulesLabel: "Rules",
+    rulesValue: "{rules}, komi {komi}",
+    loading: "Opening the record room…",
     resultLabel: "Result",
     saidLabel: "What they said",
     chaptersLabel: "The game, in chapters",

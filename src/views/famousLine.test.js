@@ -91,6 +91,10 @@ describe("the caption over the board", () => {
     expect(chapterLine(g, 1)).toMatch(/\(1 of \d+\)$/);
   });
 
+  it("says nothing at all for a game that does not exist", () => {
+    expect(chapterLine(null, 3)).toBe("");
+  });
+
   it("never runs out of chapter, at either end of any game", () => {
     for (const g of ALL_GAMES) {
       expect(chapterLine(g, 0)).toMatch(/\(1 of \d+\)$/);

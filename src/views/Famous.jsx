@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { ArrowLeft, ArrowRight, Quote, Footprints, Hash, Users } from "lucide-react";
 import { ScreenHeader } from "../components/ScreenHeader.jsx";
 import { Card, Btn, Pill } from "../components/ui.jsx";
@@ -42,7 +42,7 @@ function GameCard({ game, open, t }) {
       <span className="fm-kicker">
         {game.no ? t("famous.gameNo", { n: game.no }, `Game ${game.no}`) : t("famous.aside", null, "Side event")}
       </span>
-      <h3 className="fm-title">{game.title}</h3>
+      <h4 className="fm-title">{game.title}</h4>
       <p className="fm-dek">{game.subtitle}</p>
       <p className="fine fm-meta">{shelfLine(game, t)}</p>
       <span className="fm-more">
@@ -100,13 +100,15 @@ function Page({ game, onBack, onWalk, t }) {
           <div><dt>{t("famous.seatsLabel", null, "Players")}</dt><dd>{seatsLine(game, t)}</dd></div>
           <div><dt>{t("famous.whenLabel", null, "Played")}</dt><dd>{game.dateText}, {game.where}</dd></div>
           <div><dt>{t("famous.clockLabel", null, "Clock")}</dt><dd>{game.clock}</dd></div>
-          <div><dt>{t("famous.rulesLabel", null, "Rules")}</dt><dd>{game.rulesText}, komi {game.komi}</dd></div>
+          <div><dt>{t("famous.rulesLabel", null, "Rules")}</dt>
+            <dd>{t("famous.rulesValue", { rules: game.rulesText, komi: game.komi },
+              `${game.rulesText}, komi ${game.komi}`)}</dd></div>
           <div><dt>{t("famous.resultLabel", null, "Result")}</dt><dd>{shelfLine(game, t)}</dd></div>
         </dl>
       </Card>
-      <Btn icon={Footprints} primary onClick={onWalk}>
+      {onWalk && <Btn icon={Footprints} primary onClick={onWalk}>
         {t("famous.walk", null, "Walk the game")}
-      </Btn>
+      </Btn>}
       <article className="fm-story">
         {game.story.map((p, i) => <p key={i} className="fm-p">{p}</p>)}
       </article>
@@ -134,9 +136,9 @@ function Page({ game, onBack, onWalk, t }) {
           ))}
         </ol>
       </section>
-      <Btn icon={Footprints} primary onClick={onWalk}>
+      {onWalk && <Btn icon={Footprints} primary onClick={onWalk}>
         {t("famous.walk", null, "Walk the game")}
-      </Btn>
+      </Btn>}
       <section className="stack-sm">
         <h3 className="fm-h">{t("famous.sourcesLabel", null, "Where this comes from")}</h3>
         <ul className="fm-sources">
@@ -152,7 +154,8 @@ function Page({ game, onBack, onWalk, t }) {
 /** The side column while you step: where you are in the game, and whose move it was.
     The note on the move itself is Review's, under the board, because that is where
     Review already prints a comment and a second place to look for one would be a
-    worse screen. */
+    worse screen. That holds for the game's opening line too: it is the record's root
+    comment, so Review prints it at move 0 and this column does not repeat it. */
 function Aside({ game, n, t }) {
   const panel = panelAt(game, n, t);
   if (!panel) return null;
@@ -163,7 +166,6 @@ function Aside({ game, n, t }) {
         <p className="fm-seat"><Users size={14} strokeWidth={2.2} aria-hidden="true" /> {panel.seat}</p>
       )}
       {panel.phase && <p className="fm-phase">{panel.phase.text}</p>}
-      {panel.atStart && <p className="fine">{game.opening}</p>}
       <p className="fine">{t("famous.asideNote")}</p>
     </>
   );
@@ -173,17 +175,39 @@ function Aside({ game, n, t }) {
 
 export function FamousView({ gameId = null, profile = {}, go = null }) {
   const t = useT();
-  const [openId, setOpenId] = useState(gameId);
+  /* Which game is open is the shell's business, not this screen's: opening one from a
+     card navigates, so the app's own view params and the screen agree. Before that the
+     nav button was dead once you were inside a game - pressing "Famous games" set the
+     same view id with the same null params, nothing changed, and the reader stayed
+     where they were. `local` is the fallback for a caller that hands us no `go`. */
+  const [local, setLocal] = useState(gameId);
+  const openId = go ? gameId : local;
   const [walking, setWalking] = useState(false);
+  /* Changing game closes the board, adjusted during render rather than in an effect:
+     React's own answer for state that derives from a prop, and it avoids the second
+     render pass an effect would cost. */
+  const [seen, setSeen] = useState(openId);
+  if (seen !== openId) { setSeen(openId); setWalking(false); }
   const game = gameById(openId);
-  /* Replaying three thousand moves is not free, so the record is built once per game
-     opened and kept while the reader is in it. */
-  const record = useMemo(() => (game && walking ? recordFor(game.id) : null), [game, walking]);
+  /* Replaying three hundred moves is not free, so the record is built once per game
+     opened and kept while the reader is in it - including while they step back out to
+     the page and walk it again, which is why `walking` is not a dependency. */
+  const record = useMemo(() => (game ? recordFor(game.id) : null), [game]);
+  /* Three levels on one screen, so the screen moves the reader to the top itself. The
+     shelf is fifteen cards deep; opening the last one otherwise lands you halfway down
+     a page you have not read. The journal does the same thing for the same reason. */
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "auto" }); }, [openId, walking]);
 
-  const open = (id) => { setOpenId(id); setWalking(false); };
-  const shelf = () => { setOpenId(null); setWalking(false); if (go) go("famous"); };
+  const open = (id) => { if (go) go("famous", { gameId: id }); else setLocal(id); };
+  const shelf = () => { setWalking(false); if (go) go("famous"); else setLocal(null); };
 
-  if (game && walking && record) {
+  /* A study whose record is missing would otherwise make the button do nothing at all.
+     It cannot happen while the suite holds the two lists to each other, and a reader
+     who hits it anyway is told rather than left pressing. */
+  if (game && walking && !record) {
+    return <Page game={game} t={t} onBack={shelf} onWalk={null} />;
+  }
+  if (game && walking) {
     return (
       <Review record={record} profile={profile} openAt={0} autoAnalyse={false}
         onExit={() => setWalking(false)}

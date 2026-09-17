@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from "react";
 import { Swords, GraduationCap, Target, LayoutDashboard, Medal, ArrowRight, Palette, CornerDownRight, History } from "lucide-react";
 import { sayingBySeed, localizeSaying } from "./content/classic.js";
 
@@ -53,7 +53,11 @@ import { MailLinkView } from "./views/MailLink.jsx";
 import { LegalView } from "./views/Legal.jsx";
 import { DOCUMENTS, COPYRIGHT_YEAR, STUDIO, STUDIO_URL } from "./content/legal.js";
 import { JournalView } from "./views/Journal.jsx";
-import { FamousView } from "./views/Famous.jsx";
+/* The one screen that is loaded on demand. The record room carries fifteen studies -
+   about 47 KB gzipped of English prose nobody reads unless they open it - and it sits
+   behind a nav tab rather than on the way to anything. Everything else in src/content
+   is small enough, or on the path often enough, to belong in the first download. */
+const FamousView = lazy(() => import("./views/Famous.jsx").then(m => ({ default: m.FamousView })));
 import { linkFromQuery, forgetLink } from "./views/letterLink.js";
 
 /* ----------------------- APP SHELL ----------------------- */
@@ -273,8 +277,11 @@ export default function JosekiApp() {
           {/* Shelf or one game, the way the journal and the small print work:
               no id is the shelf, an id is that game. Keyed on the game so opening
               a second one from anywhere starts it at move zero. */}
-          {view === "famous" && <FamousView key={(params && params.gameId) || "shelf"}
-            gameId={params ? params.gameId : null} profile={profile} go={go} />}
+          {view === "famous" && (
+            <Suspense fallback={<p className="fine">{t("famous.loading")}</p>}>
+              <FamousView gameId={params ? params.gameId : null} profile={profile} go={go} />
+            </Suspense>
+          )}
           </>)}
         </ErrorBoundary>
       </main>

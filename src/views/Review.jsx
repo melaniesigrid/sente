@@ -423,8 +423,8 @@ export function Review({ record, onExit, onRematch, profile = {}, shared = null,
         {/* Whatever the table sent along - the conversation, in practice. Review
             has a side column for exactly this reason and nothing of its own to
             put in it. */}
-        {shared && shared.talk
-          ? <div className="side stack-sm">{shared.talk}</div>
+        {shared
+          ? (shared.talk ? <div className="side stack-sm">{shared.talk}</div> : null)
           : aside ? <div className="side stack-sm">{aside(n)}</div> : null}
       </div>
     </div>

@@ -31,8 +31,9 @@
    One file per game under this directory holds the words; `records.js` beside them
    holds the moves and is generated. */
 
-import { createGame, play, withMoveComment, resign, pointFromSgf } from "../../engine/index.js";
+import { createGame, play, pass, withMoveComment, resign, pointFromSgf, rulesFromSgf } from "../../engine/index.js";
 import { RECORDS } from "./records.js";
+import { COPYRIGHT, STUDIO_URL } from "../legal.js";
 
 import { FAN_HUI_1 } from "./fan-hui-1.js";
 import { FAN_HUI_2 } from "./fan-hui-2.js";
@@ -113,7 +114,6 @@ export const GAMES = Object.fromEntries(STUDIES.map(g => [g.id, g]));
 
 export const gameById = (id) => GAMES[id] ?? null;
 export const matchById = (id) => MATCHES.find(m => m.id === id) ?? null;
-export const matchOf = (game) => (game ? matchById(game.match) : null);
 
 /** The games of a match, in playing order, skipping any that is not on the shelf. */
 export const gamesOf = (match) => (match ? match.games.map(gameById).filter(Boolean) : []);
@@ -148,6 +148,19 @@ export function seatAt(id, n) {
 /** Does this game know who placed each stone? Pair go does; nothing else does. */
 export const hasSeats = (id) => Boolean(RECORDS[id] && RECORDS[id].seats);
 
+/** The line an exported record carries at its head: where the moves come from, and
+    whose the words beside them are. A game record is a fact and carries no rights; the
+    commentary is the Studio's and is not licensed for reuse, which is the same thing
+    the credits page says and the same rule the import tool enforces on the way in. */
+export function exportCredit(game) {
+  if (!game) return "";
+  return [
+    `${game.black} against ${game.white}, ${game.dateText}, ${game.where}.`,
+    "Game record: public domain.",
+    `Commentary: ${COPYRIGHT}. Not licensed for reuse. ${STUDIO_URL}`,
+  ].join(" ");
+}
+
 /** The whole game as a record the review room can walk, with each note already
     attached to the move it belongs to. The moves are replayed through the rules,
     so anything wrong here throws at the first bad move rather than drawing it. */
@@ -155,14 +168,28 @@ export function recordFor(id) {
   const game = gameById(id);
   const packed = RECORDS[id];
   if (!game || !packed) return null;
+  /* The match's own terms, from the study, not from the file the moves were read out
+     of. Three of the Wuzhen records carry RU[AGA] where the summit was played under
+     Chinese rules: an SGF's RU field is what one publisher typed, and the study says
+     what the match actually used and cites where that comes from. One source of truth,
+     and `famous.test.js` holds the record to it. */
   let rec = createGame({
-    size: 19, rules: packed.rules, komi: packed.komi, handicap: 0,
+    size: 19, rules: rulesFromSgf(game.rulesText), komi: game.komi, handicap: 0,
     toPlay: "b", players: { b: game.black, w: game.white },
   });
-  if (game.opening) rec = { ...rec, comment: game.opening };
+  /* The root comment is what a reader sees at move 0 - and, because Review lets them
+     download the game, what travels out of here in the SGF's own C[] field. The notes
+     in this file are the Studio's writing; the moves are nobody's. A file that carries
+     both says which is which, in the one place an SGF has to say anything. */
+  rec = { ...rec, comment: [exportCredit(game), game.opening].filter(Boolean).join("\n\n") };
   const moves = movesOf(id);
   moves.forEach((pt, i) => {
-    rec = play(rec, pt[0], pt[1], i % 2 === 0 ? "b" : "w");
+    /* `null` is a pass, which the packed format writes as "..". None of these fifteen
+       games has one - they were all fought to a resignation or a count - but the format
+       can carry one and this is the only thing that reads it, so it handles one rather
+       than throwing on a record somebody adds later. */
+    const colour = i % 2 === 0 ? "b" : "w";
+    rec = pt === null ? pass(rec, colour) : play(rec, pt[0], pt[1], colour);
     const note = game.notes[i + 1];
     if (note) rec = withMoveComment(rec, note);
   });
