@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { ArrowLeft, Pencil, Swords, Mail } from "lucide-react";
-import { Card, Btn, Avatar, RankBadge, Badges } from "../components/ui.jsx";
+import { Card, Btn, Avatar, CountryFlag, RankBadge, Badges } from "../components/ui.jsx";
 import { api, serverEnabled, SERVER_URL } from "../net/api.js";
 import { avatarUrl } from "../net/avatar.js";
 import { loadAccount } from "../store/account.js";
 import { provisionalText } from "../content/online.js";
 import { joinedText, recordText, factRows, saidAnything, presenceLine } from "./playerCard.js";
-import { useT } from "../components/langStore.js";
+import { useT, useLocale } from "../components/langStore.js";
 import { standingWith, friendAction } from "./friendship.js";
 import { archiveLine } from "./archiveLine.js";
 import { badgesShown } from "../content/badges.js";
@@ -77,6 +77,7 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
   const invites = useInvites(account ? account.token : null, notify,
     (table) => go("play", { gameId: table.gameId }));
   const t = useT();
+  const { tag } = useLocale();
 
   return (
     <div className="stack arrives">
@@ -97,7 +98,7 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
             <Avatar name={player.name} tint={player.tint} size={168}
               src={avatarUrl(SERVER_URL, player.id, player.avatarAt)} />
             <div className="op-id">
-              <h3>{player.name}</h3>
+              <h3>{player.name}<CountryFlag code={player.country} tag={tag} size={18} /></h3>
               <div className="row">
                 <RankBadge rating={player.rating} rd={player.rd} precise size="lg" />
                 <span className="fine">{provisionalText(player)}</span>

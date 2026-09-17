@@ -11,7 +11,7 @@
    one of the two lists below, and adding a twelfth board makes you choose. */
 import { describe, it, expect } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
-import { boardSpan, legiblePx, COORD_PX, TYPE_FLOOR } from "../components/boardGeometry.js";
+import { boardSpan, legiblePx, labelPx, COORD_PX, LABEL_PX, TYPE_FLOOR } from "../components/boardGeometry.js";
 
 /* Boards a reader reads points off: games they are playing, problems and
    lessons that name points in words, the room they are building. */
@@ -19,13 +19,15 @@ const HONOURS = [
   "Dojo.jsx", "Game.jsx", "Learn.jsx", "OnlineGame.jsx", "PairGame.jsx",
   "Problems.jsx", "Recall.jsx", "Review.jsx",
 ];
-/* Boards that are pictures of boards. Joseki crops to a corner, so the margin
-   is outside the viewBox anyway; Look and MiniSelfPlay are a colour swatch and
-   a thumbnail, where sixteen-pixel text would be noise at any setting. */
-const EXEMPT = ["Joseki.jsx", "Look.jsx", "MiniSelfPlay.jsx"];
+/* Boards that are pictures of boards. Joseki and RankDial crop to a corner, so
+   the margin is outside the viewBox anyway; Look and MiniSelfPlay are a colour
+   swatch and a thumbnail, where sixteen-pixel text would be noise at any
+   setting. RankDial names its two points on the board itself, with letters,
+   which is the job the margin would have been doing. */
+const EXEMPT = ["Joseki.jsx", "Look.jsx", "MiniSelfPlay.jsx", "RankDial.jsx"];
 
 const read = (name) => {
-  const dir = name === "MiniSelfPlay.jsx" ? "../components/" : "./";
+  const dir = ["MiniSelfPlay.jsx", "RankDial.jsx"].includes(name) ? "../components/" : "./";
   return readFileSync(new URL(dir + name, import.meta.url), "utf8");
 };
 
@@ -100,5 +102,36 @@ describe("a coordinate you can actually read", () => {
     const src = read(name);
     expect(src).toMatch(/legiblePx\(/);
     expect(src, "a bare sizePx={600} is under the floor on 19 lines").not.toMatch(/sizePx=\{600\}/);
+  });
+});
+
+/* The other text drawn inside a board: a letter naming an empty point. It is
+   exempt from the margin above because a cropped figure has no margin, which
+   is exactly why the floor has to be checked here instead -- a crop scales
+   worse than a whole board, and the first draft of the rank dial printed its
+   A and B at about ten pixels. */
+describe("a label you can actually read", () => {
+  it("names the size the stylesheet sets", () => {
+    const css = readFileSync(new URL("../styles/css.js", import.meta.url), "utf8");
+    expect(css).toMatch(new RegExp(String.raw`\.point-label \{[^}]*font-size: ${LABEL_PX}px`));
+  });
+
+  it("is drawn in an ink the board carries, never one derived against the page", async () => {
+    const css = readFileSync(new URL("../styles/css.js", import.meta.url), "utf8");
+    const rule = css.match(/\.point-label \{[^}]*\}/)[0];
+    // The wood is a constant; --ink and --accent-ink are not, and go pale in Night.
+    expect(rule).toMatch(/fill: var\(--stone-[bw]-\d\)/);
+  });
+
+  it("clears the type floor on the rank dial, the one figure that draws one", async () => {
+    const { DIAL_CROP } = await import("../content/rankdial.js");
+    const css = readFileSync(new URL("../styles/css.js", import.meta.url), "utf8");
+    /* The narrowest the figure's column may be drawn, not the width it asks
+       for: a flex basis is a wish and min-width is the promise, so the floor
+       has to be checked against the promise. */
+    const narrowest = Number(css.match(/\.dial-board \{[^}]*min-width: (\d+)px/)[1]);
+    // The well pads the board; .board-well is clamp(12px, 1.8vw, 22px) a side,
+    // and border-box, so the widest padding is the narrowest drawing.
+    expect(labelPx(narrowest - 22 * 2, DIAL_CROP)).toBeGreaterThanOrEqual(TYPE_FLOOR);
   });
 });

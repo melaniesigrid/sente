@@ -90,6 +90,21 @@ describe("sanitizeProfile", () => {
     expect(warn.mock.calls[0][0]).toMatch(/archetype/);
     expect(sanitizeProfile({ ...defaultProfile, archetype: 7 }).archetype).toBe("");
   });
+  it("keeps a real country and resets anything that is not one to no country", () => {
+    expect(sanitizeProfile({ ...defaultProfile, country: "JP" }).country).toBe("JP");
+    expect(warn).not.toHaveBeenCalled();
+    const out = sanitizeProfile({ ...defaultProfile, country: "ZZ" });
+    expect(out.country).toBe("");
+    expect(warn.mock.calls[0][0]).toMatch(/country/);
+    expect(sanitizeProfile({ ...defaultProfile, country: "jp" }).country).toBe("");
+    expect(sanitizeProfile({ ...defaultProfile, country: 7 }).country).toBe("");
+  });
+  it("gives a profile saved before the flags existed no country, without a word", () => {
+    const { country, ...old } = defaultProfile;
+    expect(country).toBe("");
+    expect(sanitizeProfile(old).country).toBe("");
+    expect(warn).not.toHaveBeenCalled();
+  });
   it("gives a profile saved before the masks existed the plain player, without a word", () => {
     const { archetype, ...old } = defaultProfile;
     expect(archetype).toBe("");

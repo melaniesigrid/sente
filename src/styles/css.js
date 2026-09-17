@@ -342,7 +342,7 @@ ${FONT_FACES}
    sinks while still held two pixels up is being pressed and lifted at once. */
 .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active { transform: none; }
 
-.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .fm-card:active, .play-choice:active, .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn:active, .swatch:active, .look-btn:active, .lang-pill:active, .btn:active:not(:disabled), .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active, .lp-btn:active, .lp-card-btn:active, .lp-enter:active, .arche-btn:active { transition-duration: .06s; }
+.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .play-choice:active, .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn:active, .swatch:active, .look-btn:active, .lang-pill:active, .btn:active:not(:disabled), .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active, .lp-btn:active, .lp-card-btn:active, .lp-enter:active, .arche-btn:active, .fm-card:active, .country-btn:active { transition-duration: .06s; }
 
 /* A screen arrives a beat at a time rather than all at once. It is the front
    door's entrance, applied where a whole screen is swapped in by the nav: the
@@ -497,7 +497,10 @@ ${FONT_FACES}
 /* ---- hero ---- */
 .hero { display: flex; gap: clamp(18px, 3vw, 36px); align-items: center; flex-wrap: wrap; }
 .hero-copy { flex: 1 1 300px; }
-.hero-board { flex: 0 1 300px; margin-inline: auto; }
+/* The dashboard's demo board carries a caption saying what is playing it, so
+   the column holds the board and the line under it. The line itself is set
+   beside the front door's, at .lp-board-note: one idiom, one rule. */
+.hero-board { flex: 0 1 300px; margin-inline: auto; display: flex; flex-direction: column; gap: 10px; }
 .hero .row { margin-top: 18px; }
 
 .tile { text-align: start; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease, box-shadow .15s ease; }
@@ -550,6 +553,18 @@ ${FONT_FACES}
 .star-pt { fill: var(--grid); fill-opacity: calc(var(--grid-alpha) * 1.45); }
 .ghost { fill: var(--accent); opacity: .28; }
 .mark-ring { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 4 4; opacity: .85; }
+/* A named empty point in a figure. Two things it has to get right, and the
+   first draft got both wrong.
+
+   It is drawn on the wood, and the wood is a constant: --accent-ink is derived
+   against the page's ground, so in Night it is a pale green sitting on a pale
+   board and the letter disappears. The stone inks are the pair held against
+   the board, which is why .stone-num uses them, and this uses them too.
+
+   And it is SVG text inside the viewBox, so the page scales it down: LABEL_PX
+   in boardGeometry.js is the size that still clears the 12px floor on the
+   narrowest board that draws one, and coordinates.test.js holds it there. */
+.point-label { font-size: 24px; font-weight: 700; fill: var(--stone-b-2); pointer-events: none; }
 /* The ring a chat line puts on a point. Wider than a stone rather than inside
    it, so it reads the same whether the point is empty or has been played on;
    the atari ring above it is drawn the same way for the same reason. */
@@ -2035,6 +2050,39 @@ ${FONT_FACES}
 .arche-btn.active .arche-name { color: inherit; }
 .arche-way { margin-top: 14px; }
 
+/* ---- the flag ----
+   The mark beside a name is text, so it takes the size of whatever it sits in
+   and never a box of its own. On a device with no flag faces the glyph is the
+   country's two letters, which is why nothing here is sized as if it were an
+   image: a rule that assumed a square would leave DE clipped in half.
+
+   The picker is a search box over a scrolling list, capped in height so that
+   two hundred and fifty countries cannot push the rest of the screen away. */
+.flag-mark { line-height: 1; vertical-align: -0.08em; margin-inline-start: .3em; }
+.country-chosen { margin-top: 10px; }
+.country-picker { margin-top: 14px; }
+.country-search { display: flex; align-items: center; gap: 8px; color: var(--ink-3); }
+.country-search .chat-input { flex: 1 1 auto; }
+.country-list {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 8px;
+  margin-top: 12px; max-height: 320px; overflow-y: auto; padding: 4px;
+}
+.country-btn {
+  border: 0; background: var(--ground); color: var(--ink); cursor: pointer; text-align: start;
+  display: flex; align-items: center; gap: 8px; min-width: 0;
+  padding: 8px 10px; border-radius: 12px; box-shadow: var(--sink-sm);
+  transition: box-shadow .18s ease, transform .18s ease, color .18s ease;
+}
+.country-btn:hover { transform: translateY(-1px); }
+.country-btn.active { box-shadow: var(--raise-sm), 0 0 0 2px var(--accent-ring); color: var(--accent-ink); transform: none; }
+.country-btn:active { box-shadow: var(--sink); transform: none; }
+.country-btn.active:active { box-shadow: var(--sink), 0 0 0 2px var(--accent-ring); }
+.country-btn:disabled { cursor: default; opacity: .6; transform: none; }
+.country-flag { font-size: 17px; line-height: 1; flex: 0 0 auto; }
+.country-none { color: var(--ink-3); font-family: var(--font-display); }
+.country-name { font: 600 13px var(--font-body); color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.country-btn.active .country-name { color: inherit; }
+
 /* ---- kata of the day ---- */
 .kata-card { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
 .kata-copy { flex: 1 1 240px; display: flex; flex-direction: column; gap: 4px; }
@@ -2607,7 +2655,55 @@ ${FONT_FACES}
    lifted out of a recess it was cut into. The outer frame wins here: it is the
    one that belongs to the page's composition. */
 .lp-board-well .board-well { box-shadow: none; padding: 0; }
-.lp-board-note { color: var(--ink-2); margin: 0; font-family: var(--font-caption); font-style: var(--caption-style); font-size: 13px; text-align: center; }
+/* A caption under a board: the front door's and the dashboard's. They differ
+   only in the size the page around them asks for. */
+.board-note, .lp-board-note {
+  color: var(--ink-2); margin: 0; text-align: center;
+  font-family: var(--font-caption); font-style: var(--caption-style);
+}
+.lp-board-note { font-size: 13px; }
+.board-note { font-size: 12px; line-height: 1.45; max-width: 34ch; margin-inline: auto; }
+
+/* ---- the rank dial ----
+   One figure, two columns: the corner on the left and the reading of it on the
+   right. The bars are the only place on the site where a colour carries a
+   meaning rather than a mood, so both of them are the accent -- the answer at
+   full strength, the alternative at a quarter of it -- and neither is a hue a
+   reader has to learn. The track is sunken and the bars sit in it, which is
+   the same two shadows as everything else, turned the way a groove is. */
+/* The heading and its lede hang on .lp-h3 and .lp-body, which both zero their
+   margins for use inside a card. Out here they need the section's own rhythm,
+   and the lede needs a measure the card used to give it. */
+.dial-head { margin: clamp(46px, 6vw, 70px) 0 0; }
+.dial-lede { margin: 12px 0 0; max-width: 60ch; }
+.dial { display: flex; flex-wrap: wrap; align-items: center; gap: clamp(20px, 3.5vw, 44px); margin: clamp(26px, 4vw, 44px) 0 0; }
+/* The minimum is the label's, not the layout's: the letters on the board are
+   SVG text, so a narrower column prints them smaller, and under about 254px
+   they fall through the 12px floor. coordinates.test.js reads this number. */
+.dial-board { flex: 0 1 300px; min-width: 260px; margin-inline: auto; }
+.dial-read { flex: 1 1 340px; min-width: 260px; }
+.dial-keys { list-style: none; padding: 0; margin: 0 0 18px; display: flex; flex-direction: column; gap: 7px; font-size: 14px; color: var(--ink-2); }
+.dial-keys li { display: flex; align-items: baseline; gap: 9px; line-height: 1.45; }
+.dial-keys b { color: var(--accent-ink); font-family: var(--font-display); font-weight: var(--w-display-strong); }
+.dial-swatch { width: 11px; height: 11px; border-radius: 3px; flex: none; transform: translateY(1px); }
+.dial-swatch.s0 { background: var(--accent); }
+.dial-swatch.s1 { background: rgba(var(--accent-rgb), .28); }
+.dial-rows { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 9px; }
+.dial-row { display: flex; align-items: center; gap: 11px; }
+.dial-rank { flex: none; width: 3.4ch; text-align: end; font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.dial-track { flex: 1; display: flex; gap: 3px; height: 16px; padding: 3px; border-radius: 999px; box-shadow: var(--sink-sm); }
+/* flex: none, and not for tidiness: a shrinkable bar is a bar whose drawn
+   length stops being the number it stands for. At 9d the two of them ask
+   for 98% of the track, and on a narrow reading column the gap between
+   them would take the difference out of both. */
+.dial-bar { flex: none; border-radius: 999px; min-width: 2px; }
+.dial-bar.s0 { background: var(--accent); }
+.dial-bar.s1 { background: rgba(var(--accent-rgb), .28); }
+.dial-pct { flex: none; width: 4.2ch; font-size: 13px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.dial-source { margin: 16px 0 0; color: var(--ink-2); font-family: var(--font-caption); font-style: var(--caption-style); font-size: 12px; }
+@media (max-width: 620px) {
+  .dial-board { flex-basis: 100%; }
+}
 
 /* The stat chips are sunken, so they read as facts stamped into the ground
    rather than as a second row of buttons competing with the call to action. */

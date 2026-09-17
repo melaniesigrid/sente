@@ -126,3 +126,36 @@ describe("the wood", () => {
     expect(Number(svg.querySelector(".wood").getAttribute("width")), "the rect is the board, not the view").toBe(boardSpan(9));
   });
 });
+
+/* ----------------------- A NAMED POINT -----------------------
+   `labels` is for a figure that has to talk about two points after drawing
+   them, which is a different job from `numbers`: numbers name stones that were
+   played, and a label names an empty point nobody has played yet. The rule is
+   in the component rather than in the caller, so it is asked here. */
+describe("a point named on the board", () => {
+  it("prints the letter on the empty point it names", () => {
+    const { container } = render(<Board board={empty} labels={[{ c: 2, r: 3, text: "A" }]} />);
+    const marks = container.querySelectorAll(".point-label");
+    expect(marks.length).toBe(1);
+    expect(marks[0].textContent).toBe("A");
+  });
+
+  it("names several points at once, each with its own letter", () => {
+    const { container } = render(
+      <Board board={empty} labels={[{ c: 2, r: 3, text: "A" }, { c: 5, r: 6, text: "B" }]} />,
+    );
+    expect([...container.querySelectorAll(".point-label")].map(n => n.textContent)).toEqual(["A", "B"]);
+  });
+
+  it("says nothing on a point that has a stone on it", () => {
+    const played = withStone(empty, 2, 3, "w");
+    const { container } = render(<Board board={played} labels={[{ c: 2, r: 3, text: "A" }]} />);
+    expect(container.querySelector(".point-label"), "a played stone is named by `numbers`").toBeNull();
+    expect(container.querySelectorAll(".stone-w").length).toBe(1);
+  });
+
+  it("draws no labels when it is given none", () => {
+    const { container } = render(<Board board={empty} />);
+    expect(container.querySelector(".point-label")).toBeNull();
+  });
+});

@@ -1,6 +1,8 @@
 // de · screens
 export const screens = {
   home: {
+    boardNotePlayers: "{black} ({blackRank}) gegen {white} ({whiteRank}), beide über KataGos menschlich spielendes Netz auf ihrer eigenen Spielstärke.",
+    boardNote: "Josekis Zugwahl gegen sich selbst: dieselbe Heuristik auf beiden Seiten, nicht das KataGo-Netz, mit dem deine Hausspieler spielen.",
     trainer: { head: "Ein Brief von {name}", away: "Weglegen", play: "Geh spielen", placeholder: "Schreib ihm…", send: "Senden", yes: "Ja", notNow: "Jetzt nicht" },
     greetingBack: "Zurück am Brett",
     greetingNew: "Willkommen am Brett",
@@ -255,6 +257,20 @@ export const screens = {
   },
 
   profile: {
+    country: {
+      head: "Deine Flagge",
+      note: "Woher du spielst, wenn du es sagen willst. Sie steht neben deinem Namen, und sie abzulegen ist ein Druck.",
+      noteAccount: "Woher du spielst, wenn du es sagen willst. Sie steht hier neben deinem Namen und reist mit deinem Handle mit, also sieht sie auch, wer dir gegenübersitzt.",
+      search: "Länder suchen",
+      none: "Keine Flagge",
+      noneLine: "Keine Flagge. Hier steht nirgends, wo du bist.",
+      chosenLine: "neben deinem Namen.",
+      noMatch: "Kein Land dieses Namens.",
+      more: {
+        one: "Noch {count}. Tippe, um die Liste einzugrenzen.",
+        other: "Noch {count}. Tippe, um die Liste einzugrenzen.",
+      },
+    },
     trainer: {
       head: "Privater Trainer",
       games: "Partien mit ihm: {count}",

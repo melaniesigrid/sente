@@ -13,7 +13,7 @@
    testable and free of time zones. The player is always Black. */
 import { hashString } from "../engine/index.js";
 import { previousDay } from "./kata.js";
-import { RANK_LADDER } from "./rank.js";
+import { rankFromRange } from "./rank.js";
 import { BASE_LOCALE, makeT } from "../i18n/index.js";
 
 const EN = makeT(BASE_LOCALE);
@@ -33,9 +33,7 @@ export function duelPersona(personas, key) {
 /** The rank today's host plays at: somewhere in the persona's home range, picked by
  *  the date. Fixed for everyone, because the human network's reply depends on it. */
 export function duelRank(persona, key) {
-  const [weak, strong] = persona.range || [RANK_LADDER[0], RANK_LADDER[0]];
-  const lo = Math.max(0, RANK_LADDER.indexOf(weak)), hi = Math.max(lo, RANK_LADDER.indexOf(strong));
-  return RANK_LADDER[lo + (hashString(`duel-rank:${key}`) % (hi - lo + 1))];
+  return rankFromRange(persona, hashString(`duel-rank:${key}`));
 }
 
 /** Every duel is played on this board, so results compare across the day. */
