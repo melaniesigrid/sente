@@ -151,7 +151,8 @@ export const hasSeats = (id) => Boolean(RECORDS[id] && RECORDS[id].seats);
 /** The line an exported record carries at its head: where the moves come from, and
     whose the words beside them are. A game record is a fact and carries no rights; the
     commentary is the Studio's and is not licensed for reuse, which is the same thing
-    the credits page says and the same rule the import tool enforces on the way in. */
+    the credits page says and the same rule the import tool enforces on the way in.
+    It is never shown on screen: a reader looking at a board is not reading a licence. */
 export function exportCredit(game) {
   if (!game) return "";
   return [
@@ -169,7 +170,7 @@ export function recordFor(id) {
   const packed = RECORDS[id];
   if (!game || !packed) return null;
   /* The match's own terms, from the study, not from the file the moves were read out
-     of. Three of the Wuzhen records carry RU[AGA] where the summit was played under
+     of. Five of the Wuzhen records carry RU[AGA] where the summit was played under
      Chinese rules: an SGF's RU field is what one publisher typed, and the study says
      what the match actually used and cites where that comes from. One source of truth,
      and `famous.test.js` holds the record to it. */
@@ -177,11 +178,10 @@ export function recordFor(id) {
     size: 19, rules: rulesFromSgf(game.rulesText), komi: game.komi, handicap: 0,
     toPlay: "b", players: { b: game.black, w: game.white },
   });
-  /* The root comment is what a reader sees at move 0 - and, because Review lets them
-     download the game, what travels out of here in the SGF's own C[] field. The notes
-     in this file are the Studio's writing; the moves are nobody's. A file that carries
-     both says which is which, in the one place an SGF has to say anything. */
-  rec = { ...rec, comment: [exportCredit(game), game.opening].filter(Boolean).join("\n\n") };
+  /* What a reader sees at move 0, and nothing else. The credit a downloaded file
+     needs is a different job for a different audience: it goes on at export, through
+     Review's sgfCredit, so the screen is never made to carry a licence notice. */
+  if (game.opening) rec = { ...rec, comment: game.opening };
   const moves = movesOf(id);
   moves.forEach((pt, i) => {
     /* `null` is a pass, which the packed format writes as "..". None of these fifteen

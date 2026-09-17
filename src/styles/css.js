@@ -3368,8 +3368,9 @@ ${FONT_FACES}
 /* The opacity leg is named because this block sits after .reveal in the sheet and
    the two selectors weigh the same: a bare transition of transform and box-shadow here
    drops .reveal's opacity fade, and the card snaps in instead of arriving. The
-   journal's card is identical code that happens to sit earlier, which is why it
-   never showed the fault. */
+   journal's card is identical code that happens to sit earlier, which is why it never
+   showed the fault. The transform leg stays at the hover speed on purpose - the card
+   slides up quickly and fades in slowly, which reads better than both at .7s. */
 .fm-card {
   display: flex; flex-direction: column; gap: 8px; align-items: flex-start;
   text-align: start; width: 100%; cursor: pointer; padding: 20px 22px;

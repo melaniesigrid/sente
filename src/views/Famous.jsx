@@ -6,7 +6,7 @@ import { useReveal } from "../components/reveal.js";
 import { useT } from "../components/langStore.js";
 import { Review } from "./Review.jsx";
 import {
-  MATCHES, gameById, matchById, gamesOf, recordFor,
+  MATCHES, gameById, matchById, gamesOf, recordFor, exportCredit,
 } from "../content/famous/index.js";
 import {
   shelfLine, seatsLine, notesLine, matchLine, panelAt, chapterLine,
@@ -193,27 +193,26 @@ export function FamousView({ gameId = null, profile = {}, go = null }) {
      opened and kept while the reader is in it - including while they step back out to
      the page and walk it again, which is why `walking` is not a dependency. */
   const record = useMemo(() => (game ? recordFor(game.id) : null), [game]);
-  /* Three levels on one screen, so the screen moves the reader to the top itself. The
-     shelf is fifteen cards deep; opening the last one otherwise lands you halfway down
-     a page you have not read. The journal does the same thing for the same reason. */
-  useEffect(() => { window.scrollTo({ top: 0, behavior: "auto" }); }, [openId, walking]);
+  /* Opening something moves the reader to the top of it; coming back does not. The
+     shelf is fifteen cards deep, so throwing a reader who pressed "All games" back to
+     the first one would lose the place they were reading from. This is the journal's
+     rule and its reason: only the page scrolls, never the index. */
+  useEffect(() => { if (openId) window.scrollTo({ top: 0, behavior: "auto" }); }, [openId, walking]);
 
   const open = (id) => { if (go) go("famous", { gameId: id }); else setLocal(id); };
   const shelf = () => { setWalking(false); if (go) go("famous"); else setLocal(null); };
 
-  /* A study whose record is missing would otherwise make the button do nothing at all.
-     It cannot happen while the suite holds the two lists to each other, and a reader
-     who hits it anyway is told rather than left pressing. */
-  if (game && walking && !record) {
-    return <Page game={game} t={t} onBack={shelf} onWalk={null} />;
-  }
-  if (game && walking) {
+  if (game && walking && record) {
     return (
       <Review record={record} profile={profile} openAt={0} autoAnalyse={false}
+        sgfCredit={exportCredit(game)}
         onExit={() => setWalking(false)}
         aside={(n) => <Aside game={game} n={n} t={t} />} />
     );
   }
-  if (game) return <Page game={game} t={t} onBack={shelf} onWalk={() => setWalking(true)} />;
+  /* No record, no button. It cannot happen while the suite holds the two lists to each
+     other, and if it ever does the reader gets a page that works rather than a button
+     that does nothing when pressed. */
+  if (game) return <Page game={game} t={t} onBack={shelf} onWalk={record ? () => setWalking(true) : null} />;
   return <Shelf open={open} t={t} />;
 }

@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
 import {
   MATCHES, GAMES, ALL_GAMES, gameById, matchById, gamesOf,
-  movesOf, recordFor, phaseAt, noteAt, seatAt, hasSeats, notedMoves,
+  movesOf, recordFor, phaseAt, noteAt, seatAt, hasSeats, notedMoves, exportCredit,
 } from "./index.js";
 import { RECORDS } from "./records.js";
-import { rulesFromSgf, RULESET_IDS } from "../../engine/index.js";
+import { RULESET_IDS } from "../../engine/index.js";
 
 /* ----------------------- THE FAMOUS GAMES -----------------------
    What this suite is for: the shelf makes claims about real games played by real
@@ -81,8 +81,11 @@ describe("the records", () => {
   it("plays every game under the terms its own page advertises", () => {
     for (const g of ALL_GAMES) {
       const rec = recordFor(g.id);
-      expect(rec.komi, g.id).toBe(g.komi);
-      expect(rec.rules, g.id).toBe(rulesFromSgf(g.rulesText));
+      expect(rec.komi, g.id).toBe(7.5);
+      expect(g.rulesText, g.id).toBe("Chinese");
+      /* The literal, not `rulesFromSgf(g.rulesText)` - repeating the expression the
+         code evaluates would pass for any mapping, including a wrong one. */
+      expect(rec.rules, g.id).toBe("chinese");
       expect(RULESET_IDS, g.id).toContain(rec.rules);
     }
   });
@@ -237,6 +240,21 @@ describe("whose words these are", () => {
       for (const s of g.sources) expect(s.length).toBeGreaterThan(30);
       expect(g.sources.join(" ")).toMatch(/record/i);
     }
+  });
+
+  /* The line a downloaded record carries at its head. It says the moves are nobody's
+     and the words are the Studio's, which is the same thing the credits page says, and
+     it is never part of what a reader sees at the board. */
+  it("heads an exported record with its provenance, and never the screen", () => {
+    for (const g of ALL_GAMES) {
+      const credit = exportCredit(g);
+      expect(credit, g.id).toContain("Game record: public domain");
+      expect(credit, g.id).toContain("Not licensed for reuse");
+      expect(credit, g.id).toContain(g.black);
+      expect(credit, g.id).toContain(g.white);
+      expect(recordFor(g.id).comment, g.id).toBe(g.opening);
+    }
+    expect(exportCredit(null)).toBe("");
   });
 
   it("names and dates every person it quotes", () => {

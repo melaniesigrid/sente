@@ -125,13 +125,15 @@ describe("walking it", () => {
     expect(document.querySelector(".side").textContent).not.toContain(opening);
   });
 
-  /* What travels when a reader downloads the game: the record is a fact, the notes
-     beside it are the Studio's, and the file says so at its head. */
-  it("heads the record with where the moves come from and whose the words are", () => {
+  /* The credit a downloaded file needs is a different job for a different audience.
+     A reader standing at a board is not reading a licence, so it is nowhere on the
+     screen; Review puts it into the file at export instead. */
+  it("keeps the licence line out of the reader's way", () => {
     walk("lee-sedol-2");
-    const note = document.querySelector(".review-note").textContent;
-    expect(note).toContain("Game record: public domain");
-    expect(note).toContain("Not licensed for reuse");
+    const shown = document.body.textContent;
+    expect(shown).toContain(gameById("lee-sedol-2").opening.slice(0, 40));
+    expect(shown).not.toContain("Not licensed for reuse");
+    expect(shown).not.toContain("Game record: public domain");
   });
 
   it("follows the reader to the move everybody knows, note and chapter together", () => {

@@ -94,7 +94,7 @@ function useLegibleNumbers(size) {
    the end of a game you played, because you were there; a game you have never seen
    opens at the beginning. */
 export function Review({ record, onExit, onRematch, profile = {}, shared = null, seat = null,
-  aside = null, openAt = null, autoAnalyse = null }) {
+  aside = null, openAt = null, autoAnalyse = null, sgfCredit = null }) {
   const t = useT();
   const total = reviewLength(record);
   /* Where the reader is standing. Alone that is this component's state; together
@@ -250,8 +250,15 @@ export function Review({ record, onExit, onRematch, profile = {}, shared = null,
   const fwd = nextCapture(caps, n);
   const capHere = caps.find((c) => c.move === n);
 
+  /* A downloaded file is read somewhere we cannot annotate, so whatever needs saying
+     about where it came from has to be inside it. `sgfCredit` is that line. It rides in
+     the root comment, which is the one place an SGF has to put a sentence, and it is
+     never drawn on the screen. */
   const downloadSgf = () => {
-    const blob = new Blob([toSgf(record)], { type: "application/x-go-sgf" });
+    const out = sgfCredit
+      ? { ...record, comment: [sgfCredit, record.comment].filter(Boolean).join("\n\n") }
+      : record;
+    const blob = new Blob([toSgf(out)], { type: "application/x-go-sgf" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;

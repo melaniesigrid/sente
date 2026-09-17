@@ -133,4 +133,17 @@ describe("the side column", () => {
     expect(screen.getByText("Bea says hello")).toBeTruthy();
     expect(document.querySelector(".test-aside"), "and not beside it").toBeNull();
   });
+
+  /* The half of that rule nothing covered: a table where nobody has spoken yet is
+     still a table. Before this the column fell through to the commentary the moment
+     `talk` was empty, which is the state every shared review starts in. */
+  it("keeps the column for the table even before anybody has spoken", () => {
+    const shared = {
+      move: 1, base: 1, line: [], marks: [], can: true, with: "Bea", talk: null,
+      onMove: vi.fn(), onTry: vi.fn(), onBack: vi.fn(), onMark: vi.fn(), onLeave: vi.fn(),
+    };
+    render(<Review record={record()} onExit={() => {}} profile={{}} shared={shared} aside={aside} />);
+    expect(document.querySelector(".test-aside"), "the commentary stays out").toBeNull();
+    expect(document.querySelector(".side"), "and so does the column").toBeNull();
+  });
 });

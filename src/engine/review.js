@@ -71,7 +71,7 @@ export function captureMoves(rec) {
   const moves = playedMoves(rec);
   const out = [];
   let prev = replay(rec, []);
-  for (let i = 0; i < moves.length; i++) {
+  for (let i = 0; i < moves.length; i++) {
     const next = step(prev, moves[i]);
     const taken = (next.captures.b + next.captures.w) - (prev.captures.b + prev.captures.w);
     if (taken > 0) out.push({ move: i + 1, stones: taken, by: moves[i].color });

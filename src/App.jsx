@@ -274,9 +274,9 @@ export default function JosekiApp() {
           {view === "dojo" && <DojoView profile={profile} setProfile={setProfile} notify={notify} go={go} room={room} />}
           {view === "legal" && <LegalView docId={params ? params.docId : null} onPick={(id) => go("legal", { docId: id })} />}
           {view === "journal" && <JournalView entryId={params ? params.entryId : null} go={go} />}
-          {/* Shelf or one game, the way the journal and the small print work:
-              no id is the shelf, an id is that game. Keyed on the game so opening
-              a second one from anywhere starts it at move zero. */}
+          {/* Shelf or one game, the way the journal and the small print work: no id
+              is the shelf, an id is that game. The screen closes the board itself
+              when the id changes, so a second game opens at move zero. */}
           {view === "famous" && (
             <Suspense fallback={<p className="fine">{t("famous.loading")}</p>}>
               <FamousView gameId={params ? params.gameId : null} profile={profile} go={go} />
