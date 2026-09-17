@@ -3,6 +3,8 @@
 export const screens = {
   /* לוח המחוונים. */
   home: {
+    boardNotePlayers: "{black} ({blackRank}) מול {white} ({whiteRank}), שניהם דרך רשת הסגנון־האנושי של KataGo, כל אחד בדרגה שלו.",
+    boardNote: "בורר המהלכים של Joseki מול עצמו: אותה יוריסטיקה בשני הצדדים, לא רשת KataGo ששחקני הבית משחקים בה.",
     trainer: { head: "מכתב מ{name}", away: "להניח בצד", play: "לך לשחק", placeholder: "כתבי לו…", send: "שליחה", yes: "כן", notNow: "לא עכשיו" },
     greetingBack: "טוב לראותך שוב",
     greetingNew: "ברוך בואך אל הלוח",

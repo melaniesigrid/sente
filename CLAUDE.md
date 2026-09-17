@@ -57,8 +57,14 @@ in `server/` (Durable Objects), deployed separately.
   (`BOARD` in `tokens.js`) in both table rooms and in a room built in the dojo: a goban is an
   object, and an object does not change colour when the light does. Stones are cut once and
   never bent to suit a table room. Anything drawn *on* the board takes its colour from the
-  board, not the page (the grid, the star points, the territory marks), because in a dark
-  room the ink is light and the ground is dark. The board is also the raised thing on the
+  board, not the page (the grid, the star points, the territory marks, and a letter naming
+  an empty point), because in a dark room the ink is light and the ground is dark. A letter
+  is `Board`'s `labels` prop drawn as `.point-label`, in a stone ink (`--stone-b-2`) rather
+  than one derived against the page, or it vanishes into the wood in Night; it is text
+  inside the viewBox, so the page scales it, and `LABEL_PX`, `cropSpan` and `labelPx` in
+  `boardGeometry.js` are how a figure proves the drawn letter still clears the 12px floor.
+  `coordinates.test.js` holds every figure that draws one over that floor. The board is
+  also the raised thing on the
   page: `.board-well` is a card lifted by the house pair of shadows and the wood is the
   board's own `rect` inside the SVG, so a cropped view still shows wood. A stone is flat on
   it and casts nothing: one bright disc high on the black stone's left shoulder, a hairline
@@ -132,6 +138,29 @@ in `server/` (Durable Objects), deployed separately.
   fixture scripts in `tools/kata/`); each persona is a rank profile. `src/engine/kata/net.js`
   is the only engine module that does I/O. Fixtures are generated from KataGo's Python,
   never edited by hand.
+- **A board that plays itself says what is playing it.** All three self-playing demos (the
+  front door's, `StoneField` behind the page, the dashboard's) carry a line naming the
+  engine, and the line is live: it names the two house players when the network is moving
+  and the heuristic picker when it is not. A demo may never *fetch* the network — it asks
+  `modelReady()` and takes the picker otherwise, because 54MB of weights for a decoration is
+  not a trade anybody asked for. The engine is chosen once when the loop starts and is never
+  promoted mid-game; it can be demoted, once, when the network stops answering, and then the
+  picker finishes under its own name. Who sits at the demo board is a product decision, so
+  it lives in `src/content/demo.js` (`demoPair`, fixed for the day), not in the view, and
+  the rank each plays at comes from its own range through `rankFromRange` in
+  `src/content/rank.js`, which the daily duel shares. Ranks are never clamped to what the
+  network can imitate: a rank means the rank a player plays at, on the demo board as at
+  every table.
+- **A number the front door prints about the model is measured, never estimated.**
+  `tools/kata/rankdial.mjs` runs the shipped `public/models/*.onnx` through the browser's
+  own encoder and wasm runtime under Node, so a percentage on the page is one a player's
+  machine would produce. The figure's data and provenance are `src/content/rankdial.js`,
+  drawn by `src/components/RankDial.jsx`, and the numbers are bound to the model file by
+  content hash — a retrain or requant shipped under the same filename fails the build rather
+  than leaving the front door describing a network nobody plays. `rankdial.test.js` replays
+  the position through the engine and holds the copy's claims to the data. Re-measure, never
+  hand-edit:
+  `node tools/kata/rankdial.mjs --seq "b:15,3 w:3,15 b:15,9 w:16,2" --ranks 20k,10k,3k,1d,9d --top 4`
 - Engine lives in `src/engine/` (board, zobrist, rules, score, record, clock, sgf, ai) with
   tests beside each module and `index.js` as the only import surface for views.
 - The app is split: `src/content/` (personas, problems, rank, the lesson library under

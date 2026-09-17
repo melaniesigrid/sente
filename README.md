@@ -12,8 +12,17 @@ problems, climb a Glicko-2 ladder, and keep a persistent profile.
   Any coordinate somebody types in the chat is a word you can tap, and tapping it rings
   that point on the board; a game opens and closes with one-tap etiquette phrases.
 - **Play**: 9×9 go with a rules engine that enforces suicide, ko and positional superko.
-  Area scoring with komi 7.5. Three house players with tuned heuristic weights, labeled
-  as bots. The game on the table is saved locally and can be resumed from Home.
+  Area scoring with komi 7.5. Eleven house players, labeled as bots, each a rank profile
+  over KataGo's human-style network, with the heuristic move picker underneath as the
+  fallback. The game on the table is saved locally and can be resumed from Home.
+- **Honest demos**: the three boards that play themselves say which engine is playing them.
+  The dashboard's board is played by two house players at their own ranks when the network
+  is already in memory, and says so by name; it never fetches the network for a decoration,
+  so on a cold visit it is the picker and the line says that instead. The front door carries
+  one measured figure about the model: the same corner asked at 20k, 10k, 3k, 1d and 9d,
+  where the answer never moves and the certainty climbs from 31% to 92%. The numbers come
+  from `tools/kata/rankdial.mjs`, are bound to the shipped model by content hash, and the
+  test fails when the page's claims drift from them.
 - **Learn**: interactive lessons that walk through liberties, capture, atari, ko,
   life and death, and opening principles on a live board.
 - **Tsumego**: life-and-death and tesuji problems with hints and progress tracking.
@@ -87,6 +96,9 @@ server/             Cloudflare Worker: router, Registry and Room Durable Objects
                     the seat cap and the waiting list as pure policy
 tools/server/       smoke.mjs drives a full game against a running server; beta.mjs
                     checks the seat cap and the waiting list
+tools/kata/         The human network offline: export_human.py and gen_fixtures.py come
+                    from KataGo's own Python; rankdial.mjs asks the shipped ONNX what it
+                    would play at a spread of ranks and prints the figure's numbers
 src/styles/css.js   The stylesheet, injected by the shell
 TODO.md             Roadmap
 ```

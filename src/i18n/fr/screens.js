@@ -1,6 +1,8 @@
 // fr · screens
 export const screens = {
   home: {
+    boardNotePlayers: "{black} ({blackRank}) contre {white} ({whiteRank}), tous deux à travers le réseau de style humain de KataGo, chacun à son niveau.",
+    boardNote: "Le sélecteur de coups de Joseki contre lui-même : la même heuristique des deux côtés, pas le réseau KataGo avec lequel jouent les joueurs de la maison.",
     trainer: { head: "Une lettre de {name}", away: "La ranger", play: "Va jouer", placeholder: "Écris-lui…", send: "Envoyer", yes: "Oui", notNow: "Pas maintenant" },
     greetingBack: "De retour au goban",
     greetingNew: "Bienvenue au goban",

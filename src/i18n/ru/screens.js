@@ -7,6 +7,8 @@
    по-русски нельзя. */
 export const screens = {
   home: {
+    boardNotePlayers: "{black} ({blackRank}) против {white} ({whiteRank}) — оба через человеческую сеть KataGo, каждый на своём разряде.",
+    boardNote: "Выбор ходов Joseki против самого себя: одна и та же эвристика за обе стороны, а не сеть KataGo, которой играют домашние игроки.",
     trainer: { head: "Письмо от {name}", away: "Убрать", play: "Иди играть", placeholder: "Напиши ему…", send: "Отправить", yes: "Да", notNow: "Не сейчас" },
     greetingBack: "С возвращением",
     greetingNew: "Добро пожаловать к доске",

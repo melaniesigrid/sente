@@ -497,7 +497,10 @@ ${FONT_FACES}
 /* ---- hero ---- */
 .hero { display: flex; gap: clamp(18px, 3vw, 36px); align-items: center; flex-wrap: wrap; }
 .hero-copy { flex: 1 1 300px; }
-.hero-board { flex: 0 1 300px; margin-inline: auto; }
+/* The dashboard's demo board carries a caption saying what is playing it, so
+   the column holds the board and the line under it. The line itself is set
+   beside the front door's, at .lp-board-note: one idiom, one rule. */
+.hero-board { flex: 0 1 300px; margin-inline: auto; display: flex; flex-direction: column; gap: 10px; }
 .hero .row { margin-top: 18px; }
 
 .tile { text-align: start; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease, box-shadow .15s ease; }
@@ -550,6 +553,18 @@ ${FONT_FACES}
 .star-pt { fill: var(--grid); fill-opacity: calc(var(--grid-alpha) * 1.45); }
 .ghost { fill: var(--accent); opacity: .28; }
 .mark-ring { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 4 4; opacity: .85; }
+/* A named empty point in a figure. Two things it has to get right, and the
+   first draft got both wrong.
+
+   It is drawn on the wood, and the wood is a constant: --accent-ink is derived
+   against the page's ground, so in Night it is a pale green sitting on a pale
+   board and the letter disappears. The stone inks are the pair held against
+   the board, which is why .stone-num uses them, and this uses them too.
+
+   And it is SVG text inside the viewBox, so the page scales it down: LABEL_PX
+   in boardGeometry.js is the size that still clears the 12px floor on the
+   narrowest board that draws one, and coordinates.test.js holds it there. */
+.point-label { font-size: 24px; font-weight: 700; fill: var(--stone-b-2); pointer-events: none; }
 /* The ring a chat line puts on a point. Wider than a stone rather than inside
    it, so it reads the same whether the point is empty or has been played on;
    the atari ring above it is drawn the same way for the same reason. */
@@ -2640,7 +2655,55 @@ ${FONT_FACES}
    lifted out of a recess it was cut into. The outer frame wins here: it is the
    one that belongs to the page's composition. */
 .lp-board-well .board-well { box-shadow: none; padding: 0; }
-.lp-board-note { color: var(--ink-2); margin: 0; font-family: var(--font-caption); font-style: var(--caption-style); font-size: 13px; text-align: center; }
+/* A caption under a board: the front door's and the dashboard's. They differ
+   only in the size the page around them asks for. */
+.board-note, .lp-board-note {
+  color: var(--ink-2); margin: 0; text-align: center;
+  font-family: var(--font-caption); font-style: var(--caption-style);
+}
+.lp-board-note { font-size: 13px; }
+.board-note { font-size: 12px; line-height: 1.45; max-width: 34ch; margin-inline: auto; }
+
+/* ---- the rank dial ----
+   One figure, two columns: the corner on the left and the reading of it on the
+   right. The bars are the only place on the site where a colour carries a
+   meaning rather than a mood, so both of them are the accent -- the answer at
+   full strength, the alternative at a quarter of it -- and neither is a hue a
+   reader has to learn. The track is sunken and the bars sit in it, which is
+   the same two shadows as everything else, turned the way a groove is. */
+/* The heading and its lede hang on .lp-h3 and .lp-body, which both zero their
+   margins for use inside a card. Out here they need the section's own rhythm,
+   and the lede needs a measure the card used to give it. */
+.dial-head { margin: clamp(46px, 6vw, 70px) 0 0; }
+.dial-lede { margin: 12px 0 0; max-width: 60ch; }
+.dial { display: flex; flex-wrap: wrap; align-items: center; gap: clamp(20px, 3.5vw, 44px); margin: clamp(26px, 4vw, 44px) 0 0; }
+/* The minimum is the label's, not the layout's: the letters on the board are
+   SVG text, so a narrower column prints them smaller, and under about 254px
+   they fall through the 12px floor. coordinates.test.js reads this number. */
+.dial-board { flex: 0 1 300px; min-width: 260px; margin-inline: auto; }
+.dial-read { flex: 1 1 340px; min-width: 260px; }
+.dial-keys { list-style: none; padding: 0; margin: 0 0 18px; display: flex; flex-direction: column; gap: 7px; font-size: 14px; color: var(--ink-2); }
+.dial-keys li { display: flex; align-items: baseline; gap: 9px; line-height: 1.45; }
+.dial-keys b { color: var(--accent-ink); font-family: var(--font-display); font-weight: var(--w-display-strong); }
+.dial-swatch { width: 11px; height: 11px; border-radius: 3px; flex: none; transform: translateY(1px); }
+.dial-swatch.s0 { background: var(--accent); }
+.dial-swatch.s1 { background: rgba(var(--accent-rgb), .28); }
+.dial-rows { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 9px; }
+.dial-row { display: flex; align-items: center; gap: 11px; }
+.dial-rank { flex: none; width: 3.4ch; text-align: end; font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.dial-track { flex: 1; display: flex; gap: 3px; height: 16px; padding: 3px; border-radius: 999px; box-shadow: var(--sink-sm); }
+/* flex: none, and not for tidiness: a shrinkable bar is a bar whose drawn
+   length stops being the number it stands for. At 9d the two of them ask
+   for 98% of the track, and on a narrow reading column the gap between
+   them would take the difference out of both. */
+.dial-bar { flex: none; border-radius: 999px; min-width: 2px; }
+.dial-bar.s0 { background: var(--accent); }
+.dial-bar.s1 { background: rgba(var(--accent-rgb), .28); }
+.dial-pct { flex: none; width: 4.2ch; font-size: 13px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.dial-source { margin: 16px 0 0; color: var(--ink-2); font-family: var(--font-caption); font-style: var(--caption-style); font-size: 12px; }
+@media (max-width: 620px) {
+  .dial-board { flex-basis: 100%; }
+}
 
 /* The stat chips are sunken, so they read as facts stamped into the ground
    rather than as a second row of buttons competing with the call to action. */

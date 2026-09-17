@@ -83,6 +83,18 @@ export const RANK_LADDER = [
   ...Array.from({ length: 9 }, (_, i) => `${i + 1}d`),
 ];
 
+/** A rank inside a persona's home range, chosen by `n`. The range is the two
+ *  labels in `persona.range`, weakest first; a persona without one plays at the
+ *  foot of the ladder. Callers pass a hash, so the pick is fixed for whatever
+ *  they seeded it with -- a day, a board -- rather than drifting per render.
+ *  `rankInRange` below is the predicate, and a different question. */
+export function rankFromRange(persona, n) {
+  const [weak, strong] = persona.range || [RANK_LADDER[0], RANK_LADDER[0]];
+  const lo = Math.max(0, RANK_LADDER.indexOf(weak));
+  const hi = Math.max(lo, RANK_LADDER.indexOf(strong));
+  return RANK_LADDER[lo + (n % (hi - lo + 1))];
+}
+
 /** The rank `delta` steps stronger (positive) or weaker (negative), clamped to the ladder. */
 export function stepRank(label, delta) {
   const i = RANK_LADDER.indexOf(label);

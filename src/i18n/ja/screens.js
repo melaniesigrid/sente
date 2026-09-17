@@ -2,6 +2,8 @@
 /* 画面ごとにひとかたまり。並びは、打つ人がそれに出会う順です。 */
 export const screens = {
   home: {
+    boardNotePlayers: "{black}（{blackRank}）対 {white}（{whiteRank}）。どちらも KataGo の人の打ち方のネットワークを、それぞれの段級で。",
+    boardNote: "Joseki の着手選びが自分と打っています。両方とも同じヒューリスティックで、家の打ち手が使う KataGo のネットワークではありません。",
     trainer: { head: "{name}からの手紙", away: "しまう", play: "打ちに行く", placeholder: "彼に書く…", send: "送信", yes: "はい", notNow: "今はやめておく" },
     greetingBack: "おかえりなさい",
     greetingNew: "盤へようこそ",

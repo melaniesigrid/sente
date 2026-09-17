@@ -29,12 +29,15 @@ import { StoneFace } from "./stoneArt.jsx";
      pending    one {c, r, color}: a stone the player has staged but not yet
                 played, drawn faint under a dashed ring. The board only shows
                 it; whether a move needs confirming, and what confirms it, is
-                the caller's business. */
+                the caller's business.
+     labels     [{c, r, text}] a short label on an empty point, for a figure
+                that has to name two points and talk about them afterwards.
+                Only empty points: a stone that needs naming is `numbers`. */
 export function Board({
   board, onPlay, lastMove, marks = [], disabled, sizePx = 460, flash = [],
   atari = [], captured = [], captureKey = 0, territory = null, dead = [], wrong = null,
   numbers = null, coordinates = false, mark = "dot", pending = null, pointed = [],
-  crop = null,
+  crop = null, labels = [],
 }) {
   const N = board.size;
   const cell = CELL, m = MARGIN;
@@ -91,6 +94,12 @@ export function Board({
         })}
         {marks.map((p, i) => (
           <circle key={"mk" + i} cx={x(p.c)} cy={y(p.r)} r={13} className="mark-ring" />
+        ))}
+        {labels.map((p, i) => (
+          board.cells[idx(N, p.c, p.r)] === null ? (
+            <text key={"lb" + i} x={x(p.c)} y={y(p.r)} className="point-label"
+              textAnchor="middle" dominantBaseline="central">{p.text}</text>
+          ) : null
         ))}
         {wrong && (
           <g className="wrong-x" aria-hidden="true">
@@ -155,8 +164,17 @@ export function Board({
         {pointed.map((p, i) => (
           <circle key={"pt" + i} cx={x(p.c)} cy={y(p.r)} r={21} className="point-ring" />
         ))}
+        {/* A hit target and a named gridcell for every point -- except, on a
+            board nobody can play on, the ones a crop has moved outside the
+            viewBox. Those can neither be clicked nor seen, and on a cropped
+            nineteen-line figure they are three hundred rects and three hundred
+            labels nobody can reach. `disabled` is part of the condition and not
+            an optimisation: a cropped board that IS playable must keep every
+            target, or a future caller would lose onPlay outside the crop with
+            nothing to show for it. */}
         {Array.from({ length: N * N }).map((_, i) => {
           const c = i % N, r = Math.floor(i / N);
+          if (disabled && crop && (c < crop.c0 || c > crop.c1 || r < crop.r0 || r > crop.r1)) return null;
           const stone = board.cells[i];
           const staged = pending && pending.c === c && pending.r === r;
           const label = `${pointLabel(N, c, r)}${stone ? (stone === "b" ? ", black stone" : ", white stone") : ""}${deadSet.has(i) ? ", marked dead" : ""}${staged ? ", move waiting to be confirmed" : ""}`;
