@@ -4,6 +4,7 @@ export const rooms = {
     trainer: { ask: "Frag {name}" },
     back: "Zurück",
     unfinished: "Unbeendete Partie",
+    claimed: "Die Datei sagt: {result}.",
     start: "Anfang",
     label: "Zug {n} · {side}",
     labelPass: "Zug {n} · {side} passt",

@@ -11,6 +11,7 @@ export const game = {
     by: "{winner} {how}",
     howResign: "durch Aufgabe",
     howTime: "auf Zeit",
+    howForfeit: "kampflos",
     howMargin: "mit {margin}",
     score: "{winner} · {a} : {b}",
     jigo: "Jigo · {b} : {w}",

@@ -6,6 +6,7 @@ export const rooms = {
     trainer: { ask: "Ask {name}" },
     back: "Back",
     unfinished: "Unfinished game",
+    claimed: "The file says {result}.",
     start: "Start",
     label: "Move {n} · {side}",
     labelPass: "Move {n} · {side} passes",

@@ -15,6 +15,7 @@ export const game = {
     by: "{winner}、{how}",
     howResign: "中押し",
     howTime: "時間切れ",
+    howForfeit: "相手の反則",
     howMargin: "{margin} 目差",
     score: "{winner} · {a} : {b}",
     jigo: "持碁 · {b} : {w}",

@@ -4,6 +4,7 @@ export const rooms = {
     trainer: { ask: "Pregunta a {name}" },
     back: "Atrás",
     unfinished: "Partida sin terminar",
+    claimed: "El archivo dice: {result}.",
     start: "Inicio",
     label: "Jugada {n} · {side}",
     labelPass: "Jugada {n} · {side} pasan",

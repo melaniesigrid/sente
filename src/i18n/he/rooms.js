@@ -6,6 +6,7 @@ export const rooms = {
     trainer: { ask: "לשאול את {name}" },
     back: "חזרה",
     unfinished: "משחק שלא הסתיים",
+    claimed: "הקובץ אומר: {result}.",
     start: "התחלה",
     label: "מהלך {n} · {side}",
     labelPass: "מהלך {n} · {side} מוותר על תור",

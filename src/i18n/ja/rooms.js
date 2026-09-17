@@ -4,6 +4,7 @@ export const rooms = {
     trainer: { ask: "{name}に聞く" },
     back: "戻る",
     unfinished: "打ちかけの対局",
+    claimed: "ファイルには{result}とあります。",
     start: "初手の前",
     label: "{n} 手目 · {side}",
     labelPass: "{n} 手目 · {side}がパス",

@@ -4,6 +4,7 @@ export const rooms = {
     trainer: { ask: "Demande à {name}" },
     back: "Retour",
     unfinished: "Partie inachevée",
+    claimed: "Le fichier indique : {result}.",
     start: "Début",
     label: "Coup {n} · {side}",
     labelPass: "Coup {n} · {side} passent",
