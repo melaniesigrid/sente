@@ -247,6 +247,19 @@ export const screens = {
     openProblem: "{set}、第 {n} 題、{rank}",
   },
   profile: {
+    country: {
+      head: "あなたの旗",
+      note: "どこから打っているかを、言いたければ。名前の隣に並び、外すのは一押しです。",
+      noteAccount: "どこから打っているかを、言いたければ。ここで名前の隣に並び、ハンドルと一緒に旅をします。盤を挾んだ相手にも見えます。",
+      search: "国・地域を探す",
+      none: "旗なし",
+      noneLine: "旗なし。どこにいるかは何も言いません。",
+      chosenLine: "名前の隣に。",
+      noMatch: "その名前の国・地域はありません。",
+      more: {
+        other: "他に {count} 件。打てば絞り込めます。",
+      },
+    },
     trainer: {
       head: "専属の師匠",
       games: "彼との対局：{count}",

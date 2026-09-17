@@ -146,6 +146,20 @@ describe("passing and scoring", () => {
     expect(g.phase).toBe("scoring");
     expect(g.moves.map(m => m.type)).toEqual(["pass", "play", "pass", "pass"]);
   });
+  it("a third pass is legal, stays in scoring, and survives a replay", () => {
+    let g = createGame({ size: 9 });
+    g = pass(g); g = pass(g);
+    g = pass(g);
+    expect(g.phase).toBe("scoring");
+    expect(g.passes).toBe(3);
+    expect(g.toPlay).toBe("w");
+    expect(g.moves.map(m => m.type)).toEqual(["pass", "pass", "pass"]);
+    const back = replay(g);
+    expect(back.phase).toBe("scoring");
+    expect(back.moves).toEqual(g.moves);
+    // Marking and counting still work behind the extra pass.
+    expect(acceptScore(g).phase).toBe("ended");
+  });
   it("markDead toggles a whole chain and acceptScore ends the game", () => {
     let g = createGame({ size: 9, komi: 5.5, setup: { b: [[4, 0], [4, 1], [4, 2], [4, 3], [4, 4], [4, 5], [4, 6], [4, 7], [4, 8]], w: [[0, 0], [0, 1]] } });
     g = pass(g); g = pass(g);
@@ -269,10 +283,9 @@ describe("illegal transitions", () => {
     expect(() => markDead(g, 0, 0)).toThrow(IllegalTransitionError);
     expect(() => acceptScore(g)).toThrow(IllegalTransitionError);
   });
-  it("scoring forbids play and pass", () => {
+  it("scoring forbids play", () => {
     const g = scoring();
     expect(() => play(g, 4, 4)).toThrow(IllegalTransitionError);
-    expect(() => pass(g)).toThrow(IllegalTransitionError);
   });
   it("ended forbids everything but reading", () => {
     for (const g of [ended(), resigned(), flagged()]) {

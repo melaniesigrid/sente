@@ -5,6 +5,7 @@ import { useT } from "./langStore.js";
 import { isProvisional } from "../engine/index.js";
 import { Figure } from "./Figure.jsx";
 import { archetypeOf, localizeArchetype } from "../content/archetypes.js";
+import { countryName, flagOf } from "../content/countries.js";
 
 /* ----------------------- SHARED UI ----------------------- */
 export const Card = ({ children, className = "", inset, ...rest }) => (
@@ -62,6 +63,28 @@ export const ArchetypeMark = ({ id, size = 16, className = "" }) => {
   return (
     <span className={`arche-mark ${className}`} style={{ fontSize: size }}
       role="img" aria-label={name} title={a.hanzi}>{a.glyph}</span>
+  );
+};
+
+/* The flag a player put beside their name, wherever their name is drawn.
+   Renders nothing for the player who named no country, so a profile that never
+   opened the picker is laid out exactly as before.
+
+   The name is the label and the title, never a decoration on top of the glyph:
+   a flag emoji read aloud is a pair of letters, and on a device with no flag
+   faces it is drawn as one too. `lang` is the reader's, not the country's -
+   these are the names of places in the language of the page.
+
+   `tag` is the BCP-47 tag of the language in force. It is passed in rather
+   than read from context so that this stays a component that can be rendered
+   in a test without a provider around it. */
+export const CountryFlag = ({ code, tag = "en", size = 16, className = "" }) => {
+  const glyph = flagOf(code);
+  if (!glyph) return null;
+  const name = countryName(code, tag);
+  return (
+    <span className={`flag-mark ${className}`} style={{ fontSize: size }}
+      role="img" aria-label={name} title={name}>{glyph}</span>
   );
 };
 

@@ -4,9 +4,9 @@
   "version": "0.17.0",
   "type": "module",
   "scripts": {
-    "predev": "node tools/copy-ort-runtime.mjs",
+    "predev": "node tools/copy-ort-runtime.mjs && node tools/build-talk-wasm.mjs",
     "dev": "vite",
-    "prebuild": "node tools/copy-ort-runtime.mjs",
+    "prebuild": "node tools/copy-ort-runtime.mjs && node tools/build-talk-wasm.mjs",
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview",
@@ -14,7 +14,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "dev:server": "wrangler dev",
-    "deploy:server": "wrangler deploy"
+    "deploy:server": "wrangler deploy",
+    "test:talk": "cd talk && go test ./..."
   },
   "dependencies": {
     "lucide-react": "^1.43.0",

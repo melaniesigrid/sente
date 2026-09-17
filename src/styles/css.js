@@ -346,7 +346,7 @@ ${FONT_FACES}
    sinks while still held two pixels up is being pressed and lifted at once. */
 .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active { transform: none; }
 
-.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .play-choice:active, .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn:active, .swatch:active, .look-btn:active, .lang-pill:active, .btn:active:not(:disabled), .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active, .lp-btn:active, .lp-card-btn:active, .lp-enter:active, .arche-btn:active { transition-duration: .06s; }
+.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .play-choice:active, .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn:active, .swatch:active, .look-btn:active, .lang-pill:active, .btn:active:not(:disabled), .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active, .lp-btn:active, .lp-card-btn:active, .lp-enter:active, .arche-btn:active, .country-btn:active { transition-duration: .06s; }
 
 /* A screen arrives a beat at a time rather than all at once. It is the front
    door's entrance, applied where a whole screen is swapped in by the nav: the
@@ -2073,6 +2073,39 @@ ${FONT_FACES}
 .arche-name { font: 700 12px var(--font-body); letter-spacing: .11em; text-transform: uppercase; color: var(--ink-2); text-align: center; }
 .arche-btn.active .arche-name { color: inherit; }
 .arche-way { margin-top: 14px; }
+
+/* ---- the flag ----
+   The mark beside a name is text, so it takes the size of whatever it sits in
+   and never a box of its own. On a device with no flag faces the glyph is the
+   country's two letters, which is why nothing here is sized as if it were an
+   image: a rule that assumed a square would leave DE clipped in half.
+
+   The picker is a search box over a scrolling list, capped in height so that
+   two hundred and fifty countries cannot push the rest of the screen away. */
+.flag-mark { line-height: 1; vertical-align: -0.08em; margin-inline-start: .3em; }
+.country-chosen { margin-top: 10px; }
+.country-picker { margin-top: 14px; }
+.country-search { display: flex; align-items: center; gap: 8px; color: var(--ink-3); }
+.country-search .chat-input { flex: 1 1 auto; }
+.country-list {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 8px;
+  margin-top: 12px; max-height: 320px; overflow-y: auto; padding: 4px;
+}
+.country-btn {
+  border: 0; background: var(--ground); color: var(--ink); cursor: pointer; text-align: start;
+  display: flex; align-items: center; gap: 8px; min-width: 0;
+  padding: 8px 10px; border-radius: 12px; box-shadow: var(--sink-sm);
+  transition: box-shadow .18s ease, transform .18s ease, color .18s ease;
+}
+.country-btn:hover { transform: translateY(-1px); }
+.country-btn.active { box-shadow: var(--raise-sm), 0 0 0 2px var(--accent-ring); color: var(--accent-ink); transform: none; }
+.country-btn:active { box-shadow: var(--sink); transform: none; }
+.country-btn.active:active { box-shadow: var(--sink), 0 0 0 2px var(--accent-ring); }
+.country-btn:disabled { cursor: default; opacity: .6; transform: none; }
+.country-flag { font-size: 17px; line-height: 1; flex: 0 0 auto; }
+.country-none { color: var(--ink-3); font-family: var(--font-display); }
+.country-name { font: 600 13px var(--font-body); color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.country-btn.active .country-name { color: inherit; }
 
 /* ---- kata of the day ---- */
 .kata-card { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }

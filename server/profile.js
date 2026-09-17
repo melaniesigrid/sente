@@ -6,7 +6,9 @@
    The shape is deliberately small. A profile here is not a social network
    page: it is the few things one player wants to know about another before
    sitting down: how long they have been at this, where they play, what they
-   like to play. Four fields, all optional, none of them a status update. */
+   like to play. Five fields, all optional, none of them a status update. */
+
+import { NO_COUNTRY, isCountryCode } from "../src/content/countries.js";
 
 /** The one paragraph. Long enough for a real sentence or three, short enough
  *  that nobody writes an essay nobody reads. */
@@ -21,6 +23,28 @@ export const FACTS = [
   { key: "likes", max: 48, label: "What you like to play", hint: "An opening, a shape, a way of losing" },
 ];
 
+
+/* ----- the flag -----
+   Two letters, and the only field on a profile that is picked from a list
+   rather than typed. It is stored as the code and never as the glyph: a flag
+   is drawn from the code by whoever is drawing it (`src/content/countries.js`),
+   so what is kept here is four bytes that cannot be a smuggled emoji, a name
+   in the wrong language, or a claim about anybody's borders.
+
+   It is said, never detected. Nothing here reads an address to guess where
+   somebody is: a guess would be wrong for everybody who travels, everybody on
+   a VPN and everybody who emigrated, and it would turn a thing a player chose
+   to say into a thing the server worked out about them. That distinction is
+   the whole of why this field is harmless. */
+
+/** The code a player may be stored under, or "" for a player who named no
+ *  country. Anything that is not a code we know becomes "": an unknown
+ *  country is nothing said, never a two-letter box beside somebody's name. */
+export function cleanCountry(v) {
+  if (typeof v !== "string") return "";
+  const code = v.trim().toUpperCase();
+  return isCountryCode(code) && code !== NO_COUNTRY ? code : "";
+}
 
 /** Strip the characters that would let one player's line break another's
  *  layout or smuggle a control code into a log. A newline, a return or a tab
@@ -89,7 +113,8 @@ export function avatarProblem(type, bytes) {
 }
 
 /** Everything a stranger may see about a player: the ladder's view plus the
- *  four things they chose to say. `avatarAt` is when the picture last changed,
+ *  things they chose to say. The flag is not repeated here: it is on
+ *  `publicPlayer` already, because it is drawn everywhere a handle is. `avatarAt` is when the picture last changed,
  *  which is also what makes its URL cacheable forever and still current. */
 export function profileOf(player, base) {
   return {

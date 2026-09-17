@@ -7,8 +7,14 @@
    area, from which he knows what to watch and whether you are improving), the
    day of the last game, the day he last wrote unprompted, the day he last
    greeted you, how many games the telemetry log held when he last looked (so he
-   can notice a game played with somebody else), and his question and your
-   answer to it.
+   can notice a game played with somebody else), his question and your answer to
+   it, and the register of shapes he has taught you.
+
+   The register is what makes him a teacher rather than a commentator. A shape
+   taught is counted, and the count decides what he says the next time it turns
+   up on the board: the teaching once, the caution once, a short reminder after
+   that. It is per profile and per device, like everything else here, so the
+   syllabus belongs to the player and not to the machine.
 
    Unlocking him is a phrase compared by digest, or an account whose address
    compares by digest. Neither the phrase nor the address is in the code. */
@@ -17,10 +23,12 @@ import { SENSEI_DIGEST } from "../content/sensei.js";
 export const SENSEI_KEY = "sente-sensei-v1";
 export const THREAD_CAP = 200;
 export const GAMES_CAP = 50;
+/** Counting a shape past this changes nothing he says. */
+export const TAUGHT_CAP = 9;
 /** SHA-256 of the lowercased addresses that open the door without the phrase. */
 export const SENSEI_ACCOUNT_DIGESTS = ["953e6e6703c0242c0c1bce472bd076bce64afe4f23f81931d1df044a61cdaeff"];
 
-const empty = () => ({ thread: [], games: [], lastGame: "", wrote: "", greeted: "", seen: 0, bond: "" });
+const empty = () => ({ thread: [], games: [], lastGame: "", wrote: "", greeted: "", seen: 0, bond: "", taught: {} });
 
 const defaultStorage = () => (typeof localStorage !== "undefined" ? localStorage : null);
 
@@ -52,9 +60,33 @@ export function loadBox(storage = defaultStorage()) {
       greeted: typeof blob.greeted === "string" ? blob.greeted : "",
       seen: Number.isInteger(blob.seen) && blob.seen >= 0 ? blob.seen : 0,
       bond: BONDS.includes(blob.bond) ? blob.bond : "",
+      taught: readTaught(blob.taught),
     };
   } catch { return empty(); }
 }
+
+/** The register, from whatever is in the box. Counts only: an id that arrives
+ *  as anything else is dropped rather than trusted, because a bad count would
+ *  silently decide he has already taught something he has not. */
+function readTaught(blob) {
+  if (!blob || typeof blob !== "object") return {};
+  const out = {};
+  for (const [id, n] of Object.entries(blob)) {
+    if (typeof id === "string" && Number.isInteger(n) && n > 0) out[id] = Math.min(n, TAUGHT_CAP);
+  }
+  return out;
+}
+
+/** He has taught this shape once more. Counting past the cap buys nothing: the
+ *  words stop changing after the third time. */
+export function teachShape(box, id) {
+  if (!id) return box;
+  const n = Math.min((box.taught?.[id] ?? 0) + 1, TAUGHT_CAP);
+  return { ...box, taught: { ...box.taught, [id]: n } };
+}
+
+/** How many times he has taught it. */
+export const timesTaught = (box, id) => box.taught?.[id] ?? 0;
 
 export function saveBox(box, storage = defaultStorage()) {
   if (!storage) return;

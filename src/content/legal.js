@@ -50,8 +50,8 @@ export const COPYRIGHT = `© ${COPYRIGHT_YEAR} ${STUDIO}`;
    its own; what it can do is make it impossible to change a word without
    being stopped and handed the line where the date lives. */
 export const REVISION = {
-  updated: "15 September 2026",
-  stamp: "5286d7e8",
+  updated: "16 September 2026",
+  stamp: "64368c23",
 };
 
 /** The day the documents last changed. */
@@ -59,7 +59,7 @@ export const UPDATED = REVISION.updated;
 /** The same day, machine-readable, so each language can set it its own way:
  *  "12 September 2026" in English, "12 de septiembre de 2026" in Spanish. The
  *  two are held in step by `legal.test.js`. */
-export const UPDATED_ISO = "2026-09-15";
+export const UPDATED_ISO = "2026-09-16";
 
 /* ---------------------------------------------------------------- credits */
 /* Everything in the build that somebody else made, with the terms it comes
@@ -197,7 +197,7 @@ const TERMS = {
 /* Every list below was read off the code rather than remembered.
    src: server/registry.js (player records, tokens, the leave path) ·
    server/room.js (chat, CHAT_KEEP = 200) · server/profile.js (the bio at 280,
-   the three facts, the avatar at 64 KB) · server/accounts.js (the stretched
+   the three facts, the country as a code, the avatar at 64 KB) · server/accounts.js (the stretched
    key, never the password) · server/mail.js (the two letters) ·
    server/ratelimit.js and `claimedFrom` (the address bucket) ·
    server/rollup.js (the daily tally and how long it is kept) ·
@@ -237,7 +237,8 @@ const PRIVACY = {
         "Your email address, if you gave one, and whether you have confirmed it. A handle can be made without one.",
         "Never your password. The browser stretches it into a key before it is sent, and what is stored is a salted hash of that key.",
         "The sign-in tokens for your open sessions, kept as hashes, so a stolen store is not a set of working keys.",
-        "Anything you chose to add to your profile: a paragraph of up to 280 characters, three short facts, and a picture of up to 64 KB.",
+        "Anything you chose to add to your profile: a paragraph of up to 280 characters, three short facts, a country if you named one, and a picture of up to 64 KB.",
+        "Where you play from is two letters and only ever the two letters you picked from a list. It is never worked out from the address you connected from: nothing here looks at where you are, and a flag beside your name is a thing you said rather than a thing we found out. Take it off and there is nothing left to hold.",
         "The games you played online, and up to 200 chat lines in each room alongside the record.",
         "An index of your finished games, one entry each, kept for as long as the account is. It holds no moves: it is the date, the board, the opponent and the result, and it is what lets your own archive be paged through without reading every game you have ever played. Leaving deletes the index; the games themselves stay in the rooms they were played in, for the reason given under Leaving.",
         "Who your friends here are: the handles you have agreed to be friends with, the requests you have sent, and the requests you have been sent. Three lists of handles with the date each was written, kept on your record and on theirs, and seen by nobody but the two of you. Declining a request deletes it and tells the person who sent it nothing at all.",

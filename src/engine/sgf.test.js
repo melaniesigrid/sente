@@ -163,6 +163,15 @@ describe("recordFromSgf", () => {
       expect(e.offset).toBe(text.indexOf(";W"));
     }
   });
+  /* IGS and the sites that mirror it write a third pass as the agreement to count,
+     and under AGA rules White must pass last, so the third pass is prescribed. A
+     file that ends that way used to be refused with "cannot pass while scoring". */
+  it("replays a game that ends in three passes", () => {
+    const rec = recordFromSgf("(;FF[4]SZ[9]RU[japanese]KM[6.5];B[ee];W[cc];B[];W[];B[])");
+    expect(rec.phase).toBe("scoring");
+    expect(rec.moves.map(m => m.type)).toEqual(["play", "play", "pass", "pass", "pass"]);
+    expect(replay(rec)).toEqual(rec);
+  });
   it("lets white move first when the record says so", () => {
     const rec = recordFromSgf("(;SZ[9];W[ee];B[cc])");
     expect(rec.firstToPlay).toBe("w");
