@@ -6,6 +6,33 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.19.0.0 (2026-09-17)
+
+### Fixed
+
+- **A browser with site data blocked shows the app instead of a blank page.** Reading the
+  `localStorage` property does not return nothing when storage is switched off, in a private
+  window or under an enterprise policy: it throws. One store was reaching for it outside a
+  guard, and because the shell had started reading that store on every draw, the throw had
+  moved from spoiling one card to taking the whole page down with it. Every read is guarded
+  now, and a browser that refuses to remember anything gets an app that works and forgets.
+
+- **The shell stopped re-reading storage on every frame.** A small count in the navigation
+  was being recomputed from stored data each time anything on the page changed, parsing the
+  whole of it to produce one number that was out of date anyway. It is read when the screen
+  changes, which is when it can actually differ.
+
+- **Signing in takes effect without a reload.** The account was being read once when the
+  page opened and never again, so anything that depends on being signed in stayed switched
+  off for the rest of the visit. It refreshes when the account does.
+
+### Changed
+
+- **Handicap stones and the komi that pays for them stay together.** A komi chosen for an
+  even game could follow you into a game that starts with stones on the board, where a
+  different komi is owed, and quietly decide a close one. A komi you set survives a change
+  of opponent; it does not survive a change in the number of stones.
+
 ## v0.17.0.0 (2026-09-16)
 
 ### Added

@@ -2137,6 +2137,71 @@ Open:
       survive in the record; the numbers do not). Persisting them through `gameStore`
       would need a new field and its sanitiser.
 - [ ] Daily go news is not possible: the privacy contract forbids the app fetching anything.
+- [x] Only the modes where he plays straight are rated (2026-09-16). His games were
+      moved into the rated branch, and Hunt me hands over a deliberately inferior move
+      on nearly half his eligible turns; a rank built out of wins against a move he
+      threw is not her rank, and it was feeding both the ladder and the level advisor.
+      `rated` is a rule of the mode now (`TEACHING_MODES`), and it is exactly the modes
+      that give nothing away and start her level: Shape school, Spar, The test. Walk
+      with me, Hunt me and the teaching game settle unrated beside the coached games,
+      and the row says which it is before she picks it.
+
+- [ ] Found by the adversarial pass while shipping those modes (2026-09-16). All of
+      these are older than that branch and none were introduced by it:
+- [ ] **P1** A hung network call wedges his board with no way out. `trainerAsk`
+      (`src/views/Game.jsx`) chains every call onto one promise queue and catches
+      rejection, but not a promise that never settles - which is exactly the shape
+      of the ORT proxy-flag failure. If `evaluatePosition` or
+      `kataChooseMoveForRecord` hangs, `setThinking(false)` never runs, the queue is
+      poisoned for the rest of the game, and `canResign` is `!over && !thinking`, so
+      she can neither play, nor pass, nor resign. Race each `trainerAsk` against a
+      timeout that resolves null.
+- [ ] **P1** "Played without me" dies permanently after fifty games.
+      `playedWithoutHim` compares `box.seen` against `log.length`, but the telemetry
+      log is a ring buffer capped at 50 (`src/store/telemetry.js`). Once the device
+      has fifty games the length is pinned, `seen` catches up, and the jealous line
+      never fires again for anybody who actually uses the app. Compare against the
+      last-seen entry's day and identity, not the array length.
+- [ ] **P2** Every anti-repetition marker is write-only-on-success. `saveBox`
+      swallows a quota throw, and `enticed`, `rung`, `greeted`, `bond` and `taught`
+      all live in that one blob. Under quota pressure a "yes" to his question is
+      silently dropped and he asks again, `markRead` never sticks so the badge never
+      clears, and the shape course restarts from lesson one every game. `saveBox`
+      should return whether it landed, and the callers should be able to tell.
+- [ ] **P2** The whole box is parsed and re-serialised twice per move pair.
+      `noteTaught` calls `loadBox`/`saveBox` to increment one integer, synchronously
+      between two network calls. With a thread at its 200-message cap that is real
+      main-thread time per stone. Keep the register in a ref and flush it once at
+      `endTraining`; cap message length in `isMsg` while you are there.
+- [ ] **P2** "Hide him" is a silent no-op when both doors are open. A profile that
+      typed the phrase *and* signs in with the allowed address has `profile.sensei`
+      true, so the button renders; clicking it clears the flag while the account door
+      keeps him on, and the button comes straight back. Either hide the control when
+      the account is the door, or have it close both.
+- [ ] **P2** His id leaks into the game log for anyone holding the device.
+      `nameOf` in `src/views/Profile.jsx` falls back to the raw id for a bot that is
+      not in `PERSONAS`, and he never is - so the card shows a row reading `kejie`
+      with a win/loss record whether or not this profile has unlocked him. Filter
+      `SENSEI_ID` out of `byBot` while he is locked.
+- [ ] **P2** The gate hides a card, not the bytes. `src/content/sensei.js` is
+      statically imported by Home, so every line he can say - including the pet names
+      that carry a real first name - is in the main bundle served to every visitor.
+      Dynamic-import the module behind the access check so it code-splits. The
+      digests themselves cannot be fixed by hashing harder; that part is a product
+      call, not a bug.
+- [ ] **P3** The gloss contract is enforced at build time, not at runtime.
+      `bareCJK` is only ever called by the test sweep, so the rule holds for the
+      strings the suite enumerates and not for `profile.name`, which `petName` puts
+      straight into the pool and which she can set to any Han string. `glossFor` also
+      matches by substring, so a longer Han word containing a glossary name is
+      annotated with the wrong meaning.
+- [ ] **P3** `isSummary` validates the mean but not the counts under it, so a
+      hand-edited `areas[a].n` of `"9999"` turns `areaMeans` arithmetic into string
+      concatenation and `focusFor` names the wrong weakness with no error anywhere.
+      Devtools-only, but the fix is one `Number.isFinite` check.
+- [ ] **P3** `.nav-ping` and `.letter-unread` are raised pills with no `background`,
+      so the two shadows are drawn around transparent content and the surface behind
+      them reads through.
 - [ ] The phrase is one shared digest. If a second person should ever have him, that is
       an account-level flag on the server, not a phrase, and legal.js would need a line.
 
