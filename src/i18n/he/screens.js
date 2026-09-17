@@ -78,7 +78,7 @@ export const screens = {
   },
   /* המבואה: הרמה, השולחן, ומי יושב אליו. */
   play: {
-    trainer: { cta: "להתאמן עם {name}", note: "פרטי למכשיר הזה. מדורג.", how: "איך הוא מלמד" },
+    trainer: { cta: "להתאמן עם {name}", note: "פרטי למכשיר הזה.", how: "איך הוא מלמד", rated: "מדורג", practice: "תרגול" },
     label: "להתיישב",
     titleBefore: "חיפוש ",
     titleEm: "משחק",

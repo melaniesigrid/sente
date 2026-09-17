@@ -604,6 +604,20 @@ describe("six ways to be taught", () => {
     expect(new Set(rules.map((r) => JSON.stringify(r))).size).toBe(rules.length);
   });
 
+  it("rates exactly the modes where he plays straight, and no others", () => {
+    /* A rank is a measurement. A game he threw a move in is not a measurement of
+       her, and a rank built out of those is not the rank the road to champion is
+       counted in. So the rated modes are exactly the ones that give nothing away
+       and start her level: anything with a gift rate or a handicap is practice. */
+    for (const id of MODE_IDS) {
+      const r = modeRules(id);
+      expect(r.rated, id).toBe(r.giftChance === 0 && r.handicap === 0);
+    }
+    expect(MODE_IDS.filter((id) => modeRules(id).rated).sort()).toEqual(["shape", "spar", "test"]);
+    // The ordinary lesson gives something away, so even the default is practice.
+    expect(modeRules(DEFAULT_MODE).rated).toBe(false);
+  });
+
   it("never gives a gift in a mode whose gift rate is zero, whatever the dice say", () => {
     const always = () => 0;  // the dice always say yes
     const at = { ownMoves: 20, moveNumber: 21, size: 19, lastGift: null, rng: always };

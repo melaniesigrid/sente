@@ -368,10 +368,16 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
         notify({ icon: won ? "trophy" : "flag", text: t("game.toast.unrated", { outcome: t(won ? "game.toast.victory" : "game.toast.defeat") }) });
-      } else if (persona && coaching) {
+        /* A mode where he throws a move is practice, not a measurement. He gives
+           something away in the ordinary lesson, twice as often in the hunt, and the
+           teaching game starts her four stones up; a rank built out of wins against
+           a move he threw is not her rank. Those three settle here with the coached
+           games, unrated and saying so, and the three where he plays straight are the
+           ones that count. */
+      } else if (persona && (coaching || (sensei && !senseiRules.rated))) {
         remember("coached");
-        // The coach spoke in this game, so the game moves no rating. Said plainly,
-        // the way a duel and a master game say it.
+        // Advice was given, or the opponent threw a move on purpose. Either way the
+        // game moves no rating, and says so the way a duel and a master game do.
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
         notify({ icon: won ? "trophy" : "flag", text: t("game.toast.coached", { outcome: t(won ? "game.toast.victory" : "game.toast.defeat") }) });
@@ -419,7 +425,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       }
     }
     return next;
-  }, [persona, duel, master, botRank, profile, say, setProfile, notify, sound, coaching, t, sensei, endTraining]);
+  }, [persona, duel, master, botRank, profile, say, setProfile, notify, sound, coaching, t, sensei, endTraining, senseiRules.rated]);
 
   /* The clock. Running out of time is a rule, so the flag goes through the engine's
      `timeout` and settles through the same `conclude` a resignation does: a loss on

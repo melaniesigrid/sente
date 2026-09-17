@@ -72,7 +72,7 @@ export const screens = {
     unreadable: "No se ha podido leer {name} del disco.",
   },
   play: {
-    trainer: { cta: "Entrena con {name}", note: "Privado en este dispositivo. Puntúa.", how: "Cómo enseña" },
+    trainer: { cta: "Entrena con {name}", note: "Privado en este dispositivo.", how: "Cómo enseña", rated: "Puntúa", practice: "Práctica" },
     label: "Siéntate",
     titleBefore: "Busca una ",
     titleEm: "partida",

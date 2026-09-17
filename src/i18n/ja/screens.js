@@ -72,7 +72,7 @@ export const screens = {
     unreadable: "{name} をディスクから読めませんでした。",
   },
   play: {
-    trainer: { cta: "{name}と稽古する", note: "この端末だけの非公開。レーティングされます。", how: "稽古のつけ方" },
+    trainer: { cta: "{name}と稽古する", note: "この端末だけの非公開。", how: "稽古のつけ方", rated: "レーティングあり", practice: "練習" },
     label: "座る",
     titleBefore: "一局",
     titleEm: "探す",

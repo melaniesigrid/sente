@@ -3,6 +3,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, cleanup, within } from "@testing-library/react";
 import { PROBLEMS, problemsInSet } from "../content/problems.js";
 import { SENSEI_KEY } from "../store/sensei.js";
+import { dayKey } from "../content/kata.js";
 
 const serverEnabled = vi.fn(() => false);
 const loadAccount = vi.fn(() => null);
@@ -151,7 +152,10 @@ describe("his invitation to the board", () => {
   });
 
   it("stops the moment there is a game with him today", () => {
-    const today = new Date().toISOString().slice(0, 10);
+    /* The app's own day key, which is local. Building one from toISOString gives
+       the UTC date, and west of Greenwich those are different days all evening -
+       the seeded "he played today" landed on tomorrow and the guard never saw it. */
+    const today = dayKey();
     localStorage.setItem(SENSEI_KEY, JSON.stringify({ thread: [], games: [], lastGame: today, rung: "" }));
     render(<Home profile={profile({ sensei: true, wins: 2 })} go={() => {}} onResume={() => {}} />);
     const said = loadBox().thread.map((m) => m.text);

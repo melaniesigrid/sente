@@ -72,7 +72,7 @@ export const screens = {
     unreadable: "{name} 从磁盘上读不出来。",
   },
   play: {
-    trainer: { cta: "跟{name}训练", note: "仅在此设备上，私人使用。计分。", how: "他的授课方式" },
+    trainer: { cta: "跟{name}训练", note: "仅在此设备上，私人使用。", how: "他的授课方式", rated: "计分", practice: "练习" },
     label: "坐下",
     titleBefore: "找一局",
     titleEm: "棋",

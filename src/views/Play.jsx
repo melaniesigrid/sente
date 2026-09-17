@@ -212,7 +212,10 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
       setSession({
         mode: {
           ...mode, size: table.size, handicap: stones, rules: table.rules, clock,
-          komi: table.komi ?? defaultKomi(stones, table.size, table.rules),
+          /* A custom komi belongs to the table she set it on. A mode that brings its
+             own stones brings the komi those stones are owed, or a komi chosen for an
+             even game would ride into a four-stone one and quietly decide it. */
+          komi: stones === table.handicap ? komi : defaultKomi(stones, table.size, table.rules),
         },
       });
     };
@@ -453,6 +456,10 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
                       <span className="fine">
                         {at}
                         {rules.handicap ? ` · ${t("play.stones", { count: rules.handicap })}` : ""}
+                        {/* Whether it counts, on the row where she picks it. A mode he
+                            throws a move in is practice, and she should not have to
+                            play one to find that out. */}
+                        {` · ${t(rules.rated ? "play.trainer.rated" : "play.trainer.practice")}`}
                       </span>
                     </div>
                     <span className="fine trainer-mode-promise">{m.promise}</span>

@@ -45,20 +45,27 @@ export const TRAINER = {
      "yours"   only yours, so his own reading stays hidden
      "none"    nothing until the review, which is the test
    `teach` is whether the shape course runs during the game; "always" asks for a
-   shape on every move it can name, which is what a drill is. */
+   shape on every move it can name, which is what a drill is.
+
+   `rated` is whether the game moves the ladder. Only the modes where he plays
+   straight: a rank is a measurement, and a game he threw a move in is not a
+   measurement of her. He gives something away in `walk` and twice as often in
+   `hunt`, and `teaching` starts her four stones up, so those three are practice
+   and say so. The three that give nothing count. This is the honest version of
+   "his games are rated": the ones that are, are. */
 export const TEACHING_MODES = {
   /** The lesson. Every move explained, the usual gift rate, two ranks above you. */
-  walk: { rankStep: 2, giftChance: TRAINER.chance, notes: "all", handicap: 0, teach: true },
+  walk: { rankStep: 2, giftChance: TRAINER.chance, notes: "all", handicap: 0, teach: true, rated: false },
   /** The drill. He plays closer to your strength and names the shape every time. */
-  shape: { rankStep: 1, giftChance: 0, notes: "all", handicap: 0, teach: "always" },
+  shape: { rankStep: 1, giftChance: 0, notes: "all", handicap: 0, teach: "always", rated: true },
   /** The hunt. He gives away twice as much and explains none of it. */
-  hunt: { rankStep: 2, giftChance: 0.45, notes: "yours", handicap: 0, teach: false },
+  hunt: { rankStep: 2, giftChance: 0.45, notes: "yours", handicap: 0, teach: false, rated: false },
   /** The spar. No gifts, no notes on his own moves, a rank harder. */
-  spar: { rankStep: 3, giftChance: 0, notes: "yours", handicap: 0, teach: false },
+  spar: { rankStep: 3, giftChance: 0, notes: "yours", handicap: 0, teach: false, rated: true },
   /** The test. Nothing said until the review, and he plays it straight. */
-  test: { rankStep: 3, giftChance: 0, notes: "none", handicap: 0, teach: false },
+  test: { rankStep: 3, giftChance: 0, notes: "none", handicap: 0, teach: false, rated: true },
   /** The teaching game. Four stones in front, and he plays far above you. */
-  teaching: { rankStep: 6, giftChance: 0, notes: "all", handicap: 4, teach: true },
+  teaching: { rankStep: 6, giftChance: 0, notes: "all", handicap: 4, teach: true, rated: false },
 };
 
 export const MODE_IDS = Object.keys(TEACHING_MODES);

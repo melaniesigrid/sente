@@ -78,7 +78,7 @@ export const screens = {
   },
   /* The lobby: the level, the table, and who is sitting at it. */
   play: {
-    trainer: { cta: "Train with {name}", note: "Private to this device. Rated.", how: "How he teaches" },
+    trainer: { cta: "Train with {name}", note: "Private to this device.", how: "How he teaches", rated: "Rated", practice: "Practice" },
     label: "Sit down",
     titleBefore: "Find a ",
     titleEm: "game",
