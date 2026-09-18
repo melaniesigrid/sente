@@ -9,7 +9,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, cleanup, fireEvent, screen } from "@testing-library/react";
 import { themeVars, REVIEW_THEME } from "../theme/index.js";
 import { CSS } from "../styles/css.js";
-import { createGame, play, pass } from "../engine/index.js";
+import { createGame, play, pass, recordFromSgf } from "../engine/index.js";
 
 vi.mock("../net/api.js", () => ({ serverEnabled: () => false }));
 vi.mock("../store/account.js", () => ({ loadAccount: () => null }));
@@ -35,6 +35,21 @@ const record = () => {
 afterEach(cleanup);
 
 const sheet = () => document.querySelector(".review-room");
+
+/* An imported game says how it ended, and the header has to say who said so:
+   the margin in the file is the other server's count, not one we can check. */
+describe("the result in the header", () => {
+  it("attributes an imported game's result to the file it came from", () => {
+    const rec = recordFromSgf("(;FF[4]SZ[9]KM[6.5]RE[B+48.5];B[ee];W[cc];B[];W[];B[])");
+    render(<Review record={rec} onExit={() => {}} profile={{}} />);
+    expect(screen.getByText("The file says Black wins by 48.5.")).toBeTruthy();
+  });
+
+  it("says a game is unfinished when the file claims nothing", () => {
+    render(<Review record={record()} onExit={() => {}} profile={{}} />);
+    expect(screen.getByText("Unfinished game")).toBeTruthy();
+  });
+});
 
 describe("the room review is read in", () => {
   it("draws the record in Kifu, whichever room the player plays in", () => {

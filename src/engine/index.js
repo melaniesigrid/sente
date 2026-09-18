@@ -24,7 +24,7 @@ export {
 } from "./rulesets.js";
 export {
   MAX_SGF_BYTES, SgfParseError, parseSgfTree, parseSgf, recordFromSgf, toSgf,
-  pointFromSgf, pointToSgf, resultToSgf,
+  pointFromSgf, pointToSgf, resultToSgf, claimFromSgf,
 } from "./sgf.js";
 export {
   atMove, moveNumbers, captureMoves, nextCapture, prevCapture,

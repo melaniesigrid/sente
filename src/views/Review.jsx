@@ -6,7 +6,7 @@ import {
 import { Btn, Pill } from "../components/ui.jsx";
 import { themeVars, REVIEW_THEME } from "../theme/index.js";
 import { startLine, playInLine, backInLine, lineFrom, lineLabel, canBranch, reviewLabelText, winRateLineText } from "./reviewLine.js";
-import { refusalText, resultSentence } from "./gameStatus.js";
+import { refusalText, resultSentence, claimSentence } from "./gameStatus.js";
 import { useT } from "../components/langStore.js";
 import { Board } from "../components/Board.jsx";
 import { legiblePx } from "../components/boardGeometry.js";
@@ -254,7 +254,9 @@ export function Review({ record, onExit, onRematch, profile = {}, shared = null,
     <div className="stack review-room" style={themeVars(REVIEW_THEME, null, profile.stones)}>
       <div className="row spread">
         <Btn icon={ChevronLeft} small onClick={onExit}>{t("review.back")}</Btn>
-        <span className="review-result">{resultSentence(record.result, t) ?? t("review.unfinished")}</span>
+        <span className="review-result">
+          {resultSentence(record.result, t) ?? claimSentence(record.claimed, t) ?? t("review.unfinished")}
+        </span>
       </div>
       {/* Who else is at this board. The banner is the whole of the difference on
           screen between reading a game alone and reading it with the person you

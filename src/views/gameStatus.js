@@ -134,6 +134,22 @@ export function resultSentence(result, t = EN) {
   return t("game.by", { winner: wins, how });
 }
 
+/* An imported file's own account of how it ended, said as what it is. Joseki
+   fills `result` when it counted the board or watched the game end; an SGF's RE
+   is neither, and cannot be checked: the file gives a margin without saying
+   which stones were dead, so there is no count here to compare it against. So
+   the number is shown with the file's name on it, never as ours. */
+export function claimSentence(claimed, t = EN) {
+  if (!claimed) return null;
+  if (claimed.winner === null) return t("review.claimed", { result: t("game.jigoHead") });
+  const how = claimed.method === "resign" ? t("game.howResign")
+    : claimed.method === "time" ? t("game.howTime")
+      : claimed.method === "forfeit" ? t("game.howForfeit")
+        : t("game.howMargin", { margin: claimed.margin });
+  const result = t("game.by", { winner: t(`game.wins.${claimed.winner}`), how });
+  return t("review.claimed", { result });
+}
+
 /** Text for the rating line under the result, or null for an unrated game. */
 export function ratingLine(delta, t = EN) {
   if (!delta || typeof delta !== "object") return null;
