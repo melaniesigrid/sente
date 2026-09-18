@@ -324,7 +324,7 @@ ${FONT_FACES}
    left standing proud of a tray. A card keeps its two shadows and spends them:
    two pixels of offset is a card with a thumb on it. It travels the one pixel
    that offset gives up, so the card goes down rather than only going quiet. */
-.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .play-choice:active { box-shadow: var(--press); transform: translateY(1px); }
+.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .play-choice:active, .trainer-mode:active { box-shadow: var(--press); transform: translateY(1px); }
 
 /* A control is small enough to invert, which is what the nine already do. */
 .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn.active:active { box-shadow: var(--sink-sm); transform: none; }
@@ -342,7 +342,7 @@ ${FONT_FACES}
    sinks while still held two pixels up is being pressed and lifted at once. */
 .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active { transform: none; }
 
-.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .play-choice:active, .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn:active, .swatch:active, .look-btn:active, .lang-pill:active, .btn:active:not(:disabled), .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active, .lp-btn:active, .lp-card-btn:active, .lp-enter:active, .arche-btn:active, .country-btn:active { transition-duration: .06s; }
+.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .play-choice:active, .trainer-mode:active, .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn:active, .swatch:active, .look-btn:active, .lang-pill:active, .btn:active:not(:disabled), .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active, .lp-btn:active, .lp-card-btn:active, .lp-enter:active, .arche-btn:active, .country-btn:active { transition-duration: .06s; }
 
 /* A screen arrives a beat at a time rather than all at once. It is the front
    door's entrance, applied where a whole screen is swapped in by the nav: the
@@ -613,6 +613,12 @@ ${FONT_FACES}
 /* ---- lobby / personas ---- */
 .persona-card { text-align: start; border: 0; cursor: pointer; color: var(--ink); display: flex; flex-direction: column; gap: 12px; transition: transform .15s ease, box-shadow .15s ease; }
 .persona-card:hover { transform: translateY(-2px); }
+/* ...except the trainer's, which stopped being one button when it grew six. It
+   keeps the layout and loses the affordance: an inert 300px card must not lift
+   under the cursor, and pressing a mode row must not turn the whole card inside
+   out around it. */
+.trainer-card { cursor: default; }
+.trainer-card:hover, .trainer-card:active { transform: none; box-shadow: var(--raise); }
 .persona-top { display: flex; align-items: center; gap: 13px; }
 .persona-top > div:nth-child(2) { flex: 1; }
 .persona-top h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }
@@ -843,6 +849,29 @@ ${FONT_FACES}
 .letter-unread { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; box-shadow: var(--raise-sm); color: var(--accent-ink); }
 .letter-log { max-height: 340px; }
 .letter-you { margin-inline-start: auto; }
+.letter-name .here-dot, .trainer-card h3 .here-dot { margin-inline-start: 6px; }
+.nav-ping { font-size: 12px; font-weight: 700; min-width: 18px; padding: 1px 6px; border-radius: 999px; box-shadow: var(--raise-sm); color: var(--accent-ink); margin-inline-start: 6px; }
+.bubble-gloss { display: block; margin-top: 4px; font-size: 12.5px; color: var(--ink-2); }
+/* The two Chinese names in the trainer header, with their sound and meaning. Never
+   hidden behind a hover: a name you cannot read is not explained by a tooltip. */
+.letter-names { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: -4px 0 2px; }
+.letter-gloss { color: var(--ink-2); }
+/* How he teaches, as a list of rooms rather than a settings row: each one sits
+   down straight away, so it is raised like every other thing you can press, and
+   it is on the press ladder below to prove it. There is no global button reset in
+   this stylesheet, so a card-button declares its own the way .persona-card does;
+   without it the UA border draws a hard edge over the two shadows that are
+   supposed to be the only edge, and the label falls out of the themed font. */
+.trainer-modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin: 12px 0 4px; }
+.trainer-mode { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; text-align: start;
+  appearance: none; border: 0; font: inherit; color: var(--ink); cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease; }
+.trainer-mode:hover { transform: translateY(-2px); }
+.trainer-mode-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.trainer-mode-promise { line-height: 1.5; }
+.trainer-names { margin-top: 10px; }
+.trainer-names summary { cursor: pointer; }
+.trainer-glossary { margin: 8px 0 0; padding-inline-start: 18px; font-size: 14px; line-height: 1.6; }
 .bubble.fresh { box-shadow: var(--raise-sm), 0 0 0 2px var(--accent-ring); }
 .trainer-about { margin-top: 2px; font-size: 12.5px; }
 .trainer-report p { margin-top: 4px; }

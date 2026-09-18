@@ -33,7 +33,7 @@ import { LangPill } from "./components/LangPill.jsx";
 import { useLang } from "./components/langStore.js";
 import { defaultProfile, loadProfile, saveProfile, needsOnboarding } from "./store/profile.js";
 import { pullProgress, withProgress } from "./store/sync.js";
-import { ACCOUNT_EVENT } from "./store/account.js";
+import { ACCOUNT_EVENT, ACCOUNT_KEY } from "./store/account.js";
 import { Home } from "./views/Home.jsx";
 import { Welcome } from "./views/Welcome.jsx";
 import { Landing } from "./views/Landing.jsx";
@@ -55,9 +55,15 @@ import { DOCUMENTS, COPYRIGHT_YEAR, STUDIO, STUDIO_URL } from "./content/legal.j
 import { JournalView } from "./views/Journal.jsx";
 import { linkFromQuery, forgetLink } from "./views/letterLink.js";
 
+import { loadBox, unread } from "./store/sensei.js";
+import { useTrainerAccess } from "./views/useTrainer.js";
+import { loadAccount as loadStoredAccount } from "./store/account.js";
+import { serverEnabled as serverIsOn } from "./net/api.js";
+
 /* ----------------------- APP SHELL ----------------------- */
 /* The nav names its sections by key, not by word: the chrome is read in the
    player's own language, and a language is added by adding a catalogue. */
+
 const NAV = [
   { id: "home", icon: LayoutDashboard },
   { id: "play", icon: Swords },
@@ -140,6 +146,47 @@ export default function JosekiApp() {
   }, []);
 
   const go = useCallback((v, p = null) => { setResume(null); setParams(p); setView(v); }, []);
+  /* The account is held, not rebuilt on every render: it is a dependency of the
+     trainer-access effect, and a fresh object each render would tear that effect
+     down and re-run a SHA-256 every time the shell drew. Held is not frozen,
+     though - one of the two doors to the trainer is the account address, so
+     signing in has to open it without a reload. The listeners are the ones Play
+     already uses, plus the account event the store dispatches on its own writes. */
+  const [account, setAccount] = useState(() => (serverIsOn() ? loadStoredAccount() : null));
+  useEffect(() => {
+    if (!serverIsOn()) return undefined;
+    const refresh = () => setAccount(loadStoredAccount());
+    const onStorage = (e) => { if (!e.key || e.key === ACCOUNT_KEY) refresh(); };
+    const onVisible = () => { if (document.visibilityState === "visible") refresh(); };
+    window.addEventListener(ACCOUNT_EVENT, refresh);
+    window.addEventListener("focus", refresh);
+    window.addEventListener("storage", onStorage);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener(ACCOUNT_EVENT, refresh);
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener("storage", onStorage);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
+  const trainerOn = useTrainerAccess(profile, account);
+  /* The trainer's ping: how many lines of his are waiting, from the box on this
+     device. It marks the home button and the tab title, and nothing else: no
+     notification permission is asked for, because the app never contacts anything.
+
+     It is state read on a screen change rather than arithmetic in the render body,
+     which parsed localStorage on every draw of the shell. Neither form catches a
+     thread read without leaving the screen: putting his letters away on the
+     dashboard writes the box but does not change the view, so the badge clears on
+     the next navigation rather than on the click. */
+  const [pings, setPings] = useState(0);
+  useEffect(() => {
+    setPings(trainerOn ? unread(loadBox()).length : 0);
+  }, [trainerOn, view]);
+  useEffect(() => {
+    const base = document.title.replace(/^\(\d+\) /, "");
+    document.title = pings > 0 ? `(${pings}) ${base}` : base;
+  }, [pings, view]);
   const resumeGame = useCallback((session) => { setResume(session); setView("play"); }, []);
   const home = useCallback(() => go("home"), [go]);
   // Spent or abandoned, the token leaves the address bar either way.
@@ -181,6 +228,7 @@ export default function JosekiApp() {
               aria-current={view === n.id ? "page" : undefined}>
               <n.icon size={16} strokeWidth={2.2} />
               <span>{t(`nav.${n.id}`)}</span>
+              {n.id === "home" && pings > 0 && <span className="nav-ping" aria-label={t("home.trainer.pings", { count: pings })}>{pings}</span>}
             </button>
           ))}
         </nav>

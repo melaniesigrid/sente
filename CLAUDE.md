@@ -168,6 +168,15 @@ in `server/` (Durable Objects), deployed separately.
   (Board, ui primitives, Toast, ErrorBoundary), `src/views/` (one file per screen; `Game`
   is a thin adapter over `GameRecord`), `src/store/` (localStorage), `src/styles/css.js`
   (the stylesheet). `src/App.jsx` is the shell only. Keep the section banners.
+- **Reading `localStorage` throws; it does not answer with nothing.** Where site data is
+  blocked (a private window, an embedded context, an enterprise policy) the property access
+  itself raises, so every store in `src/store/` reaches it through a guarded accessor
+  (`try { return globalThis.localStorage || null; } catch { return null; }`) or from inside
+  a `try` that answers with the default. One unguarded read in a store the shell touches on
+  every draw takes the whole page down instead of spoiling one card, which is how this was
+  found. A browser that refuses to remember anything gets an app that works and forgets.
+  The shell reads a store when the screen changes, not in the render body: parsing the whole
+  of one on every draw to produce a number that only moves on navigation is work for nothing.
 - The server never holds a rule either. `server/room.js` is a pure reducer over the room
   and imports the engine directly (`src/engine/record.js`, not `index.js`, which pulls in
   the browser-only KataGo runtime). Durable Objects only parse, apply, store, broadcast.
