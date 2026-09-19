@@ -146,7 +146,7 @@ describe("the review", () => {
 describe("his letters", () => {
   it("writes about an absence, a win and a loss, and stays deterministic", () => {
     expect(letterFor({ daysAway: 4 }, 1)).toContain("4 days");
-    expect(letterFor({ won: true, name: "Mel" }, 2)).toContain("Mel");
+    expect(letterFor({ won: true, name: "Mel" }, 0)).toContain("Mel");
     expect(letterFor({ won: false, kept: 2 }, 0)).toMatch(/every mistake|caught me/);
     expect(letterFor({ won: false }, 0)).toBe(letterFor({ won: false }, 0));
     expect(letterFor({}, 0).length).toBeGreaterThan(10);
@@ -235,6 +235,56 @@ describe("talking to him", () => {
     expect(bondQuestion("Mel")).toContain("girlfriend");
     expect(bondYes().length).toBeGreaterThan(10);
     expect(bondNo()).toContain("not ask again");
+  });
+});
+
+import { NAMES, PET_NAMES, GLOSSARY, petName, glossFor } from "./sensei.js";
+
+describe("names", () => {
+  it("gives every Chinese name a sound and a meaning", () => {
+    const cjk = /[一-鿿]/;
+    for (const g of [...NAMES.him, ...NAMES.you]) {
+      expect(g.pinyin, g.name).toBeTruthy();
+      expect(g.means, g.name).toBeTruthy();
+    }
+    for (const p of PET_NAMES) if (cjk.test(p.name)) expect(p.pinyin, p.name).toBeTruthy();
+    expect(GLOSSARY.every((g) => g.pinyin && g.means)).toBe(true);
+  });
+  it("uses only the go names before the bond and the whole list after", () => {
+    const before = new Set(Array.from({ length: 60 }, (_, i) => petName(i, "Mel", false)));
+    const after = new Set(Array.from({ length: 60 }, (_, i) => petName(i, "Mel", true)));
+    expect(before.has("Little Ko")).toBe(true);
+    expect(before.has("兰宝")).toBe(false);
+    expect(after.has("兰宝")).toBe(true);
+    expect(after.has("Mel")).toBe(true);
+    expect(after.size).toBeGreaterThan(before.size);
+  });
+  it("finds the terms a line uses so the thread can gloss them", () => {
+    const g = glossFor("Good move, 兰宝. 潜潜 approves.");
+    expect(g.map((x) => x.pinyin)).toEqual(expect.arrayContaining(["Lán Bǎo", "Qiánqián"]));
+    expect(glossFor("Good move, Little Ko.")).toEqual([]);
+  });
+});
+
+import { ON_THE_RECORD, SWEET, sweetLine } from "./sensei.js";
+
+describe("the record and the sweet talk", () => {
+  it("names a source for every fact, and marks the one quotation as one", () => {
+    for (const r of ON_THE_RECORD) { expect(r.source.length).toBeGreaterThan(3); expect(r.fact.length).toBeGreaterThan(20); }
+    expect(ON_THE_RECORD.filter((r) => r.quote)).toHaveLength(1);
+    expect(ON_THE_RECORD.find((r) => r.quote).quote).toContain("god of Go");
+  });
+  it("asks the question in the words asked for", () => {
+    expect(bondQuestion("Melanie")).toContain("Melanie... I have been thinking");
+    expect(bondQuestion("Melanie")).toContain("floored by how beautiful you are. Will you be my girlfriend?");
+  });
+  it("says the dress line only once bonded, and every third greeting carries a compliment", () => {
+    expect(SWEET.filter((l) => l.includes("pretty little dress")).length).toBeGreaterThan(0);
+    expect(replyTo("do you like my dress?", { bonded: false })[0]).not.toContain("dress.");
+    expect(replyTo("do you like my dress?", { bonded: true, seed: 0 })[0]).toBe(sweetLine(0));
+    expect(greetingFor(9, 3, "Mel", true).startsWith(sweetLine(3))).toBe(true);
+    expect(greetingFor(9, 4, "Mel", true).startsWith(sweetLine(4))).toBe(false);
+    expect(greetingFor(9, 3, "Mel", false)).not.toContain(sweetLine(3));
   });
 });
 
@@ -448,5 +498,312 @@ describe("the shape of the day", () => {
   it("still has something to say once the course is finished", () => {
     const all = Object.fromEntries(SHAPE_COURSE.map((id) => [id, 3]));
     expect(openingLesson(all, 4)).toMatch(/\w/);
+  });
+});
+
+/* ----------------------- THE HOUSE RULE ABOUT HIS LANGUAGE ----------------------- */
+import {
+  bareCJK, CJK, MODES, modeById, modeLine, CHAMPION, championStep, championLine, enticeLine,
+} from "./sensei.js";
+import { TEACHING_MODES, MODE_IDS, DEFAULT_MODE, modeRules, giftDue } from "../engine/sensei.js";
+import { RANK_LADDER as LADDER, ratingOfRank } from "./rank.js";
+
+/** Everything he can be made to say, across every branch and a spread of seeds.
+ *  If a line can reach the screen it has to be in here, because this list is what
+ *  the Chinese rule is enforced against. */
+function everythingHeSays() {
+  const out = [];
+  const profile = { rating: 1100, rd: 120 };
+  const tr = { opening: "up", fights: "down", shape: "flat", direction: null, endgame: "up", reading: "up", overall: "up" };
+  for (let s = 0; s < 12; s++) {
+    for (const bonded of [false, true]) {
+      for (const hour of [8, 14, 21]) out.push(greetingFor(hour, s, "Mel", bonded));
+      out.push(letterFor({ daysAway: 5, name: "Mel", bonded }, s));
+      out.push(letterFor({ won: true, name: "Mel", bonded }, s));
+      out.push(letterFor({ won: false, kept: 1, name: "Mel", bonded }, s));
+      out.push(letterFor({ name: "Mel", bonded }, s));
+      out.push(championLine(profile, s, "Mel", bonded));
+      out.push(enticeLine(s, "Mel", bonded, { focus: "shape" }));
+      for (const m of MODE_IDS) out.push(modeLine(m, s, "Mel", bonded));
+      out.push(petName(s, "Mel", bonded));
+      for (const said of [
+        "hello", "I love you", "what is my rank", "am I getting better", "I lost", "I won",
+        "I had a bad day", "busy today", "do you like my dress?", "goodnight", "thanks",
+        "am I ever going to be champion?", "teach me differently", "banana", "who are you?",
+      ]) out.push(...replyTo(said, { name: "Mel", focus: "fights", trend: tr, profile, bonded, seed: s, games: 9 }));
+    }
+  }
+  out.push(...reportLines(tr, "Mel"), sweetLine(0), bondQuestion("Mel"), bondYes(), bondNo());
+  for (const a of AREAS) out.push(AREA_WORDS[a].name, AREA_WORDS[a].rule, AREA_WORDS[a].good, AREA_WORDS[a].bad);
+  for (const m of MODES) out.push(m.name, m.promise, m.pitch, ...m.sit);
+  for (const c of CHAMPION) out.push(c.stop, c.next, c.him);
+  return out.filter(Boolean);
+}
+
+describe("no Chinese without its sound and its meaning", () => {
+  it("explains every Chinese word in everything he can say", () => {
+    const unexplained = [];
+    for (const line of everythingHeSays()) {
+      const bare = bareCJK(line);
+      if (bare.length) unexplained.push(`${bare.join("")} in: ${line}`);
+    }
+    expect(unexplained).toEqual([]);
+  });
+
+  it("explains the names on his own card, which is where they are most visible", () => {
+    for (const name of [KE_JIE.nickname, KE_JIE.handle, KE_JIE.yourHandle]) {
+      expect(CJK.test(name), name).toBe(true);
+      expect(bareCJK(name), name).toEqual([]);
+      expect(glossFor(name).length, name).toBeGreaterThan(0);
+    }
+  });
+
+
+  it("catches a Chinese word the glossary has never heard of", () => {
+    // The guard is only worth having if it fails on something. 天元 is the centre
+    // point, a real go term, and deliberately not in his vocabulary.
+    expect(bareCJK("I would play 天元.")).toEqual(["天", "元"]);
+  });
+});
+
+/* ----------------------- THE WAYS HE TEACHES ----------------------- */
+
+describe("six ways to be taught", () => {
+  it("gives every mode words and rules, and the rules stay in the engine", () => {
+    expect(MODES.length).toBe(MODE_IDS.length);
+    for (const m of MODES) {
+      expect(TEACHING_MODES[m.id], m.id).toBeTruthy();
+      expect(m.name.length, m.id).toBeGreaterThan(2);
+      expect(m.promise.length, m.id).toBeGreaterThan(20);
+      expect(m.sit.length, m.id).toBeGreaterThan(1);
+    }
+    expect(MODES.some((m) => m.id === DEFAULT_MODE)).toBe(true);
+  });
+
+  it("falls back to the lesson for a mode it has never heard of", () => {
+    expect(modeRules("a-mode-from-the-future")).toBe(TEACHING_MODES[DEFAULT_MODE]);
+    expect(modeById("a-mode-from-the-future")).toBe(MODES[0]);
+  });
+
+  it("makes the modes actually different from one another", () => {
+    const rules = MODE_IDS.map((id) => modeRules(id));
+    // The test says nothing while the game runs; the lesson says everything.
+    expect(modeRules("test").notes).toBe("none");
+    expect(modeRules("walk").notes).toBe("all");
+    // The hunt gives away more than the lesson; the spar and the test give nothing.
+    expect(modeRules("hunt").giftChance).toBeGreaterThan(modeRules("walk").giftChance);
+    expect(modeRules("spar").giftChance).toBe(0);
+    expect(modeRules("test").giftChance).toBe(0);
+    // A teaching game is stones in front and a much stronger opponent behind them.
+    expect(modeRules("teaching").handicap).toBeGreaterThanOrEqual(2);
+    expect(modeRules("teaching").rankStep).toBeGreaterThan(modeRules("walk").rankStep);
+    // Shape school drills; the spar does not teach shape at all.
+    expect(modeRules("shape").teach).toBe("always");
+    expect(modeRules("spar").teach).toBe(false);
+    // No two modes are the same set of rules under different names.
+    expect(new Set(rules.map((r) => JSON.stringify(r))).size).toBe(rules.length);
+  });
+
+  it("rates exactly the modes where he plays straight, and no others", () => {
+    /* A rank is a measurement. A game he threw a move in is not a measurement of
+       her, and a rank built out of those is not the rank the road to champion is
+       counted in. So the rated modes are exactly the ones that give nothing away
+       and start her level: anything with a gift rate or a handicap is practice. */
+    for (const id of MODE_IDS) {
+      const r = modeRules(id);
+      expect(r.rated, id).toBe(r.giftChance === 0 && r.handicap === 0);
+    }
+    expect(MODE_IDS.filter((id) => modeRules(id).rated).sort()).toEqual(["shape", "spar", "test"]);
+    // The ordinary lesson gives something away, so even the default is practice.
+    expect(modeRules(DEFAULT_MODE).rated).toBe(false);
+  });
+
+  it("never gives a gift in a mode whose gift rate is zero, whatever the dice say", () => {
+    const always = () => 0;  // the dice always say yes
+    const at = { ownMoves: 20, moveNumber: 21, size: 19, lastGift: null, rng: always };
+    expect(giftDue({ ...at, chance: modeRules("walk").giftChance })).toBe(true);
+    expect(giftDue({ ...at, chance: modeRules("spar").giftChance })).toBe(false);
+    expect(giftDue({ ...at, chance: modeRules("test").giftChance })).toBe(false);
+  });
+
+  it("sits him at the rank the mode asks for", () => {
+    expect(trainerRank("10k")).toBe("8k");
+    expect(trainerRank("10k", modeRules("shape").rankStep)).toBe("9k");
+    expect(trainerRank("10k", modeRules("teaching").rankStep)).toBe("4k");
+  });
+
+  it("says what the mode is as the board is set, by name and without repeating itself", () => {
+    for (const id of MODE_IDS) {
+      const line = modeLine(id, 0, "Mel");
+      expect(line, id).toContain("Mel");
+      expect(line.length, id).toBeGreaterThan(40);
+      expect(modeLine(id, 0, "Mel")).toBe(modeLine(id, 0, "Mel"));
+    }
+    expect(modeLine("walk", 0, "Mel")).not.toBe(modeLine("walk", 1, "Mel"));
+  });
+});
+
+/* ----------------------- THE LONG GAME ----------------------- */
+
+describe("the road to champion", () => {
+  it("names every rung with a real rank, in order, ending at the top of the ladder", () => {
+    let last = -1;
+    for (const c of CHAMPION) {
+      const i = LADDER.indexOf(c.at);
+      expect(i, c.at).toBeGreaterThan(last);
+      last = i;
+      expect(c.stop.length, c.at).toBeGreaterThan(2);
+      expect(c.next.length, c.at).toBeGreaterThan(5);
+      expect(c.him.length, c.at).toBeGreaterThan(20);
+    }
+    expect(CHAMPION[CHAMPION.length - 1].at).toBe(LADDER[LADDER.length - 1]);
+  });
+
+  it("puts a beginner at the bottom and the strongest rating at the end of the road", () => {
+    const beginner = championStep(ratingOfRank("25k"));
+    expect(beginner.at.at).toBe("25k");
+    expect(beginner.done).toBe(false);
+    const top = championStep(ratingOfRank("9d"));
+    expect(top.at.at).toBe("9d");
+    expect(top.done).toBe(true);
+    expect(top.next).toBeNull();
+  });
+
+  it("never claims a rung that has not been reached", () => {
+    // Just under 10k is still the 15k rung: the ladder decides, not the wish.
+    const under = championStep(ratingOfRank("11k"));
+    expect(LADDER.indexOf(under.at.at)).toBeLessThanOrEqual(LADDER.indexOf("11k"));
+    expect(under.next.at).toBe("10k");
+  });
+
+  it("says where she is and what the next stop costs", () => {
+    const line = championLine({ rating: ratingOfRank("10k") }, 0, "Mel");
+    expect(line).toContain(CHAMPION.find((c) => c.at === "10k").him);
+    expect(line).toContain("the shapes are yours");
+    expect(championLine({ rating: ratingOfRank("9d") }, 0, "Mel")).toContain("Defend it.");
+  });
+
+  it("answers the question about the goal with the route, not with a platitude", () => {
+    const said = replyTo("am I ever going to be champion?", { name: "Mel", profile: { rating: ratingOfRank("10k"), rd: 100 }, seed: 0 });
+    expect(said.length).toBe(2);
+    expect(said[0]).toContain("Double digits");
+    // The second line is always an invitation: the answer to "will I" is "play me".
+    expect(said[1].length).toBeGreaterThan(20);
+  });
+
+  it("leaves a question about a game to the branch that opens the review", () => {
+    // "why do i keep losing" is about a game, not about the road. The wobble
+    // words are narrow so this reaches the loss branch, which has the review in it.
+    const ctx = { name: "Mel", focus: "fights", profile: { rating: 1100, rd: 100 }, seed: 0 };
+    expect(replyTo("why do i keep losing?", ctx)[0]).toContain("hurt");
+    expect(replyTo("why do i lose every game", ctx)[0]).toContain("hurt");
+    // And the road is still reached by the words that are actually about it.
+    expect(replyTo("why do i bother", ctx)[0]).toBe(championLine({ rating: 1100, rd: 100 }, 0, "Mel", false));
+  });
+
+  it("answers a wobble the same way, because that is when the road matters", () => {
+    const said = replyTo("this is pointless, I want to quit", { name: "Mel", profile: { rating: 1100, rd: 100 }, seed: 1 });
+    expect(said[0]).toBe(championLine({ rating: 1100, rd: 100 }, 1, "Mel", false));
+  });
+
+  it("invites her to the board with a reason and a name, and varies it", () => {
+    const a = enticeLine(0, "Mel", false, { focus: "fights" });
+    expect(a.length).toBeGreaterThan(30);
+    expect(enticeLine(1, "Mel")).not.toBe(enticeLine(2, "Mel"));
+  });
+
+  it("tells her about the modes when she asks how else he can teach", () => {
+    const said = replyTo("can you teach me differently?", { name: "Mel", seed: 0 });
+    for (const m of MODES) expect(said[0], m.name).toContain(m.name);
+  });
+});
+
+/* ----------------------- THE MODE, AT THE BOARD ----------------------- */
+
+describe("the mode decides what he says while the game runs", () => {
+  const f = () => factsFor([[3, 3], [0, 0], [5, 3]]);
+
+  it("drills the shape every single time in shape school, and holds his tongue elsewhere", () => {
+    // A shape taught three times over is normally mentioned on one move in three:
+    // move 7 is not one of those moves, so the ordinary lesson says nothing.
+    const known = { "one-point-jump": 5 };
+    expect(teachingFor({ ...f(), moveNumber: 7 }, known)).toBe(null);
+    // Shape school is the exception. Naming it every time is the whole drill, so
+    // the same move on the same board does get a line.
+    const drilled = teachingFor({ ...f(), moveNumber: 7 }, known, { always: true });
+    expect(drilled).toBeTruthy();
+    expect(drilled.id).toBe("one-point-jump");
+  });
+
+  it("teaches nothing but the move in a mode with the shape course switched off", () => {
+    // `teach: false` is the spar, the hunt and the test: he still writes a note
+    // into the record, because the review has to have one, but the shape lesson
+    // is not in it and nothing is added to the register.
+    const off = moveNote(f(), null, null, { taught: {}, teach: false });
+    expect(off.taughtId).toBe(null);
+    expect(off.text).not.toContain("ikken tobi");
+    expect(off.text.length).toBeGreaterThan(0);
+    // The lesson is the default, and it teaches.
+    expect(moveNote(f(), null, null, { taught: {} }).taughtId).toBe("one-point-jump");
+  });
+
+  it("passes shape school's 'always' down from the mode into the words", () => {
+    // The wiring the view relies on: `teach: "always"` is the mode's rule, and it
+    // has to reach `teachingFor` or the drill quietly becomes the ordinary lesson.
+    const known = { "one-point-jump": 5 };
+    const quiet = moveNote({ ...f(), moveNumber: 7 }, null, null, { taught: known, teach: true });
+    const drilled = moveNote({ ...f(), moveNumber: 7 }, null, null, { taught: known, teach: "always" });
+    expect(quiet.taughtId).toBe(null);
+    expect(drilled.taughtId).toBe("one-point-jump");
+  });
+
+  it("never explains a gift, whatever the mode asked for", () => {
+    // The gift is the one thing no mode may give away, so the switch that turns
+    // teaching on cannot turn it back on.
+    const note = moveNote(f(), null, null, { mine: true, gift: true, taught: {}, teach: "always" });
+    expect(note.taughtId).toBe(null);
+    expect(note.text).not.toContain("ikken tobi");
+  });
+});
+
+describe("the order he answers in", () => {
+  const ctx = { name: "Mel", focus: "fights", profile: { rating: 1100, rd: 100 }, seed: 0, taught: {} };
+
+  it("answers a shape she named before the road to champion, even when she says 'the best'", () => {
+    // The road is answered from words like "the best" and "why do i", which are
+    // also how somebody asks about a shape. A question he can answer completely
+    // is answered completely, and the speech waits.
+    for (const said of [
+      "what is the best keima",
+      "which is the best shape, keima or tobi?",
+      "why do i keep playing the empty triangle",
+      "is the tiger's mouth the best shape?",
+    ]) expect(replyTo(said, ctx)[0], said).toMatch(/keima|tobi|sankaku|tora no kuchi/);
+  });
+
+  it("still gives the route when the wobble names no shape at all", () => {
+    for (const said of ["this is pointless", "am I ever going to be champion?", "I want to give up"]) {
+      expect(replyTo(said, ctx)[0], said).toBe(championLine(ctx.profile, 0, "Mel", false));
+    }
+  });
+
+  it("keeps the mode list and the shape course apart, which is the whole point of both", () => {
+    // "teach me" is a real question with a real answer: the next shape in the
+    // course. Only the words that ask for another way get the menu.
+    const course = (r) => r[0].startsWith("Shapes we have worked on");
+    const menu = (r) => r[0].startsWith("Pick how you want it");
+    for (const said of ["teach me", "teach me a lesson", "what is next in the course", "next shape"]) {
+      expect(course(replyTo(said, ctx)), said).toBe(true);
+    }
+    for (const said of ["teach me differently", "what mode should I pick", "can we do something else", "how else can you teach me"]) {
+      expect(menu(replyTo(said, ctx)), said).toBe(true);
+    }
+  });
+
+  it("names every mode in the menu and sells one of them", () => {
+    const said = replyTo("which modes are there?", ctx);
+    for (const m of MODES) expect(said[0], m.name).toContain(m.name);
+    expect(said[1]).toBe(MODES[0].pitch);
+    expect(replyTo("which modes are there?", { ...ctx, seed: 3 })[1]).toBe(MODES[3].pitch);
   });
 });

@@ -4,7 +4,7 @@ export const screens = {
   home: {
     boardNotePlayers: "{black}（{blackRank}）对 {white}（{whiteRank}），两边都走 KataGo 的人类棋风网络，各自按自己的段位。",
     boardNote: "Joseki 的选点程序在跟自己下：两边都是同一套启发式算法，不是房间棋手用的 KataGo 网络。",
-    trainer: { head: "{name}的来信", away: "收起来", play: "去下棋", placeholder: "给他写点什么…", send: "发送", yes: "好", notNow: "现在不要" },
+    trainer: { head: "{name}的来信", away: "收起来", play: "去下棋", placeholder: "给他写点什么…", send: "发送", yes: "好", here: "一直都在", pings: "教练有 {count} 条未读", notNow: "现在不要" },
     greetingBack: "欢迎回来",
     greetingNew: "欢迎来到棋盘前",
     wonOf: "{games} 局中 {wins} 胜",
@@ -74,7 +74,7 @@ export const screens = {
     unreadable: "{name} 从磁盘上读不出来。",
   },
   play: {
-    trainer: { cta: "跟{name}训练", note: "仅在此设备上，私人使用。从不计分。" },
+    trainer: { cta: "跟{name}训练", note: "仅在此设备上，私人使用。", how: "他的授课方式", rated: "计分", practice: "练习" },
     label: "坐下",
     titleBefore: "找一局",
     titleEm: "棋",
@@ -266,6 +266,8 @@ export const screens = {
       head: "私人教练",
       games: "与他的对局：{count}",
       watching: "他正在关注{area}。",
+      record: "有据可查",
+      names: "名字、读音与含义",
       report: "进步报告",
       note: "只为一个人准备的馆内棋手，藏在一句话后面。他解释每一手棋，评判你的每一手，并在对局之间写信。他做的一切都留在这台设备上。",
       placeholder: "那句话",

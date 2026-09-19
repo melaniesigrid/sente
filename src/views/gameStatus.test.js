@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { refusalText, resultLine, statusText, captionText, resignLabel, confirmMoveLabel, resultCard, ratingLine, RESIGN_CONFIRM_MS } from "./gameStatus.js";
+import { refusalText, resultLine, statusText, captionText, resignLabel, confirmMoveLabel, resultCard, ratingLine, claimSentence, RESIGN_CONFIRM_MS } from "./gameStatus.js";
 import { ratingOfRank, ratingOfValue, rankValue } from "../content/rank.js";
-import { createGame, pass, acceptScore, resign, timeout } from "../engine/index.js";
+import { createGame, pass, acceptScore, resign, timeout, claimFromSgf } from "../engine/index.js";
 import { makeT } from "../i18n/index.js";
 
 describe("refusalText", () => {
@@ -32,6 +32,26 @@ describe("resultLine", () => {
     expect(resultLine(timeout(createGame({ size: 9 })).result)).toBe("White wins on time");
     expect(resultLine(timeout(createGame({ size: 9 }), "w").result)).toBe("Black wins on time");
     expect(resultLine(null)).toBeNull();
+  });
+});
+
+describe("claimSentence", () => {
+  it("says a counted result in the file's name, not in ours", () => {
+    expect(claimSentence(claimFromSgf("B+48.5"))).toBe("The file says Black wins by 48.5.");
+    expect(claimSentence(claimFromSgf("W+2.5"))).toBe("The file says White wins by 2.5.");
+  });
+  it("says a resignation, a loss on time, a forfeit and a draw", () => {
+    expect(claimSentence(claimFromSgf("B+R"))).toBe("The file says Black wins by resignation.");
+    expect(claimSentence(claimFromSgf("W+T"))).toBe("The file says White wins on time.");
+    expect(claimSentence(claimFromSgf("B+F"))).toBe("The file says Black wins by forfeit.");
+    expect(claimSentence(claimFromSgf("0"))).toBe("The file says Jigo.");
+  });
+  it("says nothing when there is no claim", () => {
+    expect(claimSentence(null)).toBeNull();
+    expect(claimSentence(claimFromSgf("Void"))).toBeNull();
+  });
+  it("speaks whatever language is being read in", () => {
+    expect(claimSentence(claimFromSgf("B+48.5"), makeT("es"))).toBe("El archivo dice: Ganan las negras por 48.5.");
   });
 });
 

@@ -24,13 +24,14 @@ import { LIBRARY } from "../content/library.js";
 import { OpenSgf } from "../components/OpenSgf.jsx";
 import { Review } from "./Review.jsx";
 import { loadSession } from "./session.js";
-import { KE_JIE, SENSEI_ID, letterFor, greetingFor, jealousLine, replyTo, bondQuestion, bondYes, bondNo, BOND_AFTER } from "../content/sensei.js";
+import { KE_JIE, SENSEI_ID, letterFor, greetingFor, jealousLine, replyTo, bondQuestion, bondYes, bondNo, BOND_AFTER, glossFor, championStep, championLine, enticeLine } from "../content/sensei.js";
 import { focusFor, trend } from "../engine/index.js";
 import { loadTelemetry } from "../store/telemetry.js";
 import { personaById } from "../content/personas.js";
 import { useTrainerAccess } from "./useTrainer.js";
 import {
   loadBox, saveBox, postLetter, markRead, unread, shouldWriteAbout, daysBetween, say, tell, playedWithoutHim, shouldAsk,
+  rungPassed, markRung,
 } from "../store/sensei.js";
 import { useT } from "../components/langStore.js";
 
@@ -95,7 +96,7 @@ export function Home({ profile, go, onResume }) {
     const post = (fn) => { b = fn(b); changed = true; };
     const bonded = b.bond === "yes";
     if (b.greeted !== today) {
-      post((x) => ({ ...say(x, greetingFor(new Date().getHours(), games + x.thread.length, profile.name), today), greeted: today }));
+      post((x) => ({ ...say(x, greetingFor(new Date().getHours(), games + x.thread.length, profile.name, bonded), today), greeted: today }));
     }
     const log = loadTelemetry();
     const others = playedWithoutHim(log, b, SENSEI_ID);
@@ -107,6 +108,25 @@ export function Home({ profile, go, onResume }) {
     if (shouldWriteAbout(b, today)) {
       const away = daysBetween(b.lastGame, today);
       post((x) => postLetter(x, letterFor({ daysAway: away, name: profile.name, bonded }, away), today));
+    }
+    /* The long game. She said she is going to be champion; he treats the ladder as
+       the route to it and marks the day she reaches a new stop on it. Once, ever,
+       per stop, because a milestone said twice is not a milestone. */
+    const rung = championStep(profile.rating).at.at;
+    if (games > 0 && rungPassed(b, rung)) {
+      post((x) => markRung(say(x, championLine(profile, x.thread.length, profile.name, bonded), today), rung));
+    }
+    /* And a reason to sit down, on any day she has not yet played him. He is not
+       a notification: it goes in the thread beside everything else he says, and
+       it stops the moment there is a game on the record for today.
+
+       `enticed` is the day he last asked, and it is the whole reason this line
+       does not repeat. Home is mounted fresh on every return to the dashboard,
+       so a guard on `lastGame` alone - a day key this line never writes - would
+       append another invitation every time she came back to the screen and push
+       everything else he has said out of the end of the thread. */
+    if (games > 0 && b.lastGame !== today && b.enticed !== today) {
+      post((x) => ({ ...say(x, enticeLine(x.thread.length, profile.name, bonded, { focus: focusFor(x.games) }), today), enticed: today }));
     }
     if (shouldAsk(b, BOND_AFTER)) post((x) => ({ ...say(x, bondQuestion(profile.name), today), bond: "asked" }));
     if (changed) saveBox(b);
@@ -212,14 +232,30 @@ export function Home({ profile, go, onResume }) {
         <Card className="letter-card">
           <div className="chat-head">
             <Avatar name={KE_JIE.name} tint={KE_JIE.tint} size={28} bot />
-            <span className="letter-name">{KE_JIE.name} <span className="fine">&middot; {KE_JIE.nickname}</span></span>
+            <span className="letter-name">{KE_JIE.name} <span className="fine">&middot; {KE_JIE.nickname}</span><span className="here-dot" title={t("home.trainer.here")} /></span>
             <span className="fine letter-you">{KE_JIE.yourHandle}</span>
             {waiting > 0 && <span className="letter-unread">{waiting}</span>}
             <span className="bot-chip"><Bot size={11} /> {t("game.chat.trainer")}</span>
           </div>
+          {/* The two names in the header are Chinese, and the person reading them
+              does not read Chinese. So they are never left standing on their own:
+              here is how each one sounds and what it means, every time the card is
+              drawn. The rule is the same one the bubbles below follow. */}
+          <div className="letter-names">
+            {glossFor(`${KE_JIE.nickname} ${KE_JIE.yourHandle}`).map((g) => (
+              <span key={g.name} className="fine letter-gloss">{g.name} &middot; {g.pinyin} &middot; {g.means}</span>
+            ))}
+          </div>
           <div className="chat-log letter-log" aria-live="polite" onClick={putAway}>
             {box.thread.slice(-40).map((m, i) => (
-              <div key={i} className={`bubble ${m.who === "you" ? "mine" : ""}${m.read ? "" : " fresh"}`}>{m.text}</div>
+              <div key={i} className={`bubble ${m.who === "you" ? "mine" : ""}${m.read ? "" : " fresh"}`}>
+                {m.text}
+                {/* A Chinese name he used, with its sound and its meaning: nobody
+                    should have to guess what they were just called. */}
+                {glossFor(m.text).map((g) => (
+                  <span key={g.name} className="bubble-gloss">{g.name} &middot; {g.pinyin} &middot; {g.means}</span>
+                ))}
+              </div>
             ))}
             {box.bond === "asked" && (
               <div className="row">

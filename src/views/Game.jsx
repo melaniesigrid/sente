@@ -9,9 +9,10 @@ import {
   lastMoveIndex, aiChooseMoveForRecord, kataChooseMoveForRecord, profileForRank, loadModel, onModelProgress, modelReady,
   toSgf, IllegalMoveError, GLICKO, rateAgainst, detectShapes,
   withMoveComment, evaluatePosition, seedAnalysis, describeMove, policyStanding, giftDue, pickGift, trainerReport,
+  modeRules, DEFAULT_MODE,
   gameSummary, focusFor,
 } from "../engine/index.js";
-import { moveNote, reviewLines, letterFor, openingLesson } from "../content/sensei.js";
+import { moveNote, reviewLines, letterFor, openingLesson, modeLine } from "../content/sensei.js";
 import { loadBox, saveBox, postLetter, teachShape, rememberGame as trainerRemember } from "../store/sensei.js";
 import { Board } from "../components/Board.jsx";
 import { ClockFace } from "../components/Clock.jsx";
@@ -106,6 +107,13 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
      points are the same shape the review graph is drawn from, so the graph is
      already there when review opens. See src/content/sensei.js. */
   const sensei = !!(persona && persona.sensei);
+  /* How he is teaching this game. The rules are the engine's (`TEACHING_MODES`):
+     how often he gives something away, whose moves he speaks about while the
+     game is running, and whether the shape course runs. A note is always written
+     into the record whatever the mode says, because the review has to have them;
+     what the mode decides is whether he says it out loud at the time. */
+  const senseiMode = mode.senseiMode ?? DEFAULT_MODE;
+  const senseiRules = modeRules(senseiMode);
   // The rank this game is played at; house players adapt to it. A duel fixes it by the
   // day so everyone meets the same opponent; otherwise it defaults to the player's own.
   const botRank = persona && !master ? (duel ? duel.rank : (mode.rank ?? rankOf(profile.rating))) : null;
@@ -129,6 +137,9 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     const opening = [{ who: "bot", text: pick(persona.chat.greet) }];
     if (persona.sensei) {
       const box = loadBox();
+      // What this mode is, in his words, before the syllabus: she chose how she
+      // wants to be taught and he acknowledges the choice out loud.
+      opening.push({ who: "bot", text: modeLine(senseiMode, box.games.length, profile.name, box.bond === "yes") });
       opening.push({ who: "bot", text: openingLesson(box.taught, box.games.length) });
     }
     return opening;
@@ -358,18 +369,37 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
         notify({ icon: won ? "trophy" : "flag", text: t("game.toast.unrated", { outcome: t(won ? "game.toast.victory" : "game.toast.defeat") }) });
-      } else if (persona && (coaching || sensei)) {
+        /* A mode where he throws a move is practice, not a measurement. He gives
+           something away in the ordinary lesson, twice as often in the hunt, and the
+           teaching game starts her four stones up; a rank built out of wins against
+           a move he threw is not her rank. Those three settle here with the coached
+           games, unrated and saying so, and the three where he plays straight are the
+           ones that count. */
+      } else if (persona && (coaching || (sensei && !senseiRules.rated))) {
         remember("coached");
-        // The coach spoke in this game, so the game moves no rating. Said plainly,
-        // the way a duel and a master game say it. The trainer's games are the same.
+        // Advice was given, or the opponent threw a move on purpose. Either way the
+        // game moves no rating, and says so the way a duel and a master game do.
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
         notify({ icon: won ? "trophy" : "flag", text: t("game.toast.coached", { outcome: t(won ? "game.toast.victory" : "game.toast.defeat") }) });
+        /* A trainer game cannot be armed with the coach any more, but one can
+           still arrive here already coached (a resumed session carries the flag).
+           He owes her the review and the letter either way: the branch decides
+           the rating, never whether he speaks. */
         if (sensei) endTraining(next, next.result.winner === "b" ? true : next.result.winner === "w" ? false : null);
       } else if (persona) {
         remember("rated");
         const won = next.result.winner === "b";
         say(pick(won ? persona.chat.loss : persona.chat.win));
+        /* The trainer's games are rated, by the owner's decision: his purpose is to
+           build the rank, and a game he explained still counts. That is the one
+           exception to "a game with advice in it moves no rating", and it is his.
+
+           His review gets the result as three states, not two. `won` is a boolean
+           because the rating and the table talk only ever need "did she win", but
+           a drawn game is not a loss, and `reviewLines` has a sentence for it that
+           would otherwise never be reached. */
+        if (sensei) endTraining(next, next.result.winner === "b" ? true : next.result.winner === "w" ? false : null);
         const oldRank = rankOf(profile.rating), oldBelt = beltOf(profile.rating);
         // One rank per handicap stone: the opponent is rated as the weaker player it gave stones to be.
         const oppRating = ratingOfRank(rankWithHandicap(botRank, next.handicap));
@@ -396,7 +426,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       }
     }
     return next;
-  }, [persona, duel, master, botRank, profile, say, setProfile, notify, sound, coaching, t, sensei, endTraining]);
+  }, [persona, duel, master, botRank, profile, say, setProfile, notify, sound, coaching, t, sensei, endTraining, senseiRules.rated]);
 
   /* The clock. Running out of time is a rule, so the flag goes through the engine's
      `timeout` and settles through the same `conclude` a resignation does: a loss on
@@ -447,9 +477,9 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         const prev = trainerPoints.current.find((q) => q.move === r.moves.length - 1) ?? null;
         const standing = prev ? policyStanding(prev.top, mv) : null;
         const cost = prev && here ? prev.black - here.black : null;
-        const note = moveNote(facts, standing, cost, { taught: trainerTaught.current });
+        const note = moveNote(facts, standing, cost, { taught: trainerTaught.current, teach: senseiRules.teach });
         noteTaught(note.taughtId);
-        say(note.text);
+        if (senseiRules.notes !== "none") say(note.text);
         r2 = withMoveComment(r, note.text);
       }
       notePoint(here);
@@ -463,6 +493,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         trainerOwnMoves.current += 1;
         const due = giftDue({
           ownMoves: trainerOwnMoves.current, moveNumber: r2.moves.length + 1, size: r2.size, lastGift: trainerLastGift.current,
+          chance: senseiRules.giftChance,
         });
         const g = due ? pickGift(res.top) : null;
         if (g) {
@@ -483,21 +514,24 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       const facts = describeMove(r2, next, played);
       trainerFacts.current[next.moves.length] = facts;
       const standing = res ? policyStanding(res.top, played) : null;
-      const note = moveNote(facts, standing, null, { mine: true, gift, taught: trainerTaught.current });
+      const note = moveNote(facts, standing, null, { mine: true, gift, taught: trainerTaught.current, teach: senseiRules.teach });
       noteTaught(note.taughtId);
       next = withMoveComment(next, note.text);
       setThinking(false);
-      say(note.text);
+      // Only "all" hears his own reading as he plays. The rest read it afterwards.
+      if (senseiRules.notes === "all") say(note.text);
       if (played) {
         const caps = next.lastCaptured.length;
-        if (caps >= 2) say(pick(persona.chat.botCapture));
+        // Table talk is still talk. A mode that promised silence keeps it.
+        if (caps >= 2 && senseiRules.notes !== "none") say(pick(persona.chat.botCapture));
         afterMove(next, "w");
       }
       setRec(conclude(next, r));
       // The position he left you, for the graph and for grading what you do with it.
       trainerAsk(() => evaluatePosition(next)).then(notePoint);
     })().catch(() => { if (alive.current) setThinking(false); });
-  }, [persona, botRank, profile.rating, say, conclude, afterMove, trainerAsk, notePoint, noteTaught]);
+  }, [persona, botRank, profile.rating, say, conclude, afterMove, trainerAsk, notePoint, noteTaught,
+    senseiRules.giftChance, senseiRules.notes, senseiRules.teach]);
 
   /* Ask the human network what a player of the persona's rank would do; if it is
      unavailable (offline, old browser) the heuristic house player answers instead.
@@ -665,7 +699,11 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
      twice, exactly as resigning does. One click is never enough for a one-way door.
      Refused once the game has stopped being playable: after the last stone there is
      nothing left to coach, and a stray click would only throw away a rating. */
-  const canCoach = persona && !duel && !master && !coaching && !over && !scoring;
+  /* The trainer is already the coach: he names the shape of every move by
+     design. Offering the generic coach on top of him adds nothing, and taking it
+     would drop his game into the coached branch below, which is unrated - the one
+     thing his card promises it is not. So the switch is not his. */
+  const canCoach = persona && !duel && !master && !sensei && !coaching && !over && !scoring;
   const askCoaching = () => {
     if (!canCoach) return;
     if (!confirmCoach) {
@@ -868,7 +906,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
               <p className="fine">
                 {duel ? t("game.noteDuel")
                   : master ? t("game.noteMaster")
-                    : persona && (coaching || sensei) ? t("game.noteCoached")
+                    : persona && coaching ? t("game.noteCoached")
                       : persona ? ratingLine(delta, t) ?? t("game.noteRated") : t("game.noteLocal")}
                 {over.method === "score" && rec.dead.length > 0 && t("game.deadRemoved", { count: rec.dead.length })}
               </p>

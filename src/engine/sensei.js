@@ -33,19 +33,64 @@ export const TRAINER = {
   keptShare: 0.5,
 };
 
+/* ----------------------- HOW HE TEACHES -----------------------
+   One trainer, several ways of running a lesson. A mode is a set of rules about
+   a game - how far above you he sits, how often he gives something away, whose
+   moves he writes a note on, and how many stones you start with - so it lives
+   here and not in a view. The words for each mode are his, and they are in
+   `src/content/sensei.js`.
+
+   `notes` is whose moves get a sentence while the game is running:
+     "all"     his and yours, which is the lesson he has always given
+     "yours"   only yours, so his own reading stays hidden
+     "none"    nothing until the review, which is the test
+   `teach` is whether the shape course runs during the game; "always" asks for a
+   shape on every move it can name, which is what a drill is.
+
+   `rated` is whether the game moves the ladder. Only the modes where he plays
+   straight: a rank is a measurement, and a game he threw a move in is not a
+   measurement of her. He gives something away in `walk` and twice as often in
+   `hunt`, and `teaching` starts her four stones up, so those three are practice
+   and say so. The three that give nothing count. This is the honest version of
+   "his games are rated": the ones that are, are. */
+export const TEACHING_MODES = {
+  /** The lesson. Every move explained, the usual gift rate, two ranks above you. */
+  walk: { rankStep: 2, giftChance: TRAINER.chance, notes: "all", handicap: 0, teach: true, rated: false },
+  /** The drill. He plays closer to your strength and names the shape every time. */
+  shape: { rankStep: 1, giftChance: 0, notes: "all", handicap: 0, teach: "always", rated: true },
+  /** The hunt. He gives away twice as much and explains none of it. */
+  hunt: { rankStep: 2, giftChance: 0.45, notes: "yours", handicap: 0, teach: false, rated: false },
+  /** The spar. No gifts, no notes on his own moves, a rank harder. */
+  spar: { rankStep: 3, giftChance: 0, notes: "yours", handicap: 0, teach: false, rated: true },
+  /** The test. Nothing said until the review, and he plays it straight. */
+  test: { rankStep: 3, giftChance: 0, notes: "none", handicap: 0, teach: false, rated: true },
+  /** The teaching game. Four stones in front, and he plays far above you. */
+  teaching: { rankStep: 6, giftChance: 0, notes: "all", handicap: 4, teach: true, rated: false },
+};
+
+export const MODE_IDS = Object.keys(TEACHING_MODES);
+export const DEFAULT_MODE = "walk";
+
+/** The rules of a mode, falling back to the lesson for anything unknown, so a
+ *  stored mode from an older version can never leave the table without rules. */
+export const modeRules = (id) => TEACHING_MODES[id] ?? TEACHING_MODES[DEFAULT_MODE];
+
 /** Whether the trainer should give something on this move of its own.
  *  @param {object} o
  *  @param {number} o.ownMoves     how many moves the trainer has played so far
  *  @param {number} o.moveNumber   the number this move will have
  *  @param {number} o.size         board size
  *  @param {number|null} o.lastGift  own-move count at the last gift, or null
- *  @param {() => number} o.rng */
-export function giftDue({ ownMoves, moveNumber, size, lastGift = null, rng = Math.random }) {
+ *  @param {() => number} o.rng
+ *  @param {number} o.chance    the mode's gift rate; zero means never */
+export function giftDue({ ownMoves, moveNumber, size, lastGift = null, rng = Math.random, chance = TRAINER.chance }) {
+  // A mode that gives nothing away never reaches the dice.
+  if (!(chance > 0)) return false;
   if (ownMoves < TRAINER.firstGiftAfter) return false;
   if (lastGift !== null && ownMoves - lastGift < TRAINER.minGap) return false;
   // Nothing in the endgame: a bad endgame move is a point or two and teaches little.
   if (phaseOf(moveNumber, size) === "endgame") return false;
-  return rng() < TRAINER.chance;
+  return rng() < chance;
 }
 
 /** A worse move off the network's shortlist, or null when the list has nothing

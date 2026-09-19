@@ -3,7 +3,7 @@ export const screens = {
   home: {
     boardNotePlayers: "{black} ({blackRank}) gegen {white} ({whiteRank}), beide über KataGos menschlich spielendes Netz auf ihrer eigenen Spielstärke.",
     boardNote: "Josekis Zugwahl gegen sich selbst: dieselbe Heuristik auf beiden Seiten, nicht das KataGo-Netz, mit dem deine Hausspieler spielen.",
-    trainer: { head: "Ein Brief von {name}", away: "Weglegen", play: "Geh spielen", placeholder: "Schreib ihm…", send: "Senden", yes: "Ja", notNow: "Jetzt nicht" },
+    trainer: { head: "Ein Brief von {name}", away: "Weglegen", play: "Geh spielen", placeholder: "Schreib ihm…", send: "Senden", yes: "Ja", here: "Immer da", pings: "{count} von deinem Trainer ungelesen", notNow: "Jetzt nicht" },
     greetingBack: "Zurück am Brett",
     greetingNew: "Willkommen am Brett",
     wonOf: "{wins} von {games} gewonnen",
@@ -76,7 +76,7 @@ export const screens = {
   },
 
   play: {
-    trainer: { cta: "Trainiere mit {name}", note: "Privat auf diesem Gerät. Nie gewertet." },
+    trainer: { cta: "Trainiere mit {name}", note: "Privat auf diesem Gerät.", how: "Wie er unterrichtet", rated: "Gewertet", practice: "Ohne Wertung" },
     label: "Setz dich",
     titleBefore: "Finde eine ",
     titleEm: "Partie",
@@ -275,6 +275,8 @@ export const screens = {
       head: "Privater Trainer",
       games: "Partien mit ihm: {count}",
       watching: "Er achtet auf {area}.",
+      record: "Belegtes",
+      names: "Namen, Aussprache und Bedeutung",
       report: "Fortschrittsbericht",
       note: "Ein Hausspieler für eine einzige Person, hinter einem Satz verwahrt. Er erklärt jeden Zug, bewertet deine und schreibt zwischen den Partien. Alles, was er tut, bleibt auf diesem Gerät.",
       placeholder: "Der Satz",

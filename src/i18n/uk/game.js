@@ -14,6 +14,7 @@ export const game = {
     by: "{winner} {how}",
     howResign: "здачею суперника",
     howTime: "за часом",
+    howForfeit: "технічною поразкою суперника",
     howMargin: "на {margin}",
     score: "{winner} · {a} : {b}",
     jigo: "Дзіго · {b} : {w}",

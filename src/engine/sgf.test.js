@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import {
-  parseSgfTree, parseSgf, recordFromSgf, toSgf, pointFromSgf, pointToSgf, resultToSgf,
+  parseSgfTree, parseSgf, recordFromSgf, toSgf, pointFromSgf, pointToSgf, resultToSgf, claimFromSgf,
   SgfParseError, MAX_SGF_BYTES,
 } from "./sgf.js";
 import { acceptScore, pass, createGame, play, replay, timeout } from "./record.js";
@@ -172,10 +172,52 @@ describe("recordFromSgf", () => {
     expect(rec.moves.map(m => m.type)).toEqual(["play", "play", "pass", "pass", "pass"]);
     expect(replay(rec)).toEqual(rec);
   });
+  /* RE is the file's word for how it ended, and for a counted game it is only
+     that: no SGF says which stones were dead, so there is nothing to count here
+     and nothing to check the number against. It is kept, apart, as `claimed`. */
+  it("keeps a counted result as a claim, not as its own result", () => {
+    const rec = recordFromSgf("(;FF[4]SZ[9]KM[6.5]RE[B+48.5];B[ee];W[cc];B[];W[])");
+    expect(rec.result).toBeNull();
+    expect(rec.phase).toBe("scoring");
+    expect(rec.claimed).toEqual({ winner: "b", method: "score", margin: 48.5, text: "B+48.5" });
+    // It is not derived from the moves, so replay has to carry it.
+    expect(replay(rec).claimed).toEqual(rec.claimed);
+    // And it goes back out as it came in, rather than being quietly dropped.
+    expect(toSgf(rec)).toContain("RE[B+48.5]");
+  });
+
+  it("claims nothing extra when it replayed the ending itself", () => {
+    const rec = recordFromSgf("(;FF[4]SZ[9]RE[W+R];B[ee])");
+    expect(rec.result).toMatchObject({ winner: "w", method: "resign" });
+    expect(rec.claimed).toBeUndefined();
+  });
+
   it("lets white move first when the record says so", () => {
     const rec = recordFromSgf("(;SZ[9];W[ee];B[cc])");
     expect(rec.firstToPlay).toBe("w");
     expect(rec.moves.map(m => m.color)).toEqual(["w", "b"]);
+  });
+});
+
+describe("claimFromSgf", () => {
+  it("reads a margin, a resignation, a loss on time and a forfeit", () => {
+    expect(claimFromSgf("B+48.5")).toEqual({ winner: "b", method: "score", margin: 48.5, text: "B+48.5" });
+    expect(claimFromSgf("w+2.5")).toMatchObject({ winner: "w", method: "score", margin: 2.5 });
+    expect(claimFromSgf("B+R")).toMatchObject({ winner: "b", method: "resign", margin: null });
+    expect(claimFromSgf("W+Resign")).toMatchObject({ winner: "w", method: "resign" });
+    expect(claimFromSgf("B+T")).toMatchObject({ winner: "b", method: "time" });
+    expect(claimFromSgf("W+Time")).toMatchObject({ winner: "w", method: "time" });
+    expect(claimFromSgf("B+F")).toMatchObject({ winner: "b", method: "forfeit" });
+  });
+  it("reads a drawn game, however it is written", () => {
+    for (const v of ["0", "Draw", "jigo", "B+0"]) {
+      expect(claimFromSgf(v), v).toMatchObject({ winner: null, method: "score", margin: 0 });
+    }
+  });
+  it("has nothing to say about a void, an unknown or a missing result", () => {
+    for (const v of ["Void", "?", "", null, undefined, "B+", "W+nonsense"]) {
+      expect(claimFromSgf(v), String(v)).toBeNull();
+    }
   });
 });
 

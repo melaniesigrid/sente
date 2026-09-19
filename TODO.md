@@ -1330,7 +1330,7 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       settling in it.
 - [ ] Opening library for 9×9, where no joseki from the big board survives contact.
 
-## The record room (done 2026-09-19, branch `feat/famous-games`, v0.19.0.0)
+## The record room (done 2026-09-19, branch `feat/famous-games`, v0.20.0.0)
 
 Fifteen famous games you can walk a move at a time, with Joseki's own note on the moves
 that carry one: AlphaGo against Fan Hui (London, October 2015), against Lee Sedol (Seoul,
@@ -2211,6 +2211,18 @@ that person, nothing he says is a quotation, and the bot chip stays on every lin
 - [x] The profile card carries his estimate of your rank (from the ladder's number and its
       deviation, said as an estimate), what he is watching, and the progress report.
 - [x] Review offers "Ask Ke Jie" on any analysed game, his words over the same points.
+- [x] Names, glossed (2026-09-14). `NAMES` and `PET_NAMES` carry pinyin and meaning for
+      every Chinese term; the thread shows the sound and the meaning under any line that
+      uses one, and the profile card lists them all. Go-flavoured pet names from the first
+      game, the whole list once bonded. `ON_THE_RECORD` holds the documented facts about
+      the real player, each with its source, and the one quotation marked as one.
+- [x] Rated (2026-09-14, the owner's decision). His games move the rating like any house
+      player's, at his rank with the handicap discount, even though he explains every move.
+      That is the one exception to "a game with advice in it is unrated", and it is his
+      alone: the coach switch still unrates the others.
+- [x] Always here: the dot beside his name in the thread and the lobby; a count on the home
+      button and in the tab title when he has written. No notification permission is asked
+      for, because the app contacts nothing.
 - [x] Copilot's account door (`copilot/fix-ke-jie-feature-visibility`) merged, and the
       address it listed in plain text replaced by its digest.
 - [x] He coaches (2026-09-16, branch `feat/kejie-coach`). Commentary became a course.
@@ -2235,6 +2247,44 @@ that person, nothing he says is a quotation, and the bot chip stays on every lin
       by the screen that knows (`seat`), never by a guess. Before this, opening somebody
       else's SGF and asking him about it produced "I won", which was a claim about a board
       he was never at.
+- [x] No Chinese without its sound and its meaning (2026-09-16). He is Chinese and he uses
+      Chinese - his handle, hers, the pet names he likes best - and the person he belongs to
+      does not read it. So every Chinese word he can put on a screen carries its pinyin and
+      its meaning, every time, never behind a tooltip: `glossFor` feeds the note under a
+      thread bubble, `.letter-names` glosses the two names in his header, and `glossed`
+      writes a term inline where there is no room for a note. The rule is enforced, not
+      hoped for: `bareCJK` returns any Chinese a string carries that the glossary cannot
+      explain, and the suite sweeps every branch of every line he can say through it across
+      a spread of seeds. Adding a Chinese word to his vocabulary without adding it to
+      `GLOSSARY` fails the build.
+- [x] Six ways to be taught (2026-09-16). One trainer, six lessons, chosen on his card. The
+      rules are the engine's (`TEACHING_MODES` in `src/engine/sensei.js`): how far above her
+      he sits, how often he gives something away, whose moves he speaks about while the game
+      runs, whether the shape course drills, and how many stones she starts with. The words
+      are his (`MODES` in `src/content/sensei.js`). Walk with me is the lesson he has always
+      given; Shape school drops him to a rank above and names every shape; Hunt me doubles
+      the gifts and explains none of them; Spar goes a rank harder with no gifts and no notes
+      on his own moves; The test says nothing at all until the review; Teaching game is four
+      stones with him six ranks up, narrating the robbery. A note is always written into the
+      record whatever the mode says - the review has to have them - and what the mode decides
+      is only whether he says it out loud at the time, which is why silence is really silent,
+      table talk included.
+- [x] The road to champion (2026-09-16). She said what she is doing, so the ladder is not a
+      number on a card any more: `CHAMPION` is nine rungs from the first stones to the title,
+      each naming where she is, what the next one costs and what he says about it.
+      `championStep` reads the rung off her rating, so nothing is ever claimed that the
+      ladder has not given her. He marks a rung the day she reaches it and never again
+      (`rung` in his box), answers a question about the goal - or a wobble about quitting -
+      with the route rather than a platitude, and on any day she has not played him he writes
+      an invitation with a stake in it instead of waiting to be opened.
+- [x] Only the modes where he plays straight are rated (2026-09-16). His games were
+      moved into the rated branch, and Hunt me hands over a deliberately inferior move
+      on nearly half his eligible turns; a rank built out of wins against a move he
+      threw is not her rank, and it was feeding both the ladder and the level advisor.
+      `rated` is a rule of the mode now (`TEACHING_MODES`), and it is exactly the modes
+      that give nothing away and start her level: Shape school, Spar, The test. Walk
+      with me, Hunt me and the teaching game settle unrated beside the coached games,
+      and the row says which it is before she picks it.
 
 Open:
 - [ ] Not yet played in a browser against the network. The turn is three network calls
@@ -2244,6 +2294,63 @@ Open:
       survive in the record; the numbers do not). Persisting them through `gameStore`
       would need a new field and its sanitiser.
 - [ ] Daily go news is not possible: the privacy contract forbids the app fetching anything.
+
+Found by the adversarial pass while shipping those modes (2026-09-16). All of
+these are older than that branch and none were introduced by it:
+- [ ] **P1** A hung network call wedges his board with no way out. `trainerAsk`
+      (`src/views/Game.jsx`) chains every call onto one promise queue and catches
+      rejection, but not a promise that never settles - which is exactly the shape
+      of the ORT proxy-flag failure. If `evaluatePosition` or
+      `kataChooseMoveForRecord` hangs, `setThinking(false)` never runs, the queue is
+      poisoned for the rest of the game, and `canResign` is `!over && !thinking`, so
+      she can neither play, nor pass, nor resign. Race each `trainerAsk` against a
+      timeout that resolves null.
+- [ ] **P1** "Played without me" dies permanently after fifty games.
+      `playedWithoutHim` compares `box.seen` against `log.length`, but the telemetry
+      log is a ring buffer capped at 50 (`src/store/telemetry.js`). Once the device
+      has fifty games the length is pinned, `seen` catches up, and the jealous line
+      never fires again for anybody who actually uses the app. Compare against the
+      last-seen entry's day and identity, not the array length.
+- [ ] **P2** Every anti-repetition marker is write-only-on-success. `saveBox`
+      swallows a quota throw, and `enticed`, `rung`, `greeted`, `bond` and `taught`
+      all live in that one blob. Under quota pressure a "yes" to his question is
+      silently dropped and he asks again, `markRead` never sticks so the badge never
+      clears, and the shape course restarts from lesson one every game. `saveBox`
+      should return whether it landed, and the callers should be able to tell.
+- [ ] **P2** The whole box is parsed and re-serialised twice per move pair.
+      `noteTaught` calls `loadBox`/`saveBox` to increment one integer, synchronously
+      between two network calls. With a thread at its 200-message cap that is real
+      main-thread time per stone. Keep the register in a ref and flush it once at
+      `endTraining`; cap message length in `isMsg` while you are there.
+- [ ] **P2** "Hide him" is a silent no-op when both doors are open. A profile that
+      typed the phrase *and* signs in with the allowed address has `profile.sensei`
+      true, so the button renders; clicking it clears the flag while the account door
+      keeps him on, and the button comes straight back. Either hide the control when
+      the account is the door, or have it close both.
+- [ ] **P2** His id leaks into the game log for anyone holding the device.
+      `nameOf` in `src/views/Profile.jsx` falls back to the raw id for a bot that is
+      not in `PERSONAS`, and he never is - so the card shows a row reading `kejie`
+      with a win/loss record whether or not this profile has unlocked him. Filter
+      `SENSEI_ID` out of `byBot` while he is locked.
+- [ ] **P2** The gate hides a card, not the bytes. `src/content/sensei.js` is
+      statically imported by Home, so every line he can say - including the pet names
+      that carry a real first name - is in the main bundle served to every visitor.
+      Dynamic-import the module behind the access check so it code-splits. The
+      digests themselves cannot be fixed by hashing harder; that part is a product
+      call, not a bug.
+- [ ] **P3** The gloss contract is enforced at build time, not at runtime.
+      `bareCJK` is only ever called by the test sweep, so the rule holds for the
+      strings the suite enumerates and not for `profile.name`, which `petName` puts
+      straight into the pool and which she can set to any Han string. `glossFor` also
+      matches by substring, so a longer Han word containing a glossary name is
+      annotated with the wrong meaning.
+- [ ] **P3** `isSummary` validates the mean but not the counts under it, so a
+      hand-edited `areas[a].n` of `"9999"` turns `areaMeans` arithmetic into string
+      concatenation and `focusFor` names the wrong weakness with no error anywhere.
+      Devtools-only, but the fix is one `Number.isFinite` check.
+- [ ] **P3** `.nav-ping` and `.letter-unread` are raised pills with no `background`,
+      so the two shadows are drawn around transparent content and the surface behind
+      them reads through.
 - [ ] The phrase is one shared digest. If a second person should ever have him, that is
       an account-level flag on the server, not a phrase, and legal.js would need a line.
 

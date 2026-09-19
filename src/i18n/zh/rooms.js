@@ -4,6 +4,7 @@ export const rooms = {
     trainer: { ask: "问问{name}" },
     back: "返回",
     unfinished: "没下完的棋",
+    claimed: "文件里记的是：{result}。",
     start: "开局",
     label: "第 {n} 手 · {side}",
     labelPass: "第 {n} 手 · {side}虚着",

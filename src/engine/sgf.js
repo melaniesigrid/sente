@@ -198,13 +198,46 @@ export function recordFromSgf(text) {
     }
     if (mv.comment) rec = withMoveComment(rec, mv.comment);
   });
-  if (g.result && /^[BW]\+R(esign)?$/i.test(g.result) && rec.phase !== "ended") {
-    rec = resign(rec, g.result[0].toUpperCase() === "B" ? "w" : "b");
+  /* RE, the result the file states. A resignation and a loss on time are events
+     we can replay, so they become the record's own result. A counted result is
+     not: the file gives a margin but not which stones were dead, so there is
+     nothing here to count and nothing to check the number against. It is kept
+     as `claimed` - what the file says, attributed to the file - and `result`
+     stays empty, because `result` is what Joseki measured or watched happen. */
+  const claim = claimFromSgf(g.result);
+  if (claim && rec.phase !== "ended") {
+    const loser = claim.winner === "b" ? "w" : "b";
+    if (claim.method === "resign") rec = resign(rec, loser);
+    else if (claim.method === "time") rec = timeout(rec, loser);
   }
-  if (g.result && /^[BW]\+T(ime)?$/i.test(g.result) && rec.phase !== "ended") {
-    rec = timeout(rec, g.result[0].toUpperCase() === "B" ? "w" : "b");
-  }
+  if (claim && !rec.result) rec = { ...rec, claimed: claim };
   return rec;
+}
+
+/* RE in the wild: "B+48.5", "W+2.5", "B+R", "W+Resign", "B+T", "W+Time",
+   "B+F" (a forfeit), "0" or "Draw" for a drawn game, and "Void" or "?" for a
+   game with no result, which we read as no claim at all. A margin of zero is a
+   draw whoever the file names as winner, and a margin we cannot read is not a
+   reason to refuse the file: it is simply nothing to show. */
+const CLAIM_HOW = [[/^r(esign)?$/i, "resign"], [/^t(ime)?$/i, "time"], [/^f(orfeit)?$/i, "forfeit"]];
+
+/** The result an SGF states, parsed. `null` when there is none to be had.
+ *  @returns {{winner: "b"|"w"|null, method: string, margin: number|null, text: string}|null} */
+export function claimFromSgf(value) {
+  if (!value) return null;
+  const text = String(value).trim();
+  if (/^(0|draw|jigo)$/i.test(text)) return { winner: null, method: "score", margin: 0, text };
+  const m = /^([BW])\+(.*)$/i.exec(text);
+  if (!m) return null;
+  const winner = m[1].toLowerCase();
+  const rest = m[2].trim();
+  for (const [re, method] of CLAIM_HOW) {
+    if (re.test(rest)) return { winner, method, margin: null, text };
+  }
+  const margin = Number(rest);
+  if (rest === "" || !Number.isFinite(margin) || margin < 0) return null;
+  if (margin === 0) return { winner: null, method: "score", margin: 0, text };
+  return { winner, method: "score", margin, text };
 }
 
 /* ----- writer ----- */
@@ -240,8 +273,11 @@ export function toSgf(rec) {
   if (rec.handicap) out += `HA[${rec.handicap}]`;
   if (rec.players && rec.players.b) out += `PB[${esc(rec.players.b)}]`;
   if (rec.players && rec.players.w) out += `PW[${esc(rec.players.w)}]`;
-  const re = resultToSgf(rec.result);
-  if (re) out += `RE[${re}]`;
+  /* What we measured, or failing that what the file we read it from claimed.
+     Writing the claim back out keeps somebody else’s game whole through a
+     round trip; dropping it would quietly edit their record. */
+  const re = resultToSgf(rec.result) ?? (rec.claimed ? rec.claimed.text : null);
+  if (re) out += `RE[${esc(re)}]`;
   if (rec.setup.b.length) out += "AB" + rec.setup.b.map(([c, r]) => `[${pointToSgf(c, r)}]`).join("");
   if (rec.setup.w.length) out += "AW" + rec.setup.w.map(([c, r]) => `[${pointToSgf(c, r)}]`).join("");
   if (rec.comment) out += `C[${esc(rec.comment)}]`;

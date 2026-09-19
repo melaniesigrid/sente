@@ -12,6 +12,7 @@ export const game = {
     by: "{winner} {how}",
     howResign: "por abandono",
     howTime: "por tiempo",
+    howForfeit: "por descalificación",
     howMargin: "por {margin}",
     score: "{winner} · {a} : {b}",
     jigo: "Jigo · {b} : {w}",

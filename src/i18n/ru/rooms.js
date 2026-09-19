@@ -7,6 +7,7 @@ export const rooms = {
     trainer: { ask: "Спросить {name}" },
     back: "Назад",
     unfinished: "Незаконченная партия",
+    claimed: "В файле записано: {result}.",
     start: "Начало",
     label: "Ход {n} · {side}",
     labelPass: "Ход {n} · {side} пасует",
