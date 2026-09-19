@@ -6,6 +6,47 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.19.0.0 (2026-09-19)
+
+### Added
+
+- **Fifteen famous games, walked move by move.** A new shelf holds the three matches that
+  changed what people thought a computer could do at go: AlphaGo against Fan Hui in
+  October 2015, against Lee Sedol in Seoul in March 2016, and the Future of Go Summit at
+  Wuzhen in May 2017. Every game opens as a page -- who was playing, where, under what
+  clock, what was at stake -- and then as a board you step through with the arrow keys.
+  3,159 moves, 790 of them with something written beside them, in 120 chapters.
+- **Somebody talking beside the board.** Stepping through a game is not the same as
+  understanding it, so each game is divided into chapters that say what the players were
+  trying to do, and 790 individual moves carry a note about that move: what it threatened,
+  why it was answered where it was, what the room made of it at the time. Move 37 of the
+  second Seoul game and move 78 of the fourth have the notes you would expect.
+- **Thirty-three things people said, with their names on them.** The quotes are attributed
+  and dated, and every game lists where its account comes from -- 38 sources across the
+  fifteen. The claims about what a move meant are somebody's reading, and the page says
+  whose.
+- **The pair go at Wuzhen, seat by seat.** In the game where Gu Li and Lian Xiao each
+  partnered a copy of AlphaGo, the side column names the hand that placed each stone and
+  which of the two machines it was, so you can watch a human move and a machine move
+  alternate inside the same colour.
+
+### Changed
+
+- Walking a long game is no longer slow. Two review helpers rebuilt the whole game from
+  move one inside their own loops, which on a 289-move record cost about 300ms on every
+  arrow key and another 230ms to open the room. Same positions, same numbers, a hundredth
+  of the work. Every review in the app gets this, not just the new shelf.
+- The record room loads when you open it rather than with everything else, so the fifteen
+  studies are not in the first download for a reader who never goes there.
+- A downloaded SGF is named after the game rather than `sente-game.sgf`, and opens with a
+  line saying the moves are nobody's and the words beside them are the Studio's.
+
+### Fixed
+
+- A shared review kept its conversation column even before anybody had spoken. It had been
+  handing the column to a commentary the moment the table was quiet, which is the state
+  every shared review starts in.
+
 ## v0.18.0.0 (2026-09-16)
 
 ### Added
