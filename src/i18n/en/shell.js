@@ -17,6 +17,7 @@ export const shell = {
   /* The dock: a panel beside whatever you are doing, so a letter can be
      seen without leaving a board with a clock running on it. */
   dock: {
+    quiet: "Nothing here yet. Finished games show up as the club plays.",
     open: "Open the side panel",
     close: "Close the side panel",
     roll: "Lately",

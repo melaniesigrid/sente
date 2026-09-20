@@ -29,6 +29,7 @@ export const shell = {
   /* The dock: a panel beside whatever you are doing, so a letter can be
      seen without leaving a board with a clock running on it. */
   dock: {
+    quiet: "まだ何もありません。対局が終わるとここに並びます。",
     open: "サイドパネルを開く",
     close: "サイドパネルを閉じる",
     roll: "最近",

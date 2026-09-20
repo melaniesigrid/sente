@@ -24,6 +24,7 @@ export const shell = {
   /* The dock: a panel beside whatever you are doing, so a letter can be
      seen without leaving a board with a clock running on it. */
   dock: {
+    quiet: "Noch nichts. Beendete Partien erscheinen hier, sobald der Klub spielt.",
     open: "Seitenleiste öffnen",
     close: "Seitenleiste schließen",
     roll: "Zuletzt",

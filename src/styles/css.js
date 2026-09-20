@@ -153,7 +153,11 @@ ${FONT_FACES}
 }
 
 /* ---- chrome ---- */
+/* The chrome sits above the dock, and paints, so opening the panel never
+   takes the post box or the profile chip away from under the reader's hand.
+   A panel that covered the button that opened it would be a trap. */
 .topbar {
+  position: relative; z-index: 41; background: var(--ground);
   display: flex; align-items: center; justify-content: space-between;
   gap: 14px; flex-wrap: wrap;
   padding: clamp(14px, 2.5vw, 24px) clamp(16px, 4vw, 44px);
@@ -888,8 +892,16 @@ ${FONT_FACES}
   box-shadow: var(--raise-sm); transition: color .15s ease, box-shadow .15s ease; }
 .dock-tab:hover { color: var(--ink); }
 .dock-tab.on { color: var(--accent-ink); box-shadow: var(--sink-sm); }
+/* The panel runs the full height and starts its CONTENT below the chrome,
+   rather than starting below it: a panel that stopped at the header would
+   leave a strip of page showing above it and read as a torn-off sheet. The
+   top padding is the header's own arithmetic — its content is 48px and it
+   pads by that clamp top and bottom — so the two move together. If the header
+   ever wraps to two lines this is the line that has to know. */
 .dock { position: fixed; inset-block: 0; inset-inline-end: 0; z-index: 39;
-  width: min(380px, 92vw); padding: 18px 16px; overflow-y: auto; background: var(--ground);
+  padding-block-start: calc(48px + 2 * clamp(14px, 2.5vw, 24px));
+  width: min(380px, 92vw); padding-inline: 16px; padding-block-end: 18px;
+  overflow-y: auto; background: var(--ground);
   box-shadow: var(--raise); visibility: hidden;
   /* Off its own edge when closed. The nudge means ONWARD and not rightward,
      so it is multiplied by --flip: 1 normally, -1 on a right-to-left page, so

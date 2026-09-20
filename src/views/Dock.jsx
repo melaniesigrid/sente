@@ -68,13 +68,15 @@ export function Dock({ account, go, view }) {
         </div>
         <div className="dock-body">
           {tab === "roll"
-            ? <RollCard account={account} go={go} />
+            ? <RollCard account={account} go={go}
+                emptyNote={<p className="fine">{t("dock.quiet")}</p>} />
             : <DockPost account={account} go={go} t={t} />}
         </div>
       </aside>
     </>
   );
 }
+
 
 /* The post, as much of it as belongs beside a board: whether there is any.
    Reading a thread, and answering a position in one, is the profile screen's

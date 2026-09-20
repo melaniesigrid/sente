@@ -33,6 +33,7 @@ export const shell = {
   /* The dock: a panel beside whatever you are doing, so a letter can be
      seen without leaving a board with a clock running on it. */
   dock: {
+    quiet: "עדיין כלום. משחקים שהסתיימו יופיעו כאן כשהמועדון משחק.",
     open: "פתחו את הלוח הצדדי",
     close: "סגרו את הלוח הצדדי",
     roll: "לאחרונה",

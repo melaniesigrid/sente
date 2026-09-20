@@ -37,7 +37,7 @@ import { useT } from "../components/langStore.js";
    public, and it says plainly that these are not yet your people. The roll gets
    better as the club becomes yours, which is the honest version of what a feed
    usually pretends. */
-export function RollCard({ go, account = null }) {
+export function RollCard({ go, account = null, emptyNote = null }) {
   const t = useT();
   const [state, setState] = useState(null);
 
@@ -57,7 +57,12 @@ export function RollCard({ go, account = null }) {
     return () => { live = false; };
   }, [account]);
 
-  if (!state || state.rows.length === 0) return null;
+  /* Nothing to say draws nothing at all on the dashboard: an empty card there
+     would be noise on a screen that already has plenty. In a panel somebody
+     has just opened it is the opposite — they asked a question, and silence is
+     not an answer — so a caller who needs the quiet part said out loud hands
+     in the words to say it with. */
+  if (!state || state.rows.length === 0) return emptyNote;
 
   return (
     <Card className="roll-card">
