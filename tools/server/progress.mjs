@@ -34,29 +34,29 @@ try {
   /* ----- one device writes ----- */
   const laptop = await ok("/api/me/progress", {
     method: "PUT", token: me.token,
-    body: { data: { lessonsDone: ["liberties"], wins: 2, rating: 1400, streak: 2, recall: { "liberties#1": { box: 1, due: "2026-09-16" } } }, at: 1000 },
+    body: { data: { lessonsDone: ["liberties"], chainBest: 2, streak: 2, recall: { "liberties#1": { box: 1, due: "2026-09-16" } } }, at: 1000 },
   });
-  assert(laptop.data.lessonsDone.length === 1 && laptop.data.rating === 1400 && laptop.at === 1000, "what one device wrote comes back as written");
+  assert(laptop.data.lessonsDone.length === 1 && laptop.data.chainBest === 2 && laptop.at === 1000, "what one device wrote comes back as written");
 
   const read = await ok("/api/me/progress", { token: me.token });
-  assert(read.data.wins === 2 && read.at === 1000, "and reads back the same");
+  assert(read.data.chainBest === 2 && read.at === 1000, "and reads back the same");
 
   /* ----- another device, which did other things while apart ----- */
   const phone = await ok("/api/me/progress", {
     method: "PUT", token: me.token,
-    body: { data: { lessonsDone: ["ko"], problemsDone: ["p1"], wins: 1, rating: 1520, streak: 0, recall: { "liberties#1": { box: 0, due: "2026-09-17" } } }, at: 2000 },
+    body: { data: { lessonsDone: ["ko"], problemsDone: ["p1"], chainBest: 1, kataStreak: 1520, streak: 0, recall: { "liberties#1": { box: 0, due: "2026-09-17" } } }, at: 2000 },
   });
   assert(phone.data.lessonsDone.length === 2 && phone.data.problemsDone.length === 1, "two devices' finished work is joined");
-  assert(phone.data.wins === 2, "a count keeps the higher");
-  assert(phone.data.rating === 1520 && phone.data.streak === 0, "a rating comes from whichever device wrote later");
+  assert(phone.data.chainBest === 2, "a count keeps the higher");
+  assert(phone.data.kataStreak === 1520 && phone.data.streak === 0, "a streak comes from whichever device wrote later");
   assert(phone.data.recall["liberties#1"].box === 1, "a recall card keeps the further of the two");
 
-  const stale = await ok("/api/me/progress", { method: "PUT", token: me.token, body: { data: { rating: 1300, drillsDone: ["d1"] }, at: 500 } });
-  assert(stale.data.rating === 1520 && stale.data.drillsDone.length === 1, "an older device cannot roll the rating back, but what it finished still counts");
+  const stale = await ok("/api/me/progress", { method: "PUT", token: me.token, body: { data: { kataStreak: 1300, drillsDone: ["d1"] }, at: 500 } });
+  assert(stale.data.kataStreak === 1520 && stale.data.drillsDone.length === 1, "an older device cannot roll a streak back, but what it finished still counts");
 
   /* ----- shape ----- */
-  const junk = await ok("/api/me/progress", { method: "PUT", token: me.token, body: { data: { lessonsDone: "x", theme: "night", wins: -4, extra: 1 }, at: 3000 } });
-  assert(!("theme" in junk.data) && !("extra" in junk.data) && junk.data.wins === 2 && junk.data.lessonsDone.length === 2, "a preference, an unknown field and a wrong shape are dropped, not stored");
+  const junk = await ok("/api/me/progress", { method: "PUT", token: me.token, body: { data: { lessonsDone: "x", theme: "night", chainBest: -4, extra: 1 }, at: 3000 } });
+  assert(!("theme" in junk.data) && !("extra" in junk.data) && junk.data.chainBest === 2 && junk.data.lessonsDone.length === 2, "a preference, an unknown field and a wrong shape are dropped, not stored");
 
   const notObject = await call("/api/me/progress", { method: "PUT", token: me.token, body: { data: "all of it" } });
   assert(notObject.status === 400 && notObject.data.error === "bad-progress", "a document that is not one is refused");

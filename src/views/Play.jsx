@@ -24,6 +24,7 @@ import { MokuCard } from "../components/Moku.jsx";
 import { loadSession } from "./session.js";
 import { Game } from "./Game.jsx";
 import { OnlineCard } from "./OnlineLobby.jsx";
+import { AccountGate } from "./AccountGate.jsx";
 import { OnlineGame } from "./OnlineGame.jsx";
 import { PairGame } from "./PairGame.jsx";
 import { useT } from "../components/langStore.js";
@@ -186,6 +187,22 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
   const today = dayKey();
   // The saved table is re-read whenever the lobby shows, so leaving a duel mid-game is reflected.
   const saved = useMemo(() => (session ? null : loadSession({ today, profile, t })), [session, today, profile, t]);
+  /* Every game is played under an account: the house players and the daily
+     duel as much as a person online, because there is one rating and it
+     lives on the account. A resumed game, a game asked for by id and a
+     house player asked for by name all arrive here first, so this is the one
+     door. Without a server there is nothing to sign in to, and no door. */
+  if (serverEnabled() && !account) {
+    return (
+      <div className="stack arrives">
+        <ScreenHeader
+          label={t("play.label")}
+          title={<>{t("play.titleBefore")}<em>{t("play.titleEm")}</em>{t("play.titleAfter")}</>}
+          lede={t("account.gate.first")} />
+        <AccountGate profile={profile} notify={notify} onSignedIn={setAccount} />
+      </div>
+    );
+  }
   if (!session) {
     const first = RANK_LADDER[0], last = RANK_LADDER[RANK_LADDER.length - 1];
     const hi = HANDICAPS.indexOf(table.handicap);

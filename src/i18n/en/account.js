@@ -63,6 +63,9 @@ export const account = {
     signinFine: "Signing in takes a moment: the browser does the work of proving the password so the server never has to hold it.",
     welcomeNew: "Welcome to the ladder, {name}.",
     welcomeBack: "Welcome back, {name}",
+    /* The line above the card when it is the first thing on a page: why a
+       game, any game, waits for an account. */
+    first: "Every game here is played under an account, so it carries one rating wherever you sign in. Sign in, or make one, and the board is yours.",
   },
 
   /* A hundred seats, all taken. The card that says so is `BetaFull` in

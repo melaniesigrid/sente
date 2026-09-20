@@ -35,6 +35,7 @@
      DELETE /api/me/avatar      bearer
      GET   /api/me/progress     bearer         -> {data, at}: what you have done, kept on the account
      PUT   /api/me/progress     bearer {data, at} -> merged with what is stored, and returned
+     POST  /api/me/house        bearer {opponent:{rating,rd}, score} -> one house game rated onto the account
      GET   /api/players?q=      bearer         -> who is here by that name
      GET   /api/players/:id                     -> a public profile
      GET   /api/players/:id/avatar              -> the picture, cached by its stamp
@@ -102,7 +103,7 @@ export default {
       const known = {
         "bad-name": 400, "bad-email": 400, "bad-key": 400, "no-email": 400,
         "bad-image": 400, "bad-image-type": 415, "image-too-big": 413,
-        "bad-progress": 400, "progress-too-big": 413,
+        "bad-progress": 400, "progress-too-big": 413, "bad-house-game": 400,
         "bad-credentials": 401, "no-player": 404, "same-player": 400,
         // A link that was never real and one that has been used or has aged
         // out are different answers because the page says different things:
@@ -343,6 +344,14 @@ async function route(req, env) {
   if (path === "/api/me/profile" && req.method === "PATCH") {
     const player = await requirePlayer(req, reg);
     return json(await reg.setProfile(player.id, await readJson(req)));
+  }
+
+  /* A game against the house, rated onto the account. The browser played it
+     and says how it went; the server does the arithmetic so that the rating
+     on the account is the one every device shows. */
+  if (path === "/api/me/house" && req.method === "POST") {
+    const player = await requirePlayer(req, reg);
+    return json(await reg.houseGame(player.id, await readJson(req)));
   }
 
   /* Progress. PUT is a merge, not a write: what comes back is the union of

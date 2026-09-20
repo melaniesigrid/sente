@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { serverEnabled } from "../net/api.js";
 import { ACCOUNT_KEY, loadAccount } from "../store/account.js";
 import { DashboardCard } from "./DashboardCard.jsx";
+import { AccountGate } from "./AccountGate.jsx";
 import { Swords, GraduationCap, Target, Trophy, Play, Trash2, CalendarCheck, BrainCircuit, Check, Circle, MessageCircle, Send, Bot } from "lucide-react";
 import { MiniSelfPlay } from "../components/MiniSelfPlay.jsx";
 import { Card, Btn, RankBadge, Statement, Avatar } from "../components/ui.jsx";
@@ -36,7 +37,7 @@ import {
 import { useT } from "../components/langStore.js";
 
 /* ----------------------- HOME ----------------------- */
-export function Home({ profile, go, onResume }) {
+export function Home({ profile, go, onResume, notify = () => {} }) {
   const t = useT();
   /* Read on every render, so signing in elsewhere on the page shows here on the
      next one; the listeners below only ask for that next render when the tab
@@ -171,6 +172,15 @@ export function Home({ profile, go, onResume }) {
 
   return (
     <div className="stack arrives">
+      {/* Every game here is played under an account, so a visitor with none
+          meets the door before the board: the card that signs them in, first
+          on the page, with one line saying why it is there. */}
+      {serverEnabled() && !account && (
+        <>
+          <p className="lede">{t("account.gate.first")}</p>
+          <AccountGate profile={profile} notify={notify} onSignedIn={() => bump((n) => n + 1)} />
+        </>
+      )}
       <Card className="hero">
         <div className="hero-copy">
           <p className="eyebrow">{greeting}</p>

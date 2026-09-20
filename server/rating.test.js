@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { rate, rateGame, newRating, provisional, migrateRating, DEFAULT_RD, DEFAULT_RATING } from "./rating.js";
+import { rate, rateGame, newRating, provisional, migrateRating, cleanHouseGame, rateHouse, DEFAULT_RD, DEFAULT_RATING } from "./rating.js";
+import { GLICKO } from "../src/engine/glicko.js";
+import { MIN_RATING, MAX_RATING } from "../src/content/rank.js";
 import { rankOf, preciseRankOf } from "../src/content/rank.js";
 
 describe("glicko-2", () => {
@@ -133,5 +135,38 @@ describe("the scale the server rates on", () => {
     expect(out.b.rating).toBeGreaterThan(out.w.rating);
     expect(out.b.delta).toBeGreaterThan(0);
     expect(out.w.delta).toBeLessThan(0);
+  });
+});
+
+describe("a game against the house", () => {
+  const good = { opponent: { rating: 1200, rd: GLICKO.minRd }, score: 1 };
+  it("accepts a well-shaped game and nothing else", () => {
+    expect(cleanHouseGame(good)).toEqual(good);
+    expect(cleanHouseGame({ ...good, score: 0.5 }).score).toBe(0.5);
+    for (const bad of [
+      null, {}, { opponent: null, score: 1 }, { opponent: { rating: "1200", rd: 60 }, score: 1 },
+      { opponent: { rating: MIN_RATING - 1, rd: 60 }, score: 1 }, { opponent: { rating: MAX_RATING + 1, rd: 60 }, score: 1 },
+      { opponent: { rating: 1200, rd: GLICKO.minRd - 1 }, score: 1 }, { opponent: { rating: 1200, rd: GLICKO.maxRd + 1 }, score: 1 },
+      { opponent: { rating: 1200, rd: 60 }, score: 2 }, { opponent: { rating: 1200, rd: 60 }, score: "1" }, { opponent: { rating: 1200, rd: 60 } },
+    ]) expect(cleanHouseGame(bad), JSON.stringify(bad)).toBeNull();
+  });
+  it("moves the trio the way one rated game does and tallies the record", () => {
+    const me = { ...newRating(), wins: 1, losses: 2, draws: 0, name: "x" };
+    const won = rateHouse(me, good);
+    expect(won.rating).toBeGreaterThan(me.rating);
+    expect(won.rd).toBeLessThan(me.rd);
+    expect([won.wins, won.losses, won.draws]).toEqual([2, 2, 0]);
+    expect(won.name).toBe("x");
+    const lost = rateHouse(me, { ...good, score: 0 });
+    expect(lost.rating).toBeLessThan(me.rating);
+    expect([lost.wins, lost.losses, lost.draws]).toEqual([1, 3, 0]);
+    expect(rateHouse(me, { ...good, score: 0.5 }).draws).toBe(1);
+    // The same arithmetic the browser runs: one module, one scale.
+    const expected = rate(me, [{ opponent: good.opponent, score: 1 }]);
+    expect(won.rating).toBe(Math.round(expected.rating));
+    expect(won.rd).toBe(Math.round(expected.rd));
+  });
+  it("counts a record that was never written as zero", () => {
+    expect(rateHouse({ ...newRating() }, good).wins).toBe(1);
   });
 });

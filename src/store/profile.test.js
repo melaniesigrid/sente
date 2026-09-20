@@ -283,3 +283,31 @@ describe("restoreSound", () => {
     expect(localStorage.getItem(UNMUTE_KEY)).toBe("1");
   });
 });
+
+/* ----------------------- ONE RATING -----------------------
+   The account's rating read into the profile: the trio and the record, and
+   nothing the player prefers. See withPlayer in profile.js. */
+import { withPlayer } from "./profile.js";
+import { MIN_RATING, MAX_RATING } from "../content/rank.js";
+
+describe("withPlayer", () => {
+  const p = { ...defaultProfile, name: "Ada", rating: 1000, rd: 200, vol: 0.06, wins: 2, losses: 2, streak: 4 };
+  it("adopts the trio and the record and leaves everything else alone", () => {
+    const out = withPlayer(p, { rating: 1234.4, rd: 80.6, vol: 0.05, wins: 5, losses: 1, name: "Not Ada", tint: "x" });
+    expect(out).toMatchObject({ rating: 1234, rd: 81, vol: 0.05, wins: 5, losses: 1, name: "Ada", streak: 4 });
+  });
+  it("is the same object when nothing would change, so a save is not provoked", () => {
+    expect(withPlayer(p, { rating: 1000, rd: 200, vol: 0.06, wins: 2, losses: 2 })).toBe(p);
+    expect(withPlayer(p, null)).toBe(p);
+    expect(withPlayer(p, "x")).toBe(p);
+  });
+  it("keeps a field the player does not carry and clamps one that is off the ladder", () => {
+    const out = withPlayer(p, { rating: MAX_RATING + 500, rd: 1, wins: -3 });
+    expect(out.rating).toBe(MAX_RATING);
+    expect(out.rd).toBe(GLICKO.minRd);
+    expect(out.wins).toBe(0);
+    expect(out.losses).toBe(2);
+    expect(out.vol).toBe(0.06);
+    expect(withPlayer(p, { rating: MIN_RATING - 1 }).rating).toBe(MIN_RATING);
+  });
+});

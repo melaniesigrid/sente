@@ -31,7 +31,7 @@ import { usePrefersDark } from "./components/prefersDark.js";
 import { LangProvider } from "./components/lang.jsx";
 import { LangPill } from "./components/LangPill.jsx";
 import { useLang } from "./components/langStore.js";
-import { defaultProfile, loadProfile, saveProfile, needsOnboarding } from "./store/profile.js";
+import { defaultProfile, loadProfile, saveProfile, needsOnboarding, withPlayer } from "./store/profile.js";
 import { pullProgress, withProgress } from "./store/sync.js";
 import { ACCOUNT_EVENT, ACCOUNT_KEY } from "./store/account.js";
 import { Home } from "./views/Home.jsx";
@@ -57,8 +57,8 @@ import { linkFromQuery, forgetLink } from "./views/letterLink.js";
 
 import { loadBox, unread } from "./store/sensei.js";
 import { useTrainerAccess } from "./views/useTrainer.js";
-import { loadAccount as loadStoredAccount } from "./store/account.js";
-import { serverEnabled as serverIsOn } from "./net/api.js";
+import { loadAccount as loadStoredAccount, saveAccount } from "./store/account.js";
+import { serverEnabled as serverIsOn, api } from "./net/api.js";
 
 /* ----------------------- APP SHELL ----------------------- */
 /* The nav names its sections by key, not by word: the chrome is read in the
@@ -107,14 +107,31 @@ export default function JosekiApp() {
      playing" before their own name loaded, which is a worse first impression than
      the one onboarding is there to make. */
   const [profileRead, setProfileRead] = useState(false);
-  const pull = () => pullProgress().then((doc) => {
-    if (!doc) return;
+  /* Two things come down from the account: the progress document, merged,
+     and the rating, adopted. The rating is not merged because it is not two
+     things: house games are rated on the server too, so the account's trio
+     and record are the only ones, and this device reads them. The server's
+     copy of the player is asked for fresh, since an online game rated since
+     the last visit moved it without this browser hearing. */
+  const pull = async () => {
+    const account = loadStoredAccount();
+    const [doc, player] = await Promise.all([
+      pullProgress(),
+      account ? api.me(account.token).catch(() => null) : null,
+    ]);
+    if (player && JSON.stringify(player) !== JSON.stringify(account.player)) {
+      /* Saving announces the change, which calls this again: the second pass
+         finds the stored player equal to the fresh one and stops here. */
+      saveAccount({ token: account.token, player });
+    }
+    const adopt = player ?? account?.player ?? null;
+    if (!doc && !adopt) return;
     setProfile((cur) => {
-      const np = withProgress(cur, doc);
-      saveProfile(np);
+      const np = withPlayer(withProgress(cur, doc), adopt);
+      if (np !== cur) saveProfile(np);
       return np;
     });
-  });
+  };
   useEffect(() => {
     loadProfile().then((p) => {
       setProfile(p);
@@ -281,7 +298,7 @@ export default function JosekiApp() {
             <Welcome profile={profile} setProfile={setProfile}
               onFinish={(where) => go(where)} />
           ) : (<>
-          {view === "home" && <Home profile={profile} go={go} onResume={resumeGame} />}
+          {view === "home" && <Home profile={profile} go={go} onResume={resumeGame} notify={notify} />}
           {/* Keyed by the game asked for, so opening a second game from the archive or
               the dashboard remounts the table rather than leaving the first one up. */}
           {view === "play" && <PlayView key={(params && (params.gameId || params.withBot)) || "lobby"}

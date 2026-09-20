@@ -59,6 +59,7 @@ export const account = {
     signinFine: "Iniciar sesión tarda un momento: el navegador hace el trabajo de demostrar la contraseña para que el servidor no tenga que guardarla nunca.",
     welcomeNew: "Bienvenida a la clasificación, {name}.",
     welcomeBack: "Vuelves a estar dentro, {name}",
+    first: "Toda partida aquí se juega con una cuenta, para que lleve una sola valoración dondequiera que inicies sesión. Inicia sesión, o crea una, y el tablero es tuyo.",
   },
 
   full: {

@@ -13,6 +13,7 @@ const loadAccount = vi.fn(() => null);
 vi.mock("../net/api.js", () => ({ serverEnabled: () => serverEnabled() }));
 vi.mock("../store/account.js", () => ({ loadAccount: () => loadAccount() }));
 vi.mock("./DashboardCard.jsx", () => ({ DashboardCard: ({ account }) => <div>dashboard:{account.player.name}</div> }));
+vi.mock("./AccountGate.jsx", () => ({ AccountGate: () => <div>gate</div> }));
 /* The demo board is a clock and a network, both tested in its own suite. Here
    it only has to hand back the one thing the dashboard reads off it: which
    engine settled in. `mini` is the props it was given, so a test can answer. */
@@ -105,6 +106,26 @@ describe("the trainer mailbox", () => {
     loadAccount.mockReturnValue({ player: { name: "Ada" } });
     rerender(<Home profile={profile()} go={() => {}} onResume={() => {}} />);
     expect(screen.getByText("dashboard:Ada")).toBeTruthy();
+  });
+
+  /* Every game is played under an account, so the door is the first thing a
+     signed-out visitor meets, above the hero. Signed in, there is no door;
+     with no server, there is nothing to sign in to and no door either. */
+  it("puts the sign-in card first when there is a server and no account, and nowhere otherwise", () => {
+    serverEnabled.mockReturnValue(true);
+    const { container, rerender } = render(<Home profile={profile()} go={() => {}} onResume={() => {}} />);
+    const gate = screen.getByText("gate");
+    const hero = container.querySelector(".hero");
+    expect(gate.compareDocumentPosition(hero) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    loadAccount.mockReturnValue({ player: { name: "Ada" } });
+    rerender(<Home profile={profile()} go={() => {}} onResume={() => {}} />);
+    expect(screen.queryByText("gate")).toBe(null);
+
+    loadAccount.mockReturnValue(null);
+    serverEnabled.mockReturnValue(false);
+    rerender(<Home profile={profile()} go={() => {}} onResume={() => {}} />);
+    expect(screen.queryByText("gate")).toBe(null);
   });
 });
 

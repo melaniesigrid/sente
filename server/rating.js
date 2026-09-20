@@ -64,6 +64,39 @@ export function rateGame(black, white, winner) {
   };
 }
 
+/* ----- a game against the house -----
+   The house players run in the browser, so the server never sees the game.
+   What it is told is the one thing a rating needs: who the opponent was rated
+   as and how it went. That is the browser's word, exactly as the browser's
+   word was the whole rating before the account carried it; the difference is
+   that now there is one rating, on the account, and every device reads it. */
+
+/** The house side of a game as it arrives: a rating on the ladder, a deviation
+ *  inside Glicko's range, and a score of 1, 0 or 0.5. Anything else is null. */
+export function cleanHouseGame(body) {
+  const o = body?.opponent;
+  const { rating, rd } = o ?? {}, score = body?.score;
+  // Numbers, not things that read as numbers: "1200" is a client that has not read the contract.
+  if (![rating, rd, score].every((v) => typeof v === "number" && Number.isFinite(v))) return null;
+  if (rating < MIN_RATING || rating > MAX_RATING) return null;
+  if (rd < GLICKO.minRd || rd > GLICKO.maxRd) return null;
+  if (![0, 0.5, 1].includes(score)) return null;
+  return { opponent: { rating, rd }, score };
+}
+
+/** The player after one house game: the trio moved, the record tallied. */
+export function rateHouse(player, game) {
+  const r = rate(player, [{ opponent: game.opponent, score: game.score }]);
+  const won = game.score === 1, lost = game.score === 0;
+  return {
+    ...player,
+    rating: Math.round(r.rating), rd: Math.round(r.rd), vol: r.vol,
+    wins: (Number(player.wins) || 0) + (won ? 1 : 0),
+    losses: (Number(player.losses) || 0) + (lost ? 1 : 0),
+    draws: (Number(player.draws) || 0) + (!won && !lost ? 1 : 0),
+  };
+}
+
 /* ----- carrying the old scale across -----
    Ratings were stored on the old scale: a hundred points to a rank, 1500 for a
    newcomer, 3000 for shodan. What a player earned there is a rank, not a number
