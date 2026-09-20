@@ -7,9 +7,9 @@ import { Avatar, RankBadge, Btn, Card } from "../components/ui.jsx";
 import { ScreenHeader } from "../components/ScreenHeader.jsx";
 import { DuelCard } from "../components/DuelCard.jsx";
 import { personasFor, PERSONAS, personaById, localizePersona } from "../content/personas.js";
-import { KE_JIE, SENSEI_ID, trainerRank } from "../content/sensei.js";
+import { KE_JIE, SENSEI_ID, trainerRank, MODES } from "../content/sensei.js";
 import { rankOf, ratingOfRank, stepRank, rankInRange, rankWithHandicap, RANK_LADDER } from "../content/rank.js";
-import { SIZES, defaultKomi, RULESET_IDS, rulesetOf } from "../engine/index.js";
+import { SIZES, defaultKomi, RULESET_IDS, rulesetOf, modeRules, DEFAULT_MODE } from "../engine/index.js";
 import { loadLobby, saveLobby, HANDICAPS, KOMI_STEPS } from "../store/lobby.js";
 import { ACCOUNT_KEY, loadAccount } from "../store/account.js";
 import { useTrainerAccess } from "./useTrainer.js";
@@ -59,7 +59,9 @@ function routeSession({ profile, trainerOn, resume, openGame, withBot, t }) {
   if (withBot === SENSEI_ID) {
     if (!trainerOn) return null;
     const lobby = loadLobby();
-    return { mode: { kind: "bot", persona: KE_JIE, rank: trainerRank(lobby.rank ?? rankOf(profile.rating)) } };
+    // Asked for by name from a letter: the ordinary lesson, which is the mode
+    // he would pick himself. The other five are chosen on his card.
+    return { mode: { kind: "bot", persona: KE_JIE, rank: trainerRank(lobby.rank ?? rankOf(profile.rating), modeRules(DEFAULT_MODE).rankStep), senseiMode: DEFAULT_MODE } };
   }
   const persona = withBot ? personaById(withBot) : null;
   if (!persona) return null;
@@ -201,9 +203,22 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
     const showLevel = choice === "house" || choice === "kejie";
     const showTable = !!choice && choice !== "duel";
     const showBoardOnly = choice === "team";
-    const sit = (mode) => setSession({
-      mode: { ...mode, size: table.size, handicap: table.handicap, rules: table.rules, komi, clock },
-    });
+    /* The table decides the handicap, except where the seat itself is the lesson:
+       a teaching game is four stones in front of you by definition, so a mode that
+       names its own handicap keeps it, and the komi owed follows the stones that
+       are actually on the board rather than the ones the picker last showed. */
+    const sit = (mode) => {
+      const stones = mode.handicap ?? table.handicap;
+      setSession({
+        mode: {
+          ...mode, size: table.size, handicap: stones, rules: table.rules, clock,
+          /* A custom komi belongs to the table she set it on. A mode that brings its
+             own stones brings the komi those stones are owed, or a komi chosen for an
+             even game would ride into a four-stone one and quietly decide it. */
+          komi: stones === table.handicap ? komi : defaultKomi(stones, table.size, table.rules),
+        },
+      });
+    };
     const chooseOpponent = (next) => {
       setOpponent(next);
       setHumanMode(null);
@@ -372,11 +387,17 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
                       {table.komi !== null && komi !== owed
                         && <Btn icon={Home} small onClick={() => setTable({ komi: null })}>{t("play.komiDefault")}</Btn>}
                     </div>
-                    <div className="rank-picker-controls" role="group" aria-label={t("play.handicapGroup")}>
-                      <Btn icon={Minus} small label={t("play.fewerStones")} disabled={hi <= 0} onClick={() => setTable({ handicap: HANDICAPS[hi - 1] })} />
-                      <span className="handicap-num" aria-live="polite">{table.handicap ? t("play.stones", { count: table.handicap }) : t("play.noHandicap")}</span>
-                      <Btn icon={Plus} small label={t("play.moreStones")} disabled={hi >= HANDICAPS.length - 1} onClick={() => setTable({ handicap: HANDICAPS[hi + 1] })} />
-                    </div>
+                    {/* Not on the trainer's table: there the stones belong to the
+                        lesson, and only one of his six puts any down. A picker
+                        reading "no handicap" above a row that seats you with four
+                        would be telling you the opposite of what happens. */}
+                    {choice !== "kejie" && (
+                      <div className="rank-picker-controls" role="group" aria-label={t("play.handicapGroup")}>
+                        <Btn icon={Minus} small label={t("play.fewerStones")} disabled={hi <= 0} onClick={() => setTable({ handicap: HANDICAPS[hi - 1] })} />
+                        <span className="handicap-num" aria-live="polite">{table.handicap ? t("play.stones", { count: table.handicap }) : t("play.noHandicap")}</span>
+                        <Btn icon={Plus} small label={t("play.moreStones")} disabled={hi >= HANDICAPS.length - 1} onClick={() => setTable({ handicap: HANDICAPS[hi + 1] })} />
+                      </div>
+                    )}
                     <div className="seg" role="radiogroup" aria-label={t("play.clockGroup")}>
                       {CLOCK_PRESETS.map((p) => (
                         <button key={p.id} type="button" role="radio" aria-checked={table.clock === p.id}
@@ -402,19 +423,53 @@ export function PlayView({ profile, setProfile, notify, resume, openGame = null,
             mode="team" showBoardPicker={false} onAccount={setAccount} />
         )}
         {aiMode === "kejie" && (
-          <button className="neu-card persona-card trainer-card" onClick={() => sit({ kind: "bot", persona: KE_JIE, rank: trainerRank(rank) })}>
+          /* His card is not one button any more. He teaches six different ways
+             and which one she wants is the actual decision at this step, so the
+             card is the man and the list under it is the lesson. Each row sits
+             down straight away: choosing how is choosing to play. */
+          <div className="neu-card persona-card trainer-card">
             <div className="persona-top">
               <Avatar name={KE_JIE.name} tint={KE_JIE.tint} size={52} bot />
               <div>
-                <h3>{KE_JIE.name}</h3>
+                <h3>{KE_JIE.name}<span className="here-dot" title={t("home.trainer.here")} /></h3>
                 <p className="persona-tag">{KE_JIE.tagline}</p>
               </div>
               <RankBadge rating={ratingOfRank(trainerRank(rank))} />
             </div>
             <p className="persona-bio">{KE_JIE.bio}</p>
+            <div className="trainer-modes" role="group" aria-label={t("play.trainer.how")}>
+              {MODES.map((m) => {
+                const rules = modeRules(m.id);
+                const at = trainerRank(rank, rules.rankStep);
+                return (
+                  <button key={m.id} className="neu-card trainer-mode"
+                    onClick={() => sit({
+                      kind: "bot", persona: KE_JIE, rank: at,
+                      // Not `|| undefined`: a mode that declares no stones declares
+                      // zero of them, and `0 ?? table.handicap` keeps the zero. Coercing
+                      // it away let a handicap left on the lobby table follow her into
+                      // an even game with him.
+                      handicap: rules.handicap, senseiMode: m.id,
+                    })}>
+                    <div className="trainer-mode-top">
+                      <strong>{m.name}</strong>
+                      <span className="fine">
+                        {at}
+                        {rules.handicap ? ` · ${t("play.stones", { count: rules.handicap })}` : ""}
+                        {/* Whether it counts, on the row where she picks it. A mode he
+                            throws a move in is practice, and she should not have to
+                            play one to find that out. */}
+                        {` · ${t(rules.rated ? "play.trainer.rated" : "play.trainer.practice")}`}
+                      </span>
+                    </div>
+                    <span className="fine trainer-mode-promise">{m.promise}</span>
+                  </button>
+                );
+              })}
+            </div>
             <span className="persona-cta"><GraduationCap size={13} /> {t("play.trainer.cta", { name: KE_JIE.name })} <span className="fine">&middot; {t("play.trainer.note")}</span></span>
             <p className="fine trainer-about">{KE_JIE.about}</p>
-          </button>
+          </div>
         )}
         {aiMode === "house" && (
           <>

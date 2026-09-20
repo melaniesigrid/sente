@@ -5,8 +5,8 @@ import {
 } from "lucide-react";
 import { Btn, Pill } from "../components/ui.jsx";
 import { themeVars, REVIEW_THEME } from "../theme/index.js";
-import { startLine, playInLine, backInLine, lineFrom, lineLabel, canBranch, reviewLabelText, winRateLineText } from "./reviewLine.js";
-import { refusalText, resultSentence } from "./gameStatus.js";
+import { startLine, playInLine, backInLine, lineFrom, lineLabel, reviewLabelText, winRateLineText } from "./reviewLine.js";
+import { refusalText, resultSentence, claimSentence } from "./gameStatus.js";
 import { useT } from "../components/langStore.js";
 import { Board } from "../components/Board.jsx";
 import { legiblePx } from "../components/boardGeometry.js";
@@ -19,7 +19,7 @@ import { loadAccount } from "../store/account.js";
 import { serverEnabled } from "../net/api.js";
 import {
   atMove, moveNumbers, captureMoves, nextCapture, prevCapture,
-  reviewLength, clampMove, markerAt, toSgf, lastMoveIndex,
+  reviewLength, clampMove, toSgf, lastMoveIndex,
   turningPoints, pointAt, pct, steadiness, nextTurn, prevTurn, ANALYSIS_RANK, trainerReport,
 } from "../engine/index.js";
 
@@ -83,13 +83,24 @@ function useLegibleNumbers(size) {
   return [ref, legible];
 }
 
-export function Review({ record, onExit, onRematch, profile = {}, shared = null, seat = null }) {
+/* `aside` is a render function of the move number, drawn in the side column. Review
+   keeps that column for the conversation at a shared table and has nothing else to
+   put in it; a screen that reads a game rather than replays one - the famous games
+   shelf - hands its commentary in here rather than growing a second review room.
+   Review knows nothing about what is in it, and `shared` still wins: a table you are
+   reading with somebody is a conversation first.
+
+   `openAt` is where the cursor starts when nobody has moved it yet. Review opens at
+   the end of a game you played, because you were there; a game you have never seen
+   opens at the beginning. */
+export function Review({ record, onExit, onRematch, profile = {}, shared = null, seat = null,
+  aside = null, openAt = null, autoAnalyse = null, sgfCredit = null, sgfName = null }) {
   const t = useT();
   const total = reviewLength(record);
   /* Where the reader is standing. Alone that is this component's state; together
      it is the room's, and this state is not consulted at all - which is why the
      cursor cannot drift apart from the other person's while they read. */
-  const [ownN, setOwnN] = useState(total);
+  const [ownN, setOwnN] = useState(openAt === null ? total : clampMove(record, openAt));
   const n = shared ? clampMove(record, shared.move) : ownN;
   /* A kifu is printed with its move numbers on, so review opens with them on
      wherever they can be read, and drops them where they would be drawn under
@@ -116,7 +127,12 @@ export function Review({ record, onExit, onRematch, profile = {}, shared = null,
      say to each other about a game, and a tap has to mean one thing at a time. */
   const [pointing, setPointing] = useState(false);
   // The graph, and whether the board is showing what the network would have done.
-  const analysis = useAnalysis(record, { auto: record.phase === "ended" });
+  /* A finished game you played gets its win-rate graph without being asked, because
+     you want to know. A famous game does not: somebody who opened one to read it did
+     not ask to run a network over three hundred positions on their phone, and the
+     button is right there. `autoAnalyse` is how a screen says which it is. */
+  const analysis = useAnalysis(record, {
+    auto: autoAnalyse === null ? record.phase === "ended" : autoAnalyse });
   const [showBest, setShowBest] = useState(false);
   /* The trainer, when he is at the table: once the graph is drawn he will say
      what it means, in his words, for any game at all, opened or played here.
@@ -144,7 +160,10 @@ export function Review({ record, onExit, onRematch, profile = {}, shared = null,
   const at = useMemo(() => atMove(record, n), [record, n]);
   const numbers = useMemo(() => (showNumbers ? moveNumbers(record, n) : null), [showNumbers, record, n]);
   const caps = useMemo(() => captureMoves(record), [record]);
-  const marker = useMemo(() => markerAt(record, n), [record, n]);
+  /* Off the position already in hand. `markerAt` and `canBranch` each replay the whole
+     prefix again, which on a 289-move record is two more full replays on every arrow
+     key for answers `at` already holds. */
+  const marker = useMemo(() => lastMoveIndex(at), [at]);
   const note = at.moves.length ? (at.moves[at.moves.length - 1].comment ?? null) : (at.comment ?? null);
 
   /* Moving to another position leaves the line behind. A line belongs to the position
@@ -204,7 +223,9 @@ export function Review({ record, onExit, onRematch, profile = {}, shared = null,
   // point to ring. Saying so beats a toggle that looks broken.
   const advisePass = showBest && !line && advisedFrom && advisedFrom.best === null;
 
-  const branchable = useMemo(() => canBranch(record, n), [record, n]);
+  /* `canBranch(record, n)` is `atMove(record, n).phase === "playing" && total > 0`,
+     and `at` is that same position: the same answer without the third replay. */
+  const branchable = at.phase === "playing" && total > 0;
   /* What a tap on the board does here. Pointing works at any position at all,
      including the last one of a counted game, where there is nothing left to play
      and plenty still to say. */
@@ -234,12 +255,19 @@ export function Review({ record, onExit, onRematch, profile = {}, shared = null,
   const fwd = nextCapture(caps, n);
   const capHere = caps.find((c) => c.move === n);
 
+  /* A downloaded file is read somewhere we cannot annotate, so whatever needs saying
+     about where it came from has to be inside it. `sgfCredit` is that line. It rides in
+     the root comment, which is the one place an SGF has to put a sentence, and it is
+     never drawn on the screen. */
   const downloadSgf = () => {
-    const blob = new Blob([toSgf(record)], { type: "application/x-go-sgf" });
+    const out = sgfCredit
+      ? { ...record, comment: [sgfCredit, record.comment].filter(Boolean).join("\n\n") }
+      : record;
+    const blob = new Blob([toSgf(out)], { type: "application/x-go-sgf" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "sente-game.sgf";
+    a.download = sgfName ? `${sgfName}.sgf` : "sente-game.sgf";
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -254,7 +282,9 @@ export function Review({ record, onExit, onRematch, profile = {}, shared = null,
     <div className="stack review-room" style={themeVars(REVIEW_THEME, null, profile.stones)}>
       <div className="row spread">
         <Btn icon={ChevronLeft} small onClick={onExit}>{t("review.back")}</Btn>
-        <span className="review-result">{resultSentence(record.result, t) ?? t("review.unfinished")}</span>
+        <span className="review-result">
+          {resultSentence(record.result, t) ?? claimSentence(record.claimed, t) ?? t("review.unfinished")}
+        </span>
       </div>
       {/* Who else is at this board. The banner is the whole of the difference on
           screen between reading a game alone and reading it with the person you
@@ -407,7 +437,9 @@ export function Review({ record, onExit, onRematch, profile = {}, shared = null,
         {/* Whatever the table sent along - the conversation, in practice. Review
             has a side column for exactly this reason and nothing of its own to
             put in it. */}
-        {shared && shared.talk && <div className="side stack-sm">{shared.talk}</div>}
+        {shared
+          ? (shared.talk ? <div className="side stack-sm">{shared.talk}</div> : null)
+          : aside ? <div className="side stack-sm">{aside(n)}</div> : null}
       </div>
     </div>
   );

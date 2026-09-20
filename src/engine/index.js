@@ -24,7 +24,7 @@ export {
 } from "./rulesets.js";
 export {
   MAX_SGF_BYTES, SgfParseError, parseSgfTree, parseSgf, recordFromSgf, toSgf,
-  pointFromSgf, pointToSgf, resultToSgf,
+  pointFromSgf, pointToSgf, resultToSgf, rulesFromSgf, claimFromSgf,
 } from "./sgf.js";
 export {
   atMove, moveNumbers, captureMoves, nextCapture, prevCapture,
@@ -48,6 +48,7 @@ export { ANALYSIS_RANK, analyseGame, analysisCacheKey, cachedAnalysis, positions
 export { PHASE_AT, phaseOf, lineOf, regionOf, distance, describeMove, policyStanding } from "./explain.js";
 export {
   TRAINER, AREAS, giftDue, pickGift, giftOutcome, trainerReport, areasOf, gameSummary, areaMeans, focusFor, trend,
+  DEFAULT_MODE, modeRules,
 } from "./sensei.js";
 export { createRng, hashString, positionSeed } from "./rng.js";
 export {

@@ -13,7 +13,7 @@ const memory = () => {
 describe("the box", () => {
   it("starts empty and reads back what it saved", () => {
     const s = memory();
-    expect(loadBox(s)).toEqual({ thread: [], games: [], lastGame: "", wrote: "", greeted: "", seen: 0, bond: "", taught: {} });
+    expect(loadBox(s)).toEqual({ thread: [], games: [], lastGame: "", wrote: "", greeted: "", enticed: "", seen: 0, bond: "", taught: {}, rung: "" });
     let box = postLetter(loadBox(s), "Come back.", "2026-09-13");
     box = tell(box, "Hi.", "2026-09-13");
     box = say(box, "Hello.", "2026-09-13", { read: true });
@@ -146,5 +146,51 @@ describe("the register of what he has taught", () => {
     expect(loadBox(s).taught).toEqual({ cut: 3, tobi: TAUGHT_CAP });
     s.setItem(SENSEI_KEY, JSON.stringify({ taught: "no" }));
     expect(loadBox(s).taught).toEqual({});
+  });
+});
+
+import { rungPassed, markRung } from "./sensei.js";
+
+describe("the milestones on the road", () => {
+  it("marks a stop once and never speaks about it again", () => {
+    const box = loadBox(memory());
+    expect(rungPassed(box, "10k")).toBe(true);
+    const marked = markRung(box, "10k");
+    expect(rungPassed(marked, "10k")).toBe(false);
+    // The next stop up is still ahead, so it is still worth saying.
+    expect(rungPassed(marked, "5k")).toBe(true);
+  });
+
+  it("never walks a milestone backwards, however the rating moves", () => {
+    // A rating that slips a rank must not re-announce a stop she passed long ago,
+    // and must not oscillate between two of them for ever. Only upward counts.
+    const box = markRung(loadBox(memory()), "10k");
+    expect(rungPassed(box, "15k")).toBe(false);
+    expect(rungPassed(box, "10k")).toBe(false);
+    expect(rungPassed(box, "5k")).toBe(true);
+  });
+
+  it("says nothing when there is no stop to speak about", () => {
+    expect(rungPassed(loadBox(memory()), "")).toBe(false);
+  });
+
+  it("survives a round trip through storage", () => {
+    const store = memory();
+    saveBox(markRung(loadBox(store), "1d"), store);
+    expect(loadBox(store).rung).toBe("1d");
+  });
+
+  it("keeps the day he last asked her to play, so he asks once", () => {
+    const store = memory();
+    saveBox({ ...loadBox(store), enticed: "2026-09-16" }, store);
+    expect(loadBox(store).enticed).toBe("2026-09-16");
+    store.setItem(SENSEI_KEY, JSON.stringify({ enticed: 7 }));
+    expect(loadBox(store).enticed).toBe("");
+  });
+
+  it("ignores a rung stored as anything but a label", () => {
+    const store = memory();
+    store.setItem(SENSEI_KEY, JSON.stringify({ rung: 7 }));
+    expect(loadBox(store).rung).toBe("");
   });
 });

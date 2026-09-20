@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { serverEnabled } from "../net/api.js";
 import { ACCOUNT_KEY, loadAccount } from "../store/account.js";
 import { DashboardCard } from "./DashboardCard.jsx";
@@ -13,6 +13,7 @@ import { PROBLEMS, localizeProblem, localizeSet, currentSet, setProgress } from 
 import { preciseRankOf } from "../content/rank.js";
 import { PERSONAS } from "../content/personas.js";
 import { duelMode } from "../content/duel.js";
+import { demoPair } from "../content/demo.js";
 import { clearGame } from "../store/gameStore.js";
 import { useMokuFacts } from "../components/mokuStore.js";
 import { DuelCard } from "../components/DuelCard.jsx";
@@ -23,13 +24,14 @@ import { LIBRARY } from "../content/library.js";
 import { OpenSgf } from "../components/OpenSgf.jsx";
 import { Review } from "./Review.jsx";
 import { loadSession } from "./session.js";
-import { KE_JIE, SENSEI_ID, letterFor, greetingFor, jealousLine, replyTo, bondQuestion, bondYes, bondNo, BOND_AFTER } from "../content/sensei.js";
+import { KE_JIE, SENSEI_ID, letterFor, greetingFor, jealousLine, replyTo, bondQuestion, bondYes, bondNo, BOND_AFTER, glossFor, championStep, championLine, enticeLine } from "../content/sensei.js";
 import { focusFor, trend } from "../engine/index.js";
 import { loadTelemetry } from "../store/telemetry.js";
 import { personaById } from "../content/personas.js";
 import { useTrainerAccess } from "./useTrainer.js";
 import {
   loadBox, saveBox, postLetter, markRead, unread, shouldWriteAbout, daysBetween, say, tell, playedWithoutHim, shouldAsk,
+  rungPassed, markRung,
 } from "../store/sensei.js";
 import { useT } from "../components/langStore.js";
 
@@ -71,6 +73,11 @@ export function Home({ profile, go, onResume }) {
   const [saved, setSaved] = useState(() => loadSession({ today, profile, t }));
   const discard = () => { clearGame(); setSaved(null); };
   const duel = duelMode(PERSONAS, today);
+  // Who is playing the demo board, and which engine is answering for them.
+  // The pair is today's; the source is whatever MiniSelfPlay settled on when
+  // it started, which depends on whether the network is already in memory.
+  const pair = useMemo(() => demoPair(PERSONAS, today), [today]);
+  const [demoSource, setDemoSource] = useState("heuristic");
   const authoredKata = dailyProblem(PROBLEMS, today);
   const kata = authoredKata && localizeProblem(authoredKata, t);
   const kataDone = profile.kataDate === today;
@@ -89,7 +96,7 @@ export function Home({ profile, go, onResume }) {
     const post = (fn) => { b = fn(b); changed = true; };
     const bonded = b.bond === "yes";
     if (b.greeted !== today) {
-      post((x) => ({ ...say(x, greetingFor(new Date().getHours(), games + x.thread.length, profile.name), today), greeted: today }));
+      post((x) => ({ ...say(x, greetingFor(new Date().getHours(), games + x.thread.length, profile.name, bonded), today), greeted: today }));
     }
     const log = loadTelemetry();
     const others = playedWithoutHim(log, b, SENSEI_ID);
@@ -101,6 +108,25 @@ export function Home({ profile, go, onResume }) {
     if (shouldWriteAbout(b, today)) {
       const away = daysBetween(b.lastGame, today);
       post((x) => postLetter(x, letterFor({ daysAway: away, name: profile.name, bonded }, away), today));
+    }
+    /* The long game. She said she is going to be champion; he treats the ladder as
+       the route to it and marks the day she reaches a new stop on it. Once, ever,
+       per stop, because a milestone said twice is not a milestone. */
+    const rung = championStep(profile.rating).at.at;
+    if (games > 0 && rungPassed(b, rung)) {
+      post((x) => markRung(say(x, championLine(profile, x.thread.length, profile.name, bonded), today), rung));
+    }
+    /* And a reason to sit down, on any day she has not yet played him. He is not
+       a notification: it goes in the thread beside everything else he says, and
+       it stops the moment there is a game on the record for today.
+
+       `enticed` is the day he last asked, and it is the whole reason this line
+       does not repeat. Home is mounted fresh on every return to the dashboard,
+       so a guard on `lastGame` alone - a day key this line never writes - would
+       append another invitation every time she came back to the screen and push
+       everything else he has said out of the end of the thread. */
+    if (games > 0 && b.lastGame !== today && b.enticed !== today) {
+      post((x) => ({ ...say(x, enticeLine(x.thread.length, profile.name, bonded, { focus: focusFor(x.games) }), today), enticed: today }));
     }
     if (shouldAsk(b, BOND_AFTER)) post((x) => ({ ...say(x, bondQuestion(profile.name), today), bond: "asked" }));
     if (changed) saveBox(b);
@@ -160,8 +186,22 @@ export function Home({ profile, go, onResume }) {
             <Btn icon={GraduationCap} onClick={() => go("learn")}>{t("home.keepLearning")}</Btn>
           </div>
         </div>
-        <div className="hero-board" aria-hidden="true">
-          <MiniSelfPlay sizePx={300} />
+        <div className="hero-board">
+          {/* The demo names what it is, and the name is not decided here: the
+              board plays the house players through the network when the
+              network is already loaded and the heuristic when it is not, and
+              the line under it says which of those a visitor is watching. */}
+          <div aria-hidden="true">
+            <MiniSelfPlay sizePx={300} players={pair} onSource={setDemoSource} />
+          </div>
+          <p className="board-note">
+            {demoSource === "kata" && pair
+              ? t("home.boardNotePlayers", {
+                black: pair.b.persona.name, blackRank: pair.b.rank,
+                white: pair.w.persona.name, whiteRank: pair.w.rank,
+              })
+              : t("home.boardNote")}
+          </p>
         </div>
       </Card>
 
@@ -192,14 +232,30 @@ export function Home({ profile, go, onResume }) {
         <Card className="letter-card">
           <div className="chat-head">
             <Avatar name={KE_JIE.name} tint={KE_JIE.tint} size={28} bot />
-            <span className="letter-name">{KE_JIE.name} <span className="fine">&middot; {KE_JIE.nickname}</span></span>
+            <span className="letter-name">{KE_JIE.name} <span className="fine">&middot; {KE_JIE.nickname}</span><span className="here-dot" title={t("home.trainer.here")} /></span>
             <span className="fine letter-you">{KE_JIE.yourHandle}</span>
             {waiting > 0 && <span className="letter-unread">{waiting}</span>}
             <span className="bot-chip"><Bot size={11} /> {t("game.chat.trainer")}</span>
           </div>
+          {/* The two names in the header are Chinese, and the person reading them
+              does not read Chinese. So they are never left standing on their own:
+              here is how each one sounds and what it means, every time the card is
+              drawn. The rule is the same one the bubbles below follow. */}
+          <div className="letter-names">
+            {glossFor(`${KE_JIE.nickname} ${KE_JIE.yourHandle}`).map((g) => (
+              <span key={g.name} className="fine letter-gloss">{g.name} &middot; {g.pinyin} &middot; {g.means}</span>
+            ))}
+          </div>
           <div className="chat-log letter-log" aria-live="polite" onClick={putAway}>
             {box.thread.slice(-40).map((m, i) => (
-              <div key={i} className={`bubble ${m.who === "you" ? "mine" : ""}${m.read ? "" : " fresh"}`}>{m.text}</div>
+              <div key={i} className={`bubble ${m.who === "you" ? "mine" : ""}${m.read ? "" : " fresh"}`}>
+                {m.text}
+                {/* A Chinese name he used, with its sound and its meaning: nobody
+                    should have to guess what they were just called. */}
+                {glossFor(m.text).map((g) => (
+                  <span key={g.name} className="bubble-gloss">{g.name} &middot; {g.pinyin} &middot; {g.means}</span>
+                ))}
+              </div>
             ))}
             {box.bond === "asked" && (
               <div className="row">

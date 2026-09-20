@@ -3,7 +3,9 @@
 export const screens = {
   /* The dashboard. */
   home: {
-    trainer: { head: "A letter from {name}", away: "Put it away", play: "Go and play", placeholder: "Write to him…", send: "Send", yes: "Yes", notNow: "Not now" },
+    boardNotePlayers: "{black} ({blackRank}) against {white} ({whiteRank}), both through KataGo’s human-style network at their own rank.",
+    boardNote: "Joseki’s move picker against itself: the same heuristic on both sides, not the KataGo network your house players use.",
+    trainer: { head: "A letter from {name}", away: "Put it away", play: "Go and play", placeholder: "Write to him…", send: "Send", yes: "Yes", here: "Always here", pings: "{count} waiting from your trainer", notNow: "Not now" },
     greetingBack: "Welcome back",
     greetingNew: "Welcome to the board",
     wonOf: "{wins} of {games} won",
@@ -78,7 +80,7 @@ export const screens = {
   },
   /* The lobby: the level, the table, and who is sitting at it. */
   play: {
-    trainer: { cta: "Train with {name}", note: "Private to this device. Never rated." },
+    trainer: { cta: "Train with {name}", note: "Private to this device.", how: "How he teaches", rated: "Rated", practice: "Practice" },
     label: "Sit down",
     titleBefore: "Find a ",
     titleEm: "game",
@@ -283,6 +285,8 @@ export const screens = {
       head: "Private trainer",
       games: "Games with him: {count}",
       watching: "He is watching {area}.",
+      record: "On the record",
+      names: "Names, sounds and meanings",
       report: "Progress report",
       note: "A house player for one person, kept behind a phrase. He explains every move, grades yours, and writes between games. Everything he does stays on this device.",
       placeholder: "The phrase",

@@ -27,7 +27,7 @@ import { loadAccount, saveAccount } from "../store/account.js";
 import { loadTelemetry, clearTelemetry, byBot, summarize, CAP } from "../store/telemetry.js";
 import { loadMemory, clearMemory, summarize as summarizeDeja, CAP as DEJA_CAP } from "../store/deja.js";
 import { PERSONAS } from "../content/personas.js";
-import { KE_JIE, reportLines, rankLine, AREA_WORDS } from "../content/sensei.js";
+import { KE_JIE, reportLines, rankLine, AREA_WORDS, GLOSSARY, ON_THE_RECORD } from "../content/sensei.js";
 import { phraseOpens, loadBox, saveBox, letters } from "../store/sensei.js";
 import { useTrainerAccess } from "./useTrainer.js";
 import { focusFor, trend } from "../engine/index.js";
@@ -173,6 +173,23 @@ function TrainerCard({ profile, account, commit }) {
               {reportLines(tr, profile.name).slice(1).map((line, i) => <p key={i} className="fine">{line}</p>)}
             </div>
           )}
+          <details className="trainer-names">
+            <summary className="fine">{t("profile.trainer.record")}</summary>
+            <p className="fine" style={{ marginTop: 8 }}>{KE_JIE.about}</p>
+            <ul className="trainer-glossary">
+              {ON_THE_RECORD.map((r) => (
+                <li key={r.source}>{r.fact}{r.quote ? <> <em>&ldquo;{r.quote}&rdquo;</em></> : null} <span className="fine">({r.source})</span></li>
+              ))}
+            </ul>
+          </details>
+          <details className="trainer-names">
+            <summary className="fine">{t("profile.trainer.names")}</summary>
+            <ul className="trainer-glossary">
+              {GLOSSARY.map((g) => (
+                <li key={g.name + g.role}><strong>{g.name}</strong> <span className="fine">{g.pinyin} &middot; {g.means} &middot; {g.role}</span></li>
+              ))}
+            </ul>
+          </details>
           <div className="row" style={{ marginTop: 10 }}>
             <Btn small icon={Trash2} onClick={burn} disabled={box.thread.length === 0}>{t("profile.trainer.burn")}</Btn>
             {!fromAccount && <Btn small onClick={() => commit({ sensei: false })}>{t("profile.trainer.hide")}</Btn>}

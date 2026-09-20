@@ -14,6 +14,7 @@ export const game = {
     by: "{winner}，{how}",
     howResign: "对方中盘认输",
     howTime: "对方超时",
+    howForfeit: "对方弃权",
     howMargin: "{margin} 目",
     score: "{winner} · {a} : {b}",
     jigo: "和棋 · {b} : {w}",

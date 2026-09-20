@@ -324,7 +324,7 @@ ${FONT_FACES}
    left standing proud of a tray. A card keeps its two shadows and spends them:
    two pixels of offset is a card with a thumb on it. It travels the one pixel
    that offset gives up, so the card goes down rather than only going quiet. */
-.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .play-choice:active { box-shadow: var(--press); transform: translateY(1px); }
+.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .fm-card:active, .play-choice:active, .trainer-mode:active { box-shadow: var(--press); transform: translateY(1px); }
 
 /* A control is small enough to invert, which is what the nine already do. */
 .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn.active:active { box-shadow: var(--sink-sm); transform: none; }
@@ -346,7 +346,7 @@ ${FONT_FACES}
    sinks while still held two pixels up is being pressed and lifted at once. */
 .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active { transform: none; }
 
-.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .play-choice:active, .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn:active, .swatch:active, .look-btn:active, .lang-pill:active, .btn:active:not(:disabled), .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active, .lp-btn:active, .lp-card-btn:active, .lp-enter:active, .arche-btn:active, .country-btn:active { transition-duration: .06s; }
+.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .fm-card:active, .play-choice:active, .trainer-mode:active, .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn:active, .swatch:active, .look-btn:active, .lang-pill:active, .btn:active:not(:disabled), .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active, .lp-btn:active, .lp-card-btn:active, .lp-enter:active, .arche-btn:active, .country-btn:active { transition-duration: .06s; }
 
 /* A screen arrives a beat at a time rather than all at once. It is the front
    door's entrance, applied where a whole screen is swapped in by the nav: the
@@ -501,7 +501,10 @@ ${FONT_FACES}
 /* ---- hero ---- */
 .hero { display: flex; gap: clamp(18px, 3vw, 36px); align-items: center; flex-wrap: wrap; }
 .hero-copy { flex: 1 1 300px; }
-.hero-board { flex: 0 1 300px; margin-inline: auto; }
+/* The dashboard's demo board carries a caption saying what is playing it, so
+   the column holds the board and the line under it. The line itself is set
+   beside the front door's, at .lp-board-note: one idiom, one rule. */
+.hero-board { flex: 0 1 300px; margin-inline: auto; display: flex; flex-direction: column; gap: 10px; }
 .hero .row { margin-top: 18px; }
 
 .tile { text-align: start; border: 0; cursor: pointer; color: var(--ink); transition: transform .15s ease, box-shadow .15s ease; }
@@ -554,6 +557,18 @@ ${FONT_FACES}
 .star-pt { fill: var(--grid); fill-opacity: calc(var(--grid-alpha) * 1.45); }
 .ghost { fill: var(--accent); opacity: .28; }
 .mark-ring { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 4 4; opacity: .85; }
+/* A named empty point in a figure. Two things it has to get right, and the
+   first draft got both wrong.
+
+   It is drawn on the wood, and the wood is a constant: --accent-ink is derived
+   against the page's ground, so in Night it is a pale green sitting on a pale
+   board and the letter disappears. The stone inks are the pair held against
+   the board, which is why .stone-num uses them, and this uses them too.
+
+   And it is SVG text inside the viewBox, so the page scales it down: LABEL_PX
+   in boardGeometry.js is the size that still clears the 12px floor on the
+   narrowest board that draws one, and coordinates.test.js holds it there. */
+.point-label { font-size: 24px; font-weight: 700; fill: var(--stone-b-2); pointer-events: none; }
 /* The ring a chat line puts on a point. Wider than a stone rather than inside
    it, so it reads the same whether the point is empty or has been played on;
    the atari ring above it is drawn the same way for the same reason. */
@@ -602,6 +617,12 @@ ${FONT_FACES}
 /* ---- lobby / personas ---- */
 .persona-card { text-align: start; border: 0; cursor: pointer; color: var(--ink); display: flex; flex-direction: column; gap: 12px; transition: transform .15s ease, box-shadow .15s ease; }
 .persona-card:hover { transform: translateY(-2px); }
+/* ...except the trainer's, which stopped being one button when it grew six. It
+   keeps the layout and loses the affordance: an inert 300px card must not lift
+   under the cursor, and pressing a mode row must not turn the whole card inside
+   out around it. */
+.trainer-card { cursor: default; }
+.trainer-card:hover, .trainer-card:active { transform: none; box-shadow: var(--raise); }
 .persona-top { display: flex; align-items: center; gap: 13px; }
 .persona-top > div:nth-child(2) { flex: 1; }
 .persona-top h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: 19px; margin: 0; }
@@ -832,6 +853,29 @@ ${FONT_FACES}
 .letter-unread { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; box-shadow: var(--raise-sm); color: var(--accent-ink); }
 .letter-log { max-height: 340px; }
 .letter-you { margin-inline-start: auto; }
+.letter-name .here-dot, .trainer-card h3 .here-dot { margin-inline-start: 6px; }
+.nav-ping { font-size: 12px; font-weight: 700; min-width: 18px; padding: 1px 6px; border-radius: 999px; box-shadow: var(--raise-sm); color: var(--accent-ink); margin-inline-start: 6px; }
+.bubble-gloss { display: block; margin-top: 4px; font-size: 12.5px; color: var(--ink-2); }
+/* The two Chinese names in the trainer header, with their sound and meaning. Never
+   hidden behind a hover: a name you cannot read is not explained by a tooltip. */
+.letter-names { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: -4px 0 2px; }
+.letter-gloss { color: var(--ink-2); }
+/* How he teaches, as a list of rooms rather than a settings row: each one sits
+   down straight away, so it is raised like every other thing you can press, and
+   it is on the press ladder below to prove it. There is no global button reset in
+   this stylesheet, so a card-button declares its own the way .persona-card does;
+   without it the UA border draws a hard edge over the two shadows that are
+   supposed to be the only edge, and the label falls out of the themed font. */
+.trainer-modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin: 12px 0 4px; }
+.trainer-mode { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; text-align: start;
+  appearance: none; border: 0; font: inherit; color: var(--ink); cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease; }
+.trainer-mode:hover { transform: translateY(-2px); }
+.trainer-mode-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.trainer-mode-promise { line-height: 1.5; }
+.trainer-names { margin-top: 10px; }
+.trainer-names summary { cursor: pointer; }
+.trainer-glossary { margin: 8px 0 0; padding-inline-start: 18px; font-size: 14px; line-height: 1.6; }
 .bubble.fresh { box-shadow: var(--raise-sm), 0 0 0 2px var(--accent-ring); }
 .trainer-about { margin-top: 2px; font-size: 12.5px; }
 .trainer-report p { margin-top: 4px; }
@@ -2713,7 +2757,55 @@ ${FONT_FACES}
    lifted out of a recess it was cut into. The outer frame wins here: it is the
    one that belongs to the page's composition. */
 .lp-board-well .board-well { box-shadow: none; padding: 0; }
-.lp-board-note { color: var(--ink-2); margin: 0; font-family: var(--font-caption); font-style: var(--caption-style); font-size: 13px; text-align: center; }
+/* A caption under a board: the front door's and the dashboard's. They differ
+   only in the size the page around them asks for. */
+.board-note, .lp-board-note {
+  color: var(--ink-2); margin: 0; text-align: center;
+  font-family: var(--font-caption); font-style: var(--caption-style);
+}
+.lp-board-note { font-size: 13px; }
+.board-note { font-size: 12px; line-height: 1.45; max-width: 34ch; margin-inline: auto; }
+
+/* ---- the rank dial ----
+   One figure, two columns: the corner on the left and the reading of it on the
+   right. The bars are the only place on the site where a colour carries a
+   meaning rather than a mood, so both of them are the accent -- the answer at
+   full strength, the alternative at a quarter of it -- and neither is a hue a
+   reader has to learn. The track is sunken and the bars sit in it, which is
+   the same two shadows as everything else, turned the way a groove is. */
+/* The heading and its lede hang on .lp-h3 and .lp-body, which both zero their
+   margins for use inside a card. Out here they need the section's own rhythm,
+   and the lede needs a measure the card used to give it. */
+.dial-head { margin: clamp(46px, 6vw, 70px) 0 0; }
+.dial-lede { margin: 12px 0 0; max-width: 60ch; }
+.dial { display: flex; flex-wrap: wrap; align-items: center; gap: clamp(20px, 3.5vw, 44px); margin: clamp(26px, 4vw, 44px) 0 0; }
+/* The minimum is the label's, not the layout's: the letters on the board are
+   SVG text, so a narrower column prints them smaller, and under about 254px
+   they fall through the 12px floor. coordinates.test.js reads this number. */
+.dial-board { flex: 0 1 300px; min-width: 260px; margin-inline: auto; }
+.dial-read { flex: 1 1 340px; min-width: 260px; }
+.dial-keys { list-style: none; padding: 0; margin: 0 0 18px; display: flex; flex-direction: column; gap: 7px; font-size: 14px; color: var(--ink-2); }
+.dial-keys li { display: flex; align-items: baseline; gap: 9px; line-height: 1.45; }
+.dial-keys b { color: var(--accent-ink); font-family: var(--font-display); font-weight: var(--w-display-strong); }
+.dial-swatch { width: 11px; height: 11px; border-radius: 3px; flex: none; transform: translateY(1px); }
+.dial-swatch.s0 { background: var(--accent); }
+.dial-swatch.s1 { background: rgba(var(--accent-rgb), .28); }
+.dial-rows { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 9px; }
+.dial-row { display: flex; align-items: center; gap: 11px; }
+.dial-rank { flex: none; width: 3.4ch; text-align: end; font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.dial-track { flex: 1; display: flex; gap: 3px; height: 16px; padding: 3px; border-radius: 999px; box-shadow: var(--sink-sm); }
+/* flex: none, and not for tidiness: a shrinkable bar is a bar whose drawn
+   length stops being the number it stands for. At 9d the two of them ask
+   for 98% of the track, and on a narrow reading column the gap between
+   them would take the difference out of both. */
+.dial-bar { flex: none; border-radius: 999px; min-width: 2px; }
+.dial-bar.s0 { background: var(--accent); }
+.dial-bar.s1 { background: rgba(var(--accent-rgb), .28); }
+.dial-pct { flex: none; width: 4.2ch; font-size: 13px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.dial-source { margin: 16px 0 0; color: var(--ink-2); font-family: var(--font-caption); font-style: var(--caption-style); font-size: 12px; }
+@media (max-width: 620px) {
+  .dial-board { flex-basis: 100%; }
+}
 
 /* The stat chips are sunken, so they read as facts stamped into the ground
    rather than as a second row of buttons competing with the call to action. */
@@ -3449,5 +3541,129 @@ ${FONT_FACES}
     background: var(--ground); box-shadow: var(--raise-sm);
   }
   .moku-off > * { position: relative; }
+}
+
+/* ----------------------- THE RECORD ROOM -----------------------
+   The famous games shelf, the page for one game, and the column beside the
+   board while you walk it.
+
+   It borrows the journal's rhythm on purpose: a shelf of cards that go
+   somewhere, a page set as reading, and prose measured to about 66 characters
+   so a long study is a column rather than a wall. What it adds is the facts
+   list, which is the one part of this screen that is a table of numbers and
+   is set like one. */
+.fm-match { margin-top: 26px; }
+.fm-match-title {
+  margin: 0; font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: clamp(22px, 3vw, 30px); line-height: 1.16; color: var(--ink);
+}
+.fm-match-meta { margin: 0; }
+.fm-match-lede { margin: 0; max-width: 66ch; font-size: 15.5px; line-height: 1.62; color: var(--ink-2); }
+/* Two across where there is room, one where there is not. A famous game's card
+   carries a whole sentence of subtitle, so three across would set it too narrow
+   to read. */
+.fm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 6px; }
+/* The opacity leg is named because this block sits after .reveal in the sheet and
+   the two selectors weigh the same: a bare transition of transform and box-shadow here
+   drops .reveal's opacity fade, and the card snaps in instead of arriving. The
+   journal's card is identical code that happens to sit earlier, which is why it never
+   showed the fault. The transform leg stays at the hover speed on purpose - the card
+   slides up quickly and fades in slowly, which reads better than both at .7s. */
+.fm-card {
+  display: flex; flex-direction: column; gap: 8px; align-items: flex-start;
+  text-align: start; width: 100%; cursor: pointer; padding: 20px 22px;
+  transition: opacity .7s cubic-bezier(.2,.8,.2,1), transform .18s ease, box-shadow .18s ease;
+}
+.fm-card:hover { transform: translateY(-2px); }
+.fm-kicker {
+  font-family: var(--font-body); font-size: 12.5px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3);
+}
+.fm-title {
+  margin: 0; font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: clamp(17px, 2vw, 21px); line-height: 1.22; color: var(--ink);
+}
+.fm-dek { margin: 0; max-width: 46ch; font-size: 15px; line-height: 1.58; color: var(--ink-2); }
+.fm-meta { margin: 0; }
+.fm-more {
+  display: inline-flex; align-items: center; gap: 7px; margin-top: auto; padding-top: 6px;
+  color: var(--accent-ink); font-family: var(--font-body);
+  font-size: 12.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+}
+.fm-card:hover .fm-more { gap: 11px; }
+.fm-more span, .fm-more svg { transition: all .18s ease; }
+/* The chevron on this card points the way the language runs: it means "onward
+   through the shelf", not "forward through a record", so unlike the review
+   stepper it does mirror. */
+[dir="rtl"] .fm-more svg { transform: scaleX(-1); }
+
+/* ---- one game, set as a page ---- */
+.fm-notice p { margin: 0 0 10px; max-width: 66ch; }
+.fm-notice p:last-child { margin-bottom: 0; }
+.fm-page { max-width: 74ch; }
+.fm-h {
+  margin: 22px 0 0; font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: clamp(18px, 2.2vw, 22px); line-height: 1.2; color: var(--ink);
+}
+.fm-story { margin-top: 6px; }
+.fm-p { margin: 0 0 14px; max-width: 66ch; font-size: 16px; line-height: 1.7; color: var(--ink); }
+.fm-p:last-child { margin-bottom: 0; }
+/* The facts. A definition list because that is what it is, set in two columns
+   where there is room and stacked where there is not. */
+.fm-dl { margin: 0; display: grid; gap: 10px; }
+.fm-dl > div { display: grid; grid-template-columns: minmax(96px, 22%) 1fr; gap: 12px; align-items: baseline; }
+.fm-dl dt {
+  font-family: var(--font-body); font-size: 12px; font-weight: 700;
+  letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3);
+}
+.fm-dl dd { margin: 0; font-size: 15px; line-height: 1.5; color: var(--ink); }
+@media (max-width: 560px) {
+  .fm-dl > div { grid-template-columns: 1fr; gap: 2px; }
+}
+/* A quotation is somebody speaking, so it is set in the display face and
+   indented behind its mark, the way the pull quotes are. */
+.fm-quote {
+  position: relative; margin: 0;
+  padding-block: 14px; padding-inline: 34px 0;
+  border-inline-start: 2px solid var(--hairline);
+}
+.fm-quote > svg { position: absolute; inset-inline-start: 8px; top: 18px; color: var(--accent-ink); opacity: .7; }
+.fm-quote blockquote {
+  margin: 0 0 6px; max-width: 58ch; font-family: var(--font-display);
+  font-weight: var(--w-display); font-size: clamp(17px, 2.1vw, 21px);
+  line-height: 1.38; color: var(--ink);
+}
+.fm-quote figcaption { margin: 0; }
+/* The chapters, numbered, because a reader who has walked to move 140 wants to
+   know which of eight parts they are standing in. */
+.fm-chapters { margin: 0; padding: 0; list-style: none; counter-reset: fmch; }
+.fm-chapters li {
+  position: relative; counter-increment: fmch;
+  padding-block: 12px; padding-inline: 38px 0;
+  border-top: 1px solid var(--grid); display: flex; flex-direction: column; gap: 3px;
+}
+.fm-chapters li::before {
+  content: counter(fmch); position: absolute; inset-inline-start: 0; top: 13px;
+  font-family: var(--font-caption); font-size: 13px; color: var(--ink-3);
+}
+.fm-chapters strong { font-size: 15.5px; color: var(--ink); }
+/* Scoped to the body line rather than every span: a bare .fm-chapters span is
+   (0,1,1) and silently outranks .fm-chapter-at at (0,1,0), which flattened the
+   kicker to the body's size and colour wherever the two met. A plain override is a
+   no-op a text test still passes, so the narrower selector is the fix. */
+.fm-chapters li > span:last-child { font-size: 14.5px; line-height: 1.58; color: var(--ink-2); }
+.fm-chapter-at {
+  font-family: var(--font-body); font-size: 12px; font-weight: 700;
+  letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3);
+}
+.fm-sources { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+.fm-sources li { max-width: 66ch; }
+
+/* ---- the column beside the board ---- */
+.fm-phase { margin: 0; max-width: 46ch; font-size: 15px; line-height: 1.62; color: var(--ink-2); }
+.fm-seat {
+  margin: 0; display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--font-body); font-size: 13px; font-weight: 700;
+  letter-spacing: .04em; color: var(--accent-ink);
 }
 `;

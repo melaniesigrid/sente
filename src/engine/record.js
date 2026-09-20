@@ -234,6 +234,9 @@ export function replay(rec, moves = rec.moves) {
     players: rec.players, setup: rec.setup, toPlay: rec.firstToPlay,
   });
   if (rec.comment) out = { ...out, comment: rec.comment };
+  // An imported file’s stated result is not derived from the moves, so replaying
+  // them cannot rebuild it. It rides along, like the root comment.
+  if (rec.claimed) out = { ...out, claimed: rec.claimed };
   for (const mv of moves) {
     if (mv.type === "play") out = play(out, mv.c, mv.r, mv.color);
     else if (mv.type === "pass") out = pass(out, mv.color);

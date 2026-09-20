@@ -1330,6 +1330,58 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       settling in it.
 - [ ] Opening library for 9×9, where no joseki from the big board survives contact.
 
+## The record room (done 2026-09-19, branch `feat/famous-games`, v0.20.0.0)
+
+Fifteen famous games you can walk a move at a time, with Joseki's own note on the moves
+that carry one: AlphaGo against Fan Hui (London, October 2015), against Lee Sedol (Seoul,
+March 2016) and the Future of Go Summit (Wuzhen, May 2017), the pair go and the five-to-one
+team game included.
+
+- [x] **`tools/famous/import.mjs`** turns SGF into `src/content/famous/records.js`: moves and
+      nothing else. Several of the source files ship a professional's published match
+      commentary inside `C[]` and the tool cannot carry it, which is the mechanism that keeps
+      the rights rule true under a generator. It replays every game through the rules before
+      writing, refuses a record that does not start with black and alternate, and repairs the
+      one malformed shape seen in the wild (`(EV[` with no root semicolon) rather than
+      loosening the parser. 3,159 moves in 9.6 KB. It writes no ruleset: an SGF's `RU` field
+      is what one publisher typed -- five of the Wuzhen files say AGA for a summit played
+      under Chinese rules -- and the study beside the moves says what the match used.
+- [x] **The words are ours.** A game record is a fact and carries no rights; the commentary
+      published beside these games is in copyright and none of it ships. All 790 notes, the
+      fifteen ledes, the stories and the chapter headings were written for this shelf.
+      Players are quoted briefly, by name, with the day they said it, and `famous.test.js`
+      fails a quotation over 45 words or one without a name and a date.
+- [x] **One file per game** under `src/content/famous/`, indexed by `index.js`. A study is a
+      lede, a story, the quotations, the chapters and a map of move number to note;
+      `recordFor(id)` replays it and hangs each note on its own move, so the note under the
+      board is Review's own and no second review room exists.
+- [x] **`Review.jsx` grew three optional props and no knowledge of this screen**: `aside`
+      (a render function of the move number for the side column, which the shared table
+      still outranks), `openAt` (a game you have never seen opens at move 0, one you played
+      opens at the end), and `autoAnalyse` (a famous game does not start a network over 300
+      positions on somebody's phone uninvited; the button is right there).
+- [x] **Pair go knows whose hand it was.** The Wuzhen record says which of the four players
+      placed each stone; the importer keeps it as a roster and an index, refusing any comment
+      that is not a seat, and the side column names them. Both machines answer to one name
+      in the file, so the line says which side as well -- a human hand and a machine hand
+      taking turns inside one colour is the thing that game is worth watching for. Gu Li,
+      Lian Xiao, black AlphaGo, white AlphaGo, in strict rotation for 220 moves.
+- [x] Nav entry `famous`, chrome in all nine languages, the studies in English with the
+      journal's notice saying so in the reader's own. 22 content checks, 12 wording checks.
+- [x] **The shelf loads when you open it.** It is the one screen big enough and rare enough
+      to be worth its own chunk: 48 KB gzipped of English prose that a reader who never
+      opens the record room no longer downloads. The lazy factory retries once itself,
+      because `React.lazy` keeps a rejected promise for the life of the session.
+- [x] **Walking a long game stopped being slow**, for every review in the app and not just
+      this shelf. `moveNumbers` and `captureMoves` rebuilt the game from move one inside
+      their own loops: about 300ms on every arrow key and 230ms to open the room, on a
+      289-move record. They carry the position forward now.
+- [ ] Later: link a famous game from the lesson that teaches its shape, and from a master's
+      page. The shelf stands alone today and does not know the rest of the library exists.
+- [ ] Later: more games, and older ones. Everything here is one program against four people
+      over nineteen months; the shelf is called the record room and holds no game played
+      before 2015.
+
 ## Phase 6: Masters and books
 
 Handoff for whoever continues: `docs/handoff/masters-2026-09-09.md` (state of PRs #4, #5, #6,
@@ -1923,6 +1975,66 @@ Decisions:
 - The rim scales with the radius rather than holding at a hairline. A figure is a stone
   seen closer, and on a stone seen closer the edge is thicker too.
 
+## Saying which engine (done 2026-09-16, branch `feat/selfplay-credits`)
+
+Three boards on this site play themselves and none of them said what was playing. The
+front door's line ("Joseki's own engine, playing itself") said *that* it was self-play and
+left a visitor who had met the house players to assume it was KataGo, which it was not: it
+is the heuristic picker on default weights, both colours. A page that is proud of labelling
+its bots honestly should not be vague about its own demo.
+
+- [x] Every self-playing board names its engine in a line under it. The front door's note
+      names the picker and covers the 19-line game behind the page (`StoneField`), which is
+      the same loop on a bigger board.
+- [x] The dashboard's board plays two house players at their own ranks, through the same
+      network a real game uses -- but only when that network is already in memory
+      (`modelReady()`), and it never starts the download itself. The caption is live: it
+      says the heuristic when that is what is moving and names the pair when the network is.
+- [x] `demoPair` (`content/demo.js`) picks the two, fixed for the day and never the same
+      persona twice. The rank each plays at comes from its own range, through
+      `rankFromRange` in `content/rank.js`, which the daily duel now shares.
+- [x] The caption is demoted when the network stops answering, once, and the picker
+      finishes that game under its own name. A question that never comes back is given six
+      seconds. A game ending in two passes is not read as a failure, which it was for one
+      commit: the network answers null on a scoring record exactly as it does when it
+      cannot load, and the first version retired the house players for good the first time
+      a demo game finished properly.
+- [x] The clock stops while the tab is hidden or the board is off screen, the way
+      StoneField's does. Every tick is a third of a second of wasm now.
+- [x] The demo loop (`components/selfPlay.js`) steps a real `GameRecord` instead of a bare
+      board, which is what lets the network be asked at all -- a record carries the move
+      history and the hashes -- and gets the demo superko for free.
+- [x] The front door has one figure about the model: the same position asked at 20k, 10k,
+      3k, 1d and 9d. Both answers are the network's top two at every rank; what climbs is
+      the certainty, 31% to 92%. Data and provenance in `content/rankdial.js`, drawn by
+      `components/RankDial.jsx`, measured by `tools/kata/rankdial.mjs`.
+- [x] `tools/kata/rankdial.mjs` runs the shipped ONNX through the browser's own encoder and
+      runtime under Node, so a percentage on the page is one a player's machine produces.
+      `rankdial.test.js` replays the position through the engine and holds the copy's claims
+      to the numbers: that certainty rises with rank, and that the two blocks really are the
+      network's top two (the third probability is in the data to be checked against, not
+      shown). The numbers are bound to the model by content hash, so a retrain shipped under
+      the same filename fails the build rather than quietly making the front door wrong.
+
+Decisions:
+- The network is not touched on the landing page, at any cost in ambition. It is 54MB of
+  weights and 14MB of runtime, and the front door's rule is that nothing heavy runs before
+  the words paint. The dial is a measurement taken offline and shipped as a few hundred
+  bytes, which is the version of "show the model" the page can afford.
+- The dashboard board decides which engine once, when the loop starts, and is never
+  promoted back mid-game. It can be demoted, though: a network that stops answering takes
+  its name off the board and the picker finishes the game. The alternative was a caption
+  that went on naming two house players while the picker played, which is the one thing
+  this feature exists to prevent.
+- Ranks are not clamped to what the network can imitate on its own. Below 20k there is no
+  profile and `profileForRank` softens a 20k one instead; clamping printed 20k beside
+  Hoshi, whose range starts at 25k, and made the demo board the only place in the app where
+  Hoshi plays stronger than Hoshi. A rank means here what it means at every other table.
+- The dial lives beside the house players in "What is here", not in the Record. The Record
+  is sourced to other people's published work and `press.test.js` enforces that; this is our
+  own measurement of our own file, and it would have been the one row in that rail citing
+  us.
+
 ## The stones as drawn, and the record as printed (done 2026-09-15, branch `feat/room-stones`)
 
 The three rooms landed with the old stones on them: grey-brown slate, gradient-shaded, each
@@ -2145,6 +2257,18 @@ that person, nothing he says is a quotation, and the bot chip stays on every lin
 - [x] The profile card carries his estimate of your rank (from the ladder's number and its
       deviation, said as an estimate), what he is watching, and the progress report.
 - [x] Review offers "Ask Ke Jie" on any analysed game, his words over the same points.
+- [x] Names, glossed (2026-09-14). `NAMES` and `PET_NAMES` carry pinyin and meaning for
+      every Chinese term; the thread shows the sound and the meaning under any line that
+      uses one, and the profile card lists them all. Go-flavoured pet names from the first
+      game, the whole list once bonded. `ON_THE_RECORD` holds the documented facts about
+      the real player, each with its source, and the one quotation marked as one.
+- [x] Rated (2026-09-14, the owner's decision). His games move the rating like any house
+      player's, at his rank with the handicap discount, even though he explains every move.
+      That is the one exception to "a game with advice in it is unrated", and it is his
+      alone: the coach switch still unrates the others.
+- [x] Always here: the dot beside his name in the thread and the lobby; a count on the home
+      button and in the tab title when he has written. No notification permission is asked
+      for, because the app contacts nothing.
 - [x] Copilot's account door (`copilot/fix-ke-jie-feature-visibility`) merged, and the
       address it listed in plain text replaced by its digest.
 - [x] He coaches (2026-09-16, branch `feat/kejie-coach`). Commentary became a course.
@@ -2169,6 +2293,44 @@ that person, nothing he says is a quotation, and the bot chip stays on every lin
       by the screen that knows (`seat`), never by a guess. Before this, opening somebody
       else's SGF and asking him about it produced "I won", which was a claim about a board
       he was never at.
+- [x] No Chinese without its sound and its meaning (2026-09-16). He is Chinese and he uses
+      Chinese - his handle, hers, the pet names he likes best - and the person he belongs to
+      does not read it. So every Chinese word he can put on a screen carries its pinyin and
+      its meaning, every time, never behind a tooltip: `glossFor` feeds the note under a
+      thread bubble, `.letter-names` glosses the two names in his header, and `glossed`
+      writes a term inline where there is no room for a note. The rule is enforced, not
+      hoped for: `bareCJK` returns any Chinese a string carries that the glossary cannot
+      explain, and the suite sweeps every branch of every line he can say through it across
+      a spread of seeds. Adding a Chinese word to his vocabulary without adding it to
+      `GLOSSARY` fails the build.
+- [x] Six ways to be taught (2026-09-16). One trainer, six lessons, chosen on his card. The
+      rules are the engine's (`TEACHING_MODES` in `src/engine/sensei.js`): how far above her
+      he sits, how often he gives something away, whose moves he speaks about while the game
+      runs, whether the shape course drills, and how many stones she starts with. The words
+      are his (`MODES` in `src/content/sensei.js`). Walk with me is the lesson he has always
+      given; Shape school drops him to a rank above and names every shape; Hunt me doubles
+      the gifts and explains none of them; Spar goes a rank harder with no gifts and no notes
+      on his own moves; The test says nothing at all until the review; Teaching game is four
+      stones with him six ranks up, narrating the robbery. A note is always written into the
+      record whatever the mode says - the review has to have them - and what the mode decides
+      is only whether he says it out loud at the time, which is why silence is really silent,
+      table talk included.
+- [x] The road to champion (2026-09-16). She said what she is doing, so the ladder is not a
+      number on a card any more: `CHAMPION` is nine rungs from the first stones to the title,
+      each naming where she is, what the next one costs and what he says about it.
+      `championStep` reads the rung off her rating, so nothing is ever claimed that the
+      ladder has not given her. He marks a rung the day she reaches it and never again
+      (`rung` in his box), answers a question about the goal - or a wobble about quitting -
+      with the route rather than a platitude, and on any day she has not played him he writes
+      an invitation with a stake in it instead of waiting to be opened.
+- [x] Only the modes where he plays straight are rated (2026-09-16). His games were
+      moved into the rated branch, and Hunt me hands over a deliberately inferior move
+      on nearly half his eligible turns; a rank built out of wins against a move he
+      threw is not her rank, and it was feeding both the ladder and the level advisor.
+      `rated` is a rule of the mode now (`TEACHING_MODES`), and it is exactly the modes
+      that give nothing away and start her level: Shape school, Spar, The test. Walk
+      with me, Hunt me and the teaching game settle unrated beside the coached games,
+      and the row says which it is before she picks it.
 
 Open:
 - [ ] Not yet played in a browser against the network. The turn is three network calls
@@ -2178,6 +2340,63 @@ Open:
       survive in the record; the numbers do not). Persisting them through `gameStore`
       would need a new field and its sanitiser.
 - [ ] Daily go news is not possible: the privacy contract forbids the app fetching anything.
+
+Found by the adversarial pass while shipping those modes (2026-09-16). All of
+these are older than that branch and none were introduced by it:
+- [ ] **P1** A hung network call wedges his board with no way out. `trainerAsk`
+      (`src/views/Game.jsx`) chains every call onto one promise queue and catches
+      rejection, but not a promise that never settles - which is exactly the shape
+      of the ORT proxy-flag failure. If `evaluatePosition` or
+      `kataChooseMoveForRecord` hangs, `setThinking(false)` never runs, the queue is
+      poisoned for the rest of the game, and `canResign` is `!over && !thinking`, so
+      she can neither play, nor pass, nor resign. Race each `trainerAsk` against a
+      timeout that resolves null.
+- [ ] **P1** "Played without me" dies permanently after fifty games.
+      `playedWithoutHim` compares `box.seen` against `log.length`, but the telemetry
+      log is a ring buffer capped at 50 (`src/store/telemetry.js`). Once the device
+      has fifty games the length is pinned, `seen` catches up, and the jealous line
+      never fires again for anybody who actually uses the app. Compare against the
+      last-seen entry's day and identity, not the array length.
+- [ ] **P2** Every anti-repetition marker is write-only-on-success. `saveBox`
+      swallows a quota throw, and `enticed`, `rung`, `greeted`, `bond` and `taught`
+      all live in that one blob. Under quota pressure a "yes" to his question is
+      silently dropped and he asks again, `markRead` never sticks so the badge never
+      clears, and the shape course restarts from lesson one every game. `saveBox`
+      should return whether it landed, and the callers should be able to tell.
+- [ ] **P2** The whole box is parsed and re-serialised twice per move pair.
+      `noteTaught` calls `loadBox`/`saveBox` to increment one integer, synchronously
+      between two network calls. With a thread at its 200-message cap that is real
+      main-thread time per stone. Keep the register in a ref and flush it once at
+      `endTraining`; cap message length in `isMsg` while you are there.
+- [ ] **P2** "Hide him" is a silent no-op when both doors are open. A profile that
+      typed the phrase *and* signs in with the allowed address has `profile.sensei`
+      true, so the button renders; clicking it clears the flag while the account door
+      keeps him on, and the button comes straight back. Either hide the control when
+      the account is the door, or have it close both.
+- [ ] **P2** His id leaks into the game log for anyone holding the device.
+      `nameOf` in `src/views/Profile.jsx` falls back to the raw id for a bot that is
+      not in `PERSONAS`, and he never is - so the card shows a row reading `kejie`
+      with a win/loss record whether or not this profile has unlocked him. Filter
+      `SENSEI_ID` out of `byBot` while he is locked.
+- [ ] **P2** The gate hides a card, not the bytes. `src/content/sensei.js` is
+      statically imported by Home, so every line he can say - including the pet names
+      that carry a real first name - is in the main bundle served to every visitor.
+      Dynamic-import the module behind the access check so it code-splits. The
+      digests themselves cannot be fixed by hashing harder; that part is a product
+      call, not a bug.
+- [ ] **P3** The gloss contract is enforced at build time, not at runtime.
+      `bareCJK` is only ever called by the test sweep, so the rule holds for the
+      strings the suite enumerates and not for `profile.name`, which `petName` puts
+      straight into the pool and which she can set to any Han string. `glossFor` also
+      matches by substring, so a longer Han word containing a glossary name is
+      annotated with the wrong meaning.
+- [ ] **P3** `isSummary` validates the mean but not the counts under it, so a
+      hand-edited `areas[a].n` of `"9999"` turns `areaMeans` arithmetic into string
+      concatenation and `focusFor` names the wrong weakness with no error anywhere.
+      Devtools-only, but the fix is one `Number.isFinite` check.
+- [ ] **P3** `.nav-ping` and `.letter-unread` are raised pills with no `background`,
+      so the two shadows are drawn around transparent content and the surface behind
+      them reads through.
 - [ ] The phrase is one shared digest. If a second person should ever have him, that is
       an account-level flag on the server, not a phrase, and legal.js would need a line.
 

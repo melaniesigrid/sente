@@ -4,6 +4,7 @@ import {
 } from "lucide-react";
 import { MiniSelfPlay } from "../components/MiniSelfPlay.jsx";
 import { StoneField } from "../components/StoneField.jsx";
+import { RankDial } from "../components/RankDial.jsx";
 import { Decor } from "../components/Decor.jsx";
 import { Mark } from "../components/Brand.jsx";
 import { Statement } from "../components/ui.jsx";
@@ -178,6 +179,14 @@ export function Landing({ profile, onEnter, go }) {
             </button>
           ))}
         </div>
+
+        {/* The one picture of the model on the page. It goes here rather than
+            in the Record because the Record is sourced to other people's
+            published work and this is our own measurement; it belongs beside
+            the house players it is about. */}
+        <h3 className="lp-h3 dial-head reveal">{t("landing.dial.head")}</h3>
+        <p className="lp-body dial-lede reveal">{t("landing.dial.body")}</p>
+        <div className="reveal"><RankDial t={t} /></div>
       </section>
 
       <Band lines={LANDING_STATEMENTS.fell} figure="fell" at="left" />

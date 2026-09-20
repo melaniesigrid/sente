@@ -10,8 +10,25 @@
    None of this belongs in a view. A move number is a fact about the record, and so is
    which move captured something. */
 
-import { replay, lastMoveIndex, play, IllegalMoveError } from "./record.js";
+import { replay, lastMoveIndex, play, pass, resign, timeout, withMoveComment, IllegalMoveError } from "./record.js";
 import { idx } from "./board.js";
+
+/* One move onto a position already in hand. `replay` rebuilds from the setup every
+   time it is called, which is right for seeking to a position and wrong inside a loop
+   that walks the whole game: doing it per move made moveNumbers and captureMoves
+   quadratic, about 300ms and 230ms on a 289-move record, and Review pays the first of
+   those on every arrow key. This applies exactly the transitions replay applies, in the
+   same order, so the positions are identical - only the cost is different. */
+function step(cur, mv) {
+  let out = cur;
+  if (mv.type === "play") out = play(out, mv.c, mv.r, mv.color);
+  else if (mv.type === "pass") out = pass(out, mv.color);
+  else if (mv.type === "resign") out = resign(out, mv.color);
+  else if (mv.type === "timeout") out = timeout(out, mv.color);
+  else throw new IllegalMoveError("unknown-move", { move: mv });
+  if (mv.comment) out = withMoveComment(out, mv.comment);
+  return out;
+}
 
 /** Moves that actually sit on the board, ignoring a resignation or a flag, which end
  *  a game without being positions you can stand at. */
@@ -39,7 +56,7 @@ export function moveNumbers(rec, n) {
   const out = new Map();
   let cur = replay(rec, []);
   upto.forEach((mv, i) => {
-    cur = replay(rec, upto.slice(0, i + 1));
+    cur = step(cur, mv);
     if (mv.type !== "play") return;
     out.set(idx(rec.size, mv.c, mv.r), i + 1);
   });
@@ -55,7 +72,7 @@ export function captureMoves(rec) {
   const out = [];
   let prev = replay(rec, []);
   for (let i = 0; i < moves.length; i++) {
-    const next = replay(rec, moves.slice(0, i + 1));
+    const next = step(prev, moves[i]);
     const taken = (next.captures.b + next.captures.w) - (prev.captures.b + prev.captures.w);
     if (taken > 0) out.push({ move: i + 1, stones: taken, by: moves[i].color });
     prev = next;

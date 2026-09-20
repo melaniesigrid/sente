@@ -6,6 +6,118 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.20.0.0 (2026-09-19)
+
+### Added
+
+- **Fifteen famous games, walked move by move.** A new shelf holds the three matches that
+  changed what people thought a computer could do at go: AlphaGo against Fan Hui in
+  October 2015, against Lee Sedol in Seoul in March 2016, and the Future of Go Summit at
+  Wuzhen in May 2017. Every game opens as a page -- who was playing, where, under what
+  clock, what was at stake -- and then as a board you step through with the arrow keys.
+  3,159 moves, 790 of them with something written beside them, in 120 chapters.
+- **Somebody talking beside the board.** Stepping through a game is not the same as
+  understanding it, so each game is divided into chapters that say what the players were
+  trying to do, and 790 individual moves carry a note about that move: what it threatened,
+  why it was answered where it was, what the room made of it at the time. Move 37 of the
+  second Seoul game and move 78 of the fourth have the notes you would expect.
+- **Thirty-three things people said, with their names on them.** The quotes are attributed
+  and dated, and every game lists where its account comes from -- 38 sources across the
+  fifteen. The claims about what a move meant are somebody's reading, and the page says
+  whose.
+- **The pair go at Wuzhen, seat by seat.** In the game where Gu Li and Lian Xiao each
+  partnered a copy of AlphaGo, the side column names the hand that placed each stone and
+  which of the two machines it was, so you can watch a human move and a machine move
+  alternate inside the same colour.
+
+### Changed
+
+- Walking a long game is no longer slow. Two review helpers rebuilt the whole game from
+  move one inside their own loops, which on a 289-move record cost about 300ms on every
+  arrow key and another 230ms to open the room. Same positions, same numbers, a hundredth
+  of the work. Every review in the app gets this, not just the new shelf.
+- The record room loads when you open it rather than with everything else, so the fifteen
+  studies are not in the first download for a reader who never goes there.
+- A downloaded SGF is named after the game rather than `sente-game.sgf`, and opens with a
+  line saying the moves are nobody's and the words beside them are the Studio's.
+
+### Fixed
+
+- A shared review kept its conversation column even before anybody had spoken. It had been
+  handing the column to a commentary the moment the table was quiet, which is the state
+  every shared review starts in.
+
+## v0.19.0.0 (2026-09-17)
+
+### Fixed
+
+- **A browser with site data blocked shows the app instead of a blank page.** Reading the
+  `localStorage` property does not return nothing when storage is switched off, in a private
+  window or under an enterprise policy: it throws. One store was reaching for it outside a
+  guard, and because the shell had started reading that store on every draw, the throw had
+  moved from spoiling one card to taking the whole page down with it. Every read is guarded
+  now, and a browser that refuses to remember anything gets an app that works and forgets.
+
+- **The shell stopped re-reading storage on every frame.** A small count in the navigation
+  was being recomputed from stored data each time anything on the page changed, parsing the
+  whole of it to produce one number that was out of date anyway. It is read when the screen
+  changes, which is when it can actually differ.
+
+- **Signing in takes effect without a reload.** The account was being read once when the
+  page opened and never again, so anything that depends on being signed in stayed switched
+  off for the rest of the visit. It refreshes when the account does.
+
+### Changed
+
+- **Handicap stones and the komi that pays for them stay together.** A komi chosen for an
+  even game could follow you into a game that starts with stones on the board, where a
+  different komi is owed, and quietly decide a close one. A komi you set survives a change
+  of opponent; it does not survive a change in the number of stones.
+## v0.18.0.0 (2026-09-16)
+
+### Added
+
+- **Every board that plays itself says who is playing it.** Three boards on this site play
+  a real game rather than a recording, and none of them said with what. The front door's
+  now names the move picker under the house players, and says the nineteen-line game
+  drifting behind the page is the same engine.
+- **Two house players on the dashboard board.** When the human network is already in memory,
+  the board on your dashboard is played by two of them at their own ranks, through the same
+  network you play a real game against, and the line under it names them: "Kaede (3d)
+  against Ren (6k)". It never fetches the network to do it -- 54MB of weights for a
+  decoration is not a trade anybody asked for -- so on a cold visit it is the picker,
+  and the line says that instead. Fixed for the day and never the same player twice.
+- **One network, one dial.** A figure on the front door asks the shipped network the same
+  question at 20k, 10k, 3k, 1d and 9d: White has invaded the corner, and Black must block
+  on one side or the other. The answer never changes. The certainty climbs from 31% to 92%.
+  It is a measurement, not an illustration: `tools/kata/rankdial.mjs` runs the file this
+  site ships through the browser's own encoder and runtime, the numbers are bound to that
+  file by content hash, and the test refuses a figure whose claims have drifted from them.
+
+### Changed
+
+- The demo boards keep a real game record rather than a bare position, so the network can be
+  asked what it would play and the superko rule holds while it answers.
+- The clock behind the dashboard's board stops while the tab is in the background or the
+  board is scrolled away. It is a third of a second of the network per move now, in the
+  worker a real game is using, and a decoration may not spend that on nobody.
+- A rank inside a persona's range is picked in one place, shared by the daily duel and the
+  demo board.
+
+### Fixed
+
+- **A board that stops being played by who it says.** The network can stop answering
+  mid-game: it declines when it cannot load and its worker can die. The line under the
+  board now takes the network's name off when that happens, once, and the picker finishes
+  the game under its own name. A question that never comes back is given six seconds before
+  the board goes on without it, so a dead worker cannot leave a still board under a line
+  about two players.
+- A demo game that ends the way games end -- both sides passing -- is no longer read as the
+  network giving up.
+- The letters naming the two points in the new figure are drawn in an ink the board carries
+  rather than one derived against the page, so they do not vanish into the wood in Night,
+  and they are sized to clear the twelve-pixel floor at the width the figure is drawn.
+
 ## v0.17.0.0 (2026-09-16)
 
 ### Added

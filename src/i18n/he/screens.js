@@ -3,7 +3,9 @@
 export const screens = {
   /* לוח המחוונים. */
   home: {
-    trainer: { head: "מכתב מ{name}", away: "להניח בצד", play: "לך לשחק", placeholder: "כתבי לו…", send: "שליחה", yes: "כן", notNow: "לא עכשיו" },
+    boardNotePlayers: "{black} ({blackRank}) מול {white} ({whiteRank}), שניהם דרך רשת הסגנון־האנושי של KataGo, כל אחד בדרגה שלו.",
+    boardNote: "בורר המהלכים של Joseki מול עצמו: אותה יוריסטיקה בשני הצדדים, לא רשת KataGo ששחקני הבית משחקים בה.",
+    trainer: { head: "מכתב מ{name}", away: "להניח בצד", play: "לך לשחק", placeholder: "כתבי לו…", send: "שליחה", yes: "כן", here: "תמיד כאן", pings: "{count} ממתינים מהמאמן", notNow: "לא עכשיו" },
     greetingBack: "טוב לראותך שוב",
     greetingNew: "ברוך בואך אל הלוח",
     wonOf: "{wins} מתוך {games} נוצחו",
@@ -78,7 +80,7 @@ export const screens = {
   },
   /* המבואה: הרמה, השולחן, ומי יושב אליו. */
   play: {
-    trainer: { cta: "להתאמן עם {name}", note: "פרטי למכשיר הזה. לעולם לא מדורג." },
+    trainer: { cta: "להתאמן עם {name}", note: "פרטי למכשיר הזה.", how: "איך הוא מלמד", rated: "מדורג", practice: "תרגול" },
     label: "להתיישב",
     titleBefore: "חיפוש ",
     titleEm: "משחק",
@@ -279,6 +281,8 @@ export const screens = {
       head: "מאמן פרטי",
       games: "משחקים איתו: {count}",
       watching: "הוא עוקב אחרי {area}.",
+      record: "מתועד",
+      names: "שמות, הגייה ומשמעות",
       report: "דוח התקדמות",
       note: "שחקן בית לאדם אחד, שמור מאחורי משפט. הוא מסביר כל מהלך, מעריך את שלך וכותב בין משחקים. כל מה שהוא עושה נשאר במכשיר הזה.",
       placeholder: "המשפט",
