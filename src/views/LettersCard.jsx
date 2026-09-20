@@ -7,6 +7,7 @@ import { LETTER_MAX } from "../../server/post.js";
 import { whenText } from "./playerCard.js";
 import { useT } from "../components/langStore.js";
 import { writeRefusal } from "./letters.js";
+import { Diagram } from "../components/Diagram.jsx";
 
 /* ----------------------- THE POST -----------------------
    Your threads, and one of them open.
@@ -23,7 +24,7 @@ import { writeRefusal } from "./letters.js";
    has been read, because a read receipt is a promise about somebody else's
    attention and the thing a person actually wants to know is whether they are
    the one being waited on. */
-export function LettersCard({ account, go, open, setOpen }) {
+export function LettersCard({ account, go, open, setOpen, askDiagram = null }) {
   const t = useT();
   const [rows, setRows] = useState(null);
   const { token } = account;
@@ -45,7 +46,7 @@ export function LettersCard({ account, go, open, setOpen }) {
   }
 
   if (open) {
-    return <Thread account={account} otherId={open} go={go}
+    return <Thread account={account} otherId={open} go={go} askDiagram={askDiagram}
       onBack={() => { setOpen(null); refresh(); }} />;
   }
 
@@ -88,12 +89,16 @@ export function LettersCard({ account, go, open, setOpen }) {
 }
 
 /** One thread, open. */
-function Thread({ account, otherId, onBack, go }) {
+function Thread({ account, otherId, onBack, go, askDiagram = null }) {
   const t = useT();
   const [state, setState] = useState(null);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [refused, setRefused] = useState(null);
+  /* Why an answering MOVE was refused, kept apart from why a written letter
+     was: the two happen in different places on the card and one failing
+     should not blank the other. */
+  const [answering, setAnswering] = useState(null);
   const alive = useRef(true);
   useEffect(() => () => { alive.current = false; }, []);
   const { token } = account;
@@ -115,19 +120,52 @@ function Thread({ account, otherId, onBack, go }) {
     return () => { live = false; };
   }, [token, otherId]);
 
+  /* A position carried in from review, until it has been sent. Held here and
+     dropped on the way out, so opening the thread again later does not attach
+     a board somebody already asked about. */
+  const [carried, setCarried] = useState(askDiagram);
+
   const send = async () => {
-    if (busy || !draft.trim()) return;
+    // A letter needs words OR a board. Carrying a position is something said.
+    if (busy || (!draft.trim() && !carried)) return;
     setBusy(true);
     setRefused(null);
     try {
-      const r = await api.write(token, otherId, draft);
-      if (alive.current) { setState((s) => ({ ...s, thread: r.thread })); setDraft(""); }
+      const r = await api.write(token, otherId, draft, carried);
+      if (alive.current) { setState((s) => ({ ...s, thread: r.thread })); setDraft(""); setCarried(null); }
     } catch (e) {
       if (alive.current) setRefused(e.reason);
     } finally { if (alive.current) setBusy(false); }
   };
 
   const letters = (state && state.thread) || [];
+
+  /* Which letter, if any, holds a board this reader may play on.
+     The newest position in the thread, and only if somebody else put it there:
+     a diagram is a question, and answering your own in the thread you asked it
+     in is a note to yourself, which the box below already is. The server
+     decides the same thing again when the move arrives; this is only what
+     makes the board clickable. */
+  const answerable = (() => {
+    if (!state || !state.can) return -1;
+    for (let i = letters.length - 1; i >= 0; i--) {
+      if (!letters[i].diagram) continue;
+      return letters[i].from === account.player.id ? -1 : i;
+    }
+    return -1;
+  })();
+
+  const playAnswer = async (c, r) => {
+    if (busy) return;
+    setBusy(true);
+    setAnswering(null);
+    try {
+      const res = await api.playInLetter(token, otherId, c, r);
+      if (alive.current) setState((s) => ({ ...s, thread: res.thread }));
+    } catch (e) {
+      if (alive.current) setAnswering(e.reason);
+    } finally { if (alive.current) setBusy(false); }
+  };
 
   return (
     <Card className="letters-card">
@@ -142,19 +180,37 @@ function Thread({ account, otherId, onBack, go }) {
             {letters.length === 0 && <p className="fine">{t("letters.threadEmpty")}</p>}
             {letters.map((l, i) => (
               <div key={`${l.at}-${i}`} className={`letter ${l.from === account.player.id ? "mine" : ""}`}>
-                <p className="letter-text">{l.text}</p>
+                {l.text && <p className="letter-text">{l.text}</p>}
+                {/* A position in a letter is a picture until it is the newest
+                    one and somebody else put it there — then it is a board.
+                    Whether this reader may answer is decided once, below, and
+                    handed down: a letter does not work it out for itself. */}
+                {l.diagram && (
+                  <Diagram atom={l.diagram} sizePx={240}
+                    lastMove={l.move ? [l.move.c, l.move.r] : null}
+                    onPlay={answerable === i ? playAnswer : null} />
+                )}
                 <span className="fine">{whenText(l.at, t) ?? ""}</span>
               </div>
             ))}
           </div>
+          {answering && <p className="fine">{writeRefusal(answering, t)}</p>}
 
           {state.can ? (
             <div className="gate-fields">
+              {/* The position this letter will carry, shown before it goes, so
+                  nobody sends a board they have not looked at. */}
+              {carried && (
+                <div className="letter-carrying">
+                  <Diagram atom={carried} sizePx={200} />
+                  <Btn small onClick={() => setCarried(null)}>{t("letters.dropPosition")}</Btn>
+                </div>
+              )}
               <textarea className="chat-input op-textarea" value={draft} maxLength={LETTER_MAX} rows={3}
-                placeholder={t("letters.placeholder")}
+                placeholder={t(carried ? "letters.askPlaceholder" : "letters.placeholder")}
                 onChange={(e) => setDraft(e.target.value)} />
               <div className="row">
-                <Btn icon={busy ? Loader : Send} primary small disabled={busy || !draft.trim()}
+                <Btn icon={busy ? Loader : Send} primary small disabled={busy || (!draft.trim() && !carried)}
                   onClick={send}>{t(busy ? "letters.sending" : "letters.send")}</Btn>
                 <span className="fine">{t("letters.left", { count: LETTER_MAX - draft.length })}</span>
                 {refused && <span className="fine">{writeRefusal(refused, t)}</span>}

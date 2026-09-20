@@ -3,6 +3,9 @@
    לאחור ואחד כדי לבנות את החדר שקוראים אותו בו. */
 export const rooms = {
   review: {
+    /* Sending the position on screen to somebody, with a question.
+       What they can send back is a move on it. */
+    askAbout: "לשאול מישהו על זה",
     trainer: { ask: "לשאול את {name}" },
     back: "חזרה",
     unfinished: "משחק שלא הסתיים",

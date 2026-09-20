@@ -180,8 +180,16 @@ export const api = {
      write to them, so a page can offer the box or say plainly why not. */
   letters: (token) => call("/api/me/letters", { token }),
   thread: (token, id) => call(`/api/me/letters/${encodeURIComponent(id)}`, { token }),
-  write: (token, id, text) =>
-    call(`/api/me/letters/${encodeURIComponent(id)}`, { method: "POST", token, body: { text } }),
+  /* A letter may carry a position as well as words, and either one on its own
+     is something said: a board can be the whole message. */
+  write: (token, id, text, diagram = null) =>
+    call(`/api/me/letters/${encodeURIComponent(id)}`, { method: "POST", token, body: { text, diagram } }),
+  /* Answering that position by playing on it. The browser checks the move
+     first so the board can refuse it without a round trip; the server checks
+     it again with the same function, because this browser is not the one the
+     other person is holding. */
+  playInLetter: (token, id, c, r, text = "") =>
+    call(`/api/me/letters/${encodeURIComponent(id)}/move`, { method: "POST", token, body: { c, r, text } }),
   /* How many threads hold something unread, and saying you have read one.
      `unread` is asked on nearly every screen and opens no thread at all: the
      cursor is in the index, so the number costs one list. `markRead` moves

@@ -1,6 +1,9 @@
 // zh · rooms
 export const rooms = {
   review: {
+    /* Sending the position on screen to somebody, with a question.
+       What they can send back is a move on it. */
+    askAbout: "就这个局面问人",
     trainer: { ask: "问问{name}" },
     back: "返回",
     unfinished: "没下完的棋",

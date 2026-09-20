@@ -15,6 +15,12 @@ const EN = makeT(BASE_LOCALE);
 export const WRITE_REFUSALS = [
   "not-met", "yourself", "no-player", "empty-letter", "too-many-letters-sent",
   "offline", "no-server", "unauthorized",
+  /* And the ones a MOVE can be refused with. An illegal answer is named by the
+     rule it broke, in the kernel's own words, so a reader is told which rule
+     rather than that something went wrong. The last two are about the state of
+     the thread rather than about the move. */
+  "illegal-occupied", "illegal-suicide", "illegal-ko", "illegal-offboard",
+  "bad-move", "nothing-to-answer", "your-own-position",
 ];
 
 export const writeRefusal = (reason, t = EN) =>

@@ -864,6 +864,14 @@ ${FONT_FACES}
 .mail-btn { position: relative; }
 .mail-count { position: absolute; top: -5px; inset-inline-end: -5px; min-width: 18px; text-align: center; padding: 1px 6px; }
 .letter-log { max-height: 340px; }
+/* The position a letter is about to carry, shown before it goes: nobody should
+   send a board they have not looked at. Sunken, because it is something held
+   in the composing box rather than something already said. */
+.letter-carrying { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap;
+  padding: 12px; border-radius: 16px; box-shadow: var(--sink-sm); margin-bottom: 10px; }
+/* A board inside a letter that has been sent. It sits under the words, with
+   air above it, and never stretches past the bubble it is in. */
+.letter .diagram { margin-top: 8px; max-width: 100%; }
 .letter-you { margin-inline-start: auto; }
 .letter-name .here-dot, .trainer-card h3 .here-dot { margin-inline-start: 6px; }
 .nav-ping { font-size: 12px; font-weight: 700; min-width: 18px; padding: 1px 6px; border-radius: 999px; box-shadow: var(--raise-sm); color: var(--accent-ink); margin-inline-start: 6px; }

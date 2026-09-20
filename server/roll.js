@@ -127,5 +127,5 @@ export function rollFor(rows, near = {}, opts = {}) {
  *  A roll with nothing anybody knows in it is not a failure — it is a new
  *  player's first look, and the view answers it with featured games and house
  *  players rather than an empty box. This is how the view knows to. */
-export const rollIsThin = (page, near = {}) =>
+export const rollIsThin = (page) =>
   page.length === 0 || page.every((r) => r.tie === TIE_STRANGER);

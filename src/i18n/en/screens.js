@@ -265,9 +265,6 @@ export const screens = {
   },
   /* The profile: who you are on this device, and what it has watched you do. */
   profile: {
-    /* The look of the place. It lives on this screen now; the top bar
-       carries the post instead. */
-    look: { go: "The look of the place", note: "Six rooms, six sets of stones, and the type." },
     /* Where you play from, said and never detected. The list is ISO 3166-1
        unedited and the names come from the device: see content/countries.js. */
     country: {
@@ -602,6 +599,10 @@ export const screens = {
      same thing a stranger is told, because blocking is silent and a line saying
      "you have been blocked" is the one message the blocker chose not to send. */
   letters: {
+    /* A letter that carries a position. The board is the question; the
+       words beside it are optional. */
+    dropPosition: "Not this position",
+    askPlaceholder: "Ask about this position…",
     /* On a thread row, and on the button that offers the box.
        `writeTo` is the label a screen reader hears; `write` is the
        words on the button. */
@@ -626,6 +627,15 @@ export const screens = {
     letThemWrite: "Let them write",
     stopThemWriting: "Stop them writing",
     refusal: {
+      /* Answering a position by playing on it. An illegal move is named by
+         the rule it broke, in the kernel’s own vocabulary. */
+      "illegal-occupied": "There is already a stone there",
+      "illegal-suicide": "That move would take its own last liberty",
+      "illegal-ko": "The ko has to wait a move",
+      "illegal-offboard": "That is off the board",
+      "nothing-to-answer": "There is no position in this thread to play on",
+      "your-own-position": "That is your own position. Wait for them to answer it.",
+      "bad-move": "That is not a point on the board",
       "not-met": "You can write to your friends, and to anybody you have finished a game against.",
       yourself: "You cannot write to yourself",
       "no-player": "That player is not here any more",

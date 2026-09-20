@@ -63,7 +63,8 @@
      DELETE /api/me/invites/:id bearer          -> decline it, or take it back
      GET   /api/me/letters      bearer         -> your threads, newest first
      GET   /api/me/letters/:id  bearer         -> one thread, and whether you may write
-     POST  /api/me/letters/:id  bearer {text}  -> write one
+     POST  /api/me/letters/:id  bearer {text, diagram?} -> write one, maybe with a position
+     POST  /api/me/letters/:id/move  bearer {c, r, text?} -> answer the position by playing on it
      POST  /api/me/letters/:id/read  bearer    -> you have read up to their last
      GET   /api/me/unread       bearer         -> how many threads hold something unread
      GET   /api/roll            bearer?        -> what happened here lately
@@ -136,6 +137,15 @@ export default {
         /* The post. "not-met" is a 403 and not a 404: the person exists and
            you may read their page; what you may not do is write to them. */
         "not-met": 403, blocked: 403, "empty-letter": 400,
+        /* Answering a position. `nothing-to-answer` and `your-own-position`
+           are conflicts with the state of the thread: the same call works
+           once somebody sends a position, or once the other person does.
+           An illegal move is a bad request — the browser was handed the same
+           rules kernel and should not have sent it. The reason travels in the
+           name so the page can say which rule it broke. */
+        "nothing-to-answer": 409, "your-own-position": 409, "bad-move": 400,
+        "illegal-occupied": 400, "illegal-suicide": 400, "illegal-ko": 400,
+        "illegal-offboard": 400, "illegal-superko": 400,
         /* Invitations, refused for the state the two shelves are in, the same
            way friends are: the same call would have worked a moment earlier,
            or will work a moment later. */
@@ -607,6 +617,17 @@ async function route(req, env) {
     return json({ unread: await reg.unreadFor(player.id) });
   }
 
+  /* Answering the position in a letter by playing on it. The move is checked
+     here with the same `playOn` the board in the browser used, because the
+     engine is pure and the browser is the other person's. */
+  const moveIn = /^\/api\/me\/letters\/([^/]+)\/move$/.exec(path);
+  if (moveIn) {
+    const player = await requirePlayer(req, reg);
+    if (req.method !== "POST") return fail(405, "method");
+    const b = await readJson(req);
+    return limited(() => reg.replyWithMove(player.id, moveIn[1], b.c, b.r, b.text), 201);
+  }
+
   /* Read up to their last letter. Only the reader's own row moves: nothing is
      written to the writer's shelf and nothing tells them it was opened. */
   const markRead = /^\/api\/me\/letters\/([^/]+)\/read$/.exec(path);
@@ -632,7 +653,7 @@ async function route(req, env) {
     if (req.method === "GET") return json(await reg.threadWith(player.id, thread[1]));
     if (req.method === "POST") {
       const b = await readJson(req);
-      return limited(() => reg.writeLetter(player.id, thread[1], b.text), 201);
+      return limited(() => reg.writeLetter(player.id, thread[1], b.text, b.diagram), 201);
     }
     return fail(405, "method");
   }

@@ -461,6 +461,13 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
     return (
       <Review record={rec} profile={profile} onExit={leave}
         seat={color ? { side: color, opponent: teamName(room, color === "b" ? "w" : "b", t), trainer: false } : null}
+        /* Reading the game back together is exactly when a question about
+           a position turns up, and the person to ask is sitting across the
+           board. The position goes with it, so they open a board and not a
+           description of one. */
+        onAsk={go && theirs && theirs.id && canWriteToThem
+          ? (atom) => go("profile", { writeTo: theirs.id, diagram: atom })
+          : null}
         shared={{
           move: review.move, base: review.base, line: review.line, marks: review.marks,
           can: true,
@@ -478,7 +485,14 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
   if (reviewing && rec && over) {
     return (
       <Review record={rec} profile={profile} onExit={() => setReviewing(false)}
-        seat={color ? { side: color, opponent: teamName(room, color === "b" ? "w" : "b", t), trainer: false } : null} />
+        seat={color ? { side: color, opponent: teamName(room, color === "b" ? "w" : "b", t), trainer: false } : null}
+        /* Reading the game back together is exactly when a question about
+           a position turns up, and the person to ask is sitting across the
+           board. The position goes with it, so they open a board and not a
+           description of one. */
+        onAsk={go && theirs && theirs.id && canWriteToThem
+          ? (atom) => go("profile", { writeTo: theirs.id, diagram: atom })
+          : null} />
     );
   }
 

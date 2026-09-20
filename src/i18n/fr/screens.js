@@ -257,9 +257,6 @@ export const screens = {
   },
 
   profile: {
-    /* The look of the place. It lives on this screen now; the top bar
-       carries the post instead. */
-    look: { go: "L'allure du lieu", note: "Six salles, six jeux de pierres et la typographie." },
     country: {
       head: "Ton drapeau",
       note: "D’où tu joues, si tu veux le dire. Il se pose à côté de ton nom, et l’enlever tient en une pression.",
@@ -573,6 +570,10 @@ export const screens = {
   },
 
   letters: {
+    /* A letter that carries a position. The board is the question; the
+       words beside it are optional. */
+    dropPosition: "Pas cette position",
+    askPlaceholder: "Posez votre question sur cette position…",
     /* On a thread row, and on the button that offers the box.
        `writeTo` is the label a screen reader hears; `write` is the
        words on the button. */
@@ -597,6 +598,15 @@ export const screens = {
     letThemWrite: "Le laisser écrire",
     stopThemWriting: "L’empêcher d’écrire",
     refusal: {
+      /* Answering a position by playing on it. An illegal move is named by
+         the rule it broke, in the kernel’s own vocabulary. */
+      "illegal-occupied": "Il y a déjà une pierre là",
+      "illegal-suicide": "Ce coup lui prendrait sa dernière liberté",
+      "illegal-ko": "Le ko doit attendre un coup",
+      "illegal-offboard": "C'est en dehors du goban",
+      "nothing-to-answer": "Il n'y a aucune position à jouer dans cet échange",
+      "your-own-position": "C'est votre propre position. Attendez leur réponse.",
+      "bad-move": "Ce n'est pas un point du goban",
       "not-met": "Tu peux écrire à tes amis, et à quiconque contre qui tu as terminé une partie.",
       yourself: "Tu ne peux pas t’écrire à toi-même",
       "no-player": "Ce joueur n’est plus là",

@@ -296,9 +296,6 @@ export const screens = {
     openProblem: "{set}, номер {n}, {rank}",
   },
   profile: {
-    /* The look of the place. It lives on this screen now; the top bar
-       carries the post instead. */
-    look: { go: "Який тут вигляд", note: "Шість кімнат, шість наборів каменів і шрифт." },
     country: {
       head: "Твій прапор",
       note: "Звідки ти граєш, якщо хочеш це сказати. Він стоїть поруч з іменем, і зняти його — одне натискання.",
@@ -631,6 +628,10 @@ export const screens = {
   },
 
   letters: {
+    /* A letter that carries a position. The board is the question; the
+       words beside it are optional. */
+    dropPosition: "Не ця позиція",
+    askPlaceholder: "Запитайте про цю позицію…",
     /* On a thread row, and on the button that offers the box.
        `writeTo` is the label a screen reader hears; `write` is the
        words on the button. */
@@ -655,6 +656,15 @@ export const screens = {
     letThemWrite: "Дозволити писати",
     stopThemWriting: "Заборонити писати",
     refusal: {
+      /* Answering a position by playing on it. An illegal move is named by
+         the rule it broke, in the kernel’s own vocabulary. */
+      "illegal-occupied": "Там уже є камінь",
+      "illegal-suicide": "Цей хід відбере у себе останню свободу",
+      "illegal-ko": "Ко має зачекати хід",
+      "illegal-offboard": "Це поза дошкою",
+      "nothing-to-answer": "У цій переписці немає позиції, на якій можна грати",
+      "your-own-position": "Це ваша власна позиція. Зачекайте на відповідь.",
+      "bad-move": "Це не пункт дошки",
       "not-met": "Писати можна друзям і всім, з ким ти дограв партію.",
       yourself: "Собі написати не можна",
       "no-player": "Цього гравця тут більше немає",

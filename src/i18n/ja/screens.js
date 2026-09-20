@@ -249,9 +249,6 @@ export const screens = {
     openProblem: "{set}、第 {n} 題、{rank}",
   },
   profile: {
-    /* The look of the place. It lives on this screen now; the top bar
-       carries the post instead. */
-    look: { go: "この場所の見た目", note: "六つの部屋、六種の石、そして書体。" },
     country: {
       head: "あなたの旗",
       note: "どこから打っているかを、言いたければ。名前の隣に並び、外すのは一押しです。",
@@ -561,6 +558,10 @@ export const screens = {
   },
 
   letters: {
+    /* A letter that carries a position. The board is the question; the
+       words beside it are optional. */
+    dropPosition: "この局面はやめる",
+    askPlaceholder: "この局面について聞く…",
     /* On a thread row, and on the button that offers the box.
        `writeTo` is the label a screen reader hears; `write` is the
        words on the button. */
@@ -585,6 +586,15 @@ export const screens = {
     letThemWrite: "書けるようにする",
     stopThemWriting: "書けないようにする",
     refusal: {
+      /* Answering a position by playing on it. An illegal move is named by
+         the rule it broke, in the kernel’s own vocabulary. */
+      "illegal-occupied": "そこにはすでに石があります",
+      "illegal-suicide": "その手は自分の最後のダメを埋めます",
+      "illegal-ko": "コウは一手待つ必要があります",
+      "illegal-offboard": "盤の外です",
+      "nothing-to-answer": "このやりとりに打つ局面がありません",
+      "your-own-position": "あなた自身の局面です。返事を待ちましょう。",
+      "bad-move": "盤上の点ではありません",
       "not-met": "手紙を書けるのは、友だちと、打ち終えた相手です。",
       yourself: "自分あてには書けません",
       "no-player": "その打ち手は、もうここにいません",

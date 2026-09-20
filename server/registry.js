@@ -65,7 +65,13 @@ import { readFeatured, pin as pinPure, unpin as unpinPure, featuredWith } from "
 import { ROLL_KEEP, ROLL_PAGE, ROLL_PREFIX, rollKey, rollFor as rollPage, rollIsThin } from "./roll.js";
 import { threadKey, cleanLetter, readThread, withLetter, mayWrite, threadSummary,
   byRecent, readBlocked, block as blockPure, unblock as unblockPure,
+  LETTERS_PREFIX, lettersKey, readIndexRow, unreadRow, unreadRows,
+  rowsAfterLetter, rowAfterRead, metKey, metDoneKey, lastDiagram, mayAnswer,
   POST_LIMIT, POST_WINDOW_MS } from "./post.js";
+/* The engine, on the server. `playOn` is the same function the board in the
+   browser used to check a move before sending it; it runs here because the
+   engine is pure, which is the rule that was written down for exactly this. */
+import { playOn, readDiagram } from "../src/engine/diagram.js";
 import { hit, refund, over, limitFrom, REGISTER_LIMIT, REGISTER_WINDOW_MS,
   SIGNIN_LIMIT, SIGNIN_WINDOW_MS, SIGNIN_ACCOUNT_LIMIT, SIGNIN_ACCOUNT_WINDOW_MS,
   SIGNIN_ACCOUNT_WINDOW_MAX_S, FORGOT_LIMIT, FORGOT_WINDOW_MS,
@@ -1270,16 +1276,65 @@ export class Registry extends DurableObject {
        hole `tools/server/post.mjs` was written to find, and did. */
     if (why) throw new Error(why === "blocked" ? "not-met" : why);
     const text = cleanLetter(rawText);
-    if (!text) throw new Error("empty-letter");
+    /* A letter must say something. A position counts as something said: the
+       whole point of carrying one is that a board can be the message. */
+    const atom = rawDiagram ? readDiagram(rawDiagram) : null;
+    if (!text && !atom) throw new Error("empty-letter");
     await this.#spend(`rate:post:${fromId}`, POST_LIMIT, POST_WINDOW_MS, "too-many-letters-sent");
     const key = `post:${threadKey(fromId, toId)}`;
-    const thread = withLetter(readThread(await this.ctx.storage.get(key)), fromId, text, Date.now());
+    const thread = withLetter(readThread(await this.ctx.storage.get(key)), fromId, text, Date.now(),
+      atom ? { diagram: atom } : null);
+    await this.#fileLetter(fromId, toId, key, thread);
+    return { thread, with: toId };
+  }
+
+  /** Answer the position on the table by playing on it.
+   *
+   *  THIS IS WHAT THE POST IS FOR.
+   *  Everywhere else on the internet, a position is answered with a sentence
+   *  about it. Here the answer is a move, and the server can tell whether it
+   *  is a legal one — because the engine is pure, so the same `playOn` the
+   *  board in the browser just used is the one that runs here. That invariant
+   *  was written down long before there was anything like this to spend it on.
+   *
+   *  It is checked again on this side even though the browser checked first,
+   *  for the ordinary reason: the browser is the other person's.
+   *
+   *  Refused in the kernel's own vocabulary, so a caller that already renders
+   *  a board's refusal renders this one. */
+  async replyWithMove(fromId, toId, c, r, rawText = "") {
+    const why = await this.#mayWrite(fromId, toId);
+    if (why) throw new Error(why === "blocked" ? "not-met" : why);
+    if (!Number.isInteger(c) || !Number.isInteger(r)) throw new Error("bad-move");
+    const key = `post:${threadKey(fromId, toId)}`;
+    const thread = readThread(await this.ctx.storage.get(key));
+    const found = lastDiagram(thread);
+    if (!found) throw new Error("nothing-to-answer");
+    // Your own question is not something to answer in the thread you asked it
+    // in. The box above is already a note to yourself.
+    if (!mayAnswer(found, fromId)) throw new Error("your-own-position");
+    const played = playOn(found.letter.diagram, c, r);
+    if (!played.ok) throw new Error(`illegal-${played.reason}`);
+    await this.#spend(`rate:post:${fromId}`, POST_LIMIT, POST_WINDOW_MS, "too-many-letters-sent");
+    /* A move letter may carry words and needs none: the move is the content.
+       This is the one letter allowed to be empty, which is why it does not go
+       through the check above. */
+    const next = withLetter(thread, fromId, cleanLetter(rawText), Date.now(),
+      { diagram: played.atom, move: { c, r } });
+    await this.#fileLetter(fromId, toId, key, next);
+    return { thread: next, with: toId };
+  }
+
+  /** The thread and the two index rows, written together.
+   *
+   *  Shared by a written letter and a played one, so the rule that each shelf
+   *  gets its OWN value lives in one place. They used to get the same value,
+   *  which was right while it was only "when did this thread last move" and
+   *  became wrong the moment it carried a cursor: putting the writer's row on
+   *  the reader's key would clear the reader's count every time somebody wrote
+   *  to them. */
+  async #fileLetter(fromId, toId, key, thread) {
     const at = thread[thread.length - 1].at;
-    /* Each shelf gets its OWN value. They used to get the same one, which was
-       right while the value was only "when did this thread last move" and
-       became wrong the moment it carried a cursor: putting the writer's row on
-       the reader's key would clear the reader's count every time somebody
-       wrote to them. `rowsAfterLetter` decides; this only files the results. */
     const mine = readIndexRow(await this.ctx.storage.get(lettersKey(fromId, toId)));
     const theirs = readIndexRow(await this.ctx.storage.get(lettersKey(toId, fromId)));
     const next = rowsAfterLetter(mine, theirs, at);
@@ -1288,7 +1343,6 @@ export class Registry extends DurableObject {
       [lettersKey(fromId, toId)]: next.from,
       [lettersKey(toId, fromId)]: next.to,
     });
-    return { thread, with: toId };
   }
 
   /** How many threads hold something this player has not read.

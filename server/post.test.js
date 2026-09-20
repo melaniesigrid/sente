@@ -5,7 +5,10 @@ import {
   threadSummary, byRecent, readBlocked, block, unblock,
   LETTERS_PREFIX, lettersKey, readIndexRow, unreadRow, unreadRows,
   rowsAfterLetter, rowAfterRead, metKey, metDoneKey,
+  lastDiagram, mayAnswer,
 } from "./post.js";
+import { diagramOf } from "../src/engine/diagram.js";
+import { createBoard } from "../src/engine/board.js";
 
 const NOW = 1_700_000_000_000;
 const letter = (from, text, at = NOW) => ({ from, text, at });
@@ -318,5 +321,107 @@ describe("key builders", () => {
     expect(metKey("a", "b")).toBe("met:a:b");
     expect(metKey("b", "a")).toBe("met:b:a");
     expect(metDoneKey("a")).toBe("metDone:a");
+  });
+});
+
+/* ----------------------- A LETTER THAT CARRIES A POSITION -----------------------
+   The thing the post is actually for: the unit of content is a board, and the
+   reply is a move on it. */
+
+describe("readThread with a position", () => {
+  const atom = diagramOf(createBoard(9), "b");
+
+  it("keeps a diagram that reads", () => {
+    const back = readThread([{ from: "a", text: "what now?", at: 5, diagram: atom }]);
+    expect(back[0].diagram).toBeTruthy();
+    expect(back[0].diagram.size).toBe(9);
+  });
+
+  it("keeps the words and drops a picture that will not read", () => {
+    // Exactly what a reader would have seen if nothing had been attached.
+    // Guessing at somebody's go problem is worse than dropping it.
+    const back = readThread([{ from: "a", text: "what now?", at: 5, diagram: { size: 11 } }]);
+    expect(back[0].text).toBe("what now?");
+    expect(back[0].diagram).toBe(undefined);
+  });
+
+  it("keeps a move only when there is a position for it to be on", () => {
+    const withBoth = readThread([{ from: "a", text: "", at: 5, diagram: atom, move: { c: 4, r: 4 } }]);
+    expect(withBoth[0].move).toEqual({ c: 4, r: 4 });
+    const moveOnly = readThread([{ from: "a", text: "", at: 5, move: { c: 4, r: 4 } }]);
+    expect(moveOnly[0].move).toBe(undefined);
+  });
+
+  it("ignores a move that is not two whole numbers", () => {
+    const back = readThread([{ from: "a", text: "", at: 5, diagram: atom, move: { c: "4", r: 4 } }]);
+    expect(back[0].move).toBe(undefined);
+  });
+});
+
+describe("withLetter carrying a position", () => {
+  const atom = diagramOf(createBoard(9), "b");
+
+  it("attaches one", () => {
+    const t = withLetter([], "a", "look", NOW, { diagram: atom });
+    expect(t[0].diagram).toBe(atom);
+  });
+
+  it("attaches nothing when nothing is handed in", () => {
+    expect(withLetter([], "a", "hello", NOW)[0].diagram).toBe(undefined);
+  });
+
+  it("cannot be used to overwrite who wrote it or when", () => {
+    const t = withLetter([], "a", "hi", NOW, { from: "impostor", at: 1, diagram: atom });
+    expect(t[0].from).toBe("a");
+    expect(t[0].at).toBe(NOW);
+  });
+
+  it("still trims to THREAD_KEEP", () => {
+    const long = Array.from({ length: THREAD_KEEP }, (_, i) => ({ from: "a", text: `${i}`, at: i }));
+    expect(withLetter(long, "b", "one more", NOW, { diagram: atom })).toHaveLength(THREAD_KEEP);
+  });
+});
+
+describe("lastDiagram", () => {
+  const one = diagramOf(createBoard(9, ), "b");
+  const two = diagramOf(createBoard(13), "w");
+
+  it("is null when nothing has been sent", () => {
+    expect(lastDiagram([])).toBe(null);
+    expect(lastDiagram([{ from: "a", text: "hi", at: 1 }])).toBe(null);
+  });
+
+  it("takes the NEWEST position, because that is the question on the table", () => {
+    const thread = [
+      { from: "a", text: "", at: 1, diagram: one },
+      { from: "b", text: "and this?", at: 2, diagram: two },
+    ];
+    expect(lastDiagram(thread).letter.diagram).toBe(two);
+    expect(lastDiagram(thread).at).toBe(1);
+  });
+
+  it("looks past letters that are only words", () => {
+    const thread = [
+      { from: "a", text: "", at: 1, diagram: one },
+      { from: "b", text: "hmm", at: 2 },
+    ];
+    expect(lastDiagram(thread).letter.diagram).toBe(one);
+  });
+});
+
+describe("mayAnswer", () => {
+  const atom = diagramOf(createBoard(9), "b");
+  const found = { letter: { from: "asker", text: "", at: 1, diagram: atom }, at: 0 };
+
+  it("lets the other person answer", () => {
+    expect(mayAnswer(found, "reader")).toBe(true);
+  });
+
+  it("does not let you answer your own question in the thread you asked it in", () => {
+    expect(mayAnswer(found, "asker")).toBe(false);
+  });
+
+  it("is false when there is nothing on the table", () => {
+    expect(mayAnswer(null, "reader")).toBe(false);
   });
 });

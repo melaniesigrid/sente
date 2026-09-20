@@ -338,7 +338,12 @@ export default function JosekiApp() {
           {view === "club" && <ClubPage clubId={params ? params.clubId : null} go={go} notify={notify}
             onBack={params && params.from ? () => go(params.from, params.fromParams || null) : null} />}
           {view === "profile" && <ProfileView profile={profile} setProfile={setProfile} go={go} room={room} notify={notify}
-            writeTo={params ? params.writeTo : null} />}
+            writeTo={params ? params.writeTo : null}
+            /* A position carried in from review, to be asked about. It rides
+               with the navigation rather than being stored: it is one
+               question on its way to one thread, and a copy left anywhere
+               would be a second place a board could go stale. */
+            askDiagram={params ? params.diagram : null} />}
           {view === "look" && <LookView profile={profile} setProfile={setProfile} go={go} room={room} />}
           {view === "dojo" && <DojoView profile={profile} setProfile={setProfile} notify={notify} go={go} room={room} />}
           {view === "legal" && <LegalView docId={params ? params.docId : null} onPick={(id) => go("legal", { docId: id })} />}

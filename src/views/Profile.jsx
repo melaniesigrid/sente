@@ -298,7 +298,7 @@ function CountryCard({ profile, commit, account, setAccount, notify }) {
 
 /* ----------------------- PROFILE ----------------------- */
 
-export function ProfileView({ profile, setProfile, go, room, notify, writeTo = null }) {
+export function ProfileView({ profile, setProfile, go, room, notify, writeTo = null, askDiagram = null }) {
   const t = useT();
   const { tag } = useLocale();
   // The account's card, when there is an account. Two profiles sound like one
@@ -381,15 +381,15 @@ export function ProfileView({ profile, setProfile, go, room, notify, writeTo = n
               nobody finds is not a preference. */}
           <button className="look-entry" onClick={() => go("look")}>
             <Palette size={16} />
-            <strong>{t("profile.look.go")}</strong>
-            <span className="fine">{t("profile.look.note")}</span>
+            <strong>{t("profile.look.head")}</strong>
           </button>
         </div>
       </Card>
 
       {account && <OnlineProfileCard account={account} setAccount={setAccount} notify={notify} />}
       {account && <ArchiveCard account={account} setAccount={setAccount} notify={notify} go={go} />}
-      {account && <LettersCard account={account} go={go} open={thread} setOpen={setThread} />}
+      {account && <LettersCard account={account} go={go} open={thread} setOpen={setThread}
+        askDiagram={thread === writeTo ? askDiagram : null} />}
       {/* No way to write from a search row on purpose: a search turns up
           strangers, and only a friend or somebody you have played may be
           written to. A button that mostly refuses is worse than no button. */}

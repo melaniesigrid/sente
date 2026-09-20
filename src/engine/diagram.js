@@ -28,7 +28,7 @@
 import { idx, inB, colRow, createBoard, withStone } from "./board.js";
 import { tryPlay, opponent } from "./rules.js";
 import { replay } from "./record.js";
-import { parseSgf, pointToSgf, pointFromSgf } from "./sgf.js";
+import { parseSgf, pointToSgf } from "./sgf.js";
 
 /** How many lines of empty board to leave around the stones by default. Two
  *  is enough that a shape reads as sitting in a corner rather than jammed

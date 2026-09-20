@@ -43,6 +43,8 @@
    There is still no notification: nothing is pushed, nothing is emailed,
    nothing interrupts a game. The number is there when you next look up. */
 
+import { readDiagram } from "../src/engine/diagram.js";
+
 /** How long one letter may be. Long enough for a real note about a game, short
  *  enough that nobody writes an essay into a box with no formatting. */
 export const LETTER_MAX = 2000;
@@ -190,18 +192,65 @@ export function cleanLetter(v) {
   return kept.replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim().slice(0, LETTER_MAX);
 }
 
-/** A stored thread, read defensively. */
+/** A stored thread, read defensively.
+ *
+ *  A letter may carry a position. It is read through `readDiagram`, which
+ *  refuses a board of the wrong size, the wrong number of points, or a crop
+ *  outside it, and a letter whose picture will not read keeps its words and
+ *  loses the picture — which is what a reader would have seen if it had never
+ *  been attached. A broken diagram is never repaired into a different
+ *  position: guessing at somebody's go problem is worse than dropping it. */
 export function readThread(stored) {
   if (!Array.isArray(stored)) return [];
   return stored
     .filter((l) => l && typeof l === "object" && typeof l.from === "string" && typeof l.text === "string")
-    .map((l) => ({ from: l.from, text: l.text, at: Number(l.at) || 0 }));
+    .map((l) => {
+      const out = { from: l.from, text: l.text, at: Number(l.at) || 0 };
+      const atom = l.diagram ? readDiagram(l.diagram) : null;
+      if (atom) out.diagram = atom;
+      /* A move letter says which point was played, so the thread can draw the
+         answer as an answer rather than as another picture. It is the move ON
+         the diagram in the same letter, which is the position AFTER it. */
+      if (atom && l.move && Number.isInteger(l.move.c) && Number.isInteger(l.move.r)) {
+        out.move = { c: l.move.c, r: l.move.r };
+      }
+      return out;
+    });
 }
 
-/** The thread with one more letter on the end, capped. */
-export function withLetter(thread, from, text, now) {
-  return [...thread, { from, text, at: Number(now) || 0 }].slice(-THREAD_KEEP);
+/** The thread with one more letter on the end, capped.
+ *
+ *  `extra` carries the optional position and the optional move. It is spread
+ *  last and the letter's own three fields are written first, so nothing handed
+ *  in can overwrite who wrote it or when. */
+export function withLetter(thread, from, text, now, extra = null) {
+  const letter = { from, text, at: Number(now) || 0 };
+  if (extra && extra.diagram) letter.diagram = extra.diagram;
+  if (extra && extra.move) letter.move = extra.move;
+  return [...thread, letter].slice(-THREAD_KEEP);
 }
+
+/** The most recent position in a thread, and who put it there.
+ *
+ *  This is what a reply is played on. It is the LAST one rather than the first
+ *  because a thread is a conversation: if two positions have been sent, the
+ *  question on the table is the newer one.
+ *
+ *  Returns null when there is nothing to answer. */
+export function lastDiagram(thread) {
+  for (let i = thread.length - 1; i >= 0; i--) {
+    if (thread[i].diagram) return { letter: thread[i], at: i };
+  }
+  return null;
+}
+
+/** May this person answer the position on the table?
+ *
+ *  Not their own: a diagram is a question, and answering your own question in
+ *  the thread you asked it in is a note to yourself, which the box above is
+ *  already for. Everything else about who may write at all is `mayWrite`'s,
+ *  and this does not restate it. */
+export const mayAnswer = (found, me) => !!found && found.letter.from !== me;
 
 /** May `from` write to `to`? `friends` is whether they are settled friends and
  *  `played` whether they have finished a game together; `blocked` is whether

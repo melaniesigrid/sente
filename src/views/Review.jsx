@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import {
   ChevronLeft, ChevronsLeft, ChevronsRight, ChevronRight, SkipBack, SkipForward, Hash, Download, Swords,
   GitBranch, Undo2, CornerUpLeft, LineChart, Square, Lightbulb, TriangleAlert, Hand, Users, LogOut,
+  Mail,
 } from "lucide-react";
 import { Btn, Pill } from "../components/ui.jsx";
 import { themeVars, REVIEW_THEME } from "../theme/index.js";
@@ -21,6 +22,7 @@ import {
   atMove, moveNumbers, captureMoves, nextCapture, prevCapture,
   reviewLength, clampMove, markerAt, toSgf, lastMoveIndex,
   turningPoints, pointAt, pct, steadiness, nextTurn, prevTurn, ANALYSIS_RANK, trainerReport,
+  diagramOf,
 } from "../engine/index.js";
 
 /* ----------------------- REVIEW -----------------------
@@ -83,7 +85,7 @@ function useLegibleNumbers(size) {
   return [ref, legible];
 }
 
-export function Review({ record, onExit, onRematch, profile = {}, shared = null, seat = null }) {
+export function Review({ record, onExit, onRematch, profile = {}, shared = null, seat = null, onAsk = null }) {
   const t = useT();
   const total = reviewLength(record);
   /* Where the reader is standing. Alone that is this component's state; together
@@ -257,6 +259,16 @@ export function Review({ record, onExit, onRematch, profile = {}, shared = null,
         <span className="review-result">
           {resultSentence(record.result, t) ?? claimSentence(record.claimed, t) ?? t("review.unfinished")}
         </span>
+        {/* Send the position on screen to somebody and ask them about it.
+            This is where a question starts: you are already looking at the
+            board you have the question about, and until now the only thing you
+            could do with it was describe it in words. They get the position,
+            and what they can send back is a move on it. */}
+        {onAsk && (
+          <Btn icon={Mail} small onClick={() => onAsk(diagramOf(at.board, at.toPlay))}>
+            {t("review.askAbout")}
+          </Btn>
+        )}
       </div>
       {/* Who else is at this board. The banner is the whole of the difference on
           screen between reading a game alone and reading it with the person you

@@ -263,9 +263,6 @@ export const screens = {
   },
   /* הפרופיל: מי אתה במכשיר הזה, ומה הוא ראה אותך עושה. */
   profile: {
-    /* The look of the place. It lives on this screen now; the top bar
-       carries the post instead. */
-    look: { go: "איך המקום נראה", note: "ששה חדרים, ששה מערכי אבנים והגופן." },
     country: {
       head: "הדגל שלך",
       note: "מאיפה אתה משחק, אם בא לך לומר. הוא עומד ליד השם שלך, ולהוריד אותו זו לחיצה אחת.",
@@ -595,6 +592,10 @@ export const screens = {
      שחסימה היא חשאית ושורה שאומרת "נחסמת" היא ההודעה האחת שהחוסם בחר לא
      לשלוח. */
   letters: {
+    /* A letter that carries a position. The board is the question; the
+       words beside it are optional. */
+    dropPosition: "לא העמדה הזו",
+    askPlaceholder: "שאלו על העמדה הזו…",
     /* On a thread row, and on the button that offers the box.
        `writeTo` is the label a screen reader hears; `write` is the
        words on the button. */
@@ -619,6 +620,15 @@ export const screens = {
     letThemWrite: "לתת להם לכתוב",
     stopThemWriting: "להפסיק את כתיבתם",
     refusal: {
+      /* Answering a position by playing on it. An illegal move is named by
+         the rule it broke, in the kernel’s own vocabulary. */
+      "illegal-occupied": "כבר יש שם אבן",
+      "illegal-suicide": "המהלך הזה ייקח לעצמו את החופש האחרון",
+      "illegal-ko": "הקו צריך לחכות מהלך",
+      "illegal-offboard": "זה מחוץ ללוח",
+      "nothing-to-answer": "אין בשרשור הזה עמדה לשחק עליה",
+      "your-own-position": "זו העמדה שלך. חכה לתשובה.",
+      "bad-move": "זו לא נקודה על הלוח",
       "not-met": "אפשר לכתוב לחברים שלך, ולכל מי שסיימת מולו משחק.",
       yourself: "אי אפשר לכתוב לעצמך",
       "no-player": "השחקן הזה כבר אינו כאן",
