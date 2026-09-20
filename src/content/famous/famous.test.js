@@ -4,7 +4,7 @@ import {
   movesOf, recordFor, phaseAt, noteAt, seatAt, seatSideAt, hasSeats, notedMoves, exportCredit,
 } from "./index.js";
 import { RECORDS } from "./records.js";
-import { RULESET_IDS } from "../../engine/index.js";
+import { RULESET_IDS, playedMoves, pointLabel } from "../../engine/index.js";
 
 /* ----------------------- THE FAMOUS GAMES -----------------------
    What this suite is for: the shelf makes claims about real games played by real
@@ -162,6 +162,89 @@ describe("the records", () => {
 });
 
 describe("the notes", () => {
+
+  /* A note that says somebody resigns has to sit on the move they resigned on, or say
+     how many moves later it was and be right about it. Two were wrong when this was
+     written - one announced a resignation thirty-eight moves early - and a reader
+     stepping through has the move number on screen while they read it. */
+  it("puts the end of the game where the game actually ends", () => {
+    const WORDS = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8,
+      nine: 9, ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15,
+      sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19, twenty: 20, "twenty-one": 21,
+      "twenty-four": 24, "twenty-five": 25, thirty: 30, forty: 40 };
+    for (const g of ALL_GAMES) {
+      for (const [key, note] of Object.entries(g.notes)) {
+        /* Only a resignation stated as a finished act. A note may say that a player
+           offered to resign and was talked out of it - that is what happens in the
+           pair go on move 199, and it is the most interesting thing in that game. */
+        if (!/resigns/i.test(note)) continue;
+        const n = Number(key);
+        const later = note.match(/([a-z-]+|[0-9]+) moves? later/i);
+        if (later) {
+          const raw = later[1].toLowerCase();
+          const span = WORDS[raw] ?? Number(raw);
+          if (Number.isNaN(span)) continue;
+          expect(n + span, `${g.id} #${key}: "${later[0]}"`).toBe(g.moves);
+        } else {
+          expect(n, `${g.id} #${key} announces a resignation`).toBe(g.moves);
+        }
+      }
+    }
+  });
+
+  /* The studies are written in English and say so on the screen; the chrome around
+     them is what gets translated. A stray letter from another alphabet here is not a
+     translation, it is a typo that a spellcheck will not see and a reader will. */
+  it("is written in the one language it claims to be", () => {
+    for (const g of ALL_GAMES) {
+      const prose = [g.lede, g.opening, ...g.story, ...g.phases.map(p => `${p.title} ${p.text}`),
+        ...Object.values(g.notes), ...g.quotes.map(q => q.text)];
+      for (const s of prose) {
+        const strange = [...s].filter(ch => /\p{L}/u.test(ch) && !/[A-Za-z]/.test(ch));
+        expect(strange, `${g.id}: "${s.slice(0, 60)}"`).toEqual([]);
+      }
+    }
+  });
+
+  /* A note opens by naming the point, which is the one claim in it a machine can
+     check against the record. Three were wrong when this was written - a note saying
+     P7 beside a move played at O8 - and a reader following on a real board is exactly
+     who would notice. There is nothing to be gained by trusting these by hand. */
+  it("names the point the move was actually played on", () => {
+    for (const g of ALL_GAMES) {
+      const rec = recordFor(g.id);
+      const moves = playedMoves(rec);
+      for (const [key, note] of Object.entries(g.notes)) {
+        const mv = moves[Number(key) - 1];
+        if (!mv || mv.type !== "play") continue;
+        const said = (note.match(/^([A-HJ-T][0-9]{1,2})(?![0-9])/) || [])[1];
+        if (!said) continue;
+        expect(said, `${g.id} #${key}`).toBe(pointLabel(rec.size, mv.c, mv.r));
+      }
+    }
+  });
+
+  /* And it opens by naming the player, which is the other one. A note that says
+     "White cuts" on a move Black played is not a small slip: it inverts the game for
+     anybody reading along. The colour word is only checked where it is the subject -
+     "a wedge into the middle of Black's shape" is a White move described correctly,
+     so the check looks at the first clause and not at the whole note. */
+  it("names the player who actually played it", () => {
+    for (const g of ALL_GAMES) {
+      const rec = recordFor(g.id);
+      const moves = playedMoves(rec);
+      for (const [key, note] of Object.entries(g.notes)) {
+        const mv = moves[Number(key) - 1];
+        if (!mv || mv.type !== "play") continue;
+        const rest = note.replace(/^[A-HJ-T]\d{1,2}\.\s*/, "");
+        const clause = rest.split(/[.;:]/)[0];
+        const said = (clause.match(/^(?:[A-Za-z]+\s+){0,2}?(Black|White)\s+(?=[a-z])/) || [])[1];
+        if (!said) continue;
+        expect(said.toLowerCase()[0], `${g.id} #${key}: "${clause}"`).toBe(mv.color);
+      }
+    }
+  });
+
   it("attaches every note to a move the game actually has", () => {
     for (const g of ALL_GAMES) {
       for (const key of Object.keys(g.notes)) {
