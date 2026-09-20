@@ -14,7 +14,7 @@
 import { describe, it, expect } from "vitest";
 import { CSS } from "./css.js";
 import { PALETTES, themeVars, contrast, cutBlack, cutWhite, stonesOf, HOUSE_STONES } from "../theme/index.js";
-import { TOKEN_NAMES } from "../theme/tokens.js";
+import { TOKEN_NAMES, PREVIEW_PX } from "../theme/tokens.js";
 
 /** Every rule in the sheet, as { selector, body }. Good enough for this: the
  *  sheet has no nested at-rule bodies that a brace count would trip on beyond
@@ -609,5 +609,138 @@ describe("the board and its stones", () => {
   it("writes a move number in the other stone's colour", () => {
     expect(rule(".stone-num.on-b").body).toMatch(/fill: var\(--stone-w-2\)/);
     expect(rule(".stone-num.on-w").body).toMatch(/fill: var\(--stone-b-2\)/);
+  });
+});
+
+/* ----------------------- THE TWO PICKER ROWS -----------------------
+   The look page draws its rooms and its sets as two rows of the same object,
+   and each of the three lines below was the other way round once. None of them
+   shows up in a text test of the view: every class is present, every plate
+   renders, and the page is still wrong. They are pinned here because the
+   stylesheet is the only place that says so.
+
+     the track   the board's width, not the widest thing in the column
+     the plate   the wood, not whatever ground the button fell back to
+     the ring    the page's accent, not the plate's */
+describe("the two picker rows", () => {
+  const rule = (sel) => rules(CSS).find(r => r.selector === sel);
+
+  /* `minmax(0, auto)` reads as "as wide as the board" and means "as wide as the
+     widest thing in the column", and the widest thing in that column is the
+     contrast sentence under the board, whose max-content is one unwrapped line.
+     At 1280px it took 802px for a 340px board and left the drawer 119px to draw
+     150px plates in. The view writes --look-board from PREVIEW_PX; the fallback
+     in the sheet is the same number, so a track that loses the inline style
+     still comes out the board's width. */
+  it("gives the still life the board's width and nothing else", () => {
+    const stones = rule(".look-stones");
+    expect(stones, ".look-stones").toBeTruthy();
+    const track = /grid-template-columns: ([^;]+);/.exec(stones.body)[1];
+    expect(track, "a max-content track sizes itself to the prose, not the board")
+      .not.toMatch(/\bauto\b/);
+    const px = /var\(--look-board, (\d+)px\)/.exec(track);
+    expect(px, "the first track reads --look-board, with a width to fall back to").toBeTruthy();
+    expect(Number(px[1]), "the sheet's fallback and the view's sizePx are one number")
+      .toBe(PREVIEW_PX);
+    expect(track.split(/,(?![^(]*\))/).length, "board first, drawer second").toBe(2);
+  });
+
+  /* A stone plate with no background of its own falls back to the button's
+     --ground, and on charcoal every set's black stone came out as one white dot
+     on a dark plate: slate, plum, cinnabar and moss were indistinguishable and
+     the drawer stopped being a picker. The wood is what the pair will actually
+     lie on, and it is one wood in both table rooms. */
+  it("lays a stone plate on the wood the pair will really lie on", () => {
+    expect(rule(".stone-plate").body, "the plate draws the board's wood")
+      .toMatch(/background: var\(--board\)/);
+  });
+
+  /* And the wood wears no light of its own. --sink-sm is inset --dark at the
+     top left and inset --light at the bottom right, both of them the PAGE's:
+     on #d9b77a they land the wrong way round in both rooms (tatami's --dark is
+     lighter than the wood, night's --light is darker than it), so the plate
+     took a highlight where its shadow belongs -- the one invariant the whole
+     system rests on, inside out. --sh-ink/--sh-lite is not the way out either:
+     night's --sh-lite is a mid grey and still darkens the wood. .board-well
+     settled this before: the page's colour is the card, the wood is a plain
+     fill set into it, and the neumorphic object here is .stone-btn around it. */
+  it("gives the wood an edge and none of the page's light", () => {
+    const shadow = /box-shadow: ([^;]+);/.exec(rule(".stone-plate").body)[1];
+    expect(shadow, "an edge, so the wood is not flush with the button")
+      .toMatch(/inset 0 0 0 1px/);
+    expect(shadow, "the page's two lights do not describe a wooden surface")
+      .not.toMatch(/--sink|--raise|var\(--light\)|var\(--dark\)|--sh-lite|--sh-ink/);
+  });
+
+  /* Every plate on these rows wears a different room's tokens, so a ring cut
+     from that plate's own --accent-ring is cut from whatever room the plate
+     happens to be: in Night the chosen dark plate drew a charcoal ring at .32
+     and vanished while the unchosen light plates glowed beside it, and
+     selection read as the wrong plate. The ring has to be the page's, which is
+     why --pick-* are declared on the row -- the last element on the way down
+     still wearing the page's own tokens -- and not on the plate. */
+  it("rings the chosen plate in the page's accent, not in the plate's", () => {
+    const row = rule(".theme-row, .stone-row");
+    expect(row, "the row is where the page's own tokens still reach").toBeTruthy();
+    expect(row.body).toMatch(/--pick-ring: var\(--accent\)/);
+
+    // The plate itself, resting and pressed -- not the words inside it, which
+    // are a descendant of the same selector and draw no ring of their own.
+    const chosen = rules(CSS).filter(r => r.selector.split(",")
+      .some(one => /^\.(theme|stone)-btn\.active(:active)?$/.test(one.trim())));
+    expect(chosen.length, "resting and pressed, for both rows").toBeGreaterThanOrEqual(3);
+    for (const r of chosen) {
+      expect(r.body, `${r.selector} takes its ring from the plate`)
+        .not.toMatch(/--accent-ring/);
+      /* With a fallback: a custom property that resolves to nothing takes the
+         whole declaration with it, --sink-sm included, and a plate that loses
+         its shadow reads as unchosen rather than merely unringed. */
+      expect(r.body, `${r.selector} draws no ring at all`)
+        .toMatch(/var\(--pick-ring, var\(--accent\)\)/);
+    }
+  });
+
+  /* The keyboard outline is the page's as well, and for the same reason: the
+     plates wear another room's tokens inline, --accent-ink resolves on the
+     focused element, and the outline is painted outside it on the page's
+     ground. Measured, the Night plate's --accent-ink reads 2.14:1 on the
+     Tatami page against the 3:1 floor this system holds every other non-text
+     mark to, so the plates a keyboard most needs to find were the ones it
+     could not. */
+  it("outlines a focused plate in the page's ink, not in the plate's", () => {
+    const row = rule(".theme-row, .stone-row");
+    expect(row.body).toMatch(/--pick-focus: var\(--accent-ink\)/);
+    const focused = rule(".theme-btn:focus-visible, .stone-btn:focus-visible");
+    expect(focused, "the picker plates override the global outline colour").toBeTruthy();
+    expect(focused.body).toMatch(/outline-color: var\(--pick-focus, var\(--accent-ink\)\)/);
+  });
+
+  /* The ring has to nest inside the keyboard focus outline rather than land on
+     top of it. :focus-visible is 3px at outline-offset 2px, so it paints the
+     2-5px band; a 5px ring paints the same band in the same hue family, and
+     tabbing onto the chosen plate swapped one accent band for another --
+     keyboard focus went missing on the one plate most likely to have it. The
+     ring stays inside the offset. */
+  it("leaves the keyboard its own band around a chosen plate", () => {
+    const focus = rule(".sente-root :focus-visible");
+    const offset = Number(/outline-offset: (\d+)px/.exec(focus.body)[1]);
+    for (const sel of [".theme-btn.active", ".stone-btn.active"]) {
+      const ring = Number(/0 0 0 (\d+)px var\(--pick-ring/.exec(rule(sel).body)[1]);
+      expect(ring, `${sel}: the ring reaches into the focus outline's band`)
+        .toBeLessThanOrEqual(offset);
+    }
+  });
+
+  /* The ring stands proud of the plate on every side, so two chosen neighbours
+     would touch rings across a gap narrower than two of them. The row's gap is
+     read against the ring the row actually draws rather than against a number
+     written down here twice. */
+  it("leaves room between two plates for the rings they can wear", () => {
+    const ring = Number(/0 0 0 (\d+)px var\(--pick-ring/.exec(rule(".theme-btn.active").body)[1]);
+    expect(ring).toBeGreaterThan(0);
+    for (const sel of [".theme-row", ".stone-row"]) {
+      const gap = Number(/gap: (\d+)px/.exec(rule(sel).body)[1]);
+      expect(gap, `${sel}: two rings meet in the middle`).toBeGreaterThan(ring * 2);
+    }
   });
 });

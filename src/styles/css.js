@@ -339,7 +339,7 @@ ${FONT_FACES}
 /* The picker plates keep the page's ring under the finger too, for the reason
    given where --pick-ring is declared: the ring belongs to the page, and a
    press is no time for the chosen plate to stop looking chosen. */
-.theme-btn.active:active, .stone-btn.active:active { box-shadow: var(--sink), 0 0 0 2px var(--pick-gap), 0 0 0 5px var(--pick-ring); }
+.theme-btn.active:active, .stone-btn.active:active { box-shadow: var(--sink), 0 0 0 2px var(--pick-ring, var(--accent)); }
 .swatch.on:active { box-shadow: var(--sink), inset 0 0 0 1px var(--belt-edge), 0 0 0 2px var(--accent-ring); }
 
 /* The nine that already sank now land flat with everything else: a control that
@@ -1782,13 +1782,31 @@ ${FONT_FACES}
    vanished, while the unselected Tatami and Kifu plates beside it glowed like
    lamps, because a light plate in a dark room simply is the brightest thing on
    the screen. Selection read as the wrong plate.
-   --pick-* are declared here, on the row, which is the last element on the way
-   down still wearing the page's own tokens; children inherit the computed
-   colour, so a plate's inline --accent-rgb cannot reach it. The ring is the
-   page's accent at full strength rather than at .32, with a gap of the page's
-   ground inside it, so it reads as a frame the page drew around one plate
-   however bright or dark that plate is. */
-.theme-row, .stone-row { --pick-ring: var(--accent); --pick-gap: var(--ground); }
+   --pick-ring is declared here, on the row, which is the last element on the
+   way down still wearing the page's own tokens; children inherit the computed
+   colour, so a plate's inline --accent-rgb cannot reach it.
+
+   What fixed the bug is the token, not the width. The ring stays 2px, the width
+   .tint-dot and .swatch use, for two reasons: a 5px ring is the loudest chosen
+   in the app and this page's own type picker says chosen with a shadow alone;
+   and 5px lands exactly on the 2-5px band :focus-visible paints (3px solid
+   --accent-ink at offset 2px, near the same hue), so tabbing onto the chosen
+   plate swapped one accent band for another and keyboard focus went missing on
+   the one plate most likely to have it. At 2px the ring nests inside the focus
+   outline instead of colliding with it. Consumed with a fallback, because a var
+   that resolves to nothing takes the whole declaration with it -- --sink-sm
+   included -- and an unringed plate would read as unchosen rather than plain. */
+.theme-row, .stone-row { --pick-ring: var(--accent); --pick-focus: var(--accent-ink); }
+/* The keyboard outline is the page's too, for the same reason and one layer
+   out. :focus-visible is outline 3px solid var(--accent-ink), and
+   --accent-ink resolves on the focused element -- which on this row wears
+   another room's whole token set inline -- while the outline itself is painted
+   outside the button, on the page's ground. Measured: the Night plate's
+   --accent-ink #7fa88f on the Tatami page reads 2.14:1, under the 3:1 floor
+   every other non-text mark in this system is held to, and a page's own
+   accent-ink on its own ground is 4.88:1. So the plates that are NOT chosen
+   were the ones a keyboard could not find. */
+.theme-btn:focus-visible, .stone-btn:focus-visible { outline-color: var(--pick-focus, var(--accent-ink)); }
 .theme-btn {
   border: 0; cursor: pointer; background: var(--ground); color: var(--ink);
   display: flex; flex-direction: column; align-items: flex-start; gap: 9px;
@@ -1796,7 +1814,7 @@ ${FONT_FACES}
   transition: box-shadow .18s ease, transform .18s ease;
 }
 .theme-btn:hover { transform: translateY(-2px); }
-.theme-btn.active { box-shadow: var(--sink-sm), 0 0 0 2px var(--pick-gap), 0 0 0 5px var(--pick-ring); transform: none; }
+.theme-btn.active { box-shadow: var(--sink-sm), 0 0 0 2px var(--pick-ring, var(--accent)); transform: none; }
 .theme-plate { width: 100%; height: 50px; border-radius: 12px; box-shadow: var(--sink-sm); display: flex; align-items: center; gap: 8px; padding: 0 12px; }
 .theme-stone { width: 17px; height: 17px; border-radius: 50%; flex: none; }
 /* The plates draw the stone the board draws: a flat body, one shine on the
@@ -1891,9 +1909,7 @@ ${FONT_FACES}
 .look-cut { display: flex; gap: 8px; align-items: flex-start; }
 .look-cut > svg { flex: none; margin-top: 2px; color: var(--accent-ink); }
 .look-cut.warn > svg { color: var(--danger-ink); }
-/* 12px, the room row's gap, because the selected plate's ring stands 5px proud
-   of it on every side and two neighbours would otherwise touch rings. */
-.stone-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.stone-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
 /* Cut exactly like a room plate, because they are two rows of the same object
    on one page: same padding, same gap, same corner, same shadow. */
 .stone-btn {
@@ -1903,15 +1919,33 @@ ${FONT_FACES}
   transition: box-shadow .18s ease, transform .18s ease;
 }
 .stone-btn:hover { transform: translateY(-2px); }
-.stone-btn.active { box-shadow: var(--sink-sm), 0 0 0 2px var(--pick-gap), 0 0 0 5px var(--pick-ring); transform: none; }
+.stone-btn.active { box-shadow: var(--sink-sm), 0 0 0 2px var(--pick-ring, var(--accent)); transform: none; }
 /* A stone plate is a well with the wood in it, because the wood is what these
    two objects are actually going to lie on and the pair is only legible against
    it. Drawn on var(--ground) -- which is what a plate with no background of its
    own falls back to, the button's -- the black stone of every set disappeared in
    Night: slate, plum, cinnabar and moss all came out as a single white dot on
    charcoal, and the drawer stopped being a picker. --board is one wood in both
-   table rooms, so this also makes the plate say the same thing in both. */
-.stone-plate { width: 100%; height: 46px; border-radius: 12px; background: var(--board); box-shadow: var(--sink-sm); display: flex; align-items: center; justify-content: center; gap: 10px; }
+   table rooms, so this also makes the plate say the same thing in both.
+
+   The wood carries no shadow of its own, which is what .board-well already
+   settled: a goban is a raised card of the PAGE's colour with the wood set
+   into it as a plain fill (.wood), never a wooden surface wearing the page's
+   two lights. Written with --sink-sm this plate wore inset --dark at the top
+   left and inset --light at the bottom right, and both of those belong to the
+   page: on #d9b77a they land the wrong way round in both rooms -- tatami's
+   --dark is lighter than the wood, night's --light is darker than it -- so the
+   plate took a highlight where its shadow goes, which is the one invariant the
+   whole system rests on, inside out. Cutting them from --sh-ink/--sh-lite
+   instead (the .belt-band pattern) fixes tatami and not night, where --sh-lite
+   is a mid grey that still darkens the wood: measured, 0.500 -> 0.323 where a
+   highlight belongs. A material is not a surface. It gets an edge and nothing
+   else; the raised object around it is .stone-btn. */
+.stone-plate {
+  width: 100%; height: 46px; border-radius: 12px; background: var(--board);
+  box-shadow: inset 0 0 0 1px var(--belt-edge);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
 /* The set's name is the plate's title, so it is set like one: a room's name and
    a set's name have the same rank on this page. */
 .stone-name { font-family: var(--font-display); font-weight: var(--w-display-strong); font-size: 16px; line-height: 1.1; padding-inline-start: 2px; text-align: start; }

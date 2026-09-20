@@ -9,21 +9,12 @@
    set's name is the catalogue's when the catalogue has one and the data file's
    when it does not, which is the same bargain every overlaid line makes. */
 import {
-  PALETTES, STONE_SETS, AUTO_STONES, DOJO_THEME, SYSTEM_THEME, REVIEW_THEME,
+  CHOOSABLE_ROOMS, STONE_SETS, AUTO_STONES, DOJO_THEME, SYSTEM_THEME,
   themeOf, stoneSetOf, withStones, tokensFor,
 } from "../theme/index.js";
 import { BASE_LOCALE, makeT } from "../i18n/index.js";
 
 const EN = makeT(BASE_LOCALE);
-
-/** How wide the still life beside the drawer is drawn, in px.
- *
- *  One number, read twice: the view hands it to the Board as `sizePx` and
- *  writes it onto .look-stones as --look-board, which is the first grid track.
- *  They have to agree. When the track was `auto` it sized itself to the widest
- *  thing in the column -- the contrast sentence, not the board -- and took four
- *  hundred pixels the drawer needed. */
-export const PREVIEW_PX = 340;
 
 /** What a set is called in the language in force. */
 export const setName = (set, t = EN) => t(`stones.${set.id}.name`, null, set.name);
@@ -33,18 +24,12 @@ export const setName = (set, t = EN) => t(`stones.${set.id}.name`, null, set.nam
  *
  *  The System plate is drawn in whichever room it currently resolves to (that
  *  is what `drawAs` is for) so it shows the answer it is giving rather than
- *  standing there grey among the coloured plates.
- *
- *  The review room is not here. It is a real palette and it is in PALETTES, but
- *  it is somewhere review mode puts you rather than somewhere you choose to be:
- *  offered as a preference it turned the whole place into a printed diagram and
- *  took the stone picker with it, since a printed room draws ink and paper
- *  whatever set is in the drawer. See REVIEW_THEME in palettes.js. */
+ *  standing there grey among the coloured plates. */
 export const roomsFor = (dojo, room, t = EN) => [
   { id: SYSTEM_THEME, name: t("look.room.systemName"), mood: t("look.room.systemMood"), drawAs: room },
   // A room keeps its name and loses its English: `mood` is the one word on a
   // plate that is a description rather than a name.
-  ...PALETTES.filter(p => p.id !== REVIEW_THEME)
+  ...CHOOSABLE_ROOMS
     .map(p => ({ ...p, mood: t(`mood.${p.mood.toLowerCase()}`, null, p.mood) })),
   ...(dojo ? [{ ...dojo, id: DOJO_THEME, name: dojo.name || t("look.room.yours"), mood: t("look.room.yoursMood") }] : []),
 ];

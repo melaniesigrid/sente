@@ -14,7 +14,7 @@ import { LESSONS } from "../content/lessons.js";
 import { PERSONAS } from "../content/personas.js";
 import { CHAPTERS, CLASSIC, sayingOfTheDay, localizeSaying, localizeClassic } from "../content/classic.js";
 import { RULESETS } from "../engine/rulesets.js";
-import { PALETTES } from "../theme/palettes.js";
+import { CHOOSABLE_ROOMS } from "../theme/palettes.js";
 import { dayKey } from "../content/kata.js";
 import { LANDING_STATEMENTS } from "../content/plain.js";
 import { RECORD, RECORD_DEK, RECORD_HEADLINE, RECORD_STANDFIRST, RECORD_SOURCES } from "../content/press.js";
@@ -78,7 +78,13 @@ export function Landing({ profile, onEnter, go }) {
   const t = useT();
   const root = useReveal();
   const saying = localizeSaying(sayingOfTheDay(dayKey()), t);
-  const rooms = Object.keys(PALETTES).length;
+  /* The rooms somebody can actually choose, not every palette that ships.
+     PALETTES still holds the printed review room, which review mode brings with
+     it and nobody can sit in, so counting the array left the front door
+     promising three rooms and the look page it links to saying two. (RULESETS
+     is an object, so Object.keys is right there and was copied here, where
+     PALETTES is an array and it only ever worked by counting indices.) */
+  const rooms = CHOOSABLE_ROOMS.length;
   const rules = Object.keys(RULESETS).length;
   const returning = !needsOnboarding(profile);
 

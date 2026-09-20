@@ -2,7 +2,7 @@
    Resolving an id to a palette, a palette to custom properties, and untrusted
    stored data to a palette that cannot break the app. Nothing here knows about
    React; the shell spreads what `themeVars` returns onto one element. */
-import { PALETTES, HOUSE_THEME, REVIEW_THEME, DOJO_THEME, SYSTEM_THEME, SYSTEM_PAIR, migrateThemeId } from "./palettes.js";
+import { PALETTES, CHOOSABLE_ROOMS, HOUSE_THEME, REVIEW_THEME, DOJO_THEME, SYSTEM_THEME, SYSTEM_PAIR, migrateThemeId } from "./palettes.js";
 import { tokensFor, completeTones, stonesFor, boardFor } from "./derive.js";
 import { AUTO_STONES, isStoneId, stonesOf } from "./stones.js";
 import { TONES, TONE_KEYS, REQUIRED_TONES, RULES, CLOSENESS, STONE_RULE, BOARD_RULES } from "./tokens.js";
@@ -127,4 +127,4 @@ export function auditPalette(palette, stones = AUTO_STONES) {
   return rows.sort((a, b) => Number(a.pass) - Number(b.pass));
 }
 
-export { PALETTES, HOUSE_THEME, REVIEW_THEME, DOJO_THEME, SYSTEM_THEME, SYSTEM_PAIR, migrateThemeId, TONES, TONE_KEYS, REQUIRED_TONES };
+export { PALETTES, CHOOSABLE_ROOMS, HOUSE_THEME, REVIEW_THEME, DOJO_THEME, SYSTEM_THEME, SYSTEM_PAIR, migrateThemeId, TONES, TONE_KEYS, REQUIRED_TONES };

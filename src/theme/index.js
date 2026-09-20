@@ -6,6 +6,7 @@
      BOARD           the wood, one colour, the same in every room
      HOUSE_THEME     "tatami": the design system as drawn, and the fallback
      REVIEW_THEME    "kifu": the room a finished game is read in
+     CHOOSABLE_ROOMS the rooms a profile may hold: PALETTES minus the review room
      migrateThemeId  a stored id from an older set of rooms -> a room that exists
      SYSTEM_THEME    "system": follow the device; a pointer, not a palette
      DOJO_THEME      "dojo": the one a player built themselves
@@ -23,12 +24,12 @@
      stoneSetOf      an id + the player's choice -> the set the board is played with
 */
 export {
-  PALETTES, HOUSE_THEME, REVIEW_THEME, SYSTEM_THEME, SYSTEM_PAIR, DOJO_THEME,
+  PALETTES, CHOOSABLE_ROOMS, HOUSE_THEME, REVIEW_THEME, SYSTEM_THEME, SYSTEM_PAIR, DOJO_THEME,
   TONES, TONE_KEYS, REQUIRED_TONES, migrateThemeId,
   themeOf, themeVars, isDark, isThemeId, resolveTheme, sanitizePalette, paletteFrom, auditPalette,
 } from "./theme.js";
 export { contrast, luminance, grade, isHex, isDarkColor, toTriple } from "./color.js";
-export { RULES, CLOSENESS, TOKEN_NAMES, BOARD_RULES, BOARD } from "./tokens.js";
+export { RULES, CLOSENESS, TOKEN_NAMES, BOARD_RULES, BOARD, PREVIEW_PX } from "./tokens.js";
 export { stoneSetOf, withStones } from "./theme.js";
 export { completeTones, tokensFor, deriveLights, deriveBoard, boardFor, stonesFor } from "./derive.js";
 export {
