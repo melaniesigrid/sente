@@ -533,6 +533,12 @@ ${FONT_FACES}
    does. */
 .board-well { border-radius: var(--r); box-shadow: var(--raise); padding: clamp(12px, 1.8vw, 22px); min-width: 0; background: var(--ground); }
 .wood { fill: var(--board); }
+/* A diagram is a board quoted inside something else: a letter, a roll row, a
+   hall message. It sets no margin of its own, because whatever is quoting it
+   knows how much air it wants around a picture; it only stops the browser's
+   default figure margin from pushing the board off-centre in a narrow card. */
+.diagram { margin: 0; min-width: 0; }
+.diagram-note { margin-top: 6px; }
 .play-wrap > .board-well { flex: 2 1 520px; }
 .side { flex: 1 1 300px; min-width: 260px; max-width: 420px; }
 /* The board is a diagram, not a paragraph, and it does not mirror. Its geometry
