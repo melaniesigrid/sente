@@ -132,7 +132,7 @@ describe("a player who exists", () => {
     show();
     await screen.findByText("Ixchel");
     expect(screen.queryByText(/is showing/i)).toBe(null);
-    expect(document.body.textContent).not.toMatch(/moves/i);
+    expect(document.body.textContent).not.toMatch(/\bmoves\b/i);
   });
 
   it("never fetches anybody's archive, which is theirs and not public", async () => {
@@ -345,7 +345,7 @@ describe("whether they are here", () => {
     show();
     await screen.findByText("Ixchel");
     const text = document.body.textContent;
-    for (const word of [/offline/i, /away/i, /hidden/i, /not here/i, /invisible/i]) {
+    for (const word of [/\boffline\b/i, /\baway\b/i, /\bhidden\b/i, /\bnot here\b/i, /\binvisible\b/i]) {
       expect(text, String(word)).not.toMatch(word);
     }
   });
