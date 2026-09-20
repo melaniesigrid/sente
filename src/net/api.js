@@ -182,6 +182,17 @@ export const api = {
   thread: (token, id) => call(`/api/me/letters/${encodeURIComponent(id)}`, { token }),
   write: (token, id, text) =>
     call(`/api/me/letters/${encodeURIComponent(id)}`, { method: "POST", token, body: { text } }),
+  /* How many threads hold something unread, and saying you have read one.
+     `unread` is asked on nearly every screen and opens no thread at all: the
+     cursor is in the index, so the number costs one list. `markRead` moves
+     only your own row — nothing is written to the other person's shelf and
+     nothing tells them you opened it. */
+  unread: (token) => call("/api/me/unread", { token }),
+  markRead: (token, id) =>
+    call(`/api/me/letters/${encodeURIComponent(id)}/read`, { method: "POST", token }),
+  /* What happened here lately. Readable signed out, where it is plain
+     recency; signed in, closeness sorts it. */
+  roll: (token) => call("/api/roll", { token }),
   setBlocked: (token, id, on) =>
     call(`/api/me/blocked/${encodeURIComponent(id)}`, { method: on ? "PUT" : "DELETE", token }),
 

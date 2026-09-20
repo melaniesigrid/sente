@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import {
   ChevronLeft, Flag, RotateCcw, Trophy, CircleDot, Scale, MessageCircle, Send, Handshake, Check, X,
-  Download, Eye, Link as LinkIcon, WifiOff, History, Users,
+  Download, Eye, Link as LinkIcon, WifiOff, History, Users, Mail,
 } from "lucide-react";
 import {
   scoreBoard, chainsInAtari, idx, lastMoveIndex, toSgf, colorOfSeat, canSeatPlay, partnerSeat,
@@ -16,6 +16,7 @@ import { playStone, playCapture, playBell, haptic } from "../components/sound.js
 import { beltOf, hintsForBelt } from "../content/rank.js";
 import { gameSocket, SERVER_URL } from "../net/api.js";
 import { loadAccount } from "../store/account.js";
+import { useCanWrite } from "./letters.js";
 import { refusalText, resignLabel, confirmMoveLabel, resultCard, RESIGN_CONFIRM_MS } from "./gameStatus.js";
 import { tapAction } from "./stagedMove.js";
 import { onlineStatus, settledLine, onlineCaption, teamName } from "./onlineStatus.js";
@@ -360,6 +361,10 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
   const boardDisabled = !room || !seat || !!over || conn !== "open" || (!scoring && !myTurn);
   const mine = seat ? room.seats[seat] : null;
   const theirs = color ? (color === "b" ? whiteLead : blackLead) : null;
+  /* Whether the post may be offered to them once this is over. The server
+     decides, as everywhere else; a game that has just finished is precisely
+     what makes the answer yes. */
+  const canWriteToThem = useCanWrite(go ? account : null, theirs ? theirs.id : null);
   const partner = room && seat && room.pair ? seatName(room, partnerSeat(seat)) : "";
   const settled = settledLine(room, seat, t);
 
@@ -589,6 +594,17 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
                   </Btn>
                 ))}
                 <Btn icon={History} small onClick={() => setReviewing(true)}>{t("game.review")}</Btn>
+                {/* The moment the post is actually for. You have just finished
+                    a game with this person, which is exactly what earns the
+                    right to write to them, and until now the only way to use
+                    that right was to already know there was a card for it on
+                    the Profile screen. The game ending is what makes the offer
+                    true, so the offer belongs where the game ends. */}
+                {theirs && theirs.id && canWriteToThem && (
+                  <Btn icon={Mail} small onClick={() => go("profile", { writeTo: theirs.id })}>
+                    {t("letters.writeTo", { name: theirs.name })}
+                  </Btn>
+                )}
                 <Btn icon={Download} small onClick={downloadSgf}>{t("game.sgf")}</Btn>
                 <Btn icon={ChevronLeft} small onward onClick={onExit}>{t("online.game.lobby")}</Btn>
               </div>

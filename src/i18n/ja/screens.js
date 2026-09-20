@@ -249,6 +249,9 @@ export const screens = {
     openProblem: "{set}、第 {n} 題、{rank}",
   },
   profile: {
+    /* The look of the place. It lives on this screen now; the top bar
+       carries the post instead. */
+    look: { go: "この場所の見た目", note: "六つの部屋、六種の石、そして書体。" },
     country: {
       head: "あなたの旗",
       note: "どこから打っているかを、言いたければ。名前の隣に並び、外すのは一押しです。",
@@ -558,6 +561,12 @@ export const screens = {
   },
 
   letters: {
+    /* On a thread row, and on the button that offers the box.
+       `writeTo` is the label a screen reader hears; `write` is the
+       words on the button. */
+    new: "新着",
+    write: "手紙を書く",
+    writeTo: "{name} に手紙を書く",
     fetching: "手紙を取ってきています…",
     head: "手紙",
     note: "一人にひとつの綴り、ずっと残ります。友だちか、打ち終えた相手だけが手紙を書けます。",

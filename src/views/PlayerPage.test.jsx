@@ -39,6 +39,7 @@ const invites = vi.fn();
 const invite = vi.fn();
 const acceptInvite = vi.fn();
 const forgetInvite = vi.fn();
+const thread = vi.fn();
 
 vi.mock("../net/api.js", () => ({
   api: {
@@ -49,6 +50,11 @@ vi.mock("../net/api.js", () => ({
     forgetFriend: (...a) => forgetFriend(...a),
     presence: (...a) => presence(...a),
     archive: (...a) => archive(...a),
+    /* The thread, read to learn whether the post may be offered at all.
+       A stranger has no thread and cannot be written to, which is this
+       page's default and why the button is absent unless a test says
+       otherwise. */
+    thread: (...a) => thread(...a),
     // The shelf, read whenever there is an account, the same way the book is.
     invites: (...a) => invites(...a),
     invite: (...a) => invite(...a),
@@ -85,11 +91,14 @@ beforeEach(() => {
   loadAccount.mockReset();
   loadAccount.mockReturnValue(null);
   for (const fn of [friends, askFriend, acceptFriend, forgetFriend, presence, archive,
-    invites, invite, acceptInvite, forgetInvite]) fn.mockReset();
+    invites, invite, acceptInvite, forgetInvite, thread]) fn.mockReset();
   invites.mockResolvedValue({ incoming: [], outgoing: [] });
   archive.mockResolvedValue({ games: [], cursor: null });
   presence.mockResolvedValue({ online: [] });
   friends.mockResolvedValue(EMPTY_BOOK);
+  /* A stranger by default: no thread, and no right to write one. The page
+     offers the post box only when the server says it would work. */
+  thread.mockResolvedValue({ thread: [], with: "p_abc", can: false, why: "not-met" });
 });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 

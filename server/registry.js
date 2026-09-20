@@ -62,6 +62,7 @@ import { cleanCode, codeFrom, readClub, readMembership,
 import { archivePrefix, archiveKey, pageSize, cursorFor, page as archivePage,
   archived, playersOf } from "./archive.js";
 import { readFeatured, pin as pinPure, unpin as unpinPure, featuredWith } from "./featured.js";
+import { ROLL_KEEP, ROLL_PAGE, ROLL_PREFIX, rollKey, rollFor as rollPage, rollIsThin } from "./roll.js";
 import { threadKey, cleanLetter, readThread, withLetter, mayWrite, threadSummary,
   byRecent, readBlocked, block as blockPure, unblock as unblockPure,
   POST_LIMIT, POST_WINDOW_MS } from "./post.js";
@@ -95,9 +96,17 @@ const SESSION_KEEP = 12;
       more than one device at a time.
    4: handles became searchable, so every handle already claimed needed its
       rows in the directory; nobody can be found by a name nobody indexed. */
-const SCHEMA = 4;
+const SCHEMA = 5;
 const SCHEMA_KEY = "schema:version";
 const LADDER_TTL = 60_000;
+/* The roll is one cached page for everybody, the way the ladder is one cached
+   sort for everybody. It is dropped outright when a game finishes rather than
+   left to expire, because a game finishing is the only thing that changes it
+   and the roll is the one screen whose whole job is showing what just
+   happened. The per-viewer part - relationship order and blocking - is applied
+   AFTER this cache, so one cached list serves every reader without ever
+   holding one reader's view of it. */
+const ROLL_TTL = 60_000;
 const LADDER_SIZE = 100;
 
 export class Registry extends DurableObject {
@@ -105,6 +114,7 @@ export class Registry extends DurableObject {
     super(ctx, env);
     this.ladderCache = null;
     this.historyCache = null;
+    this.rollCache = null;
     this.playerCount = null;
     // Storage is migrated once, before the first request is answered. Blocking
     // the object's concurrency here is the point: no handler can read a player
@@ -160,6 +170,35 @@ export class Registry extends DurableObject {
           if (Object.keys(patch).length >= 100) { await this.ctx.storage.put(patch); patch = {}; }
         }
         if (Object.keys(patch).length) await this.ctx.storage.put(patch);
+      }
+    }
+    if (at < 5) {
+      /* The letter index off the `mail:` prefix and onto its own.
+         `mail:<hash>` is a verify or reset token and `mail:<me>:<other>` was
+         the letter index: two unrelated records under one name, told apart
+         only by counting colons. This walks PLAYERS and asks each of them for
+         their own rows, rather than listing `mail:` and sorting the results
+         out afterwards — a token must never be read as a letter row, and the
+         surest way to guarantee that is never to hand one to this loop.
+
+         The scoped prefix is safe on its own account too, since `mail:<id>:`
+         ends in a colon and a token key has none after the hash. The player
+         walk is what makes that a belt as well as braces. */
+      for await (const chunk of this.#pages("player:")) {
+        for (const p of chunk.values()) {
+          const old = await this.ctx.storage.list({ prefix: `mail:${p.id}:` });
+          if (!old.size) continue;
+          let patch = {};
+          const gone = [];
+          for (const [key, value] of old) {
+            const other = key.slice(`mail:${p.id}:`.length);
+            patch[lettersKey(p.id, other)] = readIndexRow(value);
+            gone.push(key);
+            if (Object.keys(patch).length >= 100) { await this.ctx.storage.put(patch); patch = {}; }
+          }
+          if (Object.keys(patch).length) await this.ctx.storage.put(patch);
+          while (gone.length) await this.ctx.storage.delete(gone.splice(0, 100));
+        }
       }
     }
     await this.ctx.storage.put(SCHEMA_KEY, SCHEMA);
@@ -764,6 +803,22 @@ export class Registry extends DurableObject {
       if (live) moved[liveKey(gid)] = reseatSummary(live, fromId, who);
     }
 
+    /* Everybody the old handle had met is somebody the surviving handle has
+       met, so the `met:` rows are re-filed under it — both ways, because the
+       row on the other person's shelf names the id that is going away. Without
+       this the merge would quietly revoke the right to write between people
+       who really had played, and `metDone:` on the survivor is dropped so the
+       next question walks the folded archive once and settles it. */
+    const metRows = await this.ctx.storage.list({ prefix: `met:${fromId}:` });
+    for (const key of metRows.keys()) {
+      const other = key.slice(`met:${fromId}:`.length);
+      gone.push(key, metKey(other, fromId));
+      if (other === intoId) continue;         // you have not met yourself
+      moved[metKey(intoId, other)] = 1;
+      moved[metKey(other, intoId)] = 1;
+    }
+    gone.push(metDoneKey(fromId), metDoneKey(intoId));
+
     const next = { ...mergedRecord(into, from), featured, lastSeen: Date.now() };
     if (!into.avatarAt && from.avatarAt) {
       const pic = await this.ctx.storage.get(`avatar:${fromId}`);
@@ -798,6 +853,7 @@ export class Registry extends DurableObject {
     await this.#forgetShelf(id);
     await this.#forgetArchive(id);
     await this.#forgetPost(id);
+    await this.#forgetMet(id);
     const sessions = (p.sessions ?? [p.tokenHash]).filter(Boolean).map(h => `tok:${h}`);
     await this.ctx.storage.delete([
       `player:${id}`, `tok:${p.tokenHash}`, ...sessions, `games:${id}`, `seek:${id}`, `avatar:${id}`, `progress:${id}`,
@@ -1125,19 +1181,64 @@ export class Registry extends DurableObject {
      who they have a thread with, which is what makes "my letters" one list
      read rather than a walk over every thread on the server. */
 
-  /** Have these two finished a game together? Answered out of the smaller of
-   *  the two archives rather than by keeping a third record of who has met
-   *  whom: a list of everybody you have ever played is exactly the data this
-   *  feature exists to avoid needing. */
+  /** Have these two finished a game together?
+   *
+   *  THIS USED TO BE A SCAN, AND USED TO BE RIGHT.
+   *  It answered out of the archive rather than keeping a third record,
+   *  because a list of everybody you have ever played is exactly the data the
+   *  post exists to avoid needing. That reasoning was sound while the only
+   *  caller was somebody opening a thread — a rare act, on a person they had
+   *  already met.
+   *
+   *  What changed is that "write to them" now appears on every player card.
+   *  The overwhelming majority of player cards are strangers, and a stranger
+   *  is the worst case of the old shape: a full unbounded walk of an archive
+   *  that is never going to contain them. The cost moved, so the answer moved.
+   *
+   *  What is kept is the smallest thing that answers the question. `met:a:b`
+   *  is existence and nothing else: no timestamp, no count, no result. It says
+   *  the two of them sat down once. Everything else about that game the
+   *  archive already holds, and this does not copy any of it.
+   *
+   *  `metDone:` is what makes the fix a fix. Without it a miss is
+   *  indistinguishable from "never walked", so every stranger would fall
+   *  through to the scan and nothing would have improved. With it the archive
+   *  is walked at most once per player, ever, and after that a miss is an
+   *  answer. */
   async #havePlayed(a, b) {
-    const rows = await this.ctx.storage.list({ prefix: archivePrefix(a) });
-    for (const [, game] of rows) {
-      for (const side of ["b", "w"]) {
-        const seats = (game.teams && game.teams[side]) || [side === "b" ? game.black : game.white];
-        if ((seats || []).some((p) => p && p.id === b)) return true;
+    if (await this.ctx.storage.get(metKey(a, b))) return true;
+    if (await this.ctx.storage.get(metDoneKey(a))) return false;
+    return await this.#backfillMet(a, b);
+  }
+
+  /** Walk one player's archive once, writing a `met:` row for everybody they
+   *  have sat down with, and mark them done. Returns whether `b` was among
+   *  them, so the caller that triggered the walk gets its answer from the same
+   *  pass rather than asking again.
+   *
+   *  Paged, and written back a page at a time: an archive is kept for good, so
+   *  a club player's is large and holding the whole object while it is read is
+   *  exactly what `#pages` exists to avoid. */
+  async #backfillMet(a, b) {
+    let found = false;
+    let patch = {};
+    for await (const chunk of this.#pages(archivePrefix(a))) {
+      for (const game of chunk.values()) {
+        for (const side of ["b", "w"]) {
+          const seats = (game.teams && game.teams[side]) || [side === "b" ? game.black : game.white];
+          for (const p of seats || []) {
+            if (!p || !p.id || p.id === a) continue;
+            if (p.id === b) found = true;
+            patch[metKey(a, p.id)] = 1;
+            patch[metKey(p.id, a)] = 1;
+            if (Object.keys(patch).length >= 100) { await this.ctx.storage.put(patch); patch = {}; }
+          }
+        }
       }
     }
-    return false;
+    patch[metDoneKey(a)] = 1;
+    await this.ctx.storage.put(patch);
+    return found;
   }
 
   async #mayWrite(fromId, toId) {
@@ -1174,12 +1275,56 @@ export class Registry extends DurableObject {
     const key = `post:${threadKey(fromId, toId)}`;
     const thread = withLetter(readThread(await this.ctx.storage.get(key)), fromId, text, Date.now());
     const at = thread[thread.length - 1].at;
+    /* Each shelf gets its OWN value. They used to get the same one, which was
+       right while the value was only "when did this thread last move" and
+       became wrong the moment it carried a cursor: putting the writer's row on
+       the reader's key would clear the reader's count every time somebody
+       wrote to them. `rowsAfterLetter` decides; this only files the results. */
+    const mine = readIndexRow(await this.ctx.storage.get(lettersKey(fromId, toId)));
+    const theirs = readIndexRow(await this.ctx.storage.get(lettersKey(toId, fromId)));
+    const next = rowsAfterLetter(mine, theirs, at);
     await this.ctx.storage.put({
       [key]: thread,
-      [`mail:${fromId}:${toId}`]: at,
-      [`mail:${toId}:${fromId}`]: at,
+      [lettersKey(fromId, toId)]: next.from,
+      [lettersKey(toId, fromId)]: next.to,
     });
     return { thread, with: toId };
+  }
+
+  /** How many threads hold something this player has not read.
+   *
+   *  One prefix list over their own shelf and no thread reads at all: the
+   *  cursor is in the index row, so answering "is there post" never opens
+   *  anybody's correspondence. This is the call behind the number in the top
+   *  bar, so it runs on nearly every page, and it is one `list`.
+   *
+   *  It counts THREADS and not letters. Three people wrote to you reads as 3,
+   *  which is a number you can act on; nine letters from one person is one
+   *  conversation to open. */
+  async unreadFor(meId) {
+    const prefix = LETTERS_PREFIX(meId);
+    const index = await this.ctx.storage.list({ prefix });
+    if (!index.size) return 0;
+    const me = await this.ctx.storage.get(`player:${meId}`);
+    const rows = [...index].map(([key, value]) => ({
+      other: key.slice(prefix.length),
+      row: readIndexRow(value),
+    }));
+    return unreadRows(rows, readBlocked(me?.blocked));
+  }
+
+  /** This side has read up to the other side's last letter.
+   *
+   *  Only this player's own row moves. Nothing is written to the other
+   *  person's shelf, which is what keeps the promise at the top of `post.js`:
+   *  the writer is never told their letter was opened. */
+  async markThreadRead(meId, otherId) {
+    const key = lettersKey(meId, otherId);
+    const stored = await this.ctx.storage.get(key);
+    if (stored !== undefined) {
+      await this.ctx.storage.put(key, rowAfterRead(readIndexRow(stored)));
+    }
+    return { unread: await this.unreadFor(meId) };
   }
 
   /** One thread, and nothing at all for a pair with no thread. Reading is not
@@ -1194,8 +1339,9 @@ export class Registry extends DurableObject {
   /** Every thread this player has, newest conversation first, each with the
    *  person it is with. One list read plus one batched get of the people. */
   async lettersOf(meId) {
-    const index = await this.ctx.storage.list({ prefix: `mail:${meId}:` });
-    const ids = [...index.keys()].map((k) => k.slice(`mail:${meId}:`.length));
+    const prefix = LETTERS_PREFIX(meId);
+    const index = await this.ctx.storage.list({ prefix });
+    const ids = [...index.keys()].map((k) => k.slice(prefix.length));
     if (!ids.length) return [];
     const people = await this.#peopleByIds(ids);
     const rows = [];
@@ -1204,7 +1350,17 @@ export class Registry extends DurableObject {
       if (!person) continue;            // they left; the index heals by being read
       const thread = readThread(await this.ctx.storage.get(`post:${threadKey(meId, otherId)}`));
       const summary = threadSummary(thread, meId);
-      if (summary) rows.push({ ...summary, player: publicPlayer(person) });
+      /* The dot on each row comes off the index row this list already read,
+         not out of the thread. The thread is opened here for the preview, so
+         this costs nothing extra — but it means the dot and the number in the
+         top bar are computed from the same value and cannot disagree. */
+      if (summary) {
+        rows.push({
+          ...summary,
+          unread: unreadRow(readIndexRow(index.get(`${prefix}${otherId}`))),
+          player: publicPlayer(person),
+        });
+      }
     }
     return byRecent(rows);
   }
@@ -1223,12 +1379,30 @@ export class Registry extends DurableObject {
    *  happened at a board: it is correspondence, and the notice says leaving
    *  takes it. */
   async #forgetPost(id) {
-    const index = await this.ctx.storage.list({ prefix: `mail:${id}:` });
-    const others = [...index.keys()].map((k) => k.slice(`mail:${id}:`.length));
+    const prefix = LETTERS_PREFIX(id);
+    const index = await this.ctx.storage.list({ prefix });
+    const others = [...index.keys()].map((k) => k.slice(prefix.length));
     const gone = [...index.keys()];
     for (const other of others) {
-      gone.push(`post:${threadKey(id, other)}`, `mail:${other}:${id}`);
+      gone.push(`post:${threadKey(id, other)}`, lettersKey(other, id));
     }
+    for (let i = 0; i < gone.length; i += 100) {
+      await this.ctx.storage.delete(gone.slice(i, i + 100));
+    }
+  }
+
+  /** Every `met:` row this player is named in, from both sides, and the mark
+   *  that says their archive was walked.
+   *
+   *  The mirror matters as much as the row: leaving `met:<other>:<id>` behind
+   *  would leave the other player able to write to somebody who is gone, and
+   *  would leave this player's id on somebody else's shelf after the notice
+   *  said leaving takes it. Same shape as the letter sweep above, for the same
+   *  reason. */
+  async #forgetMet(id) {
+    const mine = await this.ctx.storage.list({ prefix: `met:${id}:` });
+    const gone = [...mine.keys(), metDoneKey(id)];
+    for (const key of mine.keys()) gone.push(metKey(key.slice(`met:${id}:`.length), id));
     for (let i = 0; i < gone.length; i += 100) {
       await this.ctx.storage.delete(gone.slice(i, i + 100));
     }
@@ -1282,9 +1456,81 @@ export class Registry extends DurableObject {
     if (finished) {
       const row = archived(summary);
       const keys = {};
-      for (const id of playersOf(summary)) keys[archiveKey(id, summary.endedAt, summary.id)] = row;
+      const seated = playersOf(summary);
+      for (const id of seated) keys[archiveKey(id, summary.endedAt, summary.id)] = row;
+      /* And who met whom, both ways, so `#havePlayed` is a key and not a walk.
+         Existence only: this says they sat down together and nothing else, and
+         everything else about the game is in the row above. At a pair table
+         that is four people, so all six pairings are written — a partner you
+         never faced is still somebody you played with. */
+      for (const a of seated) {
+        for (const b of seated) if (a !== b) keys[metKey(a, b)] = 1;
+      }
       await this.ctx.storage.put(keys);
+      /* The roll's own index. One key a finished game, newest first, capped —
+         see `server/roll.js`. Written here because this is the moment a game
+         becomes something that happened. */
+      await this.#noteRoll(summary, row);
     }
+  }
+
+  /* ----- the roll ----- */
+
+  /** One finished game onto the roll, and the oldest off the end.
+   *
+   *  One write, not one per friend. The trim is a list of the keys past the
+   *  cap — the index is capped at ROLL_KEEP, so this reads a bounded number of
+   *  keys and usually deletes exactly one. */
+  async #noteRoll(summary, row) {
+    await this.ctx.storage.put(rollKey(summary.endedAt, summary.id), row);
+    this.rollCache = null;
+    const all = await this.ctx.storage.list({ prefix: ROLL_PREFIX, reverse: true, limit: ROLL_KEEP + 32 });
+    const keys = [...all.keys()].slice(ROLL_KEEP);
+    if (keys.length) await this.ctx.storage.delete(keys);
+  }
+
+  /** The rows on the roll, newest first, cached for everybody.
+   *
+   *  What is cached is the LIST and never anybody's view of it: relationship
+   *  order and blocking are applied per reader afterwards, in `roll.js`. That
+   *  is what lets one cache serve every reader — a per-viewer cache would need
+   *  to know whose page a finished game invalidates, which is the reverse
+   *  friend map, which is the fan-out this design does not have. */
+  async #rollRows() {
+    if (this.rollCache && Date.now() - this.rollCache.at < ROLL_TTL) return this.rollCache.rows;
+    const all = await this.ctx.storage.list({ prefix: ROLL_PREFIX, reverse: true, limit: ROLL_KEEP });
+    const rows = [...all.values()];
+    this.rollCache = { at: Date.now(), rows };
+    return rows;
+  }
+
+  /** One page of the roll for one viewer.
+   *
+   *  The three sets that decide closeness are three bounded reads of things
+   *  already stored: who they have played (`met:`), who they are friends with
+   *  (`friends:`), and who they have written to (`letters:`). None of them
+   *  counts anybody's attention, and none of them is new state invented for
+   *  a feed. A signed-out reader gets the same rows in plain recency order. */
+  async rollFor(viewerId, limit = ROLL_PAGE) {
+    const rows = await this.#rollRows();
+    if (!rows.length) return { rows: [], thin: true };
+    let near = {};
+    let blocked = new Set();
+    if (viewerId) {
+      const me = await this.ctx.storage.get(`player:${viewerId}`);
+      blocked = new Set(readBlocked(me?.blocked));
+      const [met, letters] = await Promise.all([
+        this.ctx.storage.list({ prefix: `met:${viewerId}:` }),
+        this.ctx.storage.list({ prefix: LETTERS_PREFIX(viewerId) }),
+      ]);
+      near = {
+        played: new Set([...met.keys()].map((k) => k.slice(`met:${viewerId}:`.length))),
+        friends: new Set((await this.#book(viewerId)).friends.map((e) => e.id)),
+        wrote: new Set([...letters.keys()].map((k) => k.slice(LETTERS_PREFIX(viewerId).length))),
+      };
+    }
+    const page = rollPage(rows, near, { blocked, limit, viewerId });
+    return { rows: page, thin: rollIsThin(page) };
   }
 
   async gamesOf(id) {

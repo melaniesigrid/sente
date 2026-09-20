@@ -25,8 +25,7 @@ export const shell = {
   topbar: {
     enter: "Entrer",
     yourBoard: "Ton goban",
-    look: "L'allure du lieu",
-    lookShort: "Allure",
+    mail: { zero: "Le courrier : rien en attente", one: "Le courrier : {count} lettre en attente", other: "Le courrier : {count} lettres en attente" },
     profile: "Ton profil",
   },
   journal: {

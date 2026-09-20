@@ -68,7 +68,14 @@ export function LettersCard({ account, go, open, setOpen }) {
               <Avatar name={row.player.name} tint={row.player.tint} size={38}
                 src={avatarUrl(SERVER_URL, row.player.id, row.player.avatarAt)} />
               <span className="ladder-name">
-                <strong>{row.player.name}{!row.theirTurn && <span className="here-dot" title={t("letters.waitingOnYou")} />}</strong>
+                <strong>
+                  {row.player.name}
+                  {!row.theirTurn && <span className="here-dot" title={t("letters.waitingOnYou")} />}
+                  {/* The same chip the chrome wears, from the same index row
+                      the number is counted off, so the dot here and the count
+                      up there cannot disagree. */}
+                  {row.unread && <span className="letter-unread">{t("letters.new")}</span>}
+                </strong>
                 <span className="fine letter-preview">{row.preview}</span>
               </span>
               <span className="fine archive-when">{whenText(row.at, t) ?? ""}</span>
@@ -94,7 +101,16 @@ function Thread({ account, otherId, onBack, go }) {
   useEffect(() => {
     let live = true;
     api.thread(token, otherId)
-      .then((r) => { if (live) setState(r); })
+      .then((r) => {
+        if (!live) return;
+        setState(r);
+        /* Opening it is reading it. Only this reader's own row moves and the
+           writer is told nothing: the count is a fact about your own post box,
+           never a receipt about your attention. A failure is not worth
+           surfacing — the worst case is the number stays up and clears the
+           next time the thread is opened. */
+        api.markRead(token, otherId).catch(() => {});
+      })
       .catch(() => { if (live) setState({ thread: [], with: otherId, can: false, why: "offline" }); });
     return () => { live = false; };
   }, [token, otherId]);

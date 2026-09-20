@@ -50,8 +50,8 @@ export const COPYRIGHT = `© ${COPYRIGHT_YEAR} ${STUDIO}`;
    its own; what it can do is make it impossible to change a word without
    being stopped and handed the line where the date lives. */
 export const REVISION = {
-  updated: "16 September 2026",
-  stamp: "64368c23",
+  updated: "20 September 2026",
+  stamp: "d656ab8d",
 };
 
 /** The day the documents last changed. */
@@ -59,7 +59,7 @@ export const UPDATED = REVISION.updated;
 /** The same day, machine-readable, so each language can set it its own way:
  *  "12 September 2026" in English, "12 de septiembre de 2026" in Spanish. The
  *  two are held in step by `legal.test.js`. */
-export const UPDATED_ISO = "2026-09-16";
+export const UPDATED_ISO = "2026-09-20";
 
 /* ---------------------------------------------------------------- credits */
 /* Everything in the build that somebody else made, with the terms it comes
@@ -249,7 +249,10 @@ const PRIVACY = {
         "A way to look up your handle: each word of it, folded to lower case with the accents and punctuation taken out, kept beside your record so that another player typing part of it can find you. It is made from the handle you chose and from nothing else, it is rewritten when you change your handle and deleted when you leave, and only somebody who has a handle here can search it. A search answers with at most twenty people and never with a count, so it cannot be paged through to read out who plays here.",
         "The invitations to a game between you and another player: who asked whom, the board, the handicap, whether it counts, and when it was asked. One row on each of your records, seen by the two of you and by nobody else, gone the moment either of you answers it, and gone by itself a day after it was written. Only somebody you have agreed to be friends with, or finished a game against, can ask you at all, and declining one deletes it and tells the person who asked nothing.",
         "The letters you and another player have written to each other. One thread a pair, keeping the last hundred, readable by the two of you and by nobody else. Only somebody you have agreed to be friends with, or finished a game against, can write to you at all, and you can stop any of them writing again without their being told. There is no list anybody can be added to and nothing to unsubscribe from, because there is nothing to be on. A club is a list, and it stays inside that sentence the only way it can: nobody is put into one, they walk in.",
+        "How far you have read in each of those threads: one date on your own row, moved when you open a thread, and never shown to the person who wrote to you. It is what the number on the post box in the top bar is counted from. It is a note about your own post box and not a read receipt: nothing anywhere tells a writer that their letter was opened, nothing is pushed at you when one arrives, and the number is simply there when you next look up.",
+        "That you and another player have finished a game together: one row on each of your records holding nothing but that fact — no date, no result, no count of how many. It is what lets the server answer \"may this person write to you\" without reading through your games, and it is read from nowhere else and shown to nobody. Everything else about those games is in the index of finished games described above. It goes when either of you leaves.",
         "The games you chose to show on your page, at most three, each with a line of up to 140 characters that you wrote. Both are public, because the page is. Taking a game off your page removes the line with it.",
+        "A roll of the last four hundred finished games on the server, one row each, holding what the index of finished games holds: the date, the board, who played and the result. It is what the dashboard shows so that a player arriving after a day away can see the club was here. Older rows fall off the bottom. Which of them you are shown first is worked out from what you already have with the people in them — whether you have played them, are friends with them, or have written to them — and from nothing else. Nothing counts who looked at a row, or how often, or for how long: there is no view count here and there is nothing to become one.",
         "Which of the three answers you gave to who may see that you are here: nobody, your friends, or anybody. One word on your record, and not on the ladder, so reading the ladder cannot tell you who has chosen to be invisible.",
         "The address you registered from, kept so that leaving gives back the account it spent, shown to nobody, and deleted with the account.",
         "Your progress, once you sign in with an address: which lessons, problems and drills you have finished, your recall schedule, the days you practised and the runs they make, your kata and duel records, and your house ladder rating. It is sent when it changes and read when you sign in on another device, and the two are merged, never one written over the other. A handle with no address behind it sends none of it. Leaving deletes it."

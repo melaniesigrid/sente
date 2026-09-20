@@ -55,7 +55,6 @@ export function Diagram({
         disabled={!onPlay}
         lastMove={lastMove}
         pointed={pointed}
-        coordinates={false}
       />
       {label ? <figcaption className="diagram-note fine">{label}</figcaption> : null}
     </figure>

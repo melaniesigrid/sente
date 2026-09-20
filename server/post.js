@@ -25,7 +25,23 @@
    person is told nothing, their old letters stay where they are, and they
    simply cannot write another. It is deliberately not the same act as
    unfriending, because the two mean different things and doing both at once
-   would take the choice away from the person being protected. */
+   would take the choice away from the person being protected.
+
+   WHAT CHANGED WHEN THE MAIL COUNT ARRIVED
+   The paragraph above used to say the post had no typing indicator, no read
+   receipt and no notification. Two of those three are still true, and the
+   third was never the same thing as the second.
+
+   A read receipt tells the SENDER something about the reader's attention, and
+   that is still refused: nothing anywhere reports that a letter was opened,
+   and the cursor that records it is on the reader's own row where the writer
+   cannot see it. What the count does is tell YOU that somebody wrote to you,
+   which is a fact about your own post box. An app that makes you go and look
+   in a drawer to find out whether anybody wrote is not protecting anybody's
+   privacy, it is just hiding the mail.
+
+   There is still no notification: nothing is pushed, nothing is emailed,
+   nothing interrupts a game. The number is there when you next look up. */
 
 /** How long one letter may be. Long enough for a real note about a game, short
  *  enough that nobody writes an essay into a box with no formatting. */
@@ -46,6 +62,119 @@ export const POST_WINDOW_MS = 60 * 60 * 1000;
 export function threadKey(a, b) {
   return [a, b].sort().join("~");
 }
+
+/* ----- the index -----
+
+   One row per person you have a thread with, on your own shelf, so "my
+   letters" is one prefix list and never a walk over every thread on the
+   server.
+
+   THE PREFIX IS `letters:` AND NOT `mail:`
+   `mail:<hash>` was already taken, by the one-shot tokens that verify an
+   address and reset a password (see `registry.js`). Two unrelated record types
+   under one prefix are told apart only by counting colons, and the first
+   `list({prefix: "mail:"})` written by somebody who did not know that would
+   walk both. This is the same collision the engine's `rateGame` once was, and
+   the fix is the same: give the newer thing its own name. */
+export const LETTERS_PREFIX = (me) => `letters:${me}:`;
+export const lettersKey = (me, other) => `letters:${me}:${other}`;
+
+/** One row of that index, read defensively.
+ *
+ *  `at`        when the thread last moved, either way. Orders the list.
+ *  `theirLast` when the other person last wrote. Only they move it.
+ *  `read`      how far this side has read. Only this side moves it.
+ *
+ *  THERE IS NO SEQUENCE NUMBER, deliberately. A per-letter counter has nowhere
+ *  to live: `readThread` maps every letter to exactly `{from, text, at}` so an
+ *  extra field is dropped on the way back in, and `withLetter` trims to
+ *  THREAD_KEEP so position in the array is not monotonic either. Storing one
+ *  would mean changing a thread from an array to an object with a header —
+ *  a migration of the one value in this system that is somebody's
+ *  correspondence. `at` is already monotonic within a thread, already stored,
+ *  and already survives the round trip, so `at` is the cursor.
+ *
+ *  A bare number is the shape this row had before the count existed. It
+ *  becomes a row that is READ rather than unread: there is no cursor in it to
+ *  recover, and the alternative is every player meeting a full post box on the
+ *  morning of the deploy for letters they read months ago. */
+export function readIndexRow(stored) {
+  if (typeof stored === "number") return { at: stored, theirLast: 0, read: 0 };
+  if (!stored || typeof stored !== "object") return { at: 0, theirLast: 0, read: 0 };
+  return {
+    at: Number(stored.at) || 0,
+    theirLast: Number(stored.theirLast) || 0,
+    read: Number(stored.read) || 0,
+  };
+}
+
+/** Is there something in this thread this side has not read? */
+export const unreadRow = (row) => row.theirLast > row.read;
+
+/** How many of these threads are unread, skipping anybody blocked.
+ *
+ *  The blocked filter is applied HERE and nowhere else, so there is one place
+ *  that decides whether a blocked person's letter counts. It does not: a
+ *  blocked writer's old letters stay in the thread and can still be read, but
+ *  they never light the number up, because the point of blocking is not to
+ *  hear from somebody again.
+ *
+ *  `rows` is `[{ other, row }]`. */
+export function unreadRows(rows, blocked = []) {
+  const no = blocked instanceof Set ? blocked : new Set(blocked);
+  let n = 0;
+  for (const { other, row } of rows) if (!no.has(other) && unreadRow(row)) n += 1;
+  return n;
+}
+
+/** The two index rows after one letter travels, as `{ from, to }`.
+ *
+ *  THE TWO SIDES ARE NOT THE SAME VALUE. The old code put one number to both
+ *  keys, which was correct when the value was only "when did this thread last
+ *  move". It stops being correct the moment the row carries a cursor: writing
+ *  the sender's `read` onto the recipient's row would clear their count every
+ *  time somebody wrote to them, which is the exact opposite of the feature.
+ *  So this returns two objects and the caller stores each under its own key. */
+export function rowsAfterLetter(fromRow, toRow, at) {
+  return {
+    // The writer's own shelf: the thread moved, but they have not been written
+    // to, so nothing about their unread state changes.
+    from: { at, theirLast: fromRow.theirLast, read: fromRow.read },
+    // The reader's shelf: this is the newest thing the other person has said.
+    to: { at, theirLast: at, read: toRow.read },
+  };
+}
+
+/** The row after this side opens the thread.
+ *
+ *  Read up to `theirLast` and not to the clock: a letter stamped in the future
+ *  by a skewed clock would otherwise be marked read before it was written, and
+ *  the reader would never see it. */
+export const rowAfterRead = (row) => ({ at: row.at, theirLast: row.theirLast, read: row.theirLast });
+
+/* ----- have these two met? -----
+
+   `#havePlayed` used to answer this by listing a player's whole archive, with
+   no limit, and scanning it. That was cheap while the only caller was opening
+   a thread. It stopped being cheap when "write to them" arrived on every
+   player card, because the overwhelming majority of player cards are strangers
+   and a stranger is a full scan that finds nothing.
+
+   THIS REVERSES A DECISION THIS FILE'S NEIGHBOUR MADE ON PURPOSE.
+   `registry.js` used to say that a list of everybody you have ever played "is
+   exactly the data this feature exists to avoid needing", and answered out of
+   the archive instead. The reasoning was good and the cost changed underneath
+   it. What is stored here is deliberately the smallest thing that answers the
+   question: existence and nothing else — no timestamp, no count, no order. It
+   says you two have met. It does not say when, how often, or who won, all of
+   which the archive already knows and this does not duplicate.
+
+   `metDone:<player>` marks a player whose archive has been walked once, so a
+   miss becomes an answer rather than a reason to walk it again. Without it the
+   stranger case — the common case — never stops scanning, and the fix fixes
+   nothing. */
+export const metKey = (a, b) => `met:${a}:${b}`;
+export const metDoneKey = (id) => `metDone:${id}`;
 
 /** Strip what would break a layout or smuggle a control code into a log, while
  *  keeping the paragraph breaks that make a letter readable. At most one blank

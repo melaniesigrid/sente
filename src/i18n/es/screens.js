@@ -252,6 +252,9 @@ export const screens = {
     openProblem: "{set}, número {n}, {rank}",
   },
   profile: {
+    /* The look of the place. It lives on this screen now; the top bar
+       carries the post instead. */
+    look: { go: "El aspecto del lugar", note: "Seis salas, seis juegos de piedras y la tipografía." },
     country: {
       head: "Tu bandera",
       note: "De dónde juegas, si quieres decirlo. Va junto a tu nombre, y quitarla es una pulsación.",
@@ -563,6 +566,12 @@ export const screens = {
   },
 
   letters: {
+    /* On a thread row, and on the button that offers the box.
+       `writeTo` is the label a screen reader hears; `write` is the
+       words on the button. */
+    new: "Nuevo",
+    write: "Escríbele",
+    writeTo: "Escribir a {name}",
     fetching: "Recogiendo tus cartas…",
     head: "Cartas",
     note: "Un hilo por persona, guardado para siempre. Solo puede escribirte alguien con quien seas amigo o contra quien hayas terminado una partida.",

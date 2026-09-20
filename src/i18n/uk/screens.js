@@ -296,6 +296,9 @@ export const screens = {
     openProblem: "{set}, номер {n}, {rank}",
   },
   profile: {
+    /* The look of the place. It lives on this screen now; the top bar
+       carries the post instead. */
+    look: { go: "Який тут вигляд", note: "Шість кімнат, шість наборів каменів і шрифт." },
     country: {
       head: "Твій прапор",
       note: "Звідки ти граєш, якщо хочеш це сказати. Він стоїть поруч з іменем, і зняти його — одне натискання.",
@@ -628,6 +631,12 @@ export const screens = {
   },
 
   letters: {
+    /* On a thread row, and on the button that offers the box.
+       `writeTo` is the label a screen reader hears; `write` is the
+       words on the button. */
+    new: "Нове",
+    write: "Написати",
+    writeTo: "Написати {name}",
     fetching: "Забираю твої листи…",
     head: "Листи",
     note: "Одне листування на людину, зберігається назавжди. Написати тобі може лише той, з ким ти дружиш або з ким дограв партію.",

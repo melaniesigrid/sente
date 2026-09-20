@@ -372,6 +372,18 @@ export function ProfileView({ profile, setProfile, go, room, notify, writeTo = n
             <Pill icon={Trophy}>{t("profile.wl", { wins: profile.wins, losses: profile.losses })}</Pill>
             {profile.bestStreak > 1 && <Pill icon={Flame}>{t("profile.streakPill", { count: profile.bestStreak })}</Pill>}
           </div>
+          {/* The look of the place, which used to sit in the top bar. It moved
+              here when the post box took that seat, and it is high on this
+              card rather than low on this screen for the same reason it was
+              labelled rather than a bare glyph up there: the first player to
+              say the dark board was hard to read had never found it, and six
+              light rooms were one press away the whole time. A preference
+              nobody finds is not a preference. */}
+          <button className="look-entry" onClick={() => go("look")}>
+            <Palette size={16} />
+            <strong>{t("profile.look.go")}</strong>
+            <span className="fine">{t("profile.look.note")}</span>
+          </button>
         </div>
       </Card>
 

@@ -334,7 +334,7 @@ ${FONT_FACES}
    control most likely to be pressed twice is the only one that cannot answer.
    Each keeps the ring it wears, because the ring is what says chosen. */
 .type-btn:active { box-shadow: var(--sink); }
-.legal-tab.active:active, .look-btn[aria-current]:active, .lang-pill.on:active { box-shadow: var(--sink); }
+.legal-tab.active:active, .lang-pill.on:active { box-shadow: var(--sink); }
 .tint-dot.active:active, .theme-btn.active:active, .stone-btn.active:active { box-shadow: var(--sink), 0 0 0 2px var(--accent-ring); }
 .swatch.on:active { box-shadow: var(--sink), inset 0 0 0 1px var(--belt-edge), 0 0 0 2px var(--accent-ring); }
 
@@ -342,7 +342,7 @@ ${FONT_FACES}
    sinks while still held two pixels up is being pressed and lifted at once. */
 .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active { transform: none; }
 
-.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .play-choice:active, .trainer-mode:active, .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn:active, .swatch:active, .look-btn:active, .lang-pill:active, .btn:active:not(:disabled), .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active, .lp-btn:active, .lp-card-btn:active, .lp-enter:active, .arche-btn:active, .country-btn:active { transition-duration: .06s; }
+.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .play-choice:active, .trainer-mode:active, .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn:active, .swatch:active, .look-entry:active, .lang-pill:active, .btn:active:not(:disabled), .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active, .lp-btn:active, .lp-card-btn:active, .lp-enter:active, .arche-btn:active, .country-btn:active { transition-duration: .06s; }
 
 /* A screen arrives a beat at a time rather than all at once. It is the front
    door's entrance, applied where a whole screen is swapped in by the nav: the
@@ -852,7 +852,17 @@ ${FONT_FACES}
 .letter-card { display: flex; flex-direction: column; gap: 12px; }
 .letter-card .chat-head { display: flex; align-items: center; gap: 10px; }
 .letter-name { font-weight: 700; }
-.letter-unread { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; box-shadow: var(--raise-sm); color: var(--accent-ink); }
+/* One chip, two places. The trainer's card and the post box in the chrome are
+   both saying "somebody wrote to you", so they are one rule and not two that
+   drift apart. 12px is the floor of the type scale and this is meaning, not
+   decoration, so it sits on the floor and not under it. */
+.letter-unread, .mail-count { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; box-shadow: var(--raise-sm); color: var(--accent-ink); }
+/* The post box keeps the icon button's shape and hangs its count off the top
+   corner. The count is pinned with inset-inline-end and never with right: in
+   Hebrew the whole cluster mirrors, and a count nailed to the right would sit
+   on the wrong shoulder of the icon. */
+.mail-btn { position: relative; }
+.mail-count { position: absolute; top: -5px; inset-inline-end: -5px; min-width: 18px; text-align: center; padding: 1px 6px; }
 .letter-log { max-height: 340px; }
 .letter-you { margin-inline-start: auto; }
 .letter-name .here-dot, .trainer-card h3 .here-dot { margin-inline-start: 6px; }
@@ -1896,13 +1906,24 @@ ${FONT_FACES}
 .lang-row.on .lang-row-note { color: inherit; }
 .lang-row-tick { display: grid; place-items: center; color: var(--accent-ink); align-self: center; }
 
-/* Wide enough for its word, and back to a square when the word is dropped. */
-.look-btn { width: auto; height: 48px; border-radius: 16px; flex: none; gap: 8px; grid-auto-flow: column; padding: 0 16px;
-  font: 700 12px var(--font-body); letter-spacing: .1em; text-transform: uppercase;
-  transition: transform .15s ease, box-shadow .15s ease, color .15s ease; }
-.look-btn:hover { transform: translateY(-1px); }
-@media (max-width: 760px) { .look-btn span { display: none; } .look-btn { width: 48px; padding: 0; } }
-.look-btn[aria-current] { box-shadow: var(--sink-sm); color: var(--accent-ink); transform: none; }
+/* The way in to this screen, on the profile card under the name. It was a
+   labelled button in the chrome until the post took that seat; the label is
+   the point either way, since the whole lesson of this control is that nobody
+   finds a bare palette glyph. A full-width row rather than a pill, because on
+   the profile card it is an entry to somewhere and not a toggle. */
+.look-entry { display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 14px;
+  padding: 12px 14px; border-radius: 16px; box-shadow: var(--raise-sm); background: var(--ground);
+  color: inherit; text-align: start; cursor: pointer; border: 0;
+  transition: transform .15s ease, box-shadow .15s ease; }
+.look-entry:hover { transform: translateY(-1px); }
+.look-entry:active { box-shadow: var(--sink-sm); transform: none; }
+/* The note takes the rest of the row, and steps under the name when there is
+   no room for both on one line. */
+.look-entry .fine { margin-inline-start: auto; text-align: end; }
+@media (max-width: 560px) {
+  .look-entry { flex-wrap: wrap; }
+  .look-entry .fine { margin-inline-start: 0; text-align: start; flex-basis: 100%; }
+}
 /* The board and the drawer, side by side: a set is chosen by watching the
    stones on the board change, not by reading the name of a rock. */
 .look-stones { display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr); gap: clamp(16px, 2.4vw, 26px); margin-top: 16px; align-items: start; }

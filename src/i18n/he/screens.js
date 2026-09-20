@@ -263,6 +263,9 @@ export const screens = {
   },
   /* הפרופיל: מי אתה במכשיר הזה, ומה הוא ראה אותך עושה. */
   profile: {
+    /* The look of the place. It lives on this screen now; the top bar
+       carries the post instead. */
+    look: { go: "איך המקום נראה", note: "ששה חדרים, ששה מערכי אבנים והגופן." },
     country: {
       head: "הדגל שלך",
       note: "מאיפה אתה משחק, אם בא לך לומר. הוא עומד ליד השם שלך, ולהוריד אותו זו לחיצה אחת.",
@@ -592,6 +595,12 @@ export const screens = {
      שחסימה היא חשאית ושורה שאומרת "נחסמת" היא ההודעה האחת שהחוסם בחר לא
      לשלוח. */
   letters: {
+    /* On a thread row, and on the button that offers the box.
+       `writeTo` is the label a screen reader hears; `write` is the
+       words on the button. */
+    new: "חדש",
+    write: "כתבו להם",
+    writeTo: "כתבו ל{name}",
     fetching: "מביאים את המכתבים שלך…",
     head: "מכתבים",
     note: "שרשור אחד לאדם, נשמר לתמיד. רק מי שאתם חברים, או שסיימת מולו משחק, יכול לכתוב אליך.",

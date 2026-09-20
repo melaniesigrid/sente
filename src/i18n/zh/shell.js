@@ -26,8 +26,7 @@ export const shell = {
   topbar: {
     enter: "进入",
     yourBoard: "你的棋盘",
-    look: "这个地方的样子",
-    lookShort: "外观",
+    mail: { other: "信箱：{count} 封信等着你" },
     profile: "你的档案",
   },
   journal: {

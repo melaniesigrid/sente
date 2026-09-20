@@ -249,6 +249,9 @@ export const screens = {
     openProblem: "{set}，第 {n} 题，{rank}",
   },
   profile: {
+    /* The look of the place. It lives on this screen now; the top bar
+       carries the post instead. */
+    look: { go: "这个地方的样子", note: "六个房间、六套棋子，还有字体。" },
     country: {
       head: "你的国旗",
       note: "你从哪里下棋，愿意说就说。它就在你名字旁边，取下也只需一下。",
@@ -558,6 +561,12 @@ export const screens = {
   },
 
   letters: {
+    /* On a thread row, and on the button that offers the box.
+       `writeTo` is the label a screen reader hears; `write` is the
+       words on the button. */
+    new: "新",
+    write: "给他写信",
+    writeTo: "给 {name} 写信",
     fetching: "正在取你的信……",
     head: "信",
     note: "一人一条线，永远留着。只有你的好友，或者跟你下完过一局棋的人，才能给你写信。",

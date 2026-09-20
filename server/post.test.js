@@ -3,6 +3,8 @@ import {
   LETTER_MAX, THREAD_KEEP, MAX_BLOCKED,
   threadKey, cleanLetter, readThread, withLetter, mayWrite,
   threadSummary, byRecent, readBlocked, block, unblock,
+  LETTERS_PREFIX, lettersKey, readIndexRow, unreadRow, unreadRows,
+  rowsAfterLetter, rowAfterRead, metKey, metDoneKey,
 } from "./post.js";
 
 const NOW = 1_700_000_000_000;
@@ -192,5 +194,129 @@ describe("blocking", () => {
     block(before, "b");
     unblock(before, "a");
     expect(before).toEqual(["a"]);
+  });
+});
+
+/* ----------------------- THE INDEX ROW -----------------------
+   The mail count, its cursor, and the two ways the old code would have got it
+   wrong: one value written to both shelves, and a sequence number with nowhere
+   to live. */
+
+describe("readIndexRow", () => {
+  it("reads a full row", () => {
+    expect(readIndexRow({ at: 9, theirLast: 8, read: 5 })).toEqual({ at: 9, theirLast: 8, read: 5 });
+  });
+
+  it("reads the old bare-timestamp shape as a row that is already read", () => {
+    // The shape before the count existed. There is no cursor in it to recover,
+    // and marking it unread would hand every player a full post box on the
+    // morning of the deploy for letters they read months ago.
+    const row = readIndexRow(1789616082000);
+    expect(row.at).toBe(1789616082000);
+    expect(unreadRow(row)).toBe(false);
+  });
+
+  it("survives nonsense without throwing", () => {
+    for (const junk of [null, undefined, "x", [], { at: "soon" }]) {
+      expect(unreadRow(readIndexRow(junk))).toBe(false);
+    }
+  });
+});
+
+describe("unreadRow", () => {
+  it("is unread when they wrote after this side last looked", () => {
+    expect(unreadRow({ at: 9, theirLast: 9, read: 4 })).toBe(true);
+  });
+  it("is read when this side has caught up", () => {
+    expect(unreadRow({ at: 9, theirLast: 9, read: 9 })).toBe(false);
+  });
+  it("is read when the last word was this side's own", () => {
+    expect(unreadRow({ at: 9, theirLast: 4, read: 4 })).toBe(false);
+  });
+});
+
+describe("unreadRows", () => {
+  const rows = [
+    { other: "ana", row: { at: 9, theirLast: 9, read: 0 } },
+    { other: "marco", row: { at: 8, theirLast: 8, read: 8 } },
+    { other: "sofia", row: { at: 7, theirLast: 7, read: 1 } },
+  ];
+
+  it("counts threads, not letters", () => {
+    expect(unreadRows(rows)).toBe(2);
+  });
+
+  it("never counts a blocked person", () => {
+    expect(unreadRows(rows, ["ana"])).toBe(1);
+    expect(unreadRows(rows, ["ana", "sofia"])).toBe(0);
+  });
+
+  it("takes a Set as readily as a list", () => {
+    expect(unreadRows(rows, new Set(["sofia"]))).toBe(1);
+  });
+
+  it("is zero for an empty post box", () => {
+    expect(unreadRows([])).toBe(0);
+  });
+});
+
+describe("rowsAfterLetter — the two shelves are not the same value", () => {
+  it("does not clear the recipient's count when a letter arrives", () => {
+    // THE BUG THIS EXISTS TO PREVENT. The old write put one object to both
+    // keys. With a cursor in the value that would copy the sender's `read`
+    // onto the recipient's row and zero their unread on every incoming letter.
+    const senderRow = { at: 5, theirLast: 0, read: 5 };
+    const readerRow = { at: 5, theirLast: 5, read: 0 };
+    const { from, to } = rowsAfterLetter(senderRow, readerRow, 9);
+    expect(from).not.toEqual(to);
+    expect(to.read).toBe(0);
+    expect(unreadRow(to)).toBe(true);
+  });
+
+  it("moves both rows' `at` so the list still orders by recency", () => {
+    const { from, to } = rowsAfterLetter({ at: 1, theirLast: 0, read: 0 }, { at: 1, theirLast: 1, read: 1 }, 9);
+    expect(from.at).toBe(9);
+    expect(to.at).toBe(9);
+  });
+
+  it("leaves the writer's own unread state alone", () => {
+    // Somebody writes to you, then you write back before reading theirs.
+    // Writing does not mark their letter read.
+    const mine = { at: 5, theirLast: 5, read: 0 };
+    const { from } = rowsAfterLetter(mine, { at: 5, theirLast: 0, read: 5 }, 9);
+    expect(unreadRow(from)).toBe(true);
+  });
+});
+
+describe("rowAfterRead", () => {
+  it("clears the thread", () => {
+    expect(unreadRow(rowAfterRead({ at: 9, theirLast: 9, read: 0 }))).toBe(false);
+  });
+
+  it("reads up to their last letter and not to the clock", () => {
+    // A letter stamped in the future by a skewed clock must not be marked read
+    // before it has been written, or the reader never sees it.
+    const row = rowAfterRead({ at: 100, theirLast: 40, read: 0 });
+    expect(row.read).toBe(40);
+  });
+
+  it("leaves `at` where it is, so opening a thread does not reorder the list", () => {
+    expect(rowAfterRead({ at: 9, theirLast: 9, read: 0 }).at).toBe(9);
+  });
+});
+
+describe("key builders", () => {
+  it("keeps the letter index off the mail: prefix", () => {
+    // `mail:<hash>` is verify and reset tokens. A prefix list over `mail:`
+    // would walk both record types.
+    expect(lettersKey("a", "b").startsWith("mail:")).toBe(false);
+    expect(lettersKey("a", "b")).toBe("letters:a:b");
+    expect(LETTERS_PREFIX("a")).toBe("letters:a:");
+  });
+
+  it("names a met: row from each side", () => {
+    expect(metKey("a", "b")).toBe("met:a:b");
+    expect(metKey("b", "a")).toBe("met:b:a");
+    expect(metDoneKey("a")).toBe("metDone:a");
   });
 });

@@ -17,8 +17,7 @@ export const shell = {
   topbar: {
     enter: "Enter",
     yourBoard: "Your board",
-    look: "The look of the place",
-    lookShort: "Look",
+    mail: { zero: "The post: nothing waiting", one: "The post: {count} letter waiting", other: "The post: {count} letters waiting" },
     profile: "Your profile",
   },
   /* The journal: what shipped, and what we think about how it is built. The

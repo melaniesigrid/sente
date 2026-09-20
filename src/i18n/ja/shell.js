@@ -29,8 +29,7 @@ export const shell = {
   topbar: {
     enter: "入る",
     yourBoard: "自分の碁盤",
-    look: "この場所の見た目",
-    lookShort: "見た目",
+    mail: { other: "郵便：{count} 通待っています" },
     profile: "プロフィール",
   },
   journal: {

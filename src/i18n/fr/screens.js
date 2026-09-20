@@ -257,6 +257,9 @@ export const screens = {
   },
 
   profile: {
+    /* The look of the place. It lives on this screen now; the top bar
+       carries the post instead. */
+    look: { go: "L'allure du lieu", note: "Six salles, six jeux de pierres et la typographie." },
     country: {
       head: "Ton drapeau",
       note: "D’où tu joues, si tu veux le dire. Il se pose à côté de ton nom, et l’enlever tient en une pression.",
@@ -570,6 +573,12 @@ export const screens = {
   },
 
   letters: {
+    /* On a thread row, and on the button that offers the box.
+       `writeTo` is the label a screen reader hears; `write` is the
+       words on the button. */
+    new: "Nouveau",
+    write: "Écrivez-lui",
+    writeTo: "Écrire à {name}",
     fetching: "Récupération de tes lettres…",
     head: "Lettres",
     note: "Un fil par personne, gardé pour de bon. Seul quelqu’un dont tu es l’ami, ou contre qui tu as terminé une partie, peut t’écrire.",

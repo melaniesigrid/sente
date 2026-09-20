@@ -31,8 +31,7 @@ export const shell = {
   topbar: {
     enter: "Войти",
     yourBoard: "Твоя доска",
-    look: "Как здесь всё выглядит",
-    lookShort: "Вид",
+    mail: { zero: "Почта: ничего нет", one: "Почта: {count} письмо ждёт", few: "Почта: {count} письма ждут", many: "Почта: {count} писем ждут", other: "Почта: {count} письма ждут" },
     profile: "Твой профиль",
   },
   journal: {

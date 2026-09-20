@@ -265,6 +265,9 @@ export const screens = {
   },
   /* The profile: who you are on this device, and what it has watched you do. */
   profile: {
+    /* The look of the place. It lives on this screen now; the top bar
+       carries the post instead. */
+    look: { go: "The look of the place", note: "Six rooms, six sets of stones, and the type." },
     /* Where you play from, said and never detected. The list is ISO 3166-1
        unedited and the names come from the device: see content/countries.js. */
     country: {
@@ -599,6 +602,12 @@ export const screens = {
      same thing a stranger is told, because blocking is silent and a line saying
      "you have been blocked" is the one message the blocker chose not to send. */
   letters: {
+    /* On a thread row, and on the button that offers the box.
+       `writeTo` is the label a screen reader hears; `write` is the
+       words on the button. */
+    new: "New",
+    write: "Write to them",
+    writeTo: "Write to {name}",
     fetching: "Fetching your letters…",
     head: "Letters",
     note: "One thread a person, kept for good. Only somebody you are friends with, or have finished a game against, can write to you.",

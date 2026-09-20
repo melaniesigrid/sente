@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Swords, GraduationCap, Target, LayoutDashboard, Medal, ArrowRight, Palette, CornerDownRight } from "lucide-react";
+import { Swords, GraduationCap, Target, LayoutDashboard, Medal, ArrowRight, Mail, CornerDownRight } from "lucide-react";
 import { sayingBySeed, localizeSaying } from "./content/classic.js";
 
 /* ================================================================
@@ -58,7 +58,7 @@ import { linkFromQuery, forgetLink } from "./views/letterLink.js";
 import { loadBox, unread } from "./store/sensei.js";
 import { useTrainerAccess } from "./views/useTrainer.js";
 import { loadAccount as loadStoredAccount } from "./store/account.js";
-import { serverEnabled as serverIsOn } from "./net/api.js";
+import { api, serverEnabled as serverIsOn } from "./net/api.js";
 
 /* ----------------------- APP SHELL ----------------------- */
 /* The nav names its sections by key, not by word: the chrome is read in the
@@ -183,6 +183,24 @@ export default function JosekiApp() {
   useEffect(() => {
     setPings(trainerOn ? unread(loadBox()).length : 0);
   }, [trainerOn, view]);
+  /* The post from real people, asked of the server on the same beat the
+     trainer's box is read on: a screen change. There is no polling loop and
+     nothing is pushed — the promise in `server/post.js` is that a letter waits
+     for you to look up, not that it interrupts you.
+     A signed-out reader has no post box, and a request that fails leaves the
+     number where it was rather than flickering to zero: a dropped connection
+     is not the same news as an empty post box. */
+  const [letters, setLetters] = useState(0);
+  useEffect(() => {
+    if (!account) { setLetters(0); return undefined; }
+    let live = true;
+    api.unread(account.token)
+      .then((r) => { if (live) setLetters(Number(r && r.unread) || 0); })
+      .catch(() => {});
+    return () => { live = false; };
+  }, [account, view]);
+  /* One number in the chrome. Both halves are letters somebody wrote you. */
+  const mail = pings + letters;
   useEffect(() => {
     const base = document.title.replace(/^\(\d+\) /, "");
     document.title = pings > 0 ? `(${pings}) ${base}` : base;
@@ -245,17 +263,29 @@ export default function JosekiApp() {
             one setting. */}
         <div className="topbar-you">
           <LangPill profile={profile} setProfile={setProfile} />
-          {/* Labelled, not a bare icon. A palette glyph on its own is a
-              preference nobody goes looking for: the first player to say the
-              dark board was hard to read had never found this button, and six
-              light rooms were one press away the whole time. The long phrase
-              stays the label a screen reader hears; the short one is the word
-              on the button, and it drops on a narrow screen the way the nav's
-              own labels do. */}
-          <button className="icon-btn look-btn" onClick={() => go("look")}
-            aria-label={t("topbar.look")} aria-current={view === "look" ? "page" : undefined}>
-            <Palette size={17} />
-            <span>{t("topbar.lookShort")}</span>
+          {/* The post box, where the Look button used to be.
+
+              The Look moved onto the Profile screen, high up, where it is the
+              first thing under the name. The lesson of the player who could
+              not find the light rooms was that the control has to be
+              PROMINENT, and a labelled button in the chrome was one way of
+              being prominent; the top of the screen you visit to change
+              anything about yourself is another, and it leaves the chrome for
+              the thing that changes without you.
+
+              One number, not two. The trainer's letters and the post from
+              real people are both letters, and a person with two places to
+              check has been handed a chore instead of a message. The
+              trainer's own card keeps its indicator, for when you are already
+              looking at him.
+
+              It counts THREADS. Three people wrote to you reads as 3, which
+              is a number you can act on; nine letters from one person is
+              still one conversation to open. */}
+          <button className="icon-btn mail-btn" onClick={() => go("profile")}
+            aria-label={t("topbar.mail", { count: mail })}>
+            <Mail size={17} />
+            {mail > 0 && <span className="mail-count">{mail}</span>}
           </button>
           <button className="profile-chip" onClick={() => go("profile")} aria-label={t("topbar.profile")}>
             <Avatar name={profile.name} tint={profile.tint} size={34} />

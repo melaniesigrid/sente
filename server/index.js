@@ -64,6 +64,9 @@
      GET   /api/me/letters      bearer         -> your threads, newest first
      GET   /api/me/letters/:id  bearer         -> one thread, and whether you may write
      POST  /api/me/letters/:id  bearer {text}  -> write one
+     POST  /api/me/letters/:id/read  bearer    -> you have read up to their last
+     GET   /api/me/unread       bearer         -> how many threads hold something unread
+     GET   /api/roll            bearer?        -> what happened here lately
      PUT   /api/me/blocked/:id  bearer         -> stop them writing; silent
      DELETE /api/me/blocked/:id bearer
      PUT   /api/me/featured/:gameId bearer {note} -> show a game on your page
@@ -593,6 +596,31 @@ async function route(req, env) {
   if (path === "/api/me/letters" && req.method === "GET") {
     const player = await requirePlayer(req, reg);
     return json(await reg.lettersOf(player.id));
+  }
+
+  /* How many threads hold something unread. One list of the reader's own
+     index, and no thread is opened: asking "is there post" never reads
+     anybody's correspondence. This is the number in the top bar, so it is
+     asked on nearly every page. */
+  if (path === "/api/me/unread" && req.method === "GET") {
+    const player = await requirePlayer(req, reg);
+    return json({ unread: await reg.unreadFor(player.id) });
+  }
+
+  /* Read up to their last letter. Only the reader's own row moves: nothing is
+     written to the writer's shelf and nothing tells them it was opened. */
+  const markRead = /^\/api\/me\/letters\/([^/]+)\/read$/.exec(path);
+  if (markRead) {
+    const player = await requirePlayer(req, reg);
+    if (req.method !== "POST") return fail(405, "method");
+    return json(await reg.markThreadRead(player.id, markRead[1]));
+  }
+
+  /* What happened here lately. Signed out is the same rows in plain recency
+     order; signed in, closeness sorts them. */
+  if (path === "/api/roll" && req.method === "GET") {
+    const viewer = await reg.auth(bearer(req));
+    return json(await reg.rollFor(viewer ? viewer.id : null));
   }
 
   /* Not named `post`: that is the module-level helper that hands a letter to

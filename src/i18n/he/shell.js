@@ -33,8 +33,7 @@ export const shell = {
   topbar: {
     enter: "כניסה",
     yourBoard: "הלוח שלך",
-    look: "איך המקום נראה",
-    lookShort: "מראה",
+    mail: { zero: "הדואר: אין דבר ממתין", one: "הדואר: מכתב אחד ממתין", two: "הדואר: {count} מכתבים ממתינים", many: "הדואר: {count} מכתבים ממתינים", other: "הדואר: {count} מכתבים ממתינים" },
     profile: "הפרופיל שלך",
   },
   journal: {
