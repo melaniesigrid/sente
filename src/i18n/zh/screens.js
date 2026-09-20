@@ -557,6 +557,21 @@ export const screens = {
     },
   },
 
+  /* The roll: the last games played here, ordered by how much they have
+     to do with you. Never a count of who looked at what. */
+  roll: {
+    head: "这里发生了什么",
+    note: "最近的对局，你认识的人在前。",
+    noteThin: "最近的对局。随着你下棋交友，这里会变成你的俱乐部。",
+    versus: "{black} 对 {white}",
+    openGame: "打开 {black} 对 {white} 的对局",
+    wonBy: "{name} {how}胜",
+    byResign: "中盘",
+    byTime: "超时",
+    byPoints: "{points} 目",
+    jigo: "和局",
+    unfinished: "未完",
+  },
   letters: {
     /* A letter that carries a position. The board is the question; the
        words beside it are optional. */

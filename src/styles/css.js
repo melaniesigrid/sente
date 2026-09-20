@@ -864,6 +864,57 @@ ${FONT_FACES}
 .mail-btn { position: relative; }
 .mail-count { position: absolute; top: -5px; inset-inline-end: -5px; min-width: 18px; text-align: center; padding: 1px 6px; }
 .letter-log { max-height: 340px; }
+/* Two faces at the head of a roll row, overlapped the way two players sit
+   across a board rather than listed one after the other. The overlap is
+   logical, so in Hebrew the second face laps the first from the other side. */
+.roll-faces { display: inline-flex; align-items: center; flex: none; }
+.roll-faces > :nth-child(2) { margin-inline-start: -10px; }
+.roll-row .ladder-name { min-width: 0; }
+
+/* ----------------------- THE DOCK -----------------------
+   A panel beside whatever you are doing. It is a sibling of the router in the
+   markup, which is what stops opening it from unmounting a live board; here it
+   only has to get out of the way of one.
+
+   Everything horizontal is logical: inset-inline-end, not right. The dock sits
+   at the end of the reading direction, so in Hebrew the whole thing swaps
+   sides on its own and the handle swaps with it. The board inside does NOT
+   mirror, which the board already sees to itself: a goban is a diagram, and a
+   diagram is the same in every language. */
+.dock-tab { position: fixed; inset-inline-end: 0; top: 50%; transform: translateY(-50%);
+  z-index: 40; display: grid; place-items: center; width: 34px; height: 64px;
+  border: 0; cursor: pointer; background: var(--ground); color: var(--ink-2);
+  border-start-start-radius: 14px; border-end-start-radius: 14px;
+  box-shadow: var(--raise-sm); transition: color .15s ease, box-shadow .15s ease; }
+.dock-tab:hover { color: var(--ink); }
+.dock-tab.on { color: var(--accent-ink); box-shadow: var(--sink-sm); }
+.dock { position: fixed; inset-block: 0; inset-inline-end: 0; z-index: 39;
+  width: min(380px, 92vw); padding: 18px 16px; overflow-y: auto; background: var(--ground);
+  box-shadow: var(--raise); visibility: hidden;
+  /* Off its own edge when closed. The nudge means ONWARD and not rightward,
+     so it is multiplied by --flip: 1 normally, -1 on a right-to-left page, so
+     the dock slides off the end of the reading direction in both. A pair of
+     :dir() overrides would have said the same thing twice and been the thing
+     somebody forgets to change. */
+  transform: translateX(calc(100% * var(--flip)));
+  transition: transform .22s ease, visibility .22s ease; }
+.dock.open { transform: translateX(0); visibility: visible; }
+.dock-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+.dock-tabbtn { display: inline-flex; align-items: center; gap: 6px; flex: 1 1 0;
+  justify-content: center; padding: 9px 10px; border: 0; cursor: pointer;
+  border-radius: 12px; background: var(--ground); color: var(--ink-2);
+  font: 700 12px var(--font-body); letter-spacing: .08em; text-transform: uppercase;
+  box-shadow: var(--raise-sm); }
+.dock-tabbtn.on { box-shadow: var(--sink-sm); color: var(--accent-ink); }
+.dock-body { display: grid; gap: 12px; }
+/* On a phone the board owns the width, so the dock is a sheet over the top
+   rather than a column beside anything. */
+@media (max-width: 760px) {
+  .dock { width: 100vw; }
+  .dock-tab { top: auto; bottom: 16px; transform: none; }
+}
+/* Somebody who asked for less motion gets the panel without the slide. */
+@media (prefers-reduced-motion: reduce) { .dock { transition: none; } }
 /* The position a letter is about to carry, shown before it goes: nobody should
    send a board they have not looked at. Sunken, because it is something held
    in the composing box rather than something already said. */

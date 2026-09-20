@@ -591,6 +591,21 @@ export const screens = {
      `not-met` עושה עבודה זהירה: מי שנחסם נאמר לו בדיוק מה שנאמר לזר, מפני
      שחסימה היא חשאית ושורה שאומרת "נחסמת" היא ההודעה האחת שהחוסם בחר לא
      לשלוח. */
+  /* The roll: the last games played here, ordered by how much they have
+     to do with you. Never a count of who looked at what. */
+  roll: {
+    head: "מה קרה כאן",
+    note: "המשחקים האחרונים כאן, האנשים שאתם מכירים קודם.",
+    noteThin: "המשחקים האחרונים כאן. זה יתמלא במועדון שלכם עם הזמן.",
+    versus: "{black} ו{white}",
+    openGame: "פתחו את המשחק בין {black} ל{white}",
+    wonBy: "{name} ניצח {how}",
+    byResign: "בפרישה",
+    byTime: "בזמן",
+    byPoints: "ב־{points}",
+    jigo: "תיקו",
+    unfinished: "לא הסתיים",
+  },
   letters: {
     /* A letter that carries a position. The board is the question; the
        words beside it are optional. */

@@ -598,6 +598,21 @@ export const screens = {
      `not-met` is doing careful work: somebody who has been blocked is told the
      same thing a stranger is told, because blocking is silent and a line saying
      "you have been blocked" is the one message the blocker chose not to send. */
+  /* The roll: the last games played here, ordered by how much they have
+     to do with you. Never a count of who looked at what. */
+  roll: {
+    head: "What has been happening",
+    note: "The last games played here, the people you know first.",
+    noteThin: "The last games played here. It fills with your own club as you play and make friends.",
+    versus: "{black} and {white}",
+    openGame: "Open the game between {black} and {white}",
+    wonBy: "{name} won {how}",
+    byResign: "by resignation",
+    byTime: "on time",
+    byPoints: "by {points}",
+    jigo: "A draw",
+    unfinished: "Unfinished",
+  },
   letters: {
     /* A letter that carries a position. The board is the question; the
        words beside it are optional. */

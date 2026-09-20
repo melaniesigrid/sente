@@ -562,6 +562,21 @@ export const screens = {
     },
   },
 
+  /* The roll: the last games played here, ordered by how much they have
+     to do with you. Never a count of who looked at what. */
+  roll: {
+    head: "Lo que ha pasado",
+    note: "Las últimas partidas de aquí, primero la gente que conoces.",
+    noteThin: "Las últimas partidas de aquí. Se llena con tu propio club a medida que juegas.",
+    versus: "{black} y {white}",
+    openGame: "Abrir la partida entre {black} y {white}",
+    wonBy: "{name} ganó {how}",
+    byResign: "por abandono",
+    byTime: "por tiempo",
+    byPoints: "por {points}",
+    jigo: "Tablas",
+    unfinished: "Sin terminar",
+  },
   letters: {
     /* A letter that carries a position. The board is the question; the
        words beside it are optional. */

@@ -557,6 +557,21 @@ export const screens = {
     },
   },
 
+  /* The roll: the last games played here, ordered by how much they have
+     to do with you. Never a count of who looked at what. */
+  roll: {
+    head: "ここであったこと",
+    note: "直近の対局です。知っている人から順に。",
+    noteThin: "直近の対局です。打つうちにあなたの仲間で埋まっていきます。",
+    versus: "{black} — {white}",
+    openGame: "{black} 対 {white} の対局を開く",
+    wonBy: "{name} の{how}勝ち",
+    byResign: "中押し",
+    byTime: "時間切れ",
+    byPoints: "{points}目",
+    jigo: "持碁",
+    unfinished: "未完",
+  },
   letters: {
     /* A letter that carries a position. The board is the question; the
        words beside it are optional. */

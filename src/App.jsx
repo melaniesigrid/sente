@@ -54,6 +54,7 @@ import { LegalView } from "./views/Legal.jsx";
 import { DOCUMENTS, COPYRIGHT_YEAR, STUDIO, STUDIO_URL } from "./content/legal.js";
 import { JournalView } from "./views/Journal.jsx";
 import { linkFromQuery, forgetLink } from "./views/letterLink.js";
+import { Dock } from "./views/Dock.jsx";
 
 import { loadBox, unread } from "./store/sensei.js";
 import { useTrainerAccess } from "./views/useTrainer.js";
@@ -351,6 +352,13 @@ export default function JosekiApp() {
           </>)}
         </ErrorBoundary>
       </main>
+      {/* The dock is a SIBLING of the router's output, never inside it. That
+          is the whole of how the promise is kept: opening it changes nothing
+          the router knows about, so the board below is never unmounted, the
+          game socket is never rebuilt, and the clock does not stutter. It is
+          written here rather than inside a screen so that no future screen
+          has to remember to honour it. */}
+      <Dock account={account} go={go} view={view} />
       <Toast toast={toast} />
       <footer className="foot">
         {/* The footer takes the letters alone. The mark would have to be

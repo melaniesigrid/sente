@@ -21,6 +21,17 @@ export const shell = {
     frontDoor: "Joseki, die Eingangstür",
     tagline: "Go spielen, schön",
   },
+  /* The dock: a panel beside whatever you are doing, so a letter can be
+     seen without leaving a board with a clock running on it. */
+  dock: {
+    open: "Seitenleiste öffnen",
+    close: "Seitenleiste schließen",
+    roll: "Zuletzt",
+    post: "Post",
+    postNote: "Deine Briefe stehen in deinem Profil, wo sich ein Verlauf richtig lesen und eine Stellung beantworten lässt.",
+    openPost: "Zu deinen Briefen",
+    signedOut: "Nimm dir einen Namen, um Post zu bekommen.",
+  },
   topbar: {
     enter: "Eintreten",
     yourBoard: "Dein Brett",

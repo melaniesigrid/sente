@@ -628,6 +628,21 @@ export const screens = {
     },
   },
 
+  /* The roll: the last games played here, ordered by how much they have
+     to do with you. Never a count of who looked at what. */
+  roll: {
+    head: "Что здесь происходило",
+    note: "Последние партии здесь, сначала знакомые.",
+    noteThin: "Последние партии здесь. Со временем здесь будет ваш клуб.",
+    versus: "{black} и {white}",
+    openGame: "Открыть партию {black} — {white}",
+    wonBy: "{name} выиграл {how}",
+    byResign: "сдачей",
+    byTime: "по времени",
+    byPoints: "с перевесом {points}",
+    jigo: "Ничья",
+    unfinished: "Не закончена",
+  },
   letters: {
     /* A letter that carries a position. The board is the question; the
        words beside it are optional. */

@@ -28,6 +28,17 @@ export const shell = {
     frontDoor: "Joseki, парадний вхід",
     tagline: "грай у го красиво",
   },
+  /* The dock: a panel beside whatever you are doing, so a letter can be
+     seen without leaving a board with a clock running on it. */
+  dock: {
+    open: "Відкрити бічну панель",
+    close: "Закрити бічну панель",
+    roll: "Нещодавно",
+    post: "Пошта",
+    postNote: "Ваші листи — у профілі, де листування зручно читати, а на позицію можна відповісти.",
+    openPost: "До ваших листів",
+    signedOut: "Візьміть ім’я, щоб отримувати пошту.",
+  },
   topbar: {
     enter: "Увійти",
     yourBoard: "Твоя дошка",

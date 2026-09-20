@@ -30,6 +30,17 @@ export const shell = {
     frontDoor: "Joseki, דלת הכניסה",
     tagline: "לשחק גו, ביופי",
   },
+  /* The dock: a panel beside whatever you are doing, so a letter can be
+     seen without leaving a board with a clock running on it. */
+  dock: {
+    open: "פתחו את הלוח הצדדי",
+    close: "סגרו את הלוח הצדדי",
+    roll: "לאחרונה",
+    post: "דואר",
+    postNote: "המכתבים שלכם בפרופיל, שם אפשר לקרוא שרשור כראוי ולענות על עמדה.",
+    openPost: "למכתבים שלכם",
+    signedOut: "קחו שם כדי לקבל דואר.",
+  },
   topbar: {
     enter: "כניסה",
     yourBoard: "הלוח שלך",
