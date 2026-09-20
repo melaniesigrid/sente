@@ -1895,7 +1895,7 @@ Decisions:
   the screen where it could be fixed.
 - Nothing reads an address to guess a country. A guess is wrong for everybody who travels,
   and it would turn a thing somebody said into a thing we worked out about them.
-## The look page tells the truth (done 2026-09-16, branch `feat/look-pass`)
+## The look page tells the truth (done 2026-09-20, v0.20.1.0, branch `feat/look-pass`)
 
 Four things wrong on one screen, three of them visible only in a browser and one of them
 only in the dark room.
@@ -1941,6 +1941,43 @@ Decisions:
 - `platePalette`'s `print: false` is kept as a guard rather than deleted. Nobody can be
   standing in a printed room while reading this page any more, so it corrects nothing
   today; it is what would quietly break if a printed room were ever made choosable again.
+
+What the pre-landing review added, because three of the fixes were themselves wrong:
+
+- [x] **A material does not wear the page's light.** `.stone-plate` took the wood and kept
+      `--sink-sm`, whose two insets are the page's: on #d9b77a they land the wrong way
+      round in BOTH rooms, so the plate had a highlight where its shadow goes -- the one
+      invariant the system rests on, inverted. `--sh-ink`/`--sh-lite` (the `.belt-band`
+      pattern) fixes tatami and not night, where `--sh-lite` is a mid grey that still
+      darkens the wood: measured, 0.500 -> 0.323. The wood now takes an edge and no shadow,
+      which is what `.board-well` already settled.
+- [x] **The ring went back to 2px, and the keyboard got its own band.** 5px of accent is
+      exactly where `:focus-visible` paints (3px at offset 2px), in nearly the same hue, so
+      tabbing onto the chosen plate swapped one accent band for another. What fixed the
+      original bug was the token, not the width. One layer out, the outline's *colour* had
+      the same fault: `--accent-ink` resolves on the focused plate, which wears another
+      room's tokens, so the Night plate outlined at 2.14:1 on the Tatami page against a 3:1
+      floor. `--pick-focus` joins `--pick-ring` on the row.
+- [x] **The rule left the view.** `choosableRooms()` decided which palettes a profile may
+      hold from inside a screen, and the store's own test had begun importing a view to
+      reach it. It is `CHOOSABLE_ROOMS` in palettes.js, a constant; `PREVIEW_PX` moved to
+      tokens.js beside `BOARD` for the same reason.
+- [x] The front door counted the un-offered room (three reviewers found it independently);
+      `RETIRED` became `MOVED`, since kifu is un-offered rather than retired, and
+      `migrateThemeId` stopped walking the prototype chain; the profile strip's callback
+      shadowed the translator `t` and is now memoised on the stone set.
+- [x] Two of the new tests were theatre: a source scan satisfied by a comment that merely
+      named `CHOOSABLE_ROOMS`, and a local that restated the implementation character for
+      character while calling itself a second opinion. Both now fail when the bug is put
+      back.
+
+Decisions taken during the review:
+- `isThemeId` still accepts `kifu`, so migrate-before-validate in `sanitizeProfile` is the
+  single guard. A second enforcement point would make a palette that still ships fail its
+  own validator. The latent state is named in a comment in `look.test.js`.
+- `room.kifu.note` stays translated in nine languages although nothing renders it today.
+  The room still ships and every player is put in it the moment they open a finished game;
+  deleting the note is a nine-language errand to undo. `i18n.test.js` says why.
 
 ## One drawing of a stone (done 2026-09-16, branch `feat/big-stones`)
 
