@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { Swords, GraduationCap, Target, LayoutDashboard, Medal, ArrowRight, Palette, CornerDownRight } from "lucide-react";
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from "react";
+import { Swords, GraduationCap, Target, LayoutDashboard, Medal, ArrowRight, Palette, CornerDownRight, History } from "lucide-react";
 import { sayingBySeed, localizeSaying } from "./content/classic.js";
 
 /* ================================================================
@@ -53,6 +53,25 @@ import { MailLinkView } from "./views/MailLink.jsx";
 import { LegalView } from "./views/Legal.jsx";
 import { DOCUMENTS, COPYRIGHT_YEAR, STUDIO, STUDIO_URL } from "./content/legal.js";
 import { JournalView } from "./views/Journal.jsx";
+/* The one screen that is loaded on demand. The record room carries fifteen studies -
+   about 47 KB gzipped of English prose nobody reads unless they open it - and it sits
+   behind a nav tab rather than on the way to anything. Everything else in src/content
+   is small enough, or on the path often enough, to belong in the first download. */
+const FamousView = lazy(() => loadFamous());
+/* React.lazy calls its factory once and keeps whatever it returns, a rejection
+   included, so a chunk that failed to arrive the first time fails for the rest of the
+   session. The retry lives inside the factory, before the promise React is holding
+   settles: one more attempt after a beat, which covers a moment offline and a deploy
+   landing mid-session. The specifier stays a literal so the bundler can still see it
+   and give this screen its own chunk. */
+function loadFamous(retry = false) {
+  return import("./views/Famous.jsx")
+    .then(m => ({ default: m.FamousView }))
+    .catch((e) => {
+      if (retry) throw e;
+      return new Promise(r => setTimeout(r, 400)).then(() => loadFamous(true));
+    });
+}
 import { linkFromQuery, forgetLink } from "./views/letterLink.js";
 
 import { loadBox, unread } from "./store/sensei.js";
@@ -74,6 +93,10 @@ const NAV = [
   { id: "joseki", icon: CornerDownRight },
   { id: "tsumego", icon: Target },
   { id: "ladder", icon: Medal },
+  /* The record room sits in the nav rather than inside Learn: fifteen famous games
+     with a note on every move that carries one is a place you visit, not a lesson
+     you are partway through. */
+  { id: "famous", icon: History },
 ];
 
 export default function JosekiApp() {
@@ -313,6 +336,14 @@ export default function JosekiApp() {
           {view === "dojo" && <DojoView profile={profile} setProfile={setProfile} notify={notify} go={go} room={room} />}
           {view === "legal" && <LegalView docId={params ? params.docId : null} onPick={(id) => go("legal", { docId: id })} />}
           {view === "journal" && <JournalView entryId={params ? params.entryId : null} go={go} />}
+          {/* Shelf or one game, the way the journal and the small print work: no id
+              is the shelf, an id is that game. The screen closes the board itself
+              when the id changes, so a second game opens at move zero. */}
+          {view === "famous" && (
+            <Suspense fallback={<p className="fine">{t("famous.loading")}</p>}>
+              <FamousView gameId={params ? params.gameId : null} profile={profile} go={go} />
+            </Suspense>
+          )}
           </>)}
         </ErrorBoundary>
       </main>

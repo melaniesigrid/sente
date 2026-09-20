@@ -324,7 +324,7 @@ ${FONT_FACES}
    left standing proud of a tray. A card keeps its two shadows and spends them:
    two pixels of offset is a card with a thumb on it. It travels the one pixel
    that offset gives up, so the card goes down rather than only going quiet. */
-.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .play-choice:active, .trainer-mode:active { box-shadow: var(--press); transform: translateY(1px); }
+.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .fm-card:active, .play-choice:active, .trainer-mode:active { box-shadow: var(--press); transform: translateY(1px); }
 
 /* A control is small enough to invert, which is what the nine already do. */
 .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn.active:active { box-shadow: var(--sink-sm); transform: none; }
@@ -342,7 +342,7 @@ ${FONT_FACES}
    sinks while still held two pixels up is being pressed and lifted at once. */
 .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active { transform: none; }
 
-.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .play-choice:active, .trainer-mode:active, .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn:active, .swatch:active, .look-btn:active, .lang-pill:active, .btn:active:not(:disabled), .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active, .lp-btn:active, .lp-card-btn:active, .lp-enter:active, .arche-btn:active, .country-btn:active { transition-duration: .06s; }
+.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .fm-card:active, .play-choice:active, .trainer-mode:active, .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn:active, .swatch:active, .look-btn:active, .lang-pill:active, .btn:active:not(:disabled), .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active, .lp-btn:active, .lp-card-btn:active, .lp-enter:active, .arche-btn:active, .country-btn:active { transition-duration: .06s; }
 
 /* A screen arrives a beat at a time rather than all at once. It is the front
    door's entrance, applied where a whole screen is swapped in by the nav: the
@@ -3468,5 +3468,129 @@ ${FONT_FACES}
     background: var(--ground); box-shadow: var(--raise-sm);
   }
   .moku-off > * { position: relative; }
+}
+
+/* ----------------------- THE RECORD ROOM -----------------------
+   The famous games shelf, the page for one game, and the column beside the
+   board while you walk it.
+
+   It borrows the journal's rhythm on purpose: a shelf of cards that go
+   somewhere, a page set as reading, and prose measured to about 66 characters
+   so a long study is a column rather than a wall. What it adds is the facts
+   list, which is the one part of this screen that is a table of numbers and
+   is set like one. */
+.fm-match { margin-top: 26px; }
+.fm-match-title {
+  margin: 0; font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: clamp(22px, 3vw, 30px); line-height: 1.16; color: var(--ink);
+}
+.fm-match-meta { margin: 0; }
+.fm-match-lede { margin: 0; max-width: 66ch; font-size: 15.5px; line-height: 1.62; color: var(--ink-2); }
+/* Two across where there is room, one where there is not. A famous game's card
+   carries a whole sentence of subtitle, so three across would set it too narrow
+   to read. */
+.fm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 6px; }
+/* The opacity leg is named because this block sits after .reveal in the sheet and
+   the two selectors weigh the same: a bare transition of transform and box-shadow here
+   drops .reveal's opacity fade, and the card snaps in instead of arriving. The
+   journal's card is identical code that happens to sit earlier, which is why it never
+   showed the fault. The transform leg stays at the hover speed on purpose - the card
+   slides up quickly and fades in slowly, which reads better than both at .7s. */
+.fm-card {
+  display: flex; flex-direction: column; gap: 8px; align-items: flex-start;
+  text-align: start; width: 100%; cursor: pointer; padding: 20px 22px;
+  transition: opacity .7s cubic-bezier(.2,.8,.2,1), transform .18s ease, box-shadow .18s ease;
+}
+.fm-card:hover { transform: translateY(-2px); }
+.fm-kicker {
+  font-family: var(--font-body); font-size: 12.5px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3);
+}
+.fm-title {
+  margin: 0; font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: clamp(17px, 2vw, 21px); line-height: 1.22; color: var(--ink);
+}
+.fm-dek { margin: 0; max-width: 46ch; font-size: 15px; line-height: 1.58; color: var(--ink-2); }
+.fm-meta { margin: 0; }
+.fm-more {
+  display: inline-flex; align-items: center; gap: 7px; margin-top: auto; padding-top: 6px;
+  color: var(--accent-ink); font-family: var(--font-body);
+  font-size: 12.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+}
+.fm-card:hover .fm-more { gap: 11px; }
+.fm-more span, .fm-more svg { transition: all .18s ease; }
+/* The chevron on this card points the way the language runs: it means "onward
+   through the shelf", not "forward through a record", so unlike the review
+   stepper it does mirror. */
+[dir="rtl"] .fm-more svg { transform: scaleX(-1); }
+
+/* ---- one game, set as a page ---- */
+.fm-notice p { margin: 0 0 10px; max-width: 66ch; }
+.fm-notice p:last-child { margin-bottom: 0; }
+.fm-page { max-width: 74ch; }
+.fm-h {
+  margin: 22px 0 0; font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: clamp(18px, 2.2vw, 22px); line-height: 1.2; color: var(--ink);
+}
+.fm-story { margin-top: 6px; }
+.fm-p { margin: 0 0 14px; max-width: 66ch; font-size: 16px; line-height: 1.7; color: var(--ink); }
+.fm-p:last-child { margin-bottom: 0; }
+/* The facts. A definition list because that is what it is, set in two columns
+   where there is room and stacked where there is not. */
+.fm-dl { margin: 0; display: grid; gap: 10px; }
+.fm-dl > div { display: grid; grid-template-columns: minmax(96px, 22%) 1fr; gap: 12px; align-items: baseline; }
+.fm-dl dt {
+  font-family: var(--font-body); font-size: 12px; font-weight: 700;
+  letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3);
+}
+.fm-dl dd { margin: 0; font-size: 15px; line-height: 1.5; color: var(--ink); }
+@media (max-width: 560px) {
+  .fm-dl > div { grid-template-columns: 1fr; gap: 2px; }
+}
+/* A quotation is somebody speaking, so it is set in the display face and
+   indented behind its mark, the way the pull quotes are. */
+.fm-quote {
+  position: relative; margin: 0;
+  padding-block: 14px; padding-inline: 34px 0;
+  border-inline-start: 2px solid var(--hairline);
+}
+.fm-quote > svg { position: absolute; inset-inline-start: 8px; top: 18px; color: var(--accent-ink); opacity: .7; }
+.fm-quote blockquote {
+  margin: 0 0 6px; max-width: 58ch; font-family: var(--font-display);
+  font-weight: var(--w-display); font-size: clamp(17px, 2.1vw, 21px);
+  line-height: 1.38; color: var(--ink);
+}
+.fm-quote figcaption { margin: 0; }
+/* The chapters, numbered, because a reader who has walked to move 140 wants to
+   know which of eight parts they are standing in. */
+.fm-chapters { margin: 0; padding: 0; list-style: none; counter-reset: fmch; }
+.fm-chapters li {
+  position: relative; counter-increment: fmch;
+  padding-block: 12px; padding-inline: 38px 0;
+  border-top: 1px solid var(--grid); display: flex; flex-direction: column; gap: 3px;
+}
+.fm-chapters li::before {
+  content: counter(fmch); position: absolute; inset-inline-start: 0; top: 13px;
+  font-family: var(--font-caption); font-size: 13px; color: var(--ink-3);
+}
+.fm-chapters strong { font-size: 15.5px; color: var(--ink); }
+/* Scoped to the body line rather than every span: a bare .fm-chapters span is
+   (0,1,1) and silently outranks .fm-chapter-at at (0,1,0), which flattened the
+   kicker to the body's size and colour wherever the two met. A plain override is a
+   no-op a text test still passes, so the narrower selector is the fix. */
+.fm-chapters li > span:last-child { font-size: 14.5px; line-height: 1.58; color: var(--ink-2); }
+.fm-chapter-at {
+  font-family: var(--font-body); font-size: 12px; font-weight: 700;
+  letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3);
+}
+.fm-sources { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+.fm-sources li { max-width: 66ch; }
+
+/* ---- the column beside the board ---- */
+.fm-phase { margin: 0; max-width: 46ch; font-size: 15px; line-height: 1.62; color: var(--ink-2); }
+.fm-seat {
+  margin: 0; display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--font-body); font-size: 13px; font-weight: 700;
+  letter-spacing: .04em; color: var(--accent-ink);
 }
 `;

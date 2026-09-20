@@ -1330,6 +1330,58 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       settling in it.
 - [ ] Opening library for 9×9, where no joseki from the big board survives contact.
 
+## The record room (done 2026-09-19, branch `feat/famous-games`, v0.20.0.0)
+
+Fifteen famous games you can walk a move at a time, with Joseki's own note on the moves
+that carry one: AlphaGo against Fan Hui (London, October 2015), against Lee Sedol (Seoul,
+March 2016) and the Future of Go Summit (Wuzhen, May 2017), the pair go and the five-to-one
+team game included.
+
+- [x] **`tools/famous/import.mjs`** turns SGF into `src/content/famous/records.js`: moves and
+      nothing else. Several of the source files ship a professional's published match
+      commentary inside `C[]` and the tool cannot carry it, which is the mechanism that keeps
+      the rights rule true under a generator. It replays every game through the rules before
+      writing, refuses a record that does not start with black and alternate, and repairs the
+      one malformed shape seen in the wild (`(EV[` with no root semicolon) rather than
+      loosening the parser. 3,159 moves in 9.6 KB. It writes no ruleset: an SGF's `RU` field
+      is what one publisher typed -- five of the Wuzhen files say AGA for a summit played
+      under Chinese rules -- and the study beside the moves says what the match used.
+- [x] **The words are ours.** A game record is a fact and carries no rights; the commentary
+      published beside these games is in copyright and none of it ships. All 790 notes, the
+      fifteen ledes, the stories and the chapter headings were written for this shelf.
+      Players are quoted briefly, by name, with the day they said it, and `famous.test.js`
+      fails a quotation over 45 words or one without a name and a date.
+- [x] **One file per game** under `src/content/famous/`, indexed by `index.js`. A study is a
+      lede, a story, the quotations, the chapters and a map of move number to note;
+      `recordFor(id)` replays it and hangs each note on its own move, so the note under the
+      board is Review's own and no second review room exists.
+- [x] **`Review.jsx` grew three optional props and no knowledge of this screen**: `aside`
+      (a render function of the move number for the side column, which the shared table
+      still outranks), `openAt` (a game you have never seen opens at move 0, one you played
+      opens at the end), and `autoAnalyse` (a famous game does not start a network over 300
+      positions on somebody's phone uninvited; the button is right there).
+- [x] **Pair go knows whose hand it was.** The Wuzhen record says which of the four players
+      placed each stone; the importer keeps it as a roster and an index, refusing any comment
+      that is not a seat, and the side column names them. Both machines answer to one name
+      in the file, so the line says which side as well -- a human hand and a machine hand
+      taking turns inside one colour is the thing that game is worth watching for. Gu Li,
+      Lian Xiao, black AlphaGo, white AlphaGo, in strict rotation for 220 moves.
+- [x] Nav entry `famous`, chrome in all nine languages, the studies in English with the
+      journal's notice saying so in the reader's own. 22 content checks, 12 wording checks.
+- [x] **The shelf loads when you open it.** It is the one screen big enough and rare enough
+      to be worth its own chunk: 48 KB gzipped of English prose that a reader who never
+      opens the record room no longer downloads. The lazy factory retries once itself,
+      because `React.lazy` keeps a rejected promise for the life of the session.
+- [x] **Walking a long game stopped being slow**, for every review in the app and not just
+      this shelf. `moveNumbers` and `captureMoves` rebuilt the game from move one inside
+      their own loops: about 300ms on every arrow key and 230ms to open the room, on a
+      289-move record. They carry the position forward now.
+- [ ] Later: link a famous game from the lesson that teaches its shape, and from a master's
+      page. The shelf stands alone today and does not know the rest of the library exists.
+- [ ] Later: more games, and older ones. Everything here is one program against four people
+      over nineteen months; the shelf is called the record room and holds no game played
+      before 2015.
+
 ## Phase 6: Masters and books
 
 Handoff for whoever continues: `docs/handoff/masters-2026-09-09.md` (state of PRs #4, #5, #6,
