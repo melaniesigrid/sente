@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { rate, rateGame, newRating, provisional, migrateRating, cleanHouseGame, rateHouse, DEFAULT_RD, DEFAULT_RATING } from "./rating.js";
+import { rate, rateGame, newRating, provisional, migrateRating, cleanHouseGame, cleanHouseGames, rateHouse, HOUSE_BATCH_MAX, DEFAULT_RD, DEFAULT_RATING } from "./rating.js";
 import { GLICKO } from "../src/engine/glicko.js";
 import { MIN_RATING, MAX_RATING } from "../src/content/rank.js";
 import { rankOf, preciseRankOf } from "../src/content/rank.js";
@@ -168,5 +168,29 @@ describe("a game against the house", () => {
   });
   it("counts a record that was never written as zero", () => {
     expect(rateHouse({ ...newRating() }, good).wins).toBe(1);
+  });
+});
+
+describe("a list of house games", () => {
+  const good = { opponent: { rating: 1200, rd: GLICKO.minRd }, score: 1 };
+  it("takes one game as a list of one, and a list as itself", () => {
+    expect(cleanHouseGames(good)).toEqual([good]);
+    expect(cleanHouseGames({ games: [good, { ...good, score: 0 }] })).toEqual([good, { ...good, score: 0 }]);
+  });
+  it("refuses an empty list, one past the cap, and one with a bad game in it", () => {
+    expect(cleanHouseGames({ games: [] })).toBeNull();
+    expect(cleanHouseGames({ games: Array(HOUSE_BATCH_MAX + 1).fill(good) })).toBeNull();
+    expect(cleanHouseGames({ games: Array(HOUSE_BATCH_MAX).fill(good) })).toHaveLength(HOUSE_BATCH_MAX);
+    expect(cleanHouseGames({ games: [good, { score: 1 }] })).toBeNull();
+    expect(cleanHouseGames({ games: "x" })).toBeNull();
+  });
+  it("rated in order is the same as rated one by one", () => {
+    const me = { ...newRating(), wins: 0, losses: 0, draws: 0 };
+    const list = [good, { ...good, score: 0 }, { opponent: { rating: 1500, rd: 60 }, score: 1 }];
+    const stepwise = list.reduce(rateHouse, me);
+    expect(list.reduce(rateHouse, me)).toEqual(stepwise);
+    expect([stepwise.wins, stepwise.losses]).toEqual([2, 1]);
+    // Order matters, which is why the device sends them oldest first.
+    expect([...list].reverse().reduce(rateHouse, me).rating).not.toBe(stepwise.rating);
   });
 });

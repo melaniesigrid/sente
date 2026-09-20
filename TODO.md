@@ -88,7 +88,10 @@ lessons), and the middle game everywhere. Life and death below 15k was on this l
       record into the profile on every pull (`withPlayer`), and the rating left the progress
       document. Every game waits for an account: the sign-in card is the first thing on the
       dashboard and on Play when there is a server and no account. The terms and the privacy
-      notice say so, in all nine languages. `tools/server/house.mjs` proves the route.
+      notice say so, in all nine languages. `tools/server/house.mjs` proves the route. The
+      games played before the account are not lost: the device's ring buffer holds the last
+      fifty house games with rank, stones and result, and `src/store/carry.js` replays the
+      rated ones onto the account once, in order, through the same route (`{games:[...]}`).
 
 ## Phase 0: Foundation (done)
 

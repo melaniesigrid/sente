@@ -51,7 +51,7 @@ export const COPYRIGHT = `© ${COPYRIGHT_YEAR} ${STUDIO}`;
    being stopped and handed the line where the date lives. */
 export const REVISION = {
   updated: "20 September 2026",
-  stamp: "55655c3c",
+  stamp: "7d11ed5f",
 };
 
 /** The day the documents last changed. */
@@ -224,7 +224,7 @@ const PRIVACY = {
       paras: [
         "Your name, your avatar tint, your finished lessons and problems, the room and the pairing you chose, the game in progress and the last table you set up. All of it sits in your browser's local storage, under keys of Joseki's own, and none of it is sent anywhere, with one exception you choose: sign in to an account and your progress (the last item under the server, below) is kept there too, so another device you sign in on picks it up.",
         "Which days you practised on, as a list of dates going back thirteen months, so the dashboard can show you the run you are keeping. It is a date and nothing else: not what you did that day, not how long for, and not how well it went. It is never sent anywhere, and it is the same local storage as everything above, so clearing site data clears it too.",
-        "Joseki also keeps the shape of your last fifty games against the house players (the board size, the handicap, which house player, how the game ended and how many moves it took) so the house players can be tuned against what really happens at the board. It holds no moves and nothing that could replay a game, it is never sent anywhere, and your profile page shows you exactly what is in it and empties it in one press.",
+        "Joseki also keeps the shape of your last fifty games against the house players (the board size, the handicap, which house player, how the game ended and how many moves it took) so the house players can be tuned against what really happens at the board. It holds no moves and nothing that could replay a game, and your profile page shows you exactly what is in it and empties it in one press. It is never sent anywhere, with one exception: the first time an account carries your rating on this device, the rated games in it are told to the server as the two facts a live game sends (what the house player was rated as, and who won), once, so that the games you played before the account count towards your rating. Nothing else in it travels.",
         "It also keeps the positions from the opening and early middle game of games you have finished, up to fifteen hundred of them, so that the table can tell you when a game reaches somewhere you have played before. A position is stored as a number, turned to a standard orientation, with a count and a win-loss tally beside it. There are no moves in it and no order, so it cannot be turned back into a game you played; it is never sent anywhere; your profile page says how much is in it and empties it in one press; and switching déjà vu off on that page stops the table reading it.",
         "Clearing site data for Joseki erases every one of them, and there is no copy elsewhere to restore from.",
       ],

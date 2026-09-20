@@ -77,6 +77,7 @@ import { linkFromQuery, forgetLink } from "./views/letterLink.js";
 import { loadBox, unread } from "./store/sensei.js";
 import { useTrainerAccess } from "./views/useTrainer.js";
 import { loadAccount as loadStoredAccount, saveAccount } from "./store/account.js";
+import { carryHouseGames } from "./store/carry.js";
 import { serverEnabled as serverIsOn, api } from "./net/api.js";
 
 /* ----------------------- APP SHELL ----------------------- */
@@ -138,11 +139,15 @@ export default function JosekiApp() {
      the last visit moved it without this browser hearing. */
   const pull = async () => {
     const account = loadStoredAccount();
+    /* The device's house games from before the account carried the rating
+       go up first, once (store/carry.js), so the player read back already
+       has them in it. */
+    const carriedPlayer = account ? await carryHouseGames(account) : null;
     const [doc, player] = await Promise.all([
       pullProgress(),
-      account ? api.me(account.token).catch(() => null) : null,
+      account ? (carriedPlayer ?? api.me(account.token).catch(() => null)) : null,
     ]);
-    if (player && JSON.stringify(player) !== JSON.stringify(account.player)) {
+    if (player && JSON.stringify(player) !== JSON.stringify(loadStoredAccount()?.player)) {
       /* Saving announces the change, which calls this again: the second pass
          finds the stored player equal to the fresh one and stops here. */
       saveAccount({ token: account.token, player });

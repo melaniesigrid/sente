@@ -89,6 +89,9 @@ export const api = {
   /* One game against a house player, rated onto the account. The answer is
      the player as the server now holds them, rating and record moved. */
   houseGame: (token, opponent, score) => call("/api/me/house", { method: "POST", token, body: { opponent, score } }),
+  /* The device's house games played before the account carried the rating,
+     oldest first, rated in that order: see store/carry.js. */
+  houseGames: (token, games) => call("/api/me/house", { method: "POST", token, body: { games } }),
   profile: (id) => call(`/api/players/${encodeURIComponent(id)}`),
   /* Finding somebody by their handle. A session is required: you have to play
      here before you may look anybody up. The answer is capped and carries no

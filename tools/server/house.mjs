@@ -53,11 +53,21 @@ try {
   const drew = await ok("/api/me/house", { method: "POST", token: me.token, body: { opponent, score: 0.5 } });
   assert(drew.draws === (lost.draws ?? 0) + 1, "a draw is a draw");
 
+  /* ----- the device's log, carried as a list ----- */
+  const list = [{ opponent, score: 1 }, { opponent, score: 1 }, { opponent, score: 0 }];
+  const carriedTo = await ok("/api/me/house", { method: "POST", token: me.token, body: { games: list } });
+  assert(carriedTo.wins === drew.wins + 2 && carriedTo.losses === drew.losses + 1, "a list is rated in order and tallied whole");
+  const empty = await call("/api/me/house", { method: "POST", token: me.token, body: { games: [] } });
+  assert(empty.status === 400, "an empty list is refused");
+  const mixed = await call("/api/me/house", { method: "POST", token: me.token, body: { games: [list[0], { score: 1 }] } });
+  assert(mixed.status === 400 && (await ok("/api/me", { token: me.token })).wins === carriedTo.wins, "a list with one bad game in it is refused whole");
+  const drew2 = carriedTo;
+
   /* ----- the ladder sees it ----- */
   const ladder = await ok("/api/ladder");
   const rows = Array.isArray(ladder) ? ladder : ladder.players ?? ladder.ladder ?? [];
   const row = rows.find((p) => p.id === me.player.id);
-  assert(!row || row.rating === drew.rating, "the ladder shows the rating the house games made");
+  assert(!row || row.rating === drew2.rating, "the ladder shows the rating the house games made");
 
   console.log("\nALL HOUSE CHECKS PASSED");
 } finally {

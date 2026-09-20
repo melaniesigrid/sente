@@ -35,7 +35,7 @@
      DELETE /api/me/avatar      bearer
      GET   /api/me/progress     bearer         -> {data, at}: what you have done, kept on the account
      PUT   /api/me/progress     bearer {data, at} -> merged with what is stored, and returned
-     POST  /api/me/house        bearer {opponent:{rating,rd}, score} -> one house game rated onto the account
+     POST  /api/me/house        bearer {opponent:{rating,rd}, score} | {games:[...]} -> house games rated onto the account, in order
      GET   /api/players?q=      bearer         -> who is here by that name
      GET   /api/players/:id                     -> a public profile
      GET   /api/players/:id/avatar              -> the picture, cached by its stamp

@@ -42,7 +42,7 @@
    Google, no identity provider, nobody to ask. */
 
 import { DurableObject } from "cloudflare:workers";
-import { newRating, rateGame, migrateRating, cleanHouseGame, rateHouse } from "./rating.js";
+import { newRating, rateGame, migrateRating, cleanHouseGames, rateHouse } from "./rating.js";
 import { randomHex, sha256, cleanName, cleanTint, sameDigest } from "./http.js";
 import { DEFAULT_PARTNER_RANK } from "../src/engine/rengo.js";
 import { fillRengoTable, rengoProgress, teamOf } from "./seating.js";
@@ -696,11 +696,12 @@ export class Registry extends DurableObject {
    *  so the account's rating is the only rating there is. The ladder is
    *  reordered by it exactly as by a game between two people. */
   async houseGame(id, body) {
-    const game = cleanHouseGame(body);
-    if (!game) throw new Error("bad-house-game");
+    const games = cleanHouseGames(body);
+    if (!games) throw new Error("bad-house-game");
     const p = await this.ctx.storage.get(`player:${id}`);
     if (!p) throw new Error("no-player");
-    const next = { ...rateHouse(p, game), lastSeen: Date.now() };
+    // In order, one rating period each, exactly as if they had been posted one by one.
+    const next = { ...games.reduce(rateHouse, p), lastSeen: Date.now() };
     await this.ctx.storage.put(`player:${id}`, next);
     this.ladderCache = null;
     return this.#self(next);

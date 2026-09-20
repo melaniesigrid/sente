@@ -84,6 +84,21 @@ export function cleanHouseGame(body) {
   return { opponent: { rating, rd }, score };
 }
 
+/** A list of them, oldest first, as the device carries its log across
+ *  (`src/store/carry.js`): `{ games: [...] }`, at most the log's fifty, every
+ *  one of them well-shaped or the whole list is refused. A single game is a
+ *  list of one, so one route takes both. */
+export const HOUSE_BATCH_MAX = 50;
+export function cleanHouseGames(body) {
+  if (Array.isArray(body?.games)) {
+    if (!body.games.length || body.games.length > HOUSE_BATCH_MAX) return null;
+    const games = body.games.map(cleanHouseGame);
+    return games.every(Boolean) ? games : null;
+  }
+  const one = cleanHouseGame(body);
+  return one ? [one] : null;
+}
+
 /** The player after one house game: the trio moved, the record tallied. */
 export function rateHouse(player, game) {
   const r = rate(player, [{ opponent: game.opponent, score: game.score }]);
