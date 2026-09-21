@@ -6,6 +6,25 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.21.0.0 (2026-09-21)
+
+### Added
+
+- **The deep corner: six tsumego from 1 kyu to 3 dan.** A fifth set in the collection, the
+  first boards above 2 kyu. Seven and eight points of eye space, a corridor along the edge,
+  a tail, and twice a black stone already standing inside the space. Every answer is
+  proved exhaustively on every build like the rest, and every rank is given by hand with a
+  note beside it saying what the grading model measured, because the model stops at 1 dan
+  and on four of the six boards the verdict does not settle inside its horizon at all.
+
+### Changed
+
+- **The prover is memoised.** A nine-point corner space used to take ten seconds a verdict
+  and now takes a tenth of one, with every shipped board and drill re-proved to the same
+  answer. The memo is careful about two things: a result that leaned on a repeated
+  position is never stored, and a stored result is reused only where at least as many
+  plies remain, so the reading depth the drill grader measures is unchanged.
+
 ## v0.20.1.0 (2026-09-20)
 
 ### Removed

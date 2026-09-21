@@ -31,7 +31,7 @@ import { useT } from "../components/langStore.js";
 
    The index used to be one strip of numbered circles, which told a reader
    nothing: not where they were, not what the next board was for, not what they
-   had finished. It is four sets now, each with its name, what it trains and
+   had finished. It is five sets now, each with its name, what it trains and
    how much of it is done, and the strip under a set is that set's problems in
    the order they are meant to be read.
 

@@ -43,6 +43,10 @@ export const SETS = [
     id: "corner", track: "life", name: "The corner",
     blurb: "The same shapes wrapped around the 1-1 point, where the edge does half the killing and the count comes out differently.",
   },
+  {
+    id: "deep", track: "life", name: "The deep corner",
+    blurb: "Seven and eight points, and a stone already standing inside. The search that graded the rest of the collection reaches its ceiling here, so these ranks are judged, and say so.",
+  },
 ];
 
 export const setById = (id) => SETS.find(s => s.id === id) || null;
@@ -301,5 +305,91 @@ export const PROBLEMS = [
     toPlay: "b", answers: [pt(1, 0)], koVerdict: true,
     prompt: "Four points of eye space, bent around the 1-1 point. The same bend out on the edge is alive. Black to play and kill.",
     explain: "The 2-1 point, and the bend is the shape the corner changes its mind about. On the edge this space has two living points and no killing one, which the prover checks alongside this board; in the corner it has exactly one of each, because the 1-1 point is a square White can be made to fill. This is bent four in the corner, and the reason the classical books argue over it is that the killing line runs through a ko White is never allowed to retake. Under the rules this server plays, the group is dead.",
+  },
+
+  /* ----------------------- THE DEEP CORNER -----------------------
+     The sets above stop where the shape census stopped: spaces that fit in
+     a four-by-three box, which is six points and, at the corner, 2 kyu. These
+     came out of the same search run over a four-by-four box with the prover
+     memoised (`tools/problems/prove.mjs`), which is what made seven and eight
+     points answerable at all. Two of them start with a black stone already
+     standing inside the space, which the earlier census never tried.
+
+     The rank on each is given by hand, and `rankNote` says what the model
+     measured instead. `grade.mjs` tops out at 1 dan by construction and
+     weighs a ply of reading at a seventh of a rank; on most of these boards
+     the verdict does not settle inside its 24-ply horizon at all, which is
+     the fact the hand rank is read from. The same convention `p15` uses. */
+  {
+    id: "p20", set: "deep", rank: "1k", theme: "Life & Death",
+    title: "Six along the edge",
+    setup: {
+      w: [pt(1, 1), pt(2, 1), pt(2, 2), pt(1, 3), pt(2, 3), pt(0, 4), pt(1, 4)],
+      b: [pt(2, 0), pt(3, 0), pt(3, 1), pt(3, 2), pt(3, 3), pt(2, 4), pt(3, 4), pt(0, 5), pt(1, 5), pt(2, 5)],
+    },
+    toPlay: "b", answers: [pt(0, 2)],
+    prompt: "Six points of eye space, four of them on the first line, bent twice. Black to play and kill.",
+    explain: "The 1-3 point, in the middle of the run along the edge. The space is a corridor with a bulge at each end, and the bulges are the two eyes White wants: one at the 1-1 point and one at the bottom. The placement stands between them, and either hane White answers with is met by the other, the 1-2 point against the 2-1 and the 2-1 against the 1-2. Start with a hane yourself and White takes the 1-3 point and has both halves. Six points on the second line are alive; six points laid along the first line are not, because the edge is doing White's work from only one side.",
+    rankNote: "Model 5k; the verdict does not settle under 21 plies. Judged 1k.",
+  },
+  {
+    id: "p21", set: "deep", rank: "1d", theme: "Life & Death",
+    title: "The stone already inside",
+    setup: {
+      w: [pt(3, 0), pt(3, 1), pt(0, 2), pt(2, 2), pt(3, 2), pt(0, 3), pt(1, 3), pt(2, 3)],
+      b: [pt(1, 0), pt(4, 0), pt(4, 1), pt(4, 2), pt(3, 3), pt(4, 3), pt(0, 4), pt(1, 4), pt(2, 4), pt(3, 4)],
+    },
+    toPlay: "b", answers: [pt(1, 1)],
+    prompt: "A black stone already stands on the 2-1 point with two liberties. Black to play and kill.",
+    explain: "The 2-2 point, hanging from the stone already there. It is the one point that kills and, checked from the other side, the one point that lives, which is what a vital point means: whoever gets there first has the corner. The temptation is to save the edge stone by extending it, and every extension lets White take the 2-2 point and live. After the placement the two black stones have three liberties and White cannot take them: the atari from the 1-2 side is answered on the 3-1, the atari from the 3-1 side on the 1-2, and each answer leaves White one eye. A stone inside an eye space is not a stone to rescue. It is the first half of a shape.",
+    rankNote: "Model 5k; the verdict does not settle under 24 plies. Judged 1d.",
+  },
+  {
+    id: "p22", set: "deep", rank: "1d", theme: "Life & Death",
+    title: "The stone in the corner",
+    setup: {
+      w: [pt(3, 0), pt(3, 1), pt(2, 2), pt(3, 2), pt(0, 3), pt(1, 3), pt(2, 3)],
+      b: [pt(0, 0), pt(4, 0), pt(4, 1), pt(4, 2), pt(3, 3), pt(4, 3), pt(0, 4), pt(1, 4), pt(2, 4), pt(3, 4)],
+    },
+    toPlay: "b", answers: [pt(1, 1)],
+    prompt: "Seven points of eye space and a black stone already on the 1-1 point. Black to play and kill.",
+    explain: "The 2-2 point, diagonal from the stone in the corner. Seven points in the corner are alive on their own and the stone at the 1-1 does nothing by itself: it has two liberties and White can ignore it. What it does is make the 2-2 point a placement with a friend, so that when White ataris from the 2-1 side Black extends to the 3-1 and when White ataris from the 1-2 side Black extends to the 1-3, and in each case White's remaining space is a single eye. Every other first move, including the ones that look like connecting to the corner stone, lets White take the 2-2 point, and seven of the seven points then live.",
+    rankNote: "Model 4k; the verdict does not settle under 24 plies. Judged 1d.",
+  },
+  {
+    id: "p23", set: "deep", rank: "2d", theme: "Life & Death",
+    title: "Seven, and a tail",
+    setup: {
+      w: [pt(1, 1), pt(2, 1), pt(3, 1), pt(4, 1), pt(4, 2), pt(0, 3), pt(1, 3), pt(3, 3), pt(4, 3), pt(1, 4), pt(2, 4), pt(3, 4)],
+      b: [pt(1, 0), pt(2, 0), pt(3, 0), pt(4, 0), pt(5, 0), pt(5, 1), pt(5, 2), pt(5, 3), pt(0, 4), pt(4, 4), pt(5, 4), pt(0, 5), pt(1, 5), pt(2, 5), pt(3, 5), pt(4, 5)],
+    },
+    toPlay: "b", answers: [pt(2, 2)],
+    prompt: "Seven points: three down the edge, four along the third line, and one hanging below. Black to play and kill.",
+    explain: "The point where the tail joins. The space is two arms meeting at the 3-3 point, the arm down the edge and the arm along the third line with the tail under it, and White lives by playing where they meet. Take that point and the arms are three points each with a black stone between them, which is one eye on each side only if White can defend both, and White cannot: the hane at the 1-2 is answered at the 2-3 and the hane at the 2-3 is answered at the 1-2. This is the bulky five's logic in a bigger space. The answer is not on the edge and it is not in the corner, and a reader who has learned that corner problems are solved at the 2-2 point has to unlearn it here.",
+    rankNote: "Model 3k; the verdict does not settle under 23 plies. Judged 2d.",
+  },
+  {
+    id: "p24", set: "deep", rank: "2d", theme: "Life & Death",
+    title: "Eight points, two doors",
+    setup: {
+      w: [pt(3, 0), pt(1, 1), pt(2, 1), pt(3, 1), pt(2, 2), pt(2, 3), pt(1, 4), pt(2, 4)],
+      b: [pt(4, 0), pt(4, 1), pt(3, 2), pt(4, 2), pt(3, 3), pt(0, 4), pt(3, 4), pt(0, 5), pt(1, 5), pt(2, 5), pt(3, 5)],
+    },
+    toPlay: "b", answers: [pt(0, 2)],
+    prompt: "Eight points of eye space: three along the top, then a corridor down the edge two wide. Black to play and kill.",
+    explain: "The 1-3 point, halfway down the corridor. Eight points is more than any of the shapes the earlier sets kill, and the count is not what kills this one: the shape is. Above the placement is a room of four, below it a room of four, and each room has two doors, the point on the edge and the point beside it. White can only shut one door of one room at a time, and Black shuts the other: the 2-1 for the 1-2, the 1-2 for the 2-1, and the same pair at the bottom. Whichever room White closes, the other is left with a black stone in it. Any other first move and White takes the 1-3 point and the corridor is one long eye space with room for two.",
+    rankNote: "Model 2k; the verdict settles at 15 plies. Judged 2d for the count and the two pairs of miai.",
+  },
+  {
+    id: "p25", set: "deep", rank: "3d", theme: "Life & Death",
+    title: "Eight points, one middle",
+    setup: {
+      w: [pt(3, 0), pt(4, 0), pt(4, 1), pt(1, 2), pt(3, 2), pt(4, 2), pt(1, 3), pt(2, 3), pt(3, 3)],
+      b: [pt(5, 0), pt(5, 1), pt(0, 2), pt(5, 2), pt(0, 3), pt(4, 3), pt(5, 3), pt(0, 4), pt(1, 4), pt(2, 4), pt(3, 4), pt(4, 4)],
+    },
+    toPlay: "b", answers: [pt(2, 1)],
+    prompt: "Eight points: a block of six in the corner, one more along the second line, and one hanging below it. Black to play and kill.",
+    explain: "The 3-2 point, which touches nothing of Black's and sits in the middle of the wide part of the space. The block of six on its own is alive, and it is the two extra points, the one on the second line and the one under it, that make it killable, because they pull the group's centre of gravity away from the corner. From the 3-2 the placement threatens to walk into the corner on either line: White blocks at the 2-2 and Black turns down to the 1-2, White blocks at the 1-2 and Black turns up to the 2-2, and either way the corner is an eye of two points with a black stone in it and the outside is a single point. Black playing the 2-2 or the 1-2 first, the obvious corner moves, lets White take the 3-2 and live with room to spare. It is the largest space in the collection and the only one whose answer is not on the first or second line.",
+    rankNote: "Model 1k, its ceiling; the verdict settles at 17 plies. Judged 3d.",
   },
 ];

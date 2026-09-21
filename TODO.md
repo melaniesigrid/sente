@@ -17,8 +17,8 @@ is a snapshot: it will be wrong the week after somebody authors anything.
 - **52 lessons** over six tiers (10 / 9 / 10 / 10 / 7 / 6, Foundations to Dan) and seven
   tracks: life 15, judgement 10, tactics 7, shape 7, opening 5, middle game 5, endgame 3.
   Every position in every one of them is replayed by the engine on every build.
-- **19 tsumego** in four sets (capture and escape 4, shape 3, eye shapes 8, the corner 4),
-  running 25k to 2k. Every board is proved on every build: the stated answer has to be
+- **25 tsumego** in five sets (capture and escape 4, shape 3, eye shapes 8, the corner 4,
+  the deep corner 6), running 25k to 3d. Every board is proved on every build: the stated answer has to be
   exactly the set of moves that work.
 - **203 drills** beside them, running 23k to 3k, searched rather than written: three censuses
   under `tools/problems/` enumerate capturing positions, sealed eye spaces and fights where
@@ -1286,6 +1286,43 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       it: a corner position from a real game rather than a chain with stones dropped beside
       it. That is a different generator, and the honest next attempt is to mine finished
       games for the shape rather than to enumerate toward it.
+- [x] The deep corner (2026-09-21, branch `feat/dan-problems`): a fifth set, six boards from
+      1 kyu to 3 dan, the first the collection has had above 2 kyu. Two things made it
+      possible and both are worth keeping.
+
+      The prover is memoised. `survives` was a plain exponential walk, and a nine-point
+      corner space took ten seconds a verdict, which put everything above six points out of
+      reach; it now takes about a tenth of a second, with the answers unchanged on every
+      board and drill the tests re-prove. The memo is the subtle part and its header says
+      why: a result that leaned on a position already on the path is only true in that
+      context and is never stored, a result cut off by the depth cap is never stored, and a
+      stored result is reused only where at least as many plies remain as when it was
+      found. That last clause is not a nicety. Without it `readingDepth` in `grade.mjs`
+      changed on six shipped drills, because a memo hit from a deeper start hid a horizon
+      the grader was measuring.
+
+      The census ran over a four-by-four box instead of four-by-three, and with one white
+      wall stone on the edge replaced by a black one, which is the hane the earlier
+      census never tried. Seven-point spaces with no defect are alive however Black plays,
+      as the drill work found; seven and eight points with the corner shaped by a run
+      along the edge, a tail, or a stone already inside are not, and the six boards are
+      the clean unique kills out of about 5,000 candidates, mirror images folded, ko-only
+      kills left out.
+
+      Decisions: the ranks are given by hand and every board says so in `rankNote`, the
+      convention `p15` set, because `grade.mjs` stops at 1 dan by construction and weighs
+      a ply of reading at a seventh of a rank. What the hand rank is read from is the fact
+      that on four of the six boards the verdict does not settle inside the grader's
+      24-ply horizon at all. The test holds the note to the form "Model Nk; ... Judged
+      Nd". The carpenter's square was tried and left out: with no outside liberties the
+      prover has White living, which agrees with the books (the basic form is a ko for
+      Black at best), and a ko the defender wins by default is not a problem this
+      collection can print. The eight-point census pass takes about an hour and its
+      output is not checked in; `tools/problems/shapes.mjs` still runs the four-by-three
+      box, and the four-by-four hane pass should be folded into it when it is next run.
+- [ ] The deep corner in the other eight languages. The six new boards and the set's own
+      two lines are in English everywhere until somebody writes them, which the overlay
+      rule allows and the parity suite does not mind.
 - [ ] The two families still unopened, and the bottom end. Capturing races, where the verdict
       is a count and not a search; and groups that are not yet sealed, where the answer is a
       hane or a descent on the second line. Below 23k there is still nothing, because a board

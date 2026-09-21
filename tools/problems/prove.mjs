@@ -149,83 +149,129 @@ const replies = (b, region, toPlay, ko) => {
   return out;
 };
 
+/* ----------------------- THE SEARCH ITSELF -----------------------
+   One walk answers "does this group survive" for `survives`, `killers`,
+   `savers` and the ko-blind check under `koOnlyKillers`. Both sides are
+   confined to `region`, the defender may pass (which is what a ko threat
+   played somewhere else amounts to), the attacker may not, and a position
+   already on the path counts as survival: generous to the defender on
+   purpose, so "dead" means dead.
+
+   Without a memo the walk is exponential in the region and a nine-point
+   corner space took ten seconds a verdict, which put the carpenter's square
+   and everything above it out of reach. The memo is the one thing that is
+   subtle here. A result that came from hitting a position already on the
+   path depends on that position being on the path, so it is only true in
+   that context and may not be stored. Every result therefore carries the
+   depth of the shallowest ancestor it leaned on (`Infinity` for none), and a
+   node stores its value only when nothing it relied on lies above it. A
+   result cut off by the depth cap is never stored either, and a stored
+   result is reused only where at least as many plies remain as when it was
+   found, because a shallower horizon can only add cap hits, which count as
+   survival. This is the standard treatment for search over graphs with
+   cycles, and it keeps the answer identical to the unmemoised walk, which
+   `grade.mjs` depends on: it reads the rank off the cap at which the answer
+   settles. */
+function search(b, target, owner, region, toPlay, ko, opts = {}) {
+  const { cap = 40, koBlind = false, memo = new Map() } = opts;
+  const path = new Map();
+  const walk = (bd, mover, k0, depth) => {
+    const kp = koBlind ? null : k0;
+    const k = key(bd, mover, kp);
+    const onPath = path.get(k);
+    if (onPath !== undefined) return [true, onPath];
+    if (depth > cap) return [true, -1];
+    if (at(bd, target) !== owner) return [false, Infinity];
+    const left = cap - depth;
+    const hit = memo.get(k);
+    if (hit !== undefined && left >= hit.left) return [hit.value, Infinity];
+    path.set(k, depth);
+    const other = opponent(mover);
+    let value, dep = Infinity;
+    const kids = replies(bd, region, mover, kp);
+    if (mover === owner) {
+      value = false;
+      for (const [nb, nko] of kids) {
+        const [v, d] = walk(nb, other, nko, depth + 1);
+        dep = Math.min(dep, d);
+        if (v) { value = true; break; }
+      }
+      if (!value) {
+        const [v, d] = walk(bd, other, null, depth + 1);
+        dep = Math.min(dep, d);
+        value = v;
+      }
+    } else {
+      value = true;
+      for (const [nb, nko] of kids) {
+        const [v, d] = walk(nb, other, nko, depth + 1);
+        dep = Math.min(dep, d);
+        if (!v) { value = false; break; }
+      }
+    }
+    path.delete(k);
+    if (dep >= depth) {
+      if (hit === undefined || hit.left > left) memo.set(k, { value, left });
+      return [value, Infinity];
+    }
+    return [value, dep];
+  };
+  return walk(b, toPlay, ko, 0)[0];
+}
+
 /** Does the chain standing at `target` survive, with `toPlay` to move and
- *  every move confined to `region`? Both sides may pass, which is what a ko
- *  threat played somewhere else amounts to, and a position seen before counts
- *  as survival: generous to the defender on purpose, so "dead" means dead. */
-export function survives(b, target, owner, region, toPlay, ko = null, seen = new Set(), depth = 0, cap = 40) {
-  const k = key(b, toPlay, ko);
-  if (seen.has(k) || depth > cap) return true;
-  if (at(b, target) !== owner) return false;
-  const next = new Set(seen).add(k);
-  const kids = replies(b, region, toPlay, ko);
-  const other = opponent(toPlay);
-  if (toPlay === owner) {
-    return kids.some(([nb, nko]) => survives(nb, target, owner, region, other, nko, next, depth + 1, cap))
-      || survives(b, target, owner, region, other, null, next, depth + 1, cap);
-  }
-  return !kids.some(([nb, nko]) => !survives(nb, target, owner, region, other, nko, next, depth + 1, cap));
+ *  every move confined to `region`? See `search` for the rules. The trailing
+ *  arguments are kept for callers that pass a depth cap. */
+export function survives(b, target, owner, region, toPlay, ko = null, seen = undefined, depth = 0, cap = 40) {
+  return search(b, target, owner, region, toPlay, ko, { cap });
 }
 
 /** Every point in `region` that, played by `attacker`, kills the target. */
-export function killers(b, target, region, attacker) {
+export function killers(b, target, region, attacker, opts = {}) {
   const owner = at(b, target);
   const other = opponent(attacker);
-  const search = withDeadInside(b, region, owner);
+  const search_ = withDeadInside(b, region, owner);
+  const memo = new Map();
   return region.filter(m => {
     if (at(b, m) !== null) return false;
     const res = tryPlay(b, m.c, m.r, attacker);
     if (!res.ok) return false;
     if (at(res.board, target) !== owner) return true;
-    return !survives(res.board, target, owner, search, other, res.ko);
+    return !search(res.board, target, owner, search_, other, res.ko, { ...opts, memo });
   });
 }
 
 /** Every point in `region` that, played by the group's owner, saves it. */
-export function savers(b, target, region, owner) {
+export function savers(b, target, region, owner, opts = {}) {
   const other = opponent(owner);
-  const search = withDeadInside(b, region, owner);
+  const search_ = withDeadInside(b, region, owner);
+  const memo = new Map();
   return region.filter(m => {
     if (at(b, m) !== null) return false;
     const res = tryPlay(b, m.c, m.r, owner);
     if (!res.ok) return false;
     if (at(res.board, target) !== owner) return false;
-    return survives(res.board, target, owner, search, other, res.ko);
+    return search(res.board, target, owner, search_, other, res.ko, { ...opts, memo });
   });
 }
 
 /** A verdict that changes when the ko rule is switched off was resting on a
  *  ko, and a problem has to say so rather than call it a clean kill. Returns
  *  the points that kill only because the defender may not retake. */
-export function koOnlyKillers(b, target, region, attacker) {
+export function koOnlyKillers(b, target, region, attacker, opts = {}) {
   const owner = at(b, target);
   const other = opponent(attacker);
-  const search = withDeadInside(b, region, owner);
+  const search_ = withDeadInside(b, region, owner);
+  const memo = new Map();
   const blind = region.filter(m => {
     if (at(b, m) !== null) return false;
     const res = tryPlay(b, m.c, m.r, attacker);
     if (!res.ok) return false;
     if (at(res.board, target) !== owner) return true;
-    return !survivesKoBlind(res.board, target, owner, search, other);
+    return !search(res.board, target, owner, search_, other, null, { ...opts, memo, koBlind: true });
   });
-  return killers(b, target, region, attacker)
+  return killers(b, target, region, attacker, opts)
     .filter(m => !blind.some(q => samePoint(q, m)));
-}
-
-/** `survives` with the ko ban lifted, so a position can only be held by a
- *  repetition the defender is actually allowed to make. */
-function survivesKoBlind(b, target, owner, region, toPlay, seen = new Set(), depth = 0, cap = 40) {
-  const k = key(b, toPlay, null);
-  if (seen.has(k) || depth > cap) return true;
-  if (at(b, target) !== owner) return false;
-  const next = new Set(seen).add(k);
-  const kids = replies(b, region, toPlay, null);
-  const other = opponent(toPlay);
-  if (toPlay === owner) {
-    return kids.some(([nb]) => survivesKoBlind(nb, target, owner, region, other, next, depth + 1, cap))
-      || survivesKoBlind(b, target, owner, region, other, next, depth + 1, cap);
-  }
-  return !kids.some(([nb]) => !survivesKoBlind(nb, target, owner, region, other, next, depth + 1, cap));
 }
 
 
