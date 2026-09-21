@@ -6,6 +6,37 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.20.1.0 (2026-09-20)
+
+### Removed
+
+- **The printed review room is no longer something you can choose.** Kifu is the room a
+  finished game is read in -- ivory paper, terracotta for the move you are standing on --
+  and review mode has always brought it with it. It was also sitting in the look page's
+  room picker, where choosing it put the whole place on the page: the Play screen became a
+  diagram, and the stone picker beside it went on offering eight sets of stones while a
+  printed room drew ink and paper whatever was in the drawer. The picker now holds the two
+  table rooms, the one that follows your device, and whatever you built in the dojo. If you
+  had chosen Kifu, you are moved to Tatami, and your stones come back.
+
+### Fixed
+
+- **The stone drawer is usable in the dark again.** Every set's plate was drawn on the
+  page's own colour, so in Night the black stone of slate, plum, cinnabar and moss
+  disappeared into the charcoal and four of the nine sets looked identical. The plates are
+  drawn on the wood the stones will actually lie on.
+- **You can see which room and which stones you have chosen.** Each plate is drawn in the
+  room it is offering, so the ring around the chosen one was drawn in that room's colour
+  too -- in the dark room it vanished, while the unchosen light plates glowed beside it and
+  read as the selected one. The ring is the page's colour now, and so is the outline a
+  keyboard leaves when you tab onto a plate.
+- **The stone drawer stopped being squeezed into a strip.** On a desktop window the board
+  preview was taking eight hundred pixels for a three-hundred-pixel board and leaving the
+  nine stone plates a hundred and nineteen, which they overflowed. The board column is the
+  board's width, and the drawer gets the rest.
+- **The front door counts the rooms you can actually choose.** It said three; the page it
+  links to said two.
+
 ## v0.20.0.0 (2026-09-19)
 
 ### Added

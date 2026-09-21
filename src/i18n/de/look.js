@@ -5,7 +5,7 @@ export const look = {
     sub: "Alles hier ändert, wie Joseki aussieht, und nichts ändert, wie es spielt. Wähle den Raum, wähle die Steine, mit denen du spielen willst, wähle die Schrift. Jede Probe ist in dem gezeichnet, was sie anbietet: wähle also mit den Augen. Die Sprache wohnt in der oberen Leiste, wo sie von jedem Bildschirm aus zu finden ist.",
     room: {
       head: "Der Raum",
-      note: "Drei Räume für dasselbe Brett: einer für Tageslicht, einer für den Abend und der, in dem die Nachbetrachtung eine beendete Partie liest. Einer davon kann deinem Gerät folgen, und du kannst dir weiterhin einen eigenen Raum bauen. Eine Palette setzt die Seite, die beiden Lichter, aus denen jeder Schatten geschnitten ist, und die eine Farbe, die hier bedeutet. Das Brett ist keine Palette: Die beiden Tischräume spielen auf demselben Holz, und der Raum der Nachbetrachtung druckt die Partie auf seine Seite.",
+      note: "Zwei Räume für dasselbe Brett: einer für Tageslicht, einer für den Abend. Beide können deinem Gerät folgen, und du kannst dir weiterhin einen eigenen Raum bauen. Eine Palette setzt die Seite, die beiden Lichter, aus denen jeder Schatten geschnitten ist, und die eine Farbe, die hier bedeutet. Das Brett ist keine Palette: Beide Räume spielen auf demselben Holz. Der Raum, in dem eine beendete Partie gelesen wird, steht nicht auf dieser Seite, denn er ist keine Einstellung: Die Nachbetrachtung bringt ihre gedruckte Seite mit und nimmt sie wieder mit.",
       pick: "Palette {name}",
       systemName: "System",
       systemMood: "Automatisch",

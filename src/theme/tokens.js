@@ -55,6 +55,19 @@ export const TONES = [
  *  this wood, over every room and every set in the drawer. */
 export const BOARD = "#d9b77a";
 
+/** How wide the still life on the look page is drawn, in px.
+ *
+ *  One number read from two sides: the view hands it to the Board as `sizePx`
+ *  and writes it onto .look-stones as --look-board, which is that grid's first
+ *  track. They have to agree, and css.test.js holds them to it. It lives here
+ *  beside BOARD rather than in the view, because the stylesheet's own contract
+ *  test has no business importing a screen to find out how wide a board is.
+ *
+ *  When the track was `auto` it sized itself to the widest thing in the column
+ *  -- the contrast sentence, not the board -- and took four hundred pixels the
+ *  drawer needed. */
+export const PREVIEW_PX = 340;
+
 export const TONE_KEYS = TONES.map(t => t.key);
 export const REQUIRED_TONES = TONES.filter(t => t.required).map(t => t.key);
 

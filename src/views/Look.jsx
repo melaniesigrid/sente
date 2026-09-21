@@ -4,7 +4,7 @@ import { boardFromRows } from "../engine/index.js";
 import { Board } from "../components/Board.jsx";
 import { Card } from "../components/ui.jsx";
 import { TYPEFACES, typefaceOf } from "../content/typeface.js";
-import { SYSTEM_THEME, themeOf, themeVars, stoneSetOf, auditPalette } from "../theme/index.js";
+import { SYSTEM_THEME, themeOf, themeVars, stoneSetOf, auditPalette, PREVIEW_PX } from "../theme/index.js";
 import { STONE_RULE } from "../theme/tokens.js";
 import { roomsFor, setsFor, setName, plateVars, platePalette } from "./look.js";
 import { useT } from "../components/langStore.js";
@@ -125,12 +125,14 @@ export function LookView({ profile, setProfile, go, room }) {
       <Card>
         <div className="stat-head"><Circle size={16} /><span>{t("look.stones.head")}</span></div>
         <p className="fine" style={{ marginTop: 6 }}>{t("look.stones.note")}</p>
-        <div className="look-stones">
+        {/* The first grid track is the board's width, written here so the track
+            and the board are one number: see PREVIEW_PX in theme/tokens.js. */}
+        <div className="look-stones" style={{ "--look-board": `${PREVIEW_PX}px` }}>
           <div className="look-preview">
             {/* A still life, not a game: the board is here to be looked at, and
                 a screen reader has no use for eighty-one named points of it. */}
             <div aria-hidden="true">
-              <Board board={board} disabled sizePx={340} lastMove={null} />
+              <Board board={board} disabled sizePx={PREVIEW_PX} lastMove={null} />
             </div>
             {cut && (
               <p className={`fine look-cut ${cut.pass ? "" : "warn"}`}>

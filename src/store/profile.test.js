@@ -3,7 +3,7 @@ import { sanitizeProfile, defaultProfile, restoreSound, UNMUTE_KEY } from "./pro
 import { DEFAULT_TYPEFACE } from "../content/typeface.js";
 import { rankOf } from "../content/rank.js";
 import { GLICKO, isProvisional } from "../engine/index.js";
-import { SYSTEM_THEME, HOUSE_THEME, DOJO_THEME, AUTO_STONES } from "../theme/index.js";
+import { SYSTEM_THEME, HOUSE_THEME, DOJO_THEME, REVIEW_THEME, CHOOSABLE_ROOMS, AUTO_STONES } from "../theme/index.js";
 import { SYSTEM_LOCALE } from "../i18n/index.js";
 
 let warn;
@@ -202,6 +202,20 @@ describe("the stored palette", () => {
     expect(sanitizeProfile({ ...defaultProfile, theme: "lacquer" }).theme).toBe("night");
     expect(sanitizeProfile({ ...defaultProfile, theme: "kaya" }).theme).toBe("tatami");
     expect(sanitizeProfile({ ...defaultProfile, theme: "house" }).theme).toBe(SYSTEM_THEME);
+  });
+
+  /* The printed room left the picker on 2026-09-16, and a profile parked in it
+     has to come out on the way in. It is not a corrupt field and not a retired
+     room: it is a preference for somewhere nobody can sit any more, so it is
+     carried to the light table room and it is carried quietly. Left where it
+     was, the look page would draw no chosen plate at all, because the room the
+     profile is sitting in is not one of the plates. */
+  it("carries a profile parked in the printed room into a room it can sit in", () => {
+    const out = sanitizeProfile({ ...defaultProfile, theme: REVIEW_THEME });
+    expect(out.theme).toBe("tatami");
+    expect(CHOOSABLE_ROOMS.some(p => p.id === out.theme),
+      "and lands on a room somebody is allowed to sit in").toBe(true);
+    expect(warn, "a preference carried forward is not a complaint").not.toHaveBeenCalled();
   });
 
   // A set of stones is a preference of its own, kept apart from the room: a

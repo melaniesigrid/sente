@@ -37,7 +37,9 @@ in `server/` (Durable Objects), deployed separately.
   icon that points at a fact, and a mask is a costume, not a fact.
 - Palette is themed the way type is, and lives in `src/theme/` with `index.js` as the only
   import surface, like the engine. `tokens.js` is the contract (every custom property, every
-  contrast rule, and `BOARD`, the wood); `palettes.js` is the three rooms as data;
+  contrast rule, `BOARD`, the wood, and `PREVIEW_PX`, how wide the look page draws its
+  still life); `palettes.js` is the three rooms as data, and `CHOOSABLE_ROOMS` is the
+  subset a profile may hold (PALETTES minus the review room);
   `derive.js` turns four authored colours into the whole token set; `color.js` is the only
   place that knows how a colour is spelled. The stylesheet names no colour outside its
   default block, only tokens, which the shell sets from `profile.theme` (and `profile.dojo`
@@ -45,13 +47,22 @@ in `server/` (Durable Objects), deployed separately.
 - **There are three rooms and no more** (2026-09-15, design shotgun on the game screen):
   `tatami` for daylight, `night` for the evening, `kifu` for reading a finished game.
   Adding a fourth is a design decision, not a colour: say so out loud before you do it.
+  **Two of the three are rooms you choose** (2026-09-16): Kifu is the room review mode puts
+  you in, not a preference, so `CHOOSABLE_ROOMS` leaves it out and the look page's picker
+  offers two rooms, the device, and whatever the dojo built. Anything that counts rooms for
+  a reader counts `CHOOSABLE_ROOMS`, not `PALETTES` — the landing page's "three rooms" was
+  `PALETTES.length` and contradicted the page it linked to.
   A palette is still four colours (ground, ink, mark, shell) and everything else derives;
   `npm test` holds it to the same rules `auditPalette` shows live in the dojo, and there is
   one implementation of those rules so the panel and CI cannot disagree.
 - `tatami` is the reference room and the fallback; `system` is what a profile ships set to,
   and `resolveTheme(id, prefersDark)` turns it into a real room. `migrateThemeId` carries a
-  theme id stored before the three rooms forward to the room that replaced it, so nobody's
-  preference is reset by the change. The theme package is pure: `usePrefersDark` in
+  theme id nobody can choose any more forward to a room that exists, through the `MOVED` map
+  in `palettes.js` (it was `RETIRED` until `kifu` joined it: most of those rooms are gone,
+  `kifu` still ships and is only un-offered, so do not delete its line on the grounds that
+  the room exists). Nobody's preference is reset by the change. `isThemeId` still accepts
+  `kifu`, so `sanitizeProfile` has to migrate before it validates. The theme package is
+  pure: `usePrefersDark` in
   `src/components/` is the only thing that reads the media query.
 - **The board is not the page, and it is not themed either.** `--board` is one wood
   (`BOARD` in `tokens.js`) in both table rooms and in a room built in the dojo: a goban is an
@@ -80,8 +91,10 @@ in `server/` (Durable Objects), deployed separately.
 - **Kifu is printed, not played** (`print: true` in `palettes.js`, read only by `derive.js`).
   A printed room has no board: `boardFor` answers with the page, `--grid-alpha` takes the
   grid to full strength so the lines are the ink itself, and `stonesFor` prints ink and
-  paper whatever set the player carries, because a printed stone is not a rock. The set a
-  printed room names is what its plate on the look page is drawn from, nothing more; the
+  paper whatever set the player carries, because a printed stone is not a rock. Which is
+  why it is not a room you can sit in: it has no plate on the look page any more, and
+  `platePalette` clearing `print` there is now a guard rather than a correction, kept
+  because it is what would quietly break if a printed room were made choosable again. The
   dojo never carries the flag, and a stored palette cannot smuggle it in. Both table rooms
   play `ebony`, the pair the game screen was drawn with; the drawer is untouched and a
   player's own choice still overrides both.
