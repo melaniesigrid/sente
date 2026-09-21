@@ -1,8 +1,7 @@
 /* ----------------------- PROGRESS (pure) -----------------------
    The part of a profile that is what you have done rather than what you
    prefer: the lessons, problems and drills finished, the recall schedule, the
-   days practised and the runs they make, the kata and duel records, and the
-   house ladder record. A player who is signed in keeps it on their account as
+   days practised and the runs they make, and the kata and duel records. A player who is signed in keeps it on their account as
    well as in the browser, so signing in on another device finds it. What you
    prefer (room, type, stones, language, sound, name and tint) stays on the
    device: a borrowed laptop keeps its own.
@@ -11,8 +10,10 @@
    ends, so what the server hands back is what the browser would have worked
    out itself, and two devices that both did things while apart lose nothing:
    sets are joined, records keep the higher, and the handful of values that
-   can only be one thing (a rating, the day a duel was played) come from
-   whichever side wrote more recently.
+   can only be one thing (a streak, the day a duel was played) come from
+   whichever side wrote more recently. The rating and the win/loss record are
+   not here: they are the account's own, rated on the server, and read back
+   with `withPlayer` in profile.js rather than merged.
 
    No React, no fetch, no storage. */
 
@@ -26,10 +27,10 @@ const CHAIN_KEEP = 400;
 /** Joined: anything either side has done, it has done. */
 export const SETS = { lessonsDone: "string", problemsDone: "string", drillsDone: "string", tierPassed: "number", chain: "string" };
 /** Higher wins: counts of things that only ever go up, and personal bests. */
-export const HIGH = ["chainBest", "kataBest", "duelBestStreak", "duelPlayed", "duelWins", "wins", "losses", "bestStreak"];
+export const HIGH = ["chainBest", "kataBest", "duelBestStreak", "duelPlayed", "duelWins", "bestStreak"];
 /** Latest wins: values that describe now, not a total, each with its type. */
 export const LATEST_TYPES = {
-  rating: "number", rd: "number", vol: "number", streak: "number", kataStreak: "number", kataDate: "string",
+  streak: "number", kataStreak: "number", kataDate: "string",
   duelStreak: "number", duelStarted: "string", duelDate: "string", duelResult: "string", duelMoves: "number",
 };
 export const LATEST = Object.keys(LATEST_TYPES);

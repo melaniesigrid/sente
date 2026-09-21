@@ -14,8 +14,8 @@ import { avatarUrl } from "../net/avatar.js";
 import { useMokuFacts } from "../components/mokuStore.js";
 import { playStone, playCapture, playBell, haptic } from "../components/sound.js";
 import { beltOf, hintsForBelt } from "../content/rank.js";
-import { gameSocket, SERVER_URL } from "../net/api.js";
-import { loadAccount } from "../store/account.js";
+import { gameSocket, SERVER_URL, api } from "../net/api.js";
+import { loadAccount, saveAccount } from "../store/account.js";
 import { refusalText, resignLabel, confirmMoveLabel, resultCard, RESIGN_CONFIRM_MS } from "./gameStatus.js";
 import { tapAction } from "./stagedMove.js";
 import { onlineStatus, settledLine, onlineCaption, teamName } from "./onlineStatus.js";
@@ -161,6 +161,19 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
 
   const rec = room ? room.record : null;
   const over = rec && rec.phase === "ended" ? rec.result : null;
+  /* A rated game moved the account's rating on the server. Asking for the
+     player once the game is over, and saving what comes back, is what lets
+     the shell adopt the new number into the profile (App.jsx pulls on every
+     account change), so the rank on the dashboard is the rank on the ladder. */
+  useEffect(() => {
+    if (!over || !account) return;
+    let live = true;
+    api.me(account.token).then((player) => {
+      if (live && JSON.stringify(player) !== JSON.stringify(account.player)) saveAccount({ token: account.token, player });
+    }).catch(() => {});
+    return () => { live = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [!!over]);
   // The seat to play, and whether it is the partner this browser is running.
   const up = rec && rec.phase === "playing" ? seatToPlay(room.seats, rec) : null;
   const partnerUp = !!(up && runs.includes(up));

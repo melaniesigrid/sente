@@ -29,7 +29,9 @@ import {
 } from "../content/rank.js";
 import { startDuel, duelOutcome, recordDuel, duelResultText, duelShareText, duelShareUrl } from "../content/duel.js";
 import { ShareDuelButton } from "../components/DuelCard.jsx";
-import { saveProfile } from "../store/profile.js";
+import { saveProfile, withPlayer } from "../store/profile.js";
+import { loadAccount, saveAccount } from "../store/account.js";
+import { api, serverEnabled } from "../net/api.js";
 import { saveGame, clearGame } from "../store/gameStore.js";
 import { recordGame } from "../store/telemetry.js";
 import { loadMemory, rememberGame, recall, dejaNote } from "../store/deja.js";
@@ -419,6 +421,23 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         setProfile(np);
         saveProfile(np);
         setDelta({ from: profile.rating, to: rating });
+        /* The same game, rated on the account. The arithmetic above is the
+           arithmetic the server runs (one module, one scale), so the toast
+           below is already right; what the server answers is the player as
+           it now holds them, and that is the number every device shows. A
+           send that fails leaves the device's own figure standing until the
+           next pull, which is the honest fallback and not a second rating. */
+        const account = serverEnabled() ? loadAccount() : null;
+        if (account) {
+          api.houseGame(account.token, { rating: oppRating, rd: HOUSE_RD }, won ? 1 : 0).then((player) => {
+            saveAccount({ token: account.token, player });
+            setProfile((cur) => {
+              const adopted = withPlayer(cur, player);
+              if (adopted !== cur) saveProfile(adopted);
+              return adopted;
+            });
+          }).catch(() => {});
+        }
         const newRank = rankOf(rating), newBelt = beltOf(rating);
         if (won && newBelt !== oldBelt) setCeremony(newBelt);
         else if (won && newRank !== oldRank) notify({ icon: "medal", text: t("game.toast.promoted", { rank: newRank }) });

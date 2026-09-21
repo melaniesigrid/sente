@@ -6,10 +6,15 @@
 
    Three rules hold this honest, and they are the whole design.
 
-   It never leaves the device. There is no endpoint, no beacon, no fetch in
-   this module and none anywhere that reads it. It is in its own storage key
-   rather than on the profile precisely so that it cannot be swept along when
-   a profile learns how to sync.
+   It never leaves the device, with one exception that is not a copy of it:
+   when an account first carries the rating on this device, the rated games
+   here are told to the server as the two facts a live game sends (what the
+   house player was rated as, and who won), once, so the games played before
+   the account count towards it. That is store/carry.js, and it reads this
+   log and sends nothing else in it: no size, no handicap, no house player, no
+   length, no date. There is no endpoint, no beacon and no fetch in this
+   module. It is in its own storage key rather than on the profile precisely
+   so that it cannot be swept along when a profile learns how to sync.
 
    It keeps no moves and no names. A game is recorded as its shape: board
    size, handicap, ruleset, which house player, what rank that player was

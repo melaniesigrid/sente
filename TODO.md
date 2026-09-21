@@ -80,6 +80,18 @@ lessons), and the middle game everywhere. Life and death below 15k was on this l
       after every save and pulled when the app opens and when somebody signs in. The server
       merges rather than overwrites, with the same pure function the browser uses, so two devices
       used apart lose nothing. Preferences stay on the device. The privacy notice says so.
+- [x] One rating, on the account (2026-09-20). A signed-in player used to carry two: the
+      device's, moved by house games in the browser, and the account's, moved by games between
+      people on the server, and the profile page showed both. Now a house game is rated onto
+      the account as well (`POST /api/me/house` takes who the house player was rated as and
+      how it went, and runs the same Glicko module), the shell adopts the account's trio and
+      record into the profile on every pull (`withPlayer`), and the rating left the progress
+      document. Every game waits for an account: the sign-in card is the first thing on the
+      dashboard and on Play when there is a server and no account. The terms and the privacy
+      notice say so, in all nine languages. `tools/server/house.mjs` proves the route. The
+      games played before the account are not lost: the device's ring buffer holds the last
+      fifty house games with rank, stones and result, and `src/store/carry.js` replays the
+      rated ones onto the account once, in order, through the same route (`{games:[...]}`).
 
 ## Phase 0: Foundation (done)
 

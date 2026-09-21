@@ -18,7 +18,7 @@ describe("progressOf", () => {
     expect(PROGRESS_FIELDS).toEqual([...Object.keys(SETS), ...HIGH, ...LATEST, ...MAPS]);
   });
   it("leaves out what the profile does not carry rather than defaulting it", () => {
-    expect(progressOf({ wins: 3 })).toEqual({ wins: 3 });
+    expect(progressOf({ streak: 3 })).toEqual({ streak: 3 });
     expect(progressOf(null)).toEqual({});
   });
 });
@@ -30,24 +30,24 @@ describe("cleanProgress", () => {
   it("keeps well-shaped fields and drops the rest, without inventing any", () => {
     const out = cleanProgress({
       lessonsDone: ["a", "a", "b"], problemsDone: "nope", tierPassed: [1, 2.5], chain: ["2026-09-01"],
-      wins: 2, losses: -1, rating: 1500, kataDate: "2026-09-15", duelMoves: "many", duelDate: 7,
+      chainBest: 2, kataBest: -1, rating: 1500, kataDate: "2026-09-15", duelMoves: "many", duelDate: 7,
       recall: { "a#1": { box: 2, due: "2026-09-20" } }, bookProgress: [], theme: "night", extra: 1,
     });
     expect(out).toEqual({
-      lessonsDone: ["a", "b"], chain: ["2026-09-01"], wins: 2, rating: 1500, kataDate: "2026-09-15",
+      lessonsDone: ["a", "b"], chain: ["2026-09-01"], chainBest: 2, kataDate: "2026-09-15",
       recall: { "a#1": { box: 2, due: "2026-09-20" } },
     });
   });
   it("keeps everything a real profile sends", () => {
-    const p = sanitizeProfile({ ...defaultProfile, lessonsDone: ["liberties"], wins: 4 });
+    const p = sanitizeProfile({ ...defaultProfile, lessonsDone: ["liberties"], chainBest: 4 });
     expect(cleanProgress(progressOf(p))).toEqual(progressOf(p));
   });
 });
 
 describe("mergeProgress", () => {
-  const A = { data: { lessonsDone: ["a"], problemsDone: ["p1"], wins: 2, rating: 1400, streak: 3, chain: ["2026-09-01"], chainBest: 1,
+  const A = { data: { lessonsDone: ["a"], problemsDone: ["p1"], kataBest: 2, kataStreak: 1400, streak: 3, chain: ["2026-09-01"], chainBest: 1,
     recall: { x: { box: 1, due: "2026-09-10" }, y: { box: 2, due: "2026-09-12" } }, bookProgress: { L: { stops: 3, score: 4, total: 6 } } }, at: 100 };
-  const B = { data: { lessonsDone: ["b"], drillsDone: ["d"], wins: 1, rating: 1520, streak: 0, chain: ["2026-09-03"], chainBest: 2,
+  const B = { data: { lessonsDone: ["b"], drillsDone: ["d"], kataBest: 1, kataStreak: 1520, streak: 0, chain: ["2026-09-03"], chainBest: 2,
     recall: { x: { box: 1, due: "2026-09-14" }, y: { box: 0, due: "2026-09-13" }, z: { box: 3, due: "2026-09-30" } }, bookProgress: { L: { stops: 6, score: 3, total: 6 } } }, at: 200 };
 
   it("joins what either side has done", () => {
@@ -60,12 +60,12 @@ describe("mergeProgress", () => {
   });
   it("keeps the higher of a count or a best, and the newer of a value that is one thing", () => {
     const { data, at } = mergeProgress(A, B);
-    expect(data.wins).toBe(2);
+    expect(data.kataBest).toBe(2);
     expect(data.chainBest).toBe(2);
-    expect(data.rating).toBe(1520);
+    expect(data.kataStreak).toBe(1520);
     expect(data.streak).toBe(0);
     expect(at).toBe(200);
-    expect(mergeProgress(B, A).data.rating).toBe(1520);
+    expect(mergeProgress(B, A).data.kataStreak).toBe(1520);
   });
   it("takes a recall card further along, and of two in the same box the one answered later", () => {
     const { data } = mergeProgress(A, B);
@@ -81,9 +81,9 @@ describe("mergeProgress", () => {
     expect(ab).toEqual(ba);
   });
   it("never reads an absence as a zero", () => {
-    const { data } = mergeProgress({ data: { wins: 5 }, at: 1 }, { data: { rating: 1500 }, at: 2 });
-    expect(data).toEqual({ wins: 5, rating: 1500 });
-    expect(mergeProgress(null, { data: { wins: 1 }, at: 3 })).toEqual({ data: { wins: 1 }, at: 3 });
+    const { data } = mergeProgress({ data: { kataBest: 5 }, at: 1 }, { data: { streak: 1500 }, at: 2 });
+    expect(data).toEqual({ kataBest: 5, streak: 1500 });
+    expect(mergeProgress(null, { data: { kataBest: 1 }, at: 3 })).toEqual({ data: { kataBest: 1 }, at: 3 });
   });
   it("caps the days practised the way the chain itself does", () => {
     const days = Array.from({ length: 450 }, (_, i) => `2025-${String(1 + (i % 12)).padStart(2, "0")}-${String(1 + (i % 28)).padStart(2, "0")}#${i}`);

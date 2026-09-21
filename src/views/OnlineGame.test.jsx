@@ -32,8 +32,11 @@ vi.mock("../net/api.js", () => ({
   SERVER_URL: "https://server.test",
   // Review asks whether there is a server, to decide whether the trainer is here.
   serverEnabled: () => false,
+  /* A finished game asks the server for the player it now holds, so the
+     shell can adopt the new rating. The table under test never sees it. */
+  api: { me: () => Promise.resolve(null) },
 }));
-vi.mock("../store/account.js", () => ({ loadAccount: () => loadAccount() }));
+vi.mock("../store/account.js", () => ({ loadAccount: () => loadAccount(), saveAccount: () => true }));
 /* The table makes a noise on every move the server confirms. That is not what
    this suite is about, and jsdom has no speaker to make it on. */
 vi.mock("../components/sound.js", () => ({
