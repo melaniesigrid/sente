@@ -328,7 +328,7 @@ ${FONT_FACES}
    left standing proud of a tray. A card keeps its two shadows and spends them:
    two pixels of offset is a card with a thumb on it. It travels the one pixel
    that offset gives up, so the card goes down rather than only going quiet. */
-.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .play-choice:active, .trainer-mode:active { box-shadow: var(--press); transform: translateY(1px); }
+.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .fm-card:active, .play-choice:active, .trainer-mode:active { box-shadow: var(--press); transform: translateY(1px); }
 
 /* A control is small enough to invert, which is what the nine already do. */
 .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn.active:active { box-shadow: var(--sink-sm); transform: none; }
@@ -338,15 +338,19 @@ ${FONT_FACES}
    control most likely to be pressed twice is the only one that cannot answer.
    Each keeps the ring it wears, because the ring is what says chosen. */
 .type-btn:active { box-shadow: var(--sink); }
-.legal-tab.active:active, .lang-pill.on:active { box-shadow: var(--sink); }
-.tint-dot.active:active, .theme-btn.active:active, .stone-btn.active:active { box-shadow: var(--sink), 0 0 0 2px var(--accent-ring); }
+.legal-tab.active:active, .look-btn[aria-current]:active, .lang-pill.on:active { box-shadow: var(--sink); }
+.tint-dot.active:active { box-shadow: var(--sink), 0 0 0 2px var(--accent-ring); }
+/* The picker plates keep the page's ring under the finger too, for the reason
+   given where --pick-ring is declared: the ring belongs to the page, and a
+   press is no time for the chosen plate to stop looking chosen. */
+.theme-btn.active:active, .stone-btn.active:active { box-shadow: var(--sink), 0 0 0 2px var(--pick-ring, var(--accent)); }
 .swatch.on:active { box-shadow: var(--sink), inset 0 0 0 1px var(--belt-edge), 0 0 0 2px var(--accent-ring); }
 
 /* The nine that already sank now land flat with everything else: a control that
    sinks while still held two pixels up is being pressed and lifted at once. */
 .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active { transform: none; }
 
-.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .play-choice:active, .trainer-mode:active, .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn:active, .swatch:active, .look-entry:active, .lang-pill:active, .btn:active:not(:disabled), .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active, .lp-btn:active, .lp-card-btn:active, .lp-enter:active, .arche-btn:active, .country-btn:active { transition-duration: .06s; }
+.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .fm-card:active, .play-choice:active, .trainer-mode:active, .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn:active, .swatch:active, .look-btn:active, .look-entry:active, .lang-pill:active, .btn:active:not(:disabled), .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active, .lp-btn:active, .lp-card-btn:active, .lp-enter:active, .arche-btn:active, .country-btn:active { transition-duration: .06s; }
 
 /* A screen arrives a beat at a time rather than all at once. It is the front
    door's entrance, applied where a whole screen is swapped in by the nav: the
@@ -1902,6 +1906,38 @@ ${FONT_FACES}
    the little plate is drawn in that material (same two shadows, different
    room) and you choose by looking rather than by reading a name. */
 .theme-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(136px, 1fr)); gap: 12px; margin-top: 16px; }
+/* Which plate is chosen has to be said by the page, not by the plate.
+   Every plate on these two rows wears a different room's tokens, so a ring cut
+   from var(--accent-ring) is cut from whatever room that plate happens to be:
+   in Night the selected dark plate drew a faint charcoal ring at .32 alpha and
+   vanished, while the unselected Tatami and Kifu plates beside it glowed like
+   lamps, because a light plate in a dark room simply is the brightest thing on
+   the screen. Selection read as the wrong plate.
+   --pick-ring is declared here, on the row, which is the last element on the
+   way down still wearing the page's own tokens; children inherit the computed
+   colour, so a plate's inline --accent-rgb cannot reach it.
+
+   What fixed the bug is the token, not the width. The ring stays 2px, the width
+   .tint-dot and .swatch use, for two reasons: a 5px ring is the loudest chosen
+   in the app and this page's own type picker says chosen with a shadow alone;
+   and 5px lands exactly on the 2-5px band :focus-visible paints (3px solid
+   --accent-ink at offset 2px, near the same hue), so tabbing onto the chosen
+   plate swapped one accent band for another and keyboard focus went missing on
+   the one plate most likely to have it. At 2px the ring nests inside the focus
+   outline instead of colliding with it. Consumed with a fallback, because a var
+   that resolves to nothing takes the whole declaration with it -- --sink-sm
+   included -- and an unringed plate would read as unchosen rather than plain. */
+.theme-row, .stone-row { --pick-ring: var(--accent); --pick-focus: var(--accent-ink); }
+/* The keyboard outline is the page's too, for the same reason and one layer
+   out. :focus-visible is outline 3px solid var(--accent-ink), and
+   --accent-ink resolves on the focused element -- which on this row wears
+   another room's whole token set inline -- while the outline itself is painted
+   outside the button, on the page's ground. Measured: the Night plate's
+   --accent-ink #7fa88f on the Tatami page reads 2.14:1, under the 3:1 floor
+   every other non-text mark in this system is held to, and a page's own
+   accent-ink on its own ground is 4.88:1. So the plates that are NOT chosen
+   were the ones a keyboard could not find. */
+.theme-btn:focus-visible, .stone-btn:focus-visible { outline-color: var(--pick-focus, var(--accent-ink)); }
 .theme-btn {
   border: 0; cursor: pointer; background: var(--ground); color: var(--ink);
   display: flex; flex-direction: column; align-items: flex-start; gap: 9px;
@@ -1909,7 +1945,7 @@ ${FONT_FACES}
   transition: box-shadow .18s ease, transform .18s ease;
 }
 .theme-btn:hover { transform: translateY(-2px); }
-.theme-btn.active { box-shadow: var(--sink-sm), 0 0 0 2px var(--accent-ring); transform: none; }
+.theme-btn.active { box-shadow: var(--sink-sm), 0 0 0 2px var(--pick-ring, var(--accent)); transform: none; }
 .theme-plate { width: 100%; height: 50px; border-radius: 12px; box-shadow: var(--sink-sm); display: flex; align-items: center; gap: 8px; padding: 0 12px; }
 .theme-stone { width: 17px; height: 17px; border-radius: 50%; flex: none; }
 /* The plates draw the stone the board draws: a flat body, one shine on the
@@ -1996,8 +2032,20 @@ ${FONT_FACES}
   .look-entry .fine { margin-inline-start: 0; text-align: start; flex-basis: 100%; }
 }
 /* The board and the drawer, side by side: a set is chosen by watching the
-   stones on the board change, not by reading the name of a rock. */
-.look-stones { display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr); gap: clamp(16px, 2.4vw, 26px); margin-top: 16px; align-items: start; }
+   stones on the board change, not by reading the name of a rock.
+
+   The first track is the board's width and nothing else. It used to be
+   minmax(0, auto), which sounds like "as wide as the board" and means "as wide
+   as the widest thing in the column" -- and the widest thing in the column is
+   not the board, it is the contrast sentence under it, a paragraph whose
+   max-content is one long unwrapped line. At 1280px the tracks resolved to
+   802px and 119px: four hundred pixels of nothing under a 340px board, and a
+   drawer squeezed into 119px while its own plates still drew themselves 150px
+   wide and hung 30px out over the edge of the card. --look-board is written on
+   the element by the view, from the same constant it hands the Board, so the
+   track and the board cannot drift apart. The sentence wraps under the board
+   where it belongs. */
+.look-stones { display: grid; grid-template-columns: minmax(0, var(--look-board, 340px)) minmax(0, 1fr); gap: clamp(16px, 2.4vw, 26px); margin-top: 16px; align-items: start; }
 @media (max-width: 820px) { .look-stones { grid-template-columns: 1fr; } }
 .look-preview { display: flex; flex-direction: column; gap: 12px; }
 .look-cut { display: flex; gap: 8px; align-items: flex-start; }
@@ -2013,8 +2061,33 @@ ${FONT_FACES}
   transition: box-shadow .18s ease, transform .18s ease;
 }
 .stone-btn:hover { transform: translateY(-2px); }
-.stone-btn.active { box-shadow: var(--sink-sm), 0 0 0 2px var(--accent-ring); transform: none; }
-.stone-plate { width: 100%; height: 46px; border-radius: 12px; box-shadow: var(--sink-sm); display: flex; align-items: center; justify-content: center; gap: 10px; }
+.stone-btn.active { box-shadow: var(--sink-sm), 0 0 0 2px var(--pick-ring, var(--accent)); transform: none; }
+/* A stone plate is a well with the wood in it, because the wood is what these
+   two objects are actually going to lie on and the pair is only legible against
+   it. Drawn on var(--ground) -- which is what a plate with no background of its
+   own falls back to, the button's -- the black stone of every set disappeared in
+   Night: slate, plum, cinnabar and moss all came out as a single white dot on
+   charcoal, and the drawer stopped being a picker. --board is one wood in both
+   table rooms, so this also makes the plate say the same thing in both.
+
+   The wood carries no shadow of its own, which is what .board-well already
+   settled: a goban is a raised card of the PAGE's colour with the wood set
+   into it as a plain fill (.wood), never a wooden surface wearing the page's
+   two lights. Written with --sink-sm this plate wore inset --dark at the top
+   left and inset --light at the bottom right, and both of those belong to the
+   page: on #d9b77a they land the wrong way round in both rooms -- tatami's
+   --dark is lighter than the wood, night's --light is darker than it -- so the
+   plate took a highlight where its shadow goes, which is the one invariant the
+   whole system rests on, inside out. Cutting them from --sh-ink/--sh-lite
+   instead (the .belt-band pattern) fixes tatami and not night, where --sh-lite
+   is a mid grey that still darkens the wood: measured, 0.500 -> 0.323 where a
+   highlight belongs. A material is not a surface. It gets an edge and nothing
+   else; the raised object around it is .stone-btn. */
+.stone-plate {
+  width: 100%; height: 46px; border-radius: 12px; background: var(--board);
+  box-shadow: inset 0 0 0 1px var(--belt-edge);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
 /* The set's name is the plate's title, so it is set like one: a room's name and
    a set's name have the same rank on this page. */
 .stone-name { font-family: var(--font-display); font-weight: var(--w-display-strong); font-size: 16px; line-height: 1.1; padding-inline-start: 2px; text-align: start; }
@@ -3571,5 +3644,129 @@ ${FONT_FACES}
     background: var(--ground); box-shadow: var(--raise-sm);
   }
   .moku-off > * { position: relative; }
+}
+
+/* ----------------------- THE RECORD ROOM -----------------------
+   The famous games shelf, the page for one game, and the column beside the
+   board while you walk it.
+
+   It borrows the journal's rhythm on purpose: a shelf of cards that go
+   somewhere, a page set as reading, and prose measured to about 66 characters
+   so a long study is a column rather than a wall. What it adds is the facts
+   list, which is the one part of this screen that is a table of numbers and
+   is set like one. */
+.fm-match { margin-top: 26px; }
+.fm-match-title {
+  margin: 0; font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: clamp(22px, 3vw, 30px); line-height: 1.16; color: var(--ink);
+}
+.fm-match-meta { margin: 0; }
+.fm-match-lede { margin: 0; max-width: 66ch; font-size: 15.5px; line-height: 1.62; color: var(--ink-2); }
+/* Two across where there is room, one where there is not. A famous game's card
+   carries a whole sentence of subtitle, so three across would set it too narrow
+   to read. */
+.fm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 6px; }
+/* The opacity leg is named because this block sits after .reveal in the sheet and
+   the two selectors weigh the same: a bare transition of transform and box-shadow here
+   drops .reveal's opacity fade, and the card snaps in instead of arriving. The
+   journal's card is identical code that happens to sit earlier, which is why it never
+   showed the fault. The transform leg stays at the hover speed on purpose - the card
+   slides up quickly and fades in slowly, which reads better than both at .7s. */
+.fm-card {
+  display: flex; flex-direction: column; gap: 8px; align-items: flex-start;
+  text-align: start; width: 100%; cursor: pointer; padding: 20px 22px;
+  transition: opacity .7s cubic-bezier(.2,.8,.2,1), transform .18s ease, box-shadow .18s ease;
+}
+.fm-card:hover { transform: translateY(-2px); }
+.fm-kicker {
+  font-family: var(--font-body); font-size: 12.5px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3);
+}
+.fm-title {
+  margin: 0; font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: clamp(17px, 2vw, 21px); line-height: 1.22; color: var(--ink);
+}
+.fm-dek { margin: 0; max-width: 46ch; font-size: 15px; line-height: 1.58; color: var(--ink-2); }
+.fm-meta { margin: 0; }
+.fm-more {
+  display: inline-flex; align-items: center; gap: 7px; margin-top: auto; padding-top: 6px;
+  color: var(--accent-ink); font-family: var(--font-body);
+  font-size: 12.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+}
+.fm-card:hover .fm-more { gap: 11px; }
+.fm-more span, .fm-more svg { transition: all .18s ease; }
+/* The chevron on this card points the way the language runs: it means "onward
+   through the shelf", not "forward through a record", so unlike the review
+   stepper it does mirror. */
+[dir="rtl"] .fm-more svg { transform: scaleX(-1); }
+
+/* ---- one game, set as a page ---- */
+.fm-notice p { margin: 0 0 10px; max-width: 66ch; }
+.fm-notice p:last-child { margin-bottom: 0; }
+.fm-page { max-width: 74ch; }
+.fm-h {
+  margin: 22px 0 0; font-family: var(--font-display); font-weight: var(--w-display-strong);
+  font-size: clamp(18px, 2.2vw, 22px); line-height: 1.2; color: var(--ink);
+}
+.fm-story { margin-top: 6px; }
+.fm-p { margin: 0 0 14px; max-width: 66ch; font-size: 16px; line-height: 1.7; color: var(--ink); }
+.fm-p:last-child { margin-bottom: 0; }
+/* The facts. A definition list because that is what it is, set in two columns
+   where there is room and stacked where there is not. */
+.fm-dl { margin: 0; display: grid; gap: 10px; }
+.fm-dl > div { display: grid; grid-template-columns: minmax(96px, 22%) 1fr; gap: 12px; align-items: baseline; }
+.fm-dl dt {
+  font-family: var(--font-body); font-size: 12px; font-weight: 700;
+  letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3);
+}
+.fm-dl dd { margin: 0; font-size: 15px; line-height: 1.5; color: var(--ink); }
+@media (max-width: 560px) {
+  .fm-dl > div { grid-template-columns: 1fr; gap: 2px; }
+}
+/* A quotation is somebody speaking, so it is set in the display face and
+   indented behind its mark, the way the pull quotes are. */
+.fm-quote {
+  position: relative; margin: 0;
+  padding-block: 14px; padding-inline: 34px 0;
+  border-inline-start: 2px solid var(--hairline);
+}
+.fm-quote > svg { position: absolute; inset-inline-start: 8px; top: 18px; color: var(--accent-ink); opacity: .7; }
+.fm-quote blockquote {
+  margin: 0 0 6px; max-width: 58ch; font-family: var(--font-display);
+  font-weight: var(--w-display); font-size: clamp(17px, 2.1vw, 21px);
+  line-height: 1.38; color: var(--ink);
+}
+.fm-quote figcaption { margin: 0; }
+/* The chapters, numbered, because a reader who has walked to move 140 wants to
+   know which of eight parts they are standing in. */
+.fm-chapters { margin: 0; padding: 0; list-style: none; counter-reset: fmch; }
+.fm-chapters li {
+  position: relative; counter-increment: fmch;
+  padding-block: 12px; padding-inline: 38px 0;
+  border-top: 1px solid var(--grid); display: flex; flex-direction: column; gap: 3px;
+}
+.fm-chapters li::before {
+  content: counter(fmch); position: absolute; inset-inline-start: 0; top: 13px;
+  font-family: var(--font-caption); font-size: 13px; color: var(--ink-3);
+}
+.fm-chapters strong { font-size: 15.5px; color: var(--ink); }
+/* Scoped to the body line rather than every span: a bare .fm-chapters span is
+   (0,1,1) and silently outranks .fm-chapter-at at (0,1,0), which flattened the
+   kicker to the body's size and colour wherever the two met. A plain override is a
+   no-op a text test still passes, so the narrower selector is the fix. */
+.fm-chapters li > span:last-child { font-size: 14.5px; line-height: 1.58; color: var(--ink-2); }
+.fm-chapter-at {
+  font-family: var(--font-body); font-size: 12px; font-weight: 700;
+  letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3);
+}
+.fm-sources { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+.fm-sources li { max-width: 66ch; }
+
+/* ---- the column beside the board ---- */
+.fm-phase { margin: 0; max-width: 46ch; font-size: 15px; line-height: 1.62; color: var(--ink-2); }
+.fm-seat {
+  margin: 0; display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--font-body); font-size: 13px; font-weight: 700;
+  letter-spacing: .04em; color: var(--accent-ink);
 }
 `;

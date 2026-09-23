@@ -5,7 +5,7 @@ export const look = {
     sub: "Tout ce qui est ici change l'allure de Joseki et rien ne change sa façon de jouer. Choisis la salle, choisis les pierres avec lesquelles tu veux jouer, choisis la typographie. Chaque échantillon est dessiné dans ce qu'il propose : choisis en regardant. La langue vit dans la barre du haut, où elle se trouve depuis n'importe quel écran.",
     room: {
       head: "La salle",
-      note: "Trois salles pour le même goban : une pour le jour, une pour le soir, et celle dans laquelle le mode revue lit une partie terminée. L'une d'elles peut suivre ton appareil, et tu peux toujours te construire une salle à toi. Une palette fixe la page, les deux lumières dont chaque ombre est découpée et la seule couleur qui veut dire ici. Le goban n'est pas une palette : les deux salles de jeu jouent sur le même bois, et la salle de revue imprime la partie sur sa page.",
+      note: "Deux salles pour le même goban : une pour le jour, une pour le soir. L'une comme l'autre peut suivre ton appareil, et tu peux toujours te construire une salle à toi. Une palette fixe la page, les deux lumières dont chaque ombre est découpée et la seule couleur qui veut dire ici. Le goban n'est pas une palette : les deux salles jouent sur le même bois. La salle dans laquelle on lit une partie terminée n'est pas sur cette page, car ce n'est pas un réglage : le mode revue apporte sa page imprimée avec lui et la remporte en partant.",
       pick: "Palette {name}",
       systemName: "Système",
       systemMood: "Automatique",

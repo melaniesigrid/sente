@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { Swords, GraduationCap, Target, LayoutDashboard, Medal, ArrowRight, Mail, CornerDownRight } from "lucide-react";
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from "react";
+import { Swords, GraduationCap, Target, LayoutDashboard, Medal, ArrowRight, Mail, CornerDownRight, History } from "lucide-react";
 import { sayingBySeed, localizeSaying } from "./content/classic.js";
 
 /* ================================================================
@@ -31,7 +31,7 @@ import { usePrefersDark } from "./components/prefersDark.js";
 import { LangProvider } from "./components/lang.jsx";
 import { LangPill } from "./components/LangPill.jsx";
 import { useLang } from "./components/langStore.js";
-import { defaultProfile, loadProfile, saveProfile, needsOnboarding } from "./store/profile.js";
+import { defaultProfile, loadProfile, saveProfile, needsOnboarding, withPlayer } from "./store/profile.js";
 import { pullProgress, withProgress } from "./store/sync.js";
 import { ACCOUNT_EVENT, ACCOUNT_KEY } from "./store/account.js";
 import { Home } from "./views/Home.jsx";
@@ -53,13 +53,33 @@ import { MailLinkView } from "./views/MailLink.jsx";
 import { LegalView } from "./views/Legal.jsx";
 import { DOCUMENTS, COPYRIGHT_YEAR, STUDIO, STUDIO_URL } from "./content/legal.js";
 import { JournalView } from "./views/Journal.jsx";
+/* The one screen that is loaded on demand. The record room carries fifteen studies -
+   about 47 KB gzipped of English prose nobody reads unless they open it - and it sits
+   behind a nav tab rather than on the way to anything. Everything else in src/content
+   is small enough, or on the path often enough, to belong in the first download. */
+const FamousView = lazy(() => loadFamous());
+/* React.lazy calls its factory once and keeps whatever it returns, a rejection
+   included, so a chunk that failed to arrive the first time fails for the rest of the
+   session. The retry lives inside the factory, before the promise React is holding
+   settles: one more attempt after a beat, which covers a moment offline and a deploy
+   landing mid-session. The specifier stays a literal so the bundler can still see it
+   and give this screen its own chunk. */
+function loadFamous(retry = false) {
+  return import("./views/Famous.jsx")
+    .then(m => ({ default: m.FamousView }))
+    .catch((e) => {
+      if (retry) throw e;
+      return new Promise(r => setTimeout(r, 400)).then(() => loadFamous(true));
+    });
+}
 import { linkFromQuery, forgetLink } from "./views/letterLink.js";
 import { Dock } from "./views/Dock.jsx";
 
 import { loadBox, unread } from "./store/sensei.js";
 import { useTrainerAccess } from "./views/useTrainer.js";
-import { loadAccount as loadStoredAccount } from "./store/account.js";
-import { api, serverEnabled as serverIsOn } from "./net/api.js";
+import { loadAccount as loadStoredAccount, saveAccount } from "./store/account.js";
+import { carryHouseGames } from "./store/carry.js";
+import { serverEnabled as serverIsOn, api } from "./net/api.js";
 
 /* ----------------------- APP SHELL ----------------------- */
 /* The nav names its sections by key, not by word: the chrome is read in the
@@ -75,6 +95,10 @@ const NAV = [
   { id: "joseki", icon: CornerDownRight },
   { id: "tsumego", icon: Target },
   { id: "ladder", icon: Medal },
+  /* The record room sits in the nav rather than inside Learn: fifteen famous games
+     with a note on every move that carries one is a place you visit, not a lesson
+     you are partway through. */
+  { id: "famous", icon: History },
 ];
 
 export default function JosekiApp() {
@@ -108,14 +132,35 @@ export default function JosekiApp() {
      playing" before their own name loaded, which is a worse first impression than
      the one onboarding is there to make. */
   const [profileRead, setProfileRead] = useState(false);
-  const pull = () => pullProgress().then((doc) => {
-    if (!doc) return;
+  /* Two things come down from the account: the progress document, merged,
+     and the rating, adopted. The rating is not merged because it is not two
+     things: house games are rated on the server too, so the account's trio
+     and record are the only ones, and this device reads them. The server's
+     copy of the player is asked for fresh, since an online game rated since
+     the last visit moved it without this browser hearing. */
+  const pull = async () => {
+    const account = loadStoredAccount();
+    /* The device's house games from before the account carried the rating
+       go up first, once (store/carry.js), so the player read back already
+       has them in it. */
+    const carriedPlayer = account ? await carryHouseGames(account) : null;
+    const [doc, player] = await Promise.all([
+      pullProgress(),
+      account ? (carriedPlayer ?? api.me(account.token).catch(() => null)) : null,
+    ]);
+    if (player && JSON.stringify(player) !== JSON.stringify(loadStoredAccount()?.player)) {
+      /* Saving announces the change, which calls this again: the second pass
+         finds the stored player equal to the fresh one and stops here. */
+      saveAccount({ token: account.token, player });
+    }
+    const adopt = player ?? account?.player ?? null;
+    if (!doc && !adopt) return;
     setProfile((cur) => {
-      const np = withProgress(cur, doc);
-      saveProfile(np);
+      const np = withPlayer(withProgress(cur, doc), adopt);
+      if (np !== cur) saveProfile(np);
       return np;
     });
-  });
+  };
   useEffect(() => {
     loadProfile().then((p) => {
       setProfile(p);
@@ -315,7 +360,7 @@ export default function JosekiApp() {
             <Welcome profile={profile} setProfile={setProfile}
               onFinish={(where) => go(where)} />
           ) : (<>
-          {view === "home" && <Home profile={profile} go={go} onResume={resumeGame} />}
+          {view === "home" && <Home profile={profile} go={go} onResume={resumeGame} notify={notify} />}
           {/* Keyed by the game asked for, so opening a second game from the archive or
               the dashboard remounts the table rather than leaving the first one up. */}
           {view === "play" && <PlayView key={(params && (params.gameId || params.withBot)) || "lobby"}
@@ -352,6 +397,14 @@ export default function JosekiApp() {
           {view === "dojo" && <DojoView profile={profile} setProfile={setProfile} notify={notify} go={go} room={room} />}
           {view === "legal" && <LegalView docId={params ? params.docId : null} onPick={(id) => go("legal", { docId: id })} />}
           {view === "journal" && <JournalView entryId={params ? params.entryId : null} go={go} />}
+          {/* Shelf or one game, the way the journal and the small print work: no id
+              is the shelf, an id is that game. The screen closes the board itself
+              when the id changes, so a second game opens at move zero. */}
+          {view === "famous" && (
+            <Suspense fallback={<p className="fine">{t("famous.loading")}</p>}>
+              <FamousView gameId={params ? params.gameId : null} profile={profile} go={go} />
+            </Suspense>
+          )}
           </>)}
         </ErrorBoundary>
       </main>

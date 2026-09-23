@@ -59,6 +59,7 @@ export const account = {
     signinFine: "Anmelden dauert einen Moment: der Browser erledigt die Arbeit, das Passwort zu beweisen, damit der Server es nie halten muss.",
     welcomeNew: "Willkommen auf der Rangliste, {name}.",
     welcomeBack: "Willkommen zurück, {name}",
+    first: "Jede Partie hier wird unter einem Konto gespielt, damit sie eine einzige Wertung trägt, wo immer du dich anmeldest. Melde dich an oder lege eines an, und das Brett gehört dir.",
   },
 
   full: {

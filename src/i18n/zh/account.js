@@ -59,6 +59,7 @@ export const account = {
     signinFine: "登录要花一点时间：证明密码这件苦力活由浏览器来干，好让服务器永远不必拿着它。",
     welcomeNew: "欢迎上榜，{name}。",
     welcomeBack: "欢迎回来，{name}",
+    first: "这里的每一局都在账号之下进行，这样无论你在哪里登录，评分都只有一个。登录，或者注册一个，棋盘就是你的。",
   },
 
   full: {

@@ -213,6 +213,16 @@ describe.each(others)("$name is complete", (locale) => {
     }
   });
 
+  /* Every palette, not only the ones the look page offers. `room.kifu.note`
+     has had no reader since the printed room left the picker (Look.jsx draws a
+     note for the selected room, and kifu cannot be selected), so this row is
+     asking nine languages to translate a string nothing renders today. It
+     stays on purpose: the note describes a room that still ships and that
+     every player is put into the moment they open a finished game, and the
+     room deserves a sentence in their language for the day review mode prints
+     one. Delete the note and you cannot add it back without a nine-language
+     errand. If review mode never shows it, drop the note from the palette and
+     narrow this loop to CHOOSABLE_ROOMS in the same change. */
   it("carries the prose the data files hold in English", () => {
     for (const p of PALETTES) expect(mine.get(`room.${p.id}.note`), `${locale.id}: room.${p.id}`).toBeTruthy();
     for (const s of STONE_SETS) {

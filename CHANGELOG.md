@@ -6,6 +6,97 @@ carries the npm-valid three-part form. This file starts at the first versioned r
 Entries before 2026-09-10 call the app `Sente`, which is what it was named until then.
 They are left as they were written rather than rewritten after the fact.
 
+## v0.21.0.0 (2026-09-21)
+
+### Added
+
+- **The deep corner: six tsumego from 1 kyu to 3 dan.** A fifth set in the collection, the
+  first boards above 2 kyu. Seven and eight points of eye space, a corridor along the edge,
+  a tail, and twice a black stone already standing inside the space. Every answer is
+  proved exhaustively on every build like the rest, and every rank is given by hand with a
+  note beside it saying what the grading model measured, because the model stops at 1 dan
+  and on four of the six boards the verdict does not settle inside its horizon at all.
+
+### Changed
+
+- **The prover is memoised.** A nine-point corner space used to take ten seconds a verdict
+  and now takes a tenth of one, with every shipped board and drill re-proved to the same
+  answer. The memo is careful about two things: a result that leaned on a repeated
+  position is never stored, and a stored result is reused only where at least as many
+  plies remain, so the reading depth the drill grader measures is unchanged.
+
+## v0.20.1.0 (2026-09-20)
+
+### Removed
+
+- **The printed review room is no longer something you can choose.** Kifu is the room a
+  finished game is read in -- ivory paper, terracotta for the move you are standing on --
+  and review mode has always brought it with it. It was also sitting in the look page's
+  room picker, where choosing it put the whole place on the page: the Play screen became a
+  diagram, and the stone picker beside it went on offering eight sets of stones while a
+  printed room drew ink and paper whatever was in the drawer. The picker now holds the two
+  table rooms, the one that follows your device, and whatever you built in the dojo. If you
+  had chosen Kifu, you are moved to Tatami, and your stones come back.
+
+### Fixed
+
+- **The stone drawer is usable in the dark again.** Every set's plate was drawn on the
+  page's own colour, so in Night the black stone of slate, plum, cinnabar and moss
+  disappeared into the charcoal and four of the nine sets looked identical. The plates are
+  drawn on the wood the stones will actually lie on.
+- **You can see which room and which stones you have chosen.** Each plate is drawn in the
+  room it is offering, so the ring around the chosen one was drawn in that room's colour
+  too -- in the dark room it vanished, while the unchosen light plates glowed beside it and
+  read as the selected one. The ring is the page's colour now, and so is the outline a
+  keyboard leaves when you tab onto a plate.
+- **The stone drawer stopped being squeezed into a strip.** On a desktop window the board
+  preview was taking eight hundred pixels for a three-hundred-pixel board and leaving the
+  nine stone plates a hundred and nineteen, which they overflowed. The board column is the
+  board's width, and the drawer gets the rest.
+- **The front door counts the rooms you can actually choose.** It said three; the page it
+  links to said two.
+
+## v0.20.0.0 (2026-09-19)
+
+### Added
+
+- **Fifteen famous games, walked move by move.** A new shelf holds the three matches that
+  changed what people thought a computer could do at go: AlphaGo against Fan Hui in
+  October 2015, against Lee Sedol in Seoul in March 2016, and the Future of Go Summit at
+  Wuzhen in May 2017. Every game opens as a page -- who was playing, where, under what
+  clock, what was at stake -- and then as a board you step through with the arrow keys.
+  3,159 moves, 790 of them with something written beside them, in 120 chapters.
+- **Somebody talking beside the board.** Stepping through a game is not the same as
+  understanding it, so each game is divided into chapters that say what the players were
+  trying to do, and 790 individual moves carry a note about that move: what it threatened,
+  why it was answered where it was, what the room made of it at the time. Move 37 of the
+  second Seoul game and move 78 of the fourth have the notes you would expect.
+- **Thirty-three things people said, with their names on them.** The quotes are attributed
+  and dated, and every game lists where its account comes from -- 38 sources across the
+  fifteen. The claims about what a move meant are somebody's reading, and the page says
+  whose.
+- **The pair go at Wuzhen, seat by seat.** In the game where Gu Li and Lian Xiao each
+  partnered a copy of AlphaGo, the side column names the hand that placed each stone and
+  which of the two machines it was, so you can watch a human move and a machine move
+  alternate inside the same colour.
+
+### Changed
+
+- Walking a long game is no longer slow. Two review helpers rebuilt the whole game from
+  move one inside their own loops, which on a 289-move record cost about 300ms on every
+  arrow key and another 230ms to open the room. Same positions, same numbers, a hundredth
+  of the work. Every review in the app gets this, not just the new shelf.
+- The record room loads when you open it rather than with everything else, so the fifteen
+  studies are not in the first download for a reader who never goes there.
+- A downloaded SGF is named after the game rather than `sente-game.sgf`, and opens with a
+  line saying the moves are nobody's and the words beside them are the Studio's.
+
+### Fixed
+
+- A shared review kept its conversation column even before anybody had spoken. It had been
+  handing the column to a commentary the moment the table was quiet, which is the state
+  every shared review starts in.
+
 ## v0.19.0.0 (2026-09-17)
 
 ### Fixed

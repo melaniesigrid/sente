@@ -17,8 +17,8 @@ is a snapshot: it will be wrong the week after somebody authors anything.
 - **52 lessons** over six tiers (10 / 9 / 10 / 10 / 7 / 6, Foundations to Dan) and seven
   tracks: life 15, judgement 10, tactics 7, shape 7, opening 5, middle game 5, endgame 3.
   Every position in every one of them is replayed by the engine on every build.
-- **19 tsumego** in four sets (capture and escape 4, shape 3, eye shapes 8, the corner 4),
-  running 25k to 2k. Every board is proved on every build: the stated answer has to be
+- **25 tsumego** in five sets (capture and escape 4, shape 3, eye shapes 8, the corner 4,
+  the deep corner 6), running 25k to 3d. Every board is proved on every build: the stated answer has to be
   exactly the set of moves that work.
 - **203 drills** beside them, running 23k to 3k, searched rather than written: three censuses
   under `tools/problems/` enumerate capturing positions, sealed eye spaces and fights where
@@ -80,6 +80,18 @@ lessons), and the middle game everywhere. Life and death below 15k was on this l
       after every save and pulled when the app opens and when somebody signs in. The server
       merges rather than overwrites, with the same pure function the browser uses, so two devices
       used apart lose nothing. Preferences stay on the device. The privacy notice says so.
+- [x] One rating, on the account (2026-09-20). A signed-in player used to carry two: the
+      device's, moved by house games in the browser, and the account's, moved by games between
+      people on the server, and the profile page showed both. Now a house game is rated onto
+      the account as well (`POST /api/me/house` takes who the house player was rated as and
+      how it went, and runs the same Glicko module), the shell adopts the account's trio and
+      record into the profile on every pull (`withPlayer`), and the rating left the progress
+      document. Every game waits for an account: the sign-in card is the first thing on the
+      dashboard and on Play when there is a server and no account. The terms and the privacy
+      notice say so, in all nine languages. `tools/server/house.mjs` proves the route. The
+      games played before the account are not lost: the device's ring buffer holds the last
+      fifty house games with rank, stones and result, and `src/store/carry.js` replays the
+      rated ones onto the account once, in order, through the same route (`{games:[...]}`).
 
 ## Phase 0: Foundation (done)
 
@@ -1274,6 +1286,43 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       it: a corner position from a real game rather than a chain with stones dropped beside
       it. That is a different generator, and the honest next attempt is to mine finished
       games for the shape rather than to enumerate toward it.
+- [x] The deep corner (2026-09-21, branch `feat/dan-problems`): a fifth set, six boards from
+      1 kyu to 3 dan, the first the collection has had above 2 kyu. Two things made it
+      possible and both are worth keeping.
+
+      The prover is memoised. `survives` was a plain exponential walk, and a nine-point
+      corner space took ten seconds a verdict, which put everything above six points out of
+      reach; it now takes about a tenth of a second, with the answers unchanged on every
+      board and drill the tests re-prove. The memo is the subtle part and its header says
+      why: a result that leaned on a position already on the path is only true in that
+      context and is never stored, a result cut off by the depth cap is never stored, and a
+      stored result is reused only where at least as many plies remain as when it was
+      found. That last clause is not a nicety. Without it `readingDepth` in `grade.mjs`
+      changed on six shipped drills, because a memo hit from a deeper start hid a horizon
+      the grader was measuring.
+
+      The census ran over a four-by-four box instead of four-by-three, and with one white
+      wall stone on the edge replaced by a black one, which is the hane the earlier
+      census never tried. Seven-point spaces with no defect are alive however Black plays,
+      as the drill work found; seven and eight points with the corner shaped by a run
+      along the edge, a tail, or a stone already inside are not, and the six boards are
+      the clean unique kills out of about 5,000 candidates, mirror images folded, ko-only
+      kills left out.
+
+      Decisions: the ranks are given by hand and every board says so in `rankNote`, the
+      convention `p15` set, because `grade.mjs` stops at 1 dan by construction and weighs
+      a ply of reading at a seventh of a rank. What the hand rank is read from is the fact
+      that on four of the six boards the verdict does not settle inside the grader's
+      24-ply horizon at all. The test holds the note to the form "Model Nk; ... Judged
+      Nd". The carpenter's square was tried and left out: with no outside liberties the
+      prover has White living, which agrees with the books (the basic form is a ko for
+      Black at best), and a ko the defender wins by default is not a problem this
+      collection can print. The eight-point census pass takes about an hour and its
+      output is not checked in; `tools/problems/shapes.mjs` still runs the four-by-three
+      box, and the four-by-four hane pass should be folded into it when it is next run.
+- [ ] The deep corner in the other eight languages. The six new boards and the set's own
+      two lines are in English everywhere until somebody writes them, which the overlay
+      rule allows and the parity suite does not mind.
 - [ ] The two families still unopened, and the bottom end. Capturing races, where the verdict
       is a count and not a search; and groups that are not yet sealed, where the answer is a
       hane or a descent on the second line. Below 23k there is still nothing, because a board
@@ -1329,6 +1378,58 @@ Decisions made in Phase 5, slice 1 (branch `feat/lesson-library`):
       board and the komoku lines it produced wandered out of the corner rather than
       settling in it.
 - [ ] Opening library for 9×9, where no joseki from the big board survives contact.
+
+## The record room (done 2026-09-19, branch `feat/famous-games`, v0.20.0.0)
+
+Fifteen famous games you can walk a move at a time, with Joseki's own note on the moves
+that carry one: AlphaGo against Fan Hui (London, October 2015), against Lee Sedol (Seoul,
+March 2016) and the Future of Go Summit (Wuzhen, May 2017), the pair go and the five-to-one
+team game included.
+
+- [x] **`tools/famous/import.mjs`** turns SGF into `src/content/famous/records.js`: moves and
+      nothing else. Several of the source files ship a professional's published match
+      commentary inside `C[]` and the tool cannot carry it, which is the mechanism that keeps
+      the rights rule true under a generator. It replays every game through the rules before
+      writing, refuses a record that does not start with black and alternate, and repairs the
+      one malformed shape seen in the wild (`(EV[` with no root semicolon) rather than
+      loosening the parser. 3,159 moves in 9.6 KB. It writes no ruleset: an SGF's `RU` field
+      is what one publisher typed -- five of the Wuzhen files say AGA for a summit played
+      under Chinese rules -- and the study beside the moves says what the match used.
+- [x] **The words are ours.** A game record is a fact and carries no rights; the commentary
+      published beside these games is in copyright and none of it ships. All 790 notes, the
+      fifteen ledes, the stories and the chapter headings were written for this shelf.
+      Players are quoted briefly, by name, with the day they said it, and `famous.test.js`
+      fails a quotation over 45 words or one without a name and a date.
+- [x] **One file per game** under `src/content/famous/`, indexed by `index.js`. A study is a
+      lede, a story, the quotations, the chapters and a map of move number to note;
+      `recordFor(id)` replays it and hangs each note on its own move, so the note under the
+      board is Review's own and no second review room exists.
+- [x] **`Review.jsx` grew three optional props and no knowledge of this screen**: `aside`
+      (a render function of the move number for the side column, which the shared table
+      still outranks), `openAt` (a game you have never seen opens at move 0, one you played
+      opens at the end), and `autoAnalyse` (a famous game does not start a network over 300
+      positions on somebody's phone uninvited; the button is right there).
+- [x] **Pair go knows whose hand it was.** The Wuzhen record says which of the four players
+      placed each stone; the importer keeps it as a roster and an index, refusing any comment
+      that is not a seat, and the side column names them. Both machines answer to one name
+      in the file, so the line says which side as well -- a human hand and a machine hand
+      taking turns inside one colour is the thing that game is worth watching for. Gu Li,
+      Lian Xiao, black AlphaGo, white AlphaGo, in strict rotation for 220 moves.
+- [x] Nav entry `famous`, chrome in all nine languages, the studies in English with the
+      journal's notice saying so in the reader's own. 22 content checks, 12 wording checks.
+- [x] **The shelf loads when you open it.** It is the one screen big enough and rare enough
+      to be worth its own chunk: 48 KB gzipped of English prose that a reader who never
+      opens the record room no longer downloads. The lazy factory retries once itself,
+      because `React.lazy` keeps a rejected promise for the life of the session.
+- [x] **Walking a long game stopped being slow**, for every review in the app and not just
+      this shelf. `moveNumbers` and `captureMoves` rebuilt the game from move one inside
+      their own loops: about 300ms on every arrow key and 230ms to open the room, on a
+      289-move record. They carry the position forward now.
+- [ ] Later: link a famous game from the lesson that teaches its shape, and from a master's
+      page. The shelf stands alone today and does not know the rest of the library exists.
+- [ ] Later: more games, and older ones. Everything here is one program against four people
+      over nineteen months; the shelf is called the record room and holds no game played
+      before 2015.
 
 ## Phase 6: Masters and books
 
@@ -1843,6 +1944,89 @@ Decisions:
   the screen where it could be fixed.
 - Nothing reads an address to guess a country. A guess is wrong for everybody who travels,
   and it would turn a thing somebody said into a thing we worked out about them.
+## The look page tells the truth (done 2026-09-20, v0.20.1.0, branch `feat/look-pass`)
+
+Four things wrong on one screen, three of them visible only in a browser and one of them
+only in the dark room.
+
+- [x] **The printed room left the picker.** Offering Kifu as a preference let somebody sit
+      down in it, and a printed room is not a table: the Play screen became a diagram, and
+      the stone picker beside it went on offering eight sets while `print` drew ink and
+      paper whatever was in the drawer. `roomsFor` filters `REVIEW_THEME`; the picker is
+      the two table rooms, the device, and the dojo. Kifu is untouched as a palette and is
+      still every bit of `Review.jsx`'s room.
+- [x] A stored `kifu` migrates to `tatami` through the same `RETIRED` map the ten old rooms
+      use. A light page stays a light page, and the player's own stone set comes back.
+- [x] **The drawer was squeezed into 119px.** `.look-stones`' first track was
+      `minmax(0, auto)`, which means "as wide as the widest thing in this column" — and
+      that was not the board, it was the contrast sentence under it, whose max-content is
+      one long unwrapped line. Measured at 1280px: tracks of 802px and 119px, four hundred
+      pixels of nothing under a 340px board, and plates that still drew themselves 150px
+      wide and hung 30px out over the card. The track is `--look-board` now, written on the
+      element from the same `PREVIEW_PX` the view hands the Board, so the two cannot drift.
+- [x] **A stone plate is a well with the wood in it.** Drawn on the button's `--ground`,
+      every set's black stone vanished in Night: slate, plum, cinnabar and moss all came
+      out as one white dot on charcoal and the drawer stopped being a picker. The wood is
+      what the pair is going to lie on and the only ground they are both legible against.
+- [x] **The page says which plate is chosen, not the plate.** Every plate wears a different
+      room's tokens, so a ring cut from `--accent-ring` was cut from whatever room that
+      plate is: in Night the selected dark plate drew a faint charcoal ring at .32 alpha
+      while the unselected light plates blazed beside it, and selection read as the wrong
+      plate. `--pick-ring`/`--pick-gap` are declared on the row — the last element still
+      wearing the page's own tokens — so children inherit a computed colour no inline
+      `--accent-rgb` can reach.
+- [x] Nine languages: the room note said "three rooms" and now says two, and says why the
+      third is not on the page.
+- [x] The profile's decorative strip shows the same rooms the picker offers.
+
+Decisions:
+- The contrast sentence's number is right and was left alone. `STONE_RULE` measures black
+  against white, which is a question about the set and not about the room, so 15.3:1 in
+  every room is the truth. `BOARD_RULES` asks the question that does change — the black
+  stone against the wood — and the look page still does not print it. The dojo does.
+- The dojo's "start from a room" strip still offers Kifu, and should: copying a palette's
+  tones into the editor is not sitting down in it, and `sanitizePalette` keeps tones only,
+  so a room built from it is a table room.
+- `platePalette`'s `print: false` is kept as a guard rather than deleted. Nobody can be
+  standing in a printed room while reading this page any more, so it corrects nothing
+  today; it is what would quietly break if a printed room were ever made choosable again.
+
+What the pre-landing review added, because three of the fixes were themselves wrong:
+
+- [x] **A material does not wear the page's light.** `.stone-plate` took the wood and kept
+      `--sink-sm`, whose two insets are the page's: on #d9b77a they land the wrong way
+      round in BOTH rooms, so the plate had a highlight where its shadow goes -- the one
+      invariant the system rests on, inverted. `--sh-ink`/`--sh-lite` (the `.belt-band`
+      pattern) fixes tatami and not night, where `--sh-lite` is a mid grey that still
+      darkens the wood: measured, 0.500 -> 0.323. The wood now takes an edge and no shadow,
+      which is what `.board-well` already settled.
+- [x] **The ring went back to 2px, and the keyboard got its own band.** 5px of accent is
+      exactly where `:focus-visible` paints (3px at offset 2px), in nearly the same hue, so
+      tabbing onto the chosen plate swapped one accent band for another. What fixed the
+      original bug was the token, not the width. One layer out, the outline's *colour* had
+      the same fault: `--accent-ink` resolves on the focused plate, which wears another
+      room's tokens, so the Night plate outlined at 2.14:1 on the Tatami page against a 3:1
+      floor. `--pick-focus` joins `--pick-ring` on the row.
+- [x] **The rule left the view.** `choosableRooms()` decided which palettes a profile may
+      hold from inside a screen, and the store's own test had begun importing a view to
+      reach it. It is `CHOOSABLE_ROOMS` in palettes.js, a constant; `PREVIEW_PX` moved to
+      tokens.js beside `BOARD` for the same reason.
+- [x] The front door counted the un-offered room (three reviewers found it independently);
+      `RETIRED` became `MOVED`, since kifu is un-offered rather than retired, and
+      `migrateThemeId` stopped walking the prototype chain; the profile strip's callback
+      shadowed the translator `t` and is now memoised on the stone set.
+- [x] Two of the new tests were theatre: a source scan satisfied by a comment that merely
+      named `CHOOSABLE_ROOMS`, and a local that restated the implementation character for
+      character while calling itself a second opinion. Both now fail when the bug is put
+      back.
+
+Decisions taken during the review:
+- `isThemeId` still accepts `kifu`, so migrate-before-validate in `sanitizeProfile` is the
+  single guard. A second enforcement point would make a palette that still ships fail its
+  own validator. The latent state is named in a comment in `look.test.js`.
+- `room.kifu.note` stays translated in nine languages although nothing renders it today.
+  The room still ships and every player is put in it the moment they open a finished game;
+  deleting the note is a nine-language errand to undo. `i18n.test.js` says why.
 
 ## One drawing of a stone (done 2026-09-16, branch `feat/big-stones`)
 

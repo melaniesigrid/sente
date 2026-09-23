@@ -9,7 +9,7 @@ export const look = {
     sub: "Everything here changes how Joseki looks and nothing here changes how it plays. Pick the room, pick the stones you want to play with, pick the type. Every swatch is drawn in the thing it is offering, so choose by looking. The language lives in the top bar, where it can be found from any screen.",
     room: {
       head: "The room",
-      note: "Three rooms for the same board: one for daylight, one for the evening, and the one review mode reads a finished game in. One of them can follow your device, and you can still build a room of your own. A palette sets the page, the two lights every shadow is cut from, and the one colour that means here. The board is not a palette: the two table rooms play on the same wood, and the review room prints the game on its page.",
+      note: "Two rooms for the same board: one for daylight, one for the evening. Either can follow your device, and you can still build a room of your own. A palette sets the page, the two lights every shadow is cut from, and the one colour that means here. The board is not a palette: both rooms play on the same wood. The room a finished game is read in is not on this page, because it is not a preference: review mode brings its printed page with it and takes it away again.",
       pick: "Palette {name}",
       systemName: "System",
       systemMood: "Automatic",

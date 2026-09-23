@@ -251,6 +251,31 @@ describe.each(SEARCHED)("the search on %s", (id, prob, found) => {
   });
 });
 
+/* ----------------------- A RANK GIVEN BY HAND -----------------------
+   The model in `grade.mjs` stops at 1 dan and cannot see an idea, so a board
+   ranked above what a bounded search can measure has to say what the model
+   measured beside the rank it was given. That is the `rankNote` convention
+   `p15` set, and the deep corner set lives on it. */
+describe("the deep corner", () => {
+  const deep = problemsInSet("deep");
+  it("carries a note on every rank, because none of them was measured", () => {
+    expect(deep.length).toBeGreaterThanOrEqual(6);
+    for (const p of deep) {
+      expect(p.rankNote, p.id).toMatch(/^Model [0-9]+k/);
+      expect(p.rankNote, p.id).toMatch(/Judged [0-9][kd]/);
+    }
+  });
+
+  it("is where the collection gets bigger than the shape census could reach", () => {
+    for (const p of deep) {
+      const found = bounded(setupToBoard(p.setup, SIZE));
+      expect(found, p.id).not.toBeNull();
+      expect(found.region.length, p.id).toBeGreaterThanOrEqual(6);
+    }
+    expect(Math.max(...deep.map(p => bounded(setupToBoard(p.setup, SIZE)).region.length))).toBe(8);
+  });
+});
+
 /* ----------------------- THE CLAIM p15 MAKES -----------------------
    "The same bend out on the edge is alive." A sentence the engine could check
    and nobody checked is the failure this whole file exists to stop, so it is

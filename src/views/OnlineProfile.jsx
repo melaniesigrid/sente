@@ -17,11 +17,12 @@ import { useT, useLocale } from "../components/langStore.js";
    and three short facts. It is small on purpose: the few things one player
    wants to know about another before sitting down, not a page about a person.
 
-   This is the account's profile, which is a different thing from the local
-   profile above it: the local one is this device's name and tint and lives in
-   `localStorage`, and this one is on the server and follows you to any device
-   you sign in on. The card says which is which rather than hoping nobody
-   notices two names for the same idea. */
+   This is the account's card, on the server, and it follows you to any device
+   you sign in on. The name and tint above it are this device's and live in
+   `localStorage`; the rank is not two things, though. House games are rated
+   onto the account as well (`api.houseGame`), and the profile adopts the
+   account's figure (`withPlayer`), so the badge here and the badge on the
+   hero read the same number. */
 export function OnlineProfileCard({ account, setAccount, notify }) {
   const t = useT();
   const { tag } = useLocale();

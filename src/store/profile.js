@@ -162,6 +162,28 @@ export function sanitizeProfile(raw) {
   return out;
 }
 
+/* ----------------------- ONE RATING -----------------------
+   A signed-in player's rating is the account's. The house games are rated on
+   the server too (`api.houseGame`), so the number here and the number there
+   are one number, and this is how the account's copy is read back into the
+   device: the trio, the record, nothing else. What you prefer stays yours. */
+const clamp2 = (v, a, b) => Math.min(b, Math.max(a, v));
+const num = (v, d) => (typeof v === "number" && Number.isFinite(v) ? v : d);
+export function withPlayer(profile, player) {
+  if (!player || typeof player !== "object") return profile;
+  const next = {
+    ...profile,
+    // Rounded first, then clamped: the ladder's ends are not whole numbers.
+    rating: clamp2(Math.round(num(player.rating, profile.rating)), MIN_RATING, MAX_RATING),
+    rd: clamp2(Math.round(num(player.rd, profile.rd)), GLICKO.minRd, GLICKO.maxRd),
+    vol: clamp2(num(player.vol, profile.vol), 0.01, 0.5),
+    wins: Math.max(0, Math.round(num(player.wins, profile.wins))),
+    losses: Math.max(0, Math.round(num(player.losses, profile.losses))),
+  };
+  const same = ["rating", "rd", "vol", "wins", "losses"].every((k) => next[k] === profile[k]);
+  return same ? profile : next;
+}
+
 /** How v2 read a rating: a hundred points to a rank, 3000 the first dan, kyu
  *  rounded and dan floored. Kept here, and only here, so old saves can be read. */
 const legacyRankOf = (r) => (r < 3000

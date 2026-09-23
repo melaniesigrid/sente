@@ -3,7 +3,7 @@ import { sanitizeProfile, defaultProfile, restoreSound, UNMUTE_KEY } from "./pro
 import { DEFAULT_TYPEFACE } from "../content/typeface.js";
 import { rankOf } from "../content/rank.js";
 import { GLICKO, isProvisional } from "../engine/index.js";
-import { SYSTEM_THEME, HOUSE_THEME, DOJO_THEME, AUTO_STONES } from "../theme/index.js";
+import { SYSTEM_THEME, HOUSE_THEME, DOJO_THEME, REVIEW_THEME, CHOOSABLE_ROOMS, AUTO_STONES } from "../theme/index.js";
 import { SYSTEM_LOCALE } from "../i18n/index.js";
 
 let warn;
@@ -204,6 +204,20 @@ describe("the stored palette", () => {
     expect(sanitizeProfile({ ...defaultProfile, theme: "house" }).theme).toBe(SYSTEM_THEME);
   });
 
+  /* The printed room left the picker on 2026-09-16, and a profile parked in it
+     has to come out on the way in. It is not a corrupt field and not a retired
+     room: it is a preference for somewhere nobody can sit any more, so it is
+     carried to the light table room and it is carried quietly. Left where it
+     was, the look page would draw no chosen plate at all, because the room the
+     profile is sitting in is not one of the plates. */
+  it("carries a profile parked in the printed room into a room it can sit in", () => {
+    const out = sanitizeProfile({ ...defaultProfile, theme: REVIEW_THEME });
+    expect(out.theme).toBe("tatami");
+    expect(CHOOSABLE_ROOMS.some(p => p.id === out.theme),
+      "and lands on a room somebody is allowed to sit in").toBe(true);
+    expect(warn, "a preference carried forward is not a complaint").not.toHaveBeenCalled();
+  });
+
   // A set of stones is a preference of its own, kept apart from the room: a
   // player who likes ivory keeps ivory through every room they walk into.
   it("ships letting each room choose its own stones", () => {
@@ -281,5 +295,33 @@ describe("restoreSound", () => {
   it("marks the device even when there was nothing to change", () => {
     restoreSound({ ...defaultProfile, sound: true });
     expect(localStorage.getItem(UNMUTE_KEY)).toBe("1");
+  });
+});
+
+/* ----------------------- ONE RATING -----------------------
+   The account's rating read into the profile: the trio and the record, and
+   nothing the player prefers. See withPlayer in profile.js. */
+import { withPlayer } from "./profile.js";
+import { MIN_RATING, MAX_RATING } from "../content/rank.js";
+
+describe("withPlayer", () => {
+  const p = { ...defaultProfile, name: "Ada", rating: 1000, rd: 200, vol: 0.06, wins: 2, losses: 2, streak: 4 };
+  it("adopts the trio and the record and leaves everything else alone", () => {
+    const out = withPlayer(p, { rating: 1234.4, rd: 80.6, vol: 0.05, wins: 5, losses: 1, name: "Not Ada", tint: "x" });
+    expect(out).toMatchObject({ rating: 1234, rd: 81, vol: 0.05, wins: 5, losses: 1, name: "Ada", streak: 4 });
+  });
+  it("is the same object when nothing would change, so a save is not provoked", () => {
+    expect(withPlayer(p, { rating: 1000, rd: 200, vol: 0.06, wins: 2, losses: 2 })).toBe(p);
+    expect(withPlayer(p, null)).toBe(p);
+    expect(withPlayer(p, "x")).toBe(p);
+  });
+  it("keeps a field the player does not carry and clamps one that is off the ladder", () => {
+    const out = withPlayer(p, { rating: MAX_RATING + 500, rd: 1, wins: -3 });
+    expect(out.rating).toBe(MAX_RATING);
+    expect(out.rd).toBe(GLICKO.minRd);
+    expect(out.wins).toBe(0);
+    expect(out.losses).toBe(2);
+    expect(out.vol).toBe(0.06);
+    expect(withPlayer(p, { rating: MIN_RATING - 1 }).rating).toBe(MIN_RATING);
   });
 });

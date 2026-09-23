@@ -16,6 +16,7 @@ vi.mock("./DashboardCard.jsx", () => ({ DashboardCard: ({ account }) => <div>das
 /* The roll is about everybody else and has its own suite; this one is about
    the dashboard and the trainer. */
 vi.mock("./RollCard.jsx", () => ({ RollCard: () => null }));
+vi.mock("./AccountGate.jsx", () => ({ AccountGate: () => <div>gate</div> }));
 /* The demo board is a clock and a network, both tested in its own suite. Here
    it only has to hand back the one thing the dashboard reads off it: which
    engine settled in. `mini` is the props it was given, so a test can answer. */
@@ -79,9 +80,9 @@ describe("the tsumego dashboard tile", () => {
   it("stays on the last set once every problem is solved", () => {
     show({ problemsDone: PROBLEMS.map(p => p.id) });
 
-    const tile = screen.getByText("The corner").closest("button");
+    const tile = screen.getByText("The deep corner").closest("button");
     expect(tile).toBeTruthy();
-    expect(stat(tile).textContent).toBe("4/4");
+    expect(stat(tile).textContent).toBe("6/6");
   });
 });
 
@@ -108,6 +109,26 @@ describe("the trainer mailbox", () => {
     loadAccount.mockReturnValue({ player: { name: "Ada" } });
     rerender(<Home profile={profile()} go={() => {}} onResume={() => {}} />);
     expect(screen.getByText("dashboard:Ada")).toBeTruthy();
+  });
+
+  /* Every game is played under an account, so the door is the first thing a
+     signed-out visitor meets, above the hero. Signed in, there is no door;
+     with no server, there is nothing to sign in to and no door either. */
+  it("puts the sign-in card first when there is a server and no account, and nowhere otherwise", () => {
+    serverEnabled.mockReturnValue(true);
+    const { container, rerender } = render(<Home profile={profile()} go={() => {}} onResume={() => {}} />);
+    const gate = screen.getByText("gate");
+    const hero = container.querySelector(".hero");
+    expect(gate.compareDocumentPosition(hero) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    loadAccount.mockReturnValue({ player: { name: "Ada" } });
+    rerender(<Home profile={profile()} go={() => {}} onResume={() => {}} />);
+    expect(screen.queryByText("gate")).toBe(null);
+
+    loadAccount.mockReturnValue(null);
+    serverEnabled.mockReturnValue(false);
+    rerender(<Home profile={profile()} go={() => {}} onResume={() => {}} />);
+    expect(screen.queryByText("gate")).toBe(null);
   });
 });
 

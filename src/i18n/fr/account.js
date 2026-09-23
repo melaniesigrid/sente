@@ -59,6 +59,7 @@ export const account = {
     signinFine: "Ouvrir une session prend un instant : le navigateur fait le travail de prouver le mot de passe pour que le serveur n'ait jamais à le détenir.",
     welcomeNew: "Bienvenue au classement, {name}.",
     welcomeBack: "Te revoilà, {name}",
+    first: "Toute partie ici se joue sous un compte, pour qu'elle porte un seul classement où que tu te connectes. Connecte-toi, ou crée un compte, et le plateau est à toi.",
   },
 
   full: {

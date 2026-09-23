@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { Check, Pencil, Trophy, Flame, Sparkles, Sparkle, Swords, GraduationCap, Target, Award, Volume2, Eye, CalendarCheck, Mountain, Palette, Grid3x3, Dot, Hammer, History, Trash2, KeyRound, VenetianMask, Flag } from "lucide-react";
 import { Card, Btn, Pill, Avatar, ArchetypeMark, CountryFlag, RankBadge, BeltRibbon, Toggle, PullQuote, Statement } from "../components/ui.jsx";
 import { ARCHETYPES, NO_ARCHETYPE, archetypeOf, localizeArchetype } from "../content/archetypes.js";
@@ -12,7 +12,7 @@ import { TINTS, rankOf, preciseRankOf, beltOf, beltLabel, nextBelt, hintsFor, hi
 import { MARKS } from "../store/profile.js";
 import { typefaceOf } from "../content/typeface.js";
 import { setName } from "./look.js";
-import { PALETTES, themeOf, themeVars, SYSTEM_THEME, stoneSetOf } from "../theme/index.js";
+import { CHOOSABLE_ROOMS, themeOf, themeVars, SYSTEM_THEME, stoneSetOf } from "../theme/index.js";
 import {
   LEVELS, levelForRank, chapterByNumber,
   localizeLevel, localizeChapter, localizeClassic, belowTheLevels,
@@ -301,6 +301,14 @@ function CountryCard({ profile, commit, account, setAccount, notify }) {
 export function ProfileView({ profile, setProfile, go, room, notify, writeTo = null, askDiagram = null }) {
   const t = useT();
   const { tag } = useLocale();
+  /* The plate strip, derived once per stone set rather than once per keystroke.
+     A token set costs two binary searches and a pair of contrast walks, and
+     this screen re-renders on every character typed into the name field; the
+     look page memoises its own rows for exactly this reason. */
+  const strip = useMemo(
+    () => CHOOSABLE_ROOMS.map(p => ({ id: p.id, vars: themeVars(p.id, null, profile.stones) })),
+    [profile.stones],
+  );
   // The account's card, when there is an account. Two profiles sound like one
   // too many, so each says what it is: this device's, and the server's.
   const [account, setAccount] = useState(() => (serverEnabled() ? loadAccount() : null));
@@ -490,10 +498,18 @@ export function ProfileView({ profile, setProfile, go, room, notify, writeTo = n
           })}
           {profile.theme === SYSTEM_THEME ? t("profile.look.following") : ""}
         </p>
+        {/* The same rooms the look page offers and no others: this strip is
+            decoration, but it is decoration that says "there are rooms, and
+            this many", and the button under it goes straight to the picker.
+            The review room is not a room a profile may hold (CHOOSABLE_ROOMS),
+            so it is not here either.
+
+            `p`, not `t`: the callback used to shadow the translator this very
+            card calls three lines up, so the first person to put a label on a
+            chip would have called a palette. */}
         <div className="look-strip" aria-hidden="true">
-          {PALETTES.map(t => (
-            <span key={t.id} className="theme-plate look-chip"
-              style={themeVars(t.id, null, profile.stones)}>
+          {strip.map(p => (
+            <span key={p.id} className="theme-plate look-chip" style={p.vars}>
               <span className="theme-stone b" />
               <span className="theme-stone w" />
               <span className="theme-mark" />
