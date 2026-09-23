@@ -35,7 +35,7 @@ describe("the problems set summary", () => {
       />,
     );
 
-    expect(document.body.textContent).toContain("1 set of 4 finished.");
+    expect(document.body.textContent).toContain("1 set of 5 finished.");
   });
 
   it("uses the plural form once more than one set is finished", () => {
@@ -51,7 +51,7 @@ describe("the problems set summary", () => {
       />,
     );
 
-    expect(document.body.textContent).toContain("2 sets of 4 finished.");
+    expect(document.body.textContent).toContain("2 sets of 5 finished.");
   });
 });
 

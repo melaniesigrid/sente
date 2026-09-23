@@ -77,9 +77,9 @@ describe("the tsumego dashboard tile", () => {
   it("stays on the last set once every problem is solved", () => {
     show({ problemsDone: PROBLEMS.map(p => p.id) });
 
-    const tile = screen.getByText("The corner").closest("button");
+    const tile = screen.getByText("The deep corner").closest("button");
     expect(tile).toBeTruthy();
-    expect(stat(tile).textContent).toBe("4/4");
+    expect(stat(tile).textContent).toBe("6/6");
   });
 });
 
