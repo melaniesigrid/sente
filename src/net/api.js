@@ -186,8 +186,38 @@ export const api = {
      write to them, so a page can offer the box or say plainly why not. */
   letters: (token) => call("/api/me/letters", { token }),
   thread: (token, id) => call(`/api/me/letters/${encodeURIComponent(id)}`, { token }),
-  write: (token, id, text) =>
-    call(`/api/me/letters/${encodeURIComponent(id)}`, { method: "POST", token, body: { text } }),
+  /* A letter may carry a position as well as words, and either one on its own
+     is something said: a board can be the whole message. */
+  write: (token, id, text, diagram = null) =>
+    call(`/api/me/letters/${encodeURIComponent(id)}`, { method: "POST", token, body: { text, diagram } }),
+  /* Answering that position by playing on it. The browser checks the move
+     first so the board can refuse it without a round trip; the server checks
+     it again with the same function, because this browser is not the one the
+     other person is holding. */
+  playInLetter: (token, id, c, r, text = "") =>
+    call(`/api/me/letters/${encodeURIComponent(id)}/move`, { method: "POST", token, body: { c, r, text } }),
+  /* How many threads hold something unread, and saying you have read one.
+     `unread` is asked on nearly every screen and opens no thread at all: the
+     cursor is in the index, so the number costs one list. `markRead` moves
+     only your own row — nothing is written to the other person's shelf and
+     nothing tells them you opened it. */
+  unread: (token) => call("/api/me/unread", { token }),
+  markRead: (token, id) =>
+    call(`/api/me/letters/${encodeURIComponent(id)}/read`, { method: "POST", token }),
+  /* What happened here lately. Readable signed out, where it is plain
+     recency; signed in, closeness sorts it. */
+  roll: (token) => call("/api/roll", { token }),
+  /* One more look at a game on the roll. The token is checked and dropped:
+     the tally names nobody, and asking for one keeps the counter out of reach
+     of anything that is not a player here. */
+  noteView: (token, gameId) => call(`/api/roll/${encodeURIComponent(gameId)}/view`, { method: "POST", token }),
+  /* Push. `push` says whether the server can send at all and hands out the
+     public key; the other two file and forget this browser's address. The
+     address is all that is sent: the keys a subscription carries are for
+     encrypting a payload, and there is no payload. */
+  push: () => call("/api/push"),
+  subscribePush: (token, endpoint) => call("/api/me/push", { method: "PUT", token, body: { endpoint } }),
+  unsubscribePush: (token, endpoint) => call("/api/me/push", { method: "DELETE", token, body: { endpoint } }),
   setBlocked: (token, id, on) =>
     call(`/api/me/blocked/${encodeURIComponent(id)}`, { method: on ? "PUT" : "DELETE", token }),
 

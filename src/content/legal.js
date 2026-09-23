@@ -50,8 +50,8 @@ export const COPYRIGHT = `© ${COPYRIGHT_YEAR} ${STUDIO}`;
    its own; what it can do is make it impossible to change a word without
    being stopped and handed the line where the date lives. */
 export const REVISION = {
-  updated: "20 September 2026",
-  stamp: "7d11ed5f",
+  updated: "23 September 2026",
+  stamp: "a22fb107",
 };
 
 /** The day the documents last changed. */
@@ -59,7 +59,7 @@ export const UPDATED = REVISION.updated;
 /** The same day, machine-readable, so each language can set it its own way:
  *  "12 September 2026" in English, "12 de septiembre de 2026" in Spanish. The
  *  two are held in step by `legal.test.js`. */
-export const UPDATED_ISO = "2026-09-20";
+export const UPDATED_ISO = "2026-09-23";
 
 /* ---------------------------------------------------------------- credits */
 /* Everything in the build that somebody else made, with the terms it comes
@@ -216,6 +216,7 @@ const PRIVACY = {
       paras: [
         "There is no analytics script, no advertising network, no tracking pixel and no cookie of any kind. Joseki has never counted a visit.",
         "Since 11 September 2026 the server does keep a tally of its own. Once a day it writes down how many handles exist, how many were made that day, how many games were started, how many finished, and the most people who were in the lobby at once. That is six numbers and a date, nobody is named in any of them, and they are kept for 365 days. A game is not a visit and an account is not a visit, so the sentence above still holds: read every page here and never sit down at a board, and you will not appear in any of those numbers.",
+        "Since 23 September 2026 the roll of finished games on the dashboard also carries, beside each game, a count of how many times somebody signed in opened that game from the roll. It is one whole number on the row and nobody is named in it: not who opened it, not when, not from where, and not for how long. Opening it while signed out adds nothing, because the server asks for a handle before it counts and then keeps nothing about whose it was. A count of looks at one game is not a count of visits, and it is said here in a sentence of its own because this notice promised that anything new would be.",
         "Play by yourself and nothing leaves your device. Play against people and the server keeps the handful of things listed below, because a game between two people cannot happen without them.",
       ],
     },
@@ -249,7 +250,11 @@ const PRIVACY = {
         "A way to look up your handle: each word of it, folded to lower case with the accents and punctuation taken out, kept beside your record so that another player typing part of it can find you. It is made from the handle you chose and from nothing else, it is rewritten when you change your handle and deleted when you leave, and only somebody who has a handle here can search it. A search answers with at most twenty people and never with a count, so it cannot be paged through to read out who plays here.",
         "The invitations to a game between you and another player: who asked whom, the board, the handicap, whether it counts, and when it was asked. One row on each of your records, seen by the two of you and by nobody else, gone the moment either of you answers it, and gone by itself a day after it was written. Only somebody you have agreed to be friends with, or finished a game against, can ask you at all, and declining one deletes it and tells the person who asked nothing.",
         "The letters you and another player have written to each other. One thread a pair, keeping the last hundred, readable by the two of you and by nobody else. Only somebody you have agreed to be friends with, or finished a game against, can write to you at all, and you can stop any of them writing again without their being told. There is no list anybody can be added to and nothing to unsubscribe from, because there is nothing to be on. A club is a list, and it stays inside that sentence the only way it can: nobody is put into one, they walk in.",
+        "How far you have read in each of those threads: one date on your own row, moved when you open a thread. It is what the number on the post box in the top bar is counted from. Whether the person who wrote to you is told is a switch on your own record, off until you turn it on. On, that date is copied onto their row so their page can say \"Seen\" under the last of their letters you have read; off, nothing is copied, and anything copied before is taken back. It is your switch and never theirs, and the two states of a thread whose reader never turned it on and one whose reader turned it off look exactly alike.",
+        "If you asked to be told when a letter arrives: an address for each browser you asked on, up to five, minted by that browser's push service and meaning nothing outside it. What is sent to that address is empty: a signal that there is post, carrying neither the letter nor who wrote it, so the push service learns that something arrived and nothing more. Turning it off in a browser removes that browser's address, a browser the service says is gone is removed by itself, and leaving removes them all. Nothing is sent to anybody who did not ask.",
+        "That you and another player have finished a game together: one row on each of your records holding nothing but that fact — no date, no result, no count of how many. It is what lets the server answer \"may this person write to you\" without reading through your games, and it is read from nowhere else and shown to nobody. Everything else about those games is in the index of finished games described above. It goes when either of you leaves.",
         "The games you chose to show on your page, at most three, each with a line of up to 140 characters that you wrote. Both are public, because the page is. Taking a game off your page removes the line with it.",
+        "A roll of the last four hundred finished games on the server, one row each, holding what the index of finished games holds: the date, the board, who played and the result. It is what the dashboard shows so that a player arriving after a day away can see the club was here. Older rows fall off the bottom. Which of them you are shown first is worked out from what you already have with the people in them — whether you have played them, are friends with them, or have written to them — and from nothing else. Beside each row is the count described in the short version above: how many times somebody signed in opened that game from the roll, as one whole number that names nobody, records no time and no place, never changes the order, and falls off with the row.",
         "Which of the three answers you gave to who may see that you are here: nobody, your friends, or anybody. One word on your record, and not on the ladder, so reading the ladder cannot tell you who has chosen to be invisible.",
         "The address you registered from, kept so that leaving gives back the account it spent, shown to nobody, and deleted with the account.",
         "Your progress, once you sign in with an address: which lessons, problems and drills you have finished, your recall schedule, the days you practised and the runs they make, and your kata and duel records. It is sent when it changes and read when you sign in on another device, and the two are merged, never one written over the other. Your rating is not in it: the rating is the account's own, and a game against a house player is rated onto it exactly as a game against a person is. What the board tells the server about such a game is who the house player was rated as and whether you won, and nothing else about it. Leaving deletes all of this."
@@ -284,13 +289,14 @@ const PRIVACY = {
       list: [
         "Cloudflare runs the game server and posts the two letters. Everything the server keeps sits on their network, which spans countries outside Canada.",
         "GitHub serves the app itself, through GitHub Pages, and their servers see the request that fetches it.",
-        "Nobody else. Every typeface is served from Joseki itself rather than from a font CDN, so opening a page here tells no third party that you did. There is no third party, and no arrangement with one.",
+        "Your browser's push service (Google's, Apple's or Mozilla's, depending on the browser), only if you asked to be told when a letter arrives, and only for the browser you asked in. It receives an empty signal from Joseki's server each time a letter is filed for you, addressed to that browser, and is told nothing else.",
+        "Nobody else. Every typeface is served from Joseki itself rather than from a font CDN, so opening a page here tells no third party that you did.",
       ],
     },
     {
       heading: "Leaving",
       paras: [
-        "There is a way out that needs nobody's permission. Leaving removes your account, your sessions, your address, your picture, your ladder seat, your friends list, your place on the roll of every club you were in, every line you said in any of their halls, the invitations you sent and the ones sent to you, your letters on both sides, and the record of the address you registered from. Your handle is taken off the lists of everybody who had you on theirs, in the same breath, because a friendship is two records and deleting one of them would leave the other holding a name that answers nothing.",
+        "There is a way out that needs nobody's permission. Leaving removes your account, your sessions, your address, your picture, your ladder seat, your friends list, your place on the roll of every club you were in, every line you said in any of their halls, the invitations you sent and the ones sent to you, your letters on both sides, the addresses of any browsers you asked to be told on, and the record of the address you registered from. Your handle is taken off the lists of everybody who had you on theirs, in the same breath, because a friendship is two records and deleting one of them would leave the other holding a name that answers nothing.",
         "One thing survives, and it should be said plainly: a finished game stays in the room it was played in, under the handle you played it under. It is your opponent's game as much as yours, and taking it away would take away theirs.",
         `To ask for a copy of what is held about you, to correct it, or to have something removed that leaving does not reach, write to ${CONTACT} and a person will do it by hand. There is no export button, and saying otherwise would be the easy sentence to write and the false one.`,
       ],

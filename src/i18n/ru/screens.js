@@ -628,7 +628,36 @@ export const screens = {
     },
   },
 
+  /* The roll: the last games played here, ordered by how much they have
+     to do with you. The count on a row is of opens and names nobody. */
+  roll: {
+    /* How many times a game was opened from the roll. Drawn only above 0. */
+    views: { one: "Открыта {count} раз", few: "Открыта {count} раза", many: "Открыта {count} раз", other: "Открыта {count} раза" },
+    head: "Что здесь происходило",
+    note: "Последние партии здесь, сначала знакомые.",
+    noteThin: "Последние партии здесь. Со временем здесь будет ваш клуб.",
+    versus: "{black} и {white}",
+    openGame: "Открыть партию {black} — {white}",
+    wonBy: "{name} выиграл {how}",
+    byResign: "сдачей",
+    byTime: "по времени",
+    byPoints: "с перевесом {points}",
+    jigo: "Ничья",
+    unfinished: "Не закончена",
+  },
   letters: {
+    /* A letter that carries a position. The board is the question; the
+       words beside it are optional. */
+    dropPosition: "Не эта позиция",
+    askPlaceholder: "Спросите об этой позиции…",
+    /* On a thread row, and on the button that offers the box.
+       `writeTo` is the label a screen reader hears; `write` is the
+       words on the button. */
+    /* Under the last of your letters they have said they read. */
+    seen: "Прочитано",
+    new: "Новое",
+    write: "Написать",
+    writeTo: "Написать {name}",
     fetching: "Забираю твои письма…",
     head: "Письма",
     note: "Одна переписка на человека, хранится навсегда. Написать тебе может только тот, с кем ты дружишь или с кем доиграл партию.",
@@ -647,6 +676,15 @@ export const screens = {
     letThemWrite: "Разрешить писать",
     stopThemWriting: "Запретить писать",
     refusal: {
+      /* Answering a position by playing on it. An illegal move is named by
+         the rule it broke, in the kernel’s own vocabulary. */
+      "illegal-occupied": "Там уже есть камень",
+      "illegal-suicide": "Этот ход отнимет у себя последнюю свободу",
+      "illegal-ko": "Ко должно подождать ход",
+      "illegal-offboard": "Это за пределами доски",
+      "nothing-to-answer": "В этой переписке нет позиции, на которой можно играть",
+      "your-own-position": "Это ваша собственная позиция. Дождитесь ответа.",
+      "bad-move": "Это не пункт доски",
       "not-met": "Писать можно друзьям и всем, с кем ты доиграл партию.",
       yourself: "Себе написать нельзя",
       "no-player": "Этого игрока здесь больше нет",

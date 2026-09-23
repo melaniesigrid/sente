@@ -3775,3 +3775,71 @@ Decisions:
 - On by default, against the instinct that a clean board is the better first impression. A
   beginner is the reader who most needs to find D4 and least able to guess where it is, and
   the toggle is one tap away for anybody who wants the board quiet.
+
+## The atom, the mail count and the roll (2026-09-20, branch `feat/social-layer`)
+
+Joseki had four places where people talk and no place where people are. Table talk dies
+with the route, halls are behind a club and a screen, and the Post — one thread a pair,
+already written and already correct — was buried in Profile with nothing anywhere saying
+"write to them". The brief asked for a mail icon, a collapsible sidebar and "almost a
+social media for go too". Those turned out to be one missing primitive and three
+containers for it. Design doc: `docs/designs/the-atom-the-mail-count-and-the-roll.md`.
+
+- [x] **The diagram atom** (`src/engine/diagram.js`). `{size, cells, toPlay, bounds}`: the
+      WHOLE board, plus a crop to look through. The obvious shape — a corner and the
+      rectangle it sits in — cannot be played on, because Go's rules are not local: a chain
+      leaving the rectangle has liberties outside it, so capture, suicide and ko are all
+      undecidable from the fragment. `playOn` hands the position to the same rules kernel a
+      game uses and never consults the crop. `Diagram.jsx` is a wrapper over `Board`, whose
+      `crop` prop was already this exact inclusive rectangle.
+- [x] **The mail count.** `[Lang] [Mail ·3] [You]`; the Look entry moved to the top of the
+      Profile card. One number: the trainer's letters and real people's are both letters.
+      It counts THREADS — three people wrote to you reads as 3.
+- [x] **The index moved off `mail:`.** That prefix already held the verify and reset tokens,
+      so `mail:<hash>` and `mail:<me>:<other>` were two record types told apart by counting
+      colons. Now `letters:<me>:<other> = {at, theirLast, read}`, migrated by walking
+      players rather than the prefix, so a token is never handed to a loop reading letters.
+- [x] **Each shelf gets its own value.** The old write put one object to both keys, which
+      was right when it was only "when did this move" and becomes a bug the moment it
+      carries a cursor: the sender's row on the reader's key would clear their count on
+      every incoming letter.
+- [x] **`met:` and `metDone:`.** `#havePlayed` listed an archive prefix with no limit. That
+      was fine while the only caller was somebody opening a thread and stops being fine when
+      `mayWrite` runs on every player card, because a stranger is a full walk that finds
+      nothing. `metDone:` is what makes a miss an answer rather than another walk.
+- [x] **The reply is a move.** A letter may carry a position; the answer is a move played on
+      it, checked by the Worker with the same `playOn` the browser used. Refused by name —
+      occupied, suicide, ko — so the reader is told which rule. The question starts in
+      review and goes to the person across the board.
+- [x] **The roll** (`server/roll.js`, `RollCard.jsx`). ONE capped index,
+      `roll:<stamp>:<gameId>`, `ROLL_KEEP` 400, one write per finished game, one `list` to
+      read. Relationship is a filter applied in memory, where it can sort.
+- [x] **The dock** (`Dock.jsx`). Mounted as a SIBLING of the router's output, so opening it
+      cannot unmount a live board, tear down its socket or stutter its clock.
+      `Dock.test.jsx` counts mounts of a stand-in and asserts the count does not move.
+- [x] `legal.js` gained three clauses — the read cursor, `met:`, and the roll — and its
+      stamp and date moved with them.
+- [x] Nine languages, including the plural forms for the count and the Hebrew mirroring.
+
+Decisions:
+- **Fan-out was rejected, and so was a read-time merge.** Fan-out pays 200 writes per
+  finished game to serve a read that looks at the top of the list, needs a reverse map to
+  know whose cache to drop, and has to be undone on unfriending. The merge that was tried
+  first is worse in a quieter way: merging K time-sorted streams gives
+  filter-by-relationship-then-recency, which is not ordering by relationship at all — in a
+  club where one member plays daily, that member drowns everybody else.
+- **Ordering reads deliberate acts, never attention.** Played, friended, wrote to. There is
+  no view count, no "seen by", no trending, and nothing here is one metric away from
+  becoming one. `legal.js` bans counting visits and scopes the clause itself: a game is not
+  a visit and an account is not a visit.
+- **`met:` reverses a decision `registry.js` made on purpose**, and the header comment that
+  refused it was rewritten rather than worked around. What is stored is existence only.
+- **There is no sequence number on a letter.** `readThread` drops unknown fields and
+  `withLetter` trims to a hundred, so a counter would mean changing a thread from an array
+  to an object — a migration of the one value here that is somebody's correspondence. `at`
+  is already monotonic and already survives the round trip.
+- **Kept positions are not roll events.** `src/store/graphs.js` is local-only and the screen
+  that draws the graph promises nothing about the game is sent anywhere. Cleared lessons and
+  rank moves are out too: progress lives on the account and is private.
+- **An unread count is not a read receipt.** Nothing tells a writer their letter was opened,
+  nothing is pushed, nothing interrupts a game. The number is there when you next look up.

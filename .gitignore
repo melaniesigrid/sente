@@ -36,3 +36,6 @@ public/ort
 
 # Built from talk/ by tools/build-talk-wasm.mjs
 public/talk
+
+# The dry-run bundle wrangler writes when checking the Worker builds.
+.wrangler-dry

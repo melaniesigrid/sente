@@ -24,11 +24,22 @@ export const shell = {
     frontDoor: "Joseki，正门",
     tagline: "把围棋下得好看",
   },
+  /* The dock: a panel beside whatever you are doing, so a letter can be
+     seen without leaving a board with a clock running on it. */
+  dock: {
+    quiet: "还没有。俱乐部下完棋，这里就会有。",
+    open: "打开侧边栏",
+    close: "关闭侧边栏",
+    roll: "最近",
+    post: "信箱",
+    postNote: "你的信在个人页里，那里可以好好读，也可以对局面落子回答。",
+    openPost: "去看你的信",
+    signedOut: "取个名字才能收信。",
+  },
   topbar: {
     enter: "进入",
     yourBoard: "你的棋盘",
-    look: "这个地方的样子",
-    lookShort: "外观",
+    mail: { other: "信箱：{count} 封信等着你" },
     profile: "你的档案",
   },
   journal: {

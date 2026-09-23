@@ -27,11 +27,22 @@ export const shell = {
     frontDoor: "Joseki、正面の扉",
     tagline: "碁を、美しく",
   },
+  /* The dock: a panel beside whatever you are doing, so a letter can be
+     seen without leaving a board with a clock running on it. */
+  dock: {
+    quiet: "まだ何もありません。対局が終わるとここに並びます。",
+    open: "サイドパネルを開く",
+    close: "サイドパネルを閉じる",
+    roll: "最近",
+    post: "郵便",
+    postNote: "手紙はプロフィールにあります。そこでは読みやすく、局面に打ち返すこともできます。",
+    openPost: "手紙を見る",
+    signedOut: "郵便を受け取るには名前を。",
+  },
   topbar: {
     enter: "入る",
     yourBoard: "自分の碁盤",
-    look: "この場所の見た目",
-    lookShort: "見た目",
+    mail: { other: "郵便：{count} 通待っています" },
     profile: "プロフィール",
   },
   journal: {

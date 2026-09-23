@@ -557,7 +557,36 @@ export const screens = {
     },
   },
 
+  /* The roll: the last games played here, ordered by how much they have
+     to do with you. The count on a row is of opens and names nobody. */
+  roll: {
+    /* How many times a game was opened from the roll. Drawn only above 0. */
+    views: { other: "{count} 回開かれました" },
+    head: "ここであったこと",
+    note: "直近の対局です。知っている人から順に。",
+    noteThin: "直近の対局です。打つうちにあなたの仲間で埋まっていきます。",
+    versus: "{black} — {white}",
+    openGame: "{black} 対 {white} の対局を開く",
+    wonBy: "{name} の{how}勝ち",
+    byResign: "中押し",
+    byTime: "時間切れ",
+    byPoints: "{points}目",
+    jigo: "持碁",
+    unfinished: "未完",
+  },
   letters: {
+    /* A letter that carries a position. The board is the question; the
+       words beside it are optional. */
+    dropPosition: "この局面はやめる",
+    askPlaceholder: "この局面について聞く…",
+    /* On a thread row, and on the button that offers the box.
+       `writeTo` is the label a screen reader hears; `write` is the
+       words on the button. */
+    /* Under the last of your letters they have said they read. */
+    seen: "既読",
+    new: "新着",
+    write: "手紙を書く",
+    writeTo: "{name} に手紙を書く",
     fetching: "手紙を取ってきています…",
     head: "手紙",
     note: "一人にひとつの綴り、ずっと残ります。友だちか、打ち終えた相手だけが手紙を書けます。",
@@ -576,6 +605,15 @@ export const screens = {
     letThemWrite: "書けるようにする",
     stopThemWriting: "書けないようにする",
     refusal: {
+      /* Answering a position by playing on it. An illegal move is named by
+         the rule it broke, in the kernel’s own vocabulary. */
+      "illegal-occupied": "そこにはすでに石があります",
+      "illegal-suicide": "その手は自分の最後のダメを埋めます",
+      "illegal-ko": "コウは一手待つ必要があります",
+      "illegal-offboard": "盤の外です",
+      "nothing-to-answer": "このやりとりに打つ局面がありません",
+      "your-own-position": "あなた自身の局面です。返事を待ちましょう。",
+      "bad-move": "盤上の点ではありません",
       "not-met": "手紙を書けるのは、友だちと、打ち終えた相手です。",
       yourself: "自分あてには書けません",
       "no-player": "その打ち手は、もうここにいません",

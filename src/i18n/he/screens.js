@@ -591,7 +591,36 @@ export const screens = {
      `not-met` עושה עבודה זהירה: מי שנחסם נאמר לו בדיוק מה שנאמר לזר, מפני
      שחסימה היא חשאית ושורה שאומרת "נחסמת" היא ההודעה האחת שהחוסם בחר לא
      לשלוח. */
+  /* The roll: the last games played here, ordered by how much they have
+     to do with you. The count on a row is of opens and names nobody. */
+  roll: {
+    /* How many times a game was opened from the roll. Drawn only above 0. */
+    views: { one: "נפתח {count} פעם", two: "נפתח {count} פעמים", many: "נפתח {count} פעמים", other: "נפתח {count} פעמים" },
+    head: "מה קרה כאן",
+    note: "המשחקים האחרונים כאן, האנשים שאתם מכירים קודם.",
+    noteThin: "המשחקים האחרונים כאן. זה יתמלא במועדון שלכם עם הזמן.",
+    versus: "{black} ו{white}",
+    openGame: "פתחו את המשחק בין {black} ל{white}",
+    wonBy: "{name} ניצח {how}",
+    byResign: "בפרישה",
+    byTime: "בזמן",
+    byPoints: "ב־{points}",
+    jigo: "תיקו",
+    unfinished: "לא הסתיים",
+  },
   letters: {
+    /* A letter that carries a position. The board is the question; the
+       words beside it are optional. */
+    dropPosition: "לא העמדה הזו",
+    askPlaceholder: "שאלו על העמדה הזו…",
+    /* On a thread row, and on the button that offers the box.
+       `writeTo` is the label a screen reader hears; `write` is the
+       words on the button. */
+    /* Under the last of your letters they have said they read. */
+    seen: "נקרא",
+    new: "חדש",
+    write: "כתבו להם",
+    writeTo: "כתבו ל{name}",
     fetching: "מביאים את המכתבים שלך…",
     head: "מכתבים",
     note: "שרשור אחד לאדם, נשמר לתמיד. רק מי שאתם חברים, או שסיימת מולו משחק, יכול לכתוב אליך.",
@@ -610,6 +639,15 @@ export const screens = {
     letThemWrite: "לתת להם לכתוב",
     stopThemWriting: "להפסיק את כתיבתם",
     refusal: {
+      /* Answering a position by playing on it. An illegal move is named by
+         the rule it broke, in the kernel’s own vocabulary. */
+      "illegal-occupied": "כבר יש שם אבן",
+      "illegal-suicide": "המהלך הזה ייקח לעצמו את החופש האחרון",
+      "illegal-ko": "הקו צריך לחכות מהלך",
+      "illegal-offboard": "זה מחוץ ללוח",
+      "nothing-to-answer": "אין בשרשור הזה עמדה לשחק עליה",
+      "your-own-position": "זו העמדה שלך. חכה לתשובה.",
+      "bad-move": "זו לא נקודה על הלוח",
       "not-met": "אפשר לכתוב לחברים שלך, ולכל מי שסיימת מולו משחק.",
       yourself: "אי אפשר לכתוב לעצמך",
       "no-player": "השחקן הזה כבר אינו כאן",

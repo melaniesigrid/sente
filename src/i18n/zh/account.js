@@ -104,6 +104,25 @@ export const account = {
     resetFine: "这要花一秒钟：证明密码这件苦力活由浏览器来干，好让服务器永远不必拿着它。",
   },
 
+  /* Read receipts: the reader's switch, off until turned on. Notices: an
+     empty push to this device saying there is post, per device. */
+  receipts: {
+    label: "已读回执",
+    on: "开",
+    off: "关",
+    note: "关闭时，没有人知道你打开过信。开启时，给你写信的人会在你读过的最后一封信下看到“已读”。这是你的开关，不是对方的，关掉即收回。",
+  },
+  push: {
+    label: "来信时通知我",
+    on: "开",
+    off: "关",
+    note: "在此设备上的一条通知，只说有信到了：内容和写信人都留在 Joseki。想收到通知的每台设备都要在这里开启。",
+    body: "你有新信。",
+    unsupported: "此浏览器无法显示来自 Joseki 的通知。",
+    denied: "此浏览器已屏蔽来自 Joseki 的通知。请先在其设置中允许。",
+    serverOff: "服务器尚未设置为发送通知。",
+  },
+
   card: {
     wl: "胜 {wins} · 负 {losses}",
     onServer: "你存在服务器上的名片。你在哪台设备上登录，它就跟到哪台。",

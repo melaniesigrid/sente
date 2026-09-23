@@ -29,11 +29,22 @@ export const shell = {
     frontDoor: "Joseki, парадний вхід",
     tagline: "грай у го красиво",
   },
+  /* The dock: a panel beside whatever you are doing, so a letter can be
+     seen without leaving a board with a clock running on it. */
+  dock: {
+    quiet: "Поки нічого. Завершені партії з’являться тут, коли клуб грає.",
+    open: "Відкрити бічну панель",
+    close: "Закрити бічну панель",
+    roll: "Нещодавно",
+    post: "Пошта",
+    postNote: "Ваші листи — у профілі, де листування зручно читати, а на позицію можна відповісти.",
+    openPost: "До ваших листів",
+    signedOut: "Візьміть ім’я, щоб отримувати пошту.",
+  },
   topbar: {
     enter: "Увійти",
     yourBoard: "Твоя дошка",
-    look: "Який тут вигляд",
-    lookShort: "Вигляд",
+    mail: { zero: "Пошта: нічого немає", one: "Пошта: {count} лист чекає", few: "Пошта: {count} листи чекають", many: "Пошта: {count} листів чекають", other: "Пошта: {count} листа чекає" },
     profile: "Твій профіль",
   },
   journal: {
