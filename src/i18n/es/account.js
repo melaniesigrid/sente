@@ -102,6 +102,25 @@ export const account = {
     resetFine: "Esto tarda un segundo: el navegador hace el trabajo de demostrar la contraseña para que el servidor no tenga que guardarla nunca.",
   },
 
+  /* Read receipts: the reader's switch, off until turned on. Notices: an
+     empty push to this device saying there is post, per device. */
+  receipts: {
+    label: "Confirmaciones de lectura",
+    on: "Activadas",
+    off: "Desactivadas",
+    note: "Desactivadas, nadie sabe que abriste una carta. Activadas, quien te escribe ve «Visto» bajo la última carta suya que has leído. Es tu interruptor, no el suyo, y desactivarlo lo retira.",
+  },
+  push: {
+    label: "Avísame cuando llegue una carta",
+    on: "Activado",
+    off: "Desactivado",
+    note: "Un aviso en este dispositivo que solo dice que hay correo: lo que dice y quién escribió se quedan en Joseki. Actívalo en cada dispositivo que quieras que avise.",
+    body: "Tienes correo.",
+    unsupported: "Este navegador no puede mostrar avisos de Joseki.",
+    denied: "Este navegador tiene bloqueados los avisos de Joseki. Permítelos primero en su configuración.",
+    serverOff: "El servidor aún no está preparado para enviar avisos.",
+  },
+
   card: {
     wl: "{wins} G · {losses} P",
     onServer: "Tu tarjeta en el servidor. Te sigue a cualquier dispositivo en el que inicies sesión.",

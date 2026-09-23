@@ -30,13 +30,24 @@
    caches and reverse invalidation disappears with it.
 
    WHAT ORDERING MEANS, AND WHAT IT MAY NOT MEAN
-   The privacy notice forbids counting visits and says plainly that a game is
-   not a visit and an account is not a visit. Ordering by relationship is not
-   counting attention: it reads deliberate acts that were already stored —
-   you played them, you friended them, you wrote to them. Nothing here counts
-   who looked at what, and there is no view count, no "seen by", no trending
-   and no like. If a sort key ever needs somebody's attention to compute, it
-   does not belong in this file. */
+   Ordering by relationship is not counting attention: it reads deliberate
+   acts that were already stored — you played them, you friended them, you
+   wrote to them. If a sort key ever needs somebody's attention to compute, it
+   does not belong in this file.
+
+   THE VIEW COUNT, AND WHAT IT IS ALLOWED TO BE
+   Since 23 September 2026 a row carries one more number: how many times a
+   signed-in player opened the game from the roll. It is a plain tally under
+   `views:<gameId>`, one integer, with nobody named in it: not who opened it,
+   not when, not for how long, not from where. The handle the route asks for
+   is checked and dropped; it buys nothing but keeping the counter out of
+   reach of a passing script, since every POST here is a write. It is shown
+   beside the row so a game people are looking at reads as one people are
+   looking at, and it is never a sort key
+   — the order above is unchanged, so a game cannot climb the roll by being
+   looked at. The tally goes when the row falls off the bottom. The privacy
+   notice says all of this in its own words, in a sentence of its own, as it
+   promised it would if Joseki ever started counting something new. */
 
 /** How many finished games the roll remembers. The same order of magnitude as
  *  the other capped lists here (a thread keeps 100, the chain 400, deja vu
@@ -59,6 +70,24 @@ export function stampOf(ms) {
 
 export const ROLL_PREFIX = "roll:";
 export const rollKey = (endedAt, gameId) => `${ROLL_PREFIX}${stampOf(endedAt)}:${gameId}`;
+
+/** The game id out of a roll key: everything after the stamp, since an id may
+ *  itself hold colons in some future scheme. */
+export const gameIdOfRollKey = (key) => key.slice(ROLL_PREFIX.length + STAMP_WIDTH + 1);
+
+/* ----- the view count ----- */
+
+export const VIEWS_PREFIX = "views:";
+export const viewsKey = (gameId) => `${VIEWS_PREFIX}${gameId}`;
+
+/** A stored tally, read safely. Anything that is not a whole number is 0. */
+export const readViews = (v) => (Number.isInteger(v) && v > 0 ? v : 0);
+
+/** The rows with their tallies on. `tallies` maps a views key to its stored
+ *  value; a row with no tally reads as 0, never as missing. */
+export function withViews(rows, tallies) {
+  return rows.map((row) => ({ ...row, views: readViews(tallies.get(viewsKey(row.id))) }));
+}
 
 /** How close a row is to you. Higher sorts first.
  *

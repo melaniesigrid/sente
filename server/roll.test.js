@@ -3,6 +3,7 @@ import {
   ROLL_KEEP, ROLL_PAGE, ROLL_PREFIX, stampOf, rollKey,
   TIE_STRANGER, TIE_WROTE, TIE_FRIEND, TIE_PLAYED,
   tieOf, seatsOf, rollFor, rollIsThin,
+  gameIdOfRollKey, viewsKey, readViews, withViews,
 } from "./roll.js";
 
 const game = (id, endedAt, b, w) => ({
@@ -20,6 +21,34 @@ const near = (o = {}) => ({
   played: new Set(o.played || []),
   friends: new Set(o.friends || []),
   wrote: new Set(o.wrote || []),
+});
+
+describe("the view count", () => {
+  it("is a whole number or nothing", () => {
+    for (const junk of [undefined, null, -1, 1.5, "3", {}]) expect(readViews(junk)).toBe(0);
+    expect(readViews(3)).toBe(3);
+  });
+
+  it("rides on the row, and a missing tally is 0 rather than a hole", () => {
+    const rows = [{ id: "g1" }, { id: "g2" }];
+    const out = withViews(rows, new Map([[viewsKey("g1"), 4]]));
+    expect(out.map((r) => r.views)).toEqual([4, 0]);
+    expect(viewsKey("g1")).toBe("views:g1");
+  });
+
+  it("is never a sort key", () => {
+    // A game cannot climb the roll by being looked at: the page is ordered
+    // by relationship then time, and the tally does not enter into it.
+    const rows = [
+      { id: "quiet", endedAt: 20, black: { id: "a" }, white: { id: "b" }, views: 0 },
+      { id: "loud", endedAt: 10, black: { id: "c" }, white: { id: "d" }, views: 999 },
+    ];
+    expect(rollFor(rows, {}).map((r) => r.id)).toEqual(["quiet", "loud"]);
+  });
+
+  it("reads the game id back off a roll key", () => {
+    expect(gameIdOfRollKey(rollKey(1700000000000, "g:with:colons"))).toBe("g:with:colons");
+  });
 });
 
 describe("keys", () => {
@@ -72,7 +101,7 @@ describe("tieOf", () => {
   });
 });
 
-describe("rollFor — relationship SORTS, it does not only filter", () => {
+describe("rollFor â€” relationship SORTS, it does not only filter", () => {
   /* The failure this whole design reversed a decision to avoid: in a club
      where one member plays every day, pure recency drowns everybody else. */
   it("puts a friend's older game above a stranger's newer one", () => {
@@ -122,7 +151,7 @@ describe("rollFor — relationship SORTS, it does not only filter", () => {
   });
 });
 
-describe("rollFor — blocking", () => {
+describe("rollFor â€” blocking", () => {
   it("removes a blocked person's games silently", () => {
     const rows = [game("bad", 300, "troll", "x"), game("ok", 100, "pal", "y")];
     const page = rollFor(rows, near({ friends: ["pal"] }), { blocked: new Set(["troll"]) });
@@ -140,7 +169,7 @@ describe("rollFor — blocking", () => {
   });
 });
 
-describe("rollFor — paging", () => {
+describe("rollFor â€” paging", () => {
   it("hands back at most a page", () => {
     const rows = Array.from({ length: 50 }, (_, i) => game(`g${i}`, 1000 - i, "a", "b"));
     expect(rollFor(rows, near())).toHaveLength(ROLL_PAGE);

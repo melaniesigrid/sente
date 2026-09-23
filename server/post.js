@@ -2,9 +2,12 @@
    Letters between two players, and who may write one.
 
    It is called the post and not "messages" because it is shaped like a post
-   and not like a chat: one thread per pair of people, for good, with no typing
-   indicator, no read receipt and no notification. You write, and the other
-   person finds it when they next look.
+   and not like a chat: one thread per pair of people, for good, and with no
+   typing indicator. You write, and the other person finds it when they next
+   look. The two things a chat does without asking — telling the writer their
+   letter was read, and telling the reader one arrived — happen here only when
+   the person they are about has switched them on. Both are off until then,
+   and the two sections at the end of this comment are how they got that way.
 
    WHAT THIS IS NOT
    Not a broadcast. Not a list anybody can be added to. There is no unsubscribe
@@ -28,20 +31,32 @@
    would take the choice away from the person being protected.
 
    WHAT CHANGED WHEN THE MAIL COUNT ARRIVED
-   The paragraph above used to say the post had no typing indicator, no read
-   receipt and no notification. Two of those three are still true, and the
-   third was never the same thing as the second.
+   (History, and read in order: this section is where things stood in
+   September 2026, and the section after it is where they stand now.)
+
+   The paragraph at the top used to say the post had no typing indicator, no
+   read receipt and no notification. Two of those three were still true then,
+   and the third was never the same thing as the second.
 
    A read receipt tells the SENDER something about the reader's attention, and
-   that is still refused: nothing anywhere reports that a letter was opened,
-   and the cursor that records it is on the reader's own row where the writer
-   cannot see it. What the count does is tell YOU that somebody wrote to you,
+   that was still refused: nothing anywhere reported that a letter was opened,
+   and the cursor that records it sat on the reader's own row where the writer
+   could not see it. What the count does is tell YOU that somebody wrote to you,
    which is a fact about your own post box. An app that makes you go and look
    in a drawer to find out whether anybody wrote is not protecting anybody's
    privacy, it is just hiding the mail.
 
-   There is still no notification: nothing is pushed, nothing is emailed,
-   nothing interrupts a game. The number is there when you next look up. */
+   AND WHAT CHANGED ON 23 SEPTEMBER 2026
+   Both of the refusals above became choices. A reader may turn on read
+   receipts, and then the person who wrote to them is shown how far they have
+   read; it is OFF until they turn it on, it is the reader's switch and never
+   the writer's, and turning it off takes back what it had said (`withSeen`
+   with 0). A player may also ask to be told when a letter arrives, which is
+   a push with nothing in it (see `push.js`): the browser is told there is
+   post, not what it says. Neither is on for anybody who has not asked.
+
+   Nothing interrupts a game: the dock and the number are still where the
+   news lands, and a push is only the phone in your pocket saying to look. */
 
 import { readDiagram } from "../src/engine/diagram.js";
 
@@ -86,6 +101,9 @@ export const lettersKey = (me, other) => `letters:${me}:${other}`;
  *  `at`        when the thread last moved, either way. Orders the list.
  *  `theirLast` when the other person last wrote. Only they move it.
  *  `read`      how far this side has read. Only this side moves it.
+ *  `seen`      how far THE OTHER SIDE has read of this side's letters, as they
+ *              chose to say. Only they move it, and only with receipts on;
+ *              0 means they have not said, which is also what off looks like.
  *
  *  THERE IS NO SEQUENCE NUMBER, deliberately. A per-letter counter has nowhere
  *  to live: `readThread` maps every letter to exactly `{from, text, at}` so an
@@ -101,12 +119,13 @@ export const lettersKey = (me, other) => `letters:${me}:${other}`;
  *  recover, and the alternative is every player meeting a full post box on the
  *  morning of the deploy for letters they read months ago. */
 export function readIndexRow(stored) {
-  if (typeof stored === "number") return { at: stored, theirLast: 0, read: 0 };
-  if (!stored || typeof stored !== "object") return { at: 0, theirLast: 0, read: 0 };
+  if (typeof stored === "number") return { at: stored, theirLast: 0, read: 0, seen: 0 };
+  if (!stored || typeof stored !== "object") return { at: 0, theirLast: 0, read: 0, seen: 0 };
   return {
     at: Number(stored.at) || 0,
     theirLast: Number(stored.theirLast) || 0,
     read: Number(stored.read) || 0,
+    seen: Number(stored.seen) || 0,
   };
 }
 
@@ -141,9 +160,10 @@ export function rowsAfterLetter(fromRow, toRow, at) {
   return {
     // The writer's own shelf: the thread moved, but they have not been written
     // to, so nothing about their unread state changes.
-    from: { at, theirLast: fromRow.theirLast, read: fromRow.read },
+    from: { at, theirLast: fromRow.theirLast, read: fromRow.read, seen: fromRow.seen || 0 },
     // The reader's shelf: this is the newest thing the other person has said.
-    to: { at, theirLast: at, read: toRow.read },
+    // What either side has said about its reading stays said.
+    to: { at, theirLast: at, read: toRow.read, seen: toRow.seen || 0 },
   };
 }
 
@@ -152,7 +172,37 @@ export function rowsAfterLetter(fromRow, toRow, at) {
  *  Read up to `theirLast` and not to the clock: a letter stamped in the future
  *  by a skewed clock would otherwise be marked read before it was written, and
  *  the reader would never see it. */
-export const rowAfterRead = (row) => ({ at: row.at, theirLast: row.theirLast, read: row.theirLast });
+export const rowAfterRead = (row) => ({ at: row.at, theirLast: row.theirLast, read: row.theirLast, seen: row.seen || 0 });
+
+/* ----- read receipts -----
+
+   A receipt is the READER'S choice. The switch is on the reader's record
+   (`receipts: true`), and the only thing it ever does is copy the reader's own
+   cursor onto the writer's row, under `seen`. The writer's page reads `seen`
+   off their own row and draws "Seen" under the last of their letters that
+   falls inside it. Nothing is computed at read time from anybody's attention:
+   a receipt is a number the reader chose to hand over, and turning the switch
+   off hands over 0 instead, which is exactly what a reader who never turned it
+   on looks like. The two states are indistinguishable on purpose. */
+
+/** The stored switch, read safely: on only when it is exactly `true`. */
+export const cleanReceipts = (v) => v === true;
+
+/** The writer's row after the reader reports. `seen` is the reader's cursor
+ *  when receipts are on and 0 when they are off, so one function serves both
+ *  turning it on and turning it back off. */
+export const withSeen = (writerRow, readerRow, on) =>
+  ({ ...writerRow, seen: on ? (Number(readerRow.read) || 0) : 0 });
+
+/** Which of my letters is the last one they have said they read, or -1.
+ *  The view draws the word under that one letter and no other. */
+export function seenUpTo(letters, me, seen) {
+  if (!(seen > 0)) return -1;
+  for (let i = letters.length - 1; i >= 0; i--) {
+    if (letters[i].from === me && letters[i].at <= seen) return i;
+  }
+  return -1;
+}
 
 /* ----- have these two met? -----
 
@@ -269,10 +319,10 @@ export function mayWrite({ from, to, friends, played, blocked }) {
 /** What one thread looks like in a list of them: who it is with, the last
  *  thing said, when, and whether the last word was theirs.
  *
- *  "Unread" is deliberately absent. A read receipt is a promise about somebody
- *  else's attention, and the thing a person actually wants to know is whether
- *  they are the one being waited on, which is the same question the dashboard
- *  asks about a board and is answered the same way: who spoke last. */
+ *  "Seen" is deliberately absent from the LIST: a receipt belongs under the
+ *  letter it is about, in the open thread, and a list that said "seen" beside
+ *  every name would be a page about other people's attention. The list says
+ *  who spoke last, which is the question the dashboard asks about a board. */
 export function threadSummary(thread, me) {
   const last = thread[thread.length - 1];
   if (!last) return null;

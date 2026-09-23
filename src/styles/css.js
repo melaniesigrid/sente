@@ -2609,6 +2609,11 @@ ${FONT_FACES}
   padding-top: 14px; border-top: 1px solid var(--hairline);
 }
 .who-may-see .fine { margin: 0; }
+/* "Seen" under one letter, and the look count on one roll row: both are the
+   same fine print as the date beside them, set off by a separator rather than
+   a colour, so neither reads as a badge. */
+.letter-seen::before, .roll-views::before { content: " · "; }
+.letter-seen, .roll-views { white-space: nowrap; }
 /* ---- the archive ----
    One row a game, the whole person-and-result a button and the SGF a plain
    link beside it. The mark takes the accent for a win and stays quiet for a

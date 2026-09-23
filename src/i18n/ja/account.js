@@ -103,6 +103,25 @@ export const account = {
     resetFine: "少しかかります。パスワードを証明する仕事をブラウザが引き受けるので、サーバーがそれを抱えずに済みます。",
   },
 
+  /* Read receipts: the reader's switch, off until turned on. Notices: an
+     empty push to this device saying there is post, per device. */
+  receipts: {
+    label: "既読の通知",
+    on: "オン",
+    off: "オフ",
+    note: "オフなら、手紙を開いたことは誰にも伝わりません。オンなら、あなたに書いた相手は、あなたが読んだ最後の手紙の下に「既読」を見ます。これはあなたのスイッチであって相手のものではなく、オフにすれば取り消されます。",
+  },
+  push: {
+    label: "手紙が届いたら知らせる",
+    on: "オン",
+    off: "オフ",
+    note: "この端末への通知で、郵便があるということ以外は含みません。内容と差出人は Joseki の中に留まります。知らせてほしい端末ごとにオンにしてください。",
+    body: "郵便が届いています。",
+    unsupported: "このブラウザーは Joseki からの通知を表示できません。",
+    denied: "このブラウザーは Joseki からの通知をブロックしています。まず設定で許可してください。",
+    serverOff: "サーバーはまだ通知を送る設定になっていません。",
+  },
+
   card: {
     wl: "{wins} 勝 · {losses} 敗",
     onServer: "サーバーにある自分の札です。サインインした端末なら、どこへでもついてきます。",

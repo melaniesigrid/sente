@@ -3,7 +3,7 @@ import { Send, Loader, ArrowLeft, Ban, Undo2 } from "lucide-react";
 import { Card, Btn, Avatar } from "../components/ui.jsx";
 import { api, serverEnabled, SERVER_URL } from "../net/api.js";
 import { avatarUrl } from "../net/avatar.js";
-import { LETTER_MAX } from "../../server/post.js";
+import { LETTER_MAX, seenUpTo } from "../../server/post.js";
 import { whenText } from "./playerCard.js";
 import { useT } from "../components/langStore.js";
 import { writeRefusal } from "./letters.js";
@@ -19,11 +19,14 @@ import { Diagram } from "../components/Diagram.jsx";
    to find the right row.
 
    It is shaped like a post and not like a chat on purpose: no typing
-   indicator, no read receipt, no notification. You write, and the other person
-   finds it when they next look. The list says who spoke last rather than what
-   has been read, because a read receipt is a promise about somebody else's
-   attention and the thing a person actually wants to know is whether they are
-   the one being waited on. */
+   indicator, and you write and the other person finds it when they next look.
+   Two things that used to be refused are now the reader's to switch on, on
+   their own card: a receipt, which draws "Seen" under the last of YOUR letters
+   they have read, in the open thread and never in this list; and a notice on
+   their device that there is post, carrying nothing else. Neither is on for
+   anybody who has not asked. The list still says who spoke last rather than
+   what has been read, because the thing a person wants from a list is whether
+   they are the one being waited on. */
 export function LettersCard({ account, go, open, setOpen, askDiagram = null }) {
   const t = useT();
   const [rows, setRows] = useState(null);
@@ -139,6 +142,10 @@ function Thread({ account, otherId, onBack, go, askDiagram = null }) {
   };
 
   const letters = (state && state.thread) || [];
+  /* The one letter of mine to draw "Seen" under: the last inside what they
+     said they read. -1 unless they turned receipts on, which is what a reader
+     who never did looks like too. */
+  const seenAt = seenUpTo(letters, account.player.id, state ? state.seen : 0);
 
   /* Which letter, if any, holds a board this reader may play on.
      The newest position in the thread, and only if somebody else put it there:
@@ -190,7 +197,10 @@ function Thread({ account, otherId, onBack, go, askDiagram = null }) {
                     lastMove={l.move ? [l.move.c, l.move.r] : null}
                     onPlay={answerable === i ? playAnswer : null} />
                 )}
-                <span className="fine">{whenText(l.at, t) ?? ""}</span>
+                <span className="fine">
+                  {whenText(l.at, t) ?? ""}
+                  {seenAt === i && <span className="letter-seen">{t("letters.seen")}</span>}
+                </span>
               </div>
             ))}
           </div>

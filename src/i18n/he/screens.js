@@ -592,8 +592,10 @@ export const screens = {
      שחסימה היא חשאית ושורה שאומרת "נחסמת" היא ההודעה האחת שהחוסם בחר לא
      לשלוח. */
   /* The roll: the last games played here, ordered by how much they have
-     to do with you. Never a count of who looked at what. */
+     to do with you. The count on a row is of opens and names nobody. */
   roll: {
+    /* How many times a game was opened from the roll. Drawn only above 0. */
+    views: { one: "נפתח {count} פעם", two: "נפתח {count} פעמים", many: "נפתח {count} פעמים", other: "נפתח {count} פעמים" },
     head: "מה קרה כאן",
     note: "המשחקים האחרונים כאן, האנשים שאתם מכירים קודם.",
     noteThin: "המשחקים האחרונים כאן. זה יתמלא במועדון שלכם עם הזמן.",
@@ -614,6 +616,8 @@ export const screens = {
     /* On a thread row, and on the button that offers the box.
        `writeTo` is the label a screen reader hears; `write` is the
        words on the button. */
+    /* Under the last of your letters they have said they read. */
+    seen: "נקרא",
     new: "חדש",
     write: "כתבו להם",
     writeTo: "כתבו ל{name}",

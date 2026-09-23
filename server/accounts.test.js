@@ -51,11 +51,16 @@ describe("passwordProblem", () => {
 describe("privateFields", () => {
   it("says whether there is a way back in", () => {
     expect(privateFields({ email: "a@b.co", pw: { salt: "s", hash: "h" }, sessions: ["x", "y"], emailVerifiedAt: 1 }))
-      .toEqual({ email: "a@b.co", hasPassword: true, emailVerified: true, sessions: 2, showOnline: "friends" });
+      .toEqual({ email: "a@b.co", hasPassword: true, emailVerified: true, sessions: 2, showOnline: "friends", receipts: false });
   });
   it("is honest about a handle with no account behind it", () => {
     expect(privateFields({}))
-      .toEqual({ email: null, hasPassword: false, emailVerified: false, sessions: 0, showOnline: "friends" });
+      .toEqual({ email: null, hasPassword: false, emailVerified: false, sessions: 0, showOnline: "friends", receipts: false });
+  });
+  it("carries the receipts switch, off unless it is exactly on", () => {
+    expect(privateFields({}).receipts).toBe(false);
+    expect(privateFields({ receipts: 1 }).receipts).toBe(false);
+    expect(privateFields({ receipts: true }).receipts).toBe(true);
   });
   /* Who may see you are here is the owner's business and nobody else's: it is
      on this view and never on `publicPlayer`, so reading the ladder cannot tell

@@ -570,8 +570,10 @@ export const screens = {
   },
 
   /* The roll: the last games played here, ordered by how much they have
-     to do with you. Never a count of who looked at what. */
+     to do with you. The count on a row is of opens and names nobody. */
   roll: {
+    /* How many times a game was opened from the roll. Drawn only above 0. */
+    views: { one: "Ouverte {count} fois", other: "Ouverte {count} fois" },
     head: "Ce qui s'est passé",
     note: "Les dernières parties jouées ici, vos connaissances d'abord.",
     noteThin: "Les dernières parties jouées ici. Cela se remplit de votre club à mesure que vous jouez.",
@@ -592,6 +594,8 @@ export const screens = {
     /* On a thread row, and on the button that offers the box.
        `writeTo` is the label a screen reader hears; `write` is the
        words on the button. */
+    /* Under the last of your letters they have said they read. */
+    seen: "Vu",
     new: "Nouveau",
     write: "Écrivez-lui",
     writeTo: "Écrire à {name}",

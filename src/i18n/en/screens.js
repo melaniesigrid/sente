@@ -599,8 +599,10 @@ export const screens = {
      same thing a stranger is told, because blocking is silent and a line saying
      "you have been blocked" is the one message the blocker chose not to send. */
   /* The roll: the last games played here, ordered by how much they have
-     to do with you. Never a count of who looked at what. */
+     to do with you. The count on a row is of opens and names nobody. */
   roll: {
+    /* How many times a game was opened from the roll. Drawn only above 0. */
+    views: { one: "Opened {count} time", other: "Opened {count} times" },
     head: "What has been happening",
     note: "The last games played here, the people you know first.",
     noteThin: "The last games played here. It fills with your own club as you play and make friends.",
@@ -621,6 +623,8 @@ export const screens = {
     /* On a thread row, and on the button that offers the box.
        `writeTo` is the label a screen reader hears; `write` is the
        words on the button. */
+    /* Under the last of your letters they have said they read. */
+    seen: "Seen",
     new: "New",
     write: "Write to them",
     writeTo: "Write to {name}",

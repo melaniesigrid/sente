@@ -185,9 +185,12 @@ export default function JosekiApp() {
     setPings(trainerOn ? unread(loadBox()).length : 0);
   }, [trainerOn, view]);
   /* The post from real people, asked of the server on the same beat the
-     trainer's box is read on: a screen change. There is no polling loop and
-     nothing is pushed — the promise in `server/post.js` is that a letter waits
-     for you to look up, not that it interrupts you.
+     trainer's box is read on: a screen change. There is no polling loop, and
+     this number is never pushed at — the promise in `server/post.js` is that
+     a letter waits for you to look up, not that it interrupts you. A reader
+     who asked to be told gets a notice on their own device instead (see
+     `src/net/push.js`), which is their switch and changes nothing here: the
+     number is still read on a screen change and from nowhere else.
      A signed-out reader has no post box, and a request that fails leaves the
      number where it was rather than flickering to zero: a dropped connection
      is not the same news as an empty post box. */

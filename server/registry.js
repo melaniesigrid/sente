@@ -62,12 +62,14 @@ import { cleanCode, codeFrom, readClub, readMembership,
 import { archivePrefix, archiveKey, pageSize, cursorFor, page as archivePage,
   archived, playersOf } from "./archive.js";
 import { readFeatured, pin as pinPure, unpin as unpinPure, featuredWith } from "./featured.js";
-import { ROLL_KEEP, ROLL_PAGE, ROLL_PREFIX, rollKey, rollFor as rollPage, rollIsThin } from "./roll.js";
+import { ROLL_KEEP, ROLL_PAGE, ROLL_PREFIX, rollKey, rollFor as rollPage, rollIsThin,
+  gameIdOfRollKey, viewsKey, readViews, withViews } from "./roll.js";
+import { pushKey, readSubs, withSub, withoutSub, cleanEndpoint, pushConfig, sendPush } from "./push.js";
 import { threadKey, cleanLetter, readThread, withLetter, mayWrite, threadSummary,
   byRecent, readBlocked, block as blockPure, unblock as unblockPure,
   LETTERS_PREFIX, lettersKey, readIndexRow, unreadRow, unreadRows,
   rowsAfterLetter, rowAfterRead, metKey, metDoneKey, lastDiagram, mayAnswer,
-  POST_LIMIT, POST_WINDOW_MS } from "./post.js";
+  cleanReceipts, withSeen, POST_LIMIT, POST_WINDOW_MS } from "./post.js";
 /* The engine, on the server. `playOn` is the same function the board in the
    browser used to check a move before sending it; it runs here because the
    engine is pure, which is the rule that was written down for exactly this. */
@@ -863,7 +865,7 @@ export class Registry extends DurableObject {
     const sessions = (p.sessions ?? [p.tokenHash]).filter(Boolean).map(h => `tok:${h}`);
     await this.ctx.storage.delete([
       `player:${id}`, `tok:${p.tokenHash}`, ...sessions, `games:${id}`, `seek:${id}`, `avatar:${id}`, `progress:${id}`,
-      `friends:${id}`,
+      `friends:${id}`, pushKey(id),
       // Out of the directory in the same breath. Leaving says nothing is left
       // behind, and a row here is a handle that still answers a search.
       ...findKeys(p.name, id),
@@ -919,10 +921,36 @@ export class Registry extends DurableObject {
          ladder which of the three anybody picked. */
       showOnline: patch.showOnline !== undefined
         ? cleanShowOnline(patch.showOnline) : cleanShowOnline(p.showOnline),
+      /* Read receipts. The reader's switch: see `post.js`. Flipping it
+         re-tells every thread at once, below, so a writer is not left with a
+         stale "seen" after the reader took it back, or without one for a
+         thread already open when it was turned on. */
+      receipts: patch.receipts !== undefined
+        ? cleanReceipts(patch.receipts) : cleanReceipts(p.receipts),
       lastSeen: Date.now(),
     };
     await this.ctx.storage.put(`player:${id}`, next);
+    if (next.receipts !== cleanReceipts(p.receipts)) await this.#tellReceipts(id, next.receipts);
     return this.#self(next);
+  }
+
+  /** Every thread this player has, told (or untold) how far they have read.
+   *  One walk of their own index and one write per thread, onto the OTHER
+   *  side's row: that row is the only place the writer ever reads from. */
+  async #tellReceipts(meId, on) {
+    const prefix = LETTERS_PREFIX(meId);
+    const index = await this.ctx.storage.list({ prefix });
+    const patch = {};
+    for (const [key, value] of index) {
+      const other = key.slice(prefix.length);
+      const theirs = await this.ctx.storage.get(lettersKey(other, meId));
+      if (theirs === undefined) continue;
+      patch[lettersKey(other, meId)] = withSeen(readIndexRow(theirs), readIndexRow(value), on);
+    }
+    const keys = Object.keys(patch);
+    for (let i = 0; i < keys.length; i += 100) {
+      await this.ctx.storage.put(Object.fromEntries(keys.slice(i, i + 100).map((k) => [k, patch[k]])));
+    }
   }
 
   /** Store a picture. `data` is base64, because storage takes JSON and a
@@ -1343,6 +1371,51 @@ export class Registry extends DurableObject {
       [lettersKey(fromId, toId)]: next.from,
       [lettersKey(toId, fromId)]: next.to,
     });
+    /* And the recipient's phone, if they asked. After the write, never
+       before it, and never awaited by the writer: a push service that is
+       slow or down must not make a letter slow or lost. */
+    this.ctx.waitUntil(this.#pushTo(toId));
+  }
+
+  /* ----- push -----
+     An empty signal to each browser this player asked to be told on. Nothing
+     about the letter travels: see `push.js` for why there is no payload. Off
+     entirely until the keys are set, and a browser the service says is gone
+     is dropped so it is not knocked on again. */
+  async #pushTo(toId) {
+    const config = pushConfig(this.env);
+    if (config.mode !== "on") return;
+    const key = pushKey(toId);
+    let subs = readSubs(await this.ctx.storage.get(key));
+    if (!subs.length) return;
+    const results = await Promise.all(subs.map((s) => sendPush(config, s.endpoint)));
+    const gone = subs.filter((_, i) => results[i].gone).map((s) => s.endpoint);
+    if (gone.length) {
+      for (const e of gone) subs = withoutSub(subs, e);
+      if (subs.length) await this.ctx.storage.put(key, subs);
+      else await this.ctx.storage.delete(key);
+    }
+  }
+
+  /** This browser wants to be told. Refused while push is off, so a browser
+   *  never holds a subscription the server cannot use. */
+  async subscribePush(id, rawEndpoint) {
+    if (pushConfig(this.env).mode !== "on") throw new Error("push-off");
+    const endpoint = cleanEndpoint(rawEndpoint);
+    if (!endpoint) throw new Error("bad-endpoint");
+    const key = pushKey(id);
+    const subs = withSub(readSubs(await this.ctx.storage.get(key)), endpoint, Date.now());
+    await this.ctx.storage.put(key, subs);
+    return { browsers: subs.length };
+  }
+
+  async unsubscribePush(id, rawEndpoint) {
+    const endpoint = cleanEndpoint(rawEndpoint);
+    const key = pushKey(id);
+    const subs = endpoint ? withoutSub(readSubs(await this.ctx.storage.get(key)), endpoint) : [];
+    if (subs.length) await this.ctx.storage.put(key, subs);
+    else await this.ctx.storage.delete(key);
+    return { browsers: subs.length };
   }
 
   /** How many threads hold something this player has not read.
@@ -1376,7 +1449,17 @@ export class Registry extends DurableObject {
     const key = lettersKey(meId, otherId);
     const stored = await this.ctx.storage.get(key);
     if (stored !== undefined) {
-      await this.ctx.storage.put(key, rowAfterRead(readIndexRow(stored)));
+      const mine = rowAfterRead(readIndexRow(stored));
+      const patch = { [key]: mine };
+      /* With receipts on, and only then, the writer's row is told how far
+         this side has read. It is this reader's switch: the writer has no
+         say, and a reader with it off writes nothing to anybody's shelf. */
+      const me = await this.ctx.storage.get(`player:${meId}`);
+      if (cleanReceipts(me?.receipts)) {
+        const theirs = await this.ctx.storage.get(lettersKey(otherId, meId));
+        if (theirs !== undefined) patch[lettersKey(otherId, meId)] = withSeen(readIndexRow(theirs), mine, true);
+      }
+      await this.ctx.storage.put(patch);
     }
     return { unread: await this.unreadFor(meId) };
   }
@@ -1387,7 +1470,10 @@ export class Registry extends DurableObject {
    *  lose the conversation they had. */
   async threadWith(meId, otherId) {
     const thread = readThread(await this.ctx.storage.get(`post:${threadKey(meId, otherId)}`));
-    return { thread, with: otherId, ...(await this.canWrite(meId, otherId)) };
+    /* How far the other side has said they read of this side's letters, off
+       this side's own row. 0 unless they turned receipts on. */
+    const seen = readIndexRow(await this.ctx.storage.get(lettersKey(meId, otherId))).seen;
+    return { thread, with: otherId, seen, ...(await this.canWrite(meId, otherId)) };
   }
 
   /** Every thread this player has, newest conversation first, each with the
@@ -1540,7 +1626,47 @@ export class Registry extends DurableObject {
     this.rollCache = null;
     const all = await this.ctx.storage.list({ prefix: ROLL_PREFIX, reverse: true, limit: ROLL_KEEP + 32 });
     const keys = [...all.keys()].slice(ROLL_KEEP);
-    if (keys.length) await this.ctx.storage.delete(keys);
+    // The tally goes with the row: a count of a game nobody can reach from
+    // the roll is a number about nothing.
+    if (keys.length) await this.ctx.storage.delete([...keys, ...keys.map((k) => viewsKey(gameIdOfRollKey(k)))]);
+  }
+
+  /** One more look at this game, if it is on the roll. A game that is not on
+   *  the roll is not counted: the tally exists for the row, and a key for
+   *  every id anybody cared to POST would be an unbounded set. The cached
+   *  page is bumped in place so the number moves without a re-read. */
+  async noteView(gameId) {
+    const rows = await this.#rollRows();
+    const row = rows.find((r) => r.id === gameId);
+    if (!row) return { views: null };
+    const key = viewsKey(gameId);
+    const views = readViews(await this.ctx.storage.get(key)) + 1;
+    await this.ctx.storage.put(key, views);
+    row.views = views;
+    return { views };
+  }
+
+  /** The roll, rebuilt from the archive: the newest ROLL_KEEP finished games
+   *  across everybody. For the operator, once, on the deploy that introduced
+   *  the roll, so the club does not look empty on its first morning. Every
+   *  game is in the archive of each person who sat at it, so the walk is one
+   *  bounded list per player and the union is folded by game id. */
+  async backfillRoll() {
+    const players = await this.ctx.storage.list({ prefix: "player:" });
+    const byGame = new Map();
+    for (const p of players.values()) {
+      const mine = await this.ctx.storage.list({ prefix: archivePrefix(p.id), reverse: true, limit: ROLL_KEEP });
+      for (const row of mine.values()) if (row && row.id && !byGame.has(row.id)) byGame.set(row.id, row);
+    }
+    const newest = [...byGame.values()].sort((a, b) => (b.endedAt || 0) - (a.endedAt || 0)).slice(0, ROLL_KEEP);
+    for (let i = 0; i < newest.length; i += 100) {
+      await this.ctx.storage.put(Object.fromEntries(newest.slice(i, i + 100).map((r) => [rollKey(r.endedAt, r.id), r])));
+    }
+    this.rollCache = null;
+    const all = await this.ctx.storage.list({ prefix: ROLL_PREFIX, reverse: true });
+    const extra = [...all.keys()].slice(ROLL_KEEP);
+    if (extra.length) await this.ctx.storage.delete([...extra, ...extra.map((k) => viewsKey(gameIdOfRollKey(k)))]);
+    return { games: Math.min(newest.length, ROLL_KEEP) };
   }
 
   /** The rows on the roll, newest first, cached for everybody.
@@ -1553,7 +1679,15 @@ export class Registry extends DurableObject {
   async #rollRows() {
     if (this.rollCache && Date.now() - this.rollCache.at < ROLL_TTL) return this.rollCache.rows;
     const all = await this.ctx.storage.list({ prefix: ROLL_PREFIX, reverse: true, limit: ROLL_KEEP });
-    const rows = [...all.values()];
+    const stored = [...all.values()];
+    /* The tallies ride on the rows in the cache, read in one batched get per
+       128 keys (the storage limit), so a page never costs a get per row. */
+    const tallies = new Map();
+    const keys = stored.map((r) => viewsKey(r.id));
+    for (let i = 0; i < keys.length; i += 128) {
+      for (const [k, v] of await this.ctx.storage.get(keys.slice(i, i + 128))) tallies.set(k, v);
+    }
+    const rows = withViews(stored, tallies);
     this.rollCache = { at: Date.now(), rows };
     return rows;
   }

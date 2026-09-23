@@ -102,6 +102,25 @@ export const account = {
     resetFine: "Cela prend une seconde : le navigateur fait le travail de prouver le mot de passe pour que le serveur n'ait jamais à le détenir.",
   },
 
+  /* Read receipts: the reader's switch, off until turned on. Notices: an
+     empty push to this device saying there is post, per device. */
+  receipts: {
+    label: "Accusés de lecture",
+    on: "Activés",
+    off: "Désactivés",
+    note: "Désactivés, personne ne sait que vous avez ouvert une lettre. Activés, la personne qui vous écrit voit « Vu » sous la dernière de ses lettres que vous avez lue. C’est votre choix, pas le sien, et le désactiver le retire.",
+  },
+  push: {
+    label: "Prévenez-moi à l’arrivée d’une lettre",
+    on: "Activé",
+    off: "Désactivé",
+    note: "Une notification sur cet appareil qui dit seulement qu’il y a du courrier : le contenu et l’expéditeur restent sur Joseki. Activez-la sur chaque appareil à prévenir.",
+    body: "Vous avez du courrier.",
+    unsupported: "Ce navigateur ne peut pas afficher de notifications de Joseki.",
+    denied: "Ce navigateur bloque les notifications de Joseki. Autorisez-les d’abord dans ses réglages.",
+    serverOff: "Le serveur n’est pas encore configuré pour envoyer des notifications.",
+  },
+
   card: {
     wl: "{wins} V · {losses} D",
     onServer: "Ta carte sur le serveur. Elle te suit sur tout appareil où tu ouvres une session.",

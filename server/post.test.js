@@ -5,7 +5,7 @@ import {
   threadSummary, byRecent, readBlocked, block, unblock,
   LETTERS_PREFIX, lettersKey, readIndexRow, unreadRow, unreadRows,
   rowsAfterLetter, rowAfterRead, metKey, metDoneKey,
-  lastDiagram, mayAnswer,
+  lastDiagram, mayAnswer, cleanReceipts, withSeen, seenUpTo,
 } from "./post.js";
 import { diagramOf } from "../src/engine/diagram.js";
 import { createBoard } from "../src/engine/board.js";
@@ -207,7 +207,8 @@ describe("blocking", () => {
 
 describe("readIndexRow", () => {
   it("reads a full row", () => {
-    expect(readIndexRow({ at: 9, theirLast: 8, read: 5 })).toEqual({ at: 9, theirLast: 8, read: 5 });
+    expect(readIndexRow({ at: 9, theirLast: 8, read: 5 })).toEqual({ at: 9, theirLast: 8, read: 5, seen: 0 });
+    expect(readIndexRow({ at: 9, theirLast: 8, read: 5, seen: 7 }).seen).toBe(7);
   });
 
   it("reads the old bare-timestamp shape as a row that is already read", () => {
@@ -305,6 +306,40 @@ describe("rowAfterRead", () => {
 
   it("leaves `at` where it is, so opening a thread does not reorder the list", () => {
     expect(rowAfterRead({ at: 9, theirLast: 9, read: 0 }).at).toBe(9);
+  });
+});
+
+describe("read receipts — the reader's switch", () => {
+  it("is off unless it is exactly true", () => {
+    for (const v of [undefined, null, 0, 1, "true", "on", {}]) expect(cleanReceipts(v)).toBe(false);
+    expect(cleanReceipts(true)).toBe(true);
+  });
+
+  it("hands the writer the reader's own cursor, and 0 when switched off", () => {
+    const writer = { at: 9, theirLast: 4, read: 4, seen: 0 };
+    const reader = { at: 9, theirLast: 9, read: 9, seen: 0 };
+    expect(withSeen(writer, reader, true).seen).toBe(9);
+    // Off looks exactly like never-on. The two must not be tellable apart.
+    expect(withSeen(withSeen(writer, reader, true), reader, false)).toEqual(writer);
+    // Nothing else on the writer's row moves.
+    expect(withSeen(writer, reader, true)).toEqual({ ...writer, seen: 9 });
+  });
+
+  it("survives a letter travelling either way", () => {
+    const { from, to } = rowsAfterLetter({ at: 5, theirLast: 0, read: 5, seen: 5 }, { at: 5, theirLast: 5, read: 0, seen: 2 }, 9);
+    expect(from.seen).toBe(5);
+    expect(to.seen).toBe(2);
+    expect(rowAfterRead({ at: 9, theirLast: 9, read: 0, seen: 3 }).seen).toBe(3);
+  });
+
+  it("names the last of MY letters inside what they said they read", () => {
+    const thread = [letter("me", "a", 1), letter("them", "b", 2), letter("me", "c", 3), letter("me", "d", 8)];
+    expect(seenUpTo(thread, "me", 0)).toBe(-1);
+    expect(seenUpTo(thread, "me", 2)).toBe(0);
+    expect(seenUpTo(thread, "me", 3)).toBe(2);
+    expect(seenUpTo(thread, "me", 100)).toBe(3);
+    // Their letters are never marked seen by me: it is about my letters only.
+    expect(seenUpTo([letter("them", "b", 2)], "me", 100)).toBe(-1);
   });
 });
 

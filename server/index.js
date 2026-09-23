@@ -68,6 +68,10 @@
      POST  /api/me/letters/:id/read  bearer    -> you have read up to their last
      GET   /api/me/unread       bearer         -> how many threads hold something unread
      GET   /api/roll            bearer?        -> what happened here lately
+     POST  /api/roll/:gameId/view   bearer     -> one more look at that game; a tally, nobody named
+     GET   /api/push                           -> {mode, key}: whether push is on, and the public key
+     PUT   /api/me/push         bearer {endpoint} -> tell this browser when a letter arrives
+     DELETE /api/me/push        bearer {endpoint} -> stop telling it
      PUT   /api/me/blocked/:id  bearer         -> stop them writing; silent
      DELETE /api/me/blocked/:id bearer
      PUT   /api/me/featured/:gameId bearer {note} -> show a game on your page
@@ -87,6 +91,7 @@ import { toSgf } from "../src/engine/sgf.js";
 import { callerIp } from "./ratelimit.js";
 import { may } from "./clubs.js";
 import { mailConfig, mailLink, verifyMessage, resetMessage } from "./mail.js";
+import { pushConfig } from "./push.js";
 export { Registry } from "./registry.js";
 export { Room } from "./roomObject.js";
 export { Club } from "./clubObject.js";
@@ -164,6 +169,11 @@ export default {
         "already-a-member": 409, "club-is-full": 409, "too-many-clubs": 409,
         "not-a-member": 403, "not-allowed": 403, "not-yourself": 400,
         "no-such-role": 400, "founder-cannot-leave": 409, "no-code": 503,
+        /* Push. `push-off` is 503 for the same reason `no-code` is: the keys
+           are not set on this deployment, so the call is well formed and the
+           server simply cannot do it yet. `bad-endpoint` is a 400 because the
+           browser was the one that minted the address it sent. */
+        "push-off": 503, "bad-endpoint": 400,
       };
       if (known[e.message]) return fail(known[e.message], e.message);
       console.error("unhandled", e);
@@ -180,7 +190,7 @@ async function route(req, env) {
   // The mail mode is here so a deployment that cannot send is visible at a
   // glance, rather than being discovered by somebody whose letter never came.
   if (path === "/" || path === "/api/health") {
-    return json({ name: "sente-server", ok: true, mail: mailConfig(env).mode });
+    return json({ name: "sente-server", ok: true, mail: mailConfig(env).mode, push: pushConfig(env).mode });
   }
 
   if (path === "/api/register" && req.method === "POST") {
@@ -312,6 +322,12 @@ async function route(req, env) {
       if (!players[1] && req.method === "GET") return json(await reg.everyone());
       if (players[1] && req.method === "DELETE") return json({ removed: await reg.remove(players[1]) });
       return fail(405, "method");
+    }
+    /* The roll, rebuilt from the archive. Once, on the deploy that brought
+       the roll, so the club's first morning is not an empty box. */
+    if (path === "/api/admin/roll/backfill") {
+      if (req.method !== "POST") return fail(405, "method");
+      return json(await reg.backfillRoll());
     }
     const rate = /^\/api\/admin\/ratelimit\/([^/]+)$/.exec(path);
     if (rate && req.method === "DELETE") return json({ cleared: await reg.unblock(decodeURIComponent(rate[1])) });
@@ -642,6 +658,35 @@ async function route(req, env) {
   if (path === "/api/roll" && req.method === "GET") {
     const viewer = await reg.auth(bearer(req));
     return json(await reg.rollFor(viewer ? viewer.id : null));
+  }
+
+  /* One more look at a game on the roll.
+     A token is required and then thrown away. Nothing about who asked is
+     stored — the tally is one integer and the notice's "not who, not when,
+     not from where" stays true word for word — but an open counter that any
+     stranger could POST to is a number anybody can make say anything, and
+     every POST is a write. Requiring a handle costs the tally nothing it was
+     allowed to keep and takes the endpoint out of reach of a passing script.
+     A game not on the roll is not counted, so the key space stays bounded. */
+  const viewed = /^\/api\/roll\/([^/]+)\/view$/.exec(path);
+  if (viewed) {
+    if (req.method !== "POST") return fail(405, "method");
+    await requirePlayer(req, reg);
+    return json(await reg.noteView(viewed[1]));
+  }
+
+  /* Push. The public key is public: it is what the browser hands the push
+     service so the service can tell our signature from anybody else's. */
+  if (path === "/api/push" && req.method === "GET") {
+    const cfg = pushConfig(env);
+    return json({ mode: cfg.mode, key: cfg.mode === "on" ? cfg.publicKey : null });
+  }
+  if (path === "/api/me/push") {
+    const player = await requirePlayer(req, reg);
+    const b = await readJson(req);
+    if (req.method === "PUT") return json(await reg.subscribePush(player.id, b.endpoint));
+    if (req.method === "DELETE") return json(await reg.unsubscribePush(player.id, b.endpoint));
+    return fail(405, "method");
   }
 
   /* Not named `post`: that is the module-level helper that hands a letter to

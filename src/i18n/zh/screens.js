@@ -558,8 +558,10 @@ export const screens = {
   },
 
   /* The roll: the last games played here, ordered by how much they have
-     to do with you. Never a count of who looked at what. */
+     to do with you. The count on a row is of opens and names nobody. */
   roll: {
+    /* How many times a game was opened from the roll. Drawn only above 0. */
+    views: { other: "被打开 {count} 次" },
     head: "这里发生了什么",
     note: "最近的对局，你认识的人在前。",
     noteThin: "最近的对局。随着你下棋交友，这里会变成你的俱乐部。",
@@ -580,6 +582,8 @@ export const screens = {
     /* On a thread row, and on the button that offers the box.
        `writeTo` is the label a screen reader hears; `write` is the
        words on the button. */
+    /* Under the last of your letters they have said they read. */
+    seen: "已读",
     new: "新",
     write: "给他写信",
     writeTo: "给 {name} 写信",

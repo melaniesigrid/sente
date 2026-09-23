@@ -201,6 +201,17 @@ export const api = {
   /* What happened here lately. Readable signed out, where it is plain
      recency; signed in, closeness sorts it. */
   roll: (token) => call("/api/roll", { token }),
+  /* One more look at a game on the roll. The token is checked and dropped:
+     the tally names nobody, and asking for one keeps the counter out of reach
+     of anything that is not a player here. */
+  noteView: (token, gameId) => call(`/api/roll/${encodeURIComponent(gameId)}/view`, { method: "POST", token }),
+  /* Push. `push` says whether the server can send at all and hands out the
+     public key; the other two file and forget this browser's address. The
+     address is all that is sent: the keys a subscription carries are for
+     encrypting a payload, and there is no payload. */
+  push: () => call("/api/push"),
+  subscribePush: (token, endpoint) => call("/api/me/push", { method: "PUT", token, body: { endpoint } }),
+  unsubscribePush: (token, endpoint) => call("/api/me/push", { method: "DELETE", token, body: { endpoint } }),
   setBlocked: (token, id, on) =>
     call(`/api/me/blocked/${encodeURIComponent(id)}`, { method: on ? "PUT" : "DELETE", token }),
 
