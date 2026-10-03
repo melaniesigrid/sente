@@ -5,8 +5,9 @@
    applied to a room with no board in it.
 
    A HALL IS NOT THE POST
-   The post is one thread a pair, kept, with no read receipts, and only from
-   somebody you agreed to hear from. A hall is live, is said to whoever is
+   The post is one thread a pair, kept, and only from somebody you agreed to
+   hear from; whether a reader tells you they read it is their own switch, off
+   until they turn it on. A hall is live, is said to whoever is
    standing there, and keeps the last five hundred lines and no more. Both are
    worth having because they are different things: one is a letter, the other
    is a room.

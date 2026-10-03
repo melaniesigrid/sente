@@ -598,7 +598,36 @@ export const screens = {
      `not-met` is doing careful work: somebody who has been blocked is told the
      same thing a stranger is told, because blocking is silent and a line saying
      "you have been blocked" is the one message the blocker chose not to send. */
+  /* The roll: the last games played here, ordered by how much they have
+     to do with you. The count on a row is of opens and names nobody. */
+  roll: {
+    /* How many times a game was opened from the roll. Drawn only above 0. */
+    views: { one: "Opened {count} time", other: "Opened {count} times" },
+    head: "What has been happening",
+    note: "The last games played here, the people you know first.",
+    noteThin: "The last games played here. It fills with your own club as you play and make friends.",
+    versus: "{black} and {white}",
+    openGame: "Open the game between {black} and {white}",
+    wonBy: "{name} won {how}",
+    byResign: "by resignation",
+    byTime: "on time",
+    byPoints: "by {points}",
+    jigo: "A draw",
+    unfinished: "Unfinished",
+  },
   letters: {
+    /* A letter that carries a position. The board is the question; the
+       words beside it are optional. */
+    dropPosition: "Not this position",
+    askPlaceholder: "Ask about this position…",
+    /* On a thread row, and on the button that offers the box.
+       `writeTo` is the label a screen reader hears; `write` is the
+       words on the button. */
+    /* Under the last of your letters they have said they read. */
+    seen: "Seen",
+    new: "New",
+    write: "Write to them",
+    writeTo: "Write to {name}",
     fetching: "Fetching your letters…",
     head: "Letters",
     note: "One thread a person, kept for good. Only somebody you are friends with, or have finished a game against, can write to you.",
@@ -617,6 +646,15 @@ export const screens = {
     letThemWrite: "Let them write",
     stopThemWriting: "Stop them writing",
     refusal: {
+      /* Answering a position by playing on it. An illegal move is named by
+         the rule it broke, in the kernel’s own vocabulary. */
+      "illegal-occupied": "There is already a stone there",
+      "illegal-suicide": "That move would take its own last liberty",
+      "illegal-ko": "The ko has to wait a move",
+      "illegal-offboard": "That is off the board",
+      "nothing-to-answer": "There is no position in this thread to play on",
+      "your-own-position": "That is your own position. Wait for them to answer it.",
+      "bad-move": "That is not a point on the board",
       "not-met": "You can write to your friends, and to anybody you have finished a game against.",
       yourself: "You cannot write to yourself",
       "no-player": "That player is not here any more",

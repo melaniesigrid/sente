@@ -113,6 +113,25 @@ export const account = {
     resetFine: "This takes a second: the browser does the work of proving the password so the server never has to hold it.",
   },
 
+  /* Read receipts: the reader's switch, off until turned on. Notices: an
+     empty push to this device saying there is post, per device. */
+  receipts: {
+    label: "Read receipts",
+    on: "On",
+    off: "Off",
+    note: "Off, nobody is told you opened a letter. On, the person who wrote to you sees “Seen” under the last letter of theirs you have read. It is your switch, not theirs, and turning it off takes it back.",
+  },
+  push: {
+    label: "Tell me when a letter arrives",
+    on: "On",
+    off: "Off",
+    note: "A notice on this device, with nothing in it but that there is post: what it says, and who wrote, stay on Joseki. Turn it on here on each device you want told.",
+    body: "There is post for you.",
+    unsupported: "This browser cannot show notices from Joseki.",
+    denied: "This browser has notices from Joseki blocked. Allow them in its settings first.",
+    serverOff: "The server is not set up to send notices yet.",
+  },
+
   card: {
     wl: "{wins} W · {losses} L",
     onServer: "Your card on the server. It follows you to any device you sign in on.",

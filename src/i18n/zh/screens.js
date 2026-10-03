@@ -557,7 +557,36 @@ export const screens = {
     },
   },
 
+  /* The roll: the last games played here, ordered by how much they have
+     to do with you. The count on a row is of opens and names nobody. */
+  roll: {
+    /* How many times a game was opened from the roll. Drawn only above 0. */
+    views: { other: "被打开 {count} 次" },
+    head: "这里发生了什么",
+    note: "最近的对局，你认识的人在前。",
+    noteThin: "最近的对局。随着你下棋交友，这里会变成你的俱乐部。",
+    versus: "{black} 对 {white}",
+    openGame: "打开 {black} 对 {white} 的对局",
+    wonBy: "{name} {how}胜",
+    byResign: "中盘",
+    byTime: "超时",
+    byPoints: "{points} 目",
+    jigo: "和局",
+    unfinished: "未完",
+  },
   letters: {
+    /* A letter that carries a position. The board is the question; the
+       words beside it are optional. */
+    dropPosition: "不发这个局面",
+    askPlaceholder: "就这个局面提问…",
+    /* On a thread row, and on the button that offers the box.
+       `writeTo` is the label a screen reader hears; `write` is the
+       words on the button. */
+    /* Under the last of your letters they have said they read. */
+    seen: "已读",
+    new: "新",
+    write: "给他写信",
+    writeTo: "给 {name} 写信",
     fetching: "正在取你的信……",
     head: "信",
     note: "一人一条线，永远留着。只有你的好友，或者跟你下完过一局棋的人，才能给你写信。",
@@ -576,6 +605,15 @@ export const screens = {
     letThemWrite: "让他写",
     stopThemWriting: "不让他写",
     refusal: {
+      /* Answering a position by playing on it. An illegal move is named by
+         the rule it broke, in the kernel’s own vocabulary. */
+      "illegal-occupied": "那里已经有子了",
+      "illegal-suicide": "这一手会填掉自己最后一口气",
+      "illegal-ko": "劫要等一手",
+      "illegal-offboard": "那在棋盘外",
+      "nothing-to-answer": "这个信里没有可以落子的局面",
+      "your-own-position": "那是你自己的局面。等他们回答。",
+      "bad-move": "那不是棋盘上的点",
       "not-met": "你可以给好友写信，也可以给任何跟你下完过一局棋的人写信。",
       yourself: "你不能给自己写信",
       "no-player": "那位棋手已经不在这儿了",

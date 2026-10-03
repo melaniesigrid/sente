@@ -569,7 +569,36 @@ export const screens = {
     },
   },
 
+  /* The roll: the last games played here, ordered by how much they have
+     to do with you. The count on a row is of opens and names nobody. */
+  roll: {
+    /* How many times a game was opened from the roll. Drawn only above 0. */
+    views: { one: "{count}-mal geöffnet", other: "{count}-mal geöffnet" },
+    head: "Was hier passiert ist",
+    note: "Die letzten Partien hier, die Leute, die du kennst zuerst.",
+    noteThin: "Die letzten Partien hier. Es füllt sich mit deinem eigenen Klub, während du spielst.",
+    versus: "{black} und {white}",
+    openGame: "Die Partie zwischen {black} und {white} öffnen",
+    wonBy: "{name} gewann {how}",
+    byResign: "durch Aufgabe",
+    byTime: "auf Zeit",
+    byPoints: "mit {points}",
+    jigo: "Unentschieden",
+    unfinished: "Unbeendet",
+  },
   letters: {
+    /* A letter that carries a position. The board is the question; the
+       words beside it are optional. */
+    dropPosition: "Diese Stellung doch nicht",
+    askPlaceholder: "Frag nach dieser Stellung…",
+    /* On a thread row, and on the button that offers the box.
+       `writeTo` is the label a screen reader hears; `write` is the
+       words on the button. */
+    /* Under the last of your letters they have said they read. */
+    seen: "Gelesen",
+    new: "Neu",
+    write: "Schreib ihnen",
+    writeTo: "Schreib an {name}",
     fetching: "Deine Briefe werden geholt…",
     head: "Briefe",
     note: "Ein Faden je Mensch, für immer aufgehoben. Schreiben kann dir nur, mit wem du befreundet bist oder gegen wen du eine Partie beendet hast.",
@@ -588,6 +617,15 @@ export const screens = {
     letThemWrite: "Schreiben erlauben",
     stopThemWriting: "Schreiben unterbinden",
     refusal: {
+      /* Answering a position by playing on it. An illegal move is named by
+         the rule it broke, in the kernel’s own vocabulary. */
+      "illegal-occupied": "Dort liegt schon ein Stein",
+      "illegal-suicide": "Dieser Zug nähme sich die letzte Freiheit",
+      "illegal-ko": "Das Ko muss einen Zug warten",
+      "illegal-offboard": "Das liegt nicht mehr auf dem Brett",
+      "nothing-to-answer": "In diesem Briefwechsel liegt keine Stellung zum Spielen",
+      "your-own-position": "Das ist deine eigene Stellung. Warte auf die Antwort.",
+      "bad-move": "Das ist kein Punkt auf dem Brett",
       "not-met": "Du kannst deinen Freunden schreiben und jedem, gegen den du eine Partie beendet hast.",
       yourself: "Du kannst dir nicht selbst schreiben",
       "no-player": "Diesen Spieler gibt es hier nicht mehr",

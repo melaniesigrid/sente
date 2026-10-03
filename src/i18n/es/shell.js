@@ -14,11 +14,22 @@ export const shell = {
     frontDoor: "Joseki, la entrada",
     tagline: "juega al go, con belleza",
   },
+  /* The dock: a panel beside whatever you are doing, so a letter can be
+     seen without leaving a board with a clock running on it. */
+  dock: {
+    quiet: "Todavía nada. Las partidas terminadas aparecen cuando el club juega.",
+    open: "Abrir el panel lateral",
+    close: "Cerrar el panel lateral",
+    roll: "Últimamente",
+    post: "Correo",
+    postNote: "Tus cartas están en tu perfil, donde un hilo se lee bien y una posición se puede responder.",
+    openPost: "Ir a tus cartas",
+    signedOut: "Consigue un nombre para recibir correo.",
+  },
   topbar: {
     enter: "Entrar",
     yourBoard: "Tu tablero",
-    look: "El aspecto del lugar",
-    lookShort: "Aspecto",
+    mail: { zero: "El correo: nada esperando", one: "El correo: {count} carta esperando", other: "El correo: {count} cartas esperando" },
     profile: "Tu perfil",
   },
   journal: {

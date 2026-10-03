@@ -3,6 +3,9 @@
    a game back and one to build the room you read it in. */
 export const rooms = {
   review: {
+    /* Sending the position on screen to somebody, with a question.
+       What they can send back is a move on it. */
+    askAbout: "Ask somebody about this",
     trainer: { ask: "Ask {name}" },
     back: "Back",
     unfinished: "Unfinished game",

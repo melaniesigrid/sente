@@ -13,6 +13,9 @@ const loadAccount = vi.fn(() => null);
 vi.mock("../net/api.js", () => ({ serverEnabled: () => serverEnabled() }));
 vi.mock("../store/account.js", () => ({ loadAccount: () => loadAccount() }));
 vi.mock("./DashboardCard.jsx", () => ({ DashboardCard: ({ account }) => <div>dashboard:{account.player.name}</div> }));
+/* The roll is about everybody else and has its own suite; this one is about
+   the dashboard and the trainer. */
+vi.mock("./RollCard.jsx", () => ({ RollCard: () => null }));
 vi.mock("./AccountGate.jsx", () => ({ AccountGate: () => <div>gate</div> }));
 /* The demo board is a clock and a network, both tested in its own suite. Here
    it only has to hand back the one thing the dashboard reads off it: which

@@ -15,11 +15,22 @@ export const shell = {
     frontDoor: "Joseki, the front door",
     tagline: "play go, beautifully",
   },
+  /* The dock: a panel beside whatever you are doing, so a letter can be
+     seen without leaving a board with a clock running on it. */
+  dock: {
+    quiet: "Nothing here yet. Finished games show up as the club plays.",
+    open: "Open the side panel",
+    close: "Close the side panel",
+    roll: "Lately",
+    post: "Post",
+    postNote: "Your letters are on your profile, where a thread can be read properly and a position answered.",
+    openPost: "Go to your letters",
+    signedOut: "Claim a handle to get post.",
+  },
   topbar: {
     enter: "Enter",
     yourBoard: "Your board",
-    look: "The look of the place",
-    lookShort: "Look",
+    mail: { zero: "The post: nothing waiting", one: "The post: {count} letter waiting", other: "The post: {count} letters waiting" },
     profile: "Your profile",
   },
   /* The journal: what shipped, and what we think about how it is built. The

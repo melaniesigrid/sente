@@ -1,6 +1,9 @@
 // de · rooms
 export const rooms = {
   review: {
+    /* Sending the position on screen to somebody, with a question.
+       What they can send back is a move on it. */
+    askAbout: "Jemanden dazu fragen",
     trainer: { ask: "Frag {name}" },
     back: "Zurück",
     unfinished: "Unbeendete Partie",

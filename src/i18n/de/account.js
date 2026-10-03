@@ -103,6 +103,25 @@ export const account = {
     resetFine: "Das dauert eine Sekunde: der Browser erledigt die Arbeit, das Passwort zu beweisen, damit der Server es nie halten muss.",
   },
 
+  /* Read receipts: the reader's switch, off until turned on. Notices: an
+     empty push to this device saying there is post, per device. */
+  receipts: {
+    label: "Lesebestätigungen",
+    on: "An",
+    off: "Aus",
+    note: "Aus: niemand erfährt, dass du einen Brief geöffnet hast. An: wer dir schreibt, sieht „Gelesen“ unter dem letzten Brief von sich, den du gelesen hast. Es ist dein Schalter, nicht seiner, und Ausschalten nimmt es zurück.",
+  },
+  push: {
+    label: "Sag mir, wenn ein Brief kommt",
+    on: "An",
+    off: "Aus",
+    note: "Ein Hinweis auf diesem Gerät, der nur sagt, dass Post da ist: was drinsteht und wer geschrieben hat, bleibt bei Joseki. Schalte es auf jedem Gerät ein, das Bescheid bekommen soll.",
+    body: "Post für dich.",
+    unsupported: "Dieser Browser kann keine Hinweise von Joseki zeigen.",
+    denied: "Dieser Browser blockiert Hinweise von Joseki. Erlaube sie zuerst in seinen Einstellungen.",
+    serverOff: "Der Server ist noch nicht dafür eingerichtet, Hinweise zu senden.",
+  },
+
   card: {
     wl: "{wins} S · {losses} N",
     onServer: "Deine Karte auf dem Server. Sie folgt dir auf jedes Gerät, auf dem du dich anmeldest.",

@@ -153,7 +153,11 @@ ${FONT_FACES}
 }
 
 /* ---- chrome ---- */
+/* The chrome sits above the dock, and paints, so opening the panel never
+   takes the post box or the profile chip away from under the reader's hand.
+   A panel that covered the button that opened it would be a trap. */
 .topbar {
+  position: relative; z-index: 41; background: var(--ground);
   display: flex; align-items: center; justify-content: space-between;
   gap: 14px; flex-wrap: wrap;
   padding: clamp(14px, 2.5vw, 24px) clamp(16px, 4vw, 44px);
@@ -346,7 +350,7 @@ ${FONT_FACES}
    sinks while still held two pixels up is being pressed and lifted at once. */
 .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active { transform: none; }
 
-.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .fm-card:active, .play-choice:active, .trainer-mode:active, .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn:active, .swatch:active, .look-btn:active, .lang-pill:active, .btn:active:not(:disabled), .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active, .lp-btn:active, .lp-card-btn:active, .lp-enter:active, .arche-btn:active, .country-btn:active { transition-duration: .06s; }
+.tile:active, .persona-card:active, .lesson-card:active, .jr-card:active, .fm-card:active, .play-choice:active, .trainer-mode:active, .nav-btn:active, .tint-dot:active, .theme-btn:active, .stone-btn:active, .legal-tab:active, .type-btn:active, .swatch:active, .look-btn:active, .look-entry:active, .lang-pill:active, .btn:active:not(:disabled), .profile-chip:active, .chat-send:active, .ladder-open:active:not(.me), .icon-btn:active, .log-next:active, .jr-back:active, .friend-who:active, .vs-open:active, .lp-btn:active, .lp-card-btn:active, .lp-enter:active, .arche-btn:active, .country-btn:active { transition-duration: .06s; }
 
 /* A screen arrives a beat at a time rather than all at once. It is the front
    door's entrance, applied where a whole screen is swapped in by the nav: the
@@ -537,6 +541,12 @@ ${FONT_FACES}
    does. */
 .board-well { border-radius: var(--r); box-shadow: var(--raise); padding: clamp(12px, 1.8vw, 22px); min-width: 0; background: var(--ground); }
 .wood { fill: var(--board); }
+/* A diagram is a board quoted inside something else: a letter, a roll row, a
+   hall message. It sets no margin of its own, because whatever is quoting it
+   knows how much air it wants around a picture; it only stops the browser's
+   default figure margin from pushing the board off-centre in a narrow card. */
+.diagram { margin: 0; min-width: 0; }
+.diagram-note { margin-top: 6px; }
 .play-wrap > .board-well { flex: 2 1 520px; }
 .side { flex: 1 1 300px; min-width: 260px; max-width: 420px; }
 /* The board is a diagram, not a paragraph, and it does not mirror. Its geometry
@@ -850,8 +860,85 @@ ${FONT_FACES}
 .letter-card { display: flex; flex-direction: column; gap: 12px; }
 .letter-card .chat-head { display: flex; align-items: center; gap: 10px; }
 .letter-name { font-weight: 700; }
-.letter-unread { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; box-shadow: var(--raise-sm); color: var(--accent-ink); }
+/* One chip, two places. The trainer's card and the post box in the chrome are
+   both saying "somebody wrote to you", so they are one rule and not two that
+   drift apart. 12px is the floor of the type scale and this is meaning, not
+   decoration, so it sits on the floor and not under it. */
+.letter-unread, .mail-count { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; box-shadow: var(--raise-sm); color: var(--accent-ink); }
+/* The post box keeps the icon button's shape and hangs its count off the top
+   corner. The count is pinned with inset-inline-end and never with right: in
+   Hebrew the whole cluster mirrors, and a count nailed to the right would sit
+   on the wrong shoulder of the icon. */
+.mail-btn { position: relative; }
+.mail-count { position: absolute; top: -5px; inset-inline-end: -5px; min-width: 18px; text-align: center; padding: 1px 6px; }
 .letter-log { max-height: 340px; }
+/* Two faces at the head of a roll row, overlapped the way two players sit
+   across a board rather than listed one after the other. The overlap is
+   logical, so in Hebrew the second face laps the first from the other side. */
+.roll-faces { display: inline-flex; align-items: center; flex: none; }
+.roll-faces > :nth-child(2) { margin-inline-start: -10px; }
+.roll-row .ladder-name { min-width: 0; }
+
+/* ----------------------- THE DOCK -----------------------
+   A panel beside whatever you are doing. It is a sibling of the router in the
+   markup, which is what stops opening it from unmounting a live board; here it
+   only has to get out of the way of one.
+
+   Everything horizontal is logical: inset-inline-end, not right. The dock sits
+   at the end of the reading direction, so in Hebrew the whole thing swaps
+   sides on its own and the handle swaps with it. The board inside does NOT
+   mirror, which the board already sees to itself: a goban is a diagram, and a
+   diagram is the same in every language. */
+.dock-tab { position: fixed; inset-inline-end: 0; top: 50%; transform: translateY(-50%);
+  z-index: 40; display: grid; place-items: center; width: 34px; height: 64px;
+  border: 0; cursor: pointer; background: var(--ground); color: var(--ink-2);
+  border-start-start-radius: 14px; border-end-start-radius: 14px;
+  box-shadow: var(--raise-sm); transition: color .15s ease, box-shadow .15s ease; }
+.dock-tab:hover { color: var(--ink); }
+.dock-tab.on { color: var(--accent-ink); box-shadow: var(--sink-sm); }
+/* The panel runs the full height and starts its CONTENT below the chrome,
+   rather than starting below it: a panel that stopped at the header would
+   leave a strip of page showing above it and read as a torn-off sheet. The
+   top padding is the header's own arithmetic — its content is 48px and it
+   pads by that clamp top and bottom — so the two move together. If the header
+   ever wraps to two lines this is the line that has to know. */
+.dock { position: fixed; inset-block: 0; inset-inline-end: 0; z-index: 39;
+  padding-block-start: calc(48px + 2 * clamp(14px, 2.5vw, 24px));
+  width: min(380px, 92vw); padding-inline: 16px; padding-block-end: 18px;
+  overflow-y: auto; background: var(--ground);
+  box-shadow: var(--raise); visibility: hidden;
+  /* Off its own edge when closed. The nudge means ONWARD and not rightward,
+     so it is multiplied by --flip: 1 normally, -1 on a right-to-left page, so
+     the dock slides off the end of the reading direction in both. A pair of
+     :dir() overrides would have said the same thing twice and been the thing
+     somebody forgets to change. */
+  transform: translateX(calc(100% * var(--flip)));
+  transition: transform .22s ease, visibility .22s ease; }
+.dock.open { transform: translateX(0); visibility: visible; }
+.dock-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+.dock-tabbtn { display: inline-flex; align-items: center; gap: 6px; flex: 1 1 0;
+  justify-content: center; padding: 9px 10px; border: 0; cursor: pointer;
+  border-radius: 12px; background: var(--ground); color: var(--ink-2);
+  font: 700 12px var(--font-body); letter-spacing: .08em; text-transform: uppercase;
+  box-shadow: var(--raise-sm); }
+.dock-tabbtn.on { box-shadow: var(--sink-sm); color: var(--accent-ink); }
+.dock-body { display: grid; gap: 12px; }
+/* On a phone the board owns the width, so the dock is a sheet over the top
+   rather than a column beside anything. */
+@media (max-width: 760px) {
+  .dock { width: 100vw; }
+  .dock-tab { top: auto; bottom: 16px; transform: none; }
+}
+/* Somebody who asked for less motion gets the panel without the slide. */
+@media (prefers-reduced-motion: reduce) { .dock { transition: none; } }
+/* The position a letter is about to carry, shown before it goes: nobody should
+   send a board they have not looked at. Sunken, because it is something held
+   in the composing box rather than something already said. */
+.letter-carrying { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap;
+  padding: 12px; border-radius: 16px; box-shadow: var(--sink-sm); margin-bottom: 10px; }
+/* A board inside a letter that has been sent. It sits under the words, with
+   air above it, and never stretches past the bubble it is in. */
+.letter .diagram { margin-top: 8px; max-width: 100%; }
 .letter-you { margin-inline-start: auto; }
 .letter-name .here-dot, .trainer-card h3 .here-dot { margin-inline-start: 6px; }
 .nav-ping { font-size: 12px; font-weight: 700; min-width: 18px; padding: 1px 6px; border-radius: 999px; box-shadow: var(--raise-sm); color: var(--accent-ink); margin-inline-start: 6px; }
@@ -1926,13 +2013,24 @@ ${FONT_FACES}
 .lang-row.on .lang-row-note { color: inherit; }
 .lang-row-tick { display: grid; place-items: center; color: var(--accent-ink); align-self: center; }
 
-/* Wide enough for its word, and back to a square when the word is dropped. */
-.look-btn { width: auto; height: 48px; border-radius: 16px; flex: none; gap: 8px; grid-auto-flow: column; padding: 0 16px;
-  font: 700 12px var(--font-body); letter-spacing: .1em; text-transform: uppercase;
-  transition: transform .15s ease, box-shadow .15s ease, color .15s ease; }
-.look-btn:hover { transform: translateY(-1px); }
-@media (max-width: 760px) { .look-btn span { display: none; } .look-btn { width: 48px; padding: 0; } }
-.look-btn[aria-current] { box-shadow: var(--sink-sm); color: var(--accent-ink); transform: none; }
+/* The way in to this screen, on the profile card under the name. It was a
+   labelled button in the chrome until the post took that seat; the label is
+   the point either way, since the whole lesson of this control is that nobody
+   finds a bare palette glyph. A full-width row rather than a pill, because on
+   the profile card it is an entry to somewhere and not a toggle. */
+.look-entry { display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 14px;
+  padding: 12px 14px; border-radius: 16px; box-shadow: var(--raise-sm); background: var(--ground);
+  color: inherit; text-align: start; cursor: pointer; border: 0;
+  transition: transform .15s ease, box-shadow .15s ease; }
+.look-entry:hover { transform: translateY(-1px); }
+.look-entry:active { box-shadow: var(--sink-sm); transform: none; }
+/* The note takes the rest of the row, and steps under the name when there is
+   no room for both on one line. */
+.look-entry .fine { margin-inline-start: auto; text-align: end; }
+@media (max-width: 560px) {
+  .look-entry { flex-wrap: wrap; }
+  .look-entry .fine { margin-inline-start: 0; text-align: start; flex-basis: 100%; }
+}
 /* The board and the drawer, side by side: a set is chosen by watching the
    stones on the board change, not by reading the name of a rock.
 
@@ -2584,6 +2682,11 @@ ${FONT_FACES}
   padding-top: 14px; border-top: 1px solid var(--hairline);
 }
 .who-may-see .fine { margin: 0; }
+/* "Seen" under one letter, and the look count on one roll row: both are the
+   same fine print as the date beside them, set off by a separator rather than
+   a colour, so neither reads as a badge. */
+.letter-seen::before, .roll-views::before { content: " · "; }
+.letter-seen, .roll-views { white-space: nowrap; }
 /* ---- the archive ----
    One row a game, the whole person-and-result a button and the SGF a plain
    link beside it. The mark takes the accent for a win and stays quiet for a

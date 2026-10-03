@@ -22,11 +22,22 @@ export const shell = {
     frontDoor: "Joseki, die Eingangstür",
     tagline: "Go spielen, schön",
   },
+  /* The dock: a panel beside whatever you are doing, so a letter can be
+     seen without leaving a board with a clock running on it. */
+  dock: {
+    quiet: "Noch nichts. Beendete Partien erscheinen hier, sobald der Klub spielt.",
+    open: "Seitenleiste öffnen",
+    close: "Seitenleiste schließen",
+    roll: "Zuletzt",
+    post: "Post",
+    postNote: "Deine Briefe stehen in deinem Profil, wo sich ein Verlauf richtig lesen und eine Stellung beantworten lässt.",
+    openPost: "Zu deinen Briefen",
+    signedOut: "Nimm dir einen Namen, um Post zu bekommen.",
+  },
   topbar: {
     enter: "Eintreten",
     yourBoard: "Dein Brett",
-    look: "Das Aussehen des Ortes",
-    lookShort: "Aussehen",
+    mail: { zero: "Die Post: nichts wartet", one: "Die Post: {count} Brief wartet", other: "Die Post: {count} Briefe warten" },
     profile: "Dein Profil",
   },
   journal: {

@@ -4,6 +4,9 @@
    читают. «Сеть» это KataGo: слово «нейросеть» длиннее и говорит не больше. */
 export const rooms = {
   review: {
+    /* Sending the position on screen to somebody, with a question.
+       What they can send back is a move on it. */
+    askAbout: "Спросить кого-то об этом",
     trainer: { ask: "Спросить {name}" },
     back: "Назад",
     unfinished: "Незаконченная партия",

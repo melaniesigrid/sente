@@ -6,6 +6,8 @@ import { saveAccount } from "../store/account.js";
 import { prepareAvatar, avatarUrl, AVATAR_ERRORS } from "../net/avatar.js";
 import { BIO_MAX, FACTS } from "../../server/profile.js";
 import { SHOW_ONLINE, cleanShowOnline } from "../../server/presence.js";
+import { cleanReceipts } from "../../server/post.js";
+import { pushState, enablePush, disablePush } from "../net/push.js";
 import { errorText } from "./accountForm.js";
 import { badgesShown } from "../content/badges.js";
 import { useT, useLocale } from "../components/langStore.js";
@@ -59,6 +61,8 @@ export function OnlineProfileCard({ account, setAccount, notify }) {
             onCancel={() => setEditing(false)} notify={notify} />
         : <SaidPlainly player={player} />}
       <WhoMaySee player={player} token={token} onSaved={keep} notify={notify} />
+      <Receipts player={player} token={token} onSaved={keep} notify={notify} />
+      <Notices token={token} notify={notify} />
     </Card>
   );
 }
@@ -101,6 +105,102 @@ function WhoMaySee({ player, token, onSaved, notify }) {
       </div>
       <p className="fine">
         {t("presence.note", { hint: t(`seen.${chosen}.hint`, null, SHOW_ONLINE.find((o) => o.id === chosen).hint) })}
+      </p>
+    </div>
+  );
+}
+
+/* ----------------------- READ RECEIPTS -----------------------
+   Off until turned on, and the READER'S switch: it decides whether the people
+   who write to you are shown how far you have read, and nothing about what
+   you are shown. Turning it off takes back what it had said. Two words on the
+   same control as the presence setting above, because it is the same kind of
+   thing: a choice about what other people are shown. */
+function Receipts({ player, token, onSaved, notify }) {
+  const t = useT();
+  const [busy, setBusy] = useState(false);
+  const on = cleanReceipts(player.receipts);
+
+  const pick = async (next) => {
+    if (busy || next === on) return;
+    setBusy(true);
+    try {
+      onSaved(await api.setProfile(token, { receipts: next }));
+    } catch (e) {
+      notify({ icon: "info", text: errorText(e.reason, t) });
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <div className="who-may-see">
+      <span className="op-label" id="receipts">{t("account.receipts.label")}</span>
+      <div className="seg" role="radiogroup" aria-labelledby="receipts">
+        {[false, true].map((v) => (
+          <button key={String(v)} type="button" role="radio" aria-checked={on === v}
+            className={`seg-btn ${on === v ? "active" : ""}`} disabled={busy} onClick={() => pick(v)}>
+            {t(v ? "account.receipts.on" : "account.receipts.off")}
+          </button>
+        ))}
+      </div>
+      <p className="fine">{t("account.receipts.note")}</p>
+    </div>
+  );
+}
+
+/* ----------------------- NOTICES -----------------------
+   Being told, on this device, that a letter arrived. Per device on purpose:
+   a subscription is a browser's, not an account's, and the server keeps one
+   address per browser that asked. What arrives carries nothing but the fact
+   of post; the words it is shown with are handed to the worker here, in the
+   reader's language. The permission prompt is raised by this press and by
+   nothing else. */
+function Notices({ token, notify }) {
+  const t = useT();
+  const [state, setState] = useState(null);   // null while asking the browser
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let live = true;
+    pushState().then((s) => { if (live) setState(s); });
+    return () => { live = false; };
+  }, []);
+
+  const pick = async (next) => {
+    if (busy || state === null || (next ? state === "on" : state !== "on")) return;
+    setBusy(true);
+    try {
+      if (next) await enablePush(token, { title: "Joseki", body: t("account.push.body") });
+      else await disablePush(token);
+      setState(await pushState());
+    } catch (e) {
+      const why = e && (e.reason || e.message);
+      const text = why === "denied" ? t("account.push.denied")
+        : why === "unsupported" ? t("account.push.unsupported")
+          : why === "push-off" ? t("account.push.serverOff")
+            : errorText(why, t);
+      notify({ icon: "info", text });
+      setState(await pushState());
+    } finally { setBusy(false); }
+  };
+
+  const on = state === "on";
+  const cannot = state === "unsupported" || state === "denied";
+  return (
+    <div className="who-may-see">
+      <span className="op-label" id="notices">{t("account.push.label")}</span>
+      <div className="seg" role="radiogroup" aria-labelledby="notices">
+        {[false, true].map((v) => (
+          <button key={String(v)} type="button" role="radio" aria-checked={on === v}
+            className={`seg-btn ${on === v ? "active" : ""}`} disabled={busy || state === null || cannot}
+            onClick={() => pick(v)}>
+            {t(v ? "account.push.on" : "account.push.off")}
+          </button>
+        ))}
+      </div>
+      <p className="fine">
+        {state === "unsupported" ? t("account.push.unsupported")
+          : state === "denied" ? t("account.push.denied")
+            : t("account.push.note")}
       </p>
     </div>
   );

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { serverEnabled } from "../net/api.js";
 import { ACCOUNT_KEY, loadAccount } from "../store/account.js";
+import { RollCard } from "./RollCard.jsx";
 import { DashboardCard } from "./DashboardCard.jsx";
 import { AccountGate } from "./AccountGate.jsx";
 import { Swords, GraduationCap, Target, Trophy, Play, Trash2, CalendarCheck, BrainCircuit, Check, Circle, MessageCircle, Send, Bot } from "lucide-react";
@@ -217,6 +218,11 @@ export function Home({ profile, go, onResume, notify = () => {} }) {
 
       <Statement lines={statementFor("home", t)} figure="home">{plainFor("home", t)}</Statement>
       {account && <DashboardCard account={account} go={go} />}
+      {/* What happened here lately. It sits under the dashboard because the
+          dashboard is about you and this is about everybody else, and that
+          is the order a returning player asks the two questions in. It
+          draws nothing at all when the server has nothing to say. */}
+      <RollCard account={account} go={go} />
 
       <Card className="passage-card"><Passage context="home" size="lg" /></Card>
 

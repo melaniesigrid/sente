@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from "react";
-import { Swords, GraduationCap, Target, LayoutDashboard, Medal, ArrowRight, Palette, CornerDownRight, History } from "lucide-react";
+import { Swords, GraduationCap, Target, LayoutDashboard, Medal, ArrowRight, Mail, CornerDownRight, History } from "lucide-react";
 import { sayingBySeed, localizeSaying } from "./content/classic.js";
 
 /* ================================================================
@@ -73,6 +73,7 @@ function loadFamous(retry = false) {
     });
 }
 import { linkFromQuery, forgetLink } from "./views/letterLink.js";
+import { Dock } from "./views/Dock.jsx";
 
 import { loadBox, unread } from "./store/sensei.js";
 import { useTrainerAccess } from "./views/useTrainer.js";
@@ -228,6 +229,27 @@ export default function JosekiApp() {
   useEffect(() => {
     setPings(trainerOn ? unread(loadBox()).length : 0);
   }, [trainerOn, view]);
+  /* The post from real people, asked of the server on the same beat the
+     trainer's box is read on: a screen change. There is no polling loop, and
+     this number is never pushed at — the promise in `server/post.js` is that
+     a letter waits for you to look up, not that it interrupts you. A reader
+     who asked to be told gets a notice on their own device instead (see
+     `src/net/push.js`), which is their switch and changes nothing here: the
+     number is still read on a screen change and from nowhere else.
+     A signed-out reader has no post box, and a request that fails leaves the
+     number where it was rather than flickering to zero: a dropped connection
+     is not the same news as an empty post box. */
+  const [letters, setLetters] = useState(0);
+  useEffect(() => {
+    if (!account) { setLetters(0); return undefined; }
+    let live = true;
+    api.unread(account.token)
+      .then((r) => { if (live) setLetters(Number(r && r.unread) || 0); })
+      .catch(() => {});
+    return () => { live = false; };
+  }, [account, view]);
+  /* One number in the chrome. Both halves are letters somebody wrote you. */
+  const mail = pings + letters;
   useEffect(() => {
     const base = document.title.replace(/^\(\d+\) /, "");
     document.title = pings > 0 ? `(${pings}) ${base}` : base;
@@ -290,17 +312,29 @@ export default function JosekiApp() {
             one setting. */}
         <div className="topbar-you">
           <LangPill profile={profile} setProfile={setProfile} />
-          {/* Labelled, not a bare icon. A palette glyph on its own is a
-              preference nobody goes looking for: the first player to say the
-              dark board was hard to read had never found this button, and six
-              light rooms were one press away the whole time. The long phrase
-              stays the label a screen reader hears; the short one is the word
-              on the button, and it drops on a narrow screen the way the nav's
-              own labels do. */}
-          <button className="icon-btn look-btn" onClick={() => go("look")}
-            aria-label={t("topbar.look")} aria-current={view === "look" ? "page" : undefined}>
-            <Palette size={17} />
-            <span>{t("topbar.lookShort")}</span>
+          {/* The post box, where the Look button used to be.
+
+              The Look moved onto the Profile screen, high up, where it is the
+              first thing under the name. The lesson of the player who could
+              not find the light rooms was that the control has to be
+              PROMINENT, and a labelled button in the chrome was one way of
+              being prominent; the top of the screen you visit to change
+              anything about yourself is another, and it leaves the chrome for
+              the thing that changes without you.
+
+              One number, not two. The trainer's letters and the post from
+              real people are both letters, and a person with two places to
+              check has been handed a chore instead of a message. The
+              trainer's own card keeps its indicator, for when you are already
+              looking at him.
+
+              It counts THREADS. Three people wrote to you reads as 3, which
+              is a number you can act on; nine letters from one person is
+              still one conversation to open. */}
+          <button className="icon-btn mail-btn" onClick={() => go("profile")}
+            aria-label={t("topbar.mail", { count: mail })}>
+            <Mail size={17} />
+            {mail > 0 && <span className="mail-count">{mail}</span>}
           </button>
           <button className="profile-chip" onClick={() => go("profile")} aria-label={t("topbar.profile")}>
             <Avatar name={profile.name} tint={profile.tint} size={34} />
@@ -353,7 +387,12 @@ export default function JosekiApp() {
           {view === "club" && <ClubPage clubId={params ? params.clubId : null} go={go} notify={notify}
             onBack={params && params.from ? () => go(params.from, params.fromParams || null) : null} />}
           {view === "profile" && <ProfileView profile={profile} setProfile={setProfile} go={go} room={room} notify={notify}
-            writeTo={params ? params.writeTo : null} />}
+            writeTo={params ? params.writeTo : null}
+            /* A position carried in from review, to be asked about. It rides
+               with the navigation rather than being stored: it is one
+               question on its way to one thread, and a copy left anywhere
+               would be a second place a board could go stale. */
+            askDiagram={params ? params.diagram : null} />}
           {view === "look" && <LookView profile={profile} setProfile={setProfile} go={go} room={room} />}
           {view === "dojo" && <DojoView profile={profile} setProfile={setProfile} notify={notify} go={go} room={room} />}
           {view === "legal" && <LegalView docId={params ? params.docId : null} onPick={(id) => go("legal", { docId: id })} />}
@@ -369,6 +408,13 @@ export default function JosekiApp() {
           </>)}
         </ErrorBoundary>
       </main>
+      {/* The dock is a SIBLING of the router's output, never inside it. That
+          is the whole of how the promise is kept: opening it changes nothing
+          the router knows about, so the board below is never unmounted, the
+          game socket is never rebuilt, and the clock does not stutter. It is
+          written here rather than inside a screen so that no future screen
+          has to remember to honour it. */}
+      <Dock account={account} go={go} view={view} />
       <Toast toast={toast} />
       <footer className="foot">
         {/* The footer takes the letters alone. The mark would have to be

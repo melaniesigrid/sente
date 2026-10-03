@@ -298,7 +298,7 @@ function CountryCard({ profile, commit, account, setAccount, notify }) {
 
 /* ----------------------- PROFILE ----------------------- */
 
-export function ProfileView({ profile, setProfile, go, room, notify, writeTo = null }) {
+export function ProfileView({ profile, setProfile, go, room, notify, writeTo = null, askDiagram = null }) {
   const t = useT();
   const { tag } = useLocale();
   /* The plate strip, derived once per stone set rather than once per keystroke.
@@ -380,12 +380,24 @@ export function ProfileView({ profile, setProfile, go, room, notify, writeTo = n
             <Pill icon={Trophy}>{t("profile.wl", { wins: profile.wins, losses: profile.losses })}</Pill>
             {profile.bestStreak > 1 && <Pill icon={Flame}>{t("profile.streakPill", { count: profile.bestStreak })}</Pill>}
           </div>
+          {/* The look of the place, which used to sit in the top bar. It moved
+              here when the post box took that seat, and it is high on this
+              card rather than low on this screen for the same reason it was
+              labelled rather than a bare glyph up there: the first player to
+              say the dark board was hard to read had never found it, and six
+              light rooms were one press away the whole time. A preference
+              nobody finds is not a preference. */}
+          <button className="look-entry" onClick={() => go("look")}>
+            <Palette size={16} />
+            <strong>{t("profile.look.head")}</strong>
+          </button>
         </div>
       </Card>
 
       {account && <OnlineProfileCard account={account} setAccount={setAccount} notify={notify} />}
       {account && <ArchiveCard account={account} setAccount={setAccount} notify={notify} go={go} />}
-      {account && <LettersCard account={account} go={go} open={thread} setOpen={setThread} />}
+      {account && <LettersCard account={account} go={go} open={thread} setOpen={setThread}
+        askDiagram={thread === writeTo ? askDiagram : null} />}
       {/* No way to write from a search row on purpose: a search turns up
           strangers, and only a friend or somebody you have played may be
           written to. A button that mostly refuses is worse than no button. */}

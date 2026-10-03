@@ -17,6 +17,10 @@ export {
 } from "./record.js";
 export { SHAPES, SEVERITY_RANK, detectShapes } from "./shape.js";
 export { RELATIONS, relationsAt } from "./relations.js";
+export {
+  DEFAULT_PAD, MAX_DIAGRAM_BYTES, boundsOf, boundsSize, inBounds, diagramOf, diagramAt,
+  playOn, diagramToSgf, diagramFromSgf, readDiagram, diagramCentre, sameDiagram, stoneCount,
+} from "./diagram.js";
 export { CLOCK_TYPES, createClock, tick, onMove, remainingMs } from "./clock.js";
 export { GLICKO, updateGlicko, rateAgainst, isProvisional } from "./glicko.js";
 export {

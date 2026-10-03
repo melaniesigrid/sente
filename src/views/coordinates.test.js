@@ -24,10 +24,17 @@ const HONOURS = [
    swatch and a thumbnail, where sixteen-pixel text would be noise at any
    setting. RankDial names its two points on the board itself, with letters,
    which is the job the margin would have been doing. */
-const EXEMPT = ["Joseki.jsx", "Look.jsx", "MiniSelfPlay.jsx", "RankDial.jsx"];
+/* A Diagram is a board quoted inside something else — a letter, a roll row —
+   and it is always cropped, so its margin falls outside the viewBox for the
+   same reason Joseki's does. A reply to a diagram is a move played on it
+   rather than a point read off it, and the prose around it can name the point
+   the way table talk already does. If a diagram ever stops being a crop, this
+   is where the argument has to be had again. */
+const EXEMPT = ["Diagram.jsx", "Joseki.jsx", "Look.jsx", "MiniSelfPlay.jsx", "RankDial.jsx"];
 
+const COMPONENTS = ["Diagram.jsx", "MiniSelfPlay.jsx", "RankDial.jsx"];
 const read = (name) => {
-  const dir = ["MiniSelfPlay.jsx", "RankDial.jsx"].includes(name) ? "../components/" : "./";
+  const dir = COMPONENTS.includes(name) ? "../components/" : "./";
   return readFileSync(new URL(dir + name, import.meta.url), "utf8");
 };
 

@@ -23,11 +23,22 @@ export const shell = {
     frontDoor: "Joseki, l'entrée",
     tagline: "jouer au go, avec beauté",
   },
+  /* The dock: a panel beside whatever you are doing, so a letter can be
+     seen without leaving a board with a clock running on it. */
+  dock: {
+    quiet: "Rien pour l'instant. Les parties terminées apparaîtront quand le club jouera.",
+    open: "Ouvrir le panneau latéral",
+    close: "Fermer le panneau latéral",
+    roll: "Récemment",
+    post: "Courrier",
+    postNote: "Vos lettres sont sur votre profil, où un échange se lit correctement et une position se répond.",
+    openPost: "Voir vos lettres",
+    signedOut: "Prenez un pseudo pour recevoir du courrier.",
+  },
   topbar: {
     enter: "Entrer",
     yourBoard: "Ton goban",
-    look: "L'allure du lieu",
-    lookShort: "Allure",
+    mail: { zero: "Le courrier : rien en attente", one: "Le courrier : {count} lettre en attente", other: "Le courrier : {count} lettres en attente" },
     profile: "Ton profil",
   },
   journal: {

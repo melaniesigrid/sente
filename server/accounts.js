@@ -21,6 +21,7 @@
    the parameters used, so a record always says how it was made. */
 
 import { cleanShowOnline } from "./presence.js";
+import { cleanReceipts } from "./post.js";
 
 /** The stretch the browser is asked to perform. Stored on every account so a
  *  record made under one set of parameters can still be verified later. */
@@ -81,5 +82,9 @@ export function privateFields(p) {
        reading the ladder cannot tell you who has chosen to be invisible,
        which is most of what choosing to be invisible was for. */
     showOnline: cleanShowOnline(p.showOnline),
+    /* Whether this player tells the people who write to them how far they
+       have read. Off until switched on, and on this view only: it is the
+       reader's own switch and no page but their own shows its position. */
+    receipts: cleanReceipts(p.receipts),
   };
 }

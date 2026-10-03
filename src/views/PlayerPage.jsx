@@ -17,6 +17,7 @@ import { FriendButton } from "./FriendsCard.jsx";
 import { InvitePanel } from "./InvitesCard.jsx";
 import { useInvites } from "./useInvites.js";
 import { standingOver } from "./invitation.js";
+import { useCanWrite } from "./letters.js";
 
 /* ----------------------- A PLAYER, SEEN FROM OUTSIDE -----------------------
    The page one player opens about another. `GET /api/players/:id` has been live
@@ -44,6 +45,9 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
      player's card for a frame while the second is still in the air; a result
      tagged with the wrong id is read here as "still asking" instead. */
   const [answer, setAnswer] = useState(null);
+  /* Whether the post box may be offered at all. The server decides; this
+     page only asks. */
+  const canWrite = useCanWrite(account, playerId);
 
   useEffect(() => {
     if (!canAsk) return undefined;
@@ -144,8 +148,15 @@ export function PlayerPage({ playerId, go, onBack, notify }) {
               <div className="row">
                 {/* It used to land on the profile screen and leave somebody to
                     find the right row. Now it opens the thread with this person,
-                    which is what the words on it have always said. */}
-                <Btn icon={Mail} small onClick={() => go("profile", { writeTo: player.id })}>{t("player.writeToThem")}</Btn>
+                    which is what the words on it have always said.
+
+                    And it is offered only when it would work. Whether it would
+                    is the server's answer, as it is for the invite panel above:
+                    the page holds lists, not the rule. It is absent rather than
+                    disabled-with-a-reason, because a reason would amount to
+                    "they blocked you", which is the one message blocking exists
+                    in order not to send. */}
+                {canWrite && <Btn icon={Mail} small onClick={() => go("profile", { writeTo: player.id })}>{t("player.writeToThem")}</Btn>}
                 {/* Silent, and never the same act as unfriending: the two mean
                     different things and doing both at once would take the
                     second choice away from whoever the first one protects. */}
