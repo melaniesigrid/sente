@@ -76,6 +76,10 @@ async function concatRest(buf, loaded, first, reader, total) {
   return out;
 }
 
+/** Forget a session that has stopped working, so the next call loads afresh
+ *  instead of asking a dead worker and waiting out its deadline every move. */
+const retire = (s) => { if (session === s) { session = null; loading = null; } };
+
 /** Load the network (idempotent). Resolves to the session or throws. */
 export function loadModel() {
   if (session) return Promise.resolve(session);
@@ -84,7 +88,11 @@ export function loadModel() {
     try {
       const bytes = await fetchModel(base() + MODEL_FILE);
       emit({ phase: "compile", loaded: bytes.length, total: bytes.length });
-      session = await startWorker(bytes) || await startHere(bytes);
+      /* The bytes are transferred to the worker, not copied, so a worker that took
+         them and then failed has left this buffer empty. The main thread reads
+         them again, from the HTTP cache, rather than compiling nothing. */
+      session = await startWorker(bytes, retire)
+        || await startHere(bytes.byteLength ? bytes : await fetchModel(base() + MODEL_FILE));
       emit({ phase: "ready", loaded: bytes.length, total: bytes.length });
       return session;
     } catch (e) {
@@ -108,7 +116,14 @@ const wasmPrefix = () => new URL(base() + "ort/", location.href).href;
 /** The network in its own thread. Returns null if the browser will not give us one,
    which is a reason to say so out loud: it is the difference between a smooth 19x19
    game and a stuttering one. */
-async function startWorker(bytes) {
+/* How long the worker gets. A 19x19 look takes about 1.2 s and compiling the
+   network a few seconds, so these are an order of magnitude past a slow phone:
+   long enough never to fire on a working device, short enough that a dead one
+   hands the move to the fallback instead of to nobody. */
+export const RUN_DEADLINE_MS = 20000;
+export const LOAD_DEADLINE_MS = 60000;
+
+async function startWorker(bytes, retire = () => {}) {
   let worker;
   try {
     worker = new Worker(new URL("./session.worker.js", import.meta.url), { type: "module" });
@@ -118,37 +133,56 @@ async function startWorker(bytes) {
   }
   const pending = new Map();
   let next = 1;
+  let handle = null;
   worker.onmessage = (e) => {
     const { id, ok, error, logits, value } = e.data || {};
     const slot = pending.get(id);
     if (!slot) return;
     pending.delete(id);
+    clearTimeout(slot.timer);
     if (ok) slot.resolve({ logits, value });
     else slot.reject(new Error(error));
   };
-  const ask = (type, payload, transfer) => new Promise((resolve, reject) => {
+  /* A worker that dies, or one that never answers (the ORT proxy-flag failure
+     is exactly that), used to leave every caller waiting on a promise that would
+     never settle, and the table with it. Every question now has a deadline, and
+     a crash fails everything still in flight, so the caller can fall back. */
+  const failAll = (why) => {
+    for (const slot of pending.values()) { clearTimeout(slot.timer); slot.reject(new Error(why)); }
+    pending.clear();
+  };
+  // A worker that has crashed or hung is let go; the next question loads afresh.
+  const kill = (why) => { failAll(why); try { worker.terminate(); } catch { /* gone */ } if (handle) retire(handle); };
+  worker.onerror = (e) => { e.preventDefault?.(); kill(`network worker crashed: ${e.message ?? "unknown"}`); };
+  worker.onmessageerror = () => failAll("network worker sent an unreadable message");
+  const ask = (type, payload, transfer, ms) => new Promise((resolve, reject) => {
     const id = next++;
-    pending.set(id, { resolve, reject });
+    const timer = setTimeout(() => {
+      if (!pending.has(id)) return;
+      kill(`network worker did not answer "${type}" in ${ms} ms`);
+    }, ms);
+    pending.set(id, { resolve, reject, timer });
     worker.postMessage({ id, type, payload }, transfer || []);
   });
   // A worker that cannot start the runtime is worse than none: it would answer
   // nothing at all. Fail here and let the main thread take over.
   try {
-    await ask("load", { bytes, wasmPrefix: wasmPrefix() }, [bytes.buffer]);
+    await ask("load", { bytes, wasmPrefix: wasmPrefix() }, [bytes.buffer], LOAD_DEADLINE_MS);
   } catch (e) {
     console.warn(`sente: the network could not start in its own thread (${e.message}); running it on the main thread, so 19x19 moves will stutter`);
     worker.terminate();
     return null;
   }
-  return {
+  handle = {
     run: async (bin, global, meta, size) => {
       const res = await ask("run", {
         bin, global, meta, size,
         binFeatures: NUM_BIN_FEATURES, globalFeatures: NUM_GLOBAL_FEATURES, metaFeatures: NUM_META_FEATURES,
-      }, [bin.buffer, global.buffer, meta.buffer]);
+      }, [bin.buffer, global.buffer, meta.buffer], RUN_DEADLINE_MS);
       return { logits: res.logits, value: Array.from(res.value) };
     },
   };
+  return handle;
 }
 
 /** The network on the main thread: correct, and what the table used to do. */

@@ -807,3 +807,18 @@ describe("the order he answers in", () => {
     expect(replyTo("which modes are there?", { ...ctx, seed: 3 })[1]).toBe(MODES[3].pitch);
   });
 });
+
+/* The gloss contract held for every string the suite enumerated and not for the
+   one she types herself: `petName` put her name straight into the pool. */
+describe("the gloss contract at runtime", () => {
+  it("never puts an unexplained Chinese name of hers into what he calls her", () => {
+    const said = new Set(Array.from({ length: 60 }, (_, i) => petName(i, "龙飞", true)));
+    expect(said.has("龙飞")).toBe(false);
+    expect(said.has("you")).toBe(true);
+    // A name the glossary explains, or a name in any other script, is kept.
+    expect(new Set(Array.from({ length: 60 }, (_, i) => petName(i, "Mel", true))).has("Mel")).toBe(true);
+  });
+  it("glosses each name as itself, and nothing else alongside it", () => {
+    for (const g of GLOSSARY) expect(glossFor(`今天 ${g.name} 好`).map((x) => x.name)).toEqual([g.name]);
+  });
+});
