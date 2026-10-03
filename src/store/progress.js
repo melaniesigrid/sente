@@ -85,11 +85,28 @@ const betterRun = (a, b) => {
   return (b.stops ?? 0) > (a.stops ?? 0) ? b : a;
 };
 
-/** A recall card: the one further along, and of two in the same box the one
- *  due later, since that is the one that was answered more recently. */
+/* The days each recall box waits, as `content/recall.js` has them (BOXES). Copied
+   rather than imported because this module also runs in the Worker, and recall.js
+   reaches the whole engine through kata.js; `progress.test.js` holds the two equal. */
+export const RECALL_BOX_DAYS = [1, 2, 4, 8, 16, 32];
+
+/** The day a card was last answered: its due day less its box's wait. */
+const gradedOn = (card) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(card.due ?? ""));
+  if (!m) return -Infinity;
+  const box = Math.min(Math.max(0, card.box ?? 0), RECALL_BOX_DAYS.length - 1);
+  return Date.UTC(+m[1], +m[2] - 1, +m[3]) / 86400000 - RECALL_BOX_DAYS[box];
+};
+
+/** A recall card: the one answered more recently, and of two answered the same
+ *  day the one further along. "Further along" alone made a miss impossible to
+ *  keep for a signed-in player: the miss sends a card back to box 0, the copy on
+ *  the server is still in box 3, and the merge brought box 3 home again. */
 const furtherCard = (a, b) => {
   if (!isRecord(a)) return b;
   if (!isRecord(b)) return a;
+  const da = gradedOn(a), db = gradedOn(b);
+  if (da !== db) return db > da ? b : a;
   if ((b.box ?? 0) !== (a.box ?? 0)) return (b.box ?? 0) > (a.box ?? 0) ? b : a;
   return String(b.due ?? "") > String(a.due ?? "") ? b : a;
 };

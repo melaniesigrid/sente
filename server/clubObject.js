@@ -33,6 +33,12 @@ export class Club extends DurableObject {
        this exists to stop is a flood in one sitting, and a flood needs the
        room to be awake. */
     this.said = new Map();
+    /* Boards somebody is sitting down at right now. Opening the game is a call to
+       the Registry, and an outgoing call lets other frames in while it waits; a
+       second "sit" on the same board used to pass the check in that window and
+       open a second rated game against the same host. The claim is taken before
+       the call and is in memory on purpose: it only has to outlive one await. */
+    this.sitting = new Set();
   }
 
   async load(clubId) {
@@ -168,14 +174,23 @@ export class Club extends DurableObject {
   async sitDown(ws, member, hall, msg) {
     const can = sittable(hall, msg.channel, msg.id, member.id);
     if (can.error) return send(ws, { t: "error", reason: can.error });
+    const claim = `${can.channel}
+${msg.id}`;
+    if (this.sitting.has(claim)) return send(ws, { t: "error", reason: "already-taken" });
+    this.sitting.add(claim);
     let table;
     try {
       table = await this.registry().seatClubTable(member.club, can.line.from, member.id, can.line.terms);
     } catch (e) {
       return send(ws, { t: "error", reason: e.message || "no-table" });
+    } finally {
+      this.sitting.delete(claim);
     }
     const taken = { by: member.id, name: member.name, gameId: table.gameId, at: Date.now() };
-    const r = seated(hall, can.channel, msg.id, taken);
+    /* Marked on the hall as it is now, not as it was before the call: lines said
+       while the game was being opened were saved in that window, and writing
+       back the older copy dropped them. */
+    const r = seated(this.hall ?? hall, can.channel, msg.id, taken);
     if (r.error) return send(ws, { t: "error", reason: r.error });
     await this.save(r.hall);
     for (const ev of r.events) this.tellAll(ev.frame);

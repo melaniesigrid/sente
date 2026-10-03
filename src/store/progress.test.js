@@ -1,8 +1,9 @@
 import { describe, it, expect } from "vitest";
 import {
   progressOf, cleanProgress, mergeProgress, applyProgress, progressBytes,
-  PROGRESS_FIELDS, SETS, HIGH, LATEST, MAPS, PROGRESS_MAX_BYTES,
+  PROGRESS_FIELDS, SETS, HIGH, LATEST, MAPS, PROGRESS_MAX_BYTES, RECALL_BOX_DAYS,
 } from "./progress.js";
+import { BOXES } from "../content/recall.js";
 import { defaultProfile, sanitizeProfile } from "./profile.js";
 
 describe("progressOf", () => {
@@ -67,11 +68,24 @@ describe("mergeProgress", () => {
     expect(at).toBe(200);
     expect(mergeProgress(B, A).data.kataStreak).toBe(1520);
   });
-  it("takes a recall card further along, and of two in the same box the one answered later", () => {
+  it("takes the recall card answered more recently, a miss included", () => {
     const { data } = mergeProgress(A, B);
     expect(data.recall.x).toEqual({ box: 1, due: "2026-09-14" });
-    expect(data.recall.y).toEqual({ box: 2, due: "2026-09-12" });
+    /* y was answered on the 8th into box 2, then missed on the 12th back to box
+       0. The miss is the newer answer and stands; keeping box 2 because it was
+       "further along" is how a lapse used to be undone by the next sync. */
+    expect(data.recall.y).toEqual({ box: 0, due: "2026-09-13" });
+    expect(mergeProgress(B, A).data.recall.y, "whichever side is given first").toEqual({ box: 0, due: "2026-09-13" });
     expect(data.recall.z).toEqual({ box: 3, due: "2026-09-30" });
+  });
+  it("of two cards answered the same day, keeps the one further along", () => {
+    const a = { data: { recall: { k: { box: 0, due: "2026-09-11" } } }, at: 1 };
+    const b = { data: { recall: { k: { box: 1, due: "2026-09-12" } } }, at: 2 };
+    expect(mergeProgress(a, b).data.recall.k).toEqual({ box: 1, due: "2026-09-12" });
+    expect(mergeProgress(b, a).data.recall.k).toEqual({ box: 1, due: "2026-09-12" });
+  });
+  it("reads the box waits the recall schedule uses", () => {
+    expect(RECALL_BOX_DAYS).toEqual(BOXES);
   });
   it("keeps the better run of a replay lesson, score before stops", () => {
     expect(mergeProgress(A, B).data.bookProgress.L).toEqual({ stops: 3, score: 4, total: 6 });

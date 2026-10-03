@@ -3511,6 +3511,30 @@ on the foundation it was deferred onto.
 **Phase 12 is complete.** Three slices, three branches, one design doc. What is deliberately
 not in it, each for a reason written down in `docs/designs/the-club.md`: voice, reactions,
 threads, bots and uploads.
+## Found by a bug hunt (2026-10-03, branch `fix/found-bugs`)
+
+A read-only sweep of the play paths, every finding checked against the code before it
+was fixed. All eight are fixed here:
+- [x] A pair-table partner interrupted while reading (a resignation, a dropped socket)
+      kept its "thinking" flag and its claim on the position: the finished game threw
+      drawing the status line, and a reconnect never asked the partner again.
+      `OnlineGame.pair.test.jsx` fails on the old code.
+- [x] A rated jigo against a house player was rated and counted as a loss, on the device
+      and on the account. It is the half point now, and `carry.js` carries it as one.
+- [x] Two members sitting at one hall board at once could each open a rated game against
+      the host, and a line said meanwhile was written over. The board is claimed before
+      the Registry call and `seated` refuses a taken board. The new check in
+      `tools/server/hall.mjs` passes, but it did not reproduce the race under local
+      `wrangler dev`, so it guards rather than proves.
+- [x] A missed recall card was undone by progress sync: the merge kept the higher box.
+      It now keeps the card answered more recently, read off `due` less the box's wait.
+- [x] The room's settlement wrote back the room from before its Registry call, over any
+      chat or review frame saved in between.
+- [x] Hall sockets closed with 4001 (club closed) or 4002 (shown the door) reconnected
+      every eight seconds for as long as the page stayed open.
+- [x] An SGF with `HA[1]` (common) or `HA[0]` was refused as unreadable.
+- [x] The illegal-move notice on the online and pair boards was always English.
+
 ## Principles (do not trade away)
 
 - Rules live in the engine, never in a view.

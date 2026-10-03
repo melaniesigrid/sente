@@ -83,6 +83,9 @@ const BOARD_PX = { 9: 460, 13: 560, 19: 680 };
    the human - which is what makes a newcomer move fast and a settled player
    move a tenth of a rank at a time. */
 const HOUSE_RD = GLICKO.minRd;
+/** One word for how a house game went, from the human's side (Black). */
+const outcomeWord = (winner, t) =>
+  t(winner === "b" ? "game.toast.victory" : winner === null ? "game.jigoHead" : "game.toast.defeat");
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
 export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
@@ -382,8 +385,9 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         // Advice was given, or the opponent threw a move on purpose. Either way the
         // game moves no rating, and says so the way a duel and a master game do.
         const won = next.result.winner === "b";
-        say(pick(won ? persona.chat.loss : persona.chat.win));
-        notify({ icon: won ? "trophy" : "flag", text: t("game.toast.coached", { outcome: t(won ? "game.toast.victory" : "game.toast.defeat") }) });
+        const drawn = next.result.winner === null;
+        if (!drawn) say(pick(won ? persona.chat.loss : persona.chat.win));
+        notify({ icon: won ? "trophy" : "flag", text: t("game.toast.coached", { outcome: outcomeWord(next.result.winner, t) }) });
         /* A trainer game cannot be armed with the coach any more, but one can
            still arrive here already coached (a resumed session carries the flag).
            He owes her the review and the letter either way: the branch decides
@@ -392,7 +396,13 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
       } else if (persona) {
         remember("rated");
         const won = next.result.winner === "b";
-        say(pick(won ? persona.chat.loss : persona.chat.win));
+        /* A jigo is half a point either way, as Glicko and the server both take
+           it. It used to fall through to a loss: rated 0, counted as a defeat,
+           the streak broken and the account told the same. Whole-number komi
+           under New Zealand rules makes it reachable at any table. */
+        const drawn = next.result.winner === null;
+        const score = won ? 1 : drawn ? 0.5 : 0;
+        if (!drawn) say(pick(won ? persona.chat.loss : persona.chat.win));
         /* The trainer's games are rated, by the owner's decision: his purpose is to
            build the rank, and a game he explained still counts. That is the one
            exception to "a game with advice in it moves no rating", and it is his.
@@ -408,13 +418,13 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         const rated = rateAgainst(
           { rating: profile.rating, rd: profile.rd, vol: profile.vol },
           { rating: oppRating, rd: HOUSE_RD },
-          won ? 1 : 0,
+          score,
         );
         const rating = clamp(rated.rating, MIN_RATING, MAX_RATING);
-        const streak = won ? profile.streak + 1 : 0;
+        const streak = won ? profile.streak + 1 : drawn ? profile.streak : 0;
         const np = {
           ...profile, rating, rd: rated.rd, vol: rated.vol,
-          wins: profile.wins + (won ? 1 : 0), losses: profile.losses + (won ? 0 : 1),
+          wins: profile.wins + (won ? 1 : 0), losses: profile.losses + (won || drawn ? 0 : 1),
           streak, bestStreak: Math.max(profile.bestStreak, streak),
           ...attendDay(profile),
         };
@@ -429,7 +439,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
            next pull, which is the honest fallback and not a second rating. */
         const account = serverEnabled() ? loadAccount() : null;
         if (account) {
-          api.houseGame(account.token, { rating: oppRating, rd: HOUSE_RD }, won ? 1 : 0).then((player) => {
+          api.houseGame(account.token, { rating: oppRating, rd: HOUSE_RD }, score).then((player) => {
             saveAccount({ token: account.token, player });
             setProfile((cur) => {
               const adopted = withPlayer(cur, player);
@@ -441,7 +451,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
         const newRank = rankOf(rating), newBelt = beltOf(rating);
         if (won && newBelt !== oldBelt) setCeremony(newBelt);
         else if (won && newRank !== oldRank) notify({ icon: "medal", text: t("game.toast.promoted", { rank: newRank }) });
-        else notify({ icon: won ? "trophy" : "flag", text: t("game.toast.now", { outcome: t(won ? "game.toast.victory" : "game.toast.defeat"), rank: preciseRankOf(rating) }) });
+        else notify({ icon: won ? "trophy" : "flag", text: t("game.toast.now", { outcome: outcomeWord(next.result.winner, t), rank: preciseRankOf(rating) }) });
       }
     }
     return next;

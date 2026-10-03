@@ -236,10 +236,16 @@ export const api = {
 
 const wsUrl = (path) => SERVER_URL.replace(/^http/, "ws") + path;
 
+/* Close codes that mean "do not come back": replaced or signed out (4000), the
+   club closed (4001), shown the door or left (4002). The last two used to be
+   retried every eight seconds for as long as the page stayed open, into a room
+   that would refuse every one of them. */
+const GO_AWAY = [4000, 4001, 4002];
+
 /** Open a JSON socket. `onFrame(frame)` gets every parsed message; `onStatus`
  *  gets "connecting" | "open" | "closed". Returns `{ send, close }`. The socket
  *  reconnects with backoff until `close()` is called, unless the server closed
- *  it with a code that means "go away" (4000 replaced). */
+ *  it with a code that means "go away" (`GO_AWAY`). */
 export function openSocket(path, { onFrame, onStatus = () => {} }) {
   let ws = null, wanted = true, attempt = 0, timer = null;
   const connect = () => {
@@ -255,7 +261,7 @@ export function openSocket(path, { onFrame, onStatus = () => {} }) {
     ws.onclose = (e) => {
       ws = null;
       onStatus("closed");
-      if (!wanted || e.code === 4000) return;
+      if (!wanted || GO_AWAY.includes(e.code)) return;
       attempt += 1;
       timer = setTimeout(connect, Math.min(8000, 400 * 2 ** attempt));
     };

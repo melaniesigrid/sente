@@ -281,3 +281,15 @@ describe("toSgf", () => {
     expect(back.tree.children).toEqual([]);
   });
 });
+
+describe("handicap values real files carry", () => {
+  it("reads HA[1] and HA[0] as an even game rather than refusing the file", () => {
+    expect(parseSgf("(;GM[1]SZ[19]HA[1];B[pd];W[dp])").handicap).toBe(0);
+    expect(recordFromSgf("(;GM[1]SZ[19]HA[1];B[pd];W[dp])").moves).toHaveLength(2);
+    expect(parseSgf("(;GM[1]SZ[9]HA[0];B[ee])").handicap).toBe(0);
+    expect(parseSgf("(;GM[1]SZ[9]HA[x];B[ee])").handicap).toBe(0);
+  });
+  it("names a handicap past nine as the reason, not as an unreadable file", () => {
+    expect(() => parseSgf("(;GM[1]SZ[19]HA[13])")).toThrow(SgfParseError);
+  });
+});
