@@ -3393,7 +3393,8 @@ friends"; this phase is the three verbs in that sentence that were still missing
       now carries its own board picker, writing the same table setting, and the tests
       check placement rather than state: a test that only asserted the state would have
       gone green on the bug.
-- [ ] **Hebrew has no words for the club** (found 2026-09-13, not fixed): the club landed
+- [x] **Hebrew has no words for the club** (found 2026-09-13; checked closed 2026-10-03:
+      `src/i18n/he/club.js` is on main and the parity suite passes): the club landed
       after Hebrew did, so `src/i18n/he/` carries none of the `club.` namespace and
       `i18n.test.js` fails two cases on main, not only on a branch. The club's CSS had the
       same shape of gap and is fixed in `fix/online-board-size`: `.hall-line`,
@@ -3402,7 +3403,14 @@ friends"; this phase is the three verbs in that sentence that were still missing
       are one lesson: two branches that each pass alone can still break main together, and
       nothing re-runs the older one against the newer. Translating the namespace is its own
       sitting, by somebody who has seen the club.
-- [ ] **The phantom seek** (found 2026-09-13, not fixed): the client sets "Looking for
+- [x] **The phantom seek** (found 2026-09-13, fixed 2026-10-03, branch `fix/phantom-seek`):
+      both halves, as below. `webSocketClose` keeps the seek while any *other* lobby socket
+      of that player is open (the old `<= 1` counted the replacing tab as the closing one),
+      a new lobby socket is sent the waiting frame for a seek still stored, rengo progress
+      included, and `OnlineLobby` drops its search when the socket closes. A plain network
+      blip had the same symptom: the server let the seek go and the reconnected screen
+      went on saying it was looking. `tools/server/seek.mjs` proves it against a live
+      Worker, and fails on the old code. The original report: the client sets "Looking for
       an opponent…" when it sends the seek and only clears it on a reply, but the server
       deletes `seek:<id>` whenever the player's socket count falls to one
       (`server/registry.js` `webSocketClose`) — which includes the case where a second

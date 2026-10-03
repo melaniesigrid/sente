@@ -2116,9 +2116,25 @@ export class Registry extends DurableObject {
     server.serializeAttachment({ id: player.id });
     // A player has one lobby seat: newer tabs replace older ones quietly.
     for (const ws of this.ctx.getWebSockets(player.id)) if (ws !== server) ws.close(4000, "replaced");
+    /* The seek belongs to the player, not to the tab that sent it. A tab that
+       replaces another inherits a search still in progress and is told so; the
+       replaced tab is not reconnected and was the only screen that knew. */
+    const mine = await this.ctx.storage.get(`seek:${player.id}`);
+    if (mine) send(server, await this.#waitingFrame(mine));
     await this.#notePeak();
     await this.broadcastLobby();
     return new Response(null, { status: 101, webSocket: client });
+  }
+
+  /** What somebody still waiting is told, rebuilt from the stored seek. A rengo
+   *  seek carries how full its table is, counted the way `#seekRengo` counts it. */
+  async #waitingFrame(s) {
+    const frame = { t: "seek", status: "waiting", size: s.size, rated: s.rated, key: s.key ?? null };
+    if (!s.rengo) return { ...frame, pair: s.pair ?? null };
+    const seeks = await this.ctx.storage.list({ prefix: "seek:" });
+    const table = [...seeks.values()].filter((o) => o.rengo && (o.key ?? null) === (s.key ?? null)
+      && o.size === s.size && (o.id === s.id || this.ctx.getWebSockets(o.id).length));
+    return { ...frame, rengo: true, ...rengoProgress(table) };
   }
 
   async webSocketMessage(ws, raw) {
@@ -2148,8 +2164,12 @@ export class Registry extends DurableObject {
   }
 
   async webSocketClose(ws) {
+    /* The seek goes only when no other lobby socket of theirs is left. Counting
+       "one or fewer" read the tab that had just replaced this one as the closing
+       socket, and threw away the search it was about to inherit. */
     const att = ws.deserializeAttachment();
-    if (att && this.ctx.getWebSockets(att.id).length <= 1) await this.ctx.storage.delete(`seek:${att.id}`);
+    const others = att ? this.ctx.getWebSockets(att.id).filter((o) => o !== ws) : [];
+    if (att && !others.length) await this.ctx.storage.delete(`seek:${att.id}`);
     await this.broadcastLobby();
   }
 

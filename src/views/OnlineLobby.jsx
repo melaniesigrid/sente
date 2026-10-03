@@ -92,7 +92,11 @@ function Lobby({ account, setAccount, notify, onPlay, size, setSize, go, mode, s
 
   useEffect(() => {
     sock.current = lobbySocket(token, {
-      onStatus: setConn,
+      /* A search lives on the connection. Once it is gone the server has
+         either dropped the seek or handed it to another tab, and this screen
+         must stop saying it is looking; a socket that comes back is told by
+         the server whether the search is still on. */
+      onStatus: (s) => { setConn(s); if (s === "closed") setSeek(null); },
       onFrame: (f) => {
         if (f.t === "lobby") setLobby({ online: f.online, seeking: f.seeking });
         else if (f.t === "seek") setSeek(f.status === "waiting" ? { size: f.size, key: f.key, pair: f.pair ?? null, rengo: !!f.rengo, seated: f.seated, of: f.of, blocked: f.blocked ?? null } : null);

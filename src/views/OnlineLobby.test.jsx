@@ -281,3 +281,35 @@ describe("the board the find button names", () => {
     expect(sockets[0].send).toHaveBeenCalledWith(expect.objectContaining({ t: "seek", size: 19 }));
   });
 });
+
+/* --------------------------- THE PHANTOM SEEK -----------------------------
+   A search used to outlive its connection. A tab replaced by a newer one is
+   closed and never reconnected, and the server had already let the seek go, so
+   the old tab said "Looking for an opponent" to a queue that no longer held it.
+   The server now tells whichever socket holds the seek; this screen's half is
+   to believe the server over its own memory. */
+describe("a search that loses its connection", () => {
+  const ready = async () => {
+    show();
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    await act(async () => { sockets[0].handlers.onStatus("open"); });
+  };
+  const looking = () => /Looking for a/.test(document.body.textContent);
+
+  it("stops saying it is looking once the socket is gone", async () => {
+    await ready();
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: /opponent/i })); });
+    await act(async () => { sockets[0].handlers.onFrame({ t: "seek", status: "waiting", size: 9, key: null }); });
+    expect(looking(), "searching while connected").toBe(true);
+    await act(async () => { sockets[0].handlers.onStatus("closed"); });
+    expect(looking(), "not once the connection has gone").toBe(false);
+  });
+
+  it("picks the search up when the server says it is still on", async () => {
+    await ready();
+    expect(looking()).toBe(false);
+    await act(async () => { sockets[0].handlers.onFrame({ t: "seek", status: "waiting", size: 13, key: null }); });
+    expect(looking(), "a seek inherited from another tab is shown").toBe(true);
+    expect(document.body.textContent).toContain("13×13");
+  });
+});
