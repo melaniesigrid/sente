@@ -2429,7 +2429,7 @@ Open:
 
 Found by the adversarial pass while shipping those modes (2026-09-16). All of
 these are older than that branch and none were introduced by it:
-- [ ] **P1** A hung network call wedges his board with no way out. `trainerAsk`
+- [x] **P1** (fixed 2026-10-03, `fix/trainer-bugs`: the worker itself now has deadlines and a crash handler in `kata/net.js`, which every house game needed too, and `trainerAsk` races a 90 s deadline) A hung network call wedges his board with no way out. `trainerAsk`
       (`src/views/Game.jsx`) chains every call onto one promise queue and catches
       rejection, but not a promise that never settles - which is exactly the shape
       of the ORT proxy-flag failure. If `evaluatePosition` or
@@ -2437,29 +2437,29 @@ these are older than that branch and none were introduced by it:
       poisoned for the rest of the game, and `canResign` is `!over && !thinking`, so
       she can neither play, nor pass, nor resign. Race each `trainerAsk` against a
       timeout that resolves null.
-- [ ] **P1** "Played without me" dies permanently after fifty games.
+- [x] **P1** (fixed 2026-10-03: the box keeps `seenTail`, a mark of the last game he saw, and `markSeen`/`logMoved` replace the count) "Played without me" dies permanently after fifty games.
       `playedWithoutHim` compares `box.seen` against `log.length`, but the telemetry
       log is a ring buffer capped at 50 (`src/store/telemetry.js`). Once the device
       has fifty games the length is pinned, `seen` catches up, and the jealous line
       never fires again for anybody who actually uses the app. Compare against the
       last-seen entry's day and identity, not the array length.
-- [ ] **P2** Every anti-repetition marker is write-only-on-success. `saveBox`
+- [x] **P2** (fixed 2026-10-03: `saveBox` returns what landed, giving up the oldest half of the thread before any marker) Every anti-repetition marker is write-only-on-success. `saveBox`
       swallows a quota throw, and `enticed`, `rung`, `greeted`, `bond` and `taught`
       all live in that one blob. Under quota pressure a "yes" to his question is
       silently dropped and he asks again, `markRead` never sticks so the badge never
       clears, and the shape course restarts from lesson one every game. `saveBox`
       should return whether it landed, and the callers should be able to tell.
-- [ ] **P2** The whole box is parsed and re-serialised twice per move pair.
+- [x] **P2** (fixed 2026-10-03: the register lives in a ref and is flushed at the end, on a new game and on unmount; `MSG_MAX` caps a message) The whole box is parsed and re-serialised twice per move pair.
       `noteTaught` calls `loadBox`/`saveBox` to increment one integer, synchronously
       between two network calls. With a thread at its 200-message cap that is real
       main-thread time per stone. Keep the register in a ref and flush it once at
       `endTraining`; cap message length in `isMsg` while you are there.
-- [ ] **P2** "Hide him" is a silent no-op when both doors are open. A profile that
+- [x] **P2** (fixed 2026-10-03: the button is offered only when the account door is closed) "Hide him" is a silent no-op when both doors are open. A profile that
       typed the phrase *and* signs in with the allowed address has `profile.sensei`
       true, so the button renders; clicking it clears the flag while the account door
       keeps him on, and the button comes straight back. Either hide the control when
       the account is the door, or have it close both.
-- [ ] **P2** His id leaks into the game log for anyone holding the device.
+- [x] **P2** (fixed 2026-10-03: his row is left out while he is locked, and carries his name when open) His id leaks into the game log for anyone holding the device.
       `nameOf` in `src/views/Profile.jsx` falls back to the raw id for a bot that is
       not in `PERSONAS`, and he never is - so the card shows a row reading `kejie`
       with a win/loss record whether or not this profile has unlocked him. Filter
@@ -2470,17 +2470,17 @@ these are older than that branch and none were introduced by it:
       Dynamic-import the module behind the access check so it code-splits. The
       digests themselves cannot be fixed by hashing harder; that part is a product
       call, not a bug.
-- [ ] **P3** The gloss contract is enforced at build time, not at runtime.
+- [x] **P3** (fixed 2026-10-03: `petName` drops an unglossed Han name, and glossing goes longest name first and consumes what it matched) The gloss contract is enforced at build time, not at runtime.
       `bareCJK` is only ever called by the test sweep, so the rule holds for the
       strings the suite enumerates and not for `profile.name`, which `petName` puts
       straight into the pool and which she can set to any Han string. `glossFor` also
       matches by substring, so a longer Han word containing a glossary name is
       annotated with the wrong meaning.
-- [ ] **P3** `isSummary` validates the mean but not the counts under it, so a
+- [x] **P3** (fixed 2026-10-03) `isSummary` validates the mean but not the counts under it, so a
       hand-edited `areas[a].n` of `"9999"` turns `areaMeans` arithmetic into string
       concatenation and `focusFor` names the wrong weakness with no error anywhere.
       Devtools-only, but the fix is one `Number.isFinite` check.
-- [ ] **P3** `.nav-ping` and `.letter-unread` are raised pills with no `background`,
+- [x] **P3** (fixed 2026-10-03: both take `--ground`) `.nav-ping` and `.letter-unread` are raised pills with no `background`,
       so the two shadows are drawn around transparent content and the surface behind
       them reads through.
 - [ ] The phrase is one shared digest. If a second person should ever have him, that is

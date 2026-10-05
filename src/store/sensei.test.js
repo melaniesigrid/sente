@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   SENSEI_KEY, THREAD_CAP, GAMES_CAP, loadBox, saveBox, postLetter, say, tell, unread, letters, markRead, rememberGame,
-  daysBetween, shouldWriteAbout, playedWithoutHim, shouldAsk, digestOf, phraseOpens, accountOpens,
+  daysBetween, shouldWriteAbout, playedWithoutHim, logMoved, markSeen, shouldAsk, MSG_MAX, digestOf, phraseOpens, accountOpens,
   teachShape, timesTaught, TAUGHT_CAP,
 } from "./sensei.js";
 
@@ -10,10 +10,60 @@ const memory = () => {
   return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, v), removeItem: (k) => m.delete(k) };
 };
 
+/* Every marker that stops him repeating himself lives in the box, so a write that
+   fails under a full quota cannot be allowed to drop a "yes" to his question. */
+describe("saving the box when storage is full", () => {
+  const tight = (limit) => {
+    const m = new Map();
+    return {
+      getItem: (k) => (m.has(k) ? m.get(k) : null),
+      setItem: (k, v) => { if (v.length > limit) throw new Error("QuotaExceededError"); m.set(k, v); },
+      removeItem: (k) => m.delete(k),
+    };
+  };
+  const chatty = (n) => {
+    let b = loadBox(tight(1e9));
+    for (let i = 0; i < n; i++) b = say(b, "x".repeat(100), "2026-09-10");
+    return { ...b, bond: "yes", enticed: "2026-09-10" };
+  };
+
+  it("says what it stored, and stores it all when there is room", () => {
+    const s = tight(1e9);
+    const b = chatty(10);
+    expect(saveBox(b, s)).toEqual(b);
+    expect(loadBox(s).thread).toHaveLength(10);
+  });
+
+  it("gives up the oldest of the thread before it gives up a marker", () => {
+    const s = tight(4000);
+    const b = chatty(150);
+    const kept = saveBox(b, s);
+    expect(kept, "something landed").not.toBeNull();
+    expect(kept.thread.length).toBeLessThan(150);
+    expect(kept.thread.at(-1)).toEqual(b.thread.at(-1));
+    const back = loadBox(s);
+    expect(back.bond, "the answer to his question survived").toBe("yes");
+    expect(back.enticed).toBe("2026-09-10");
+  });
+
+  it("answers null when nothing at all can be written", () => {
+    const blocked = { getItem: () => null, setItem: () => { throw new Error("SecurityError"); } };
+    expect(saveBox(chatty(3), blocked)).toBeNull();
+  });
+
+  it("will not keep a message longer than a message", () => {
+    const b = tell(loadBox(tight(1e9)), "y".repeat(MSG_MAX + 500), "2026-09-10");
+    expect(b.thread[0].text).toHaveLength(MSG_MAX);
+    const s = tight(1e9);
+    s.setItem(SENSEI_KEY, JSON.stringify({ thread: [{ who: "you", at: "d", text: "z".repeat(MSG_MAX + 1), read: true }] }));
+    expect(loadBox(s).thread).toEqual([]);
+  });
+});
+
 describe("the box", () => {
   it("starts empty and reads back what it saved", () => {
     const s = memory();
-    expect(loadBox(s)).toEqual({ thread: [], games: [], lastGame: "", wrote: "", greeted: "", enticed: "", seen: 0, bond: "", taught: {}, rung: "" });
+    expect(loadBox(s)).toEqual({ thread: [], games: [], lastGame: "", wrote: "", greeted: "", enticed: "", seen: 0, seenTail: "", bond: "", taught: {}, rung: "" });
     let box = postLetter(loadBox(s), "Come back.", "2026-09-13");
     box = tell(box, "Hi.", "2026-09-13");
     box = say(box, "Hello.", "2026-09-13", { read: true });
@@ -89,6 +139,29 @@ describe("noticing", () => {
     const box = { ...loadBox(memory()), seen: 1 };
     expect(playedWithoutHim(log, box, "kejie").map((g) => g.bot)).toEqual(["yuki", "tetsu"]);
     expect(playedWithoutHim(log, { ...box, seen: 4 }, "kejie")).toEqual([]);
+  });
+  /* The log is a ring of fifty. Counting its entries went blind for good the day
+     it filled: the length stays at fifty, so a game against somebody else never
+     looked new again. */
+  it("still sees a new game once the log is full and the oldest has rolled out", () => {
+    const game = (i, bot) => ({ at: "2026-09-10", size: 9, handicap: 0, bot, botRank: "10k", kind: "rated", result: "B+R", won: true, moves: i });
+    const full = Array.from({ length: 50 }, (_, i) => game(i, "kejie"));
+    const looked = markSeen(loadBox(memory()), full);
+    expect(playedWithoutHim(full, looked, "kejie")).toEqual([]);
+    expect(logMoved(full, looked)).toBe(false);
+    const next = [...full.slice(1), game(50, "yuki")];
+    expect(next.length, "still fifty").toBe(50);
+    expect(playedWithoutHim(next, looked, "kejie").map((g) => g.bot)).toEqual(["yuki"]);
+    expect(logMoved(next, looked)).toBe(true);
+    const again = markSeen(looked, next);
+    expect(playedWithoutHim(next, again, "kejie")).toEqual([]);
+    // Fifty games with somebody else since he last looked: all of them are news.
+    const away = Array.from({ length: 50 }, (_, i) => game(100 + i, "tetsu"));
+    expect(playedWithoutHim(away, again, "kejie")).toHaveLength(50);
+    // And the mark survives a round trip through storage.
+    const s = memory();
+    saveBox(again, s);
+    expect(loadBox(s).seenTail).toBe(again.seenTail);
   });
   it("asks once there are enough games, and never twice", () => {
     const box = loadBox(memory());
@@ -192,5 +265,17 @@ describe("the milestones on the road", () => {
     const store = memory();
     store.setItem(SENSEI_KEY, JSON.stringify({ rung: 7 }));
     expect(loadBox(store).rung).toBe("");
+  });
+});
+
+describe("a summary read back from the box", () => {
+  it("drops one whose counts are not counts", () => {
+    const s = new Map();
+    const store = { getItem: (k) => s.get(k) ?? null, setItem: (k, v) => s.set(k, v) };
+    const good = { at: "2026-09-10", mean: 1.5, areas: { shape: { n: 3, mean: 0.5 }, life: { n: 0, mean: null } } };
+    const bad = { ...good, areas: { shape: { n: "9999", mean: 0.5 } } };
+    const nan = { ...good, mean: NaN };
+    store.setItem(SENSEI_KEY, JSON.stringify({ games: [good, bad, nan] }));
+    expect(loadBox(store).games).toEqual([good]);
   });
 });

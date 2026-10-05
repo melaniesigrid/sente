@@ -49,6 +49,10 @@ import { useClock } from "./useClock.js";
 
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const MOMENT_MS = 2600;
+// How long the trainer waits on one network call before playing on without it.
+const TRAINER_DEADLINE_MS = 90000;
+// The trainer's box with this game's register laid over the stored one.
+const withTaught = (box, taught) => ({ ...box, taught: { ...box.taught, ...taught } });
 /** Rendered board width per size: bigger boards get more room; the stone scale never changes. */
 const BOARD_PX = { 9: 460, 13: 560, 19: 680 };
 
@@ -297,13 +301,23 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     }
   }, [sound, persona]);
 
-  /* One shape has been taught. The register is his, so it outlives the game. */
+  /* One shape has been taught. The register is his, so it outlives the game, but
+     it is counted here and written once - at the end of the game, on a new one,
+     or on leaving the table - rather than read and rewritten whole on every
+     stone, between two network calls, with a thread of two hundred messages in
+     the same blob. */
+  const taughtDirty = useRef(false);
   const noteTaught = useCallback((id) => {
     if (!id) return;
-    const box = teachShape(loadBox(), id);
-    saveBox(box);
-    trainerTaught.current = box.taught;
+    trainerTaught.current = teachShape({ taught: trainerTaught.current }, id).taught;
+    taughtDirty.current = true;
   }, []);
+  const flushTaught = useCallback(() => {
+    if (!taughtDirty.current) return;
+    taughtDirty.current = false;
+    saveBox(withTaught(loadBox(), trainerTaught.current));
+  }, []);
+  useEffect(() => flushTaught, [flushTaught]);
 
   /* The trainer's report. Written from the points gathered as the game went, so it
      costs nothing at the end; the same points seed the review graph. A letter goes
@@ -318,7 +332,8 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     }));
     if (points.length) seedAnalysis(next, points);
     const gifts = report.gifts;
-    const box = loadBox();
+    const box = withTaught(loadBox(), trainerTaught.current);
+    taughtDirty.current = false;
     const today = dayKey();
     saveBox(trainerRemember(postLetter(box, letterFor({
       won, name: profile.name, bonded: box.bond === "yes",
@@ -462,8 +477,17 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
   /* One network call at a time, in the order they were asked, so the trainer's
      points arrive in move order and a grade never reads a position it has not
      looked at yet. A call that fails resolves null; the game never waits on it. */
+  /* A call that never settles at all used to poison the queue for the rest of
+     the game, with the board locked under "thinking". Each call now races a
+     deadline that answers null, long enough to cover the network's first
+     download on a slow line. */
   const trainerAsk = useCallback((fn) => {
-    const run = trainerQueue.current.then(fn, fn).catch(() => null);
+    const within = () => {
+      let timer;
+      const late = new Promise((res) => { timer = setTimeout(() => res(null), TRAINER_DEADLINE_MS); });
+      return Promise.race([Promise.resolve().then(fn), late]).finally(() => clearTimeout(timer));
+    };
+    const run = trainerQueue.current.then(within, within).catch(() => null);
     trainerQueue.current = run.then(() => undefined, () => undefined);
     return run;
   }, []);
@@ -798,6 +822,7 @@ export function Game({ mode, onExit, profile, setProfile, notify, initial }) {
     trainerLastGift.current = null;
     trainerFacts.current = {};
     if (sensei) {
+      flushTaught();
       const box = loadBox();
       trainerFocus.current = focusFor(box.games);
       trainerTaught.current = box.taught;

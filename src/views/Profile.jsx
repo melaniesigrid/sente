@@ -27,7 +27,7 @@ import { loadAccount, saveAccount } from "../store/account.js";
 import { loadTelemetry, clearTelemetry, byBot, summarize, CAP } from "../store/telemetry.js";
 import { loadMemory, clearMemory, summarize as summarizeDeja, CAP as DEJA_CAP } from "../store/deja.js";
 import { PERSONAS } from "../content/personas.js";
-import { KE_JIE, reportLines, rankLine, AREA_WORDS, GLOSSARY, ON_THE_RECORD } from "../content/sensei.js";
+import { KE_JIE, SENSEI_ID, reportLines, rankLine, AREA_WORDS, GLOSSARY, ON_THE_RECORD } from "../content/sensei.js";
 import { phraseOpens, loadBox, saveBox, letters } from "../store/sensei.js";
 import { useTrainerAccess } from "./useTrainer.js";
 import { focusFor, trend } from "../engine/index.js";
@@ -83,13 +83,16 @@ function DejaCard({ on }) {
   );
 }
 
-function GameLogCard() {
+function GameLogCard({ trainerOn }) {
   const t = useT();
   const [log, setLog] = useState(loadTelemetry);
   const [confirming, setConfirming] = useState(false);
   const sum = summarize(log);
-  const bots = byBot(log);
-  const nameOf = (id) => PERSONAS.find(p => p.id === id)?.name || id;
+  /* He is never in PERSONAS, so his games used to be listed under his raw id, a
+     row reading "kejie" with a record, on a device where he is locked. Locked,
+     his row is left out; open, it carries his name. */
+  const bots = byBot(log).filter((r) => trainerOn || r.bot !== SENSEI_ID);
+  const nameOf = (id) => (id === SENSEI_ID ? KE_JIE.name : PERSONAS.find(p => p.id === id)?.name) || id;
 
   return (
     <Card>
@@ -147,14 +150,17 @@ function TrainerCard({ profile, account, commit }) {
   const [box, setBox] = useState(loadBox);
   const kept = letters(box).length;
   const trainerOn = useTrainerAccess(profile, account);
-  const fromAccount = trainerOn && !profile.sensei;
+  /* Two doors: the phrase sets `profile.sensei`, the account is the other. Hiding
+     him closes only the first, so with the account door open the button would
+     clear the flag and come straight back. It is offered only when it works. */
+  const accountDoor = useTrainerAccess(null, account);
   const focus = focusFor(box.games);
   const tr = trend(box.games);
   const tryOpen = async () => {
     if (await phraseOpens(phrase)) { commit({ sensei: true }); setPhrase(""); setWrong(false); }
     else setWrong(true);
   };
-  const burn = () => { const b = { ...loadBox(), thread: [] }; saveBox(b); setBox(b); };
+  const burn = () => { const b = { ...loadBox(), thread: [] }; setBox(saveBox(b) ?? b); };
   return (
     <Card>
       <div className="stat-head"><KeyRound size={16} /><span>{t("profile.trainer.head")}</span></div>
@@ -192,7 +198,7 @@ function TrainerCard({ profile, account, commit }) {
           </details>
           <div className="row" style={{ marginTop: 10 }}>
             <Btn small icon={Trash2} onClick={burn} disabled={box.thread.length === 0}>{t("profile.trainer.burn")}</Btn>
-            {!fromAccount && <Btn small onClick={() => commit({ sensei: false })}>{t("profile.trainer.hide")}</Btn>}
+            {!accountDoor && <Btn small onClick={() => commit({ sensei: false })}>{t("profile.trainer.hide")}</Btn>}
           </div>
         </>
       ) : (
@@ -627,7 +633,7 @@ export function ProfileView({ profile, setProfile, go, room, notify, writeTo = n
         </Card>
       </div>
       <DejaCard on={!!profile.dejaVu} />
-      <GameLogCard />
+      <GameLogCard trainerOn={trainerOn} />
 
       <Card inset>
         <p className="fine">{t("profile.device")}</p>

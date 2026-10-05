@@ -330,7 +330,11 @@ export const PET_NAMES = [
 /** A pet name for the moment: the go ones always, everything once bonded. Your
  *  own name stays in the pool so he does not always reach for one. */
 export function petName(seed = 0, name = "you", bonded = false) {
-  const pool = [name, ...PET_NAMES.filter((p) => bonded || p.mood === "go").map((p) => p.name)];
+  /* Her own name goes in the pool as she typed it, unless it is Chinese the
+     glossary cannot explain: then it would reach the screen with no sound and no
+     meaning beside it, which is the one thing the house rule below forbids. */
+  const own = bareCJK(name).length ? "you" : name;
+  const pool = [own, ...PET_NAMES.filter((p) => bonded || p.mood === "go").map((p) => p.name)];
   return pool[Math.abs(seed) % pool.length];
 }
 
@@ -340,11 +344,17 @@ export const GLOSSARY = [
   ...PET_NAMES.filter((p) => p.pinyin).map((p) => ({ name: p.name, pinyin: p.pinyin, means: p.means, role: "what he calls you" })),
 ];
 
+const GLOSSARY_LONGEST_FIRST = [...GLOSSARY].sort((a, b) => b.name.length - a.name.length);
+
 /** The glossary entries a line uses, so the thread can show the sound and the
  *  meaning under it. Only terms with a pinyin: an English pet name needs none. */
 export function glossFor(text) {
-  const t = String(text ?? "");
-  return GLOSSARY.filter((g) => t.includes(g.name));
+  let t = String(text ?? "");
+  /* Longest name first, and a name that matched is taken out of the line, so a
+     short name inside a longer one is not annotated with its own meaning too. */
+  const found = [];
+  for (const g of GLOSSARY_LONGEST_FIRST) if (t.includes(g.name)) { found.push(g); t = t.replaceAll(g.name, " "); }
+  return GLOSSARY.filter((g) => found.includes(g));
 }
 
 /* The house rule about his language, in one place so it can be tested.
@@ -366,7 +376,7 @@ export const CJK = /\p{Script=Han}/u;
  *  Empty is the only acceptable answer for anything he says. */
 export function bareCJK(text) {
   let t = String(text ?? "");
-  for (const g of GLOSSARY) t = t.replaceAll(g.name, " ");
+  for (const g of GLOSSARY_LONGEST_FIRST) t = t.replaceAll(g.name, " ");
   return [...t].filter((ch) => CJK.test(ch));
 }
 

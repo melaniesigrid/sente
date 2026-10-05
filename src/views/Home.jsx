@@ -32,7 +32,7 @@ import { loadTelemetry } from "../store/telemetry.js";
 import { personaById } from "../content/personas.js";
 import { useTrainerAccess } from "./useTrainer.js";
 import {
-  loadBox, saveBox, postLetter, markRead, unread, shouldWriteAbout, daysBetween, say, tell, playedWithoutHim, shouldAsk,
+  loadBox, saveBox, postLetter, markRead, unread, shouldWriteAbout, daysBetween, say, tell, playedWithoutHim, logMoved, markSeen, shouldAsk, MSG_MAX,
   rungPassed, markRung,
 } from "../store/sensei.js";
 import { useT } from "../components/langStore.js";
@@ -106,7 +106,7 @@ export function Home({ profile, go, onResume, notify = () => {} }) {
       const other = personaById(others[others.length - 1].bot);
       post((x) => say(x, jealousLine(other ? other.name : "somebody else", x.thread.length), today));
     }
-    if (log.length !== b.seen) post((x) => ({ ...x, seen: log.length }));
+    if (logMoved(log, b)) post((x) => markSeen(x, log));
     if (shouldWriteAbout(b, today)) {
       const away = daysBetween(b.lastGame, today);
       post((x) => postLetter(x, letterFor({ daysAway: away, name: profile.name, bonded }, away), today));
@@ -131,14 +131,14 @@ export function Home({ profile, go, onResume, notify = () => {} }) {
       post((x) => ({ ...say(x, enticeLine(x.thread.length, profile.name, bonded, { focus: focusFor(x.games) }), today), enticed: today }));
     }
     if (shouldAsk(b, BOND_AFTER)) post((x) => ({ ...say(x, bondQuestion(profile.name), today), bond: "asked" }));
-    if (changed) saveBox(b);
+    if (changed) b = saveBox(b) ?? b;
     setBox(b);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trainerOn, today]);
   const [draft, setDraft] = useState("");
   const threadEnd = useRef(null);
   useEffect(() => { const el = threadEnd.current; if (el && typeof el.scrollIntoView === "function") el.scrollIntoView({ block: "nearest" }); }, [box]);
-  const putAway = () => { if (!box) return; const b = markRead(box); saveBox(b); setBox(b); };
+  const putAway = () => { if (!box) return; const b = markRead(box); setBox(saveBox(b) ?? b); };
   const write = () => {
     const line = draft.trim();
     if (!line || !box) return;
@@ -150,12 +150,12 @@ export function Home({ profile, go, onResume, notify = () => {} }) {
     });
     let b = tell(box, line, today);
     for (const r of reply) b = say(b, r, today, { read: true });
-    saveBox(b); setBox(b); setDraft("");
+    setBox(saveBox(b) ?? b); setDraft("");
   };
   const answer = (yes) => {
     if (!box) return;
     const b = { ...say(box, yes ? bondYes() : bondNo(), today, { read: true }), bond: yes ? "yes" : "no" };
-    saveBox(b); setBox(b);
+    setBox(saveBox(b) ?? b);
   };
   const waiting = box ? unread(box).length : 0;
   useMokuFacts({ view: "home", seed: games });
@@ -282,7 +282,7 @@ export function Home({ profile, go, onResume, notify = () => {} }) {
             <div ref={threadEnd} />
           </div>
           <div className="chat-row">
-            <input className="chat-input" value={draft} placeholder={t("home.trainer.placeholder")}
+            <input className="chat-input" value={draft} maxLength={MSG_MAX} placeholder={t("home.trainer.placeholder")}
               onChange={(e) => setDraft(e.target.value)} onFocus={putAway}
               onKeyDown={(e) => e.key === "Enter" && write()} aria-label={t("home.trainer.placeholder")} />
             <button className="chat-send" onClick={write} aria-label={t("home.trainer.send")}><Send size={15} /></button>

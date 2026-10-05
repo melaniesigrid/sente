@@ -864,7 +864,7 @@ ${FONT_FACES}
    both saying "somebody wrote to you", so they are one rule and not two that
    drift apart. 12px is the floor of the type scale and this is meaning, not
    decoration, so it sits on the floor and not under it. */
-.letter-unread, .mail-count { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; box-shadow: var(--raise-sm); color: var(--accent-ink); }
+.letter-unread, .mail-count { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--ground); box-shadow: var(--raise-sm); color: var(--accent-ink); }
 /* The post box keeps the icon button's shape and hangs its count off the top
    corner. The count is pinned with inset-inline-end and never with right: in
    Hebrew the whole cluster mirrors, and a count nailed to the right would sit
@@ -941,7 +941,7 @@ ${FONT_FACES}
 .letter .diagram { margin-top: 8px; max-width: 100%; }
 .letter-you { margin-inline-start: auto; }
 .letter-name .here-dot, .trainer-card h3 .here-dot { margin-inline-start: 6px; }
-.nav-ping { font-size: 12px; font-weight: 700; min-width: 18px; padding: 1px 6px; border-radius: 999px; box-shadow: var(--raise-sm); color: var(--accent-ink); margin-inline-start: 6px; }
+.nav-ping { font-size: 12px; font-weight: 700; min-width: 18px; padding: 1px 6px; border-radius: 999px; background: var(--ground); box-shadow: var(--raise-sm); color: var(--accent-ink); margin-inline-start: 6px; }
 .bubble-gloss { display: block; margin-top: 4px; font-size: 12.5px; color: var(--ink-2); }
 /* The two Chinese names in the trainer header, with their sound and meaning. Never
    hidden behind a hover: a name you cannot read is not explained by a tooltip. */
