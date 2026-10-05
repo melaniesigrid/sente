@@ -12,8 +12,8 @@
    log, not on the account, because it is about this device's log; another
    device carries its own. A new game played after the carry is posted live,
    so nothing is counted twice. Nothing here can carry a coached game, a
-   duel, a master study or a jigo, for the same reason none of them moved the
-   device's own rating.
+   duel or a master study, for the same reason none of them moved the device's
+   own rating. A rated jigo is carried as the half point it is.
 
    Pure except for `carried`, `markCarried` and `carryHouseGames`. */
 import { ratingOfRank, rankWithHandicap } from "../content/rank.js";
@@ -33,10 +33,10 @@ export const HOUSE_RD = GLICKO.minRd;
 export function houseGamesFrom(log) {
   const out = [];
   for (const g of log ?? []) {
-    if (!g || g.kind !== "rated" || g.won === null || typeof g.botRank !== "string") continue;
+    if (!g || g.kind !== "rated" || typeof g.botRank !== "string") continue;
     const rating = ratingOfRank(rankWithHandicap(g.botRank, g.handicap));
     if (!Number.isFinite(rating)) continue;
-    out.push({ opponent: { rating: Math.round(rating), rd: HOUSE_RD }, score: g.won ? 1 : 0 });
+    out.push({ opponent: { rating: Math.round(rating), rd: HOUSE_RD }, score: g.won === null ? 0.5 : g.won ? 1 : 0 });
   }
   return out;
 }

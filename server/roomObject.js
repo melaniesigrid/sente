@@ -132,7 +132,10 @@ export class Room extends DurableObject {
     if (!out || room.settled) return;
     let settled;
     try { settled = await this.registry().settle(out); } catch (e) { settled = { rated: false, error: e.message }; }
-    const next = { ...room, settled };
+    /* Laid over the room as it is now. The call above lets other frames in, and a
+       "gg" or a review frame saved in that window was overwritten by the copy
+       taken before it. The settlement itself is idempotent at the Registry. */
+    const next = { ...(this.room ?? room), settled };
     await this.save(next);
     await this.registry().noteGame(summary(next));
     const frame = JSON.stringify({ t: "state", room: next });

@@ -272,7 +272,16 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
         answering.current = null;
       })
       .finally(() => { if (alive) setPartnerThinking(false); });
-    return () => { alive = false; };
+    /* Interrupted - a dropped socket, a resignation, any move landing while he
+       reads - the answer is thrown away, so the claim on this position goes with
+       it. Keeping the claim meant a reconnect found the position "answered" and
+       the partner never moved again; keeping the flag meant a game that had just
+       ended drew "thinking" for a seat that was no longer to play. */
+    return () => {
+      alive = false;
+      if (answering.current === at) answering.current = null;
+      setPartnerThinking(false);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [partnerUp, conn, rec && rec.moves.length]);
 
@@ -296,7 +305,7 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
       play(rec, c, r);
     } catch (e) {
       if (e instanceof IllegalMoveError) {
-        const text = refusalText(e.reason);
+        const text = refusalText(e.reason, t);
         if (text) notify({ icon: "info", text });
         return;   // a refused point changes nothing, including anything already staged
       }
@@ -366,7 +375,7 @@ export function OnlineGame({ gameId, onExit, profile, notify, go = null }) {
     catch { notify({ icon: "info", text: url.toString() }); }
   };
 
-  const status = partnerThinking && room
+  const status = partnerThinking && room && up
     ? t("game.status.thinking", { name: room.seats[up].name })
     : onlineStatus({ room, seat, conn }, t);
   const card = over ? resultCard(over, t) : null;

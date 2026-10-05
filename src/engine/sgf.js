@@ -125,7 +125,13 @@ export function parseSgf(text) {
   const p = root.props;
   const size = num(p.SZ, 19);
   if (!Number.isInteger(size) || size < 2 || size > 25) throw new SgfParseError(`unsupported board size ${p.SZ && p.SZ[0]}`, root.offset);
-  const handicap = num(p.HA, 0);
+  /* HA[1] is common in real files (a game "with one stone" is an even game
+     where Black just moves first), and it used to reach createGame's RangeError
+     as an unreadable file. 0 and 1 are no handicap; past nine is not a game the
+     record can hold, and says so as a parse error rather than a crash. */
+  const ha = num(p.HA, 0);
+  const handicap = Number.isInteger(ha) && ha >= 2 ? ha : 0;
+  if (handicap > 9) throw new SgfParseError(`unsupported handicap ${p.HA[0]}`, root.offset);
   const setup = { b: [], w: [] };
   const pts = (vals) => (vals || []).map(v => {
     const pt = pointFromSgf(v, size);

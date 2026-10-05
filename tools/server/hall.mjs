@@ -207,6 +207,24 @@ const run = async () => {
   await settle(500);
   assert(last(m, "error")?.reason === "already-taken", "nobody else can take a seat that is taken");
 
+  /* Two people sitting at the same board in the same instant. Opening the game
+     is a call out to the Registry, and the second "sit" used to arrive while it
+     was waiting, pass the same check, and open a second rated game against
+     the host; a line said in that window was then written over. */
+  f2.send(JSON.stringify({ t: "open", terms: { size: 9, handicap: 0, rated: true } }));
+  await settle(700);
+  const race = last(m, "said");
+  const satBefore = { m: m.frames.filter((x) => x.t === "sat").length, k: k.frames.filter((x) => x.t === "sat").length };
+  m.send(JSON.stringify({ t: "sit", id: race.line.id }));
+  k.send(JSON.stringify({ t: "sit", id: race.line.id }));
+  f2.send(JSON.stringify({ t: "say", text: "said while they sat down" }));
+  await settle(1500);
+  const sats = (m.frames.filter((x) => x.t === "sat").length - satBefore.m)
+    + (k.frames.filter((x) => x.t === "sat").length - satBefore.k);
+  assert(sats === 1, `two people sitting at once open one game, not two (opened ${sats})`);
+  assert(saidIn(await standIn(founder, club.id)).some((l) => l.text === "said while they sat down"),
+    "and what was said meanwhile is still in the room");
+
   /* ----- the door ----- */
   m.send(JSON.stringify({ t: "say", text: "something I said before I left" }));
   await settle(500);

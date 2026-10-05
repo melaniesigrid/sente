@@ -271,7 +271,7 @@ export function PairGame({ mode, onExit, profile, notify, initial }) {
       next = play(rec, c, r);
     } catch (e) {
       if (e instanceof IllegalMoveError) {
-        const text = refusalText(e.reason);
+        const text = refusalText(e.reason, t);
         if (text) notify({ icon: "info", text });
         return;
       }

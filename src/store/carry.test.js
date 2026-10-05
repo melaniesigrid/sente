@@ -20,9 +20,14 @@ describe("houseGamesFrom", () => {
   it("leaves out everything that did not move the device's rating either", () => {
     expect(houseGamesFrom([
       game({ kind: "coached" }), game({ kind: "duel" }), game({ kind: "master", botRank: null }),
-      game({ won: null }), game({ botRank: null }), null,
+      game({ botRank: null }), null,
     ])).toEqual([]);
     expect(houseGamesFrom(null)).toEqual([]);
+  });
+  /* A rated jigo moves the device's rating by half a point, so it is carried as
+     one. It used to be left out here and counted as a loss at the table. */
+  it("carries a rated jigo as the half point it is", () => {
+    expect(houseGamesFrom([game({ won: null, result: "0" })]).map((g) => g.score)).toEqual([0.5]);
   });
 });
 

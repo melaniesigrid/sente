@@ -271,6 +271,7 @@ export function seated(hall, channel, id, taken) {
   const stack = hall.lines[channel] || [];
   const line = stack.find((l) => l.id === id);
   if (!line) return { error: "no-such-table" };
+  if (line.taken) return { error: "already-taken" };
   const next = { ...line, taken };
   return {
     hall: { ...hall, lines: { ...hall.lines, [channel]: stack.map((l) => (l.id === id ? next : l)) } },
